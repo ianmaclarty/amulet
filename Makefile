@@ -1,73 +1,158 @@
-## Setup ##
+# Globals 
 
-SDL=SDL2-2.0.3
-LUA=lua-5.2.3
+SDL_DIR = deps/SDL2-2.0.3
+LUA_DIR = deps/lua-5.2.3
+LUAJIT_DIR = deps/LuaJIT-2.0.3
+ANGLE_DIR = deps/angle-chrome_m34
+GLM_DIR = deps/glm-0.9.5.3
 
--include settings
+TARGET_PLATFORMS = linux32 linux64 win32 osx ios android html5
 
-# Resolve host + target
+DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
+RELEASE_TARGETS = $(patsubst %,%.release,$(TARGET_PLATFORMS))
+
+TARGETS = $(DEBUG_TARGETS) $(RELEASE_TARGETS)
+
+# Resolve host
+
+PATH_SEP = :
+
 UNAME := $(shell uname)
 ifneq (,$(findstring W32,$(UNAME)))
-HOST_PLATFORM = win32
-PATH_SEP = ;
-EXE_EXT = .exe
-ALIB_EXT = .lib
-else
-PATH_SEP = :
-EXE_EXT = 
-ALIB_EXT = .a
-endif
-ifneq (,$(findstring Linux,$(UNAME)))
-UNAME_A := $(shell uname -a)
-ifneq (,$(findstring x86_64,$(UNAME_A)))
-HOST_PLATFORM = linux64
-else
-HOST_PLATFORM = linux32
-endif
-endif
-ifneq (,$(findstring Darwin,$(UNAME)))
-HOST_PLATFORM = osx
-endif
-
-ifndef TARGET_PLATFORM
-TARGET_PLATFORM=$(HOST_PLATFORM)
+  HOST_PLATFORM = win32
+  PATH_SEP = ;
+else ifneq (,$(findstring Linux,$(UNAME)))
+  UNAME_A := $(shell uname -a)
+  ifneq (,$(findstring x86_64,$(UNAME_A)))
+    HOST_PLATFORM = linux64
+  else
+    HOST_PLATFORM = linux32
+  endif
+else ifneq (,$(findstring Darwin,$(UNAME)))
+  HOST_PLATFORM = osx
 endif
 
 ifndef HOST_PLATFORM
 $(error Unrecognised host)
 endif
 
-ifndef GRADE
-GRADE=debug
+# Target platform setup
+
+-include settings
+
+ifdef TARGET
+  ifneq (,$(findstring .debug,$(TARGET)))
+    GRADE = debug
+    TARGET_PLATFORM = $(subst .debug,,$(TARGET))
+  else ifneq (,$(findstring .release,$(TARGET)))
+    GRADE = release
+    TARGET_PLATFORM = $(subst .release,,$(TARGET))
+  else
+    $(error Unrecognised TARGET: $(TARGET))
+  endif
+else
+  TARGET_PLATFORM = $(HOST_PLATFORM)
+  GRADE = debug
+  TARGET = $(TARGET_PLATFORM).$(GRADE)
 endif
 
+EXE_EXT = 
+ALIB_EXT = .a
+OBJ_EXT = .o
+CC=gcc
+CPP=g++
+DEPS=lua sdl
+LUA_TARGET=posix
+ifeq ($(TARGET_PLATFORM),osx)
+  CC=clang
+  CPP=clang++
+  LUA_TARGET=macosx
+endif
+ifeq ($(TARGET_PLATFORM),html5)
+  CC=emcc
+  CPP=em++
+  EXE_EXT=.html
+  DEPS=lua
+  LUA_TARGET=generic
+endif
+ifeq ($(TARGET_PLATFORM),win32)
+  EXE_EXT = .exe
+  ALIB_EXT = .lib
+  OBJ_EXT = .obj
+  CC=CL
+  CPP=CL
+  LUA_TARGET=generic
+endif
+
+# Build settings
+
+BUILD_BASE_DIR = build/$(TARGET_PLATFORM)/$(GRADE)
+BUILD_BIN_DIR = $(BUILD_BASE_DIR)/bin
+BUILD_LIB_DIR = $(BUILD_BASE_DIR)/lib
+BUILD_INCLUDE_DIR = $(BUILD_BASE_DIR)/include
+BUILD_STAGING_DIR = $(BUILD_BASE_DIR)/staging
+BUILD_DIRS = $(BUILD_BIN_DIR) $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR) $(BUILD_STAGING_DIR)
+
+AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
+
+DEP_LIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(DEPS))
+
+SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
+LUA_ALIB = $(BUILD_LIB_DIR)/liblua$(ALIB_EXT)
+
+MAIN_TARGET = $(AMULET)
+
+AM_CPP_FILES = $(wildcard src/*.cpp)
+AM_H_FILES = $(wildcard src/*.h)
+AM_OBJ_FILES = $(patsubst src/%.cpp,$(BUILD_STAGING_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
+
+# Rules
+
+default: $(AMULET)
+
+$(AMULET): $(AM_OBJ_FILES) $(DEP_LIBS) | $(BUILD_BIN_DIR)
+	$(CPP) $(AM_OBJ_FILES) -o $@
+
+$(AM_OBJ_FILES): $(BUILD_STAGING_DIR)/%$(OBJ_EXT): src/%.cpp $(AM_H_FILES) | $(BUILD_STAGING_DIR)
+	$(CPP) -c $< -o $@
+
+$(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
+	cd $(SDL_DIR) && ./configure CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
+	cp $(SDL_DIR)/build/.libs/libSDL2.a $@
+	cp -r $(SDL_DIR)/include/* $(BUILD_INCLUDE_DIR)/
+
+$(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
+	cd $(LUA_DIR) && $(MAKE) clean $(LUA_TARGET)
+	cp $(LUA_DIR)/src/liblua.a $@
+	cp $(LUA_DIR)/src/lua.h $(BUILD_INCLUDE_DIR)/
+	cp $(LUA_DIR)/src/lauxlib.h $(BUILD_INCLUDE_DIR)/
+	cp $(LUA_DIR)/src/luaconf.h $(BUILD_INCLUDE_DIR)/
+	cp $(LUA_DIR)/src/lualib.h $(BUILD_INCLUDE_DIR)/
+
+$(TARGETS): %:
+	@$(MAKE) TARGET=$@
+
+$(BUILD_DIRS): %:
+	mkdir -p $@
+
+clean:
+	rm -f $(BUILD_STAGING_DIR)/*
+	rm -f $(BUILD_BIN_DIR)/*
+
+clean-target:
+	rm -rf $(BUILD_BASE_DIR)
+
+clean-all:
+	rm -rf build
+
 # Banner
-$(info == Building Amulet ==)
-$(info Target: $(TARGET_PLATFORM))
-$(info Host:   $(HOST_PLATFORM))
-$(info =====================)
-
-BUILD_BASE_DIR=build/$(TARGET_PLATFORM)/$(GRADE)
-BUILD_BIN_DIR=$(BUILD_BASE_DIR)/bin
-BUILD_LIB_DIR=$(BUILD_BASE_DIR)/lib
-BUILD_INCLUDE_DIR=$(BUILD_BASE_DIR)/include
-BUILD_STAGING_DIR=$(BUILD_BASE_DIR)/staging
-AMULET_BINARY=$(BUILD_BIN_DIR)/amulet$(EXE_EXT)
-
-SDL_ALIB=$(BUILD_BASE_DIR)/lib/libsdl$(ALIB_EXT)
-LUA_ALIB=$(BUILD_BASE_DIR)/lib/liblua$(ALIB_EXT)
-
-## Rules ##
-
-default: $(AMULET_BINARY)
-
-linux64: sdl.date.$(TARGET_PLATFORM) lua.date.$(TARGET_PLATFORM)
-
-sdl.date.$(TARGET_PLATFORM):
-	cd deps/$(SDL) && ./configure && make
-	touch $@
-
-lua.date.$(TARGET_PLATFORM):
-	cd deps/$(LUA) && make posix
-	touch $@
-
+ifeq (,$(MAKECMDGOALS))
+  $(info ======== Amulet build settings ========)
+  $(info Target: $(TARGET_PLATFORM))
+  $(info Grade:  $(GRADE))
+  $(info Host:   $(HOST_PLATFORM))
+  $(info CC:     $(CC))
+  $(info CPP:    $(CPP))
+  $(info DEPS:   $(DEPS))
+  $(info =======================================)
+endif
