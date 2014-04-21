@@ -5,3 +5,5 @@ amulet
 *.exe
 build/**/include/*
 build/**/staging/*
+build/**/lib/*.a
+tags

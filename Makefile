@@ -102,19 +102,24 @@ LUA_ALIB = $(BUILD_LIB_DIR)/liblua$(ALIB_EXT)
 
 MAIN_TARGET = $(AMULET)
 
-AM_CPP_FILES = $(wildcard src/*.cpp)
-AM_H_FILES = $(wildcard src/*.h)
-AM_OBJ_FILES = $(patsubst src/%.cpp,$(BUILD_STAGING_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
+AM_C_FILES = $(wildcard src/c/*.c)
+AM_H_FILES = $(wildcard src/c/*.h)
+AM_OBJ_FILES = $(patsubst src/c/%.c,$(BUILD_STAGING_DIR)/%$(OBJ_EXT),$(AM_C_FILES))
+
+GRADE_CFLAGS=-g
+CC_FLAGS = $(GRADE_CFLAGS) -I$(BUILD_INCLUDE_DIR) -pthread
+LINK_FLAGS = $(GRADE_CFLAGS) $(BUILD_LIB_DIR)/libsdl.a $(BUILD_LIB_DIR)/liblua.a -lGL -ldl -lm -lrt -pthread
 
 # Rules
 
 default: $(AMULET)
 
 $(AMULET): $(AM_OBJ_FILES) $(DEP_LIBS) | $(BUILD_BIN_DIR)
-	$(CPP) $(AM_OBJ_FILES) -o $@
+	$(CC) $(AM_OBJ_FILES) $(LINK_FLAGS) -o $@
+	ln -fs $@ `basename $@`
 
-$(AM_OBJ_FILES): $(BUILD_STAGING_DIR)/%$(OBJ_EXT): src/%.cpp $(AM_H_FILES) | $(BUILD_STAGING_DIR)
-	$(CPP) -c $< -o $@
+$(AM_OBJ_FILES): $(BUILD_STAGING_DIR)/%$(OBJ_EXT): src/c/%.c $(AM_H_FILES) | $(BUILD_STAGING_DIR)
+	$(CC) $(CC_FLAGS) -c $< -o $@
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
 	cd $(SDL_DIR) && ./configure CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
@@ -156,3 +161,8 @@ ifeq (,$(MAKECMDGOALS))
   $(info DEPS:   $(DEPS))
   $(info =======================================)
 endif
+
+# Tags
+.PHONY: tags
+tags:
+	ctags `find src -name "*.c"` `find src -name "*.cpp"` `find src -name "*.h"` `find deps -name "*.c"` `find deps -name "*.cpp"` `find deps -name "*.h"`
