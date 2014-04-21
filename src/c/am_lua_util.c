@@ -20,6 +20,10 @@ void am_lua_set_metatable(lua_State *L, int metatable_id, int idx) {
     lua_setmetatable(L, idx < 0 ? idx-1 : idx);
 }
 
+void am_lua_push_metatable(lua_State *L, int metatable_id) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
+}
+
 int am_lua_has_metatable_id(lua_State *L, int metatable_id, int idx) {
     int r;
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
