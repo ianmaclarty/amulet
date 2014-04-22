@@ -1,12 +1,15 @@
 #include <stdio.h>
-#include "SDL.h"
-#include "SDL_opengl.h"
 
 #define AMULET_LUA_MODULE_NAME "amulet"
+
+extern "C" {
+#include "SDL.h"
+#include "SDL_opengl.h"
 
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
+}
 
 #include "am_metatable_ids.h"
 #include "am_lua_util.h"
