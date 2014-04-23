@@ -2,10 +2,12 @@
 
 #define AMULET_LUA_MODULE_NAME "amulet"
 
-extern "C" {
-#include "SDL.h"
-#include "SDL_opengl.h"
+#define GLEW_STATIC 1
+#include "GL/glew.h"
 
+#include "SDL.h"
+
+extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"

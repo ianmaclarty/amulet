@@ -43,26 +43,26 @@ void *am_lua_check_metatable_id(lua_State *L, int metatable_id, int idx) {
         lua_pushnil(L);
     }
     if (!lua_rawequal(L, -1, -2)) {
-        const char *typename;
-        const char *argtypename;
+        const char *tname;
+        const char *argtname;
         int argtype;
-        lua_pushstring(L, "typename");
+        lua_pushstring(L, "tname");
         lua_rawget(L, -3);
-        typename = lua_tostring(L, -1);
+        tname = lua_tostring(L, -1);
         lua_pop(L, 1);
-        if (typename == NULL) typename = "userdata";
+        if (tname == NULL) tname = "userdata";
         argtype = lua_type(L, idx);
         if (argtype == LUA_TUSERDATA && !lua_isnil(L, -1)) {
-            lua_pushstring(L, "typename");
+            lua_pushstring(L, "tname");
             lua_rawget(L, -2);
-            argtypename = lua_tostring(L, -1);
+            argtname = lua_tostring(L, -1);
             lua_pop(L, 1);
-            if (argtypename == NULL) argtypename = "userdata";
+            if (argtname == NULL) argtname = "userdata";
         } else {
-            argtypename = lua_typename(L, argtype);
+            argtname = lua_typename(L, argtype);
         }
         lua_pop(L, 2);
-        luaL_error(L, "Expecting a value of type '%s' at position %d (got '%s')", typename, idx, argtypename);
+        luaL_error(L, "Expecting a value of type '%s' at position %d (got '%s')", tname, idx, argtname);
         return NULL;
     }
     lua_pop(L, 2);
