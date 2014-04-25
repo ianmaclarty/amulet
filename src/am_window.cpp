@@ -5,19 +5,19 @@ SDL_GLContext gl_context;
 
 /* Lua bindings */
 
-static int l_create_window(lua_State *L) {
+static int create_window(lua_State *L) {
     int done = 0;
     const char *title = lua_tostring(L, 1);
     int w = luaL_checkinteger(L, 2);
     int h = luaL_checkinteger(L, 3);
     if (title == NULL) {
-        return luaL_error(L, "Expecting a string in argument 1");
+        return luaL_error(L, "expecting a string in argument 1");
     }
     if (!lua_isfunction(L, 4)) {
-        return luaL_error(L, "Expecting a function in argument 4");
+        return luaL_error(L, "expecting a function in argument 4");
     }
     if (sdl_win != NULL) {
-        return luaL_error(L, "Window already created");
+        return luaL_error(L, "window already created");
     }
     sdl_win = SDL_CreateWindow(
         title,
@@ -52,10 +52,10 @@ static int l_create_window(lua_State *L) {
     sdl_win = NULL;
 }
 
-void am_lua_window_module_setup(lua_State *L) {
+void am_open_window_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"create_window",    l_create_window},
+        {"create_window",    create_window},
         {NULL, NULL}
     };
-    am_lua_load_module(L, "am", funcs);
+    am_open_module(L, "amulet", funcs);
 }

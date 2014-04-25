@@ -38,15 +38,15 @@ GLuint load_shader(lua_State *L, GLenum type, const char *src) {
    return shader;
 }
 
-static int l_create_shader_program(lua_State *L) {
+static int create_shader_program(lua_State *L) {
     GLint linked;
     const char *vertex_shader_source = lua_tostring(L, 1);
     const char *fragment_shader_source = lua_tostring(L, 2);
     if (vertex_shader_source == NULL) {
-        return luaL_error(L, "Expecting a string in argument 1");
+        return luaL_error(L, "expecting a string in argument 1");
     }
     if (fragment_shader_source == NULL) {
-        return luaL_error(L, "Expecting a string in argument 2");
+        return luaL_error(L, "expecting a string in argument 2");
     }
 
     GLuint vertex_shader = load_shader(L, GL_VERTEX_SHADER, vertex_shader_source);
@@ -63,7 +63,7 @@ static int l_create_shader_program(lua_State *L) {
     if (program == 0) {
         glDeleteShader(vertex_shader);
         glDeleteShader(fragment_shader);
-        return luaL_error(L, "Unable to create new shader program");
+        return luaL_error(L, "unable to create new shader program");
     }
 
     glAttachShader(program, vertex_shader);
@@ -93,24 +93,24 @@ static int l_create_shader_program(lua_State *L) {
     GLuint *program_ud = (GLuint*)lua_newuserdata(L, sizeof(GLuint));
     *program_ud = program;
 
-    am_lua_set_metatable(L, AM_MT_SHADER_PROGRAM, -1);
+    am_set_metatable(L, AM_MT_SHADER_PROGRAM, -1);
 
     return 1;
 }
 
-static int l_shader_program_gc(lua_State *L) {
-    GLuint *program = (GLuint*)am_lua_check_metatable_id(L, AM_MT_SHADER_PROGRAM, 1);
+static int delete_shader_program(lua_State *L) {
+    GLuint *program = (GLuint*)am_check_metatable_id(L, AM_MT_SHADER_PROGRAM, 1);
     glDeleteProgram(*program);
     return 0;
 }
 
-static int l_use_shader_program(lua_State *L) {
-    GLuint *program = (GLuint*)am_lua_check_metatable_id(L, AM_MT_SHADER_PROGRAM, 1);
+static int use_shader_program(lua_State *L) {
+    GLuint *program = (GLuint*)am_check_metatable_id(L, AM_MT_SHADER_PROGRAM, 1);
     glUseProgram(*program);
     return 0;
 }
 
-static int l_clear(lua_State *L) {
+static int clear(lua_State *L) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     return 0;
@@ -118,18 +118,18 @@ static int l_clear(lua_State *L) {
 
 void register_program_shader_metatable(lua_State *L) {
     lua_newtable(L);
-    lua_pushcclosure(L, l_shader_program_gc, 0);
+    lua_pushcclosure(L, delete_shader_program, 0);
     lua_setfield(L, -2, "__gc");
-    am_lua_register_metatable(L, AM_MT_SHADER_PROGRAM);
+    am_register_metatable(L, AM_MT_SHADER_PROGRAM);
 }
 
-void am_lua_gl_module_setup(lua_State *L) {
+void am_open_gl_module(lua_State *L) {
     register_program_shader_metatable(L);
     luaL_Reg funcs[] = {
-        {"create_shader_program",    l_create_shader_program},
-        {"use_shader_program",       l_use_shader_program},
-        {"clear",                    l_clear},
+        {"create_shader_program",    create_shader_program},
+        {"use_shader_program",       use_shader_program},
+        {"clear",                    clear},
         {NULL, NULL}
     };
-    am_lua_load_module(L, "am", funcs);
+    am_open_module(L, "amulet", funcs);
 }

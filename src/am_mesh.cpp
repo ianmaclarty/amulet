@@ -25,18 +25,18 @@ static const int field_types[] = {
  * })
  */
 
-typedef struct am_mesh_data {
+struct am_mesh_data {
     int stride;
     int size;
     unsigned char data[];
-} am_mesh_data;
+};
 
 static int parse_layout_def(lua_State *L) {
     int num_fields;
     int i;
     int offset = 0;
     if (!lua_istable(L, 2)) {
-        return luaL_error(L, "Expecting a table in argument 2");
+        return luaL_error(L, "expecting a table in argument 2");
     }
     lua_newtable(L);
     num_fields = lua_rawlen(L, 2);
@@ -47,21 +47,21 @@ static int parse_layout_def(lua_State *L) {
 
         lua_rawgeti(L, -1, 1); /* lookup field name */
         if (!lua_isstring(L, -1)) {
-            return luaL_error(L, "Missing field name in layout def row %d", i);
+            return luaL_error(L, "missing field name in layout def row %d", i);
         }
 
-        am_lua_push_metatable(L, AM_MT_MESH);
+        am_push_metatable(L, AM_MT_MESH);
         lua_rawgeti(L, -1, 2); /* push field type name */
         lua_rawget(L, -2);     /* look up type info */
         type_info = lua_tointegerx(L, -1, &isnum);
         if (!isnum) {
-            return luaL_error(L, "Invalid type for field '%s'", lua_tostring(L, -2));
+            return luaL_error(L, "invalid type for field '%s'", lua_tostring(L, -2));
         }
         while (offset & get_falign(type_info)) {
             offset++;
         }
         if (offset > MAX_OFFSET) {
-            return luaL_error(L, "Too many fields :(");
+            return luaL_error(L, "too many fields :(");
         }
 
         /* update type_info with offset */
@@ -83,13 +83,13 @@ static int parse_layout_def(lua_State *L) {
 static int l_create_mesh(lua_State *L) {
     int num_rows = luaL_checkinteger(L, 1);
     if (num_rows <= 0) {
-        return luaL_error(L, "Number of rows must be positive");
+        return luaL_error(L, "number of rows must be positive");
     }
     int stride = parse_layout_def(L); /* pushes env table */
     am_mesh_data *mesh = (am_mesh_data*)lua_newuserdata(L, sizeof(am_mesh_data) + num_rows * stride);
     lua_pushvalue(L, -2);
     lua_setuservalue(L, -2);
     lua_remove(L, -2); /* remove env table */
-    am_lua_set_metatable(L, AM_MT_MESH, -1);
+    am_set_metatable(L, AM_MT_MESH, -1);
     return 1;
 }

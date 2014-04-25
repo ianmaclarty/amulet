@@ -1,20 +1,24 @@
 #include "amulet.h"
 
 static void init_metatable_ref_slots(lua_State *L);
+static void open_stdlualibs(lua_State *L);
 
-lua_State *am_engine_init() {
+lua_State *am_init_engine(bool worker) {
     lua_State *L = luaL_newstate();
-    luaL_openlibs(L);
-
     init_metatable_ref_slots(L);
+    open_stdlualibs(L);
 
-    am_lua_window_module_setup(L);
-    am_lua_gl_module_setup(L);
+    if (!worker) {
+        am_open_window_module(L);
+        am_open_gl_module(L);
+    }
+
+    am_no_new_globals(L);
 
     return L;
 }
 
-void am_engine_destroy(lua_State *L) {
+void am_destroy_engine(lua_State *L) {
     lua_close(L);
 }
 
@@ -37,4 +41,23 @@ static void init_metatable_ref_slots(lua_State *L) {
         }
         j++;
     }
+}
+
+static void open_stdlualibs(lua_State *L) {
+    luaL_requiref(L, "base", luaopen_base, 0);
+    lua_pop(L, 1);
+    luaL_requiref(L, "package", luaopen_package, 0);
+    lua_pop(L, 1);
+    luaL_requiref(L, "math", luaopen_math, 0);
+    lua_pop(L, 1);
+    luaL_requiref(L, "coroutine", luaopen_coroutine, 0);
+    lua_pop(L, 1);
+    luaL_requiref(L, "string", luaopen_string, 0);
+    lua_pop(L, 1);
+    luaL_requiref(L, "table", luaopen_table, 0);
+    lua_pop(L, 1);
+    luaL_requiref(L, "os", luaopen_os, 0);
+    lua_pop(L, 1);
+    luaL_requiref(L, "debug", luaopen_debug, 0);
+    lua_pop(L, 1);
 }

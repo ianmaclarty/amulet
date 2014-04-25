@@ -1,2 +1,2 @@
-lua_State *am_engine_init();
-void am_engine_destroy(lua_State *L);
+lua_State *am_init_engine(bool worker);
+void am_destroy_engine(lua_State *L);

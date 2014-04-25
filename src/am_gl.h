@@ -1,1 +1,1 @@
-void am_lua_gl_module_setup(lua_State *L);
+void am_open_gl_module(lua_State *L);
