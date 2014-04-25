@@ -9,6 +9,7 @@ int main (int argc, char **argv) {
         fprintf(stderr, "expecting 1 argument\n"); 
         return 1;
     }
+
     lua_State *L = am_init_engine(0);
     int status = luaL_dofile(L, argv[1]);
     report_status(L, status);

@@ -10,12 +10,25 @@ static int new_global_error(lua_State *L) {
 }
 
 void am_no_new_globals(lua_State *L) {
+#ifndef AM_LUAJIT
     lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+#endif
     lua_newtable(L);
     lua_pushcfunction(L, new_global_error);
     lua_setfield(L, -2, "__newindex");
+#ifdef AM_LUAJIT
+    lua_setmetatable(L, LUA_GLOBALSINDEX);
+#else
     lua_setmetatable(L, -2);
     lua_pop(L, 1);
+#endif
+}
+
+static void setfuncs(lua_State *L, const luaL_Reg *l) {
+    for (; l->name != NULL; l++) {
+        lua_pushcfunction(L, l->func);
+        lua_setfield(L, -2, l->name);
+    }
 }
 
 void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs) {
@@ -27,8 +40,23 @@ void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs) {
         lua_pushvalue(L, -1);
         lua_setfield(L, -3, name);
     }
-    luaL_setfuncs(L, funcs, 0);
+    setfuncs(L, funcs);
     lua_pop(L, 2);
+}
+
+void am_requiref(lua_State *L, const char *modname, lua_CFunction openf) {
+#ifdef AM_LUAJIT
+    lua_pushcfunction(L, openf);
+    lua_pushstring(L, modname);  /* argument to open function */
+    lua_call(L, 1, 1);  /* open module */
+    luaL_findtable(L, LUA_REGISTRYINDEX, "_LOADED", 16);
+    lua_pushvalue(L, -2);  /* make copy of module (call result) */
+    lua_setfield(L, -2, modname);  /* _LOADED[modname] = module */
+    lua_pop(L, 2);  /* remove _LOADED table and call result */
+#else
+    luaL_requiref(L, modname, openf, 0);
+    lua_pop(L, 1);
+#endif
 }
 
 void am_register_metatable(lua_State *L, int id) {
@@ -88,3 +116,13 @@ void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
     lua_pop(L, 2);
     return lua_touserdata(L, idx);
 }
+
+#ifdef AM_LUAJIT
+void lua_setuservalue(lua_State *L, int idx) {
+    lua_setfenv(L, idx);
+}
+
+int lua_rawlen(lua_State *L, int idx) {
+    return lua_objlen(L, idx);
+}
+#endif

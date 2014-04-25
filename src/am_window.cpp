@@ -50,6 +50,7 @@ static int create_window(lua_State *L) {
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(sdl_win);
     sdl_win = NULL;
+    return 0;
 }
 
 void am_open_window_module(lua_State *L) {

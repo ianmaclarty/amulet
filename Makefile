@@ -36,7 +36,7 @@ else ifneq (,$(findstring Darwin,$(UNAME)))
 endif
 
 ifndef HOST_PLATFORM
-$(error Unrecognised host)
+  $(error Unrecognised host)
 endif
 
 # Target platform setup
@@ -59,32 +59,44 @@ else
   TARGET = $(TARGET_PLATFORM).$(GRADE)
 endif
 
+ifndef LUAVM
+  LUAVM=luajit
+endif
+
 EXE_EXT = 
 ALIB_EXT = .a
 OBJ_EXT = .o
-CC=gcc
-CPP=g++
-DEPS=lua sdl glew
-LUA_TARGET=posix
+DEF_OPT = -D
+INCLUDE_OPT = -I
+CC = gcc
+CPP = g++
+LINK = g++
+DEPS = $(LUAVM) sdl glew
+LUA_TARGET = posix
+XCFLAGS = -Werror -Wall -pthread
+XLDFLAGS = -lGL -ldl -lm -lrt -pthread
+AM_DEFS = AM_$(shell echo $(TARGET_PLATFORM) | tr a-z A-Z) AM_$(shell echo $(GRADE) | tr a-z A-Z)
+
 ifeq ($(TARGET_PLATFORM),osx)
-  CC=clang
-  CPP=clang++
-  LUA_TARGET=macosx
+  CC = clang
+  CPP = clang++
+  LUA_TARGET = macosx
 endif
 ifeq ($(TARGET_PLATFORM),html5)
-  CC=emcc
-  CPP=em++
-  EXE_EXT=.html
-  DEPS=lua
-  LUA_TARGET=generic
+  CC = emcc
+  CPP = em++
+  EXE_EXT = .html
+  LUAVM = lua
+  DEPS = lua
+  LUA_TARGET = generic
 endif
 ifeq ($(TARGET_PLATFORM),win32)
   EXE_EXT = .exe
   ALIB_EXT = .lib
   OBJ_EXT = .obj
-  CC=CL
-  CPP=CL
-  LUA_TARGET=generic
+  CC = CL
+  CPP = CL
+  LUA_TARGET = generic
 endif
 
 # Build settings
@@ -94,15 +106,29 @@ BUILD_BIN_DIR = $(BUILD_BASE_DIR)/bin
 BUILD_LIB_DIR = $(BUILD_BASE_DIR)/lib
 BUILD_INCLUDE_DIR = $(BUILD_BASE_DIR)/include
 BUILD_STAGING_DIR = $(BUILD_BASE_DIR)/staging
-BUILD_DIRS = $(BUILD_BIN_DIR) $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR) $(BUILD_STAGING_DIR)
+
+BUILD_LUA_INCLUDE_DIR = $(BUILD_INCLUDE_DIR)/lua
+BUILD_LUAJIT_INCLUDE_DIR = $(BUILD_INCLUDE_DIR)/luajit
+
+BUILD_DIRS = $(BUILD_BIN_DIR) $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR) $(BUILD_STAGING_DIR) \
+	$(BUILD_LUAJIT_INCLUDE_DIR) $(BUILD_LUA_INCLUDE_DIR)
+
+ifeq ($(LUAVM),luajit)
+  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUAJIT_INCLUDE_DIR)
+  AM_DEFS += AM_LUAJIT
+else
+  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA_INCLUDE_DIR)
+endif
 
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
-DEP_LIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(DEPS))
+DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(DEPS))
 
 SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
 GLEW_ALIB = $(BUILD_LIB_DIR)/libglew$(ALIB_EXT)
 LUA_ALIB = $(BUILD_LIB_DIR)/liblua$(ALIB_EXT)
+LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
+LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 
 MAIN_TARGET = $(AMULET)
 
@@ -110,33 +136,61 @@ AM_CPP_FILES = $(wildcard $(SRC_DIR)/*.cpp)
 AM_H_FILES = $(wildcard $(SRC_DIR)/*.h)
 AM_OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_STAGING_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
 
-GRADE_CFLAGS=-g
-CC_FLAGS = $(GRADE_CFLAGS) -I$(BUILD_INCLUDE_DIR) -pthread
-LINK_FLAGS = $(GRADE_CFLAGS) $(SDL_ALIB) $(LUA_ALIB) $(GLEW_ALIB) -lGL -ldl -lm -lrt -pthread
+ifeq ($(GRADE),debug)
+  GRADE_CFLAGS = -g -O0
+  GRADE_LDFLAGS = -g
+  LUA_CFLAGS = -DLUA_USE_APICHECK -g -O0
+  LUA_LDFLAGS = -g
+  LUAJIT_CFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT -DLUA_USE_APICHECK -g -O0
+  LUAJIT_LDFLAGS = -g
+else
+  GRADE_CFLAGS = -O3 -DNDEBUG
+  GRADE_LDFLAGS = -s
+  LUA_CFLAGS = -O3
+  LUA_LDFLAGS =
+  LUAJIT_CFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT
+  LUAJIT_LDFLAGS =
+endif
+
+AM_INCLUDE_FLAGS = $(INCLUDE_OPT)$(BUILD_INCLUDE_DIR) $(INCLUDE_OPT)$(BUILD_LUAVM_INCLUDE_DIR)
+
+AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
+
+AM_CFLAGS = $(AM_DEF_FLAGS) $(GRADE_CFLAGS) $(AM_INCLUDE_FLAGS) $(XCFLAGS) $(CFLAGS)
+AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
 # Rules
 
 default: $(AMULET)
 
-$(AMULET): $(DEP_LIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
-	$(CPP) $(AM_OBJ_FILES) $(LINK_FLAGS) -o $@
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
+	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
 	ln -fs $@ `basename $@`
+	@echo DONE
 
 $(AM_OBJ_FILES): $(BUILD_STAGING_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_STAGING_DIR)
-	$(CC) $(CC_FLAGS) -c $< -o $@
+	$(CPP) $(AM_CFLAGS) -c $< -o $@
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
 	cd $(SDL_DIR) && ./configure CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
 	cp -r $(SDL_DIR)/include/* $(BUILD_INCLUDE_DIR)/
 	cp $(SDL_DIR)/build/.libs/libSDL2.a $@
 
-$(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
-	cd $(LUA_DIR) && $(MAKE) clean $(LUA_TARGET)
-	cp $(LUA_DIR)/src/lua.h $(BUILD_INCLUDE_DIR)/
-	cp $(LUA_DIR)/src/lauxlib.h $(BUILD_INCLUDE_DIR)/
-	cp $(LUA_DIR)/src/luaconf.h $(BUILD_INCLUDE_DIR)/
-	cp $(LUA_DIR)/src/lualib.h $(BUILD_INCLUDE_DIR)/
+$(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
+	cd $(LUA_DIR) && $(MAKE) clean $(LUA_TARGET) MYCFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)"
+	cp $(LUA_DIR)/src/lua.h $(BUILD_LUA_INCLUDE_DIR)/
+	cp $(LUA_DIR)/src/lauxlib.h $(BUILD_LUA_INCLUDE_DIR)/
+	cp $(LUA_DIR)/src/luaconf.h $(BUILD_LUA_INCLUDE_DIR)/
+	cp $(LUA_DIR)/src/lualib.h $(BUILD_LUA_INCLUDE_DIR)/
 	cp $(LUA_DIR)/src/liblua.a $@
+
+$(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
+	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"
+	cp $(LUAJIT_DIR)/src/lua.h $(BUILD_LUAJIT_INCLUDE_DIR)/
+	cp $(LUAJIT_DIR)/src/lauxlib.h $(BUILD_LUAJIT_INCLUDE_DIR)/
+	cp $(LUAJIT_DIR)/src/luaconf.h $(BUILD_LUAJIT_INCLUDE_DIR)/
+	cp $(LUAJIT_DIR)/src/lualib.h $(BUILD_LUAJIT_INCLUDE_DIR)/
+	cp $(LUAJIT_DIR)/src/libluajit.a $@
 
 $(GLEW_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
 	cd $(GLEW_DIR) && $(MAKE) clean all
@@ -159,15 +213,20 @@ clean-target:
 clean-all:
 	rm -rf build
 
+# Avoid setting options or variables in submakes.
+# This can screw up the dep builds (in particular setting TARGET screws the sdl build).
+MAKEOVERRIDES =
+unexport
+
 # Banner
-ifeq (,$(MAKECMDGOALS))
+ifeq (,$(findstring .,$(MAKECMDGOALS)))
   $(info ======== Amulet build settings ========)
-  $(info Target: $(TARGET_PLATFORM))
-  $(info Grade:  $(GRADE))
-  $(info Host:   $(HOST_PLATFORM))
-  $(info CC:     $(CC))
-  $(info CPP:    $(CPP))
-  $(info DEPS:   $(DEPS))
+  $(info TARGET_PLATFORM:    $(TARGET_PLATFORM))
+  $(info HOST_PLATFORM:      $(HOST_PLATFORM))
+  $(info GRADE:              $(GRADE))
+  $(info CC:                 $(CC))
+  $(info CPP:                $(CPP))
+  $(info DEPS:               $(DEPS))
   $(info =======================================)
 endif
 

@@ -44,20 +44,19 @@ static void init_metatable_ref_slots(lua_State *L) {
 }
 
 static void open_stdlualibs(lua_State *L) {
-    luaL_requiref(L, "base", luaopen_base, 0);
-    lua_pop(L, 1);
-    luaL_requiref(L, "package", luaopen_package, 0);
-    lua_pop(L, 1);
-    luaL_requiref(L, "math", luaopen_math, 0);
-    lua_pop(L, 1);
-    luaL_requiref(L, "coroutine", luaopen_coroutine, 0);
-    lua_pop(L, 1);
-    luaL_requiref(L, "string", luaopen_string, 0);
-    lua_pop(L, 1);
-    luaL_requiref(L, "table", luaopen_table, 0);
-    lua_pop(L, 1);
-    luaL_requiref(L, "os", luaopen_os, 0);
-    lua_pop(L, 1);
-    luaL_requiref(L, "debug", luaopen_debug, 0);
-    lua_pop(L, 1);
+    am_requiref(L, "base",      luaopen_base);
+    am_requiref(L, "package",   luaopen_package);
+    am_requiref(L, "math",      luaopen_math);
+#ifdef AM_LUAJIT
+    // luajit loads the coroutine module into the global
+    // table in luaopen_base, so unset the global.
+    lua_pushnil(L);
+    lua_setglobal(L, "coroutine");
+#else
+    am_requiref(L, "coroutine", luaopen_coroutine);
+#endif
+    am_requiref(L, "string",    luaopen_string);
+    am_requiref(L, "table",     luaopen_table);
+    am_requiref(L, "os",        luaopen_os);
+    am_requiref(L, "debug",     luaopen_debug);
 }

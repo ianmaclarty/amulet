@@ -13,6 +13,7 @@ build/**/include/*
 build/**/staging/*
 build/**/lib/*.a
 tags
+settings
 
 deps/SDL2*/Makefile
 deps/SDL2*/Makefile.rules
@@ -24,6 +25,20 @@ deps/SDL2*/build/*
 deps/lua-*/src/liblua.a
 deps/lua-*/src/lua
 deps/lua-*/src/luac
+
+deps/LuaJIT-*/src/host/buildvm
+deps/LuaJIT-*/src/host/buildvm_arch.h
+deps/LuaJIT-*/src/host/minilua
+deps/LuaJIT-*/src/jit/vmdef.lua
+deps/LuaJIT-*/src/libluajit.a
+deps/LuaJIT-*/src/libluajit.so
+deps/LuaJIT-*/src/lj_bcdef.h
+deps/LuaJIT-*/src/lj_ffdef.h
+deps/LuaJIT-*/src/lj_folddef.h
+deps/LuaJIT-*/src/lj_libdef.h
+deps/LuaJIT-*/src/lj_recdef.h
+deps/LuaJIT-*/src/lj_vm.s
+deps/LuaJIT-*/src/luajit
 
 deps/glew-*/bin/glewinfo
 deps/glew-*/bin/visualinfo
