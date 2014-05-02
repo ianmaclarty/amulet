@@ -10,7 +10,6 @@ lua_State *am_init_engine(bool worker) {
 
     if (!worker) {
         am_open_window_module(L);
-        am_open_gl_module(L);
     }
 
     am_no_new_globals(L);
