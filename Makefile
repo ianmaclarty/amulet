@@ -210,8 +210,47 @@ clean:
 clean-target:
 	rm -rf $(BUILD_BASE_DIR)
 
-clean-all:
+clean-all: clean-tests
 	rm -rf build
+
+# Tests
+
+TIMEPROG = /usr/bin/time
+TIMEFORMAT = "[%es %Mk]"
+
+CPP_TESTS = $(patsubst tests/%.cpp,%,$(wildcard tests/*.cpp))
+
+.PHONY: test
+test: run_cpp_tests
+
+.PHONY: run_cpp_tests
+run_cpp_tests:
+	@echo Running CPP tests...
+	@for f in "$(CPP_TESTS)"; do \
+	    fexe=tests/$$f$(EXE_EXT); \
+	    fexp=tests/$$f.exp; \
+	    fexp2=tests/$$f.exp2; \
+	    fout=tests/$$f.out; \
+	    fres=tests/$$f.res; \
+	    ftime=tests/$$f.time; \
+	    g++ -O0 -g tests/$$f.cpp -o $$fexe; \
+	    $(TIMEPROG) -f $"$(TIMEFORMAT)$" -o $$ftime $$fexe > $$fout 2>&1 ; \
+	    tdata=`cat $$ftime`; \
+	    if ( diff -u $$fexp $$fout > $$fres ) || ( [ -e $$fexp2 ] && ( diff -u $$fexp2 $$fout > $$fres ) ); then \
+		res=" passed "; \
+	    else \
+		res="*FAILED*"; \
+	    fi; \
+	    printf "%-30s%s       %s\n" "$$f" "$$res" "$$tdata"; \
+	done
+	@echo Done
+
+clean-tests:
+	rm -f tests/*.out
+	rm -f tests/*.res
+	rm -f tests/*.err
+	rm -f tests/*.time
+	rm -f $(patsubst %,tests/%$(EXE_EXT),$(CPP_TESTS))
 
 # Avoid setting options or variables in submakes.
 # This can screw up the dep builds (in particular setting TARGET screws the sdl build).

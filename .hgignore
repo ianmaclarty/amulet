@@ -52,3 +52,7 @@ deps/glew-*/lib/libGLEW.so.*
 deps/glew-*/lib/libGLEWmx.a
 deps/glew-*/lib/libGLEWmx.so
 deps/glew-*/lib/libGLEWmx.so.*
+
+tests/*.out
+tests/*.err
+tests/*.res
