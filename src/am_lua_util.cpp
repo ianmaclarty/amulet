@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-static int new_global_error(lua_State *L) {
+static int global_newindex(lua_State *L) {
     const char *field = lua_tostring(L, 2);
     if (field == NULL) {
         return luaL_error(L, "attempt to set global");
@@ -9,13 +9,24 @@ static int new_global_error(lua_State *L) {
     }
 }
 
-void am_no_new_globals(lua_State *L) {
+static int global_index(lua_State *L) {
+    const char *field = lua_tostring(L, 2);
+    if (field == NULL) {
+        return luaL_error(L, "attempt to reference missing global");
+    } else {
+        return luaL_error(L, "attempt to reference missing global '%s'", field);
+    }
+}
+
+void am_set_globals_metatable(lua_State *L) {
 #ifndef AM_LUAJIT
     lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
 #endif
     lua_newtable(L);
-    lua_pushcfunction(L, new_global_error);
+    lua_pushcfunction(L, global_newindex);
     lua_setfield(L, -2, "__newindex");
+    lua_pushcfunction(L, global_index);
+    lua_setfield(L, -2, "__index");
 #ifdef AM_LUAJIT
     lua_setmetatable(L, LUA_GLOBALSINDEX);
 #else

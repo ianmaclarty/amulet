@@ -1,4 +1,5 @@
 /* OpenGL ES 2.0 reference: http://www.khronos.org/opengles/sdk/docs/man/ */
+/* WebGL 1.0 quick reference: http://www.khronos.org/files/webgl/webgl-reference-card-1_0.pdf */
 
 #include "amulet.h"
 
@@ -537,6 +538,11 @@ void am_set_attribute_pointer(am_attribute_index index, int size, am_attribute_c
 }
 
 // Texture Objects
+
+void am_set_active_texture_unit(int texture_unit) {
+    glActiveTexture(GL_TEXTURE0 + texture_unit);
+    check_for_errors
+}
 
 am_texture_id am_create_texture() {
     GLuint tex;

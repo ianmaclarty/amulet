@@ -1,5 +1,10 @@
-#include <stdio.h>
+#include <assert.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <new>
 
 #define AMULET_LUA_MODULE_NAME "amulet"
 

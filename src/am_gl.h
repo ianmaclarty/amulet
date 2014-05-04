@@ -322,6 +322,8 @@ enum am_texture_wrap {
 
 typedef am_gluint am_texture_id;
 
+void am_set_active_texture_unit(int texture_unit);
+
 am_texture_id am_create_texture();
 void am_delete_texture(am_texture_id texture);
 

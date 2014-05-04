@@ -5,14 +5,14 @@ static void open_stdlualibs(lua_State *L);
 
 lua_State *am_init_engine(bool worker) {
     lua_State *L = luaL_newstate();
-    init_metatable_ref_slots(L);
+    init_reserved_ref_slots(L);
     open_stdlualibs(L);
 
     if (!worker) {
         am_open_window_module(L);
     }
 
-    am_no_new_globals(L);
+    am_set_globals_metatable(L);
 
     return L;
 }
@@ -21,22 +21,20 @@ void am_destroy_engine(lua_State *L) {
     lua_close(L);
 }
 
-static void init_metatable_ref_slots(lua_State *L) {
+static void init_reserved_ref_slots(lua_State *L) {
     int i, j;
     do {
         lua_pushboolean(L, 1);
         i = luaL_ref(L, LUA_REGISTRYINDEX);
     } while (i < AM_METATABLE_START_ID - 1);
     if (i != AM_METATABLE_START_ID - 1) {
-        fprintf(stderr, "Internal Error: more refs than AM_METATABLE_START_ID\n");
-        exit(1);
+        am_abort(stderr, "Internal Error: more refs than AM_METATABLE_START_ID\n");
     }
     for (i = AM_METATABLE_START_ID; i < AM_METATABLE_END_ID; i++) {
         lua_pushboolean(L, 1);
         j = luaL_ref(L, LUA_REGISTRYINDEX);
         if (i != j) {
-            fprintf(stderr, "Internal Error: non-congiguous refs after AM_METATABLE_START_ID\n");
-            exit(1);
+            am_abort("Internal Error: non-contiguous refs\n");
         }
         j++;
     }
