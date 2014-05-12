@@ -16,10 +16,16 @@ extern "C" {
 #include "lualib.h"
 }
 
+#define GLM_FORCE_RADIANS
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+#include "am_metatable_ids.h"
 #include "am_util.h"
 #include "am_gl.h"
-#include "am_metatable_ids.h"
-#include "am_string_ids.h"
 #include "am_lua_util.h"
 #include "am_window.h"
 #include "am_engine.h"
+#include "am_generic_stack.h"
+#include "am_shader_vars.h"

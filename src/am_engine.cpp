@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-static void init_metatable_ref_slots(lua_State *L);
+static void init_reserved_ref_slots(lua_State *L);
 static void open_stdlualibs(lua_State *L);
 
 lua_State *am_init_engine(bool worker) {
@@ -28,7 +28,7 @@ static void init_reserved_ref_slots(lua_State *L) {
         i = luaL_ref(L, LUA_REGISTRYINDEX);
     } while (i < AM_METATABLE_START_ID - 1);
     if (i != AM_METATABLE_START_ID - 1) {
-        am_abort(stderr, "Internal Error: more refs than AM_METATABLE_START_ID\n");
+        am_abort("Internal Error: more refs than AM_METATABLE_START_ID\n");
     }
     for (i = AM_METATABLE_START_ID; i < AM_METATABLE_END_ID; i++) {
         lua_pushboolean(L, 1);

@@ -1,3 +1,4 @@
+/*
 void am_render_state::apply_non_program_state() {
 
 }
@@ -30,3 +31,4 @@ void am_render_state::render_geometry() {
         free(log);
     } else {
 }
+*/
