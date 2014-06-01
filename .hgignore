@@ -14,6 +14,7 @@ build/**/staging/*
 build/**/lib/*.a
 tags
 settings
+tmp/*
 
 deps/SDL2-*/Makefile
 deps/SDL2-*/Makefile.rules
