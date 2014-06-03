@@ -1,14 +1,4 @@
-struct am_uniform_info {
-    int     index;
-    int     name_id;
-    am_uniform_var_type type;
-    void    *stack;
-};
-
-struct am_program_state {
-    am_program_id                        program_id;
-    std::vector<am_uniform_info>         uniforms;
-};
+struct am_program_param;
 
 struct am_blend_config {
     bool                blend_enabled;
@@ -106,20 +96,43 @@ struct am_dither_config {
 };
 
 struct am_render_state {
-    bool framebuffer_id_dirty;
-    bool program_id_dirty;
-    bool blend_config_dirty;
-    bool depth_test_config_dirty;
-    bool stencil_test_config_dirty;
-    bool scissor_test_config_dirty;
-    bool sample_coverage_config_dirty;
-    bool viewport_config_dirty;
-    bool facecull_config_dirty;
-    bool polygon_offset_config_dirty;
-    bool framebuffer_config_dirty;
-    bool line_config_dirty;
-    bool dither_config_dirty;
-    
-    void push_snapshot();
-    void pop_snapshot();
+    bool            framebuffer_id_dirty;
+    bool            blend_config_dirty;
+    bool            depth_test_config_dirty;
+    bool            stencil_test_config_dirty;
+    bool            scissor_test_config_dirty;
+    bool            sample_coverage_config_dirty;
+    bool            viewport_config_dirty;
+    bool            facecull_config_dirty;
+    bool            polygon_offset_config_dirty;
+    bool            framebuffer_config_dirty;
+    bool            line_config_dirty;
+    bool            dither_config_dirty;
+
+    am_buffer_id    active_indices_id;
+    int             active_indices_max_value;
+    int             active_indices_max_size;
+    int             active_indices_offset;
+    int             active_indices_count;
+    am_element_index_type active_indices_type;
+
+    int             active_attribute_array_max_size;
+    int             active_attribute_array_first;
+    int             active_attribute_array_count;
+
+    am_draw_mode    active_draw_mode;
+
+    am_program_id   active_program_id;
+    am_program_id   bound_program_id;
+    am_program_param **active_program_params;
+
+    void draw();
+    bool validate_active_program();
+    void bind_active_program();
+    void bind_active_program_params();
+    void bind_active_indices();
+};
+
+struct am_program_param {
+    virtual void bind(am_render_state *rstate) = 0;
 };

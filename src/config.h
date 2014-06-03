@@ -1,0 +1,2 @@
+extern bool am_conf_validate_shaders;
+extern bool am_conf_report_all_shader_validation_messages;

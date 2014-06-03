@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include <new>
+#include <climits>
 
 #define AMULET_LUA_MODULE_NAME "amulet"
 
@@ -21,6 +22,7 @@ extern "C" {
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "config.h"
 #include "metatable_ids.h"
 #include "logging.h"
 #include "gl.h"
@@ -28,3 +30,5 @@ extern "C" {
 #include "window.h"
 #include "engine.h"
 #include "shader_vars.h"
+#include "renderer.h"
+#include "attribute_array.h"

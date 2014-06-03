@@ -338,7 +338,7 @@ bool am_compile_shader(am_shader_id shader) {
     return compiled;
 }
 
-const char *am_get_shader_info_log(am_shader_id shader) {
+char *am_get_shader_info_log(am_shader_id shader) {
     GLint len = 0;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
     if (len > 1) {
@@ -365,7 +365,7 @@ bool am_link_program(am_program_id program) {
     return linked;
 }
 
-const char *am_get_program_info_log(am_program_id program) {
+char *am_get_program_info_log(am_program_id program) {
     GLint len = 0;
     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
     if (len > 1) {
