@@ -1,6 +1,6 @@
 struct am_program_param;
 
-struct am_blend_config {
+struct am_blend_state {
     bool                blend_enabled;
     am_blend_equation   blend_equation_rgb;
     am_blend_equation   blend_equation_alpha;
@@ -14,14 +14,14 @@ struct am_blend_config {
     float               blend_color_a;
 };
 
-struct am_depth_test_config {
+struct am_depth_test_state {
     bool                depth_test_enabled;
     am_depth_func       depth_func;
     float               depth_range_near;
     float               depth_range_far;
 };
 
-struct am_stencil_test_config {
+struct am_stencil_test_state {
     bool                stencil_test_enabled;
     am_stencil_func     stencil_func_back;
     am_glint            stencil_ref_back;
@@ -37,7 +37,7 @@ struct am_stencil_test_config {
     am_stencil_op       stencil_op_zpass_back;
 };
 
-struct am_scissor_test_config {
+struct am_scissor_test_state {
     bool                scissor_test_enabled;
     int                 scissor_x;
     int                 scissor_y;
@@ -45,33 +45,33 @@ struct am_scissor_test_config {
     int                 scissor_h;
 };
 
-struct am_sample_coverage_config {
+struct am_sample_coverage_state {
     bool                sample_alpha_to_coverage_enabled;
     bool                sample_coverage_enabled;
     float               sample_coverage_value;
     bool                sample_coverage_invert;
 };
 
-struct am_viewport_config {
+struct am_viewport_state {
     int                 viewport_x;
     int                 viewport_y;
     int                 viewport_w;
     int                 viewport_h;
 };
 
-struct am_facecull_config {
+struct am_facecull_state {
     am_face_winding     front_face_winding;
     bool                cull_face_enabled;
     am_cull_face_side   cull_face_side;
 };
 
-struct am_polygon_offset_config {
+struct am_polygon_offset_state {
     bool                polygon_offset_fill_enabled;
     float               polygon_offset_factor;
     float               polygon_offset_units;
 };
 
-struct am_framebuffer_config {
+struct am_framebuffer_state {
     float               clear_color_r;
     float               clear_color_g;
     float               clear_color_b;
@@ -87,27 +87,26 @@ struct am_framebuffer_config {
     am_gluint           stencil_mask_back;
 };
 
-struct am_line_config {
+struct am_line_state {
     float               line_width;
 };
 
-struct am_dither_config {
+struct am_dither_state {
     bool                dither_enabled;
 };
 
 struct am_render_state {
-    bool            framebuffer_id_dirty;
-    bool            blend_config_dirty;
-    bool            depth_test_config_dirty;
-    bool            stencil_test_config_dirty;
-    bool            scissor_test_config_dirty;
-    bool            sample_coverage_config_dirty;
-    bool            viewport_config_dirty;
-    bool            facecull_config_dirty;
-    bool            polygon_offset_config_dirty;
-    bool            framebuffer_config_dirty;
-    bool            line_config_dirty;
-    bool            dither_config_dirty;
+    bool            framebuffer_state_dirty;
+    bool            blend_state_dirty;
+    bool            depth_test_state_dirty;
+    bool            stencil_test_state_dirty;
+    bool            scissor_test_state_dirty;
+    bool            sample_coverage_state_dirty;
+    bool            viewport_state_dirty;
+    bool            facecull_state_dirty;
+    bool            polygon_offset_state_dirty;
+    bool            line_state_dirty;
+    bool            dither_state_dirty;
 
     am_buffer_id    active_indices_id;
     int             active_indices_max_value;
@@ -116,11 +115,11 @@ struct am_render_state {
     int             active_indices_count;
     am_element_index_type active_indices_type;
 
-    int             active_attribute_array_max_size;
-    int             active_attribute_array_first;
-    int             active_attribute_array_count;
+    int             max_draw_array_size;
+    int             draw_array_offset;
+    int             draw_array_count;
 
-    am_draw_mode    active_draw_mode;
+    am_draw_mode    draw_mode;
 
     am_program_id   active_program_id;
     am_program_id   bound_program_id;

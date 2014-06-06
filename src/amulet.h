@@ -29,6 +29,5 @@ extern "C" {
 #include "lua_util.h"
 #include "window.h"
 #include "engine.h"
-#include "shader_vars.h"
+#include "buffer.h"
 #include "renderer.h"
-#include "attribute_array.h"
