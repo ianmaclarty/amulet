@@ -58,59 +58,9 @@ void am_render_state::bind_active_program_params() {
         param->bind(this);
         ptr++;
     }
-    if (max_draw_array_size == INT_MAX) {
-        max_draw_array_size = 0; // no array attributes were bound
-    }
 }
 
 void am_render_state::bind_active_indices() {
     am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, active_indices_id);
 }
 
-struct am_uniform_param : am_program_param {
-    am_uniform_index index;
-};
-
-struct am_float_uniform_param : am_uniform_param {
-    float value;
-
-    virtual void bind(am_render_state *rstate) {
-        am_set_uniform1f(index, 1, &value);
-    }
-};
-
-struct am_attribute_param : am_program_param {
-    am_attribute_index index;
-};
-
-struct am_float_attribute_param : am_attribute_param {
-    float value;
-
-    virtual void bind(am_render_state *rstate) {
-        am_set_attribute_array_enabled(index, false);
-        am_set_attribute1f(index, value);
-    }
-};
-
-struct am_array_attribute_config {
-    am_buffer_id buffer_id;
-    am_attribute_client_type type;
-    int size;
-    bool normalized;
-    int stride;
-    int offset;
-    int max_draw_elements;
-};
-
-struct am_array_attribute_param : am_attribute_param {
-    am_array_attribute_config config;
-
-    virtual void bind(am_render_state *rstate) {
-        am_set_attribute_array_enabled(index, true);
-        am_bind_buffer(AM_ARRAY_BUFFER, config.buffer_id);
-        am_set_attribute_pointer(index, config.size, config.type, config.normalized, config.stride, config.offset);
-        if (config.max_draw_elements < rstate->max_draw_array_size) {
-            rstate->max_draw_array_size = config.max_draw_elements;
-        }
-    }
-};

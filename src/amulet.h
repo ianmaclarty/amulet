@@ -30,4 +30,7 @@ extern "C" {
 #include "window.h"
 #include "engine.h"
 #include "buffer.h"
+#include "trail.h"
 #include "renderer.h"
+#include "program.h"
+#include "commands.h"
