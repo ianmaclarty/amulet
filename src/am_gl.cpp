@@ -423,6 +423,17 @@ void am_delete_program(am_program_id program) {
 
 // Uniforms and Attributes 
 
+int am_attribute_client_type_size(am_attribute_client_type t) {
+    switch (t) {
+        case AM_ATTRIBUTE_CLIENT_TYPE_BYTE: return 1;
+        case AM_ATTRIBUTE_CLIENT_TYPE_SHORT: return 2;
+        case AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE: return 1;
+        case AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT: return 2;
+        case AM_ATTRIBUTE_CLIENT_TYPE_FLOAT: return 4;
+        default: am_abort("INTERNAL ERROR: unknown am_attribute_client_type %d", t); return 0;
+    }
+}
+
 void am_set_attribute_array_enabled(am_attribute_index index, bool enabled) {
     if (enabled) {
         glEnableVertexAttribArray(index);

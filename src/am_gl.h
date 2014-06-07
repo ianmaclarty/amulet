@@ -242,6 +242,8 @@ enum am_attribute_client_type {
     AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,
 };
 
+int am_attribute_client_type_size(am_attribute_client_type t);
+
 void am_set_attribute_array_enabled(am_attribute_index index, bool enabled);
 
 // *name should be freed with free()

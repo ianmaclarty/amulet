@@ -244,7 +244,7 @@ run_cpp_tests:
 	    fi; \
 	    printf "%-30s%s       %s\n" "$$f" "$$res" "$$tdata"; \
 	done
-	@echo Done
+	@echo DONE
 
 clean-tests:
 	rm -f tests/*.out

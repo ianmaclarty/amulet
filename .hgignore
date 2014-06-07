@@ -57,3 +57,4 @@ deps/glew-*/lib/libGLEWmx.so.*
 tests/*.out
 tests/*.err
 tests/*.res
+tests/*.time
