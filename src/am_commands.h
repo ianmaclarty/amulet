@@ -1,5 +1,22 @@
 struct am_command {
+    int next_offset;
+    int prev_offset;
+
     virtual void execute(am_render_state *state) = 0;
+
+    am_command *next();
+    am_command *prev();
+};
+
+struct am_command_list {
+    int capacity; // in bytes
+    int last;
+    int end;
+
+    am_command *first();
+    void *extend(int size);
+
+    char base[];
 };
 
 struct am_set_float_param_command : am_command {

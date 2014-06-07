@@ -33,11 +33,9 @@ void am_trail::rewind_to(int ticket) {
     }
 }
 
-#define ALIGN_MASK (sizeof(void*) - 1)
-
 void am_trail::trail(void *ptr, int size) {
     int entry_size = sizeof(am_trail_entry) + size;
-    while (entry_size & ALIGN_MASK) entry_size++;
+    am_pointer_align_size(entry_size);
 
     int required_capacity = end + entry_size;
     if (required_capacity > capacity) {

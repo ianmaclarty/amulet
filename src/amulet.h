@@ -22,6 +22,7 @@ extern "C" {
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "am_bit_util.h"
 #include "am_config.h"
 #include "am_metatable_ids.h"
 #include "am_logging.h"
