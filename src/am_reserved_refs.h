@@ -1,0 +1,7 @@
+#define AM_RESERVED_REFS_START 10
+
+typedef enum {
+    AM_PARAM_NAME_STRING_TABLE = AM_RESERVED_REFS_START,
+    AM_MT_NODE,
+    AM_RESERVED_REFS_END
+} am_reserved_refs;

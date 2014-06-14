@@ -35,7 +35,7 @@ void am_trail::rewind_to(int ticket) {
 
 void am_trail::trail(void *ptr, int size) {
     int entry_size = sizeof(am_trail_entry) + size;
-    am_pointer_align_size(entry_size);
+    am_align_size(entry_size);
 
     int required_capacity = end + entry_size;
     if (required_capacity > capacity) {

@@ -1,5 +1,5 @@
-#define AM_ALIGN_MASK (sizeof(void*) - 1)
+typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
+#define AM_ALIGN_MASK (sizeof(am_align_struct) - 1)
 
-#define am_pointer_align_size(sz) \
+#define am_align_size(sz) \
     while (sz & AM_ALIGN_MASK) { sz++; }
-

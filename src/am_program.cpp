@@ -88,3 +88,47 @@ struct am_float_attribute_param : am_attribute_param {
         state.value += val;
     }
 };
+
+static int am_param_name_map_capacity = 0;
+
+void am_init_param_name_map() {
+    if (am_param_name_map != NULL) free(am_param_name_map);
+    am_param_name_map_capacity = 32;
+    am_param_name_map = (am_program_param**)malloc(sizeof(am_program_param*) * am_param_name_map_capacity);
+    for (int i = 0; i < am_param_name_map_capacity; i++) {
+        am_param_name_map[i] = NULL;
+    }
+}
+
+int am_lookup_param_name(lua_State *L, int name_idx) {
+    name_idx = lua_absindex(L, name_idx);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
+    int strt_idx = lua_gettop(L);
+    lua_pushvalue(L, name_idx);
+    lua_rawget(L, strt_idx);
+    if (lua_isnil(L, -1)) {
+        // param name not seen before, register it.
+        lua_pop(L, 1); // nil
+        lua_pushvalue(L, name_idx);
+        int name_ref = lua_ref(L, strt_idx);
+        lua_pushvalue(L, name_idx);
+        lua_pushinteger(L, name_ref);
+        lua_rawset(L, strt_idx);
+        lua_pop(L, 1); // string table
+        if (name_ref >= am_param_name_map_capacity) {
+            int old_capacity = am_param_name_map_capacity;
+            while (name_ref >= am_param_name_map_capacity) {
+                am_param_name_map_capacity *= 2;
+            }
+            am_param_name_map = (am_program_param**)realloc(am_param_name_map, sizeof(am_program_param*) * am_param_name_map_capacity);
+            for (int i = old_capacity; i < am_param_name_map_capacity; i++) {
+                am_param_name_map[i] = NULL;
+            }
+        }
+        return name_ref;
+    } else {
+        int name_ref = lua_tointeger(L, -1);
+        lua_pop(L, 2); // name ref, string table
+        return name_ref;
+    }
+}

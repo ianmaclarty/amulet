@@ -1,3 +1,8 @@
+extern am_program_param **am_param_name_map;
+
+void am_init_param_name_map();
+int am_lookup_param_name(lua_State *L, int name_idx);
+
 struct am_program_param {
     virtual void bind(am_render_state *rstate) = 0;
 

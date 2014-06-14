@@ -1,7 +1,5 @@
 struct am_program_param;
 
-typedef int am_param_name_id;
-
 struct am_blend_state {
     bool                blend_enabled;
     am_blend_equation   blend_equation_rgb;
@@ -126,8 +124,6 @@ struct am_render_state {
     am_program_id   active_program_id;
     am_program_id   bound_program_id;
     am_program_param **active_program_params;
-
-    am_program_param **params_by_name;
 
     am_trail        trail;
 
