@@ -15,6 +15,7 @@ lua_State *am_init_engine(bool worker) {
         am_open_node_module(L);
         am_open_program_module(L);
     }
+    am_open_buffer_module(L);
     am_set_globals_metatable(L);
     return L;
 }

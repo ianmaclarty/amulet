@@ -57,17 +57,16 @@ static int float_command(lua_State *L) {
 
 static void register_node_mt(lua_State *L) {
     lua_newtable(L);
-        // __index table
-        lua_newtable(L);
-        lua_pushcclosure(L, float_command, 0);
-        lua_setfield(L, -2, "float");
-        lua_pushcclosure(L, fallback_index_func, 0);
-        lua_setfield(L, -2, "__index");
-        lua_pushvalue(L, -1);
-        lua_setmetatable(L, -2); // make the __index table its own metatable.
+    lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, float_command, 0);
+    lua_setfield(L, -2, "float");
     lua_pushstring(L, "node");
     lua_setfield(L, -2, "tname");
+    lua_newtable(L);
+    lua_pushcclosure(L, fallback_index_func, 0);
+    lua_setfield(L, -2, "__index");
+    lua_setmetatable(L, -2);
     am_register_metatable(L, AM_MT_NODE);
 }
 

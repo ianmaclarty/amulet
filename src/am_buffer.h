@@ -34,3 +34,5 @@ struct am_buffer_view {
     am_buffer_view_type type;
     bool                normalized;
 };
+
+void am_open_buffer_module(lua_State *L);
