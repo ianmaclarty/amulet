@@ -13,9 +13,12 @@ void am_delete_ref(lua_State *L, int obj, int ref);
 void am_push_ref(lua_State *L, int obj, int ref);
 void am_replace_ref(lua_State *L, int obj, int ref, int new_val);
 
+int am_check_nargs(lua_State *L, int n);
+
 #ifdef AM_LUAJIT
 void lua_setuservalue(lua_State *L, int idx);
 void lua_getuservalue(lua_State *L, int idx);
 int lua_rawlen(lua_State *L, int idx);
 int lua_absindex(lua_State *L, int idx);
+lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum);
 #endif

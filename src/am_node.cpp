@@ -46,8 +46,9 @@ static int fallback_index_func(lua_State *L) {
 }
 
 static int float_command(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
     am_node *node = (am_node*)am_check_metatable_id(L, 1, AM_MT_NODE);
-    am_set_float_param_command *cmd = new (lua_newuserdata(L, sizeof(am_set_float_param_command))) am_set_float_param_command(L, node);
+    am_set_float_param_command *cmd = new (lua_newuserdata(L, sizeof(am_set_float_param_command))) am_set_float_param_command(L, nargs, node);
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
     lua_pushvalue(L, 1);
@@ -56,15 +57,17 @@ static int float_command(lua_State *L) {
 
 static void register_node_mt(lua_State *L) {
     lua_newtable(L);
+        // __index table
         lua_newtable(L);
-
         lua_pushcclosure(L, float_command, 0);
         lua_setfield(L, -2, "float");
-
         lua_pushcclosure(L, fallback_index_func, 0);
-        lua_setmetatable(L, -2);
-
+        lua_setfield(L, -2, "__index");
+        lua_pushvalue(L, -1);
+        lua_setmetatable(L, -2); // make the __index table its own metatable.
     lua_setfield(L, -2, "__index");
+    lua_pushstring(L, "node");
+    lua_setfield(L, -2, "tname");
     am_register_metatable(L, AM_MT_NODE);
 }
 

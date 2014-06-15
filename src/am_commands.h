@@ -8,7 +8,7 @@ struct am_set_float_param_command : am_command {
     am_param_name_id name;
     float value;
 
-    am_set_float_param_command(lua_State *L, am_node *node);
+    am_set_float_param_command(lua_State *L, int nargs, am_node *node);
     virtual void execute(am_render_state *state);
 };
 

@@ -98,6 +98,7 @@ bool am_has_metatable_id(lua_State *L, int metatable_id, int idx) {
 }
 
 void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
+    idx = lua_absindex(L, idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
     if (!lua_getmetatable(L, idx)) {
         lua_pushnil(L);
@@ -164,6 +165,14 @@ void am_replace_ref(lua_State *L, int obj, int ref, int new_val) {
     lua_pop(L, 1); // uservalue
 }
 
+int am_check_nargs(lua_State *L, int n) {
+    int nargs = lua_gettop(L);
+    if (n < nargs) {
+        luaL_error(L, "expecting at least %d arguments");
+    }
+    return nargs;
+}
+
 #ifdef AM_LUAJIT
 void lua_setuservalue(lua_State *L, int idx) {
     lua_setfenv(L, idx);
@@ -179,5 +188,15 @@ int lua_rawlen(lua_State *L, int idx) {
 
 int lua_absindex(lua_State *L, int idx) {
     return idx > 0 ? idx : lua_gettop(L) + idx + 1;
+}
+
+lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum) {
+    if (lua_isnumber(L, idx)) {
+        *isnum = 1;
+        return lua_tointeger(L, idx);
+    } else {
+        *isnum = 0;
+        return 0;
+    }
 }
 #endif

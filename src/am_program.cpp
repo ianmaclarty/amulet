@@ -194,6 +194,7 @@ am_shader_id load_shader(lua_State *L, int type, const char *src) {
 }
 
 static int create_program(lua_State *L) {
+    am_check_nargs(L, 2);
     const char *vertex_shader_src = lua_tostring(L, 1);
     const char *fragment_shader_src = lua_tostring(L, 2);
     if (vertex_shader_src == NULL) {
@@ -371,6 +372,8 @@ static void register_program_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, gc_program, 0);
     lua_setfield(L, -2, "__gc");
+    lua_pushstring(L, "program");
+    lua_setfield(L, -2, "tname");
     am_register_metatable(L, AM_MT_PROGRAM);
 }
 

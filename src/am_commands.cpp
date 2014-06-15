@@ -1,11 +1,15 @@
 #include "amulet.h"
 
-am_set_float_param_command::am_set_float_param_command(lua_State *L, am_node *node) {
-    if (!lua_isstring(L, 2)) {
+am_set_float_param_command::am_set_float_param_command(lua_State *L, int nargs, am_node *node) {
+    if (nargs < 2 || !lua_isstring(L, 2)) {
         luaL_error(L, "expecting a string in position 2");
     }
     name = am_lookup_param_name(L, 2);
-    value = lua_tonumber(L, 3);
+    if (nargs > 2) {
+        value = lua_tonumber(L, 3);
+    } else {
+        value = 0.0f;
+    }
 }
 
 void am_set_float_param_command::execute(am_render_state *rstate) {
