@@ -167,8 +167,8 @@ void am_replace_ref(lua_State *L, int obj, int ref, int new_val) {
 
 int am_check_nargs(lua_State *L, int n) {
     int nargs = lua_gettop(L);
-    if (n < nargs) {
-        luaL_error(L, "expecting at least %d arguments");
+    if (nargs < n) {
+        luaL_error(L, "expecting at least %d arguments", n);
     }
     return nargs;
 }
