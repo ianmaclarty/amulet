@@ -5,7 +5,7 @@ struct am_command {
 };
 
 struct am_set_float_param_command : am_command {
-    int name;
+    am_param_name_id name;
     float value;
 
     am_set_float_param_command(lua_State *L, am_node *node);
@@ -13,14 +13,14 @@ struct am_set_float_param_command : am_command {
 };
 
 struct am_mul_float_param_command : am_command {
-    int name;
+    am_param_name_id name;
     float value;
 
     virtual void execute(am_render_state *state);
 };
 
 struct am_add_float_param_command : am_command {
-    int name;
+    am_param_name_id name;
     float value;
 
     virtual void execute(am_render_state *state);
@@ -32,7 +32,7 @@ struct am_vertex_buffer {
 };
 
 struct am_set_float_array_command : am_command {
-    int name;
+    am_param_name_id name;
     am_vertex_buffer *vbo;
     am_attribute_client_type type;
     bool normalized;

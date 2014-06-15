@@ -3,5 +3,6 @@
 typedef enum {
     AM_PARAM_NAME_STRING_TABLE = AM_RESERVED_REFS_START,
     AM_MT_NODE,
+    AM_MT_PROGRAM,
     AM_RESERVED_REFS_END
 } am_reserved_refs;

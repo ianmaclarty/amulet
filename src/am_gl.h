@@ -247,9 +247,9 @@ int am_attribute_client_type_size(am_attribute_client_type t);
 void am_set_attribute_array_enabled(am_attribute_index index, bool enabled);
 
 // *name should be freed with free()
-void am_get_active_attribute(am_program_id program, am_attribute_index index, const char **name, am_attribute_var_type *type, int *size);
+void am_get_active_attribute(am_program_id program, am_attribute_index index, char **name, am_attribute_var_type *type, int *size);
 // *name should be freed with free()
-void am_get_active_uniform(am_program_id program, am_uniform_index index, const char **name, am_uniform_var_type *type, int *size);
+void am_get_active_uniform(am_program_id program, am_uniform_index index, char **name, am_uniform_var_type *type, int *size);
 
 void am_set_uniform1f(am_uniform_index index, int count, const float *value);
 void am_set_uniform2f(am_uniform_index index, int count, const float *value);

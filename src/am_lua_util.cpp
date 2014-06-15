@@ -75,8 +75,9 @@ void am_register_metatable(lua_State *L, int id) {
 }
 
 void am_set_metatable(lua_State *L, int metatable_id, int idx) {
+    idx = lua_absindex(L, idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
-    lua_setmetatable(L, idx < 0 ? idx-1 : idx);
+    lua_setmetatable(L, idx);
 }
 
 void am_push_metatable(lua_State *L, int metatable_id) {
