@@ -1,3 +1,4 @@
+struct am_program;
 struct am_program_param;
 
 struct am_blend_state {
@@ -121,9 +122,8 @@ struct am_render_state {
 
     am_draw_mode    draw_mode;
 
-    am_program_id   active_program_id;
     am_program_id   bound_program_id;
-    am_program_param **active_program_params;
+    am_program      *active_program;
 
     am_trail        trail;
 

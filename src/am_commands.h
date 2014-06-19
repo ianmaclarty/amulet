@@ -4,6 +4,12 @@ struct am_command {
     virtual void execute(am_render_state *state) = 0;
 };
 
+struct am_use_program_command : am_command {
+    am_program *program;
+    int program_ref;
+    virtual void execute(am_render_state *state);
+};
+
 struct am_draw_command : am_command {
     virtual void execute(am_render_state *state);
 };

@@ -1,6 +1,7 @@
 #include "amulet.h"
 
 void am_render_state::draw() {
+    if (active_program == NULL) return;
     bind_active_program();
     bind_active_program_params();
     if (validate_active_program()) {
@@ -27,9 +28,9 @@ void am_render_state::draw() {
 
 bool am_render_state::validate_active_program() {
     if (am_conf_validate_shaders) {
-        bool valid = am_validate_program(active_program_id);
+        bool valid = am_validate_program(active_program->program_id);
         if (!valid || am_conf_report_all_shader_validation_messages) {
-            char *log = am_get_program_info_log(active_program_id);
+            char *log = am_get_program_info_log(active_program->program_id);
             if (valid) {
                 am_report_message("shader program validation messages: %s", log);
             } else {
@@ -44,19 +45,17 @@ bool am_render_state::validate_active_program() {
 }
 
 void am_render_state::bind_active_program() {
-    if (bound_program_id != active_program_id) {
-        am_use_program(active_program_id);
-        bound_program_id = active_program_id;
+    if (bound_program_id != active_program->program_id) {
+        am_use_program(active_program->program_id);
+        bound_program_id = active_program->program_id;
     }
 }
 
 void am_render_state::bind_active_program_params() {
     max_draw_array_size = INT_MAX;
-    am_program_param **ptr = active_program_params;
-    while (*ptr != NULL) {
-        am_program_param *param = *ptr;
+    for (int i = 0; i < active_program->num_params; i++) {
+        am_program_param *param = active_program->params[i];
         param->bind(this);
-        ptr++;
     }
 }
 
