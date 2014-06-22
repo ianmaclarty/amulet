@@ -10,7 +10,7 @@ lua_State *am_init_engine(bool worker) {
     init_reserved_refs(L);
     open_stdlualibs(L);
     if (!worker) {
-        am_init_param_name_map();
+        am_init_param_name_map(L);
         am_open_window_module(L);
         am_open_node_module(L);
         am_open_program_module(L);

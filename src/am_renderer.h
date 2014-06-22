@@ -112,13 +112,9 @@ struct am_render_state {
     am_buffer_id    active_indices_id;
     int             active_indices_max_value;
     int             active_indices_max_size;
-    int             active_indices_offset;
-    int             active_indices_count;
     am_element_index_type active_indices_type;
 
     int             max_draw_array_size;
-    int             draw_array_offset;
-    int             draw_array_count;
 
     am_draw_mode    draw_mode;
 
@@ -127,7 +123,10 @@ struct am_render_state {
 
     am_trail        trail;
 
-    void draw();
+    am_render_state();
+    virtual ~am_render_state();
+
+    void draw_arrays(int first, int count);
     bool validate_active_program();
     void bind_active_program();
     void bind_active_program_params();

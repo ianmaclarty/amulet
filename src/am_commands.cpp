@@ -11,8 +11,13 @@ void am_use_program_command::execute(am_render_state *rstate) {
     rstate->active_program = program;
 }
 
-void am_draw_command::execute(am_render_state *rstate) {
-    rstate->draw();
+am_draw_arrays_command::am_draw_arrays_command(int f, int c) {
+    first = f;
+    count = c;
+}
+
+void am_draw_arrays_command::execute(am_render_state *rstate) {
+    rstate->draw_arrays(first, count);
 }
 
 am_set_float_param_command::am_set_float_param_command(lua_State *L, int nargs, am_node *node) {

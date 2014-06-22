@@ -10,7 +10,10 @@ struct am_use_program_command : am_command {
     virtual void execute(am_render_state *state);
 };
 
-struct am_draw_command : am_command {
+struct am_draw_arrays_command : am_command {
+    int first;
+    int count;
+    am_draw_arrays_command(int first, int count);
     virtual void execute(am_render_state *state);
 };
 

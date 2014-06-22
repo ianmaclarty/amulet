@@ -104,26 +104,31 @@ void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
         lua_pushnil(L);
     }
     if (!lua_rawequal(L, -1, -2)) {
-        const char *tname;
-        const char *argtname;
+        const char *expected_tname;
+        const char *got_tname;
         int argtype;
-        lua_pushstring(L, "tname");
-        lua_rawget(L, -3);
-        tname = lua_tostring(L, -1);
-        lua_pop(L, 1);
-        if (tname == NULL) tname = "userdata";
+        if (lua_istable(L, -2)) {
+            lua_pushstring(L, "tname");
+            lua_rawget(L, -3);
+            expected_tname = lua_tostring(L, -1);
+            lua_pop(L, 1);
+            if (expected_tname == NULL) expected_tname = "<missing mt tname entry>";
+        } else {
+            expected_tname = "<missing mt entry>";
+        }
         argtype = lua_type(L, idx);
         if (argtype == LUA_TUSERDATA && !lua_isnil(L, -1)) {
             lua_pushstring(L, "tname");
-            lua_rawget(L, -2);
-            argtname = lua_tostring(L, -1);
+            lua_rawget(L, -1);
+            got_tname = lua_tostring(L, -1);
             lua_pop(L, 1);
-            if (argtname == NULL) argtname = "userdata";
+            if (got_tname == NULL) got_tname = "userdata";
         } else {
-            argtname = lua_typename(L, argtype);
+            got_tname = lua_typename(L, argtype);
         }
         lua_pop(L, 2);
-        luaL_error(L, "expecting a value of type '%s' at position %d (got '%s')", tname, idx, argtname);
+        luaL_error(L, "expecting a value of type '%s' at position %d (got '%s')",
+            expected_tname, idx, got_tname);
         return NULL;
     }
     lua_pop(L, 2);

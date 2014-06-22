@@ -1,41 +1,44 @@
 #include "amulet.h"
 
-void am_render_state::draw() {
+void am_render_state::draw_arrays(int first, int draw_array_count) {
     if (active_program == NULL) return;
     bind_active_program();
     bind_active_program_params();
     if (validate_active_program()) {
+        if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
+            // no vertex arrays have been set and no size has been specified
+            // for the draw command. Pick something smaller.
+            draw_array_count = 6;
+        }
+        int count = max_draw_array_size - first;
+        if (count > draw_array_count) count = draw_array_count;
+        if (count > 0) {
+            am_draw_arrays(draw_mode, first, count);
+        }
+    }
+}
+
+/*
+void am_render_state::draw_elements(int first, int active_indices_count) {
         if (active_indices_id) {
             bind_active_indices();
             if (active_indices_max_value <= max_draw_array_size) {
                 int count = active_indices_max_size - active_indices_offset;
                 if (count > active_indices_count) count = active_indices_count;
                 if (count > 0) {
-                    am_draw_elements(draw_mode, active_indices_count, active_indices_type, active_indices_offset);
+                    am_draw_elements(draw_mode, count, active_indices_type, active_indices_offset);
                 }
             } else {
                 am_report_error("buffer index out of range");
             }
-        } else {
-            int count = max_draw_array_size - draw_array_offset;
-            if (count > draw_array_count) count = draw_array_count;
-            if (count > 0) {
-                am_draw_arrays(draw_mode, draw_array_offset, count);
-            }
-        }
-    }
-}
+*/
 
 bool am_render_state::validate_active_program() {
     if (am_conf_validate_shaders) {
         bool valid = am_validate_program(active_program->program_id);
-        if (!valid || am_conf_report_all_shader_validation_messages) {
+        if (!valid) {
             char *log = am_get_program_info_log(active_program->program_id);
-            if (valid) {
-                am_report_message("shader program validation messages: %s", log);
-            } else {
-                am_report_error("shader program failed validation: %s", log);
-            }
+            am_report_error("shader program failed validation: %s", log);
             free(log);
         }
         return valid;
@@ -63,3 +66,31 @@ void am_render_state::bind_active_indices() {
     am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, active_indices_id);
 }
 
+am_render_state::am_render_state() {
+    framebuffer_state_dirty = true;
+    blend_state_dirty = true;
+    depth_test_state_dirty = true;
+    stencil_test_state_dirty = true;
+    scissor_test_state_dirty = true;
+    sample_coverage_state_dirty = true;
+    viewport_state_dirty = true;
+    facecull_state_dirty = true;
+    polygon_offset_state_dirty = true;
+    line_state_dirty = true;
+    dither_state_dirty = true;
+
+    active_indices_id = 0;
+    active_indices_max_value = 0;
+    active_indices_max_size = 0;
+    active_indices_type = AM_ELEMENT_TYPE_UNSIGNED_SHORT;
+
+    max_draw_array_size = 0;
+
+    draw_mode = AM_DRAWMODE_TRIANGLES;
+
+    bound_program_id = 0;
+    active_program = NULL;
+}
+
+am_render_state::~am_render_state() {
+}

@@ -1,4 +1,3 @@
 extern bool am_conf_validate_shaders;
-extern bool am_conf_report_all_shader_validation_messages;
 extern int am_conf_default_recursion_limit;
 extern int am_conf_command_list_initial_size;

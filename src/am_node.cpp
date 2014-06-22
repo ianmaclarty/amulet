@@ -47,7 +47,7 @@ static int fallback_index_func(lua_State *L) {
 
 static int set_float_command(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
-    am_node *node = (am_node*)am_check_metatable_id(L, 1, AM_MT_NODE);
+    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
     am_set_float_param_command *cmd = new (lua_newuserdata(L, sizeof(am_set_float_param_command))) am_set_float_param_command(L, nargs, node);
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
@@ -57,11 +57,29 @@ static int set_float_command(lua_State *L) {
 
 static int use_program_command(lua_State *L) {
     am_check_nargs(L, 2);
-    am_node *node = (am_node*)am_check_metatable_id(L, 1, AM_MT_NODE);
-    am_program *prog = (am_program*)am_check_metatable_id(L, 2, AM_MT_PROGRAM);
+    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    am_program *prog = (am_program*)am_check_metatable_id(L, AM_MT_PROGRAM, 2);
     am_use_program_command *cmd = new (lua_newuserdata(L, sizeof(am_use_program_command))) am_use_program_command();
     cmd->program = prog;
     cmd->program_ref = am_new_ref(L, 1, 2); // add ref from node to prog.
+    append_command(L, node, 1, cmd, -1);
+    lua_pop(L, 1); // cmd
+    lua_pushvalue(L, 1); // return node for chaining
+    return 1;
+}
+
+static int draw_arrays_command(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    int first = 0;
+    int count = INT_MAX;
+    if (nargs > 1) {
+        first = luaL_checkinteger(L, 2);
+    }
+    if (nargs > 2) {
+        count = luaL_checkinteger(L, 3);
+    }
+    am_draw_arrays_command *cmd = new (lua_newuserdata(L, sizeof(am_draw_arrays_command))) am_draw_arrays_command(first, count);
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
     lua_pushvalue(L, 1); // return node for chaining
@@ -76,6 +94,8 @@ static void register_node_mt(lua_State *L) {
     lua_setfield(L, -2, "set_float");
     lua_pushcclosure(L, use_program_command, 0);
     lua_setfield(L, -2, "use_program");
+    lua_pushcclosure(L, draw_arrays_command, 0);
+    lua_setfield(L, -2, "draw_arrays");
     lua_pushstring(L, "node");
     lua_setfield(L, -2, "tname");
     lua_newtable(L);

@@ -1,25 +1,22 @@
 #include "amulet.h"
 
-static SDL_Window *sdl_win = NULL;
-SDL_GLContext gl_context;
-
-/* Lua bindings */
+struct am_window {
+    bool            live;
+    SDL_Window     *sdl_win;
+    SDL_GLContext   gl_context;
+    am_render_state *rstate;
+};
 
 static int create_window(lua_State *L) {
-    int done = 0;
+    am_check_nargs(L, 3);
     const char *title = lua_tostring(L, 1);
     int w = luaL_checkinteger(L, 2);
     int h = luaL_checkinteger(L, 3);
     if (title == NULL) {
         return luaL_error(L, "expecting a string in argument 1");
     }
-    if (!lua_isfunction(L, 4)) {
-        return luaL_error(L, "expecting a function in argument 4");
-    }
-    if (sdl_win != NULL) {
-        return luaL_error(L, "window already created");
-    }
-    sdl_win = SDL_CreateWindow(
+    am_window *win = new (lua_newuserdata(L, sizeof(am_window))) am_window();
+    win->sdl_win = SDL_CreateWindow(
         title,
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
@@ -27,7 +24,9 @@ static int create_window(lua_State *L) {
         SDL_WINDOW_OPENGL
     );
 
-    gl_context = SDL_GL_CreateContext(sdl_win);
+    win->gl_context = SDL_GL_CreateContext(win->sdl_win);
+    win->rstate = new am_render_state();
+    win->live = true;
 
     /* Use late swap tearing if supported, otherwise normal vsync */
     if (SDL_GL_SetSwapInterval(-1) == -1) {
@@ -36,21 +35,72 @@ static int create_window(lua_State *L) {
         }
     }
 
-    /* main loop */
-    while (!done) {
-        lua_pushvalue(L, 4);
-        lua_call(L, 0, 1);
-        done = lua_toboolean(L, -1);
+    if (!am_init_gl()) {
         lua_pop(L, 1);
-        SDL_GL_SwapWindow(sdl_win);
+        return 0;
     }
 
-    SDL_Delay(3000);
+    am_set_metatable(L, AM_MT_WINDOW, -1);
 
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(sdl_win);
-    sdl_win = NULL;
+    return 1;
+}
+
+static int destroy_window(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_window *win = (am_window*)am_check_metatable_id(L, AM_MT_WINDOW, 1);
+    if (!win->live) {
+        return luaL_error(L, "attempt to destroy a window twice");
+    }
+    SDL_GL_DeleteContext(win->gl_context);
+    SDL_DestroyWindow(win->sdl_win);
+    win->sdl_win = NULL;
+    delete win->rstate;
+    win->rstate = NULL;
+    win->live = false;
     return 0;
+}
+
+static int swap_window(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_window *win = (am_window*)am_check_metatable_id(L, AM_MT_WINDOW, 1);
+    if (!win->live) {
+        return luaL_error(L, "attempt to use a destroyed window");
+    }
+    SDL_GL_SwapWindow(win->sdl_win);
+    return 0;
+}
+
+static int draw_node(lua_State *L) {
+    am_check_nargs(L, 2);
+    am_window *win = (am_window*)am_check_metatable_id(L, AM_MT_WINDOW, 1);
+    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 2);
+    node->render(win->rstate);
+    return 0;
+}
+
+static int gc_window(lua_State *L) {
+    am_window *win = (am_window*)am_check_metatable_id(L, AM_MT_WINDOW, 1);
+    if (win->live) {
+        return destroy_window(L);
+    }
+    return 0;
+}
+
+static void register_window_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, draw_node, 0);
+    lua_setfield(L, -2, "draw");
+    lua_pushcclosure(L, swap_window, 0);
+    lua_setfield(L, -2, "swap");
+    lua_pushcclosure(L, destroy_window, 0);
+    lua_setfield(L, -2, "destroy");
+    lua_pushcclosure(L, gc_window, 0);
+    lua_setfield(L, -2, "__gc");
+    lua_pushstring(L, "window");
+    lua_setfield(L, -2, "tname");
+    am_register_metatable(L, AM_MT_WINDOW);
 }
 
 void am_open_window_module(lua_State *L) {
@@ -59,4 +109,5 @@ void am_open_window_module(lua_State *L) {
         {NULL, NULL}
     };
     am_open_module(L, "amulet", funcs);
+    register_window_mt(L);
 }

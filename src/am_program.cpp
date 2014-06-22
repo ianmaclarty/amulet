@@ -119,13 +119,15 @@ struct am_float_attribute_param : am_attribute_param {
 
 static int am_param_name_map_capacity = 0;
 
-void am_init_param_name_map() {
+void am_init_param_name_map(lua_State *L) {
     if (am_param_name_map != NULL) free(am_param_name_map);
     am_param_name_map_capacity = 32;
     am_param_name_map = (am_program_param**)malloc(sizeof(am_program_param*) * am_param_name_map_capacity);
     for (int i = 0; i < am_param_name_map_capacity; i++) {
         am_param_name_map[i] = NULL;
     }
+    lua_newtable(L);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
 }
 
 am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
@@ -243,19 +245,19 @@ static int create_program(lua_State *L) {
     am_program_param **params = (am_program_param**)malloc(sizeof(am_program_param*) * num_params);
 
     // Generate attribute params
-    for (int i = 0; i < num_attributes; i++) {
+    int i = 0;
+    for (int index = 0; index < num_attributes; index++) {
         char *name_str;
         am_attribute_var_type type;
         int size;
-        am_get_active_attribute(program, i, &name_str, &type, &size);
+        am_get_active_attribute(program, index, &name_str, &type, &size);
         lua_pushstring(L, name_str);
-        free(name_str);
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name str
         am_program_param *param = NULL;
         switch (type) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT:
-                param = new am_float_attribute_param(name, i);
+                param = new am_float_attribute_param(name, index);
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2:
                 am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2");
@@ -276,26 +278,29 @@ static int create_program(lua_State *L) {
                 am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4");
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_UNKNOWN:
-                am_abort("INTERNAL ERROR: AM_ATTRIBUTE_VAR_TYPE_UNKNOWN");
-                break;
+                am_report_message("warning: ignoring attribute '%s' with unknown type", name_str);
+                num_params--;
+                free(name_str);
+                continue;
         }
+        free(name_str);
         params[i] = param;
+        i++;
     }
 
     // Generate uniform params
-    for (int i = 0; i < num_uniforms; i++) {
+    for (int index = 0; index < num_uniforms; index++) {
         char *name_str;
         am_uniform_var_type type;
         int size;
-        am_get_active_uniform(program, i, &name_str, &type, &size);
+        am_get_active_uniform(program, index, &name_str, &type, &size);
         lua_pushstring(L, name_str);
-        free(name_str);
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name
         am_program_param *param = NULL;
         switch (type) {
             case AM_UNIFORM_VAR_TYPE_FLOAT:
-                param = new am_float_uniform_param(name, i);
+                param = new am_float_uniform_param(name, index);
                 break;
             case AM_UNIFORM_VAR_TYPE_FLOAT_VEC2:
                 am_abort("NYI: AM_UNIFORM_VAR_TYPE_FLOAT_VEC2");
@@ -346,10 +351,14 @@ static int create_program(lua_State *L) {
                 am_abort("NYI: AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE");
                 break;
             case AM_UNIFORM_VAR_TYPE_UNKNOWN:
-                am_abort("INTERNAL ERROR: AM_UNIFORM_VAR_TYPE_UNKNOWN");
-                break;
+                am_report_message("warning: ignoring uniform '%s' with unknown type", name_str);
+                num_params--;
+                free(name_str);
+                continue;
         }
-        params[i + num_attributes] = param;
+        free(name_str);
+        params[i] = param;
+        i++;
     }
 
     am_program *prog = new (lua_newuserdata(L, sizeof(am_program))) am_program();
