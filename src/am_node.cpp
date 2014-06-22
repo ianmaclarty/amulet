@@ -55,6 +55,16 @@ static int set_float_command(lua_State *L) {
     return 1;
 }
 
+static int set_float_array_command(lua_State *L) {
+    int nargs = am_check_nargs(L, 3);
+    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    am_set_float_array_command *cmd = new (lua_newuserdata(L, sizeof(am_set_float_array_command))) am_set_float_array_command(L, nargs, node);
+    append_command(L, node, 1, cmd, -1);
+    lua_pop(L, 1); // cmd
+    lua_pushvalue(L, 1); // return node for chaining
+    return 1;
+}
+
 static int use_program_command(lua_State *L) {
     am_check_nargs(L, 2);
     am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
@@ -92,6 +102,8 @@ static void register_node_mt(lua_State *L) {
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, set_float_command, 0);
     lua_setfield(L, -2, "set_float");
+    lua_pushcclosure(L, set_float_array_command, 0);
+    lua_setfield(L, -2, "set_float_array");
     lua_pushcclosure(L, use_program_command, 0);
     lua_setfield(L, -2, "use_program");
     lua_pushcclosure(L, draw_arrays_command, 0);
@@ -102,7 +114,7 @@ static void register_node_mt(lua_State *L) {
     lua_pushcclosure(L, fallback_index_func, 0);
     lua_setfield(L, -2, "__index");
     lua_setmetatable(L, -2);
-    am_register_metatable(L, AM_MT_NODE);
+    am_register_metatable(L, AM_MT_NODE, 0);
 }
 
 void am_open_node_module(lua_State *L) {

@@ -47,6 +47,34 @@ void am_add_float_param_command::execute(am_render_state *rstate) {
     if (p != NULL) p->trailed_add_float(rstate, value);
 }
 
+am_set_float_array_command::am_set_float_array_command(lua_State *L, int nargs, am_node *node) {
+    if (nargs < 2 || !lua_isstring(L, 2)) {
+        luaL_error(L, "expecting a string in position 2");
+    }
+    name = am_lookup_param_name(L, 2);
+    if (nargs < 3) {
+        luaL_error(L, "expecting a buffer view in position 3");
+    }
+    am_buffer_view *view = (am_buffer_view*)am_check_metatable_id(L, AM_MT_BUFFER_VIEW, 3);
+
+    am_push_ref(L, 3, view->buffer_ref); // push buffer
+    if (view->buffer->vbo == NULL) {
+        am_push_new_vertex_buffer(L, view->buffer, -1);  // push new vbo
+    } else {
+        am_push_ref(L, -1, view->buffer->vbo->ref);  // push existing vbo
+    }
+    int vbo_idx = lua_absindex(L, -1);
+
+    vbo = view->buffer->vbo;
+    vbo_ref = am_new_ref(L, 1, vbo_idx); // create ref from node to vbo
+    am_buf_view_type_to_attr_client_type_and_size(view->type, &type, &size);
+    normalized = view->normalized;
+    stride = view->stride;
+    offset = view->offset;
+
+    lua_pop(L, 2); // buffer, vbo
+}
+
 void am_set_float_array_command::execute(am_render_state *rstate) {
     am_program_param *p = am_param_name_map[name];
     if (p == NULL) return;

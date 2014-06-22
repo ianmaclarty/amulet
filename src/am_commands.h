@@ -39,18 +39,16 @@ struct am_add_float_param_command : am_command {
     virtual void execute(am_render_state *state);
 };
 
-struct am_vertex_buffer {
-    am_buffer_id buffer_id;
-    int size;
-};
-
 struct am_set_float_array_command : am_command {
     am_param_name_id name;
     am_vertex_buffer *vbo;
+    int vbo_ref;
     am_attribute_client_type type;
+    int size;
     bool normalized;
     int stride;
     int offset;
 
+    am_set_float_array_command(lua_State *L, int nargs, am_node *node);
     virtual void execute(am_render_state *state);
 };

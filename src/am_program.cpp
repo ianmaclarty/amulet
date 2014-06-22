@@ -383,7 +383,7 @@ static void register_program_mt(lua_State *L) {
     lua_setfield(L, -2, "__gc");
     lua_pushstring(L, "program");
     lua_setfield(L, -2, "tname");
-    am_register_metatable(L, AM_MT_PROGRAM);
+    am_register_metatable(L, AM_MT_PROGRAM, 0);
 }
 
 void am_open_program_module(lua_State *L) {

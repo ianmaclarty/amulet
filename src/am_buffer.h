@@ -21,13 +21,23 @@ enum am_buffer_view_type {
     AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC4,
 };
 
+struct am_vertex_buffer {
+    am_buffer_id buffer_id;
+    int ref; // ref from am_buffer object to this vbo
+    int size;
+    int dirty_start;
+    int dirty_end;
+};
+
 struct am_buffer {
+    am_vertex_buffer    *vbo;
     int                 size;  // in bytes
     char                data[];
 };
 
 struct am_buffer_view {
     am_buffer           *buffer;
+    int                 buffer_ref;
     int                 offset; // in bytes
     int                 stride; // in bytes
     int                 size;   // number of elements
@@ -36,3 +46,5 @@ struct am_buffer_view {
 };
 
 void am_open_buffer_module(lua_State *L);
+void am_push_new_vertex_buffer(lua_State *L, am_buffer *buf, int buf_idx);
+void am_buf_view_type_to_attr_client_type_and_size(am_buffer_view_type t, am_attribute_client_type *ctype, int *size);

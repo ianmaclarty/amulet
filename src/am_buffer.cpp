@@ -5,13 +5,28 @@ static int create_buffer(lua_State *L) {
     int isnum;
     int size = lua_tointegerx(L, 1, &isnum);
     if (!isnum) return luaL_error(L, "expecting size (an integer) at position 1");
-    am_buffer *buf = (am_buffer*)lua_newuserdata(L, sizeof(am_buffer) + size);
+    am_buffer *buf = (am_buffer*)am_new_nonatomic_userdata(L, sizeof(am_buffer) + size);
+    buf->vbo = NULL;
     buf->size = size;
     if (nargs == 1 || (nargs > 1 && lua_toboolean(L, 2))) {
         memset(&buf->data[0], 0, size);
     }
     am_set_metatable(L, AM_MT_BUFFER, -1);
     return 1;
+}
+
+void am_push_new_vertex_buffer(lua_State *L, am_buffer *buf, int buf_idx) {
+    assert(buf->vbo == NULL);
+    buf_idx = lua_absindex(L, buf_idx);
+    am_vertex_buffer* vbo = (am_vertex_buffer*)lua_newuserdata(L, sizeof(am_vertex_buffer));
+    buf->vbo = vbo;
+    vbo->ref = am_new_ref(L, buf_idx, -1);
+    vbo->buffer_id = am_create_buffer();
+    vbo->size = buf->size;
+    vbo->dirty_start = INT_MAX;
+    vbo->dirty_end = 0;
+    am_bind_buffer(AM_ARRAY_BUFFER, vbo->buffer_id);
+    am_set_buffer_data(AM_ARRAY_BUFFER, vbo->size, &buf->data[0], AM_BUFFER_USAGE_STATIC_DRAW);
 }
 
 #define create_buffer_view_func(TYPE, type_size)                                                                \
@@ -40,7 +55,7 @@ static int create_buffer_view_##TYPE(lua_State *L) {                            
                                                                                                                 \
     am_buffer_view *view = new (am_new_nonatomic_userdata(L, sizeof(am_buffer_view))) am_buffer_view();         \
     view->buffer = buf;                                                                                         \
-    am_new_ref(L, -1, 1);                                                                                       \
+    view->buffer_ref = am_new_ref(L, -1, 1);                                                                    \
     view->offset = offset;                                                                                      \
     view->stride = stride;                                                                                      \
     view->size = size;                                                                                          \
@@ -122,7 +137,18 @@ static int buffer_view_newindex_FLOAT(lua_State *L) {
         return luaL_error(L, "view index %d out of range", index);
     }
     float val = luaL_checknumber(L, 3);
-    *((float*)&view->buffer->data[view->offset + view->stride * (index-1)]) = val;
+    int byte_start = view->offset + view->stride * (index-1);
+    *((float*)&view->buffer->data[byte_start]) = val;
+    am_vertex_buffer *vbo = view->buffer->vbo;
+    if (vbo != NULL) {
+        int byte_end = byte_start + sizeof(float);
+        if (byte_start < vbo->dirty_start) {
+            vbo->dirty_start = byte_start;
+        } 
+        if (byte_end > vbo->dirty_end) {
+            vbo->dirty_end = byte_end;
+        }
+    }
     return 0;
 }
 
@@ -146,16 +172,16 @@ buffer_view_newindex_func(UNSIGNED_SHORT_VEC2)
 buffer_view_newindex_func(UNSIGNED_SHORT_VEC3)
 buffer_view_newindex_func(UNSIGNED_SHORT_VEC4)
 
-#define register_buffer_view_mt_func(TYPE, suffix)                  \
-static void register_buffer_view_mt_##TYPE(lua_State *L) {          \
-    lua_newtable(L);                                                \
-    lua_pushcclosure(L, buffer_view_index_##TYPE, 0);               \
-    lua_setfield(L, -2, "__index");                                 \
-    lua_pushcclosure(L, buffer_view_newindex_##TYPE, 0);            \
-    lua_setfield(L, -2, "__newindex");                              \
-    lua_pushstring(L, "view_" #suffix);                             \
-    lua_setfield(L, -2, "tname");                                   \
-    am_register_metatable(L, AM_MT_BUFFER_VIEW_##TYPE);             \
+#define register_buffer_view_mt_func(TYPE, suffix)                          \
+static void register_buffer_view_mt_##TYPE(lua_State *L) {                  \
+    lua_newtable(L);                                                        \
+    lua_pushcclosure(L, buffer_view_index_##TYPE, 0);                       \
+    lua_setfield(L, -2, "__index");                                         \
+    lua_pushcclosure(L, buffer_view_newindex_##TYPE, 0);                    \
+    lua_setfield(L, -2, "__newindex");                                      \
+    lua_pushstring(L, "view_" #suffix);                                     \
+    lua_setfield(L, -2, "tname");                                           \
+    am_register_metatable(L, AM_MT_BUFFER_VIEW_##TYPE, AM_MT_BUFFER_VIEW);  \
 }
 
 register_buffer_view_mt_func(FLOAT, float)
@@ -225,7 +251,12 @@ static void register_buffer_mt(lua_State *L) {
     lua_setfield(L, -2, "ushort3_view");
     lua_pushcclosure(L, create_buffer_view_UNSIGNED_SHORT_VEC4, 0);
     lua_setfield(L, -2, "ushort4_view");
-    am_register_metatable(L, AM_MT_BUFFER);
+    am_register_metatable(L, AM_MT_BUFFER, 0);
+}
+
+static void register_buffer_view_mt(lua_State *L) {
+    lua_newtable(L);
+    am_register_metatable(L, AM_MT_BUFFER_VIEW, 0);
 }
 
 void am_open_buffer_module(lua_State *L) {
@@ -235,6 +266,7 @@ void am_open_buffer_module(lua_State *L) {
     };
     am_open_module(L, "amulet", funcs);
     register_buffer_mt(L);
+    register_buffer_view_mt(L);
     register_buffer_view_mt_FLOAT(L);
     register_buffer_view_mt_FLOAT_VEC2(L);
     register_buffer_view_mt_FLOAT_VEC3(L);
@@ -255,4 +287,70 @@ void am_open_buffer_module(lua_State *L) {
     register_buffer_view_mt_UNSIGNED_SHORT_VEC2(L);
     register_buffer_view_mt_UNSIGNED_SHORT_VEC3(L);
     register_buffer_view_mt_UNSIGNED_SHORT_VEC4(L);
+}
+
+void am_buf_view_type_to_attr_client_type_and_size(am_buffer_view_type t, am_attribute_client_type *ctype, int *size) {
+    switch (t) {
+        case AM_BUF_ELEM_TYPE_FLOAT:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *size = 1;
+            return;
+        case AM_BUF_ELEM_TYPE_FLOAT_VEC2:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *size = 2;
+            return;
+        case AM_BUF_ELEM_TYPE_FLOAT_VEC3:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *size = 3;
+            return;
+        case AM_BUF_ELEM_TYPE_FLOAT_VEC4:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *size = 4;
+            return;
+        case AM_BUF_ELEM_TYPE_BYTE:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *size = 1;
+            return;
+        case AM_BUF_ELEM_TYPE_BYTE_VEC2:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *size = 2;
+            return;
+        case AM_BUF_ELEM_TYPE_BYTE_VEC3:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *size = 3;
+            return;
+        case AM_BUF_ELEM_TYPE_BYTE_VEC4:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *size = 4;
+            return;
+        case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *size = 1;
+            return;
+        case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC2:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *size = 2;
+            return;
+        case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC3:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *size = 3;
+            return;
+        case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC4:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *size = 4;
+            return;
+        case AM_BUF_ELEM_TYPE_SHORT:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *size = 1;
+            return;
+        case AM_BUF_ELEM_TYPE_SHORT_VEC2:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *size = 2;
+            return;
+        case AM_BUF_ELEM_TYPE_SHORT_VEC3:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *size = 3;
+            return;
+        case AM_BUF_ELEM_TYPE_SHORT_VEC4:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *size = 4;
+            return;
+        case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *size = 1;
+            return;
+        case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC2:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *size = 2;
+            return;
+        case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC3:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *size = 3;
+            return;
+        case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC4:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *size = 4;
+            return;
+    }
+    return;
 }

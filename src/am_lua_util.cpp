@@ -70,8 +70,16 @@ void am_requiref(lua_State *L, const char *modname, lua_CFunction openf) {
 #endif
 }
 
-void am_register_metatable(lua_State *L, int id) {
-    lua_rawseti(L, LUA_REGISTRYINDEX, id);
+#define AM_METATABLE_ID_INDEX 1
+
+void am_register_metatable(lua_State *L, int metatable_id, int parent_mt_id) {
+    if (parent_mt_id > 0) {
+        am_push_metatable(L, parent_mt_id);
+        lua_setmetatable(L, -2);
+    }
+    lua_pushinteger(L, metatable_id);
+    lua_rawseti(L, -2, AM_METATABLE_ID_INDEX);
+    lua_rawseti(L, LUA_REGISTRYINDEX, metatable_id);
 }
 
 void am_set_metatable(lua_State *L, int metatable_id, int idx) {
@@ -84,55 +92,62 @@ void am_push_metatable(lua_State *L, int metatable_id) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
 }
 
-bool am_has_metatable_id(lua_State *L, int metatable_id, int idx) {
-    int r;
-    lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
+inline int am_get_metatable_id(lua_State *L, int idx) {
+    int id = 0;
     if (lua_getmetatable(L, idx)) {
-        r = lua_rawequal(L, -1, -2);
+        lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
+        id = lua_tointeger(L, -1);
         lua_pop(L, 2);
-        return r == 1;
-    } else {
-        lua_pop(L, 1);
-        return false;
     }
+    return id;
 }
 
 void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
+    int top = lua_gettop(L);
+    int v = idx;
+    while (lua_getmetatable(L, v)) {
+        lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
+        if (lua_tointeger(L, -1) == metatable_id) {
+            lua_pop(L, lua_gettop(L) - top);
+            return lua_touserdata(L, idx);
+        }
+        lua_pop(L, 1);
+        v = -1;
+    }
+
+    // fail
+    lua_pop(L, lua_gettop(L) - top);
     idx = lua_absindex(L, idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
     if (!lua_getmetatable(L, idx)) {
         lua_pushnil(L);
     }
-    if (!lua_rawequal(L, -1, -2)) {
-        const char *expected_tname;
-        const char *got_tname;
-        int argtype;
-        if (lua_istable(L, -2)) {
-            lua_pushstring(L, "tname");
-            lua_rawget(L, -3);
-            expected_tname = lua_tostring(L, -1);
-            lua_pop(L, 1);
-            if (expected_tname == NULL) expected_tname = "<missing mt tname entry>";
-        } else {
-            expected_tname = "<missing mt entry>";
-        }
-        argtype = lua_type(L, idx);
-        if (argtype == LUA_TUSERDATA && !lua_isnil(L, -1)) {
-            lua_pushstring(L, "tname");
-            lua_rawget(L, -1);
-            got_tname = lua_tostring(L, -1);
-            lua_pop(L, 1);
-            if (got_tname == NULL) got_tname = "userdata";
-        } else {
-            got_tname = lua_typename(L, argtype);
-        }
-        lua_pop(L, 2);
-        luaL_error(L, "expecting a value of type '%s' at position %d (got '%s')",
-            expected_tname, idx, got_tname);
-        return NULL;
+    const char *expected_tname;
+    const char *got_tname;
+    int argtype;
+    if (lua_istable(L, -2)) {
+        lua_pushstring(L, "tname");
+        lua_rawget(L, -3);
+        expected_tname = lua_tostring(L, -1);
+        lua_pop(L, 1);
+        if (expected_tname == NULL) expected_tname = "<missing mt tname entry>";
+    } else {
+        expected_tname = "<missing mt entry>";
+    }
+    argtype = lua_type(L, idx);
+    if (argtype == LUA_TUSERDATA && !lua_isnil(L, -1)) {
+        lua_pushstring(L, "tname");
+        lua_rawget(L, -1);
+        got_tname = lua_tostring(L, -1);
+        lua_pop(L, 1);
+        if (got_tname == NULL) got_tname = "userdata";
+    } else {
+        got_tname = lua_typename(L, argtype);
     }
     lua_pop(L, 2);
-    return lua_touserdata(L, idx);
+    luaL_error(L, "expecting a value of type '%s' at position %d (got '%s')",
+        expected_tname, idx, got_tname);
+    return NULL;
 }
 
 void *am_new_nonatomic_userdata(lua_State *L, size_t sz) {

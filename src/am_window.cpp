@@ -100,7 +100,7 @@ static void register_window_mt(lua_State *L) {
     lua_setfield(L, -2, "__gc");
     lua_pushstring(L, "window");
     lua_setfield(L, -2, "tname");
-    am_register_metatable(L, AM_MT_WINDOW);
+    am_register_metatable(L, AM_MT_WINDOW, 0);
 }
 
 void am_open_window_module(lua_State *L) {
