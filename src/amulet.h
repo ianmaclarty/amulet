@@ -28,6 +28,7 @@ extern "C" {
 #include "am_logging.h"
 #include "am_gl.h"
 #include "am_lua_util.h"
+#include "am_math.h"
 #include "am_window.h"
 #include "am_buffer.h"
 #include "am_trail.h"

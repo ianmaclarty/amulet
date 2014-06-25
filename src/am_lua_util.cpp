@@ -92,7 +92,7 @@ void am_push_metatable(lua_State *L, int metatable_id) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
 }
 
-inline int am_get_metatable_id(lua_State *L, int idx) {
+int am_get_metatable_id(lua_State *L, int idx) {
     int id = 0;
     if (lua_getmetatable(L, idx)) {
         lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);

@@ -9,13 +9,14 @@ lua_State *am_init_engine(bool worker) {
     lua_State *L = luaL_newstate();
     init_reserved_refs(L);
     open_stdlualibs(L);
+    am_open_math_module(L);
+    am_open_buffer_module(L);
     if (!worker) {
         am_init_param_name_map(L);
         am_open_window_module(L);
         am_open_node_module(L);
         am_open_program_module(L);
     }
-    am_open_buffer_module(L);
     am_set_globals_metatable(L);
     return L;
 }
