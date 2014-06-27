@@ -23,3 +23,60 @@ int lua_rawlen(lua_State *L, int idx);
 int lua_absindex(lua_State *L, int idx);
 lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum);
 #endif
+
+template<typename T>
+struct am_lua_vector {
+    T *arr;
+    int size;
+    int capacity;
+    int ref;
+
+    void init(lua_State *L, int owner, int initial_capacity) {
+        assert(initial_capacity > 0);
+        owner = lua_absindex(L, owner);
+        arr = (T*)lua_newuserdata(L, sizeof(T) * initial_capacity);
+        capacity = initial_capacity;
+        size = 0;
+        ref = am_new_ref(L, owner, -1);
+        lua_pop(L, 1); // arr
+    }
+
+    void push_back(lua_State *L, int owner, T val) {
+        ensure_capacity(L, owner, size + 1);
+        arr[size++] = val;
+    }
+
+    void push_front(lua_State *L, int owner, T val) {
+        ensure_capacity(L, owner, size + 1);
+        for (int i = size; i > 0; i--) {
+            arr[i] = arr[i-1];
+        }
+        arr[0] = val;
+        size++;
+    }
+
+    void remove(int index) {
+        if (index >= size) return;
+        for (int i = index; i < size - 1; i++) {
+            arr[i] = arr[i+1];
+        }
+        size--;
+    }
+
+    void clear() {
+        size = 0;
+    }
+
+    void ensure_capacity(lua_State *L, int owner, int c) {
+        if (c < capacity) {
+            owner = lua_absindex(L, owner);
+            int old_capacity = capacity;
+            while (capacity < c) capacity *= 2;
+            T *new_arr = (T*)lua_newuserdata(L, sizeof(T) * capacity);
+            memcpy(new_arr, arr, sizeof(T) * old_capacity);
+            arr = new_arr;
+            am_replace_ref(L, owner, ref, -1);
+            lua_pop(L, 1); // new_arr
+        }
+    }
+};

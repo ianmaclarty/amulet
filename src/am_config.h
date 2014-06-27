@@ -1,3 +1,4 @@
 extern bool am_conf_validate_shaders;
 extern int am_conf_default_recursion_limit;
 extern int am_conf_command_list_initial_size;
+extern int am_conf_node_children_initial_size;

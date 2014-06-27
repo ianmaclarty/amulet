@@ -227,7 +227,7 @@ test: run_cpp_tests
 .PHONY: run_cpp_tests
 run_cpp_tests:
 	@echo Running CPP tests...
-	@for f in "$(CPP_TESTS)"; do \
+	@for f in $(CPP_TESTS); do \
 	    fexe=tests/$$f$(EXE_EXT); \
 	    fexp=tests/$$f.exp; \
 	    fexp2=tests/$$f.exp2; \
