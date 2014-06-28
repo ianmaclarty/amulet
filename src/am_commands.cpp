@@ -1,6 +1,12 @@
 #include "amulet.h"
 
-void am_use_program_command::execute(am_render_state *rstate) {
+void am_draw_children_command::execute(am_node *node, am_render_state *rstate) {
+    for (int i = 0; i < node->children.size; i++) {
+        node->children.arr[i].child->render(rstate);
+    }
+}
+
+void am_use_program_command::execute(am_node *node, am_render_state *rstate) {
     for (int i = 0; i < program->num_params; i++) {
         am_program_param *param = program->params[i];
         am_program_param **slot = &am_param_name_map[param->name];
@@ -16,7 +22,7 @@ am_draw_arrays_command::am_draw_arrays_command(int f, int c) {
     count = c;
 }
 
-void am_draw_arrays_command::execute(am_render_state *rstate) {
+void am_draw_arrays_command::execute(am_node *node, am_render_state *rstate) {
     rstate->draw_arrays(first, count);
 }
 
@@ -32,17 +38,17 @@ am_set_float_param_command::am_set_float_param_command(lua_State *L, int nargs, 
     }
 }
 
-void am_set_float_param_command::execute(am_render_state *rstate) {
+void am_set_float_param_command::execute(am_node *node, am_render_state *rstate) {
     am_program_param *p = am_param_name_map[name];
     if (p != NULL) p->trailed_set_float(rstate, value);
 }
 
-void am_mul_float_param_command::execute(am_render_state *rstate) {
+void am_mul_float_param_command::execute(am_node *node, am_render_state *rstate) {
     am_program_param *p = am_param_name_map[name];
     if (p != NULL) p->trailed_mul_float(rstate, value);
 }
 
-void am_add_float_param_command::execute(am_render_state *rstate) {
+void am_add_float_param_command::execute(am_node *node, am_render_state *rstate) {
     am_program_param *p = am_param_name_map[name];
     if (p != NULL) p->trailed_add_float(rstate, value);
 }
@@ -75,7 +81,7 @@ am_set_float_array_command::am_set_float_array_command(lua_State *L, int nargs, 
     lua_pop(L, 2); // buffer, vbo
 }
 
-void am_set_float_array_command::execute(am_render_state *rstate) {
+void am_set_float_array_command::execute(am_node *node, am_render_state *rstate) {
     am_program_param *p = am_param_name_map[name];
     if (p == NULL) return;
     int available_bytes = vbo->size - offset - am_attribute_client_type_size(type);

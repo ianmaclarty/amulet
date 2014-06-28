@@ -33,6 +33,8 @@ struct am_buffer {
     am_vertex_buffer    *vbo;
     int                 size;  // in bytes
     char                data[];
+
+    am
 };
 
 struct am_buffer_view {

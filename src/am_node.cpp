@@ -6,7 +6,7 @@ void am_node::render(am_render_state *rstate) {
     int ticket = rstate->trail.get_ticket();
     for (int i = 0; i < command_list.size; i++) {
         am_command *cmd = command_list.arr[i];
-        cmd->execute(rstate);
+        cmd->execute(this, rstate);
     }
     rstate->trail.rewind_to(ticket);
     recursion_limit++;
@@ -15,8 +15,6 @@ void am_node::render(am_render_state *rstate) {
 static int create_node(lua_State *L) {
     am_node *node = new (am_new_nonatomic_userdata(L, sizeof(am_node))) am_node();
     node->recursion_limit = am_conf_default_recursion_limit;
-    node->command_list.init(L, -1, am_conf_command_list_initial_size);
-    node->children.init(L, -1, am_conf_node_children_initial_size);
     am_set_metatable(L, AM_MT_NODE, -1);
     return 1;
 }
@@ -97,6 +95,16 @@ static int fallback_index_func(lua_State *L) {
     return 1;
 }
 
+static int draw_children_command(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    am_draw_children_command *cmd = new (lua_newuserdata(L, sizeof(am_draw_children_command))) am_draw_children_command();
+    append_command(L, node, 1, cmd, -1);
+    lua_pop(L, 1); // cmd
+    lua_pushvalue(L, 1); // return node for chaining
+    return 1;
+}
+
 static int set_float_command(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
@@ -153,6 +161,8 @@ static void register_node_mt(lua_State *L) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
 
+    lua_pushcclosure(L, draw_children_command, 0);
+    lua_setfield(L, -2, "draw_children");
     lua_pushcclosure(L, set_float_command, 0);
     lua_setfield(L, -2, "set_float");
     lua_pushcclosure(L, set_float_array_command, 0);

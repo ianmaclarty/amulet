@@ -31,14 +31,11 @@ struct am_lua_vector {
     int capacity;
     int ref;
 
-    void init(lua_State *L, int owner, int initial_capacity) {
-        assert(initial_capacity > 0);
-        owner = lua_absindex(L, owner);
-        arr = (T*)lua_newuserdata(L, sizeof(T) * initial_capacity);
-        capacity = initial_capacity;
+    am_lua_vector() {
+        arr = NULL;
         size = 0;
-        ref = am_new_ref(L, owner, -1);
-        lua_pop(L, 1); // arr
+        capacity = 0;
+        ref = LUA_NOREF;
     }
 
     void push_back(lua_State *L, int owner, T val) {
@@ -68,14 +65,19 @@ struct am_lua_vector {
     }
 
     void ensure_capacity(lua_State *L, int owner, int c) {
-        if (c < capacity) {
+        if (capacity < c) {
             owner = lua_absindex(L, owner);
             int old_capacity = capacity;
+            if (capacity == 0) capacity = 1;
             while (capacity < c) capacity *= 2;
             T *new_arr = (T*)lua_newuserdata(L, sizeof(T) * capacity);
-            memcpy(new_arr, arr, sizeof(T) * old_capacity);
+            if (old_capacity > 0) {
+                memcpy(new_arr, arr, sizeof(T) * old_capacity);
+                am_replace_ref(L, owner, ref, -1);
+            } else {
+                ref = am_new_ref(L, owner, -1);
+            }
             arr = new_arr;
-            am_replace_ref(L, owner, ref, -1);
             lua_pop(L, 1); // new_arr
         }
     }

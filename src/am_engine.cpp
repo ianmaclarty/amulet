@@ -53,6 +53,8 @@ static void open_stdlualibs(lua_State *L) {
     // table in luaopen_base, so unset the global.
     lua_pushnil(L);
     lua_setglobal(L, "coroutine");
+    am_requiref(L, "ffi",       luaopen_ffi);
+    am_requiref(L, "jit",       luaopen_jit);
 #else
     am_requiref(L, "coroutine", luaopen_coroutine);
 #endif
