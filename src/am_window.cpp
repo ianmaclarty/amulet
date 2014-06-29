@@ -67,7 +67,6 @@ static int close_window(lua_State *L) {
     }
     if (win->is_main) {
         SDL_GL_DeleteContext(win->gl_context);
-        // XXX make sure we exit when main window closed.
         main_window = NULL;
     }
     SDL_DestroyWindow(win->sdl_win);
