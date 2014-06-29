@@ -63,4 +63,4 @@ for i = 1, 60 do
     print(i)
 end
 
-win:destroy()
+win:close()

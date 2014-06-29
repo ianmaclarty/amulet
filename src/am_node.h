@@ -8,6 +8,7 @@ struct am_node {
     am_lua_vector<am_child_slot> children;
     int recursion_limit;
 
+    am_node();
     void render(am_render_state *rstate);
 };
 

@@ -1,5 +1,9 @@
 #include "amulet.h"
 
+am_node::am_node() {
+    recursion_limit = am_conf_default_recursion_limit;
+}
+
 void am_node::render(am_render_state *rstate) {
     if (recursion_limit <= 0) return;
     recursion_limit--;
@@ -13,8 +17,7 @@ void am_node::render(am_render_state *rstate) {
 }
 
 static int create_node(lua_State *L) {
-    am_node *node = new (am_new_nonatomic_userdata(L, sizeof(am_node))) am_node();
-    node->recursion_limit = am_conf_default_recursion_limit;
+    new (am_new_nonatomic_userdata(L, sizeof(am_node))) am_node();
     am_set_metatable(L, AM_MT_NODE, -1);
     return 1;
 }
@@ -101,7 +104,7 @@ static int draw_children_command(lua_State *L) {
     am_draw_children_command *cmd = new (lua_newuserdata(L, sizeof(am_draw_children_command))) am_draw_children_command();
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
-    lua_pushvalue(L, 1); // return node for chaining
+    lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
@@ -111,7 +114,7 @@ static int set_float_command(lua_State *L) {
     am_set_float_param_command *cmd = new (lua_newuserdata(L, sizeof(am_set_float_param_command))) am_set_float_param_command(L, nargs, node);
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
-    lua_pushvalue(L, 1); // return node for chaining
+    lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
@@ -121,7 +124,7 @@ static int set_float_array_command(lua_State *L) {
     am_set_float_array_command *cmd = new (lua_newuserdata(L, sizeof(am_set_float_array_command))) am_set_float_array_command(L, nargs, node);
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
-    lua_pushvalue(L, 1); // return node for chaining
+    lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
@@ -134,7 +137,7 @@ static int use_program_command(lua_State *L) {
     cmd->program_ref = am_new_ref(L, 1, 2); // add ref from node to prog.
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
-    lua_pushvalue(L, 1); // return node for chaining
+    lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
@@ -152,7 +155,7 @@ static int draw_arrays_command(lua_State *L) {
     am_draw_arrays_command *cmd = new (lua_newuserdata(L, sizeof(am_draw_arrays_command))) am_draw_arrays_command(first, count);
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
-    lua_pushvalue(L, 1); // return node for chaining
+    lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
