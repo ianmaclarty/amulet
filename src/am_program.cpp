@@ -196,6 +196,9 @@ am_shader_id load_shader(lua_State *L, int type, const char *src) {
 }
 
 static int create_program(lua_State *L) {
+    if (!am_gl_context_exists()) {
+        return luaL_error(L, "you need to create a window before creating a shader program");
+    }
     am_check_nargs(L, 2);
     const char *vertex_shader_src = lua_tostring(L, 1);
     const char *fragment_shader_src = lua_tostring(L, 2);
