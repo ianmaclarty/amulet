@@ -21,9 +21,13 @@ enum am_buffer_view_type {
     AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC4,
 };
 
+struct am_buffer;
+
 struct am_vertex_buffer {
     am_buffer_id buffer_id;
-    int ref; // ref from am_buffer object to this vbo
+    am_buffer *buffer;
+    int buffer_ref; // ref from this vbo to am_buffer object
+    int vbo_ref; // ref from am_buffer to this vbo
     int size;
     int dirty_start;
     int dirty_end;

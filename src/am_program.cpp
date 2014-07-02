@@ -54,8 +54,8 @@ struct am_attribute_param : am_program_param {
 };
 
 struct am_float_attribute_state {
-    float value; // only used if buffer_id == 0
-    am_buffer_id buffer_id;
+    float value; // only used if vbo == NULL
+    am_vertex_buffer *vbo;
     am_attribute_client_type type;
     bool normalized;
     int stride;
@@ -69,13 +69,20 @@ struct am_float_attribute_param : am_attribute_param {
     am_float_attribute_param(am_param_name_id name, am_attribute_index index)
         : am_attribute_param(name, index)
     {
-        memset(&state, 0, sizeof(am_float_attribute_state));
+        state.value = 0.0f;
+        state.vbo = NULL;
     }
 
     virtual void bind(am_render_state *rstate) {
-        if (state.buffer_id) {
+        if (state.vbo != NULL) {
             am_set_attribute_array_enabled(index, true);
-            am_bind_buffer(AM_ARRAY_BUFFER, state.buffer_id);
+            am_bind_buffer(AM_ARRAY_BUFFER, state.vbo->buffer_id);
+            if (state.vbo->dirty_start < state.vbo->dirty_end) {
+                am_vertex_buffer *vbo = state.vbo;
+                am_set_buffer_sub_data(AM_ARRAY_BUFFER, vbo->dirty_start, vbo->dirty_end - vbo->dirty_start, vbo->buffer->data + vbo->dirty_start);
+                vbo->dirty_end = 0;
+                vbo->dirty_start = INT_MAX;
+            }
             am_set_attribute_pointer(index, 1, state.type, state.normalized, state.stride, state.offset);
             if (state.max_draw_elements < rstate->max_draw_array_size) {
                 rstate->max_draw_array_size = state.max_draw_elements;
@@ -88,15 +95,16 @@ struct am_float_attribute_param : am_attribute_param {
 
     virtual void trailed_set_float(am_render_state *rstate, float val) {
         rstate->trail.trail(&state, sizeof(am_float_attribute_state));
-        state.buffer_id = 0;
+        state.vbo = NULL;
         state.value = val;
     }
 
     virtual void trailed_set_float_array(am_render_state *rstate,
-        am_buffer_id buffer_id, am_attribute_client_type type, bool normalized, int stride, int offset, int max_draw_elements)
+        am_vertex_buffer *vbo, am_attribute_client_type type, bool normalized,
+        int stride, int offset, int max_draw_elements)
     {
         rstate->trail.trail(&state, sizeof(am_float_attribute_state));
-        state.buffer_id = buffer_id;
+        state.vbo = vbo;
         state.type = type;
         state.normalized = normalized;
         state.stride = stride;
@@ -106,13 +114,13 @@ struct am_float_attribute_param : am_attribute_param {
 
     virtual void trailed_mul_float(am_render_state *rstate, float val) {
         rstate->trail.trail(&state, sizeof(am_float_attribute_state));
-        state.buffer_id = 0;
+        state.vbo = NULL;
         state.value *= val;
     }
 
     virtual void trailed_add_float(am_render_state *rstate, float val) {
         rstate->trail.trail(&state, sizeof(am_float_attribute_state));
-        state.buffer_id = 0;
+        state.vbo = NULL;
         state.value += val;
     }
 };

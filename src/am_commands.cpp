@@ -67,7 +67,7 @@ am_set_float_array_command::am_set_float_array_command(lua_State *L, int nargs, 
     if (view->buffer->vbo == NULL) {
         am_push_new_vertex_buffer(L, view->buffer, -1);  // push new vbo
     } else {
-        am_push_ref(L, -1, view->buffer->vbo->ref);  // push existing vbo
+        am_push_ref(L, -1, view->buffer->vbo->vbo_ref);  // push existing vbo
     }
     int vbo_idx = lua_absindex(L, -1);
 
@@ -89,6 +89,6 @@ void am_set_float_array_command::execute(am_node *node, am_render_state *rstate)
     if (available_bytes > 0) {
         max_draw_elements = available_bytes / stride + 1;
     }
-    p->trailed_set_float_array(rstate,
-        vbo->buffer_id, type, normalized, stride, offset, max_draw_elements);
+    p->trailed_set_float_array(rstate, vbo, type, normalized, stride, offset,
+        max_draw_elements);
 }

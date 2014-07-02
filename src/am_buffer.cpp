@@ -18,9 +18,11 @@ static int create_buffer(lua_State *L) {
 void am_push_new_vertex_buffer(lua_State *L, am_buffer *buf, int buf_idx) {
     assert(buf->vbo == NULL);
     buf_idx = lua_absindex(L, buf_idx);
-    am_vertex_buffer* vbo = (am_vertex_buffer*)lua_newuserdata(L, sizeof(am_vertex_buffer));
+    am_vertex_buffer* vbo = (am_vertex_buffer*)am_new_nonatomic_userdata(L, sizeof(am_vertex_buffer));
     buf->vbo = vbo;
-    vbo->ref = am_new_ref(L, buf_idx, -1);
+    vbo->buffer = buf;
+    vbo->buffer_ref = am_new_ref(L, -1, buf_idx); // ref from vbo to buf
+    vbo->vbo_ref = am_new_ref(L, buf_idx, -1); // ref from buffer to vbo
     vbo->buffer_id = am_create_buffer();
     vbo->size = buf->size;
     vbo->dirty_start = INT_MAX;
@@ -134,7 +136,11 @@ static int buffer_view_newindex_FLOAT(lua_State *L) {
     am_buffer_view *view = (am_buffer_view*)lua_touserdata(L, 1);
     int index = lua_tointeger(L, 2);
     if (index < 1 || index > view->size) {
-        return luaL_error(L, "view index %d out of range", index);
+        if (lua_isnumber(L, 2)) {
+            return luaL_error(L, "view index %d not in range [1, %d]", index, view->size);
+        } else {
+            return luaL_error(L, "view index must be an integer (got %s)", lua_typename(L, lua_type(L, 2)));
+        }
     }
     float val = luaL_checknumber(L, 3);
     int byte_start = view->offset + view->stride * (index-1);
