@@ -274,5 +274,5 @@ endif
 .PHONY: tags
 tags:
 	ctags `find $(SRC_DIR) -name "*.c"` `find $(SRC_DIR) -name "*.cpp"` \
-		`find $(SRC_DIR) -name "*.h"` `find $(DEPS_DIR) -name "*.c"` \
+		`find $(SRC_DIR) -name "*.h"` `find $(DEPS_DIR) -name "*.c" | grep -v iOS` \
 		`find $(DEPS_DIR) -name "*.cpp"` `find $(DEPS_DIR) -name "*.h"`

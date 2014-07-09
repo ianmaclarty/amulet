@@ -34,7 +34,7 @@ void am_render_state::draw_elements(int first, int active_indices_count) {
 */
 
 bool am_render_state::validate_active_program() {
-    if (am_conf_validate_shaders) {
+    if (am_conf_validate_shader_programs) {
         bool valid = am_validate_program(active_program->program_id);
         if (!valid) {
             char *log = am_get_program_info_log(active_program->program_id);

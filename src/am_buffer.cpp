@@ -90,7 +90,7 @@ create_buffer_view_func(UNSIGNED_SHORT_VEC2, 4)
 create_buffer_view_func(UNSIGNED_SHORT_VEC3, 6)
 create_buffer_view_func(UNSIGNED_SHORT_VEC4, 8)
 
-#define buffer_view_index_func(TYPE)                    \
+#define buffer_view_index_func_nyi(TYPE)                \
 static int buffer_view_index_##TYPE(lua_State *L) {     \
     return luaL_error(L, "NYI");                        \
 }
@@ -107,27 +107,41 @@ static int buffer_view_index_FLOAT(lua_State *L) {
     return 1;
 }
 
-buffer_view_index_func(FLOAT_VEC2)
-buffer_view_index_func(FLOAT_VEC3)
-buffer_view_index_func(FLOAT_VEC4)
-buffer_view_index_func(BYTE)
-buffer_view_index_func(BYTE_VEC2)
-buffer_view_index_func(BYTE_VEC3)
-buffer_view_index_func(BYTE_VEC4)
-buffer_view_index_func(UNSIGNED_BYTE)
-buffer_view_index_func(UNSIGNED_BYTE_VEC2)
-buffer_view_index_func(UNSIGNED_BYTE_VEC3)
-buffer_view_index_func(UNSIGNED_BYTE_VEC4)
-buffer_view_index_func(SHORT)
-buffer_view_index_func(SHORT_VEC2)
-buffer_view_index_func(SHORT_VEC3)
-buffer_view_index_func(SHORT_VEC4)
-buffer_view_index_func(UNSIGNED_SHORT)
-buffer_view_index_func(UNSIGNED_SHORT_VEC2)
-buffer_view_index_func(UNSIGNED_SHORT_VEC3)
-buffer_view_index_func(UNSIGNED_SHORT_VEC4)
+#define buffer_view_index_func_vec(D)                                   \
+static int buffer_view_index_FLOAT_VEC##D(lua_State *L) {               \
+    am_buffer_view *view = (am_buffer_view*)lua_touserdata(L, 1);       \
+    int index = lua_tointeger(L, 2);                                    \
+    if (index < 1 || index > view->size) {                              \
+        lua_pushnil(L);                                                 \
+        return 1;                                                       \
+    }                                                                   \
+    am_vec##D *v = (am_vec##D*)lua_newuserdata(L, sizeof(am_vec##D));   \
+    am_set_metatable(L, AM_MT_VEC##D, -1);                              \
+    *v = *((am_vec##D*)&view->buffer->data[view->offset + view->stride * (index-1)]); \
+    return 1; \
+}
 
-#define buffer_view_newindex_func(TYPE)                 \
+buffer_view_index_func_vec(2)
+buffer_view_index_func_vec(3)
+buffer_view_index_func_vec(4)
+buffer_view_index_func_nyi(BYTE)
+buffer_view_index_func_nyi(BYTE_VEC2)
+buffer_view_index_func_nyi(BYTE_VEC3)
+buffer_view_index_func_nyi(BYTE_VEC4)
+buffer_view_index_func_nyi(UNSIGNED_BYTE)
+buffer_view_index_func_nyi(UNSIGNED_BYTE_VEC2)
+buffer_view_index_func_nyi(UNSIGNED_BYTE_VEC3)
+buffer_view_index_func_nyi(UNSIGNED_BYTE_VEC4)
+buffer_view_index_func_nyi(SHORT)
+buffer_view_index_func_nyi(SHORT_VEC2)
+buffer_view_index_func_nyi(SHORT_VEC3)
+buffer_view_index_func_nyi(SHORT_VEC4)
+buffer_view_index_func_nyi(UNSIGNED_SHORT)
+buffer_view_index_func_nyi(UNSIGNED_SHORT_VEC2)
+buffer_view_index_func_nyi(UNSIGNED_SHORT_VEC3)
+buffer_view_index_func_nyi(UNSIGNED_SHORT_VEC4)
+
+#define buffer_view_newindex_func_nyi(TYPE)             \
 static int buffer_view_newindex_##TYPE(lua_State *L) {  \
     return luaL_error(L, "NYI");                        \
 }
@@ -158,25 +172,52 @@ static int buffer_view_newindex_FLOAT(lua_State *L) {
     return 0;
 }
 
-buffer_view_newindex_func(FLOAT_VEC2)
-buffer_view_newindex_func(FLOAT_VEC3)
-buffer_view_newindex_func(FLOAT_VEC4)
-buffer_view_newindex_func(BYTE)
-buffer_view_newindex_func(BYTE_VEC2)
-buffer_view_newindex_func(BYTE_VEC3)
-buffer_view_newindex_func(BYTE_VEC4)
-buffer_view_newindex_func(UNSIGNED_BYTE)
-buffer_view_newindex_func(UNSIGNED_BYTE_VEC2)
-buffer_view_newindex_func(UNSIGNED_BYTE_VEC3)
-buffer_view_newindex_func(UNSIGNED_BYTE_VEC4)
-buffer_view_newindex_func(SHORT)
-buffer_view_newindex_func(SHORT_VEC2)
-buffer_view_newindex_func(SHORT_VEC3)
-buffer_view_newindex_func(SHORT_VEC4)
-buffer_view_newindex_func(UNSIGNED_SHORT)
-buffer_view_newindex_func(UNSIGNED_SHORT_VEC2)
-buffer_view_newindex_func(UNSIGNED_SHORT_VEC3)
-buffer_view_newindex_func(UNSIGNED_SHORT_VEC4)
+#define buffer_view_newindex_func_vec(D)                                    \
+static int buffer_view_newindex_FLOAT_VEC##D(lua_State *L) {                \
+    am_buffer_view *view = (am_buffer_view*)lua_touserdata(L, 1);           \
+    int index = lua_tointeger(L, 2);                                        \
+    if (index < 1 || index > view->size) {                                  \
+        if (lua_isnumber(L, 2)) {                                           \
+            return luaL_error(L, "view index %d not in range [1, %d]", index, view->size);  \
+        } else {                                                            \
+            return luaL_error(L, "view index must be an integer (got %s)", lua_typename(L, lua_type(L, 2)));    \
+        }                                                                   \
+    }                                                                       \
+    am_vec##D *v = (am_vec##D*)am_check_metatable_id(L, AM_MT_VEC##D, 3);   \
+    int byte_start = view->offset + view->stride * (index-1);               \
+    *((am_vec##D*)&view->buffer->data[byte_start]) = *v;                    \
+    am_vertex_buffer *vbo = view->buffer->vbo;                              \
+    if (vbo != NULL) {                                                      \
+        int byte_end = byte_start + sizeof(am_vec##D);                      \
+        if (byte_start < vbo->dirty_start) {                                \
+            vbo->dirty_start = byte_start;                                  \
+        }                                                                   \
+        if (byte_end > vbo->dirty_end) {                                    \
+            vbo->dirty_end = byte_end;                                      \
+        }                                                                   \
+    }                                                                       \
+    return 0;                                                               \
+}
+
+buffer_view_newindex_func_vec(2)
+buffer_view_newindex_func_vec(3)
+buffer_view_newindex_func_vec(4)
+buffer_view_newindex_func_nyi(BYTE)
+buffer_view_newindex_func_nyi(BYTE_VEC2)
+buffer_view_newindex_func_nyi(BYTE_VEC3)
+buffer_view_newindex_func_nyi(BYTE_VEC4)
+buffer_view_newindex_func_nyi(UNSIGNED_BYTE)
+buffer_view_newindex_func_nyi(UNSIGNED_BYTE_VEC2)
+buffer_view_newindex_func_nyi(UNSIGNED_BYTE_VEC3)
+buffer_view_newindex_func_nyi(UNSIGNED_BYTE_VEC4)
+buffer_view_newindex_func_nyi(SHORT)
+buffer_view_newindex_func_nyi(SHORT_VEC2)
+buffer_view_newindex_func_nyi(SHORT_VEC3)
+buffer_view_newindex_func_nyi(SHORT_VEC4)
+buffer_view_newindex_func_nyi(UNSIGNED_SHORT)
+buffer_view_newindex_func_nyi(UNSIGNED_SHORT_VEC2)
+buffer_view_newindex_func_nyi(UNSIGNED_SHORT_VEC3)
+buffer_view_newindex_func_nyi(UNSIGNED_SHORT_VEC4)
 
 #define register_buffer_view_mt_func(TYPE, suffix)                          \
 static void register_buffer_view_mt_##TYPE(lua_State *L) {                  \
@@ -295,67 +336,67 @@ void am_open_buffer_module(lua_State *L) {
     register_buffer_view_mt_UNSIGNED_SHORT_VEC4(L);
 }
 
-void am_buf_view_type_to_attr_client_type_and_size(am_buffer_view_type t, am_attribute_client_type *ctype, int *size) {
+void am_buf_view_type_to_attr_client_type_and_dimensions(am_buffer_view_type t, am_attribute_client_type *ctype, int *dims) {
     switch (t) {
         case AM_BUF_ELEM_TYPE_FLOAT:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *size = 1;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 1;
             return;
         case AM_BUF_ELEM_TYPE_FLOAT_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *size = 2;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 2;
             return;
         case AM_BUF_ELEM_TYPE_FLOAT_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *size = 3;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 3;
             return;
         case AM_BUF_ELEM_TYPE_FLOAT_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *size = 4;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 4;
             return;
         case AM_BUF_ELEM_TYPE_BYTE:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *size = 1;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 1;
             return;
         case AM_BUF_ELEM_TYPE_BYTE_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *size = 2;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 2;
             return;
         case AM_BUF_ELEM_TYPE_BYTE_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *size = 3;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 3;
             return;
         case AM_BUF_ELEM_TYPE_BYTE_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *size = 4;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 4;
             return;
         case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *size = 1;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *dims = 1;
             return;
         case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *size = 2;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *dims = 2;
             return;
         case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *size = 3;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *dims = 3;
             return;
         case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *size = 4;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *dims = 4;
             return;
         case AM_BUF_ELEM_TYPE_SHORT:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *size = 1;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *dims = 1;
             return;
         case AM_BUF_ELEM_TYPE_SHORT_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *size = 2;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *dims = 2;
             return;
         case AM_BUF_ELEM_TYPE_SHORT_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *size = 3;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *dims = 3;
             return;
         case AM_BUF_ELEM_TYPE_SHORT_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *size = 4;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *dims = 4;
             return;
         case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *size = 1;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 1;
             return;
         case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *size = 2;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 2;
             return;
         case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *size = 3;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 3;
             return;
         case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *size = 4;
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 4;
             return;
     }
     return;

@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-am_program_param **am_param_name_map = NULL;
+am_program_param_name_info *am_param_name_map = NULL;
 
 static void init_reserved_refs(lua_State *L);
 static void open_stdlualibs(lua_State *L);

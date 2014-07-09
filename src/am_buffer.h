@@ -51,4 +51,4 @@ struct am_buffer_view {
 
 void am_open_buffer_module(lua_State *L);
 void am_push_new_vertex_buffer(lua_State *L, am_buffer *buf, int buf_idx);
-void am_buf_view_type_to_attr_client_type_and_size(am_buffer_view_type t, am_attribute_client_type *ctype, int *size);
+void am_buf_view_type_to_attr_client_type_and_dimensions(am_buffer_view_type t, am_attribute_client_type *ctype, int *dims);

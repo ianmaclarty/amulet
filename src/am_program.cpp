@@ -4,6 +4,19 @@ am_program_param::am_program_param(am_param_name_id name) {
     am_program_param::name = name;
 }
 
+void am_program_param::trailed_set_float(am_render_state *rstate, float val) {
+    am_report_error("attempt to set param '%s' to float %f",
+        am_param_name_map[name].name, val);
+}
+
+void am_program_param::trailed_set_array(am_render_state *rstate,
+    am_vertex_buffer *vbo, am_attribute_client_type type, int dimensions,
+    bool normalized, int stride, int offset, int max_draw_elements)
+{
+    am_report_error("attempt to set param '%s' to an array",
+        am_param_name_map[name].name);
+}
+
 struct am_uniform_param : am_program_param {
     am_uniform_index index;
 
@@ -43,85 +56,90 @@ struct am_float_uniform_param : am_uniform_param {
     }
 };
 
-struct am_attribute_param : am_program_param {
-    am_attribute_index index;
+struct am_attribute_state {
+    bool is_array;
+    union {
+        float scalar[4];
+        struct {
+            am_vertex_buffer *vbo;
+            am_attribute_client_type type;
+            bool normalized;
+            int stride;
+            int offset;
+            int max_draw_elements;
+        } array;
+    } u;
+};
 
-    am_attribute_param(am_param_name_id name, am_attribute_index index)
+struct am_attribute_param : am_program_param {
+    int dimensions;
+    am_attribute_index index;
+    am_attribute_state state;
+
+    am_attribute_param(am_param_name_id name, am_attribute_index index, int dimensions)
         : am_program_param(name)
     {
+        assert(dimensions >= 1 && dimensions <= 4);
         am_attribute_param::index = index;
-    }
-};
-
-struct am_float_attribute_state {
-    float value; // only used if vbo == NULL
-    am_vertex_buffer *vbo;
-    am_attribute_client_type type;
-    bool normalized;
-    int stride;
-    int offset;
-    int max_draw_elements;
-};
-
-struct am_float_attribute_param : am_attribute_param {
-    am_float_attribute_state state;
-
-    am_float_attribute_param(am_param_name_id name, am_attribute_index index)
-        : am_attribute_param(name, index)
-    {
-        state.value = 0.0f;
-        state.vbo = NULL;
+        state.is_array = false;
+        am_attribute_param::dimensions = dimensions;
+        state.u.scalar[0] = 0.0f;
+        state.u.scalar[1] = 0.0f;
+        state.u.scalar[2] = 0.0f;
+        state.u.scalar[3] = 0.0f;
     }
 
     virtual void bind(am_render_state *rstate) {
-        if (state.vbo != NULL) {
+        if (state.is_array) {
             am_set_attribute_array_enabled(index, true);
-            am_bind_buffer(AM_ARRAY_BUFFER, state.vbo->buffer_id);
-            if (state.vbo->dirty_start < state.vbo->dirty_end) {
-                am_vertex_buffer *vbo = state.vbo;
+            am_bind_buffer(AM_ARRAY_BUFFER, state.u.array.vbo->buffer_id);
+            if (state.u.array.vbo->dirty_start < state.u.array.vbo->dirty_end) {
+                am_vertex_buffer *vbo = state.u.array.vbo;
                 am_set_buffer_sub_data(AM_ARRAY_BUFFER, vbo->dirty_start, vbo->dirty_end - vbo->dirty_start, vbo->buffer->data + vbo->dirty_start);
                 vbo->dirty_end = 0;
                 vbo->dirty_start = INT_MAX;
             }
-            am_set_attribute_pointer(index, 1, state.type, state.normalized, state.stride, state.offset);
-            if (state.max_draw_elements < rstate->max_draw_array_size) {
-                rstate->max_draw_array_size = state.max_draw_elements;
+            am_set_attribute_pointer(index, dimensions, state.u.array.type, state.u.array.normalized, state.u.array.stride, state.u.array.offset);
+            if (state.u.array.max_draw_elements < rstate->max_draw_array_size) {
+                rstate->max_draw_array_size = state.u.array.max_draw_elements;
             }
         } else {
             am_set_attribute_array_enabled(index, false);
-            am_set_attribute1f(index, state.value);
+            switch (dimensions) {
+                case 1: am_set_attribute1f(index, state.u.scalar[0]); break;
+                case 2: am_set_attribute2f(index, state.u.scalar); break;
+                case 3: am_set_attribute3f(index, state.u.scalar); break;
+                case 4: am_set_attribute4f(index, state.u.scalar); break;
+            }
         }
     }
 
     virtual void trailed_set_float(am_render_state *rstate, float val) {
-        rstate->trail.trail(&state, sizeof(am_float_attribute_state));
-        state.vbo = NULL;
-        state.value = val;
+        rstate->trail.trail(&state, sizeof(am_attribute_state));
+        state.is_array = false;
+        state.u.scalar[0] = val;
+        state.u.scalar[1] = 0.0f;
+        state.u.scalar[2] = 0.0f;
+        state.u.scalar[3] = 0.0f;
     }
 
-    virtual void trailed_set_float_array(am_render_state *rstate,
-        am_vertex_buffer *vbo, am_attribute_client_type type, bool normalized,
-        int stride, int offset, int max_draw_elements)
+    virtual void trailed_set_array(am_render_state *rstate,
+        am_vertex_buffer *vbo, am_attribute_client_type type, int dimensions,
+        bool normalized, int stride, int offset, int max_draw_elements)
     {
-        rstate->trail.trail(&state, sizeof(am_float_attribute_state));
-        state.vbo = vbo;
-        state.type = type;
-        state.normalized = normalized;
-        state.stride = stride;
-        state.offset = offset;
-        state.max_draw_elements = max_draw_elements;
-    }
-
-    virtual void trailed_mul_float(am_render_state *rstate, float val) {
-        rstate->trail.trail(&state, sizeof(am_float_attribute_state));
-        state.vbo = NULL;
-        state.value *= val;
-    }
-
-    virtual void trailed_add_float(am_render_state *rstate, float val) {
-        rstate->trail.trail(&state, sizeof(am_float_attribute_state));
-        state.vbo = NULL;
-        state.value += val;
+        if (dimensions == am_attribute_param::dimensions) {
+            rstate->trail.trail(&state, sizeof(am_attribute_state));
+            state.is_array = true;
+            state.u.array.vbo = vbo;
+            state.u.array.type = type;
+            state.u.array.normalized = normalized;
+            state.u.array.stride = stride;
+            state.u.array.offset = offset;
+            state.u.array.max_draw_elements = max_draw_elements;
+        } else {
+            am_report_error("invalid dimensions when setting shader attribute '%s' (expected %d, got %d)",
+                am_param_name_map[name].name, am_attribute_param::dimensions, dimensions);
+        }
     }
 };
 
@@ -130,9 +148,10 @@ static int am_param_name_map_capacity = 0;
 void am_init_param_name_map(lua_State *L) {
     if (am_param_name_map != NULL) free(am_param_name_map);
     am_param_name_map_capacity = 32;
-    am_param_name_map = (am_program_param**)malloc(sizeof(am_program_param*) * am_param_name_map_capacity);
+    am_param_name_map = (am_program_param_name_info*)malloc(sizeof(am_program_param_name_info) * am_param_name_map_capacity);
     for (int i = 0; i < am_param_name_map_capacity; i++) {
-        am_param_name_map[i] = NULL;
+        am_param_name_map[i].param = NULL;
+        am_param_name_map[i].name = NULL;
     }
     lua_newtable(L);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
@@ -158,10 +177,12 @@ am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
             while (name_ref >= am_param_name_map_capacity) {
                 am_param_name_map_capacity *= 2;
             }
-            am_param_name_map = (am_program_param**)realloc(am_param_name_map, sizeof(am_program_param*) * am_param_name_map_capacity);
+            am_param_name_map = (am_program_param_name_info*)realloc(am_param_name_map, sizeof(am_program_param_name_info) * am_param_name_map_capacity);
             for (int i = old_capacity; i < am_param_name_map_capacity; i++) {
-                am_param_name_map[i] = NULL;
+                am_param_name_map[i].param = NULL;
+                am_param_name_map[i].name = NULL;
             }
+            am_param_name_map[name_ref].name = lua_tostring(L, name_idx);
         }
         return name_ref;
     } else {
@@ -268,16 +289,16 @@ static int create_program(lua_State *L) {
         am_program_param *param = NULL;
         switch (type) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT:
-                param = new am_float_attribute_param(name, index);
+                param = new am_attribute_param(name, index, 1);
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2:
-                am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2");
+                param = new am_attribute_param(name, index, 2);
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC3:
-                am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC3");
+                param = new am_attribute_param(name, index, 3);
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC4:
-                am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC4");
+                param = new am_attribute_param(name, index, 4);
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT2:
                 am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT2");

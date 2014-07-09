@@ -34,8 +34,8 @@ yview[3] = -0.4
 local node = am.node():
     use_program(prog):
     set_float("brightness", 1):
-    set_float_array("x", xview):
-    set_float_array("y", yview):
+    set_array("x", xview):
+    set_array("y", yview):
     draw_arrays(0, 3):
     draw_children()
 
@@ -50,14 +50,14 @@ yview2[2] = 0.2
 yview2[3] = -0.8
 
 local child = am.node():
-    set_float_array("x", xview2):
-    set_float_array("y", yview2):
+    set_array("x", xview2):
+    set_array("y", yview2):
     set_float("brightness", 2.5):
     draw_arrays(0, 3)
 
 node:append(child)
 
-for i = 1, 600 do
+for i = 1, 60 do
     win:draw(node)
     win:swap()
     yview[1] = yview[1] + 0.01

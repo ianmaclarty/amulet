@@ -9,7 +9,7 @@ void am_draw_children_command::execute(am_node *node, am_render_state *rstate) {
 void am_use_program_command::execute(am_node *node, am_render_state *rstate) {
     for (int i = 0; i < program->num_params; i++) {
         am_program_param *param = program->params[i];
-        am_program_param **slot = &am_param_name_map[param->name];
+        am_program_param **slot = &am_param_name_map[param->name].param;
         rstate->trail.trail(slot, sizeof(am_program_param*));
         *slot = param;
     }
@@ -39,21 +39,11 @@ am_set_float_param_command::am_set_float_param_command(lua_State *L, int nargs, 
 }
 
 void am_set_float_param_command::execute(am_node *node, am_render_state *rstate) {
-    am_program_param *p = am_param_name_map[name];
+    am_program_param *p = am_param_name_map[name].param;
     if (p != NULL) p->trailed_set_float(rstate, value);
 }
 
-void am_mul_float_param_command::execute(am_node *node, am_render_state *rstate) {
-    am_program_param *p = am_param_name_map[name];
-    if (p != NULL) p->trailed_mul_float(rstate, value);
-}
-
-void am_add_float_param_command::execute(am_node *node, am_render_state *rstate) {
-    am_program_param *p = am_param_name_map[name];
-    if (p != NULL) p->trailed_add_float(rstate, value);
-}
-
-am_set_float_array_command::am_set_float_array_command(lua_State *L, int nargs, am_node *node) {
+am_set_array_command::am_set_array_command(lua_State *L, int nargs, am_node *node) {
     if (nargs < 2 || !lua_isstring(L, 2)) {
         luaL_error(L, "expecting a string in position 2");
     }
@@ -73,7 +63,7 @@ am_set_float_array_command::am_set_float_array_command(lua_State *L, int nargs, 
 
     vbo = view->buffer->vbo;
     vbo_ref = am_new_ref(L, 1, vbo_idx); // create ref from node to vbo
-    am_buf_view_type_to_attr_client_type_and_size(view->type, &type, &size);
+    am_buf_view_type_to_attr_client_type_and_dimensions(view->type, &type, &dimensions);
     normalized = view->normalized;
     stride = view->stride;
     offset = view->offset;
@@ -81,14 +71,14 @@ am_set_float_array_command::am_set_float_array_command(lua_State *L, int nargs, 
     lua_pop(L, 2); // buffer, vbo
 }
 
-void am_set_float_array_command::execute(am_node *node, am_render_state *rstate) {
-    am_program_param *p = am_param_name_map[name];
+void am_set_array_command::execute(am_node *node, am_render_state *rstate) {
+    am_program_param *p = am_param_name_map[name].param;
     if (p == NULL) return;
     int available_bytes = vbo->size - offset - am_attribute_client_type_size(type);
     int max_draw_elements = 0;
     if (available_bytes > 0) {
         max_draw_elements = available_bytes / stride + 1;
     }
-    p->trailed_set_float_array(rstate, vbo, type, normalized, stride, offset,
+    p->trailed_set_array(rstate, vbo, type, dimensions, normalized, stride, offset,
         max_draw_elements);
 }

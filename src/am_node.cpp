@@ -118,10 +118,10 @@ static int set_float_command(lua_State *L) {
     return 1;
 }
 
-static int set_float_array_command(lua_State *L) {
+static int set_array_command(lua_State *L) {
     int nargs = am_check_nargs(L, 3);
     am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
-    am_set_float_array_command *cmd = new (lua_newuserdata(L, sizeof(am_set_float_array_command))) am_set_float_array_command(L, nargs, node);
+    am_set_array_command *cmd = new (lua_newuserdata(L, sizeof(am_set_array_command))) am_set_array_command(L, nargs, node);
     append_command(L, node, 1, cmd, -1);
     lua_pop(L, 1); // cmd
     lua_pushvalue(L, 1); // for chaining
@@ -168,8 +168,8 @@ static void register_node_mt(lua_State *L) {
     lua_setfield(L, -2, "draw_children");
     lua_pushcclosure(L, set_float_command, 0);
     lua_setfield(L, -2, "set_float");
-    lua_pushcclosure(L, set_float_array_command, 0);
-    lua_setfield(L, -2, "set_float_array");
+    lua_pushcclosure(L, set_array_command, 0);
+    lua_setfield(L, -2, "set_array");
     lua_pushcclosure(L, use_program_command, 0);
     lua_setfield(L, -2, "use_program");
     lua_pushcclosure(L, draw_arrays_command, 0);
