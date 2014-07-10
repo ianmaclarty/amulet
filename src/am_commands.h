@@ -2,6 +2,8 @@ struct am_node;
 
 struct am_command {
     virtual void execute(am_node *node, am_render_state *state) = 0;
+    virtual int alias_index(lua_State *L);
+    virtual int alias_newindex(lua_State *L);
 };
 
 struct am_draw_children_command : am_command {
@@ -27,6 +29,8 @@ struct am_set_float_param_command : am_command {
 
     am_set_float_param_command(lua_State *L, int nargs, am_node *node);
     virtual void execute(am_node *node, am_render_state *state);
+    virtual int alias_index(lua_State *L);
+    virtual int alias_newindex(lua_State *L);
 };
 
 struct am_set_array_command : am_command {

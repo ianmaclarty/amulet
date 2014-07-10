@@ -28,14 +28,17 @@ position_view[3] = math.vec2( 0.5, -0.4)
 
 local node = am.node():
     use_program(prog):
-    set_float("brightness", 1):
+    set_float("brightness", 1):as("brightness"):
     set_array("position", position_view):
     draw_arrays(0, 3)
 
-for i = 1, 60 do
+local n = 120
+
+for i = 1, n do
     win:draw(node)
     win:swap()
     position_view[2] = position_view[2] + math.vec2(0, 0.005)
+    node.brightness = node.brightness - 1/n
 end
 
 win:close()
