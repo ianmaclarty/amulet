@@ -15,6 +15,7 @@ build/**/lib/*.a
 tags
 settings
 tmp/*
+*.orig
 
 deps/SDL2-*/Makefile
 deps/SDL2-*/Makefile.rules
