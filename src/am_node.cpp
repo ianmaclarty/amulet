@@ -22,38 +22,59 @@ static int create_node(lua_State *L) {
     return 1;
 }
 
+static inline void add_parent(lua_State *L, am_node *parent, int parent_idx, am_node *child, int child_idx) {
+    am_parent_slot parent_slot;
+    parent_slot.parent = parent;
+    parent_slot.ref = am_new_ref(L, child_idx, parent_idx); // ref from child to parent
+    child->parents.push_back(L, child_idx, parent_slot);
+}
+
+static inline void remove_parent(lua_State *L, am_node *parent, am_node *child, int child_idx) {
+    for (int i = 0; i < child->parents.size; i++) {
+        if (child->parents.arr[i].parent == parent) {
+            am_delete_ref(L, child_idx, child->parents.arr[i].ref);
+            child->parents.remove(i);
+            return;
+        }
+    }
+    assert(false); // child->parent ref not found
+}
+
 static int append_child(lua_State *L) {
     am_check_nargs(L, 2);
-    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    am_node *parent = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
     am_node *child = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 2);
-    am_child_slot slot;
-    slot.child = child;
-    slot.ref = am_new_ref(L, 1, 2);
-    node->children.push_back(L, 1, slot);
+    am_child_slot child_slot;
+    child_slot.child = child;
+    child_slot.ref = am_new_ref(L, 1, 2); // ref from parent to child
+    parent->children.push_back(L, 1, child_slot);
+    add_parent(L, parent, 1, child, 2);
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
 static int prepend_child(lua_State *L) {
     am_check_nargs(L, 2);
-    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    am_node *parent = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
     am_node *child = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 2);
-    am_child_slot slot;
-    slot.child = child;
-    slot.ref = am_new_ref(L, 1, 2);
-    node->children.push_front(L, 1, slot);
+    am_child_slot child_slot;
+    child_slot.child = child;
+    child_slot.ref = am_new_ref(L, 1, 2);
+    parent->children.push_front(L, 1, child_slot); // ref from parent to child
+    add_parent(L, parent, 1, child, 2);
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
 static int remove_child(lua_State *L) {
     am_check_nargs(L, 2);
-    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    am_node *parent = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
     am_node *child = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 2);
-    for (int i = 0; i < node->children.size; i++) {
-        if (node->children.arr[i].child == child) {
-            am_delete_ref(L, 1, node->children.arr[i].ref);
-            node->children.remove(i);
+    for (int i = 0; i < parent->children.size; i++) {
+        if (parent->children.arr[i].child == child) {
+            am_delete_ref(L, 1, parent->children.arr[i].ref);
+            parent->children.remove(i);
+            remove_parent(L, parent, child, 2);
             break;
         }
     }
@@ -63,13 +84,15 @@ static int remove_child(lua_State *L) {
 
 static int replace_child(lua_State *L) {
     am_check_nargs(L, 3);
-    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    am_node *parent = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
     am_node *old_child = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 2);
     am_node *new_child = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 3);
-    for (int i = 0; i < node->children.size; i++) {
-        if (node->children.arr[i].child == old_child) {
-            am_replace_ref(L, 1, node->children.arr[i].ref, 3);
-            node->children.arr[i].child = new_child;
+    for (int i = 0; i < parent->children.size; i++) {
+        if (parent->children.arr[i].child == old_child) {
+            am_replace_ref(L, 1, parent->children.arr[i].ref, 3);
+            parent->children.arr[i].child = new_child;
+            remove_parent(L, parent, old_child, 2);
+            add_parent(L, parent, 1, new_child, 3);
             break;
         }
     }
@@ -79,11 +102,14 @@ static int replace_child(lua_State *L) {
 
 static int remove_all_children(lua_State *L) {
     am_check_nargs(L, 1);
-    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
-    for (int i = 0; i < node->children.size; i++) {
-        am_delete_ref(L, 1, node->children.arr[i].ref);
+    am_node *parent = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    for (int i = 0; i < parent->children.size; i++) {
+        am_push_ref(L, 1, parent->children.arr[i].ref); // push child
+        remove_parent(L, parent, parent->children.arr[i].child, -1);
+        lua_pop(L, 1); // child
+        am_delete_ref(L, 1, parent->children.arr[i].ref);
     }
-    node->children.clear();
+    parent->children.clear();
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
