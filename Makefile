@@ -73,7 +73,7 @@ CPP = g++
 LINK = g++
 DEPS = $(LUAVM) sdl glew
 LUA_TARGET = posix
-XCFLAGS = -Werror -Wall -pthread
+XCFLAGS = -Werror -Wall -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 AM_DEFS = AM_$(shell echo $(TARGET_PLATFORM) | tr a-z A-Z) AM_$(shell echo $(GRADE) | tr a-z A-Z)
 
