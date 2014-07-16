@@ -1,11 +1,14 @@
 #include "amulet.h"
 
+am_node am_root_node;
+
 am_node::am_node() {
     recursion_limit = am_conf_default_recursion_limit;
+    flags = 0;
 }
 
 void am_node::render(am_render_state *rstate) {
-    if (recursion_limit <= 0) return;
+    if (recursion_limit < 0) return;
     recursion_limit--;
     int ticket = rstate->trail.get_ticket();
     for (int i = 0; i < command_list.size; i++) {
@@ -14,6 +17,69 @@ void am_node::render(am_render_state *rstate) {
     }
     rstate->trail.rewind_to(ticket);
     recursion_limit++;
+}
+
+static bool update_liveness_ancestors(am_node *node) {
+    assert(node->flags & AM_NODE_FLAG_LIVE);
+    if (node == &am_root_node) {
+        return true; // root found
+    }
+    if (node->flags & AM_NODE_FLAG_MARK) {
+        return false; // cycle detected
+    }
+    node->flags |= AM_NODE_FLAG_MARK;
+    bool found_root = false;
+    for (int i = 0; i < node->parents.size; i++) {
+        am_node *parent = node->parents.arr[i].parent;
+        if ((parent->flags & AM_NODE_FLAG_LIVE) && update_liveness_ancestors(parent)) {
+            found_root = true;
+            break;
+        }
+    }
+    node->flags &= ~AM_NODE_FLAG_MARK;
+    if (!found_root) {
+        // root not reachable, so node not live
+        node->flags &= ~AM_NODE_FLAG_LIVE;
+    }
+    return found_root;
+}
+
+static void update_liveness_after_removal(am_node *node) {
+    if (!(node->flags & AM_NODE_FLAG_LIVE)) {
+        // node already not live, removing it doesn't change anything
+        return;
+    }
+    if (update_liveness_ancestors(node)) {
+        // node is still live, nothing more to do
+        return;
+    }
+    // node not live - update liveness of children
+    for (int i = 0; i < node->children.size; i++) {
+        am_node *child = node->children.arr[i].child;
+        // if child is an ancestor of node (i.e. a cycle) then
+        // child could have been marked not live by the call
+        // to update_liveness_ancestors above
+        if (child->flags & AM_NODE_FLAG_LIVE) {
+            update_liveness_after_removal(child);
+        }
+    }
+}
+
+static void update_liveness_descendents(am_node *node) {
+    if (!(node->flags & AM_NODE_FLAG_LIVE)) {
+        node->flags |= AM_NODE_FLAG_LIVE;
+        for (int i = 0; i < node->children.size; i++) {
+            am_node *child = node->children.arr[i].child;
+            update_liveness_descendents(child);
+        }
+    }
+}
+
+static void update_liveness_after_insertion(am_node *node, am_node *parent) {
+    if (parent->flags & AM_NODE_FLAG_LIVE) {
+        // parent live, so this node and all its descendents are live too
+        update_liveness_descendents(node);
+    }
 }
 
 static int create_node(lua_State *L) {
@@ -49,6 +115,7 @@ static int append_child(lua_State *L) {
     child_slot.ref = am_new_ref(L, 1, 2); // ref from parent to child
     parent->children.push_back(L, 1, child_slot);
     add_parent(L, parent, 1, child, 2);
+    update_liveness_after_insertion(child, parent);
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
@@ -62,6 +129,7 @@ static int prepend_child(lua_State *L) {
     child_slot.ref = am_new_ref(L, 1, 2);
     parent->children.push_front(L, 1, child_slot); // ref from parent to child
     add_parent(L, parent, 1, child, 2);
+    update_liveness_after_insertion(child, parent);
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
@@ -75,6 +143,7 @@ static int remove_child(lua_State *L) {
             am_delete_ref(L, 1, parent->children.arr[i].ref);
             parent->children.remove(i);
             remove_parent(L, parent, child, 2);
+            update_liveness_after_removal(child);
             break;
         }
     }
@@ -92,7 +161,9 @@ static int replace_child(lua_State *L) {
             am_replace_ref(L, 1, parent->children.arr[i].ref, 3);
             parent->children.arr[i].child = new_child;
             remove_parent(L, parent, old_child, 2);
+            update_liveness_after_removal(old_child);
             add_parent(L, parent, 1, new_child, 3);
+            update_liveness_after_insertion(new_child, parent);
             break;
         }
     }
@@ -105,7 +176,9 @@ static int remove_all_children(lua_State *L) {
     am_node *parent = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
     for (int i = 0; i < parent->children.size; i++) {
         am_push_ref(L, 1, parent->children.arr[i].ref); // push child
-        remove_parent(L, parent, parent->children.arr[i].child, -1);
+        am_node *child = parent->children.arr[i].child;
+        remove_parent(L, parent, child, -1);
+        update_liveness_after_removal(child);
         lua_pop(L, 1); // child
         am_delete_ref(L, 1, parent->children.arr[i].ref);
     }
@@ -228,4 +301,7 @@ void am_open_node_module(lua_State *L) {
     };
     am_open_module(L, "amulet", funcs);
     register_node_mt(L);
+
+    am_root_node.flags = AM_NODE_FLAG_LIVE;
+    am_root_node.recursion_limit = 0;
 }
