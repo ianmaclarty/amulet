@@ -192,8 +192,69 @@ static void append_command(lua_State *L, am_node *node, int node_idx, am_command
     am_new_ref(L, node_idx, cmd_idx);
 }
 
-static int fallback_index_func(lua_State *L) {
-    lua_pushnil(L);
+static int node_index(lua_State *L) {
+    lua_getmetatable(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (!lua_isnil(L, -1)) {
+        lua_remove(L, -2); // metatable
+        return 1;
+    }
+
+    lua_pop(L, 2); // nil, metatable
+
+    // look in uservalue table
+    lua_getuservalue(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (lua_islightuserdata(L, -1)) {
+        am_command *cmd = (am_command*)lua_touserdata(L, -1);
+        lua_pop(L, 2); // cmd, uservalue
+        return cmd->alias_index(L);
+    } else {
+        lua_pop(L, 2); // cmd, uservalue
+        lua_pushnil(L);
+        return 1;
+    }
+}
+
+static int node_newindex(lua_State *L) {
+    lua_getuservalue(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (lua_islightuserdata(L, -1)) {
+        am_command *cmd = (am_command*)lua_touserdata(L, -1);
+        lua_pop(L, 2); // cmd, uservalue
+        return cmd->alias_newindex(L);
+    } else {
+        lua_pop(L, 2); // cmd, uservalue
+        const char *field = lua_tostring(L, 2);
+        if (field == NULL) field = "<unknown>";
+        return luaL_error(L, "no such field: '%s'");
+    }
+}
+
+static int create_command_alias(lua_State *L) {
+    am_check_nargs(L, 2);
+    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    if (node->command_list.size == 0) {
+        return luaL_error(L, "add a command before creating an alias");
+    }
+    lua_getuservalue(L, 1);
+    lua_pushvalue(L, 2); // key
+    lua_rawget(L, -2);
+    if (!lua_isnil(L, -1)) {
+        lua_pop(L, 2); // existing value, uservalue
+        const char *alias = lua_tostring(L, 2);
+        if (alias == NULL) alias = "<unknown>";
+        return luaL_error(L, "alias '%s' already used", alias);
+    }
+    lua_pop(L, 1); // nil
+    lua_pushvalue(L, 2); // key
+    lua_pushlightuserdata(L, node->command_list.arr[node->command_list.size-1]);
+    lua_rawset(L, -3);
+    lua_pop(L, 1); // uservalue table
+    lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
@@ -260,8 +321,10 @@ static int draw_arrays_command(lua_State *L) {
 
 static void register_node_mt(lua_State *L) {
     lua_newtable(L);
-    lua_pushvalue(L, -1);
+    lua_pushcclosure(L, node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
     lua_pushcclosure(L, draw_children_command, 0);
     lua_setfield(L, -2, "draw_children");
@@ -273,6 +336,9 @@ static void register_node_mt(lua_State *L) {
     lua_setfield(L, -2, "use_program");
     lua_pushcclosure(L, draw_arrays_command, 0);
     lua_setfield(L, -2, "draw_arrays");
+
+    lua_pushcclosure(L, create_command_alias, 0);
+    lua_setfield(L, -2, "as");
 
     lua_pushcclosure(L, append_child, 0);
     lua_setfield(L, -2, "append");
@@ -287,10 +353,7 @@ static void register_node_mt(lua_State *L) {
     
     lua_pushstring(L, "node");
     lua_setfield(L, -2, "tname");
-    lua_newtable(L);
-    lua_pushcclosure(L, fallback_index_func, 0);
-    lua_setfield(L, -2, "__index");
-    lua_setmetatable(L, -2);
+
     am_register_metatable(L, AM_MT_NODE, 0);
 }
 

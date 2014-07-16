@@ -1,5 +1,13 @@
 #include "amulet.h"
 
+int am_command::alias_index(lua_State *L) {
+    return luaL_error(L, "alias_index NYI");
+}
+
+int am_command::alias_newindex(lua_State *L) {
+    return luaL_error(L, "alias_newindex NYI");
+}
+
 void am_draw_children_command::execute(am_node *node, am_render_state *rstate) {
     for (int i = 0; i < node->children.size; i++) {
         node->children.arr[i].child->render(rstate);
@@ -36,6 +44,16 @@ am_set_float_param_command::am_set_float_param_command(lua_State *L, int nargs, 
     } else {
         value = 0.0f;
     }
+}
+
+int am_set_float_param_command::alias_index(lua_State *L) {
+    lua_pushnumber(L, value);
+    return 1;
+}
+
+int am_set_float_param_command::alias_newindex(lua_State *L) {
+    value = luaL_checknumber(L, 3);
+    return 0;
 }
 
 void am_set_float_param_command::execute(am_node *node, am_render_state *rstate) {
