@@ -20,9 +20,10 @@ int am_check_nargs(lua_State *L, int n);
 void lua_setuservalue(lua_State *L, int idx);
 void lua_getuservalue(lua_State *L, int idx);
 int lua_rawlen(lua_State *L, int idx);
-int lua_absindex(lua_State *L, int idx);
 lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum);
 #endif
+
+#define am_absindex(L, idx) ((idx) > 0 ? (idx) : lua_gettop(L) + (idx) + 1)
 
 template<typename T>
 struct am_lua_vector {
@@ -66,7 +67,7 @@ struct am_lua_vector {
 
     void ensure_capacity(lua_State *L, int owner, int c) {
         if (capacity < c) {
-            owner = lua_absindex(L, owner);
+            owner = am_absindex(L, owner);
             int old_capacity = capacity;
             if (capacity == 0) capacity = 1;
             while (capacity < c) capacity *= 2;

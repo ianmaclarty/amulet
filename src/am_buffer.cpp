@@ -16,8 +16,11 @@ static int create_buffer(lua_State *L) {
 }
 
 void am_push_new_vertex_buffer(lua_State *L, am_buffer *buf, int buf_idx) {
+    if (!am_gl_context_exists()) {
+        luaL_error(L, "you need to create a window before setting vertex arrays");
+    }
     assert(buf->vbo == NULL);
-    buf_idx = lua_absindex(L, buf_idx);
+    buf_idx = am_absindex(L, buf_idx);
     am_vertex_buffer* vbo = (am_vertex_buffer*)am_new_nonatomic_userdata(L, sizeof(am_vertex_buffer));
     buf->vbo = vbo;
     vbo->buffer = buf;

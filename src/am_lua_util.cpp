@@ -83,7 +83,7 @@ void am_register_metatable(lua_State *L, int metatable_id, int parent_mt_id) {
 }
 
 void am_set_metatable(lua_State *L, int metatable_id, int idx) {
-    idx = lua_absindex(L, idx);
+    idx = am_absindex(L, idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
     lua_setmetatable(L, idx);
 }
@@ -117,7 +117,7 @@ void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
 
     // fail
     lua_pop(L, lua_gettop(L) - top);
-    idx = lua_absindex(L, idx);
+    idx = am_absindex(L, idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
     if (!lua_getmetatable(L, idx)) {
         lua_pushnil(L);
@@ -158,6 +158,7 @@ void *am_new_nonatomic_userdata(lua_State *L, size_t sz) {
 }
 
 int am_new_ref(lua_State *L, int from, int to) {
+    to = am_absindex(L, to);
     lua_getuservalue(L, from);
     lua_pushvalue(L, to);
     int ref = luaL_ref(L, -2);
@@ -167,7 +168,7 @@ int am_new_ref(lua_State *L, int from, int to) {
 
 void am_delete_ref(lua_State *L, int obj, int ref) {
     lua_getuservalue(L, obj);
-    luaL_unref(L, -2, ref);
+    luaL_unref(L, -1, ref);
     lua_pop(L, 1);
 }
 
@@ -178,7 +179,7 @@ void am_push_ref(lua_State *L, int obj, int ref) {
 }
 
 void am_replace_ref(lua_State *L, int obj, int ref, int new_val) {
-    new_val = lua_absindex(L, new_val);
+    new_val = am_absindex(L, new_val);
     lua_getuservalue(L, obj);
     lua_pushvalue(L, new_val);
     lua_rawseti(L, -2, ref);
@@ -204,10 +205,6 @@ void lua_getuservalue(lua_State *L, int idx) {
 
 int lua_rawlen(lua_State *L, int idx) {
     return lua_objlen(L, idx);
-}
-
-int lua_absindex(lua_State *L, int idx) {
-    return idx > 0 ? idx : lua_gettop(L) + idx + 1;
 }
 
 lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum) {

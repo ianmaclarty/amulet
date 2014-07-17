@@ -158,7 +158,7 @@ void am_init_param_name_map(lua_State *L) {
 }
 
 am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
-    name_idx = lua_absindex(L, name_idx);
+    name_idx = am_absindex(L, name_idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
     int strt_idx = lua_gettop(L);
     lua_pushvalue(L, name_idx);

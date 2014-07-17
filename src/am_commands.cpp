@@ -77,7 +77,7 @@ am_set_array_command::am_set_array_command(lua_State *L, int nargs, am_node *nod
     } else {
         am_push_ref(L, -1, view->buffer->vbo->vbo_ref);  // push existing vbo
     }
-    int vbo_idx = lua_absindex(L, -1);
+    int vbo_idx = am_absindex(L, -1);
 
     vbo = view->buffer->vbo;
     vbo_ref = am_new_ref(L, 1, vbo_idx); // create ref from node to vbo
