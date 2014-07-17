@@ -219,4 +219,33 @@ lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum) {
         return 0;
     }
 }
+
+#include "lj_gc.h"
+#include "lj_obj.h"
+#include "lj_state.h"
+
+void lua_unsafe_pushuserdata(lua_State *L, void *v) {
+    GCudata *ud = ((GCudata*)v)-1;
+    // push nil to advance stack top
+    // (we don't have access to incr_top here)
+    lua_pushnil(L);
+    // replace the pushed nil with the userdata value
+    setudataV(L, L->top-1, ud);
+}
+
+#else
+// standard lua
+
+#include "lapi.h"
+#include "lgc.h"
+#include "lobject.h"
+
+void lua_unsafe_pushuserdata(lua_State *L, void *v) {
+    Udata *u = ((Udata*)v)-1;
+    lua_lock(L);
+    setuvalue(L, L->top, u);
+    api_incr_top(L);
+    lua_unlock(L);
+}
+
 #endif

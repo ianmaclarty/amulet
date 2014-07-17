@@ -167,7 +167,7 @@ am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
         // param name not seen before, register it.
         lua_pop(L, 1); // nil
         lua_pushvalue(L, name_idx);
-        int name_ref = lua_ref(L, strt_idx);
+        int name_ref = luaL_ref(L, strt_idx);
         lua_pushvalue(L, name_idx);
         lua_pushinteger(L, name_ref);
         lua_rawset(L, strt_idx);
