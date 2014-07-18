@@ -18,6 +18,22 @@ void am_node::render(am_render_state *rstate) {
     recursion_limit++;
 }
 
+void am_node::activate() {
+    am_action *action = action_list;
+    while (action != NULL) {
+        am_schedule_action(action);
+        action = action->nnext;
+    }
+}
+
+void am_node::deactivate() {
+    am_action *action = action_list;
+    while (action != NULL) {
+        am_deschedule_action(action);
+        action = action->nnext;
+    }
+}
+
 static bool update_liveness_ancestors(am_node *node) {
     assert(node->flags & AM_NODE_FLAG_LIVE);
     if (node->flags & AM_NODE_FLAG_ROOT) {
@@ -39,6 +55,7 @@ static bool update_liveness_ancestors(am_node *node) {
     if (!found_root) {
         // root not reachable, so node not live
         node->flags &= ~AM_NODE_FLAG_LIVE;
+        node->deactivate();
     }
     return found_root;
 }
@@ -67,6 +84,7 @@ static void update_liveness_after_removal(am_node *node) {
 static void update_liveness_descendents(am_node *node) {
     if (!(node->flags & AM_NODE_FLAG_LIVE)) {
         node->flags |= AM_NODE_FLAG_LIVE;
+        node->activate();
         for (int i = 0; i < node->children.size; i++) {
             am_node *child = node->children.arr[i].child;
             update_liveness_descendents(child);
