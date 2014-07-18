@@ -1,6 +1,5 @@
 #define AM_NODE_FLAG_LIVE        0x00000001
 #define AM_NODE_FLAG_MARK        0x00000002
-#define AM_NODE_FLAG_ROOT        0x00000004
 
 struct am_action;
 
@@ -21,6 +20,7 @@ struct am_node {
     am_lua_vector<am_parent_slot> parents;
     int recursion_limit;
     uint32_t flags;
+    int root_count;
 
     am_node();
     void render(am_render_state *rstate);

@@ -16,6 +16,16 @@ void am_replace_ref(lua_State *L, int obj, int ref, int new_val);
 
 int am_check_nargs(lua_State *L, int n);
 
+struct am_property {
+    void (*getter) (lua_State*, void*);
+    void (*setter) (lua_State*, void*);
+};
+
+void am_register_property(lua_State *L, const char *field, const am_property *property);
+
+void am_set_default_index_func(lua_State *L);
+void am_set_default_newindex_func(lua_State *L);
+
 // The caller must ensure v is live and was created
 // with lua_newuserdata.
 void lua_unsafe_pushuserdata(lua_State *L, void *v);

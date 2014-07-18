@@ -173,9 +173,13 @@ void am_delete_ref(lua_State *L, int obj, int ref) {
 }
 
 void am_push_ref(lua_State *L, int obj, int ref) {
-    lua_getuservalue(L, obj);
-    lua_rawgeti(L, -1, ref);
-    lua_remove(L, -2); // uservalue
+    if (ref == LUA_NOREF) {
+        lua_pushnil(L);
+    } else {
+        lua_getuservalue(L, obj);
+        lua_rawgeti(L, -1, ref);
+        lua_remove(L, -2); // uservalue
+    }
 }
 
 void am_replace_ref(lua_State *L, int obj, int ref, int new_val) {
@@ -192,6 +196,64 @@ int am_check_nargs(lua_State *L, int n) {
         luaL_error(L, "expecting at least %d arguments", n);
     }
     return nargs;
+}
+
+void am_register_property(lua_State *L, const char *field, const am_property *property) {
+    lua_pushlightuserdata(L, (void*)property);
+    lua_setfield(L, -2, field);
+}
+
+static int default_index_func(lua_State *L) {
+    lua_getmetatable(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (lua_islightuserdata(L, -1)) {
+        void *obj = lua_touserdata(L, 1);
+        am_property *property = (am_property*)lua_touserdata(L, -1);
+        lua_pop(L, 2); // property, metatable
+        if (property->getter != NULL) {
+            property->getter(L, obj);
+            return 1;
+        } else {
+            lua_pushnil(L);
+            return 1;
+        }
+    } else {
+        lua_remove(L, -2); // remove metatable
+        return 1;
+    }
+}
+
+static int default_newindex_func(lua_State *L) {
+    lua_getmetatable(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (lua_islightuserdata(L, -1)) {
+        void *obj = lua_touserdata(L, 1);
+        am_property *property = (am_property*)lua_touserdata(L, -1);
+        lua_pop(L, 2); // property, metatable
+        if (property->setter != NULL) {
+            property->setter(L, obj);
+            return 0;
+        } else {
+            const char *field = lua_tostring(L, 2);
+            if (field == NULL) field = "<unknown>";
+            return luaL_error(L, "field '%s' is readonly");
+        }
+    }
+    const char *field = lua_tostring(L, 2);
+    if (field == NULL) field = "<unknown>";
+    return luaL_error(L, "no such field: '%s'");
+}
+
+void am_set_default_index_func(lua_State *L) {
+    lua_pushcclosure(L, default_index_func, 0);
+    lua_setfield(L, -2, "__index");
+}
+
+void am_set_default_newindex_func(lua_State *L) {
+    lua_pushcclosure(L, default_newindex_func, 0);
+    lua_setfield(L, -2, "__newindex");
 }
 
 #ifdef AM_LUAJIT

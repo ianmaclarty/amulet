@@ -3,6 +3,7 @@
 am_node::am_node() {
     recursion_limit = am_conf_default_recursion_limit;
     flags = 0;
+    root_count = 0;
     action_list = NULL;
 }
 
@@ -36,7 +37,7 @@ void am_node::deactivate() {
 
 static bool update_liveness_ancestors(am_node *node) {
     assert(node->flags & AM_NODE_FLAG_LIVE);
-    if (node->flags & AM_NODE_FLAG_ROOT) {
+    if (node->root_count > 0) {
         return true; // root found
     }
     if (node->flags & AM_NODE_FLAG_MARK) {

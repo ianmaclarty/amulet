@@ -32,10 +32,12 @@ local node = am.node():
     set_array("position", position_view):
     draw_arrays(0, 3)
 
+win.root = node
+
 local n = 120
 
 for i = 1, n do
-    win:draw(node)
+    win:draw(win.root)
     win:swap()
     position_view[2] = position_view[2] + math.vec2(0, 0.005)
     node.brightness = node.brightness - 1/n
