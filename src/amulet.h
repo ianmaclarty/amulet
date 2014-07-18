@@ -6,6 +6,7 @@
 
 #include <new>
 #include <climits>
+#include <vector>
 
 #define AMULET_LUA_MODULE_NAME "amulet"
 

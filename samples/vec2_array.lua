@@ -35,12 +35,18 @@ local node = am.node():
 win.root = node
 
 local n = 120
-
-for i = 1, n do
-    win:draw(win.root)
-    win:swap()
+local i = 0
+local
+function update()
+    print(i)
     position_view[2] = position_view[2] + math.vec2(0, 0.005)
     node.brightness = node.brightness - 1/n
+    i = i + 1
+    if i > n then
+        win:close()
+        return
+    end
+    return true
 end
 
-win:close()
+node:action(update)

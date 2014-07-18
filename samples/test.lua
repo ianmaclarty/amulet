@@ -1,5 +1,6 @@
 local am    = require "amulet"
 local math  = require "math"
+local coroutine  = require "coroutine"
 
 local vshader = [[
     attribute float x;
@@ -57,12 +58,14 @@ local child = am.node():
 
 node:append(child)
 
-for i = 1, 60 do
-    win:draw(node)
-    win:swap()
-    yview[1] = yview[1] + 0.01
-    xview2[3] = xview2[3] + 0.01
-    print(i)
-end
+node:action(coroutine.wrap(function()
+    for i = 1, 300 do
+        yview[1] = yview[1] + 0.01
+        xview2[3] = xview2[3] + 0.01
+        print(i)
+        coroutine.yield(0)
+    end
+    win:close()
+end))
 
-win:close()
+win.root = node

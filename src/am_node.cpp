@@ -100,6 +100,20 @@ static void update_liveness_after_insertion(am_node *node, am_node *parent) {
     }
 }
 
+void am_node::activate_root() {
+    root_count++;
+    update_liveness_descendents(this);
+}
+
+void am_node::deactivate_root() {
+    assert(root_count > 0);
+    assert(flags & AM_NODE_FLAG_LIVE);
+    root_count--;
+    if (root_count == 0) {
+        update_liveness_after_removal(this);
+    }
+}
+
 static int create_node(lua_State *L) {
     new (am_new_nonatomic_userdata(L, sizeof(am_node))) am_node();
     am_set_metatable(L, AM_MT_NODE, -1);

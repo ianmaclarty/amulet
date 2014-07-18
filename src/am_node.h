@@ -26,6 +26,8 @@ struct am_node {
     void render(am_render_state *rstate);
     void activate();
     void deactivate();
+    void activate_root();
+    void deactivate_root();
 };
 
 void am_open_node_module(lua_State *L);

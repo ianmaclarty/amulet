@@ -12,7 +12,11 @@ int main (int argc, char **argv) {
 
     lua_State *L = am_init_engine(0);
     int status = luaL_dofile(L, argv[1]);
-    report_status(L, status);
+    if (!report_status(L, status)) {
+        while (am_update_windows(L)) {
+            am_execute_actions(L);
+        }
+    }
     am_destroy_engine(L);
 
     SDL_Quit();

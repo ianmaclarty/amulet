@@ -1,8 +1,8 @@
 #include "amulet.h"
 
 struct am_window {
-    bool                is_main;
     bool                open;
+    bool                needs_closing;
     SDL_Window         *sdl_win;
     SDL_GLContext       gl_context;
     am_render_state    *rstate;
@@ -11,7 +11,7 @@ struct am_window {
     int                 window_ref;
 };
 
-static am_window *main_window = NULL;
+static std::vector<am_window*> windows;
 
 static int create_window(lua_State *L) {
     am_check_nargs(L, 3);
@@ -23,8 +23,8 @@ static int create_window(lua_State *L) {
     }
     am_window *win = new (am_new_nonatomic_userdata(L, sizeof(am_window))) am_window();
     win->open = true;
-    if (main_window != NULL) {
-        SDL_GL_MakeCurrent(main_window->sdl_win, main_window->gl_context);
+    if (windows.size() > 0) {
+        SDL_GL_MakeCurrent(windows[0]->sdl_win, windows[0]->gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     }
     win->sdl_win = SDL_CreateWindow(
@@ -32,16 +32,11 @@ static int create_window(lua_State *L) {
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         w, h,
-        SDL_WINDOW_OPENGL
+        SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI
     );
     win->gl_context = SDL_GL_CreateContext(win->sdl_win);
+    SDL_GL_MakeCurrent(win->sdl_win, win->gl_context);
     win->rstate = new am_render_state();
-    if (main_window == NULL) {
-        main_window = win;
-        win->is_main = true;
-    } else {
-        win->is_main = false;
-    }
 
     win->root = NULL;
     win->root_ref = LUA_NOREF;
@@ -50,6 +45,8 @@ static int create_window(lua_State *L) {
     lua_pushvalue(L, -1);
     win->window_ref = luaL_ref(L, -2);
     lua_pop(L, 1); // window table
+
+    windows.push_back(win);
 
     /* Use late swap tearing if supported, otherwise normal vsync */
     if (SDL_GL_SetSwapInterval(-1) == -1) {
@@ -71,50 +68,89 @@ static int create_window(lua_State *L) {
 static int close_window(lua_State *L) {
     am_check_nargs(L, 1);
     am_window *win = (am_window*)am_check_metatable_id(L, AM_MT_WINDOW, 1);
-    if (!win->open) {
+    if (!win->open || win->needs_closing) {
         return 0; // window already closed
     }
-    if (win->is_main) {
-        SDL_GL_DeleteContext(win->gl_context);
-        main_window = NULL;
-    }
-    SDL_DestroyWindow(win->sdl_win);
-    win->sdl_win = NULL;
-    delete win->rstate;
-    win->rstate = NULL;
-    win->open = false;
-
-    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
-    luaL_unref(L, -1, win->window_ref);
-    lua_pop(L, 1); // window table
-    win->window_ref = LUA_NOREF;
+    win->needs_closing = true;
 
     return 0;
 }
 
-static int swap_window(lua_State *L) {
-    am_check_nargs(L, 1);
-    am_window *win = (am_window*)am_check_metatable_id(L, AM_MT_WINDOW, 1);
-    if (!win->open) {
-        return luaL_error(L, "attempt to swap a closed window");
+static void close_windows(lua_State *L) {
+    unsigned int i = 0;
+    while (i < windows.size()) {
+        am_window *win = windows[i];
+        if (win->needs_closing) {
+            assert(win->open);
+            if (windows.size() == 1) {
+                // last window, destroy context
+                SDL_GL_DeleteContext(win->gl_context);
+            }
+            SDL_DestroyWindow(win->sdl_win);
+            win->sdl_win = NULL;
+            delete win->rstate;
+            win->rstate = NULL;
+            win->needs_closing = false;
+            lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
+            luaL_unref(L, -1, win->window_ref);
+            lua_pop(L, 1); // window table
+            win->window_ref = LUA_NOREF;
+            windows.erase(windows.begin() + i);
+            continue;
+        }
+        i++;
     }
-    if (main_window == NULL) {
-        return luaL_error(L, "can't swap a after main window closed");
-    }
-    SDL_GL_SwapWindow(win->sdl_win);
-    return 0;
 }
 
-static int draw_node(lua_State *L) {
-    if (main_window == NULL) {
-        return luaL_error(L, "can't draw after main window closed");
+static void draw_windows() {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        am_window *win = windows[i];
+        if (win->open && win->root != NULL) {
+            SDL_GL_MakeCurrent(win->sdl_win, win->gl_context);
+            win->root->render(win->rstate);
+            SDL_GL_SwapWindow(win->sdl_win);
+        }
     }
-    am_check_nargs(L, 2);
-    am_window *win = (am_window*)am_check_metatable_id(L, AM_MT_WINDOW, 1);
-    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 2);
-    SDL_GL_MakeCurrent(win->sdl_win, win->gl_context);
-    node->render(win->rstate);
-    return 0;
+}
+
+static void handle_events(lua_State *L) {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT: {
+                // close all windows and stop processing any more events
+                for (unsigned int i = 0; i < windows.size(); i++) {
+                    windows[i]->needs_closing = true;
+                }
+                close_windows(L);
+                break;
+            }
+            case SDL_WINDOWEVENT: {
+                switch (event.window.event) {
+                    case SDL_WINDOWEVENT_CLOSE: {
+                        for (unsigned int i = 0; i < windows.size(); i++) {
+                            if (SDL_GetWindowID(windows[i]->sdl_win) == event.window.windowID) {
+                                if (windows[i]->open) {
+                                    windows[i]->needs_closing = true;
+                                    close_windows(L);
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
+bool am_update_windows(lua_State *L) {
+    close_windows(L);
+    draw_windows();
+    handle_events(L);
+    return windows.size() > 0;
 }
 
 static void get_root_node(lua_State *L, void *obj) {
@@ -127,13 +163,13 @@ static void set_root_node(lua_State *L, void *obj) {
     if (lua_isnil(L, 3)) {
         if (window->root == NULL) return;
         am_delete_ref(L, 1, window->root_ref);
-        window->root->root_count--;
+        window->root->deactivate_root();
         window->root = NULL;
         return;
     }
-    if (window->root != NULL) window->root->root_count--;
+    if (window->root != NULL) window->root->deactivate_root();
     window->root = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 3);
-    window->root->root_count++;
+    window->root->activate_root();
     if (window->root_ref == LUA_NOREF) {
         window->root_ref = am_new_ref(L, 1, 3);
     } else {
@@ -151,10 +187,6 @@ static void register_window_mt(lua_State *L) {
 
     am_register_property(L, "root", &root_property);
 
-    lua_pushcclosure(L, draw_node, 0);
-    lua_setfield(L, -2, "draw");
-    lua_pushcclosure(L, swap_window, 0);
-    lua_setfield(L, -2, "swap");
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");
 
@@ -174,8 +206,10 @@ void am_open_window_module(lua_State *L) {
 
     lua_newtable(L);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
+
+    windows.clear();
 }
 
 bool am_gl_context_exists() {
-    return main_window != NULL;
+    return windows.size() > 0;
 }
