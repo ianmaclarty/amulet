@@ -93,6 +93,10 @@ void am_execute_actions(lua_State *L) {
                 ptr->nnext = action->nnext;
             }
             am_delete_ref(L, -1, action->action_ref);
+            am_delete_ref(L, -1, action->func_ref);
+            if (action->tag_ref != LUA_NOREF) {
+                am_delete_ref(L, -1, action->tag_ref);
+            }
             lua_pop(L, 1); // pop node
             action = next;
             continue;

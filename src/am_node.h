@@ -1,5 +1,6 @@
 #define AM_NODE_FLAG_LIVE        0x00000001
 #define AM_NODE_FLAG_MARK        0x00000002
+#define AM_NODE_FLAG_ROOT        0x00000004
 
 struct am_action;
 

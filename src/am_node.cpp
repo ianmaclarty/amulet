@@ -1,7 +1,5 @@
 #include "amulet.h"
 
-am_node am_root_node;
-
 am_node::am_node() {
     recursion_limit = am_conf_default_recursion_limit;
     flags = 0;
@@ -22,7 +20,7 @@ void am_node::render(am_render_state *rstate) {
 
 static bool update_liveness_ancestors(am_node *node) {
     assert(node->flags & AM_NODE_FLAG_LIVE);
-    if (node == &am_root_node) {
+    if (node->flags & AM_NODE_FLAG_ROOT) {
         return true; // root found
     }
     if (node->flags & AM_NODE_FLAG_MARK) {
@@ -86,6 +84,37 @@ static void update_liveness_after_insertion(am_node *node, am_node *parent) {
 static int create_node(lua_State *L) {
     new (am_new_nonatomic_userdata(L, sizeof(am_node))) am_node();
     am_set_metatable(L, AM_MT_NODE, -1);
+    return 1;
+}
+
+static int create_action(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    am_node *node = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 1);
+    am_action *action = new (lua_newuserdata(L, sizeof(am_action))) am_action();
+    action->node = node;
+    action->action_ref = am_new_ref(L, 1, -1); // ref from node to action
+    if (!lua_isfunction(L, 2)) {
+        return luaL_error(L, "expecting a function at position 2");
+    }
+    action->func_ref = am_new_ref(L, 1, 2);
+    if (nargs > 2) {
+        if (!lua_isnil(L, 3)) {
+            action->tag_ref = am_new_ref(L, 1, 3);
+        }
+    }
+    if (nargs > 3) {
+        action->priority = luaL_checkinteger(L, 4);
+    }
+    lua_pop(L, 1); // action
+
+    action->nnext = node->action_list;
+    node->action_list = action;
+
+    if (node->flags & AM_NODE_FLAG_LIVE) {
+        am_schedule_action(action);
+    }
+
+    lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
@@ -352,6 +381,9 @@ static void register_node_mt(lua_State *L) {
     lua_pushcclosure(L, remove_all_children, 0);
     lua_setfield(L, -2, "empty");
     
+    lua_pushcclosure(L, create_action, 0);
+    lua_setfield(L, -2, "action");
+
     lua_pushstring(L, "node");
     lua_setfield(L, -2, "tname");
 
@@ -365,7 +397,4 @@ void am_open_node_module(lua_State *L) {
     };
     am_open_module(L, "amulet", funcs);
     register_node_mt(L);
-
-    am_root_node.flags = AM_NODE_FLAG_LIVE;
-    am_root_node.recursion_limit = 0;
 }
