@@ -66,43 +66,73 @@ void am_deschedule_action(am_action *action) {
     action->gprev = NULL;
 }
 
+static inline bool action_is_scheduled(am_action *action) {
+    if (action->gnext != NULL || action->gprev != NULL) return true;
+    if (first == action) {
+        assert(last == action);
+        return true;
+    }
+    return false;
+}
+
 void am_execute_actions(lua_State *L) {
     am_action *action = first;
     while (action != NULL) {
+        assert(action_is_scheduled(action));
         if (action->paused) {
             action = action->gnext;
             continue;
         }
+        am_action *next = action->gnext;
         am_node *node = action->node;
+        lua_unsafe_pushuserdata(L, action);         // push action so not gc'd if descheduled when run
         lua_unsafe_pushuserdata(L, node);           // push node
         am_push_ref(L, -1, action->func_ref);       // push action function
-        lua_pushvalue(L, -2);                       // push node
+        lua_pushvalue(L, -2);                       // push node again
         lua_call(L, 1, 1);                          // run action function (pops node, function)
-        if (lua_isnil(L, -1)) {
+        if (!lua_toboolean(L, -1)) {
             // action finished, remove it.
+
             lua_pop(L, 1); // pop nil
-            am_action *next = action->gnext;
-            // remove action from schedule
-            am_deschedule_action(action);
+
+            // remove action from schedule (if not already descheduled)
+            if (action_is_scheduled(action)) {
+                next = action->gnext; // update next in case new action inserted directly after this one
+                am_deschedule_action(action);
+            }
+
             // remove action from node
             if (node->action_list == action) {
                 node->action_list = action->nnext;
             } else {
                 am_action *ptr = node->action_list;
-                while (ptr->nnext != action) ptr = ptr->nnext;
-                ptr->nnext = action->nnext;
+                while (ptr->nnext != action && ptr != NULL) ptr = ptr->nnext;
+                if (ptr != NULL) { 
+                    ptr->nnext = action->nnext;
+                    action->nnext = NULL;
+                } else {
+                    // action was cancelled
+                    assert(action->nnext == NULL);
+                    assert(action->action_ref == LUA_NOREF);
+                    assert(action->func_ref == LUA_NOREF);
+                    assert(action->tag_ref == LUA_NOREF);
+                    goto cancelled;
+                }
             }
             am_delete_ref(L, -1, action->action_ref);
             am_delete_ref(L, -1, action->func_ref);
-            if (action->tag_ref != LUA_NOREF) {
-                am_delete_ref(L, -1, action->tag_ref);
-            }
-            lua_pop(L, 1); // pop node
+            am_delete_ref(L, -1, action->tag_ref);
+
+            cancelled:
+            lua_pop(L, 2); // pop node, action
             action = next;
             continue;
         }
-        lua_pop(L, 2);                              // pop return value, node
-        action = action->gnext;
+        lua_pop(L, 3);                              // pop return value, node, action
+        if (action_is_scheduled(action)) {
+            next = action->gnext; // update next in case new action inserted directly after this one
+        }
+        action = next;
     }
 }
 

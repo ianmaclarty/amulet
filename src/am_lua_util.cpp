@@ -167,6 +167,7 @@ int am_new_ref(lua_State *L, int from, int to) {
 }
 
 void am_delete_ref(lua_State *L, int obj, int ref) {
+    if (ref == LUA_NOREF) return;
     lua_getuservalue(L, obj);
     luaL_unref(L, -1, ref);
     lua_pop(L, 1);
