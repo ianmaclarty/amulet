@@ -5,6 +5,7 @@ am_node am_root_node;
 am_node::am_node() {
     recursion_limit = am_conf_default_recursion_limit;
     flags = 0;
+    action_list = NULL;
 }
 
 void am_node::render(am_render_state *rstate) {

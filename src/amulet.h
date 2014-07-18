@@ -36,4 +36,5 @@ extern "C" {
 #include "am_program.h"
 #include "am_commands.h"
 #include "am_node.h"
+#include "am_action.h"
 #include "am_engine.h"

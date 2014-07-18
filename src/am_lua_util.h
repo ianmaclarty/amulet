@@ -16,6 +16,10 @@ void am_replace_ref(lua_State *L, int obj, int ref, int new_val);
 
 int am_check_nargs(lua_State *L, int n);
 
+// The caller must ensure v is live and was created
+// with lua_newuserdata.
+void lua_unsafe_pushuserdata(lua_State *L, void *v);
+
 #ifdef AM_LUAJIT
 void lua_setuservalue(lua_State *L, int idx);
 void lua_getuservalue(lua_State *L, int idx);
