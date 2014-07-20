@@ -26,7 +26,7 @@ void am_schedule_action(am_action *action) {
     } else {
         am_action *ptr = last;
         while (ptr != NULL) {
-            if (action->priority < ptr->priority || (action->priority == ptr->priority && action->seq < ptr->seq)) {
+            if (action->priority > ptr->priority || ((action->priority == ptr->priority) && (action->seq > ptr->seq))) {
                 // action should go after ptr
                 action->gnext = ptr->gnext;
                 if (ptr->gnext != NULL) {
@@ -128,10 +128,10 @@ void am_execute_actions(lua_State *L) {
             action = next;
             continue;
         }
-        lua_pop(L, 3);                              // pop return value, node, action
         if (action_is_scheduled(action)) {
             next = action->gnext; // update next in case new action inserted directly after this one
         }
+        lua_pop(L, 3);                              // pop return value, node, action
         action = next;
     }
 }

@@ -49,18 +49,17 @@ static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "base",      luaopen_base);
     am_requiref(L, "package",   luaopen_package);
     am_requiref(L, "math",      luaopen_math);
-#ifdef AM_LUAJIT
-    // luajit loads the coroutine module into the global
-    // table in luaopen_base, so unset the global.
-    lua_pushnil(L);
-    lua_setglobal(L, "coroutine");
-    am_requiref(L, "ffi",       luaopen_ffi);
-    am_requiref(L, "jit",       luaopen_jit);
-#else
+#ifndef AM_LUAJIT
+    // luajit opens coroutine in luaopen_base
     am_requiref(L, "coroutine", luaopen_coroutine);
 #endif
     am_requiref(L, "string",    luaopen_string);
     am_requiref(L, "table",     luaopen_table);
     am_requiref(L, "os",        luaopen_os);
     am_requiref(L, "debug",     luaopen_debug);
+
+#ifdef AM_LUAJIT
+    am_requiref(L, "ffi",       luaopen_ffi);
+    am_requiref(L, "jit",       luaopen_jit);
+#endif
 }

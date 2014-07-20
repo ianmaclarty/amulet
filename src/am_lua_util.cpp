@@ -50,6 +50,8 @@ void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs) {
         lua_newtable(L);
         lua_pushvalue(L, -1);
         lua_setfield(L, -3, name);
+        lua_pushvalue(L, -1);
+        lua_setglobal(L, name);
     }
     setfuncs(L, funcs);
     lua_pop(L, 2);
@@ -63,9 +65,10 @@ void am_requiref(lua_State *L, const char *modname, lua_CFunction openf) {
     luaL_findtable(L, LUA_REGISTRYINDEX, "_LOADED", 16);
     lua_pushvalue(L, -2);  /* make copy of module (call result) */
     lua_setfield(L, -2, modname);  /* _LOADED[modname] = module */
-    lua_pop(L, 2);  /* remove _LOADED table and call result */
+    lua_pop(L, 1); // _LOADED
+    lua_setglobal(L, modname); // pops call result
 #else
-    luaL_requiref(L, modname, openf, 0);
+    luaL_requiref(L, modname, openf, 1);
     lua_pop(L, 1);
 #endif
 }
