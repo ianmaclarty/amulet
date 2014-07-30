@@ -198,6 +198,24 @@ $(TARGETS): %:
 $(BUILD_DIRS): %:
 	mkdir -p $@
 
+# Embedded Lua code
+
+EMBEDDED_LUA_FILES = $(wildcard src/*.lua)
+
+src/am_embedded_lua.cpp: $(EMBEDDED_LUA_FILES)
+	echo "#include \"am_embedded_lua.h\"" > $@; \
+	echo "am_embedded_lua_script am_embedded_lua_scripts[] = {" >> $@; \
+	for f in `ls src/*.lua`; do \
+		name=`basename $$f`; \
+		echo "{\"" $$name "\", " >> $@; \
+		cat $$f | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/^/    "/' | sed 's/$$/\\n"/' >> $@; \
+		echo "    }," >> $@; \
+		echo >> $@; \
+	done; \
+	echo "};" >> $@
+
+# Cleanup
+
 clean:
 	rm -f $(BUILD_STAGING_DIR)/*
 	rm -f $(BUILD_BIN_DIR)/*
@@ -242,7 +260,7 @@ run_cpp_tests:
 	@echo DONE
 
 .PHONY: run_lua_tests
-run_lua_tests:
+run_lua_tests: $(AMULET)
 	@echo Running Lua tests...
 	@for t in $(LUA_TESTS); do \
 	    flua=tests/$$t.lua; \

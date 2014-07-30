@@ -23,6 +23,7 @@ extern "C" {
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "am_embedded_lua.h"
 #include "am_bit_util.h"
 #include "am_config.h"
 #include "am_reserved_refs.h"

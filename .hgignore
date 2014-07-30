@@ -17,6 +17,8 @@ settings
 tmp/*
 *.orig
 
+src/am_embedded_lua.cpp
+
 deps/SDL2-*/Makefile
 deps/SDL2-*/Makefile.rules
 deps/SDL2-*/libtool
