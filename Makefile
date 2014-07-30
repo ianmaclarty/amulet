@@ -101,7 +101,7 @@ endif
 
 # Build settings
 
-BUILD_BASE_DIR = build/$(TARGET_PLATFORM)/$(GRADE)
+BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(GRADE)
 BUILD_BIN_DIR = $(BUILD_BASE_DIR)/bin
 BUILD_LIB_DIR = $(BUILD_BASE_DIR)/lib
 BUILD_INCLUDE_DIR = $(BUILD_BASE_DIR)/include
@@ -224,7 +224,7 @@ clean-target:
 	rm -rf $(BUILD_BASE_DIR)
 
 clean-all: clean-tests
-	rm -rf build
+	rm -rf builds
 
 # Tests
 
@@ -288,7 +288,7 @@ clean-tests:
 	rm -f $(patsubst %,tests/%$(EXE_EXT),$(CPP_TESTS))
 
 # Avoid setting options or variables in submakes.
-# This can screw up the dep builds (in particular setting TARGET screws the sdl build).
+# This can mess up the dep builds (in particular setting TARGET can mess up the SDL build).
 MAKEOVERRIDES =
 unexport
 
