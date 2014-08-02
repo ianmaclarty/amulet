@@ -173,7 +173,7 @@ $(AM_OBJ_FILES): $(BUILD_STAGING_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES
 	$(CPP) $(AM_CFLAGS) -c $< -o $@
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
-	cd $(SDL_DIR) && ./configure CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
+	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
 	cp -r $(SDL_DIR)/include/* $(BUILD_INCLUDE_DIR)/
 	cp $(SDL_DIR)/build/.libs/libSDL2.a $@
 
@@ -203,16 +203,17 @@ $(BUILD_DIRS): %:
 EMBEDDED_LUA_FILES = $(wildcard src/*.lua)
 
 src/am_embedded_lua.cpp: $(EMBEDDED_LUA_FILES)
-	echo "#include \"am_embedded_lua.h\"" > $@; \
+	echo "#include \"amulet.h\"" > $@; \
 	echo "am_embedded_lua_script am_embedded_lua_scripts[] = {" >> $@; \
 	for f in `ls src/*.lua`; do \
 		name=`basename $$f`; \
-		echo "{\"" $$name "\", " >> $@; \
+		echo "{\""$$name"\", " >> $@; \
 		cat $$f | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/^/    "/' | sed 's/$$/\\n"/' >> $@; \
 		echo "    }," >> $@; \
 		echo >> $@; \
 	done; \
-	echo "};" >> $@
+	echo "{NULL, NULL}};" >> $@; \
+	echo "" >> $@
 
 # Cleanup
 

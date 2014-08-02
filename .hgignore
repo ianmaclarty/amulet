@@ -9,9 +9,9 @@ config.log
 config.status
 amulet
 *.exe
-build/**/include/*
-build/**/staging/*
-build/**/lib/*.a
+builds/**/include/*
+builds/**/staging/*
+builds/**/lib/*.a
 tags
 settings
 tmp/*

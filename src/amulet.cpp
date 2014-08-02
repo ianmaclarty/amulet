@@ -11,6 +11,7 @@ int main (int argc, char **argv) {
     }
 
     lua_State *L = am_init_engine(0);
+    if (L == NULL) return EXIT_FAILURE;
     int status = luaL_dofile(L, argv[1]);
     if (!report_status(L, status)) {
         while (am_update_windows(L)) {

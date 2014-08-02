@@ -423,6 +423,6 @@ void am_open_program_module(lua_State *L) {
         {"program", create_program},
         {NULL, NULL}
     };
-    am_open_module(L, "amulet", funcs);
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_program_mt(L);
 }

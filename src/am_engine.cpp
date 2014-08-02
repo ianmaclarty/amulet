@@ -4,6 +4,7 @@ am_program_param_name_info *am_param_name_map = NULL;
 
 static void init_reserved_refs(lua_State *L);
 static void open_stdlualibs(lua_State *L);
+static bool run_embedded_scripts(lua_State *L, bool worker);
 
 lua_State *am_init_engine(bool worker) {
     lua_State *L = luaL_newstate();
@@ -17,6 +18,10 @@ lua_State *am_init_engine(bool worker) {
         am_open_window_module(L);
         am_open_node_module(L);
         am_open_program_module(L);
+    }
+    if (!run_embedded_scripts(L, worker)) {
+        lua_close(L);
+        return NULL;
     }
     am_set_globals_metatable(L);
     return L;
@@ -62,4 +67,27 @@ static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "ffi",       luaopen_ffi);
     am_requiref(L, "jit",       luaopen_jit);
 #endif
+}
+
+#define MAX_CHUNKNAME_SIZE 100
+
+static bool run_embedded_scripts(lua_State *L, bool worker) {
+    am_embedded_lua_script *script = &am_embedded_lua_scripts[0];
+    char chunkname[MAX_CHUNKNAME_SIZE];
+    while (script->filename != NULL) {
+        snprintf(chunkname, MAX_CHUNKNAME_SIZE, "@%s", script->filename);
+        chunkname[MAX_CHUNKNAME_SIZE-1] = 0;
+        int r = luaL_loadbuffer(L, script->script, strlen(script->script), chunkname);
+        if (r == LUA_OK) {
+            if (!am_call(L, 0, 0)) {
+                return false;
+            }
+        } else {
+            const char *msg = lua_tostring(L, -1);
+            am_report_error(msg);
+            return false;
+        }
+        script++;
+    }
+    return true;
 }

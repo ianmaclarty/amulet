@@ -314,7 +314,7 @@ void am_open_buffer_module(lua_State *L) {
         {"buffer", create_buffer},
         {NULL, NULL}
     };
-    am_open_module(L, "amulet", funcs);
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_buffer_mt(L);
     register_buffer_view_mt(L);
     register_buffer_view_mt_FLOAT(L);

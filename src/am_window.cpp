@@ -201,7 +201,7 @@ void am_open_window_module(lua_State *L) {
         {"create_window",    create_window},
         {NULL, NULL}
     };
-    am_open_module(L, "amulet", funcs);
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_window_mt(L);
 
     lua_newtable(L);

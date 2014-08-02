@@ -260,6 +260,46 @@ void am_set_default_newindex_func(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
 }
 
+static int check_call_status(lua_State *L, int status) {
+    if (status) {
+        const char *msg = lua_tostring(L, -1);
+        lua_pop(L, 1);
+        if (msg == NULL) msg = "unknown error";
+        am_report_error(msg);
+    }
+    return status;
+}
+
+// Copied from lua source.
+static int traceback(lua_State *L) {
+  if (!lua_isstring(L, 1))  /* 'message' not a string? */
+    return 1;  /* keep it intact */
+  lua_getglobal(L, "debug");
+  if (!lua_istable(L, -1)) {
+    lua_pop(L, 1);
+    return 1;
+  }
+  lua_getfield(L, -1, "traceback");
+  if (!lua_isfunction(L, -1)) {
+    lua_pop(L, 2);
+    return 1;
+  }
+  lua_pushvalue(L, 1);  /* pass error message */
+  lua_pushinteger(L, 2);  /* skip this function and traceback */
+  lua_call(L, 2, 1);  /* call debug.traceback */
+  return 1;
+}
+
+bool am_call(lua_State *L, int nargs, int nresults) {
+    int status;
+    int base = lua_gettop(L) - nargs;  /* function index */
+    lua_pushcfunction(L, traceback);  /* push traceback function */
+    lua_insert(L, base);  /* put it under chunk and args */
+    status = lua_pcall(L, nargs, nresults, base);
+    lua_remove(L, base);  /* remove traceback function */
+    return (check_call_status(L, status) == 0);
+}
+
 #ifdef AM_LUAJIT
 void lua_setuservalue(lua_State *L, int idx) {
     lua_setfenv(L, idx);

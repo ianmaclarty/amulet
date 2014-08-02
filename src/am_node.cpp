@@ -428,6 +428,6 @@ void am_open_node_module(lua_State *L) {
         {"node", create_node},
         {NULL, NULL}
     };
-    am_open_module(L, "amulet", funcs);
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_node_mt(L);
 }
