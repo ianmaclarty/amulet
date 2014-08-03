@@ -39,5 +39,7 @@ typedef enum {
     AM_MT_MAT3,
     AM_MT_MAT4,
 
+    AM_TRACEBACK_FUNC,
+
     AM_RESERVED_REFS_END
 } am_reserved_refs;

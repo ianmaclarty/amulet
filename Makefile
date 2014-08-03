@@ -205,7 +205,7 @@ EMBEDDED_LUA_FILES = $(wildcard src/*.lua)
 src/am_embedded_lua.cpp: $(EMBEDDED_LUA_FILES)
 	echo "#include \"amulet.h\"" > $@; \
 	echo "am_embedded_lua_script am_embedded_lua_scripts[] = {" >> $@; \
-	for f in `ls src/*.lua`; do \
+	for f in `ls src/*.lua | sort`; do \
 		name=`basename $$f`; \
 		echo "{\""$$name"\", " >> $@; \
 		cat $$f | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/^/    "/' | sed 's/$$/\\n"/' >> $@; \

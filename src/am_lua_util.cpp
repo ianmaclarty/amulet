@@ -265,7 +265,7 @@ static int check_call_status(lua_State *L, int status) {
         const char *msg = lua_tostring(L, -1);
         lua_pop(L, 1);
         if (msg == NULL) msg = "unknown error";
-        am_report_error(msg);
+        am_report_error("%s", msg);
     }
     return status;
 }
@@ -293,11 +293,16 @@ static int traceback(lua_State *L) {
 bool am_call(lua_State *L, int nargs, int nresults) {
     int status;
     int base = lua_gettop(L) - nargs;  /* function index */
-    lua_pushcfunction(L, traceback);  /* push traceback function */
+    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_TRACEBACK_FUNC);
     lua_insert(L, base);  /* put it under chunk and args */
     status = lua_pcall(L, nargs, nresults, base);
     lua_remove(L, base);  /* remove traceback function */
     return (check_call_status(L, status) == 0);
+}
+
+void am_init_traceback_func(lua_State *L) {
+    lua_pushcclosure(L, traceback, 0);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_TRACEBACK_FUNC);
 }
 
 #ifdef AM_LUAJIT

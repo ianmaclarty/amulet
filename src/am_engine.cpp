@@ -12,6 +12,7 @@ lua_State *am_init_engine(bool worker) {
     open_stdlualibs(L);
     am_open_math_module(L);
     am_open_buffer_module(L);
+    am_init_traceback_func(L);
     if (!worker) {
         am_init_param_name_map(L);
         am_init_actions();
@@ -71,21 +72,45 @@ static void open_stdlualibs(lua_State *L) {
 
 #define MAX_CHUNKNAME_SIZE 100
 
+#define AM_SCRIPT_MAIN      1
+#define AM_SCRIPT_WORKER    2
+
+static int get_script_thread_filter(const char *filename) {
+    if (strstr(filename, "-w.lua") != NULL) {
+        return AM_SCRIPT_WORKER;
+    } else if (strstr(filename, "-m.lua") != NULL) {
+        return AM_SCRIPT_MAIN;
+    } else if (strstr(filename, "-mw.lua") != NULL) {
+        return AM_SCRIPT_WORKER | AM_SCRIPT_MAIN;
+    } else {
+        return 0;
+    }
+}
+
 static bool run_embedded_scripts(lua_State *L, bool worker) {
     am_embedded_lua_script *script = &am_embedded_lua_scripts[0];
     char chunkname[MAX_CHUNKNAME_SIZE];
     while (script->filename != NULL) {
-        snprintf(chunkname, MAX_CHUNKNAME_SIZE, "@%s", script->filename);
-        chunkname[MAX_CHUNKNAME_SIZE-1] = 0;
-        int r = luaL_loadbuffer(L, script->script, strlen(script->script), chunkname);
-        if (r == LUA_OK) {
-            if (!am_call(L, 0, 0)) {
+        int filter = get_script_thread_filter(script->filename);
+        if (filter == 0) {
+            am_report_error("embedded script '%s' has no thread filter spec", script->filename);
+            return false;
+        }
+        if ((worker && (filter & AM_SCRIPT_WORKER)) ||
+            ((!worker) && (filter & AM_SCRIPT_MAIN)))
+        {
+            snprintf(chunkname, MAX_CHUNKNAME_SIZE, "@%s", script->filename);
+            chunkname[MAX_CHUNKNAME_SIZE-1] = 0;
+            int r = luaL_loadbuffer(L, script->script, strlen(script->script), chunkname);
+            if (r == LUA_OK) {
+                if (!am_call(L, 0, 0)) {
+                    return false;
+                }
+            } else {
+                const char *msg = lua_tostring(L, -1);
+                am_report_error(msg);
                 return false;
             }
-        } else {
-            const char *msg = lua_tostring(L, -1);
-            am_report_error(msg);
-            return false;
         }
         script++;
     }
