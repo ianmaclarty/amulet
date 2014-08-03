@@ -300,6 +300,17 @@ bool am_call(lua_State *L, int nargs, int nresults) {
     return (check_call_status(L, status) == 0);
 }
 
+bool am_call_amulet(lua_State *L, const char *func, int nargs, int nresults) {
+    lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+    lua_getfield(L, -1, func);
+    lua_remove(L, -2); // 'amulet' global
+    if (nargs > 0) {
+        // move function above args
+        lua_insert(L, -nargs - 1);
+    }
+    return am_call(L, nargs, nresults);
+}
+
 void am_init_traceback_func(lua_State *L) {
     lua_pushcclosure(L, traceback, 0);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_TRACEBACK_FUNC);

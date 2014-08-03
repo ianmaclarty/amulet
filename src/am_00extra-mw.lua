@@ -23,6 +23,12 @@ function table.append(arr1, arr2)
     end
 end
 
+function table.clear(t)
+    for k, _ in pairs(t) do
+        t[k] = nil
+    end
+end
+
 local
 function table_tostring(t, indent)
     local tp = type(t)

@@ -28,6 +28,7 @@ void am_set_default_newindex_func(lua_State *L);
 
 void am_init_traceback_func(lua_State *L);
 bool am_call(lua_State *L, int nargs, int nresults);
+bool am_call_amulet(lua_State *L, const char *func, int nargs, int nresults);
 
 // The caller must ensure v is live and was created
 // with lua_newuserdata.

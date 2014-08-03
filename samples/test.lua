@@ -65,7 +65,7 @@ node:action(coroutine.wrap(function()
         print(i)
         coroutine.yield(0)
     end
-    win:close()
+    --win:close()
 end))
 
 win.root = node

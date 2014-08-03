@@ -114,6 +114,7 @@ static void draw_windows() {
 }
 
 static void handle_events(lua_State *L) {
+    am_call_amulet(L, "_clear_keys", 0, 0);
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -139,6 +140,22 @@ static void handle_events(lua_State *L) {
                         }
                         break;
                     }
+                }
+                break;
+            }
+            case SDL_KEYDOWN: {
+                if (!event.key.repeat) {
+                    const char *key = SDL_GetKeyName(event.key.keysym.sym);
+                    lua_pushstring(L, key);
+                    am_call_amulet(L, "_key_down", 1, 0);
+                }
+                break;
+            }
+            case SDL_KEYUP: {
+                if (!event.key.repeat) {
+                    const char *key = SDL_GetKeyName(event.key.keysym.sym);
+                    lua_pushstring(L, key);
+                    am_call_amulet(L, "_key_up", 1, 0);
                 }
                 break;
             }
