@@ -288,8 +288,8 @@ clean-tests:
 	rm -f tests/*.time
 	rm -f $(patsubst %,tests/%$(EXE_EXT),$(CPP_TESTS))
 
-# Avoid setting options or variables in submakes.
-# This can mess up the dep builds (in particular setting TARGET can mess up the SDL build).
+# Avoid setting options or variables in submakes,
+# because setting TARGET messes up the SDL build.
 MAKEOVERRIDES =
 unexport
 
