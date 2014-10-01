@@ -132,7 +132,7 @@ LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 
 MAIN_TARGET = $(AMULET)
 
-AM_CPP_FILES = $(wildcard $(SRC_DIR)/*.cpp)
+AM_CPP_FILES = $(wildcard $(SRC_DIR)/*.cpp) src/am_embedded_lua.cpp
 AM_H_FILES = $(wildcard $(SRC_DIR)/*.h)
 AM_OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_STAGING_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
 

@@ -102,7 +102,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
             snprintf(chunkname, MAX_CHUNKNAME_SIZE, "@%s", script->filename);
             chunkname[MAX_CHUNKNAME_SIZE-1] = 0;
             int r = luaL_loadbuffer(L, script->script, strlen(script->script), chunkname);
-            if (r == LUA_OK) {
+            if (r == 0) {
                 if (!am_call(L, 0, 0)) {
                     return false;
                 }
