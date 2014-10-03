@@ -18,8 +18,6 @@
 
 static void check_glerror();
 
-// Initialization
-
 static GLenum to_gl_blend_equation(am_blend_equation eq);
 static GLenum to_gl_blend_sfactor(am_blend_sfactor f);
 static GLenum to_gl_blend_dfactor(am_blend_dfactor f);
@@ -47,6 +45,8 @@ static GLenum to_gl_element_index_type(am_element_index_type t);
 static am_attribute_var_type from_gl_attribute_var_type(GLenum gl_type);
 static am_uniform_var_type from_gl_uniform_var_type(GLenum gl_type);
 static am_framebuffer_status from_gl_framebuffer_status(GLenum gl_status);
+
+// Initialization
 
 bool am_init_gl() {
     GLenum err = glewInit();

@@ -103,14 +103,14 @@ endif
 
 BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(GRADE)
 BUILD_BIN_DIR = $(BUILD_BASE_DIR)/bin
+BUILD_OBJ_DIR = $(BUILD_BASE_DIR)/obj
 BUILD_LIB_DIR = $(BUILD_BASE_DIR)/lib
-BUILD_INCLUDE_DIR = $(BUILD_BASE_DIR)/include
-BUILD_STAGING_DIR = $(BUILD_BASE_DIR)/staging
+BUILD_INC_DIR = $(BUILD_BASE_DIR)/include
 
-BUILD_LUA_INCLUDE_DIR = $(BUILD_INCLUDE_DIR)/lua
-BUILD_LUAJIT_INCLUDE_DIR = $(BUILD_INCLUDE_DIR)/luajit
+BUILD_LUA_INCLUDE_DIR = $(BUILD_INC_DIR)/lua
+BUILD_LUAJIT_INCLUDE_DIR = $(BUILD_INC_DIR)/luajit
 
-BUILD_DIRS = $(BUILD_BIN_DIR) $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR) $(BUILD_STAGING_DIR) \
+BUILD_DIRS = $(BUILD_BIN_DIR) $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_OBJ_DIR) \
 	$(BUILD_LUAJIT_INCLUDE_DIR) $(BUILD_LUA_INCLUDE_DIR)
 
 ifeq ($(LUAVM),luajit)
@@ -132,9 +132,9 @@ LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 
 MAIN_TARGET = $(AMULET)
 
-AM_CPP_FILES = $(wildcard $(SRC_DIR)/*.cpp) src/am_embedded_lua.cpp
+AM_CPP_FILES = $(sort $(wildcard $(SRC_DIR)/*.cpp) src/am_embedded_lua.cpp)
 AM_H_FILES = $(wildcard $(SRC_DIR)/*.h)
-AM_OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_STAGING_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
+AM_OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_OBJ_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
 
 ifeq ($(GRADE),debug)
   GRADE_CFLAGS = -g -O0
@@ -152,7 +152,7 @@ else
   LUAJIT_LDFLAGS =
 endif
 
-AM_INCLUDE_FLAGS = $(INCLUDE_OPT)$(BUILD_INCLUDE_DIR) $(INCLUDE_OPT)$(BUILD_LUAVM_INCLUDE_DIR) \
+AM_INCLUDE_FLAGS = $(INCLUDE_OPT)$(BUILD_INC_DIR) $(INCLUDE_OPT)$(BUILD_LUAVM_INCLUDE_DIR) \
 	$(INCLUDE_OPT)$(GLM_DIR)
 
 AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
@@ -169,12 +169,12 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
 	ln -fs $@ `basename $@`
 	@echo DONE
 
-$(AM_OBJ_FILES): $(BUILD_STAGING_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_STAGING_DIR)
+$(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR)
 	$(CPP) $(AM_CFLAGS) -c $< -o $@
 
-$(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
+$(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
-	cp -r $(SDL_DIR)/include/* $(BUILD_INCLUDE_DIR)/
+	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
 	cp $(SDL_DIR)/build/.libs/libSDL2.a $@
 
 $(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
@@ -187,9 +187,9 @@ $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
 	cp $(LUAJIT_DIR)/src/*.h $(BUILD_LUAJIT_INCLUDE_DIR)/
 	cp $(LUAJIT_DIR)/src/libluajit.a $@
 
-$(GLEW_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INCLUDE_DIR)
+$(GLEW_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(GLEW_DIR) && $(MAKE) clean all
-	cp -r $(GLEW_DIR)/include/* $(BUILD_INCLUDE_DIR)/
+	cp -r $(GLEW_DIR)/include/* $(BUILD_INC_DIR)/
 	cp $(GLEW_DIR)/lib/libGLEW.a $@
 
 $(TARGETS): %:
@@ -218,7 +218,7 @@ src/am_embedded_lua.cpp: $(EMBEDDED_LUA_FILES)
 # Cleanup
 
 clean:
-	rm -f $(BUILD_STAGING_DIR)/*
+	rm -f $(BUILD_OBJ_DIR)/*
 	rm -f $(BUILD_BIN_DIR)/*
 
 clean-target:
