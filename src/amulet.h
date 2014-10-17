@@ -37,7 +37,6 @@ extern "C" {
 #include "am_trail.h"
 #include "am_renderer.h"
 #include "am_program.h"
-#include "am_commands.h"
-#include "am_node.h"
 #include "am_action.h"
+#include "am_scene.h"
 #include "am_engine.h"

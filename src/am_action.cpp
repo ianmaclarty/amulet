@@ -84,16 +84,15 @@ void am_execute_actions(lua_State *L) {
             continue;
         }
         am_action *next = action->gnext;
-        am_node *node = action->node;
-        lua_unsafe_pushuserdata(L, action);         // push action so not gc'd if descheduled when run
-        lua_unsafe_pushuserdata(L, node);           // push node
-        am_push_ref(L, -1, action->func_ref);       // push action function
-        lua_pushvalue(L, -2);                       // push node again
+        am_scene_node *node = action->node;
+        action->push(L);                            // push action so not gc'd if descheduled when run
+        node->pushref(L, action->func_ref);         // push action function
+        node->push(L);
         lua_call(L, 1, 1);                          // run action function (pops node, function)
         if (!lua_toboolean(L, -1)) {
             // action finished, remove it.
 
-            lua_pop(L, 1); // pop nil
+            lua_pop(L, 1); // pop nil/false
 
             // remove action from schedule (if not already descheduled)
             if (action_is_scheduled(action)) {
@@ -124,14 +123,14 @@ void am_execute_actions(lua_State *L) {
             am_delete_ref(L, -1, action->tag_ref);
 
             cancelled:
-            lua_pop(L, 2); // pop node, action
+            lua_pop(L, 1); // pop action
             action = next;
             continue;
         }
         if (action_is_scheduled(action)) {
             next = action->gnext; // update next in case new action inserted directly after this one
         }
-        lua_pop(L, 3);                              // pop return value, node, action
+        lua_pop(L, 2);                              // pop return value, action
         action = next;
     }
 }

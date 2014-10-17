@@ -1,11 +1,13 @@
+struct am_scene_node;
+
 struct am_action {
     am_action *gnext;
     am_action *gprev;
     am_action *nnext;
-    am_node *node;
+    am_scene_node *node;
     int tag_ref;
     int func_ref;
-    int action_ref;
+    int action_ref; // ref from node to action
     int priority;
     uint64_t seq;
     bool paused;

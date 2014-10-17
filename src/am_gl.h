@@ -251,17 +251,17 @@ void am_get_active_attribute(am_program_id program, am_attribute_index index, ch
 // *name should be freed with free()
 void am_get_active_uniform(am_program_id program, am_uniform_index index, char **name, am_uniform_var_type *type, int *size);
 
-void am_set_uniform1f(am_uniform_index index, int count, const float *value);
-void am_set_uniform2f(am_uniform_index index, int count, const float *value);
-void am_set_uniform3f(am_uniform_index index, int count, const float *value);
-void am_set_uniform4f(am_uniform_index index, int count, const float *value);
-void am_set_uniform1i(am_uniform_index index, int count, const am_glint *value);
-void am_set_uniform2i(am_uniform_index index, int count, const am_glint *value);
-void am_set_uniform3i(am_uniform_index index, int count, const am_glint *value);
-void am_set_uniform4i(am_uniform_index index, int count, const am_glint *value);
-void am_set_uniform_mat2(am_uniform_index index, int count, const float *value);
-void am_set_uniform_mat3(am_uniform_index index, int count, const float *value);
-void am_set_uniform_mat4(am_uniform_index index, int count, const float *value);
+void am_set_uniform1f(am_uniform_index index, float value);
+void am_set_uniform2f(am_uniform_index index, const float *value);
+void am_set_uniform3f(am_uniform_index index, const float *value);
+void am_set_uniform4f(am_uniform_index index, const float *value);
+void am_set_uniform1i(am_uniform_index index, am_glint value);
+void am_set_uniform2i(am_uniform_index index, const am_glint *value);
+void am_set_uniform3i(am_uniform_index index, const am_glint *value);
+void am_set_uniform4i(am_uniform_index index, const am_glint *value);
+void am_set_uniform_mat2(am_uniform_index index, const float *value);
+void am_set_uniform_mat3(am_uniform_index index, const float *value);
+void am_set_uniform_mat4(am_uniform_index index, const float *value);
 
 void am_set_attribute1f(am_attribute_index index, const float value);
 void am_set_attribute2f(am_attribute_index index, const float *value);

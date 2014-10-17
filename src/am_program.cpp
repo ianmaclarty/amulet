@@ -1,156 +1,100 @@
 #include "amulet.h"
 
-am_program_param::am_program_param(am_param_name_id name) {
-    am_program_param::name = name;
-}
-
-void am_program_param::trailed_set_float(am_render_state *rstate, float val) {
-    am_report_error("attempt to set param '%s' to float %f",
-        am_param_name_map[name].name, val);
-}
-
-void am_program_param::trailed_set_array(am_render_state *rstate,
-    am_vertex_buffer *vbo, am_attribute_client_type type, int dimensions,
-    bool normalized, int stride, int offset, int max_draw_elements)
-{
-    am_report_error("attempt to set param '%s' to an array",
-        am_param_name_map[name].name);
-}
-
-struct am_uniform_param : am_program_param {
-    am_uniform_index index;
-
-    am_uniform_param(am_param_name_id name, am_uniform_index index)
-        : am_program_param(name)
-    {
-        am_uniform_param::index = index;
+static void bind_attribute_array(am_render_state *rstate, am_gluint index, am_attribute_client_type type, int dims, am_buffer_view *view) {
+    am_set_attribute_array_enabled(index, true);
+    am_buffer *buf = view->buffer;
+    am_bind_buffer(AM_ARRAY_BUFFER, buf->vbo.buffer_id);
+    if (buf->vbo.dirty_start < buf->vbo.dirty_end) {
+        am_set_buffer_sub_data(AM_ARRAY_BUFFER, buf->vbo.dirty_start, buf->vbo.dirty_end - buf->vbo.dirty_start, buf->data + buf->vbo.dirty_start);
+        buf->vbo.dirty_end = 0;
+        buf->vbo.dirty_start = INT_MAX;
     }
-};
-
-struct am_float_uniform_param : am_uniform_param {
-    float value;
-
-    am_float_uniform_param(am_param_name_id name, am_uniform_index index)
-        : am_uniform_param(name, index)
-    {
-        value = 0.0f;
-    }
-
-    virtual void bind(am_render_state *rstate) {
-        am_set_uniform1f(index, 1, &value);
-    }
-
-    virtual void trailed_set_float(am_render_state *rstate, float val) {
-        rstate->trail.trail(&value, sizeof(float));
-        value = val;
-    }
-
-    virtual void trailed_mul_float(am_render_state *rstate, float val) {
-        rstate->trail.trail(&value, sizeof(float));
-        value *= val;
-    }
-
-    virtual void trailed_add_float(am_render_state *rstate, float val) {
-        rstate->trail.trail(&value, sizeof(float));
-        value += val;
-    }
-};
-
-struct am_attribute_state {
-    bool is_array;
-    union {
-        float scalar[4];
-        struct {
-            am_vertex_buffer *vbo;
-            am_attribute_client_type type;
-            bool normalized;
-            int stride;
-            int offset;
-            int max_draw_elements;
-        } array;
-    } u;
-};
-
-struct am_attribute_param : am_program_param {
     int dimensions;
-    am_attribute_index index;
-    am_attribute_state state;
-
-    am_attribute_param(am_param_name_id name, am_attribute_index index, int dimensions)
-        : am_program_param(name)
-    {
-        assert(dimensions >= 1 && dimensions <= 4);
-        am_attribute_param::index = index;
-        state.is_array = false;
-        am_attribute_param::dimensions = dimensions;
-        state.u.scalar[0] = 0.0f;
-        state.u.scalar[1] = 0.0f;
-        state.u.scalar[2] = 0.0f;
-        state.u.scalar[3] = 0.0f;
+    am_set_attribute_pointer(index, dims, type, view->normalized, view->stride, view->offset);
+    if (view->size < rstate->max_draw_array_size) {
+        rstate->max_draw_array_size = view->size;
     }
+}
 
-    virtual void bind(am_render_state *rstate) {
-        if (state.is_array) {
-            am_set_attribute_array_enabled(index, true);
-            am_bind_buffer(AM_ARRAY_BUFFER, state.u.array.vbo->buffer_id);
-            if (state.u.array.vbo->dirty_start < state.u.array.vbo->dirty_end) {
-                am_vertex_buffer *vbo = state.u.array.vbo;
-                am_set_buffer_sub_data(AM_ARRAY_BUFFER, vbo->dirty_start, vbo->dirty_end - vbo->dirty_start, vbo->buffer->data + vbo->dirty_start);
-                vbo->dirty_end = 0;
-                vbo->dirty_start = INT_MAX;
+void am_program_param::bind(am_render_state *rstate) {
+    switch (type) {
+        case AM_PROGRAM_PARAM_UNIFORM_1F:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
+                am_set_uniform1f(index, slot->value.value.f);
             }
-            am_set_attribute_pointer(index, dimensions, state.u.array.type, state.u.array.normalized, state.u.array.stride, state.u.array.offset);
-            if (state.u.array.max_draw_elements < rstate->max_draw_array_size) {
-                rstate->max_draw_array_size = state.u.array.max_draw_elements;
+            break;
+        case AM_PROGRAM_PARAM_UNIFORM_2F:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
+                am_set_uniform2f(index, glm::value_ptr(slot->value.value.v2));
             }
-        } else {
-            am_set_attribute_array_enabled(index, false);
-            switch (dimensions) {
-                case 1: am_set_attribute1f(index, state.u.scalar[0]); break;
-                case 2: am_set_attribute2f(index, state.u.scalar); break;
-                case 3: am_set_attribute3f(index, state.u.scalar); break;
-                case 4: am_set_attribute4f(index, state.u.scalar); break;
+            break;
+        case AM_PROGRAM_PARAM_UNIFORM_3F:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
+                am_set_uniform3f(index, glm::value_ptr(slot->value.value.v3));
             }
-        }
+            break;
+        case AM_PROGRAM_PARAM_UNIFORM_4F:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
+                am_set_uniform4f(index, glm::value_ptr(slot->value.value.v4));
+            }
+            break;
+        case AM_PROGRAM_PARAM_UNIFORM_MAT2:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2) {
+                am_set_uniform_mat2(index, glm::value_ptr(slot->value.value.m2));
+            }
+            break;
+        case AM_PROGRAM_PARAM_UNIFORM_MAT3:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3) {
+                am_set_uniform_mat3(index, glm::value_ptr(slot->value.value.m3));
+            }
+            break;
+        case AM_PROGRAM_PARAM_UNIFORM_MAT4:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
+                am_set_uniform_mat4(index, glm::value_ptr(slot->value.value.m4));
+            }
+            break;
+        case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
+                am_set_attribute_array_enabled(index, false);
+                am_set_attribute1f(index, slot->value.value.f);
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.arr->type == AM_BUF_ELEM_TYPE_FLOAT) {
+                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.arr);
+            }
+            break;
+        case AM_PROGRAM_PARAM_ATTRIBUTE_2F:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
+                am_set_attribute_array_enabled(index, false);
+                am_set_attribute2f(index, glm::value_ptr(slot->value.value.v2));
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC2) {
+                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.arr);
+            }
+            break;
+        case AM_PROGRAM_PARAM_ATTRIBUTE_3F:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
+                am_set_attribute_array_enabled(index, false);
+                am_set_attribute3f(index, glm::value_ptr(slot->value.value.v3));
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC3) {
+                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.arr);
+            }
+            break;
+        case AM_PROGRAM_PARAM_ATTRIBUTE_4F:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
+                am_set_attribute_array_enabled(index, false);
+                am_set_attribute4f(index, glm::value_ptr(slot->value.value.v4));
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC4) {
+                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.arr);
+            }
+            break;
     }
-
-    virtual void trailed_set_float(am_render_state *rstate, float val) {
-        rstate->trail.trail(&state, sizeof(am_attribute_state));
-        state.is_array = false;
-        state.u.scalar[0] = val;
-        state.u.scalar[1] = 0.0f;
-        state.u.scalar[2] = 0.0f;
-        state.u.scalar[3] = 0.0f;
-    }
-
-    virtual void trailed_set_array(am_render_state *rstate,
-        am_vertex_buffer *vbo, am_attribute_client_type type, int dimensions,
-        bool normalized, int stride, int offset, int max_draw_elements)
-    {
-        if (dimensions == am_attribute_param::dimensions) {
-            rstate->trail.trail(&state, sizeof(am_attribute_state));
-            state.is_array = true;
-            state.u.array.vbo = vbo;
-            state.u.array.type = type;
-            state.u.array.normalized = normalized;
-            state.u.array.stride = stride;
-            state.u.array.offset = offset;
-            state.u.array.max_draw_elements = max_draw_elements;
-        } else {
-            am_report_error("invalid dimensions when setting shader attribute '%s' (expected %d, got %d)",
-                am_param_name_map[name].name, am_attribute_param::dimensions, dimensions);
-        }
-    }
-};
+}
 
 static int am_param_name_map_capacity = 0;
 
 void am_init_param_name_map(lua_State *L) {
     if (am_param_name_map != NULL) free(am_param_name_map);
     am_param_name_map_capacity = 32;
-    am_param_name_map = (am_program_param_name_info*)malloc(sizeof(am_program_param_name_info) * am_param_name_map_capacity);
+    am_param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
     for (int i = 0; i < am_param_name_map_capacity; i++) {
-        am_param_name_map[i].param = NULL;
         am_param_name_map[i].name = NULL;
     }
     lua_newtable(L);
@@ -177,9 +121,8 @@ am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
             while (name_ref >= am_param_name_map_capacity) {
                 am_param_name_map_capacity *= 2;
             }
-            am_param_name_map = (am_program_param_name_info*)realloc(am_param_name_map, sizeof(am_program_param_name_info) * am_param_name_map_capacity);
+            am_param_name_map = (am_program_param_name_slot*)realloc(am_param_name_map, sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
             for (int i = old_capacity; i < am_param_name_map_capacity; i++) {
-                am_param_name_map[i].param = NULL;
                 am_param_name_map[i].name = NULL;
             }
             am_param_name_map[name_ref].name = lua_tostring(L, name_idx);
@@ -259,22 +202,23 @@ static int create_program(lua_State *L) {
     am_attach_shader(program, fragment_shader);
     bool linked = am_link_program(program);
 
+    am_delete_shader(vertex_shader);
+    am_delete_shader(fragment_shader);
+
     if (!linked) {
         char *msg = am_get_program_info_log(program);
         lua_pushfstring(L, "shader program link error:\n%s", msg);
         free(msg);
+        am_delete_program(program);
         lua_error(L);
     }
-
-    am_delete_shader(vertex_shader);
-    am_delete_shader(fragment_shader);
 
     int num_attributes = am_get_program_active_attributes(program);
     int num_uniforms = am_get_program_active_uniforms(program);
 
     int num_params = num_attributes + num_uniforms;    
 
-    am_program_param **params = (am_program_param**)malloc(sizeof(am_program_param*) * num_params);
+    am_program_param *params = (am_program_param*)malloc(sizeof(am_program_param) * num_params);
 
     // Generate attribute params
     int i = 0;
@@ -286,31 +230,27 @@ static int create_program(lua_State *L) {
         lua_pushstring(L, name_str);
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name str
-        am_program_param *param = NULL;
+        am_program_param *param = &params[i];
+        param->index = index;
+        param->slot = &am_param_name_map[name].slot;
         switch (type) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT:
-                param = new am_attribute_param(name, index, 1);
+                param->type = AM_PROGRAM_PARAM_ATTRIBUTE_1F;
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2:
-                param = new am_attribute_param(name, index, 2);
+                param->type = AM_PROGRAM_PARAM_ATTRIBUTE_2F;
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC3:
-                param = new am_attribute_param(name, index, 3);
+                param->type = AM_PROGRAM_PARAM_ATTRIBUTE_3F;
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC4:
-                param = new am_attribute_param(name, index, 4);
+                param->type = AM_PROGRAM_PARAM_ATTRIBUTE_4F;
                 break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT2:
-                am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT2");
-                break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3:
-                am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3");
-                break;
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4:
-                am_abort("NYI: AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4");
-                break;
             case AM_ATTRIBUTE_VAR_TYPE_UNKNOWN:
-                am_report_message("warning: ignoring attribute '%s' with unknown type", name_str);
+                am_report_message("warning: ignoring attribute '%s' with unsupported type", name_str);
                 num_params--;
                 free(name_str);
                 continue;
@@ -329,61 +269,43 @@ static int create_program(lua_State *L) {
         lua_pushstring(L, name_str);
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name
-        am_program_param *param = NULL;
+        am_program_param *param = &params[i];
+        param->index = index;
+        param->slot = &am_param_name_map[name].slot;
         switch (type) {
             case AM_UNIFORM_VAR_TYPE_FLOAT:
-                param = new am_float_uniform_param(name, index);
+                param->type = AM_PROGRAM_PARAM_UNIFORM_1F;
                 break;
             case AM_UNIFORM_VAR_TYPE_FLOAT_VEC2:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_FLOAT_VEC2");
+                param->type = AM_PROGRAM_PARAM_UNIFORM_2F;
                 break;
             case AM_UNIFORM_VAR_TYPE_FLOAT_VEC3:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_FLOAT_VEC3");
+                param->type = AM_PROGRAM_PARAM_UNIFORM_3F;
                 break;
             case AM_UNIFORM_VAR_TYPE_FLOAT_VEC4:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_FLOAT_VEC4");
-                break;
-            case AM_UNIFORM_VAR_TYPE_INT:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_INT");
-                break;
-            case AM_UNIFORM_VAR_TYPE_INT_VEC2:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_INT_VEC2");
-                break;
-            case AM_UNIFORM_VAR_TYPE_INT_VEC3:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_INT_VEC3");
-                break;
-            case AM_UNIFORM_VAR_TYPE_INT_VEC4:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_INT_VEC4");
-                break;
-            case AM_UNIFORM_VAR_TYPE_BOOL:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_BOOL");
-                break;
-            case AM_UNIFORM_VAR_TYPE_BOOL_VEC2:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_BOOL_VEC2");
-                break;
-            case AM_UNIFORM_VAR_TYPE_BOOL_VEC3:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_BOOL_VEC3");
-                break;
-            case AM_UNIFORM_VAR_TYPE_BOOL_VEC4:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_BOOL_VEC4");
+                param->type = AM_PROGRAM_PARAM_UNIFORM_4F;
                 break;
             case AM_UNIFORM_VAR_TYPE_FLOAT_MAT2:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_FLOAT_MAT2");
+                param->type = AM_PROGRAM_PARAM_UNIFORM_MAT2;
                 break;
             case AM_UNIFORM_VAR_TYPE_FLOAT_MAT3:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_FLOAT_MAT3");
+                param->type = AM_PROGRAM_PARAM_UNIFORM_MAT3;
                 break;
             case AM_UNIFORM_VAR_TYPE_FLOAT_MAT4:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_FLOAT_MAT4");
+                param->type = AM_PROGRAM_PARAM_UNIFORM_MAT4;
                 break;
+            case AM_UNIFORM_VAR_TYPE_INT:
+            case AM_UNIFORM_VAR_TYPE_INT_VEC2:
+            case AM_UNIFORM_VAR_TYPE_INT_VEC3:
+            case AM_UNIFORM_VAR_TYPE_INT_VEC4:
+            case AM_UNIFORM_VAR_TYPE_BOOL:
+            case AM_UNIFORM_VAR_TYPE_BOOL_VEC2:
+            case AM_UNIFORM_VAR_TYPE_BOOL_VEC3:
+            case AM_UNIFORM_VAR_TYPE_BOOL_VEC4:
             case AM_UNIFORM_VAR_TYPE_SAMPLER_2D:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_SAMPLER_2D");
-                break;
             case AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE:
-                am_abort("NYI: AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE");
-                break;
             case AM_UNIFORM_VAR_TYPE_UNKNOWN:
-                am_report_message("warning: ignoring uniform '%s' with unknown type", name_str);
+                am_report_message("warning: ignoring uniform '%s' with unsupported type", name_str);
                 num_params--;
                 free(name_str);
                 continue;
@@ -393,11 +315,10 @@ static int create_program(lua_State *L) {
         i++;
     }
 
-    am_program *prog = new (lua_newuserdata(L, sizeof(am_program))) am_program();
+    am_program *prog = am_new_userdata(L, am_program);
     prog->program_id = program;
     prog->num_params = num_params;
     prog->params = params;
-    am_set_metatable(L, AM_MT_PROGRAM, -1);
 
     return 1;
 }

@@ -1,12 +1,12 @@
 #include "amulet.h"
 
-struct am_window {
+struct am_window : am_nonatomic_userdata {
     bool                open;
     bool                needs_closing;
     SDL_Window         *sdl_win;
     SDL_GLContext       gl_context;
     am_render_state    *rstate;
-    am_node            *root;
+    am_scene_node      *root;
     int                 root_ref;
     int                 window_ref;
 };
@@ -21,7 +21,7 @@ static int create_window(lua_State *L) {
     if (title == NULL) {
         return luaL_error(L, "expecting a string in argument 1");
     }
-    am_window *win = new (am_new_nonatomic_userdata(L, sizeof(am_window))) am_window();
+    am_window *win = am_new_userdata(L, am_window);
     win->open = true;
     if (windows.size() > 0) {
         SDL_GL_MakeCurrent(windows[0]->sdl_win, windows[0]->gl_context);
@@ -172,25 +172,25 @@ bool am_update_windows(lua_State *L) {
 
 static void get_root_node(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    am_push_ref(L, 1, window->root_ref);
+    window->pushref(L, window->root_ref);
 }
 
 static void set_root_node(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     if (lua_isnil(L, 3)) {
         if (window->root == NULL) return;
-        am_delete_ref(L, 1, window->root_ref);
+        window->unref(L, window->root_ref);
         window->root->deactivate_root();
         window->root = NULL;
         return;
     }
     if (window->root != NULL) window->root->deactivate_root();
-    window->root = (am_node*)am_check_metatable_id(L, AM_MT_NODE, 3);
+    window->root = (am_scene_node*)am_check_metatable_id(L, AM_MT_SCENE_NODE, 3);
     window->root->activate_root();
     if (window->root_ref == LUA_NOREF) {
-        window->root_ref = am_new_ref(L, 1, 3);
+        window->root_ref = window->ref(L, 3);
     } else {
-        am_replace_ref(L, 1, window->root_ref, 3);
+        window->reref(L, window->root_ref, 3);
     }
 }
 

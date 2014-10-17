@@ -7,8 +7,8 @@ void am_render_state::draw_arrays(int first, int draw_array_count) {
     if (validate_active_program()) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
             // no vertex arrays have been set and no size has been specified
-            // for the draw command. Pick something smaller.
-            draw_array_count = 6;
+            // for the draw command, so do nothing.
+            draw_array_count = 0;
         }
         int count = max_draw_array_size - first;
         if (count > draw_array_count) count = draw_array_count;
@@ -17,21 +17,6 @@ void am_render_state::draw_arrays(int first, int draw_array_count) {
         }
     }
 }
-
-/*
-void am_render_state::draw_elements(int first, int active_indices_count) {
-        if (active_indices_id) {
-            bind_active_indices();
-            if (active_indices_max_value <= max_draw_array_size) {
-                int count = active_indices_max_size - active_indices_offset;
-                if (count > active_indices_count) count = active_indices_count;
-                if (count > 0) {
-                    am_draw_elements(draw_mode, count, active_indices_type, active_indices_offset);
-                }
-            } else {
-                am_report_error("buffer index out of range");
-            }
-*/
 
 bool am_render_state::validate_active_program() {
     if (am_conf_validate_shader_programs) {
@@ -57,7 +42,7 @@ void am_render_state::bind_active_program() {
 void am_render_state::bind_active_program_params() {
     max_draw_array_size = INT_MAX;
     for (int i = 0; i < active_program->num_params; i++) {
-        am_program_param *param = active_program->params[i];
+        am_program_param *param = &active_program->params[i];
         param->bind(this);
     }
 }
