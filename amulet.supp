@@ -1,0 +1,62 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-331/libGL.so.331.38
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XimSetICValueData
+   fun:_XimLocalCreateIC
+   fun:XCreateIC
+   fun:SetupWindowData
+   fun:X11_CreateWindow
+   fun:SDL_CreateWindow_REAL
+   fun:SDL_VideoInit_REAL
+   fun:SDL_CreateWindow_REAL
+   fun:_ZL13create_windowP9lua_State
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XimSetICValueData
+   fun:_XimLocalCreateIC
+   fun:XCreateIC
+   fun:SetupWindowData
+   fun:X11_CreateWindow
+   fun:SDL_CreateWindow_REAL
+   fun:_ZL13create_windowP9lua_State
+   fun:luaD_precall
+   fun:luaV_execute
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:XGetWindowProperty
+   fun:X11_DispatchEvent
+   fun:X11_PumpEvents
+   fun:SDL_PollEvent_REAL
+   fun:_ZL13handle_eventsP9lua_State
+   fun:_Z17am_update_windowsP9lua_State
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/nvidia-331/libGL.so.331.38
+}
+

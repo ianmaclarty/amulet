@@ -1,9 +1,9 @@
 struct am_scene_node;
 
 struct am_action {
-    am_action *gnext;
-    am_action *gprev;
-    am_action *nnext;
+    am_action *gnext; // global list next
+    am_action *gprev; // global list prev
+    am_action *nnext; // scene node list next
     am_scene_node *node;
     int tag_ref;
     int func_ref;

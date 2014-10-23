@@ -3,8 +3,6 @@
 static int report_status(lua_State *L, int status);
 
 int main (int argc, char **argv) {
-    SDL_Init(SDL_INIT_VIDEO);
-
     if (argc < 2) {
         fprintf(stderr, "expecting 1 argument\n"); 
         return 1;

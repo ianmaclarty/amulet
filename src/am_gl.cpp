@@ -18,7 +18,7 @@
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
 
-static void check_glerror();
+static void check_glerror(const char *file, int line, const char *func);
 
 static GLenum to_gl_blend_equation(am_blend_equation eq);
 static GLenum to_gl_blend_sfactor(am_blend_sfactor f);
@@ -387,7 +387,7 @@ bool am_compile_shader(am_shader_id shader) {
     return compiled;
 }
 
-char *am_get_shader_info_log(am_shader_id shader) {
+const char *am_get_shader_info_log(am_shader_id shader) {
     check_initialized("gl not initialized");
     GLint len = 0;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
@@ -1131,7 +1131,7 @@ static am_framebuffer_status from_gl_framebuffer_status(GLenum gl_status) {
     }
 }
 
-static inline void check_glerror(const char *file, int line, const char *func) {
+static void check_glerror(const char *file, int line, const char *func) {
     {
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) {

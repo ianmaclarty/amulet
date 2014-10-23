@@ -2,7 +2,7 @@ local am = amulet
 
 local win = am.create_window("test", 100, 100)
 
-win.root = am.node()
+win.root = am.empty()
 
 local frame = 1
 win.root:action(function()

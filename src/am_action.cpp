@@ -85,7 +85,7 @@ void am_execute_actions(lua_State *L) {
         }
         am_action *next = action->gnext;
         am_scene_node *node = action->node;
-        action->push(L);                            // push action so not gc'd if descheduled when run
+        node->pushref(L, action->action_ref);       // push action so not gc'd if descheduled when run
         node->pushref(L, action->func_ref);         // push action function
         node->push(L);
         lua_call(L, 1, 1);                          // run action function (pops node, function)
@@ -118,9 +118,14 @@ void am_execute_actions(lua_State *L) {
                     goto cancelled;
                 }
             }
-            am_delete_ref(L, -1, action->action_ref);
-            am_delete_ref(L, -1, action->func_ref);
-            am_delete_ref(L, -1, action->tag_ref);
+            node->unref(L, action->action_ref);
+            action->action_ref = LUA_NOREF;
+            node->unref(L, action->func_ref);
+            action->func_ref = LUA_NOREF;
+            if (action->tag_ref != LUA_NOREF) {
+                node->unref(L, action->tag_ref);
+                action->tag_ref = LUA_NOREF;
+            }
 
             cancelled:
             lua_pop(L, 1); // pop action

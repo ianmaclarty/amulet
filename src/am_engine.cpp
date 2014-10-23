@@ -1,7 +1,5 @@
 #include "amulet.h"
 
-am_program_param_name_info *am_param_name_map = NULL;
-
 static void init_reserved_refs(lua_State *L);
 static void open_stdlualibs(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);

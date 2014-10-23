@@ -180,7 +180,7 @@ am_shader_id am_create_fragment_shader();
 void am_set_shader_source(am_shader_id shader, const char *src);
 bool am_compile_shader(am_shader_id shader);
 // returned string should be freed with free()
-char *am_get_shader_info_log(am_shader_id shader);
+const char *am_get_shader_info_log(am_shader_id shader);
 
 void am_attach_shader(am_program_id program, am_shader_id shader);
 bool am_link_program(am_program_id program);

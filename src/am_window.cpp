@@ -24,6 +24,7 @@ static int create_window(lua_State *L) {
     am_window *win = am_new_userdata(L, am_window);
     win->open = true;
     if (windows.size() > 0) {
+        SDL_Init(SDL_INIT_VIDEO);
         SDL_GL_MakeCurrent(windows[0]->sdl_win, windows[0]->gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     }
@@ -60,14 +61,12 @@ static int create_window(lua_State *L) {
         return 0;
     }
 
-    am_set_metatable(L, AM_MT_WINDOW, -1);
-
     return 1;
 }
 
 static int close_window(lua_State *L) {
     am_check_nargs(L, 1);
-    am_window *win = (am_window*)am_check_metatable_id(L, AM_MT_WINDOW, 1);
+    am_window *win = am_get_userdata(L, am_window, 1);
     if (!win->open || win->needs_closing) {
         return 0; // window already closed
     }
@@ -180,13 +179,14 @@ static void set_root_node(lua_State *L, void *obj) {
     if (lua_isnil(L, 3)) {
         if (window->root == NULL) return;
         window->unref(L, window->root_ref);
+        window->root_ref = LUA_NOREF;
         window->root->deactivate_root();
         window->root = NULL;
         return;
     }
     if (window->root != NULL) window->root->deactivate_root();
-    window->root = (am_scene_node*)am_check_metatable_id(L, AM_MT_SCENE_NODE, 3);
-    window->root->activate_root();
+    window->root = am_get_userdata(L, am_scene_node, 3);
+    window->root->activate_root(L);
     if (window->root_ref == LUA_NOREF) {
         window->root_ref = window->ref(L, 3);
     } else {
@@ -210,7 +210,7 @@ static void register_window_mt(lua_State *L) {
     lua_pushstring(L, "window");
     lua_setfield(L, -2, "tname");
 
-    am_register_metatable(L, AM_MT_WINDOW, 0);
+    am_register_metatable(L, MT_am_window, 0);
 }
 
 void am_open_window_module(lua_State *L) {

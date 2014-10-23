@@ -17,15 +17,18 @@ function printmat(m)
     local str = "["
     for row = 1, 4 do
         for col = 1, 4 do
-            local elem = m[col*10+row]
+            local elem
+            if m[col] then
+                elem = m[col][row]
+            end
             if elem then
                 str = str..string.format("%0.2f", elem)
-                if m[(col+1)*10+1] then
+                if m[col+1] then
                     str = str.."  "
                 end
             end
         end
-        if m[10+row+1] then
+        if m[1][row+1] then
             str = str.."\n "
         end
     end
@@ -104,8 +107,8 @@ m = math.mat4( 1,  2,  3,  4,
               13, 14, 15, 16)
 printmat(m)
 m[2] = math.vec4(50, 60, 70, 80)
-m[13] = 9
-m[44] = 99
+m:set(1, 3, 9)
+m:set(4, 4, 99)
 printmat(m)
 
 print(math.dot(math.vec3(1, 2, 3), math.vec3(1, 2, 3)))

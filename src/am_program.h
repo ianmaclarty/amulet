@@ -29,12 +29,12 @@ struct am_program_param_value {
     am_program_param_client_type type;
     union {
         float f;
-        glm::vec2 v2;
-        glm::vec3 v3;
-        glm::vec4 v4;
-        glm::mat2 m2;
-        glm::mat3 m3;
-        glm::mat4 m4;
+        float v2[2];
+        float v3[3];
+        float v4[4];
+        float m2[4];
+        float m3[9];
+        float m4[16];
         am_buffer_view *arr;
     } value;
 };
@@ -44,7 +44,7 @@ struct am_program_param_name_slot {
     const char *name;
 };
 
-extern am_program_param_name_info *am_param_name_map;
+extern am_program_param_name_slot *am_param_name_map;
 
 void am_init_param_name_map(lua_State *L);
 am_param_name_id am_lookup_param_name(lua_State *L, int name_idx);

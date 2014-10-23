@@ -23,7 +23,7 @@ struct am_buffer : am_nonatomic_userdata {
     void create_vbo();
 };
 
-struct am_buffer_view {
+struct am_buffer_view : am_nonatomic_userdata {
     am_buffer           *buffer;
     int                 buffer_ref;
     int                 offset; // in bytes
@@ -34,14 +34,14 @@ struct am_buffer_view {
     bool                normalized;
 
     float get_float(int i);
-    void get_float2(int i, float *f);
-    void get_float3(int i, float *f);
-    void get_float4(int i, float *f);
+    void get_float2(int i, am_vec2 *v2);
+    void get_float3(int i, am_vec3 *v3);
+    void get_float4(int i, am_vec4 *v4);
 
     void set_float(int i, float f);
-    void set_float2(int i, float *f);
-    void set_float3(int i, float *f);
-    void set_float4(int i, float *f);
+    void set_float2(int i, am_vec2 *v2);
+    void set_float3(int i, am_vec3 *v3);
+    void set_float4(int i, am_vec4 *v4);
 };
 
 void am_open_buffer_module(lua_State *L);

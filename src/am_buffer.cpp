@@ -25,7 +25,7 @@ void am_buffer::create_vbo() {
     vbo.dirty_start = INT_MAX;
     vbo.dirty_end = 0;
     am_bind_buffer(AM_ARRAY_BUFFER, vbo.buffer_id);
-    am_set_buffer_data(AM_ARRAY_BUFFER, size, &buf->data[0], AM_BUFFER_USAGE_STATIC_DRAW);
+    am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
 }
 
 static inline uint8_t* view_index_ptr(am_buffer_view *view, int i) {
@@ -65,13 +65,19 @@ void am_buffer_view::set_float4(int i, am_vec4 *v4) {
 }
 
 static int create_buffer(lua_State *L) {
-    int nargs = am_check_nargs(L, 1);
+    am_check_nargs(L, 1);
     int isnum;
     int size = lua_tointegerx(L, 1, &isnum);
     if (!isnum) return luaL_error(L, "expecting size (an integer) at position 1");
     if (size <= 0) return luaL_error(L, "size should be greater than 0");
-    am_buffer *buf = am_new_userdata(L, am_buffer, size);
+    am_new_userdata(L, am_buffer, size);
     return 1;
+}
+
+static int buffer_gc(lua_State *L) {
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    buf->destroy();
+    return 0;
 }
 
 static int create_buffer_view(lua_State *L) {
@@ -182,16 +188,15 @@ static int buffer_view_newindex(lua_State *L) {
             break;
         }
     }
-    *((float*)&view->buffer->data[byte_start]) = val;
     am_buffer *buf = view->buffer;
-    if (buffer->vbo.buffer_id != 0) {
+    if (buf->vbo.buffer_id != 0) {
         int byte_start = view->offset + view->stride * (index-1);
         int byte_end = byte_start + view->type_size;
-        if (byte_start < vbo->dirty_start) {
-            vbo->dirty_start = byte_start;
+        if (byte_start < buf->vbo.dirty_start) {
+            buf->vbo.dirty_start = byte_start;
         } 
-        if (byte_end > vbo->dirty_end) {
-            vbo->dirty_end = byte_end;
+        if (byte_end > buf->vbo.dirty_end) {
+            buf->vbo.dirty_end = byte_end;
         }
     }
     return 0;
@@ -202,7 +207,7 @@ static void register_buffer_mt(lua_State *L) {
 
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
-    lua_pushcfunction(L, buffer_gc, 0);
+    lua_pushcclosure(L, buffer_gc, 0);
     lua_setfield(L, -2, "__gc");
 
     lua_pushstring(L, "buffer");
@@ -252,6 +257,7 @@ void am_buf_view_type_to_attr_client_type_and_dimensions(am_buffer_view_type t, 
         case AM_BUF_ELEM_TYPE_FLOAT_VEC4:
             *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 4;
             return;
+        /*
         case AM_BUF_ELEM_TYPE_BYTE:
             *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 1;
             return;
@@ -300,6 +306,7 @@ void am_buf_view_type_to_attr_client_type_and_dimensions(am_buffer_view_type t, 
         case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC4:
             *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 4;
             return;
+        */
     }
     return;
 }

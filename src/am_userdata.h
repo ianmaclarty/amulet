@@ -16,6 +16,9 @@
 #define am_get_userdata(L, T, idx) \
     ((T*)am_check_metatable_id(L, MT_##T, idx))
 
+#define am_get_userdata_or_nil(L, T, idx) \
+    (lua_isnil(L, idx) ? NULL : ((T*)am_check_metatable_id(L, MT_##T, idx)))
+
 template<typename T>
 struct am_lua_array;
 
@@ -26,9 +29,11 @@ struct am_userdata {
 
     // push the Lua userdata for this object onto the stack
     void push(lua_State *L);
+
+    virtual void force_vtable() {};
 };
 
-struct am_nonatomc_userdata : am_userdata {
+struct am_nonatomic_userdata : am_userdata {
     int num_refs; // number of references from this object to other
                   // lua objects. A value of -1 indicates that the
                   // uservalue table for this object has not been
@@ -44,31 +49,24 @@ struct am_nonatomc_userdata : am_userdata {
 
     // Push referenced object onto the stack.
     void pushref(lua_State *L, int ref);
-
-    // Creates a new dynamically expanding array as a Lua userdata
-    // and links it to this object. n is the initial capacity of tha array
-    // (as number of elements). The array will be expanded as needed.
-    template <typename T> am_lua_vector<T> newvec(lua_State *L) {
-        return am_lua_vector<T>(this);
-    }
 };
 
 template<typename T>
-struct am_lua_vector {
+struct am_lua_array {
 
     T *arr;
     T one;
     int size;
     int capacity;
     int ref;
-    am_userdata *owner;
+    am_nonatomic_userdata *owner;
 
-    am_lua_array(am_nonatomic_userdata *ownr) {
+    am_lua_array() {
         arr = NULL;
         size = 0;
         capacity = 0;
         ref = LUA_NOREF;
-        owner = ownr;
+        owner = NULL;
     }
 
     void push_back(lua_State *L, T val) {
@@ -77,11 +75,16 @@ struct am_lua_vector {
     }
 
     void push_front(lua_State *L, T val) {
+        insert(L, 0, val);
+    }
+
+    void insert(lua_State *L, int pos, T val) {
+        assert(pos <= size);
         ensure_capacity(L, size + 1);
-        for (int i = size; i > 0; i--) {
+        for (int i = size; i > pos; i--) {
             arr[i] = arr[i-1];
         }
-        arr[0] = val;
+        arr[pos] = val;
         size++;
     }
 
@@ -93,11 +96,41 @@ struct am_lua_vector {
         size--;
     }
 
+    bool remove_all(T elem) {
+        int i = 0;
+        int j = 0;
+        bool found = false;
+        while (j < size) {
+            if (i < j) {
+                arr[i] = arr[j];
+            }
+            if (arr[i] != elem) {
+                i++;
+            } else {
+                found = true;
+            }
+            j++;
+        }
+        size = i;
+        return found;
+    }
+
+    bool remove_first(T elem) {
+        for (int i = 0; i < size; i++) {
+            if (arr[i] == elem) {
+                remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     void clear() {
         size = 0;
     }
 
     inline void ensure_capacity(lua_State *L, int c) {
+        assert(owner != NULL);
         if (capacity < c) {
             if (capacity == 0 && c == 1) {
                 arr = &one;

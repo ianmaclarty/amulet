@@ -3,13 +3,13 @@
 static void bind_attribute_array(am_render_state *rstate, am_gluint index, am_attribute_client_type type, int dims, am_buffer_view *view) {
     am_set_attribute_array_enabled(index, true);
     am_buffer *buf = view->buffer;
+    if (buf->vbo.buffer_id == 0) buf->create_vbo();
     am_bind_buffer(AM_ARRAY_BUFFER, buf->vbo.buffer_id);
     if (buf->vbo.dirty_start < buf->vbo.dirty_end) {
         am_set_buffer_sub_data(AM_ARRAY_BUFFER, buf->vbo.dirty_start, buf->vbo.dirty_end - buf->vbo.dirty_start, buf->data + buf->vbo.dirty_start);
         buf->vbo.dirty_end = 0;
         buf->vbo.dirty_start = INT_MAX;
     }
-    int dimensions;
     am_set_attribute_pointer(index, dims, type, view->normalized, view->stride, view->offset);
     if (view->size < rstate->max_draw_array_size) {
         rstate->max_draw_array_size = view->size;
@@ -25,70 +25,72 @@ void am_program_param::bind(am_render_state *rstate) {
             break;
         case AM_PROGRAM_PARAM_UNIFORM_2F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
-                am_set_uniform2f(index, glm::value_ptr(slot->value.value.v2));
+                am_set_uniform2f(index, slot->value.value.v2);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_3F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
-                am_set_uniform3f(index, glm::value_ptr(slot->value.value.v3));
+                am_set_uniform3f(index, slot->value.value.v3);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_4F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
-                am_set_uniform4f(index, glm::value_ptr(slot->value.value.v4));
+                am_set_uniform4f(index, slot->value.value.v4);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT2:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2) {
-                am_set_uniform_mat2(index, glm::value_ptr(slot->value.value.m2));
+                am_set_uniform_mat2(index, slot->value.value.m2);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT3:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3) {
-                am_set_uniform_mat3(index, glm::value_ptr(slot->value.value.m3));
+                am_set_uniform_mat3(index, slot->value.value.m3);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT4:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-                am_set_uniform_mat4(index, glm::value_ptr(slot->value.value.m4));
+                am_set_uniform_mat4(index, slot->value.value.m4);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
                 am_set_attribute_array_enabled(index, false);
                 am_set_attribute1f(index, slot->value.value.f);
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.arr->type == AM_BUF_ELEM_TYPE_FLOAT) {
-                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.arr);
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT) {
+                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.value.arr);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_2F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
                 am_set_attribute_array_enabled(index, false);
-                am_set_attribute2f(index, glm::value_ptr(slot->value.value.v2));
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC2) {
-                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.arr);
+                am_set_attribute2f(index, slot->value.value.v2);
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC2) {
+                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.value.arr);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_3F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
                 am_set_attribute_array_enabled(index, false);
-                am_set_attribute3f(index, glm::value_ptr(slot->value.value.v3));
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC3) {
-                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.arr);
+                am_set_attribute3f(index, slot->value.value.v3);
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC3) {
+                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.value.arr);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_4F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
                 am_set_attribute_array_enabled(index, false);
-                am_set_attribute4f(index, glm::value_ptr(slot->value.value.v4));
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC4) {
-                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.arr);
+                am_set_attribute4f(index, slot->value.value.v4);
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC4) {
+                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.value.arr);
             }
             break;
     }
 }
 
 static int am_param_name_map_capacity = 0;
+
+am_program_param_name_slot *am_param_name_map = NULL;
 
 void am_init_param_name_map(lua_State *L) {
     if (am_param_name_map != NULL) free(am_param_name_map);
@@ -157,9 +159,9 @@ am_shader_id load_shader(lua_State *L, int type, const char *src) {
             case VERTEX_SHADER: type_str = "vertex"; break;
             case FRAGMENT_SHADER: type_str = "fragment"; break;
         }
-        char *msg = am_get_shader_info_log(shader);
+        const char *msg = am_get_shader_info_log(shader);
         lua_pushfstring(L, "%s shader compilation error:\n%s", type_str, msg);
-        free(msg);
+        free((void*)msg);
         am_delete_shader(shader);
         return 0;
    }
@@ -232,7 +234,7 @@ static int create_program(lua_State *L) {
         lua_pop(L, 1); // name str
         am_program_param *param = &params[i];
         param->index = index;
-        param->slot = &am_param_name_map[name].slot;
+        param->slot = &am_param_name_map[name];
         switch (type) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT:
                 param->type = AM_PROGRAM_PARAM_ATTRIBUTE_1F;
@@ -256,7 +258,6 @@ static int create_program(lua_State *L) {
                 continue;
         }
         free(name_str);
-        params[i] = param;
         i++;
     }
 
@@ -271,7 +272,7 @@ static int create_program(lua_State *L) {
         lua_pop(L, 1); // name
         am_program_param *param = &params[i];
         param->index = index;
-        param->slot = &am_param_name_map[name].slot;
+        param->slot = &am_param_name_map[name];
         switch (type) {
             case AM_UNIFORM_VAR_TYPE_FLOAT:
                 param->type = AM_PROGRAM_PARAM_UNIFORM_1F;
@@ -311,7 +312,6 @@ static int create_program(lua_State *L) {
                 continue;
         }
         free(name_str);
-        params[i] = param;
         i++;
     }
 
@@ -336,7 +336,7 @@ static void register_program_mt(lua_State *L) {
     lua_setfield(L, -2, "__gc");
     lua_pushstring(L, "program");
     lua_setfield(L, -2, "tname");
-    am_register_metatable(L, AM_MT_PROGRAM, 0);
+    am_register_metatable(L, MT_am_program, 0);
 }
 
 void am_open_program_module(lua_State *L) {
