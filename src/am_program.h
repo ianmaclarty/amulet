@@ -9,6 +9,7 @@ enum am_program_param_client_type {
     AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3,
     AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4,
     AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY,
+    AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED,
 };
 
 enum am_program_param_type {
@@ -52,7 +53,7 @@ am_param_name_id am_lookup_param_name(lua_State *L, int name_idx);
 struct am_program_param {
     am_program_param_type type;
     am_gluint index;
-    am_program_param_name_slot *slot;
+    am_param_name_id name;
 
     void bind(am_render_state *rstate);
 };

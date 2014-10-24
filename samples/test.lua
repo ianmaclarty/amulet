@@ -5,8 +5,9 @@ local coroutine  = require "coroutine"
 local vshader = [[
     attribute float x;
     attribute float y;
+    uniform mat4 MVP;
     void main() {
-        gl_Position = vec4(x, y, 0, 1);
+        gl_Position = MVP * vec4(x, y, 0, 1);
     }
 ]]
 
@@ -32,9 +33,12 @@ yview[1] = -0.4
 yview[2] = 0.6
 yview[3] = -0.4
 
+local MVP = math.mat4(0.1)
+print(MVP[1][1])
 local node = am.draw_arrays()
     :bind_array("x", xview)
     :bind_array("y", yview)
+    :bind_mat4("MVP", MVP)
     :program(prog)
 
 win.root = node

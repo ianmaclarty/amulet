@@ -539,19 +539,19 @@ void am_set_uniform1f(am_uniform_index index, float value) {
 
 void am_set_uniform2f(am_uniform_index index, const float *value) {
     check_initialized();
-    glUniform2fv(index, 2, value);
+    glUniform2fv(index, 1, value);
     check_for_errors
 }
 
 void am_set_uniform3f(am_uniform_index index, const float *value) {
     check_initialized();
-    glUniform3fv(index, 3, value);
+    glUniform3fv(index, 1, value);
     check_for_errors
 }
 
 void am_set_uniform4f(am_uniform_index index, const float *value) {
     check_initialized();
-    glUniform4fv(index, 4, value);
+    glUniform4fv(index, 1, value);
     check_for_errors
 }
 
@@ -563,37 +563,37 @@ void am_set_uniform1i(am_uniform_index index, am_glint value) {
 
 void am_set_uniform2i(am_uniform_index index, const am_glint *value) {
     check_initialized();
-    glUniform2iv(index, 2, value);
+    glUniform2iv(index, 1, value);
     check_for_errors
 }
 
 void am_set_uniform3i(am_uniform_index index, const am_glint *value) {
     check_initialized();
-    glUniform3iv(index, 3, value);
+    glUniform3iv(index, 1, value);
     check_for_errors
 }
 
 void am_set_uniform4i(am_uniform_index index, const am_glint *value) {
     check_initialized();
-    glUniform4iv(index, 4, value);
+    glUniform4iv(index, 1, value);
     check_for_errors
 }
 
 void am_set_uniform_mat2(am_uniform_index index, const float *value) {
     check_initialized();
-    glUniformMatrix2fv(index, 4, GL_FALSE, value);
+    glUniformMatrix2fv(index, 1, GL_FALSE, value);
     check_for_errors
 }
 
 void am_set_uniform_mat3(am_uniform_index index, const float *value) {
     check_initialized();
-    glUniformMatrix3fv(index, 9, GL_FALSE, value);
+    glUniformMatrix3fv(index, 1, GL_FALSE, value);
     check_for_errors
 }
 
 void am_set_uniform_mat4(am_uniform_index index, const float *value) {
     check_initialized();
-    glUniformMatrix4fv(index, 16, GL_FALSE, value);
+    glUniformMatrix4fv(index, 1, GL_FALSE, value);
     check_for_errors
 }
 

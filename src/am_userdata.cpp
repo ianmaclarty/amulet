@@ -75,6 +75,7 @@ void am_nonatomic_userdata::pushref(lua_State *L, int ref) {
 am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id) {
     ud->metatable_id = metatable_id;
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
+    assert(lua_istable(L, -1));
     lua_setmetatable(L, -2);
     return ud;
 }

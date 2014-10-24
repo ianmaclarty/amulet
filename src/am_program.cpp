@@ -17,6 +17,7 @@ static void bind_attribute_array(am_render_state *rstate, am_gluint index, am_at
 }
 
 void am_program_param::bind(am_render_state *rstate) {
+    am_program_param_name_slot *slot = &am_param_name_map[name];
     switch (type) {
         case AM_PROGRAM_PARAM_UNIFORM_1F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
@@ -98,6 +99,7 @@ void am_init_param_name_map(lua_State *L) {
     am_param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
     for (int i = 0; i < am_param_name_map_capacity; i++) {
         am_param_name_map[i].name = NULL;
+        am_param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
     }
     lua_newtable(L);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
@@ -234,7 +236,7 @@ static int create_program(lua_State *L) {
         lua_pop(L, 1); // name str
         am_program_param *param = &params[i];
         param->index = index;
-        param->slot = &am_param_name_map[name];
+        param->name = name;
         switch (type) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT:
                 param->type = AM_PROGRAM_PARAM_ATTRIBUTE_1F;
@@ -272,7 +274,7 @@ static int create_program(lua_State *L) {
         lua_pop(L, 1); // name
         am_program_param *param = &params[i];
         param->index = index;
-        param->slot = &am_param_name_map[name];
+        param->name = name;
         switch (type) {
             case AM_UNIFORM_VAR_TYPE_FLOAT:
                 param->type = AM_PROGRAM_PARAM_UNIFORM_1F;

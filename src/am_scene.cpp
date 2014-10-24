@@ -363,9 +363,9 @@ void am_bind_array_node::render(am_render_state *rstate) {
 
 static int create_bind_array_node(lua_State *L) {
     am_check_nargs(L, 3);
-    am_bind_array_node *node = am_new_userdata(L, am_bind_array_node);
-    if (!lua_isstring(L, 2)) luaL_error(L, "expecting a string in position 2");
+    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, 3);
+    am_bind_array_node *node = am_new_userdata(L, am_bind_array_node);
 
     set_child(L, node);
     node->name = am_lookup_param_name(L, 2);
@@ -374,6 +374,40 @@ static int create_bind_array_node(lua_State *L) {
 
     return 1;
 }
+
+#define AM_BIND_MAT_NODE_IMPL(D)                                        \
+void am_bind_mat##D##_node::render(am_render_state *rstate) {           \
+    am_program_param_value *param = &am_param_name_map[name].value;     \
+    am_program_param_value old_val = *param;                            \
+    param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT##D;                  \
+    memcpy(&param->value.m##D[0], glm::value_ptr(m), D * D * sizeof(float)); \
+    render_children(rstate);                                            \
+    *param = old_val;                                                   \
+}                                                                       \
+static int create_bind_mat##D##_node(lua_State *L) {                    \
+    am_check_nargs(L, 3);                                               \
+    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2"); \
+    am_mat##D *m = am_get_userdata(L, am_mat##D, 3);                    \
+    am_bind_mat##D##_node *node = am_new_userdata(L, am_bind_mat##D##_node); \
+    set_child(L, node);                                                 \
+    node->name = am_lookup_param_name(L, 2);                            \
+    node->m = m->m;                                                     \
+    return 1;                                                           \
+}                                                                       \
+static void register_bind_mat##D##_node_mt(lua_State *L) {              \
+    lua_newtable(L);                                                    \
+    lua_pushvalue(L, -1);                                               \
+    lua_setfield(L, -2, "__index");                                     \
+                                                                        \
+    lua_pushstring(L, "bind_mat" #D);                                   \
+    lua_setfield(L, -2, "tname");                                       \
+                                                                        \
+    am_register_metatable(L, MT_am_bind_mat##D##_node, MT_am_scene_node);\
+}
+
+AM_BIND_MAT_NODE_IMPL(2)
+AM_BIND_MAT_NODE_IMPL(3)
+AM_BIND_MAT_NODE_IMPL(4)
 
 static int create_empty_node(lua_State *L) {
     int nargs = am_check_nargs(L, 0);
@@ -400,6 +434,12 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, remove_all_children, 0);
     lua_setfield(L, -2, "remove_all");
     
+    lua_pushcclosure(L, create_bind_mat2_node, 0);
+    lua_setfield(L, -2, "bind_mat2");
+    lua_pushcclosure(L, create_bind_mat3_node, 0);
+    lua_setfield(L, -2, "bind_mat3");
+    lua_pushcclosure(L, create_bind_mat4_node, 0);
+    lua_setfield(L, -2, "bind_mat4");
     lua_pushcclosure(L, create_bind_array_node, 0);
     lua_setfield(L, -2, "bind_array");
     lua_pushcclosure(L, create_program_node, 0);
@@ -459,5 +499,8 @@ void am_open_scene_module(lua_State *L) {
     register_scene_node_mt(L);
     register_program_node_mt(L);
     register_bind_array_node_mt(L);
+    register_bind_mat2_node_mt(L);
+    register_bind_mat3_node_mt(L);
+    register_bind_mat4_node_mt(L);
     register_draw_arrays_node_mt(L);
 }
