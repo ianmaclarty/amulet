@@ -284,10 +284,8 @@ static const int vec_component_offset[] = {
 };
 #define VEC_COMPONENT_OFFSET(c) (((c) >= 'a' && (c) <= 'z') ? vec_component_offset[c-'a'] : -1)
 
-#define VEC_INDEX_FUNC(D)                                                               \
-static int vec##D##_index(lua_State *L) {                                               \
-    am_vec##D *vv = (am_vec##D*)lua_touserdata(L, 1);                                   \
-    glm::vec##D *v = &vv->v;                                                            \
+#define AM_VEC_INDEX_FUNC(D)                                                            \
+int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                                   \
     if (lua_type(L, 2) == LUA_TSTRING) {                                                \
         size_t len;                                                                     \
         const char *str = lua_tolstring(L, 2, &len);                                    \
@@ -309,7 +307,7 @@ static int vec##D##_index(lua_State *L) {                                       
                     if (D > 2) {                                                        \
                         lua_pushnumber(L, (*v)[2]);                                     \
                     } else {                                                            \
-                        lua_pushnil(L);                                                 \
+                        return 0;                                                       \
                     }                                                                   \
                     break;                                                              \
                 case 'w':                                                               \
@@ -318,11 +316,11 @@ static int vec##D##_index(lua_State *L) {                                       
                     if (D > 3) {                                                        \
                         lua_pushnumber(L, (*v)[3]);                                     \
                     } else {                                                            \
-                        lua_pushnil(L);                                                 \
+                        return 0;                                                       \
                     }                                                                   \
                     break;                                                              \
                 default:                                                                \
-                    lua_pushnil(L);                                                     \
+                    return 0;                                                           \
             }                                                                           \
         } else {                                                                        \
             switch (len) {                                                              \
@@ -334,8 +332,7 @@ static int vec##D##_index(lua_State *L) {                                       
                             (*nv)[i] = (*v)[os];                                        \
                         } else {                                                        \
                             lua_pop(L, 1);                                              \
-                            lua_pushnil(L);                                             \
-                            break;                                                      \
+                            return 0;                                                   \
                         }                                                               \
                     }                                                                   \
                     break;                                                              \
@@ -348,8 +345,7 @@ static int vec##D##_index(lua_State *L) {                                       
                             (*nv)[i] = (*v)[os];                                        \
                         } else {                                                        \
                             lua_pop(L, 1);                                              \
-                            lua_pushnil(L);                                             \
-                            break;                                                      \
+                            return 0;                                                   \
                         }                                                               \
                     }                                                                   \
                     break;                                                              \
@@ -362,8 +358,7 @@ static int vec##D##_index(lua_State *L) {                                       
                             (*nv)[i] = (*v)[os];                                        \
                         } else {                                                        \
                             lua_pop(L, 1);                                              \
-                            lua_pushnil(L);                                             \
-                            break;                                                      \
+                            return 0;                                                   \
                         }                                                               \
                     }                                                                   \
                     break;                                                              \
@@ -375,12 +370,17 @@ static int vec##D##_index(lua_State *L) {                                       
         if (i > 0 && i <= D) {                                                          \
             lua_pushnumber(L, (*v)[i-1]);                                               \
         } else {                                                                        \
-            lua_pushnil(L);                                                             \
+            return 0;                                                                   \
         }                                                                               \
     }                                                                                   \
     return 1;                                                                           \
 }
 
+#define VEC_INDEX_FUNC(D)                                                               \
+static int vec##D##_index(lua_State *L) {                                               \
+    am_vec##D *vv = (am_vec##D*)lua_touserdata(L, 1);                                   \
+    return am_vec##D##_index(L, &vv->v);                                                \
+}
 
 #define VEC_NEWINDEX_FUNC(D)                                                            \
 static int vec##D##_newindex(lua_State *L) {                                            \
@@ -676,6 +676,7 @@ static int mat##D##_newindex(lua_State *L) {                                    
 //-------------------------- vec2 --------------------------------//
 
 VEC_NEW_FUNC(2)
+AM_VEC_INDEX_FUNC(2)
 VEC_INDEX_FUNC(2)
 VEC_NEWINDEX_FUNC(2)
 VEC_OP_FUNC(2, add, +)
@@ -687,6 +688,7 @@ VEC_UNM_FUNC(2)
 //-------------------------- vec3 --------------------------------//
 
 VEC_NEW_FUNC(3)
+AM_VEC_INDEX_FUNC(3)
 VEC_INDEX_FUNC(3)
 VEC_NEWINDEX_FUNC(3)
 VEC_OP_FUNC(3, add, +)
@@ -698,6 +700,7 @@ VEC_UNM_FUNC(3)
 //-------------------------- vec4 --------------------------------//
 
 VEC_NEW_FUNC(4)
+AM_VEC_INDEX_FUNC(4)
 VEC_INDEX_FUNC(4)
 VEC_NEWINDEX_FUNC(4)
 VEC_OP_FUNC(4, add, +)

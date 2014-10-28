@@ -12,10 +12,10 @@ local vshader = [[
 ]]
 
 local fshader = [[
+    uniform vec4 tint;
     void main() {
         vec2 uv = gl_FragCoord.xy;
-        float brightness = 1.0;
-        gl_FragColor = vec4( 1, uv.x / 640.0, uv.y / 480.0, 1.0 ) * brightness;
+        gl_FragColor = vec4( 1, uv.x / 640.0, uv.y / 480.0, 1.0 ) * tint;
     }
 ]]
 
@@ -33,12 +33,20 @@ yview[1] = -0.4
 yview[2] = 0.6
 yview[3] = -0.4
 
-local MVP = math.mat4(0.1)
-print(MVP[1][1])
-local node = am.draw_arrays()
+local MVP1 = math.mat4(0.5)
+MVP1:set(4, 4, 1)
+local MVP2 = math.mat4(1)
+MVP2:set(4, 1, -0.5)
+local base = am.draw_arrays()
     :bind_array("x", xview)
     :bind_array("y", yview)
-    :bind_mat4("MVP", MVP)
-    :program(prog)
+local node1 = base:bind_mat4("MVP", MVP1):bind_vec4("tint", math.vec4(1, 1.5, 0.5, 1))
+local node2 = base:bind_mat4("MVP", MVP2):bind_vec4("tint", math.vec4(0.1, 0.1, 1, 1))
 
-win.root = node
+local group = am.empty()
+group:append(node1)
+group:append(node2)
+
+local top = group:program(prog)
+
+win.root = top

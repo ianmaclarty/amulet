@@ -55,4 +55,15 @@ AM_BIND_MAT_NODE_DECL(2)
 AM_BIND_MAT_NODE_DECL(3)
 AM_BIND_MAT_NODE_DECL(4)
 
+#define AM_BIND_VEC_NODE_DECL(D)                                        \
+struct am_bind_vec##D##_node : am_scene_node {                          \
+    am_param_name_id name;                                              \
+    glm::vec##D v;                                                      \
+    virtual void render(am_render_state *rstate);                       \
+};
+
+AM_BIND_VEC_NODE_DECL(2)
+AM_BIND_VEC_NODE_DECL(3)
+AM_BIND_VEC_NODE_DECL(4)
+
 void am_open_scene_module(lua_State *L);

@@ -22,4 +22,8 @@ struct am_mat4 : am_userdata {
     glm::mat4 m;
 };
 
+int am_vec2_index(lua_State *L, glm::vec2 *v);
+int am_vec3_index(lua_State *L, glm::vec3 *v);
+int am_vec4_index(lua_State *L, glm::vec4 *v);
+
 void am_open_math_module(lua_State *L);
