@@ -293,7 +293,6 @@ static int remove_all_children(lua_State *L) {
     return 1;
 }
 
-/*
 static int node_index(lua_State *L) {
     lua_getmetatable(L, 1);
     lua_pushvalue(L, 2);
@@ -301,7 +300,6 @@ static int node_index(lua_State *L) {
     lua_remove(L, -2); // metatable
     return 1;
 }
-*/
 
 void am_program_node::render(am_render_state *rstate) {
     am_program* old_program = rstate->active_program;

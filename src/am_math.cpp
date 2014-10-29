@@ -382,10 +382,8 @@ static int vec##D##_index(lua_State *L) {                                       
     return am_vec##D##_index(L, &vv->v);                                                \
 }
 
-#define VEC_NEWINDEX_FUNC(D)                                                            \
-static int vec##D##_newindex(lua_State *L) {                                            \
-    am_vec##D *vv = (am_vec##D*)lua_touserdata(L, 1);                                   \
-    glm::vec##D *v = &vv->v;                                                            \
+#define AM_VEC_NEWINDEX_FUNC(D)                                                         \
+int am_vec##D##_newindex(lua_State *L, glm::vec##D *v) {                                \
     if (lua_type(L, 2) == LUA_TSTRING) {                                                \
         size_t len;                                                                     \
         const char *str = lua_tolstring(L, 2, &len);                                    \
@@ -478,7 +476,19 @@ static int vec##D##_newindex(lua_State *L) {                                    
     }                                                                                   \
     return 0;                                                                           \
     fail:                                                                               \
-    return luaL_error(L, "invalid vec" #D " index or value");                           \
+    return -1;                                                                          \
+}
+
+#define VEC_NEWINDEX_FUNC(D)                                                            \
+static int vec##D##_newindex(lua_State *L) {                                            \
+    am_vec##D *vv = (am_vec##D*)lua_touserdata(L, 1);                                   \
+    glm::vec##D *v = &vv->v;                                                            \
+    int r = am_vec##D##_newindex(L, v);                                                 \
+    if (r < 0) {                                                                        \
+        return luaL_error(L, "invalid vec" #D " index or value");                       \
+    } else {                                                                            \
+        return r;                                                                       \
+    }                                                                                   \
 }
 
 //-------------------------- mat* helper macros ------------------//
@@ -678,6 +688,7 @@ static int mat##D##_newindex(lua_State *L) {                                    
 VEC_NEW_FUNC(2)
 AM_VEC_INDEX_FUNC(2)
 VEC_INDEX_FUNC(2)
+AM_VEC_NEWINDEX_FUNC(2)
 VEC_NEWINDEX_FUNC(2)
 VEC_OP_FUNC(2, add, +)
 VEC_OP_FUNC(2, sub, -)
@@ -690,6 +701,7 @@ VEC_UNM_FUNC(2)
 VEC_NEW_FUNC(3)
 AM_VEC_INDEX_FUNC(3)
 VEC_INDEX_FUNC(3)
+AM_VEC_NEWINDEX_FUNC(3)
 VEC_NEWINDEX_FUNC(3)
 VEC_OP_FUNC(3, add, +)
 VEC_OP_FUNC(3, sub, -)
@@ -702,6 +714,7 @@ VEC_UNM_FUNC(3)
 VEC_NEW_FUNC(4)
 AM_VEC_INDEX_FUNC(4)
 VEC_INDEX_FUNC(4)
+AM_VEC_NEWINDEX_FUNC(4)
 VEC_NEWINDEX_FUNC(4)
 VEC_OP_FUNC(4, add, +)
 VEC_OP_FUNC(4, sub, -)
