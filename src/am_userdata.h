@@ -49,6 +49,8 @@ struct am_nonatomic_userdata : am_userdata {
 
     // Push referenced object onto the stack.
     void pushref(lua_State *L, int ref);
+
+    void pushuservalue(lua_State *L);
 };
 
 template<typename T>

@@ -217,7 +217,7 @@ static int create_action(lua_State *L) {
 
 static int search_uservalues(lua_State *L, am_scene_node *node) {
     if (node_marked(node)) return 0; // cycle
-    lua_getuservalue(L, 1); // push uservalue table of node
+    node->pushuservalue(L); // push uservalue table of node
     lua_pushvalue(L, 2); // push field
     lua_rawget(L, -2); // lookup field in uservalue table
     if (!lua_isnil(L, -1)) {
@@ -366,7 +366,8 @@ static int create_empty_node(lua_State *L) {
 }
 
 static void get_node_data(lua_State *L, void* obj) {
-    lua_getuservalue(L, 1);
+    am_scene_node *node = (am_scene_node*)obj;
+    node->pushuservalue(L);
     lua_pushvalue(L, 2);
     lua_rawget(L, -2);
     if (!lua_isnil(L, -1)) {
@@ -385,7 +386,8 @@ static void get_node_data(lua_State *L, void* obj) {
 }
 
 static void set_node_data(lua_State *L, void* obj) {
-    lua_getuservalue(L, 1);
+    am_scene_node *node = (am_scene_node*)obj;
+    node->pushuservalue(L);
     lua_pushvalue(L, 2);
     lua_pushvalue(L, 3);
     lua_rawset(L, -3);
@@ -394,12 +396,36 @@ static void set_node_data(lua_State *L, void* obj) {
 
 static am_property data_property = {get_node_data, set_node_data};
 
+static int child_pair_next(lua_State *L) {
+    am_check_nargs(L, 2);
+    am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
+    int i = luaL_checkinteger(L, 2);
+    if (i >= 0 && i < node->children.size) {
+        lua_pushinteger(L, i+1);
+        node->children.arr[i].child->push(L);
+        return 2;
+    } else {
+        lua_pushnil(L);
+        return 1;
+    }
+}
+
+static int child_pairs(lua_State *L) {
+    lua_pushcclosure(L, child_pair_next, 0);
+    lua_pushvalue(L, 1);
+    lua_pushinteger(L, 0);
+    return 3;
+}
+
 static void register_scene_node_mt(lua_State *L) {
     lua_newtable(L);
 
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
+
+    lua_pushcclosure(L, child_pairs, 0);
+    lua_setfield(L, -2, "children");
 
     lua_pushcclosure(L, append_child, 0);
     lua_setfield(L, -2, "append");

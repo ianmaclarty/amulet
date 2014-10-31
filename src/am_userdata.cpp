@@ -15,17 +15,7 @@ am_nonatomic_userdata::am_nonatomic_userdata() {
 
 int am_nonatomic_userdata::ref(lua_State *L, int idx) {
     idx = am_absindex(L, idx);
-    push(L);
-    if (num_refs == -1) {
-        // create uservalue table
-        lua_newtable(L);
-        lua_pushvalue(L, -1);
-        lua_setuservalue(L, -3);
-        num_refs = 0;
-    } else {
-        lua_getuservalue(L, -1);
-    }
-    // uservalue table now at top
+    pushuservalue(L);
     num_refs++;
     int ref;
     if (freelist == 0) {
@@ -39,37 +29,47 @@ int am_nonatomic_userdata::ref(lua_State *L, int idx) {
     }
     lua_pushvalue(L, idx);
     lua_rawseti(L, -2, ref);
-    lua_pop(L, 2); // userdata, uservalue table
+    lua_pop(L, 1); // uservalue table
     return ref;
 }
 
 void am_nonatomic_userdata::unref(lua_State *L, int ref) {
     assert(ref != LUA_NOREF);
-    push(L);
-    lua_getuservalue(L, -1);
+    pushuservalue(L);
     lua_pushinteger(L, freelist);
     lua_rawseti(L, -2, ref);
     freelist = ref;
-    lua_pop(L, 2); // userdata, uservalue table
+    lua_pop(L, 1); // uservalue table
 }
 
 void am_nonatomic_userdata::reref(lua_State *L, int ref, int idx) {
     assert(ref != LUA_NOREF);
     idx = am_absindex(L, idx);
-    push(L);
-    lua_getuservalue(L, -1);
+    pushuservalue(L);
     lua_pushvalue(L, idx);
     lua_rawseti(L, -2, ref);
-    lua_pop(L, 2); // userdata, uservalue table
+    lua_pop(L, 1); // uservalue table
 }
 
 void am_nonatomic_userdata::pushref(lua_State *L, int ref) {
     assert(ref != LUA_NOREF);
-    push(L);
-    lua_getuservalue(L, -1);
+    pushuservalue(L);
     lua_rawgeti(L, -1, ref);
-    lua_replace(L, -3); // replace userdata value with ref value
-    lua_pop(L, 1); // pop uservalue table
+    lua_replace(L, -2); // replace uservalue table with ref value
+}
+
+void am_nonatomic_userdata::pushuservalue(lua_State *L) {
+    push(L);
+    if (num_refs == -1) {
+        // create uservalue table
+        lua_newtable(L);
+        lua_pushvalue(L, -1);
+        lua_setuservalue(L, -3);
+        num_refs = 0;
+    } else {
+        lua_getuservalue(L, -1);
+    }
+    lua_remove(L, -2); // userdata
 }
 
 am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id) {
