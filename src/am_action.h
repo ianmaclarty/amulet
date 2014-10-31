@@ -17,5 +17,5 @@ struct am_action {
 
 void am_schedule_action(am_action *action);
 void am_deschedule_action(am_action *action);
-void am_execute_actions(lua_State *L);
+bool am_execute_actions(lua_State *L);
 void am_init_actions();

@@ -12,9 +12,7 @@ int main (int argc, char **argv) {
     if (L == NULL) return EXIT_FAILURE;
     int status = luaL_dofile(L, argv[1]);
     if (!report_status(L, status)) {
-        while (am_update_windows(L)) {
-            am_execute_actions(L);
-        }
+        while (am_update_windows(L) && am_execute_actions(L));
     }
     am_destroy_engine(L);
 

@@ -75,7 +75,7 @@ static inline bool action_is_scheduled(am_action *action) {
     return false;
 }
 
-void am_execute_actions(lua_State *L) {
+bool am_execute_actions(lua_State *L) {
     am_action *action = first;
     while (action != NULL) {
         assert(action_is_scheduled(action));
@@ -88,7 +88,8 @@ void am_execute_actions(lua_State *L) {
         node->pushref(L, action->action_ref);       // push action so not gc'd if descheduled when run
         node->pushref(L, action->func_ref);         // push action function
         node->push(L);
-        lua_call(L, 1, 1);                          // run action function (pops node, function)
+        bool success = am_call(L, 1, 1);            // run action function (pops node, function)
+        if (!success) return success;
         if (!lua_toboolean(L, -1)) {
             // action finished, remove it.
 
@@ -138,6 +139,7 @@ void am_execute_actions(lua_State *L) {
         lua_pop(L, 2);                              // pop return value, action
         action = next;
     }
+    return true;
 }
 
 void am_init_actions() {
