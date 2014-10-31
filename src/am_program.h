@@ -64,4 +64,50 @@ struct am_program : am_userdata {
     am_program_param *params;
 };
 
+struct am_program_node : am_scene_node {
+    am_program *program;
+    int program_ref;
+
+    virtual void render(am_render_state *rstate);
+};
+
+struct am_bind_array_node : am_scene_node {
+    am_param_name_id name;
+    am_buffer_view *arr;
+    int arr_ref;
+
+    virtual void render(am_render_state *rstate);
+};
+
+#define AM_BIND_MAT_NODE_DECL(D)                                        \
+struct am_bind_mat##D##_node : am_scene_node {                          \
+    am_param_name_id name;                                              \
+    glm::mat##D m;                                                      \
+    virtual void render(am_render_state *rstate);                       \
+};
+
+AM_BIND_MAT_NODE_DECL(2)
+AM_BIND_MAT_NODE_DECL(3)
+AM_BIND_MAT_NODE_DECL(4)
+
+#define AM_BIND_VEC_NODE_DECL(D)                                        \
+struct am_bind_vec##D##_node : am_scene_node {                          \
+    am_param_name_id name;                                              \
+    glm::vec##D v;                                                      \
+    virtual void render(am_render_state *rstate);                       \
+};
+
+AM_BIND_VEC_NODE_DECL(2)
+AM_BIND_VEC_NODE_DECL(3)
+AM_BIND_VEC_NODE_DECL(4)
+
+int am_create_program_node(lua_State *L);
+int am_create_bind_array_node(lua_State *L);
+int am_create_bind_vec2_node(lua_State *L);
+int am_create_bind_vec3_node(lua_State *L);
+int am_create_bind_vec4_node(lua_State *L);
+int am_create_bind_mat2_node(lua_State *L);
+int am_create_bind_mat3_node(lua_State *L);
+int am_create_bind_mat4_node(lua_State *L);
+
 void am_open_program_module(lua_State *L);

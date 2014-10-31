@@ -293,6 +293,7 @@ static int remove_all_children(lua_State *L) {
     return 1;
 }
 
+/*
 static int node_index(lua_State *L) {
     lua_getmetatable(L, 1);
     lua_pushvalue(L, 2);
@@ -300,15 +301,9 @@ static int node_index(lua_State *L) {
     lua_remove(L, -2); // metatable
     return 1;
 }
+*/
 
-void am_program_node::render(am_render_state *rstate) {
-    am_program* old_program = rstate->active_program;
-    rstate->active_program = program;
-    render_children(rstate);
-    rstate->active_program = old_program;
-}
-
-static void set_child(lua_State *L, am_scene_node *parent) {
+void am_set_scene_node_child(lua_State *L, am_scene_node *parent) {
     if (lua_isnil(L, 1)) {
         return;
     }
@@ -318,16 +313,6 @@ static void set_child(lua_State *L, am_scene_node *parent) {
     child_slot.ref = parent->ref(L, 1); // ref from parent to child
     parent->children.push_back(L, child_slot);
     update_liveness_after_insertion(L, child, parent);
-}
-
-static int create_program_node(lua_State *L) {
-    am_check_nargs(L, 2);
-    am_program *prog = am_get_userdata(L, am_program, 2);
-    am_program_node *node = am_new_userdata(L, am_program_node);
-    set_child(L, node);
-    node->program = prog;
-    node->program_ref = node->ref(L, 2);
-    return 1;
 }
 
 void am_draw_arrays_node::render(am_render_state *rstate) {
@@ -350,102 +335,11 @@ static int create_draw_arrays_node(lua_State *L) {
     return 1;
 }
 
-void am_bind_array_node::render(am_render_state *rstate) {
-    am_program_param_value *param = &am_param_name_map[name].value;
-    am_program_param_value old_val = *param;
-    param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY;
-    param->value.arr = arr;
-    render_children(rstate);
-    *param = old_val;
-}
-
-static int create_bind_array_node(lua_State *L) {
-    am_check_nargs(L, 3);
-    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
-    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 3);
-    am_bind_array_node *node = am_new_userdata(L, am_bind_array_node);
-
-    set_child(L, node);
-    node->name = am_lookup_param_name(L, 2);
-    node->arr = view;
-    node->arr_ref = node->ref(L, 3); // ref from node to view
-
-    return 1;
-}
-
-#define AM_BIND_MAT_NODE_IMPL(D)                                        \
-void am_bind_mat##D##_node::render(am_render_state *rstate) {           \
-    am_program_param_value *param = &am_param_name_map[name].value;     \
-    am_program_param_value old_val = *param;                            \
-    param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT##D;                  \
-    memcpy(&param->value.m##D[0], glm::value_ptr(m), D * D * sizeof(float)); \
-    render_children(rstate);                                            \
-    *param = old_val;                                                   \
-}                                                                       \
-static int create_bind_mat##D##_node(lua_State *L) {                    \
-    am_check_nargs(L, 3);                                               \
-    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2"); \
-    am_mat##D *m = am_get_userdata(L, am_mat##D, 3);                    \
-    am_bind_mat##D##_node *node = am_new_userdata(L, am_bind_mat##D##_node); \
-    set_child(L, node);                                                 \
-    node->name = am_lookup_param_name(L, 2);                            \
-    node->m = m->m;                                                     \
-    return 1;                                                           \
-}                                                                       \
-static void register_bind_mat##D##_node_mt(lua_State *L) {              \
-    lua_newtable(L);                                                    \
-    lua_pushvalue(L, -1);                                               \
-    lua_setfield(L, -2, "__index");                                     \
-                                                                        \
-    lua_pushstring(L, "bind_mat" #D);                                   \
-    lua_setfield(L, -2, "tname");                                       \
-                                                                        \
-    am_register_metatable(L, MT_am_bind_mat##D##_node, MT_am_scene_node);\
-}
-
-AM_BIND_MAT_NODE_IMPL(2)
-AM_BIND_MAT_NODE_IMPL(3)
-AM_BIND_MAT_NODE_IMPL(4)
-
-#define AM_BIND_VEC_NODE_IMPL(D)                                        \
-void am_bind_vec##D##_node::render(am_render_state *rstate) {           \
-    am_program_param_value *param = &am_param_name_map[name].value;     \
-    am_program_param_value old_val = *param;                            \
-    param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_##D##F;                  \
-    memcpy(&param->value.v##D[0], glm::value_ptr(v), D * sizeof(float)); \
-    render_children(rstate);                                            \
-    *param = old_val;                                                   \
-}                                                                       \
-static int create_bind_vec##D##_node(lua_State *L) {                    \
-    am_check_nargs(L, 3);                                               \
-    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2"); \
-    am_vec##D *v = am_get_userdata(L, am_vec##D, 3);                    \
-    am_bind_vec##D##_node *node = am_new_userdata(L, am_bind_vec##D##_node); \
-    set_child(L, node);                                                 \
-    node->name = am_lookup_param_name(L, 2);                            \
-    node->v = v->v;                                                     \
-    return 1;                                                           \
-}                                                                       \
-static void register_bind_vec##D##_node_mt(lua_State *L) {              \
-    lua_newtable(L);                                                    \
-    lua_pushvalue(L, -1);                                               \
-    lua_setfield(L, -2, "__index");                                     \
-                                                                        \
-    lua_pushstring(L, "bind_vec" #D);                                   \
-    lua_setfield(L, -2, "tname");                                       \
-                                                                        \
-    am_register_metatable(L, MT_am_bind_vec##D##_node, MT_am_scene_node);\
-}
-
-AM_BIND_VEC_NODE_IMPL(2)
-AM_BIND_VEC_NODE_IMPL(3)
-AM_BIND_VEC_NODE_IMPL(4)
-
 static int create_empty_node(lua_State *L) {
     int nargs = am_check_nargs(L, 0);
     am_scene_node *node = am_new_userdata(L, am_scene_node);
     if (nargs > 0) {
-        set_child(L, node);
+        am_set_scene_node_child(L, node);
     }
     return 1;
 }
@@ -466,21 +360,21 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, remove_all_children, 0);
     lua_setfield(L, -2, "remove_all");
     
-    lua_pushcclosure(L, create_bind_mat2_node, 0);
+    lua_pushcclosure(L, am_create_bind_mat2_node, 0);
     lua_setfield(L, -2, "bind_mat2");
-    lua_pushcclosure(L, create_bind_mat3_node, 0);
+    lua_pushcclosure(L, am_create_bind_mat3_node, 0);
     lua_setfield(L, -2, "bind_mat3");
-    lua_pushcclosure(L, create_bind_mat4_node, 0);
+    lua_pushcclosure(L, am_create_bind_mat4_node, 0);
     lua_setfield(L, -2, "bind_mat4");
-    lua_pushcclosure(L, create_bind_vec2_node, 0);
+    lua_pushcclosure(L, am_create_bind_vec2_node, 0);
     lua_setfield(L, -2, "bind_vec2");
-    lua_pushcclosure(L, create_bind_vec3_node, 0);
+    lua_pushcclosure(L, am_create_bind_vec3_node, 0);
     lua_setfield(L, -2, "bind_vec3");
-    lua_pushcclosure(L, create_bind_vec4_node, 0);
+    lua_pushcclosure(L, am_create_bind_vec4_node, 0);
     lua_setfield(L, -2, "bind_vec4");
-    lua_pushcclosure(L, create_bind_array_node, 0);
+    lua_pushcclosure(L, am_create_bind_array_node, 0);
     lua_setfield(L, -2, "bind_array");
-    lua_pushcclosure(L, create_program_node, 0);
+    lua_pushcclosure(L, am_create_program_node, 0);
     lua_setfield(L, -2, "program");
     lua_pushcclosure(L, create_empty_node, 0);
     lua_setfield(L, -2, "empty");
@@ -492,28 +386,6 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "tname");
 
     am_register_metatable(L, MT_am_scene_node, 0);
-}
-
-static void register_program_node_mt(lua_State *L) {
-    lua_newtable(L);
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -2, "__index");
-
-    lua_pushstring(L, "program_node");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_program_node, MT_am_scene_node);
-}
-
-static void register_bind_array_node_mt(lua_State *L) {
-    lua_newtable(L);
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -2, "__index");
-
-    lua_pushstring(L, "bind_array");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_bind_array_node, MT_am_scene_node);
 }
 
 static void register_draw_arrays_node_mt(lua_State *L) {
@@ -535,13 +407,5 @@ void am_open_scene_module(lua_State *L) {
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_scene_node_mt(L);
-    register_program_node_mt(L);
-    register_bind_array_node_mt(L);
-    register_bind_mat2_node_mt(L);
-    register_bind_mat3_node_mt(L);
-    register_bind_mat4_node_mt(L);
-    register_bind_vec2_node_mt(L);
-    register_bind_vec3_node_mt(L);
-    register_bind_vec4_node_mt(L);
     register_draw_arrays_node_mt(L);
 }

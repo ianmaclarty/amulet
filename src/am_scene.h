@@ -22,12 +22,7 @@ struct am_scene_node : am_nonatomic_userdata {
     void deactivate_root();
 };
 
-struct am_program_node : am_scene_node {
-    am_program *program;
-    int program_ref;
-
-    virtual void render(am_render_state *rstate);
-};
+void am_set_scene_node_child(lua_State *L, am_scene_node *parent);
 
 struct am_draw_arrays_node : am_scene_node {
     int first;
@@ -35,35 +30,5 @@ struct am_draw_arrays_node : am_scene_node {
 
     virtual void render(am_render_state *rstate);
 };
-
-struct am_bind_array_node : am_scene_node {
-    am_param_name_id name;
-    am_buffer_view *arr;
-    int arr_ref;
-
-    virtual void render(am_render_state *rstate);
-};
-
-#define AM_BIND_MAT_NODE_DECL(D)                                        \
-struct am_bind_mat##D##_node : am_scene_node {                          \
-    am_param_name_id name;                                              \
-    glm::mat##D m;                                                      \
-    virtual void render(am_render_state *rstate);                       \
-};
-
-AM_BIND_MAT_NODE_DECL(2)
-AM_BIND_MAT_NODE_DECL(3)
-AM_BIND_MAT_NODE_DECL(4)
-
-#define AM_BIND_VEC_NODE_DECL(D)                                        \
-struct am_bind_vec##D##_node : am_scene_node {                          \
-    am_param_name_id name;                                              \
-    glm::vec##D v;                                                      \
-    virtual void render(am_render_state *rstate);                       \
-};
-
-AM_BIND_VEC_NODE_DECL(2)
-AM_BIND_VEC_NODE_DECL(3)
-AM_BIND_VEC_NODE_DECL(4)
 
 void am_open_scene_module(lua_State *L);
