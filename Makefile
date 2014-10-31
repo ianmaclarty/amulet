@@ -64,7 +64,7 @@ default: $(AMULET)
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
 	ln -fs $@ `basename $@`
-	$(PRINT_BUILD_DONE_MSG)
+	@$(PRINT_BUILD_DONE_MSG)
 
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR)
 	$(CPP) $(AM_CFLAGS) -c $< -o $@

@@ -43,6 +43,9 @@ local base = am.draw_arrays()
 local node1 = base:bind_mat4("MVP", MVP1):bind_vec4("tint", math.vec4(1, 1.5, 0.5, 1))
 local node2 = base:bind_mat4("MVP", MVP2):bind_vec4("tint", math.vec4(0.1, 0.1, 1, 1))
 
+node2.data.hello = "there"
+print(node2.data.hello)
+
 local group = am.empty()
 group:append(node1)
 group:append(node2)

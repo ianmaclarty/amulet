@@ -215,6 +215,37 @@ static int create_action(lua_State *L) {
     return 1;
 }
 
+static int search_uservalues(lua_State *L, am_scene_node *node) {
+    if (node_marked(node)) return 0; // cycle
+    lua_getuservalue(L, 1); // push uservalue table of node
+    lua_pushvalue(L, 2); // push field
+    lua_rawget(L, -2); // lookup field in uservalue table
+    if (!lua_isnil(L, -1)) {
+        // found it
+        lua_remove(L, -2); // remove uservalue table
+        return 1;
+    }
+    lua_pop(L, 2); // pop nil, uservalue table
+    if (node->children.size != 1) return 0;
+    mark_node(node);
+    am_scene_node *child = node->children.arr[0].child;
+    child->push(L);
+    lua_replace(L, 1); // child is now at index 1
+    int r = search_uservalues(L, child);
+    unmark_node(node);
+    return r;
+}
+
+int am_scene_node_index(lua_State *L) {
+    am_default_index_func(L); // check metatable
+    if (!lua_isnil(L, -1)) {
+        return 1;
+    }
+    // check uservalue table for this and descendents
+    lua_pop(L, 1); // pop nil
+    return search_uservalues(L, (am_scene_node*)lua_touserdata(L, 1));
+}
+
 static int append_child(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *parent = am_get_userdata(L, am_scene_node, 1);
@@ -293,16 +324,6 @@ static int remove_all_children(lua_State *L) {
     return 1;
 }
 
-/*
-static int node_index(lua_State *L) {
-    lua_getmetatable(L, 1);
-    lua_pushvalue(L, 2);
-    lua_rawget(L, -2);
-    lua_remove(L, -2); // metatable
-    return 1;
-}
-*/
-
 void am_set_scene_node_child(lua_State *L, am_scene_node *parent) {
     if (lua_isnil(L, 1)) {
         return;
@@ -344,10 +365,41 @@ static int create_empty_node(lua_State *L) {
     return 1;
 }
 
+static void get_node_data(lua_State *L, void* obj) {
+    lua_getuservalue(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (!lua_isnil(L, -1)) {
+        lua_remove(L, -2); // uservalue table
+        return;
+    }
+    lua_pop(L, 1); // pop nil
+
+    // data field doesn't exist yet. create it.
+    lua_newtable(L); // data table
+    lua_pushvalue(L, 2); // "data" string
+    lua_pushvalue(L, -2); // data table
+    lua_rawset(L, -4);
+    lua_remove(L, -2); // uservalue table
+    return;
+}
+
+static void set_node_data(lua_State *L, void* obj) {
+    lua_getuservalue(L, 1);
+    lua_pushvalue(L, 2);
+    lua_pushvalue(L, 3);
+    lua_rawset(L, -3);
+    lua_pop(L, 1);
+}
+
+static am_property data_property = {get_node_data, set_node_data};
+
 static void register_scene_node_mt(lua_State *L) {
     lua_newtable(L);
-    lua_pushvalue(L, -1);
+
+    lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
 
     lua_pushcclosure(L, append_child, 0);
     lua_setfield(L, -2, "append");
@@ -381,6 +433,8 @@ static void register_scene_node_mt(lua_State *L) {
 
     lua_pushcclosure(L, create_action, 0);
     lua_setfield(L, -2, "action");
+
+    am_register_property(L, "data", &data_property);
 
     lua_pushstring(L, "node");
     lua_setfield(L, -2, "tname");

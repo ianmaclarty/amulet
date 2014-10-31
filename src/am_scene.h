@@ -31,4 +31,6 @@ struct am_draw_arrays_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
+int am_scene_node_index(lua_State *L);
+
 void am_open_scene_module(lua_State *L);

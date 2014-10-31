@@ -168,5 +168,7 @@ am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id);
 
 void am_register_property(lua_State *L, const char *field, const am_property *property);
 
+int am_default_index_func(lua_State *L);
+int am_default_newindex_func(lua_State *L);
 void am_set_default_index_func(lua_State *L);
 void am_set_default_newindex_func(lua_State *L);

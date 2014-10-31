@@ -353,7 +353,7 @@ int am_create_program_node(lua_State *L) {
 
 static void register_program_node_mt(lua_State *L) {
     lua_newtable(L);
-    lua_pushvalue(L, -1);
+    lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
 
     lua_pushstring(L, "program_node");
@@ -394,7 +394,7 @@ int am_create_bind_array_node(lua_State *L) {
 
 static void register_bind_array_node_mt(lua_State *L) {
     lua_newtable(L);
-    lua_pushvalue(L, -1);
+    lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
 
     lua_pushstring(L, "bind_array");
@@ -424,7 +424,7 @@ int am_create_bind_mat##D##_node(lua_State *L) {                        \
 }                                                                       \
 static void register_bind_mat##D##_node_mt(lua_State *L) {              \
     lua_newtable(L);                                                    \
-    lua_pushvalue(L, -1);                                               \
+    lua_pushcclosure(L, am_scene_node_index, 0);                        \
     lua_setfield(L, -2, "__index");                                     \
                                                                         \
     lua_pushstring(L, "bind_mat" #D);                                   \
@@ -458,7 +458,7 @@ int am_create_bind_vec##D##_node(lua_State *L) {                        \
 }                                                                       \
 static void register_bind_vec##D##_node_mt(lua_State *L) {              \
     lua_newtable(L);                                                    \
-    lua_pushvalue(L, -1);                                               \
+    lua_pushcclosure(L, am_scene_node_index, 0);                        \
     lua_setfield(L, -2, "__index");                                     \
                                                                         \
     lua_pushstring(L, "bind_vec" #D);                                   \
