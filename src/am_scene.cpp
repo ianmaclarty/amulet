@@ -91,7 +91,7 @@ static void mark_dead_reachable(am_scene_node *node) {
     assert(node_dead(node));
     for (int i = 0; i < node->children.size; i++) {
         am_scene_node *child = node->children.arr[i].child;
-        if (!check_liveness(child)) {
+        if (node_live(child) && !check_liveness(child)) {
             // check_liveness would have marked child dead
             mark_dead_reachable(child);
         }
@@ -119,6 +119,8 @@ static void remove_dead_parents(am_scene_node *node) {
 // Remove dead nodes from the parent list of this
 // node and any dead descendents.
 static void remove_dead_parents_reachable(am_scene_node *node) {
+    if (node_marked(node)) return; // cycle
+    mark_node(node);
     remove_dead_parents(node);
     if (node_dead(node)) {
         for (int i = 0; i < node->children.size; i++) {
@@ -126,6 +128,7 @@ static void remove_dead_parents_reachable(am_scene_node *node) {
             remove_dead_parents_reachable(child);
         }
     }
+    unmark_node(node);
 }
 
 static void update_liveness_after_removal(am_scene_node *child, am_scene_node *parent) {
