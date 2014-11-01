@@ -1,0 +1,22 @@
+A:bind_vec2
+B:bind_vec3
+C:bind_vec4
+node
+AA
+BB
+CC
+C(bind_vec4)
+  B(bind_vec3)
+    A(bind_vec2)
+      base(node)
+C(bind_vec4)
+  B(bind_vec3)
+    A(bind_vec2)
+      base(node)
+        D(node)
+C(bind_vec4)
+  B(bind_vec3)
+    A(bind_vec2)
+      base(node)
+        D(node)
+    E(node)

@@ -432,6 +432,25 @@ static int get_child(lua_State *L) {
     }
 }
 
+static int alias(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
+    if (!lua_isstring(L, 2)) {
+        return luaL_error(L, "expecting a string at position 2");
+    }
+    node->pushuservalue(L);
+    lua_pushvalue(L, 2);
+    if (nargs > 2) {
+        lua_pushvalue(L, 3);
+    } else {
+        lua_pushvalue(L, 1);
+    }
+    lua_rawset(L, -3);
+    lua_pop(L, 1); // uservalue
+    lua_pushvalue(L, 1);
+    return 1;
+}
+
 static void register_scene_node_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -443,6 +462,9 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "children");
     lua_pushcclosure(L, get_child, 0);
     lua_setfield(L, -2, "child");
+
+    lua_pushcclosure(L, alias, 0);
+    lua_setfield(L, -2, "alias");
 
     lua_pushcclosure(L, append_child, 0);
     lua_setfield(L, -2, "append");

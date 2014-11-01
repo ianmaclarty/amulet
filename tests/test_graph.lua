@@ -28,7 +28,8 @@ local cycles
 
 local root = am.empty()
 root.data = {name = "root"}
-local child1 = am.empty()
+local child1 = am.empty():bind_vec2("test", math.vec2(0))
+child1:remove_all()
 child1.data = {name = "child1"}
 local frame = 0
 local child2 = am.empty():action(function()
