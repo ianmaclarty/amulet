@@ -79,3 +79,43 @@ am_render_state::am_render_state() {
 
 am_render_state::~am_render_state() {
 }
+
+static void register_draw_arrays_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -2, "__index");
+
+    lua_pushstring(L, "draw_arrays");
+    lua_setfield(L, -2, "tname");
+
+    am_register_metatable(L, MT_am_draw_arrays_node, MT_am_scene_node);
+}
+
+void am_draw_arrays_node::render(am_render_state *rstate) {
+    rstate->draw_arrays(first, count);
+}
+
+static int create_draw_arrays_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 0);
+    int first = 0;
+    int count = INT_MAX;
+    if (nargs > 0) {
+        first = luaL_checkinteger(L, 1);
+    }
+    if (nargs > 1) {
+        count = luaL_checkinteger(L, 2);
+    }
+    am_draw_arrays_node *node = am_new_userdata(L, am_draw_arrays_node);
+    node->first = first;
+    node->count = count;
+    return 1;
+}
+
+void am_open_renderer_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"draw_arrays", create_draw_arrays_node},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+    register_draw_arrays_node_mt(L);
+}

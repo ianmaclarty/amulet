@@ -289,91 +289,94 @@ int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                           
     if (lua_type(L, 2) == LUA_TSTRING) {                                                \
         size_t len;                                                                     \
         const char *str = lua_tolstring(L, 2, &len);                                    \
-        if (len == 1) {                                                                 \
-            switch (str[0]) {                                                           \
-                case 'x':                                                               \
-                case 'r':                                                               \
-                case 's':                                                               \
-                    lua_pushnumber(L, (*v)[0]);                                         \
-                    break;                                                              \
-                case 'y':                                                               \
-                case 'g':                                                               \
-                case 't':                                                               \
-                    lua_pushnumber(L, (*v)[1]);                                         \
-                    break;                                                              \
-                case 'z':                                                               \
-                case 'b':                                                               \
-                case 'p':                                                               \
-                    if (D > 2) {                                                        \
-                        lua_pushnumber(L, (*v)[2]);                                     \
+        switch (len) {                                                                  \
+            case 1:                                                                     \
+                switch (str[0]) {                                                       \
+                    case 'x':                                                           \
+                    case 'r':                                                           \
+                    case 's':                                                           \
+                        lua_pushnumber(L, (*v)[0]);                                     \
+                        return 1;                                                       \
+                    case 'y':                                                           \
+                    case 'g':                                                           \
+                    case 't':                                                           \
+                        lua_pushnumber(L, (*v)[1]);                                     \
+                        return 1;                                                       \
+                    case 'z':                                                           \
+                    case 'b':                                                           \
+                    case 'p':                                                           \
+                        if (D > 2) {                                                    \
+                            lua_pushnumber(L, (*v)[2]);                                 \
+                            return 1;                                                   \
+                        } else {                                                        \
+                            return 0;                                                   \
+                        }                                                               \
+                    case 'w':                                                           \
+                    case 'a':                                                           \
+                    case 'q':                                                           \
+                        if (D > 3) {                                                    \
+                            lua_pushnumber(L, (*v)[3]);                                 \
+                            return 1;                                                   \
+                        } else {                                                        \
+                            return 0;                                                   \
+                        }                                                               \
+                    default:                                                            \
+                        return 0;                                                       \
+                }                                                                       \
+            case 2: {                                                                   \
+                glm::vec2 vv;                                                           \
+                for (int i = 0; i < 2; i++) {                                           \
+                    int os = VEC_COMPONENT_OFFSET(str[i]);                              \
+                    if (os >= 0 && os < D) {                                            \
+                        vv[i] = (*v)[os];                                               \
                     } else {                                                            \
                         return 0;                                                       \
                     }                                                                   \
-                    break;                                                              \
-                case 'w':                                                               \
-                case 'a':                                                               \
-                case 'q':                                                               \
-                    if (D > 3) {                                                        \
-                        lua_pushnumber(L, (*v)[3]);                                     \
+                }                                                                       \
+                am_vec2 *nv = am_new_userdata(L, am_vec2);                              \
+                nv->v = vv;                                                             \
+                return 1;                                                               \
+            }                                                                           \
+            case 3: {                                                                   \
+                glm::vec3 vv;                                                           \
+                for (int i = 0; i < 3; i++) {                                           \
+                    int os = VEC_COMPONENT_OFFSET(str[i]);                              \
+                    if (os >= 0 && os < D) {                                            \
+                        vv[i] = (*v)[os];                                               \
                     } else {                                                            \
                         return 0;                                                       \
                     }                                                                   \
-                    break;                                                              \
-                default:                                                                \
-                    return 0;                                                           \
+                }                                                                       \
+                am_vec3 *nv = am_new_userdata(L, am_vec3);                              \
+                nv->v = vv;                                                             \
+                return 1;                                                               \
             }                                                                           \
-        } else {                                                                        \
-            switch (len) {                                                              \
-                case 2: {                                                               \
-                    glm::vec2 *nv = &am_new_userdata(L, am_vec2)->v;                    \
-                    for (int i = 0; i < 2; i++) {                                       \
-                        int os = VEC_COMPONENT_OFFSET(str[i]);                          \
-                        if (os >= 0 && os < D) {                                        \
-                            (*nv)[i] = (*v)[os];                                        \
-                        } else {                                                        \
-                            lua_pop(L, 1);                                              \
-                            return 0;                                                   \
-                        }                                                               \
+            case 4: {                                                                   \
+                glm::vec4 vv;                                                           \
+                for (int i = 0; i < 4; i++) {                                           \
+                    int os = VEC_COMPONENT_OFFSET(str[i]);                              \
+                    if (os >= 0 && os < D) {                                            \
+                        vv[i] = (*v)[os];                                               \
+                    } else {                                                            \
+                        return 0;                                                       \
                     }                                                                   \
-                    break;                                                              \
                 }                                                                       \
-                case 3: {                                                               \
-                    glm::vec3 *nv = &am_new_userdata(L, am_vec3)->v;                    \
-                    for (int i = 0; i < 3; i++) {                                       \
-                        int os = VEC_COMPONENT_OFFSET(str[i]);                          \
-                        if (os >= 0 && os < D) {                                        \
-                            (*nv)[i] = (*v)[os];                                        \
-                        } else {                                                        \
-                            lua_pop(L, 1);                                              \
-                            return 0;                                                   \
-                        }                                                               \
-                    }                                                                   \
-                    break;                                                              \
-                }                                                                       \
-                case 4: {                                                               \
-                    glm::vec4 *nv = &am_new_userdata(L, am_vec4)->v;                    \
-                    for (int i = 0; i < 4; i++) {                                       \
-                        int os = VEC_COMPONENT_OFFSET(str[i]);                          \
-                        if (os >= 0 && os < D) {                                        \
-                            (*nv)[i] = (*v)[os];                                        \
-                        } else {                                                        \
-                            lua_pop(L, 1);                                              \
-                            return 0;                                                   \
-                        }                                                               \
-                    }                                                                   \
-                    break;                                                              \
-                }                                                                       \
+                am_vec4 *nv = am_new_userdata(L, am_vec4);                              \
+                nv->v = vv;                                                             \
+                return 1;                                                               \
             }                                                                           \
+            default:                                                                    \
+                return 0;                                                               \
         }                                                                               \
     } else {                                                                            \
         int i = lua_tointeger(L, 2);                                                    \
         if (i > 0 && i <= D) {                                                          \
             lua_pushnumber(L, (*v)[i-1]);                                               \
+            return 1;                                                                   \
         } else {                                                                        \
             return 0;                                                                   \
         }                                                                               \
     }                                                                                   \
-    return 1;                                                                           \
 }
 
 #define VEC_INDEX_FUNC(D)                                                               \

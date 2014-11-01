@@ -29,6 +29,10 @@ C(bind_vec4)
     A(bind_vec2)
       base(node)
         D(node)
+
+2
+3
+4
 ---
 C(bind_vec3)
   B(bind_vec2)
@@ -54,5 +58,8 @@ C(bind_vec3)
 2
 3
 1
+2
+3
+
 2
 3

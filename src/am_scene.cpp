@@ -30,6 +30,10 @@ void am_scene_node::render_children(am_render_state *rstate) {
     recursion_limit++;
 }
 
+int am_scene_node::specialized_index(lua_State *L) {
+    return 0;
+}
+
 void am_scene_node::render(am_render_state *rstate) {
     render_children(rstate);
 }
@@ -240,11 +244,10 @@ static int search_uservalues(lua_State *L, am_scene_node *node) {
 }
 
 int am_scene_node_index(lua_State *L) {
+    am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
+    if (node->specialized_index(L)) return 1;
     am_default_index_func(L); // check metatable
-    if (!lua_isnil(L, -1)) {
-        return 1;
-    }
-    // check uservalue table for this and descendents
+    if (!lua_isnil(L, -1)) return 1;
     lua_pop(L, 1); // pop nil
     return search_uservalues(L, (am_scene_node*)lua_touserdata(L, 1));
 }
@@ -339,26 +342,6 @@ void am_set_scene_node_child(lua_State *L, am_scene_node *parent) {
     update_liveness_after_insertion(L, child, parent);
 }
 
-void am_draw_arrays_node::render(am_render_state *rstate) {
-    rstate->draw_arrays(first, count);
-}
-
-static int create_draw_arrays_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 0);
-    int first = 0;
-    int count = INT_MAX;
-    if (nargs > 0) {
-        first = luaL_checkinteger(L, 1);
-    }
-    if (nargs > 1) {
-        count = luaL_checkinteger(L, 2);
-    }
-    am_draw_arrays_node *node = am_new_userdata(L, am_draw_arrays_node);
-    node->first = first;
-    node->count = count;
-    return 1;
-}
-
 static int create_empty_node(lua_State *L) {
     int nargs = am_check_nargs(L, 0);
     am_scene_node *node = am_new_userdata(L, am_scene_node);
@@ -401,6 +384,19 @@ static int get_child(lua_State *L) {
     }
 }
 
+static inline void check_alias(lua_State *L) {
+    am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
+    if (node->specialized_index(L)) goto error;
+    am_default_index_func(L);
+    if (!lua_isnil(L, -1)) goto error;
+    lua_pop(L, 1);
+    return;
+    error:
+    luaL_error(L,
+        "alias '%s' is already used for something else",
+        lua_tostring(L, 2));
+}
+
 static int alias(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
@@ -408,14 +404,21 @@ static int alias(lua_State *L) {
     int userval_idx = am_absindex(L, -1);
     if (lua_istable(L, 2)) {
         // create multiple aliases - one for each key/value pair
+        lua_pushvalue(L, 2); // push table, as we need position 2 for check_alias
+        int tbl_idx = am_absindex(L, -1);
         lua_pushnil(L);
-        while (lua_next(L, 2) != 0) {
+        while (lua_next(L, tbl_idx) != 0) {
+            lua_pushvalue(L, -2); // key
+            lua_replace(L, 2); // check_alias expects key in position 2
+            check_alias(L);
             lua_pushvalue(L, -2); // key
             lua_pushvalue(L, -2); // value
             lua_rawset(L, userval_idx); // uservalue[key] = value
             lua_pop(L, 1); // value
         }
+        lua_pop(L, 1); // table
     } else if (lua_isstring(L, 2)) {
+        check_alias(L);
         lua_pushvalue(L, 2);
         if (nargs > 2) {
             lua_pushvalue(L, 3);
@@ -485,24 +488,11 @@ static void register_scene_node_mt(lua_State *L) {
     am_register_metatable(L, MT_am_scene_node, 0);
 }
 
-static void register_draw_arrays_node_mt(lua_State *L) {
-    lua_newtable(L);
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -2, "__index");
-
-    lua_pushstring(L, "draw_arrays");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_draw_arrays_node, MT_am_scene_node);
-}
-
 void am_open_scene_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"draw_arrays", create_draw_arrays_node},
         {"empty", create_empty_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_scene_node_mt(L);
-    register_draw_arrays_node_mt(L);
 }

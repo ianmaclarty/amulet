@@ -17,6 +17,7 @@ lua_State *am_init_engine(bool worker) {
         am_open_window_module(L);
         am_open_scene_module(L);
         am_open_program_module(L);
+        am_open_renderer_module(L);
     }
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
