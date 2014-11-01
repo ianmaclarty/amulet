@@ -9,6 +9,7 @@ function print_graph2(node, visited, indent)
         print(indent..node.data.name)
         visited[node] = true
         for i, child in node:children() do
+            assert(child == node:child(i))
             print_graph2(child, visited, indent.."  ")
         end
         visited[node] = nil

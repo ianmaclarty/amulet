@@ -420,6 +420,18 @@ static int child_pairs(lua_State *L) {
     return 3;
 }
 
+static int get_child(lua_State *L) {
+    am_check_nargs(L, 2);
+    am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
+    int i = luaL_checkinteger(L, 2);
+    if (i >= 1 && i <= node->children.size) {
+        node->children.arr[i-1].child->push(L);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 static void register_scene_node_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -429,6 +441,8 @@ static void register_scene_node_mt(lua_State *L) {
 
     lua_pushcclosure(L, child_pairs, 0);
     lua_setfield(L, -2, "children");
+    lua_pushcclosure(L, get_child, 0);
+    lua_setfield(L, -2, "child");
 
     lua_pushcclosure(L, append_child, 0);
     lua_setfield(L, -2, "append");
