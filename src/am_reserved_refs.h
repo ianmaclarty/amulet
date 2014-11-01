@@ -17,6 +17,7 @@ typedef enum {
     MT_am_bind_vec2_node,
     MT_am_bind_vec3_node,
     MT_am_bind_vec4_node,
+    MT_am_translate_node,
     MT_am_draw_arrays_node,
     MT_am_buffer,
     MT_am_buffer_view,

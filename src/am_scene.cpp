@@ -479,6 +479,9 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, create_empty_node, 0);
     lua_setfield(L, -2, "empty");
 
+    lua_pushcclosure(L, am_create_translate_node, 0);
+    lua_setfield(L, -2, "translate");
+
     lua_pushcclosure(L, create_action, 0);
     lua_setfield(L, -2, "action");
 

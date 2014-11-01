@@ -40,13 +40,22 @@ MVP2:set(4, 1, -0.5)
 local base = am.draw_arrays()
     :bind_array("x", xview)
     :bind_array("y", yview)
-local node1 = base:bind_mat4("MVP", MVP1):bind_vec4("tint", math.vec4(1, 1.5, 0.5, 1))
-local node2 = base:bind_mat4("MVP", MVP2):bind_vec4("tint", math.vec4(0.1, 0.1, 1, 1))
+local node1 = base:translate("MVP", math.vec3(1, 0, 0)):alias("position")
+    :bind_mat4("MVP", MVP1):bind_vec4("tint", math.vec4(1, 1.5, 0.5, 1))
+local node2 = base
+    :bind_mat4("MVP", MVP2):bind_vec4("tint", math.vec4(0.1, 0.1, 1, 1))
 
 local group = am.empty()
 group:append(node1)
 group:append(node2)
 
 local top = group:program(prog)
+
+--[[
+top:action(function()
+    node1.position.x = node1.position.x + 0.1
+    return 0
+end)
+]]
 
 win.root = top
