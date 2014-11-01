@@ -21,7 +21,7 @@ function print_graph(root)
 end
 
 local node = am.empty():alias("base"):alias("name", "base")
-    :bind_vec2("A", math.vec2(0)):alias("nodeA"):alias("name", "A"):alias("a", "AA")
+    :bind_vec2("A", math.vec2(0)):alias("nodeA"):alias{name = "A", a = "AA"}
     :bind_vec3("B", math.vec3(0)):alias("nodeB"):alias("name", "B"):alias("b", "BB")
     :bind_vec4("C", math.vec4(0)):alias("nodeC"):alias("name", "C"):alias("c", "CC")
 

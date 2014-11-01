@@ -4,9 +4,9 @@ local test = 1
 local
 function print_graph2(node, visited, indent)
     if visited[node] then
-        print(indent..node.data.name.." [cycle]")
+        print(indent..node.name.." [cycle]")
     else
-        print(indent..node.data.name)
+        print(indent..node.name)
         visited[node] = true
         for i, child in node:children() do
             assert(child == node:child(i))
@@ -27,10 +27,10 @@ local win = am.create_window("test", 100, 100)
 local cycles
 
 local root = am.empty()
-root.data = {name = "root"}
+root:alias("name", "root")
 local child1 = am.empty():bind_vec2("test", math.vec2(0))
 child1:remove_all()
-child1.data = {name = "child1"}
+child1:alias("name", "child1")
 local frame = 0
 local child2 = am.empty():action(function()
     frame = frame + 1
@@ -44,9 +44,9 @@ local child2 = am.empty():action(function()
     end
     return 0
 end)
-child2.data.name = "child2"
+child2:alias("name", "child2")
 local child3 = am.empty()
-child3.data.name = "child3"
+child3:alias{name = "child3"}
 
 local
 function do_test()

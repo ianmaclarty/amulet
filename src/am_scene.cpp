@@ -368,37 +368,6 @@ static int create_empty_node(lua_State *L) {
     return 1;
 }
 
-static void get_node_data(lua_State *L, void* obj) {
-    am_scene_node *node = (am_scene_node*)obj;
-    node->pushuservalue(L);
-    lua_pushvalue(L, 2);
-    lua_rawget(L, -2);
-    if (!lua_isnil(L, -1)) {
-        lua_remove(L, -2); // uservalue table
-        return;
-    }
-    lua_pop(L, 1); // pop nil
-
-    // data field doesn't exist yet. create it.
-    lua_newtable(L); // data table
-    lua_pushvalue(L, 2); // "data" string
-    lua_pushvalue(L, -2); // data table
-    lua_rawset(L, -4);
-    lua_remove(L, -2); // uservalue table
-    return;
-}
-
-static void set_node_data(lua_State *L, void* obj) {
-    am_scene_node *node = (am_scene_node*)obj;
-    node->pushuservalue(L);
-    lua_pushvalue(L, 2);
-    lua_pushvalue(L, 3);
-    lua_rawset(L, -3);
-    lua_pop(L, 1);
-}
-
-static am_property data_property = {get_node_data, set_node_data};
-
 static int child_pair_next(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
@@ -435,17 +404,28 @@ static int get_child(lua_State *L) {
 static int alias(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    if (!lua_isstring(L, 2)) {
-        return luaL_error(L, "expecting a string at position 2");
-    }
     node->pushuservalue(L);
-    lua_pushvalue(L, 2);
-    if (nargs > 2) {
-        lua_pushvalue(L, 3);
+    int userval_idx = am_absindex(L, -1);
+    if (lua_istable(L, 2)) {
+        // create multiple aliases - one for each key/value pair
+        lua_pushnil(L);
+        while (lua_next(L, 2) != 0) {
+            lua_pushvalue(L, -2); // key
+            lua_pushvalue(L, -2); // value
+            lua_rawset(L, userval_idx); // uservalue[key] = value
+            lua_pop(L, 1); // value
+        }
+    } else if (lua_isstring(L, 2)) {
+        lua_pushvalue(L, 2);
+        if (nargs > 2) {
+            lua_pushvalue(L, 3);
+        } else {
+            lua_pushvalue(L, 1);
+        }
+        lua_rawset(L, userval_idx);
     } else {
-        lua_pushvalue(L, 1);
+        return luaL_error(L, "expecting a string or table at position 2");
     }
-    lua_rawset(L, -3);
     lua_pop(L, 1); // uservalue
     lua_pushvalue(L, 1);
     return 1;
@@ -498,8 +478,6 @@ static void register_scene_node_mt(lua_State *L) {
 
     lua_pushcclosure(L, create_action, 0);
     lua_setfield(L, -2, "action");
-
-    am_register_property(L, "data", &data_property);
 
     lua_pushstring(L, "node");
     lua_setfield(L, -2, "tname");
