@@ -43,7 +43,7 @@ static int create_window(lua_State *L) {
     win->root_ref = LUA_NOREF;
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
-    lua_pushvalue(L, -1);
+    lua_pushvalue(L, -2);
     win->window_ref = luaL_ref(L, -2);
     lua_pop(L, 1); // window table
 

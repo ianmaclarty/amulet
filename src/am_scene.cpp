@@ -34,6 +34,10 @@ int am_scene_node::specialized_index(lua_State *L) {
     return 0;
 }
 
+int am_scene_node::specialized_newindex(lua_State *L) {
+    return -1;
+}
+
 void am_scene_node::render(am_render_state *rstate) {
     render_children(rstate);
 }
@@ -252,6 +256,12 @@ int am_scene_node_index(lua_State *L) {
     return search_uservalues(L, (am_scene_node*)lua_touserdata(L, 1));
 }
 
+int am_scene_node_newindex(lua_State *L) {
+    am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
+    if (node->specialized_newindex(L) != -1) return 0;
+    return am_default_newindex_func(L);
+}
+
 static int append_child(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *parent = am_get_userdata(L, am_scene_node, 1);
@@ -439,7 +449,8 @@ static void register_scene_node_mt(lua_State *L) {
 
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
-    am_set_default_newindex_func(L);
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
     lua_pushcclosure(L, child_pairs, 0);
     lua_setfield(L, -2, "children");

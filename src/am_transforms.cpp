@@ -37,6 +37,10 @@ int am_translate_node::specialized_index(lua_State *L) {
     return am_vec3_index(L, &v);
 }
 
+int am_translate_node::specialized_newindex(lua_State *L) {
+    return am_vec3_newindex(L, &v);
+}
+
 int am_create_translate_node(lua_State *L) {
     am_check_nargs(L, 3);
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");

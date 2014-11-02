@@ -33,29 +33,35 @@ yview[1] = -0.4
 yview[2] = 0.6
 yview[3] = -0.4
 
-local MVP1 = math.mat4(0.5)
+local MVP1 = math.mat4(0.1)
 MVP1:set(4, 4, 1)
-local MVP2 = math.mat4(1)
-MVP2:set(4, 1, -0.5)
+local MVP2 = math.mat4(0.15)
+MVP2:set(4, 4, 1)
 local base = am.draw_arrays()
     :bind_array("x", xview)
     :bind_array("y", yview)
 local node1 = base:translate("MVP", math.vec3(1, 0, 0)):alias("position")
-    :bind_mat4("MVP", MVP1):bind_vec4("tint", math.vec4(1, 1.5, 0.5, 1))
-local node2 = base
-    :bind_mat4("MVP", MVP2):bind_vec4("tint", math.vec4(0.1, 0.1, 1, 1))
+    :bind_mat4("MVP", MVP1):bind_vec4("tint", math.vec4(1, 1.5, 0.5, 1)):alias("tint")
+local node2 = base:translate("MVP", math.vec3(1, 0, 0)):alias("position")
+    :bind_mat4("MVP", MVP2):bind_vec4("tint", math.vec4(0.1, 0.1, 1, 1)):alias("tint")
 
 local group = am.empty()
-group:append(node1)
 group:append(node2)
+group:append(node1)
 
 local top = group:program(prog)
 
---[[
 top:action(function()
-    node1.position.x = node1.position.x + 0.1
+    node1.position.xy = 
+        math.vec2(math.random() * 1 - 0.5, math.random() * 1 - 0.5) * 20
+    node1.tint.rgb = math.vec3(
+        math.random(), math.random(), math.random())
+    node2.position.xy = 
+        math.vec2(math.random() * 1 - 0.5, math.random() * 1 - 0.5) * 20
+    node2.tint.rgb = math.vec3(
+        math.random(), math.random(), math.random())
+    --print("hello "..node1.position.x)
     return 0
 end)
-]]
 
 win.root = top

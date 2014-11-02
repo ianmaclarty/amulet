@@ -449,6 +449,9 @@ void am_bind_vec##D##_node::render(am_render_state *rstate) {           \
 int am_bind_vec##D##_node::specialized_index(lua_State *L) {            \
     return am_vec##D##_index(L, &v);                                    \
 }                                                                       \
+int am_bind_vec##D##_node::specialized_newindex(lua_State *L) {         \
+    return am_vec##D##_newindex(L, &v);                                 \
+}                                                                       \
 int am_create_bind_vec##D##_node(lua_State *L) {                        \
     am_check_nargs(L, 3);                                               \
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2"); \
