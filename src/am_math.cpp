@@ -202,44 +202,44 @@ static int vec##D##_new(lua_State *L) {                                         
         int i = 0;                                                                      \
         int j;                                                                          \
         for (j = 1; j <= n; j++) {                                                      \
-            if (lua_isnumber(L, j)) {                                                   \
-                (*v)[i++] = lua_tonumber(L, j);                                         \
-                if (i >= D) goto endfor;                                                \
-            } else {                                                                    \
-                switch (am_get_type(L, j)) {                                            \
-                    case MT_am_vec2: {                                                  \
-                        am_vec2 *va = (am_vec2*)lua_touserdata(L, j);                   \
-                        (*v)[i++] = va->v.x;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        (*v)[i++] = va->v.y;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        break;                                                          \
-                    }                                                                   \
-                    case MT_am_vec3: {                                                  \
-                        am_vec3 *va = (am_vec3*)lua_touserdata(L, j);                   \
-                        (*v)[i++] = va->v.x;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        (*v)[i++] = va->v.y;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        (*v)[i++] = va->v.z;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        break;                                                          \
-                    }                                                                   \
-                    case MT_am_vec4: {                                                  \
-                        am_vec4 *va = (am_vec4*)lua_touserdata(L, j);                   \
-                        (*v)[i++] = va->v.x;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        (*v)[i++] = va->v.y;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        (*v)[i++] = va->v.z;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        (*v)[i++] = va->v.w;                                            \
-                        if (i >= D) goto endfor;                                        \
-                        break;                                                          \
-                    }                                                                   \
-                    default: return luaL_error(L,                                       \
-                        "unexpected type at position %d in vec" #D " argument list (%d)", j, am_get_type(L, i)); \
+            switch (am_get_type(L, j)) {                                                \
+                case LUA_TNUMBER: {                                                     \
+                    (*v)[i++] = lua_tonumber(L, j);                                     \
+                    if (i >= D) goto endfor;                                            \
+                    break;                                                              \
                 }                                                                       \
+                case MT_am_vec2: {                                                      \
+                    am_vec2 *va = (am_vec2*)lua_touserdata(L, j);                       \
+                    (*v)[i++] = va->v.x;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    (*v)[i++] = va->v.y;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    break;                                                              \
+                }                                                                       \
+                case MT_am_vec3: {                                                      \
+                    am_vec3 *va = (am_vec3*)lua_touserdata(L, j);                       \
+                    (*v)[i++] = va->v.x;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    (*v)[i++] = va->v.y;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    (*v)[i++] = va->v.z;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    break;                                                              \
+                }                                                                       \
+                case MT_am_vec4: {                                                      \
+                    am_vec4 *va = (am_vec4*)lua_touserdata(L, j);                       \
+                    (*v)[i++] = va->v.x;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    (*v)[i++] = va->v.y;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    (*v)[i++] = va->v.z;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    (*v)[i++] = va->v.w;                                                \
+                    if (i >= D) goto endfor;                                            \
+                    break;                                                              \
+                }                                                                       \
+                default: return luaL_error(L,                                           \
+                    "unexpected type at position %d in vec" #D " argument list (%d)", j, am_get_type(L, i)); \
             }                                                                           \
         }                                                                               \
         endfor:                                                                         \
@@ -258,7 +258,7 @@ static int vec##D##_new(lua_State *L) {                                         
 void am_read_vec##D(lua_State *L, glm::vec##D *v, int start, int end) {                 \
     int j = 0;                                                                          \
     int k;                                                                              \
-    for (int i = start; i <= end && j < D; i++) {                                        \
+    for (int i = start; i <= end && j < D; i++) {                                       \
         switch (am_get_type(L, i)) {                                                    \
             case LUA_TNUMBER:                                                           \
                 (*v)[j++] = lua_tonumber(L, i);                                         \
