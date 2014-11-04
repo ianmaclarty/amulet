@@ -254,6 +254,45 @@ static int vec##D##_new(lua_State *L) {                                         
     return 1;                                                                           \
 }
 
+#define AM_READ_VEC_FUNC(D)                                                             \
+void am_read_vec##D(lua_State *L, glm::vec##D *v, int start, int end) {                 \
+    int j = 0;                                                                          \
+    int k;                                                                              \
+    for (int i = start; i <= end && j < D; i++) {                                        \
+        switch (am_get_type(L, i)) {                                                    \
+            case LUA_TNUMBER:                                                           \
+                (*v)[j++] = lua_tonumber(L, i);                                         \
+                break;                                                                  \
+            case MT_am_vec2: {                                                          \
+                am_vec2 *v2 = (am_vec2*)lua_touserdata(L, i);                           \
+                k = 0;                                                                  \
+                while (j < D && k < 2) {                                                \
+                    (*v)[j++] = v2->v[k++];                                             \
+                }                                                                       \
+                break;                                                                  \
+            }                                                                           \
+            case MT_am_vec3: {                                                          \
+                am_vec3 *v3 = (am_vec3*)lua_touserdata(L, i);                           \
+                k = 0;                                                                  \
+                while (j < D && k < 3) {                                                \
+                    (*v)[j++] = v3->v[k++];                                             \
+                }                                                                       \
+                break;                                                                  \
+            }                                                                           \
+            case MT_am_vec4: {                                                          \
+                am_vec4 *v4 = (am_vec4*)lua_touserdata(L, i);                           \
+                k = 0;                                                                  \
+                while (j < D && k < 4) {                                                \
+                    (*v)[j++] = v4->v[k++];                                             \
+                }                                                                       \
+                break;                                                                  \
+            }                                                                           \
+            default:                                                                    \
+                luaL_error(L, "unexpected value of type %s at position %d", lua_typename(L, lua_type(L, i)), i); \
+        }                                                                               \
+    }                                                                                   \
+}
+
 static const int vec_component_offset[] = {
      3, // a
      2, // b
@@ -426,6 +465,18 @@ int am_vec##D##_newindex(lua_State *L, glm::vec##D *v) {                        
         } else {                                                                        \
             if (len == 0 || len > D) goto fail;                                         \
             switch (am_get_type(L, 3)) {                                                \
+                case LUA_TNUMBER: {                                                     \
+                    float num = lua_tonumber(L, 3);                                     \
+                    for (unsigned int i = 0; i < len; i++) {                            \
+                        int os = VEC_COMPONENT_OFFSET(str[i]);                          \
+                        if (os >= 0 && os < D) {                                        \
+                            (*v)[os] = num;                                             \
+                        } else {                                                        \
+                            goto fail;                                                  \
+                        }                                                               \
+                    }                                                                   \
+                    break;                                                              \
+                }                                                                       \
                 case MT_am_vec2: {                                                      \
                     if (len != 2) goto fail;                                            \
                     glm::vec2 *nv = &((am_vec2*)lua_touserdata(L, 3))->v;               \
@@ -459,18 +510,6 @@ int am_vec##D##_newindex(lua_State *L, glm::vec##D *v) {                        
                         int os = VEC_COMPONENT_OFFSET(str[i]);                          \
                         if (os >= 0 && os < D) {                                        \
                             (*v)[os] = (*nv)[i];                                        \
-                        } else {                                                        \
-                            goto fail;                                                  \
-                        }                                                               \
-                    }                                                                   \
-                    break;                                                              \
-                }                                                                       \
-                case LUA_TNUMBER: {                                                     \
-                    float num = lua_tonumber(L, 3);                                     \
-                    for (unsigned int i = 0; i < len; i++) {                            \
-                        int os = VEC_COMPONENT_OFFSET(str[i]);                          \
-                        if (os >= 0 && os < D) {                                        \
-                            (*v)[os] = num;                                             \
                         } else {                                                        \
                             goto fail;                                                  \
                         }                                                               \
@@ -710,6 +749,7 @@ VEC_OP_FUNC(2, sub, -)
 VEC_OP_FUNC(2, div, /)
 VEC_MUL_FUNC(2)
 VEC_UNM_FUNC(2)
+AM_READ_VEC_FUNC(2)
 
 //-------------------------- vec3 --------------------------------//
 
@@ -723,6 +763,7 @@ VEC_OP_FUNC(3, sub, -)
 VEC_OP_FUNC(3, div, /)
 VEC_MUL_FUNC(3)
 VEC_UNM_FUNC(3)
+AM_READ_VEC_FUNC(3)
 
 //-------------------------- vec4 --------------------------------//
 
@@ -736,6 +777,7 @@ VEC_OP_FUNC(4, sub, -)
 VEC_OP_FUNC(4, div, /)
 VEC_MUL_FUNC(4)
 VEC_UNM_FUNC(4)
+AM_READ_VEC_FUNC(4)
 
 //-------------------------- mat2 --------------------------------//
 

@@ -453,13 +453,12 @@ int am_bind_vec##D##_node::specialized_newindex(lua_State *L) {         \
     return am_vec##D##_newindex(L, &v);                                 \
 }                                                                       \
 int am_create_bind_vec##D##_node(lua_State *L) {                        \
-    am_check_nargs(L, 3);                                               \
+    int nargs = am_check_nargs(L, 3);                                   \
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2"); \
-    am_vec##D *v = am_get_userdata(L, am_vec##D, 3);                    \
     am_bind_vec##D##_node *node = am_new_userdata(L, am_bind_vec##D##_node); \
-    am_set_scene_node_child(L, node);                                                 \
+    am_set_scene_node_child(L, node);                                   \
     node->name = am_lookup_param_name(L, 2);                            \
-    node->v = v->v;                                                     \
+    am_read_vec##D(L, &node->v, 3, nargs);                              \
     return 1;                                                           \
 }                                                                       \
 static void register_bind_vec##D##_node_mt(lua_State *L) {              \

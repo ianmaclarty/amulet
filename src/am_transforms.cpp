@@ -25,13 +25,12 @@ int am_translate_node::specialized_newindex(lua_State *L) {
 }
 
 int am_create_translate_node(lua_State *L) {
-    am_check_nargs(L, 3);
+    int nargs = am_check_nargs(L, 3);
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
-    am_vec3 *v = am_get_userdata(L, am_vec3, 3);
     am_translate_node *node = am_new_userdata(L, am_translate_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
-    node->v = v->v;
+    am_read_vec3(L, &node->v, 3, nargs);
     return 1;
 }
 
@@ -71,13 +70,13 @@ int am_scale_node::specialized_newindex(lua_State *L) {
 }
 
 int am_create_scale_node(lua_State *L) {
-    am_check_nargs(L, 3);
+    int nargs = am_check_nargs(L, 3);
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
-    am_vec3 *v = am_get_userdata(L, am_vec3, 3);
     am_scale_node *node = am_new_userdata(L, am_scale_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
-    node->v = v->v;
+    node->v = glm::vec3(1.0f);
+    am_read_vec3(L, &node->v, 3, nargs);
     return 1;
 }
 

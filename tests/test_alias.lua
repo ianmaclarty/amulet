@@ -23,7 +23,7 @@ end
 local node = am.empty():alias("base"):alias("name", "base")
     :bind_vec2("A", math.vec2(2)):alias("nodeA"):alias{name = "A", fa = "AA"}
     :bind_vec3("B", math.vec3(3)):alias("nodeB"):alias("name", "B"):alias("fb", "BB")
-    :bind_vec4("C", math.vec4(4)):alias("nodeC"):alias("name", "C"):alias("fc", "CC")
+    :bind_vec4("C", math.vec2(4), 4, 4):alias("nodeC"):alias("name", "C"):alias("fc", "CC")
 
 print(node.nodeA.name..":"..node.nodeA.tname)
 print(node.nodeB.name..":"..node.nodeB.tname)
@@ -49,10 +49,10 @@ print_graph(node)
 print("")
 print(node.nodeA.x)
 print(node.nodeB.rgb.rg.r)
-print(node.nodeC.st[2])
+print(node.nodeC.pq[2])
 
 local cycle = am.empty():alias("A"):alias("name", "A"):alias("f1", {f = 1})
-    :bind_vec2("B", math.vec2(2)):alias("B"):alias("name", "B"):alias("f2", {f = 2})
+    :bind_vec2("B", 2, 2):alias("B"):alias("name", "B"):alias("f2", {f = 2})
     :bind_vec3("C", math.vec3(3)):alias("C"):alias("name", "C"):alias("f3", {f = 3})
 
 cycle.A:append(cycle)
