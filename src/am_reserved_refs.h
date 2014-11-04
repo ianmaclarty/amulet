@@ -2,7 +2,6 @@
 
 typedef enum {
     AM_PARAM_NAME_STRING_TABLE = AM_RESERVED_REFS_START,
-
     AM_WINDOW_TABLE,
 
     MT_am_window,
@@ -18,6 +17,7 @@ typedef enum {
     MT_am_bind_vec3_node,
     MT_am_bind_vec4_node,
     MT_am_translate_node,
+    MT_am_scale_node,
     MT_am_draw_arrays_node,
     MT_am_buffer,
     MT_am_buffer_view,

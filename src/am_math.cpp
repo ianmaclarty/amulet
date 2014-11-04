@@ -167,7 +167,7 @@ static int vec##D##_mul(lua_State *L) {                                         
         am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
         float y = lua_tonumber(L, 2);                                           \
         z->v = x->v * y;                                                        \
-    } else if (am_get_metatable_id(L, 2) == MT_am_mat##D) {                     \
+    } else if (am_get_type(L, 2) == MT_am_mat##D) {                             \
         am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
         am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                        \
         z->v = x->v * y->m;                                                     \
@@ -206,7 +206,7 @@ static int vec##D##_new(lua_State *L) {                                         
                 (*v)[i++] = lua_tonumber(L, j);                                         \
                 if (i >= D) goto endfor;                                                \
             } else {                                                                    \
-                switch (am_get_metatable_id(L, j)) {                                    \
+                switch (am_get_type(L, j)) {                                            \
                     case MT_am_vec2: {                                                  \
                         am_vec2 *va = (am_vec2*)lua_touserdata(L, j);                   \
                         (*v)[i++] = va->v.x;                                            \
@@ -238,7 +238,7 @@ static int vec##D##_new(lua_State *L) {                                         
                         break;                                                          \
                     }                                                                   \
                     default: return luaL_error(L,                                       \
-                        "unexpected type in vec" #D " argument list (%d)", am_get_metatable_id(L, i));                  \
+                        "unexpected type at position %d in vec" #D " argument list (%d)", j, am_get_type(L, i)); \
                 }                                                                       \
             }                                                                           \
         }                                                                               \
@@ -425,7 +425,7 @@ int am_vec##D##_newindex(lua_State *L, glm::vec##D *v) {                        
             }                                                                           \
         } else {                                                                        \
             if (len == 0 || len > D) goto fail;                                         \
-            switch (am_get_metatable_id(L, 3)) {                                        \
+            switch (am_get_type(L, 3)) {                                                \
                 case MT_am_vec2: {                                                      \
                     if (len != 2) goto fail;                                            \
                     glm::vec2 *nv = &((am_vec2*)lua_touserdata(L, 3))->v;               \
@@ -454,11 +454,23 @@ int am_vec##D##_newindex(lua_State *L, glm::vec##D *v) {                        
                 }                                                                       \
                 case MT_am_vec4: {                                                      \
                     if (len != 4) goto fail;                                            \
-                    glm::vec4 *nv = &((am_vec4*)lua_touserdata(L, 4))->v;               \
+                    glm::vec4 *nv = &((am_vec4*)lua_touserdata(L, 3))->v;               \
                     for (int i = 0; i < 4; i++) {                                       \
                         int os = VEC_COMPONENT_OFFSET(str[i]);                          \
                         if (os >= 0 && os < D) {                                        \
                             (*v)[os] = (*nv)[i];                                        \
+                        } else {                                                        \
+                            goto fail;                                                  \
+                        }                                                               \
+                    }                                                                   \
+                    break;                                                              \
+                }                                                                       \
+                case LUA_TNUMBER: {                                                     \
+                    float num = lua_tonumber(L, 3);                                     \
+                    for (unsigned int i = 0; i < len; i++) {                            \
+                        int os = VEC_COMPONENT_OFFSET(str[i]);                          \
+                        if (os >= 0 && os < D) {                                        \
+                            (*v)[os] = num;                                             \
                         } else {                                                        \
                             goto fail;                                                  \
                         }                                                               \
@@ -545,7 +557,7 @@ MAT_SET_FUNC(4)
             float y = lua_tonumber(L, 2);                                               \
             am_mat##D *z = am_new_userdata(L, am_mat##D);                               \
             z->m = x->m * y;                                                            \
-        } else if (am_get_metatable_id(L, 2) == MT_am_vec##D) {                         \
+        } else if (am_get_type(L, 2) == MT_am_vec##D) {                                 \
             am_mat##D *x = am_get_userdata(L, am_mat##D, 1);                            \
             am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                            \
             am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
@@ -578,7 +590,7 @@ static int mat##D##_new(lua_State *L) {                                         
         if (lua_isnumber(L, 1)) {                                                       \
             mat->m = glm::mat##D((float)lua_tonumber(L, 1));                            \
         } else {                                                                        \
-            switch (am_get_metatable_id(L, 1)) {                                        \
+            switch (am_get_type(L, 1)) {                                                \
                 case MT_am_mat2: {                                                      \
                     am_mat2 *m = (am_mat2*)lua_touserdata(L, 1);                        \
                     mat->m = glm::mat##D(m->m);                                         \
@@ -608,7 +620,7 @@ static int mat##D##_new(lua_State *L) {                                         
                 (*m)[col][row++] = lua_tonumber(L, i);                                  \
                 if (row >= D) {col++; row=0;} if (col >= D) goto endfor;                \
             } else {                                                                    \
-                switch (am_get_metatable_id(L, i)) {                                    \
+                switch (am_get_type(L, i)) {                                            \
                     case MT_am_vec2: {                                                  \
                         am_vec2 *va = (am_vec2*)lua_touserdata(L, i);                   \
                         (*m)[col][row++] = va->v.x;                                     \
@@ -762,7 +774,7 @@ MAT_UNM_FUNC(4)
 
 static int vec_length(lua_State *L) {
     am_check_nargs(L, 1);
-    switch (am_get_metatable_id(L, 1)) {
+    switch (am_get_type(L, 1)) {
         case MT_am_vec2: {
             am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
             lua_pushnumber(L, glm::length(x->v));
@@ -786,7 +798,7 @@ static int vec_length(lua_State *L) {
 
 static int vec_distance(lua_State *L) {
     am_check_nargs(L, 2);
-    switch (am_get_metatable_id(L, 1)) {
+    switch (am_get_type(L, 1)) {
         case MT_am_vec2: {
             am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
             am_vec2 *y = am_get_userdata(L, am_vec2, 2);
@@ -813,7 +825,7 @@ static int vec_distance(lua_State *L) {
 
 static int vec_dot(lua_State *L) {
     am_check_nargs(L, 2);
-    switch (am_get_metatable_id(L, 1)) {
+    switch (am_get_type(L, 1)) {
         case MT_am_vec2: {
             am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
             am_vec2 *y = am_get_userdata(L, am_vec2, 2);
@@ -849,7 +861,7 @@ static int vec_cross(lua_State *L) {
 
 static int vec_normalize(lua_State *L) {
     am_check_nargs(L, 1);
-    switch (am_get_metatable_id(L, 1)) {
+    switch (am_get_type(L, 1)) {
         case MT_am_vec2: {
             am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
             am_vec2 *y = am_new_userdata(L, am_vec2);
@@ -874,7 +886,7 @@ static int vec_normalize(lua_State *L) {
 
 static int vec_faceforward(lua_State *L) {
     am_check_nargs(L, 3);
-    switch (am_get_metatable_id(L, 1)) {
+    switch (am_get_type(L, 1)) {
         case MT_am_vec2: {
             am_vec2 *N = (am_vec2*)lua_touserdata(L, 1);
             am_vec2 *I = am_get_userdata(L, am_vec2, 2);
@@ -905,7 +917,7 @@ static int vec_faceforward(lua_State *L) {
 
 static int vec_reflect(lua_State *L) {
     am_check_nargs(L, 2);
-    switch (am_get_metatable_id(L, 1)) {
+    switch (am_get_type(L, 1)) {
         case MT_am_vec2: {
             am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
             am_vec2 *y = am_get_userdata(L, am_vec2, 2);
@@ -933,7 +945,7 @@ static int vec_reflect(lua_State *L) {
 
 static int vec_refract(lua_State *L) {
     am_check_nargs(L, 3);
-    switch (am_get_metatable_id(L, 1)) {
+    switch (am_get_type(L, 1)) {
         case MT_am_vec2: {
             am_vec2 *I = (am_vec2*)lua_touserdata(L, 1);
             am_vec2 *N = am_get_userdata(L, am_vec2, 2);

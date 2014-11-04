@@ -40,9 +40,10 @@ MVP2:set(4, 4, 1)
 local base = am.draw_arrays()
     :bind_array("x", xview)
     :bind_array("y", yview)
-local node1 = base:translate("MVP", math.vec3(1, 0, 0)):alias("position")
+local node1 = base:scale("MVP", math.vec3(1, -1, 1)):translate("MVP", math.vec3(1, 0, 0)):alias("position")
     :bind_mat4("MVP", MVP1):bind_vec4("tint", math.vec4(1, 1.5, 0.5, 1)):alias("tint")
-local node2 = base:translate("MVP", math.vec3(1, 0, 0)):alias("position")
+local node2 = base:scale("MVP", math.vec3(1)):alias("size")
+    :translate("MVP", math.vec3(1, 0, 0)):alias("position")
     :bind_mat4("MVP", MVP2):bind_vec4("tint", math.vec4(0.1, 0.1, 1, 1)):alias("tint")
 
 local group = am.empty()
@@ -60,6 +61,7 @@ top:action(function()
         math.vec2(math.random() * 1 - 0.5, math.random() * 1 - 0.5) * 20
     node2.tint.rgb = math.vec3(
         math.random(), math.random(), math.random())
+    node2.size.xy = math.random() * 5
     --print("hello "..node1.position.x)
     return 0
 end)

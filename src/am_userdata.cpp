@@ -123,12 +123,14 @@ void am_push_metatable(lua_State *L, int metatable_id) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
 }
 
-int am_get_metatable_id(lua_State *L, int idx) {
-    am_userdata *ud = (am_userdata*)lua_touserdata(L, idx);
-    if (ud != NULL) {
+int am_get_type(lua_State *L, int idx) {
+    int t = lua_type(L, idx);
+    if (t == LUA_TUSERDATA) {
+        am_userdata *ud = (am_userdata*)lua_touserdata(L, idx);
+        assert(ud->metatable_id < AM_RESERVED_REFS_END && ud->metatable_id > AM_RESERVED_REFS_START);
         return ud->metatable_id;
     } else {
-        return 0;
+        return t;
     }
 }
 

@@ -83,7 +83,16 @@ printvec(v)
 v.wx = math.vec2(40, 10)
 printvec(v)
 
-v = v.xyz
+v.xyzw = math.vec4(1, 2, 3, 4)
+printvec(v)
+v.rgba = 0.5
+printvec(v)
+v.stq = 2
+printvec(v)
+v.s = v.s/2
+v.pq = 3
+printvec(v)
+v = v.xyz * 10
 v.bgr = 0.5 * v.rgb
 printvec(v)
 
