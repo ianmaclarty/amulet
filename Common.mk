@@ -80,7 +80,7 @@ AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
 LUA_TARGET = posix
-XCFLAGS = -Werror -Wall -pthread -fno-strict-aliasing
+XCFLAGS = -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 
 # Adjust flags for target

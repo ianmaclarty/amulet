@@ -7,7 +7,7 @@ all: $(MAIN_TARGET)
 CFILES := $(wildcard *.c)
 OFILES := $(patsubst %.c,%$(OBJ_EXT),$(CFILES))
 
-CFLAGS := $(AM_CFLAGS) -I. -I../$(ZLIB)
+CFLAGS := $(COMMON_CFLAGS) -I. -I../$(ZLIB)
 
 $(OFILES): %$(OBJ_EXT): %.c
 	$(CC) $(CFLAGS) -c $<
