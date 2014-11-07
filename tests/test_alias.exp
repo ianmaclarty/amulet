@@ -1,0 +1,65 @@
+A:bind_vec2
+B:bind_vec3
+C:bind_vec4
+node
+AA
+BB
+CC
+
+C(bind_vec4)
+  B(bind_vec3)
+    A(bind_vec2)
+      base(node)
+
+C(bind_vec4)
+  B(bind_vec3)
+    A(bind_vec2)
+      base(node)
+        D(node)
+
+C(bind_vec4)
+  B(bind_vec3)
+    A(bind_vec2)
+      base(node)
+        D(node)
+    E(node)
+
+C(bind_vec4)
+  B(bind_vec3)
+    A(bind_vec2)
+      base(node)
+        D(node)
+
+2
+3
+4
+---
+C(bind_vec3)
+  B(bind_vec2)
+    A(node)
+      C(bind_vec3) [cycle]
+
+A(node)
+  C(bind_vec3)
+    B(bind_vec2)
+      A(node) [cycle]
+
+B(bind_vec2)
+  A(node)
+    C(bind_vec3)
+      B(bind_vec2) [cycle]
+
+C(bind_vec3)
+  B(bind_vec2)
+    A(node)
+      C(bind_vec3) [cycle]
+
+1
+2
+3
+1
+2
+3
+
+2
+3

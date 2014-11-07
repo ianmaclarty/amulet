@@ -132,3 +132,12 @@ struct am_render_state {
     void bind_active_program_params();
     void bind_active_indices();
 };
+
+struct am_draw_arrays_node : am_scene_node {
+    int first;
+    int count;
+
+    virtual void render(am_render_state *rstate);
+};
+
+void am_open_renderer_module(lua_State *L);

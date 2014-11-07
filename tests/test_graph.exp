@@ -1,0 +1,178 @@
+1
+root
+2
+root
+  child1
+  child2
+3
+root
+  child1
+  child2
+  child3
+4
+root
+  child1
+  child2
+  child3
+  child2
+  child1
+5
+root
+  child2
+  child3
+  child2
+  child1
+6
+root
+  child2
+  child3
+  child2
+  child3
+7
+root
+  child1
+  child2
+  child3
+  child2
+  child3
+8
+root
+9
+root
+  child1
+  child2
+  child3
+10
+root
+  child1
+    child1 [cycle]
+  child2
+  child3
+11
+root
+  child1
+    child1 [cycle]
+  child2
+    child1
+      child1 [cycle]
+  child3
+12
+root
+  child1
+    child2
+      child3
+        child2 [cycle]
+        child1 [cycle]
+  child2
+    child3
+      child2 [cycle]
+      child1
+        child2 [cycle]
+  child3
+    child2
+      child3 [cycle]
+    child1
+      child2
+        child3 [cycle]
+13
+root
+  child1
+  child2
+    child3
+      child2 [cycle]
+      child1
+  child3
+    child2
+      child3 [cycle]
+    child1
+---
+14
+root
+15
+root
+  child1
+  child2
+16
+root
+  child1
+  child2
+  child3
+17
+root
+  child1
+  child2
+  child3
+  child2
+  child1
+18
+root
+  child2
+  child3
+  child2
+  child1
+19
+root
+  child2
+  child3
+  child2
+  child3
+20
+root
+  child1
+  child2
+  child3
+  child2
+  child3
+21
+root
+22
+root
+  child1
+  child2
+  child3
+23
+root
+  child1
+    child1 [cycle]
+  child2
+  child3
+24
+root
+  child1
+    child1 [cycle]
+  child2
+    child1
+      child1 [cycle]
+  child3
+25
+root
+  child1
+    child2
+      child3
+        child2 [cycle]
+        child1 [cycle]
+  child2
+    child3
+      child2 [cycle]
+      child1
+        child2 [cycle]
+  child3
+    child2
+      child3 [cycle]
+    child1
+      child2
+        child3 [cycle]
+26
+root
+  child1
+  child2
+    child3
+      child2 [cycle]
+      child1
+  child3
+    child2
+      child3 [cycle]
+    child1
+*child2 action frame 1*
+*child2 action frame 2*
+*child1 action*

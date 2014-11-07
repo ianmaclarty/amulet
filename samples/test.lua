@@ -5,26 +5,27 @@ local coroutine  = require "coroutine"
 local vshader = [[
     attribute float x;
     attribute float y;
+    uniform mat4 MVP;
     void main() {
-        gl_Position = vec4(x, y, 0, 1);
+        gl_Position = MVP * vec4(x, y, 0, 1);
     }
 ]]
 
 local fshader = [[
-    uniform float brightness;
+    uniform vec4 tint;
     void main() {
         vec2 uv = gl_FragCoord.xy;
-        gl_FragColor = vec4( 1, uv.x / 640.0, uv.y / 480.0, 1.0 ) * brightness;
+        gl_FragColor = vec4( 1, uv.x / 640.0, uv.y / 480.0, 1.0 ) * tint;
     }
 ]]
 
-local win = am.create_window("hello", 640, 480)
+local win = am.create_window({title = "test1"})
 
 local prog = am.program(vshader, fshader)
 
 local buf = am.buffer(4 * 6)
-local xview = buf:float_view(0, 8)
-local yview = buf:float_view(4, 8)
+local xview = buf:view("float", 0, 8)
+local yview = buf:view("float", 4, 8)
 xview[1] = -0.5
 xview[2] = 0
 xview[3] = 0.5
@@ -32,40 +33,37 @@ yview[1] = -0.4
 yview[2] = 0.6
 yview[3] = -0.4
 
-local node = am.node():
-    use_program(prog):
-    set_float("brightness", 1):
-    set_array("x", xview):
-    set_array("y", yview):
-    draw_arrays(0, 3):
-    draw_children()
+local MVP1 = math.mat4(0.1)
+MVP1:set(4, 4, 1)
+local MVP2 = math.mat4(0.15)
+MVP2:set(4, 4, 1)
+local base = am.draw_arrays()
+    :bind_array("x", xview)
+    :bind_array("y", yview)
+local node1 = base:scale("MVP", 1, -1):translate("MVP", math.vec3(1, 0, 0)):alias("position")
+    :bind_mat4("MVP", MVP1):bind_vec4("tint", math.vec4(1, 1.5, 0.5, 1)):alias("tint")
+local node2 = base:scale("MVP", math.vec3(1)):alias("size")
+    :translate("MVP", math.vec3(1, 0, 0)):alias("position")
+    :bind_mat4("MVP", MVP2):bind_vec4("tint", math.vec4(0.1, 0.1, 1, 1)):alias("tint")
 
-local buf2 = am.buffer(4 * 6)
-local xview2 = buf2:float_view(0, 8)
-local yview2 = buf2:float_view(4, 8)
-xview2[1] = -0.8
-xview2[2] = -0.4
-xview2[3] = 0
-yview2[1] = -0.8
-yview2[2] = 0.2
-yview2[3] = -0.8
+local group = am.empty()
+group:append(node2)
+group:append(node1)
 
-local child = am.node():
-    set_array("x", xview2):
-    set_array("y", yview2):
-    set_float("brightness", 2.5):
-    draw_arrays(0, 3)
+local top = group:program(prog)
 
-node:append(child)
+top:action(function()
+    node1.position.xy = 
+        math.vec2(math.random() * 1 - 0.5, math.random() * 1 - 0.5) * 20
+    node1.tint.rgb = math.vec3(
+        math.random(), math.random(), math.random())
+    node2.position.xy = 
+        math.vec2(math.random() * 1 - 0.5, math.random() * 1 - 0.5) * 20
+    node2.tint.rgb = math.vec3(
+        math.random(), math.random(), math.random())
+    node2.size.xy = math.random() * 5
+    --print("hello "..node1.position.x)
+    return 0
+end)
 
-node:action(coroutine.wrap(function()
-    for i = 1, 300 do
-        yview[1] = yview[1] + 0.01
-        xview2[3] = xview2[3] + 0.01
-        print(i)
-        coroutine.yield(0)
-    end
-    --win:close()
-end))
-
-win.root = node
+win.root = top

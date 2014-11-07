@@ -2,9 +2,7 @@
 
 static int report_status(lua_State *L, int status);
 
-int main (int argc, char **argv) {
-    SDL_Init(SDL_INIT_VIDEO);
-
+int main2 (int argc, char **argv) {
     if (argc < 2) {
         fprintf(stderr, "expecting 1 argument\n"); 
         return 1;
@@ -14,13 +12,10 @@ int main (int argc, char **argv) {
     if (L == NULL) return EXIT_FAILURE;
     int status = luaL_dofile(L, argv[1]);
     if (!report_status(L, status)) {
-        while (am_update_windows(L)) {
-            am_execute_actions(L);
-        }
+        while (am_update_windows(L) && am_execute_actions(L, 1.0/60.0));
     }
     am_destroy_engine(L);
 
-    SDL_Quit();
     return status;
 }
 

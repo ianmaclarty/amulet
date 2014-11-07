@@ -7,8 +7,8 @@ void am_render_state::draw_arrays(int first, int draw_array_count) {
     if (validate_active_program()) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
             // no vertex arrays have been set and no size has been specified
-            // for the draw command. Pick something smaller.
-            draw_array_count = 6;
+            // for the draw command, so do nothing.
+            draw_array_count = 0;
         }
         int count = max_draw_array_size - first;
         if (count > draw_array_count) count = draw_array_count;
@@ -17,21 +17,6 @@ void am_render_state::draw_arrays(int first, int draw_array_count) {
         }
     }
 }
-
-/*
-void am_render_state::draw_elements(int first, int active_indices_count) {
-        if (active_indices_id) {
-            bind_active_indices();
-            if (active_indices_max_value <= max_draw_array_size) {
-                int count = active_indices_max_size - active_indices_offset;
-                if (count > active_indices_count) count = active_indices_count;
-                if (count > 0) {
-                    am_draw_elements(draw_mode, count, active_indices_type, active_indices_offset);
-                }
-            } else {
-                am_report_error("buffer index out of range");
-            }
-*/
 
 bool am_render_state::validate_active_program() {
     if (am_conf_validate_shader_programs) {
@@ -57,7 +42,7 @@ void am_render_state::bind_active_program() {
 void am_render_state::bind_active_program_params() {
     max_draw_array_size = INT_MAX;
     for (int i = 0; i < active_program->num_params; i++) {
-        am_program_param *param = active_program->params[i];
+        am_program_param *param = &active_program->params[i];
         param->bind(this);
     }
 }
@@ -93,4 +78,44 @@ am_render_state::am_render_state() {
 }
 
 am_render_state::~am_render_state() {
+}
+
+static void register_draw_arrays_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -2, "__index");
+
+    lua_pushstring(L, "draw_arrays");
+    lua_setfield(L, -2, "tname");
+
+    am_register_metatable(L, MT_am_draw_arrays_node, MT_am_scene_node);
+}
+
+void am_draw_arrays_node::render(am_render_state *rstate) {
+    rstate->draw_arrays(first, count);
+}
+
+static int create_draw_arrays_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 0);
+    int first = 0;
+    int count = INT_MAX;
+    if (nargs > 0) {
+        first = luaL_checkinteger(L, 1);
+    }
+    if (nargs > 1) {
+        count = luaL_checkinteger(L, 2);
+    }
+    am_draw_arrays_node *node = am_new_userdata(L, am_draw_arrays_node);
+    node->first = first;
+    node->count = count;
+    return 1;
+}
+
+void am_open_renderer_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"draw_arrays", create_draw_arrays_node},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+    register_draw_arrays_node_mt(L);
 }

@@ -1,16 +1,24 @@
+#if defined(AM_LINUX32) || defined(AM_LINUX64)
+    #define AM_LINUX
+#endif
+#if defined(AM_WIN32) || defined(AM_OSX) || defined(AM_LINUX) || defined(AM_ANDROID) || defined(AM_IOS)
+    #define AM_BACKEND_SDL
+#elif defined(AM_HTML)
+    #define AM_BACKEND_EMSCRIPTEN
+#else
+    #error unsupported target
+#endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include <new>
 #include <climits>
 #include <vector>
-
-#define AMULET_LUA_MODULE_NAME "amulet"
-
-#include "SDL.h"
 
 extern "C" {
 #include "lua.h"
@@ -23,7 +31,10 @@ extern "C" {
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "am_backend.h"
+#include "am_input.h"
 #include "am_embedded_lua.h"
+#include "am_userdata.h"
 #include "am_bit_util.h"
 #include "am_config.h"
 #include "am_reserved_refs.h"
@@ -34,9 +45,9 @@ extern "C" {
 #include "am_window.h"
 #include "am_buffer.h"
 #include "am_trail.h"
+#include "am_action.h"
+#include "am_scene.h"
 #include "am_renderer.h"
 #include "am_program.h"
-#include "am_commands.h"
-#include "am_node.h"
-#include "am_action.h"
+#include "am_transforms.h"
 #include "am_engine.h"

@@ -1,7 +1,5 @@
 #include "amulet.h"
 
-am_program_param_name_info *am_param_name_map = NULL;
-
 static void init_reserved_refs(lua_State *L);
 static void open_stdlualibs(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
@@ -17,8 +15,10 @@ lua_State *am_init_engine(bool worker) {
         am_init_param_name_map(L);
         am_init_actions();
         am_open_window_module(L);
-        am_open_node_module(L);
+        am_open_scene_module(L);
         am_open_program_module(L);
+        am_open_transforms_module(L);
+        am_open_renderer_module(L);
     }
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
