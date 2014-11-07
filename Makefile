@@ -29,7 +29,7 @@ endif
 
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
-ifeq ($(TARGET_PLATFORM),html5)
+ifeq ($(TARGET_PLATFORM),emscripten)
   AM_DEPS = lua
 else
   AM_DEPS = $(LUAVM) sdl glew png z

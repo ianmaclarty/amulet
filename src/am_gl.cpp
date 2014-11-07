@@ -3,8 +3,10 @@
 
 #include "amulet.h"
 
-#define GLEW_STATIC 1
-#include "GL/glew.h"
+#ifdef AM_BACKEND_SDL
+    #define GLEW_STATIC 1
+    #include "GL/glew.h"
+#endif
 
 #define AM_GLCHECK
 #ifdef AM_GLCHECK
@@ -13,10 +15,12 @@
 #define check_for_errors
 #endif
 
-#define check_initialized(...) {if (!gl_initialized) {am_report_error("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
+#define check_initialized(...) {if (!am_gl_initialized) {am_report_error("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
 
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
+
+bool am_gl_initialized = false;
 
 static void check_glerror(const char *file, int line, const char *func);
 
@@ -47,28 +51,6 @@ static GLenum to_gl_element_index_type(am_element_index_type t);
 static am_attribute_var_type from_gl_attribute_var_type(GLenum gl_type);
 static am_uniform_var_type from_gl_uniform_var_type(GLenum gl_type);
 static am_framebuffer_status from_gl_framebuffer_status(GLenum gl_status);
-
-// Initialization
-
-static bool gl_initialized = false;
-
-bool am_init_gl() {
-    GLenum err = glewInit();
-    if (GLEW_OK != err)
-    {
-        am_abort("Error initializing OpenGL: %s", glewGetErrorString(err));
-        return false;
-    }
-
-    if (!GLEW_VERSION_2_1)
-    {
-        am_abort("Sorry, OpenGL 2.1 is required.");
-        return false;
-    }
-
-    gl_initialized = true;
-    return true;
-}
 
 // Per-Fragment Operations
 

@@ -100,7 +100,7 @@ void am_register_metatable(lua_State *L, int metatable_id, int parent_mt_id) {
         }
         // add parent entries to this metatable
         lua_pushnil(L);
-        while (lua_next(L, prt_idx) != 0) {
+        while (lua_next(L, prt_idx)) {
             int key_idx = am_absindex(L, -2);
             int val_idx = am_absindex(L, -1);
             // Check if field already exists

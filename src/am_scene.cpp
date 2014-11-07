@@ -417,7 +417,7 @@ static int alias(lua_State *L) {
         lua_pushvalue(L, 2); // push table, as we need position 2 for check_alias
         int tbl_idx = am_absindex(L, -1);
         lua_pushnil(L);
-        while (lua_next(L, tbl_idx) != 0) {
+        while (lua_next(L, tbl_idx)) {
             lua_pushvalue(L, -2); // key
             lua_replace(L, 2); // check_alias expects key in position 2
             check_alias(L);

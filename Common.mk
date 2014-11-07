@@ -18,7 +18,7 @@ VC_LIB=lib.exe
 
 # Host settings (this is the *build* host, not the host we want to run on)
 
-TARGET_PLATFORMS = linux32 linux64 win32 osx ios android html5
+TARGET_PLATFORMS = linux32 linux64 win32 osx ios android html
 
 DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
 RELEASE_TARGETS = $(patsubst %,%.release,$(TARGET_PLATFORMS))
@@ -89,7 +89,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   CPP = clang++
   LUA_TARGET = macosx
 endif
-ifeq ($(TARGET_PLATFORM),html5)
+ifeq ($(TARGET_PLATFORM),emscripten)
   CC = emcc
   CPP = em++
   EXE_EXT = .html

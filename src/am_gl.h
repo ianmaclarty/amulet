@@ -3,7 +3,7 @@ typedef int32_t  am_glint;
 
 // Initialization
 
-bool am_init_gl();
+extern bool am_gl_initialized;
 
 // Per-Fragment Operations
 
