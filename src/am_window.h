@@ -1,5 +1,3 @@
-extern bool am_vsync;
-
 void am_open_window_module(lua_State *L);
 bool am_update_windows(lua_State *L);
 

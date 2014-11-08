@@ -133,6 +133,7 @@ void am_destroy_native_window(am_native_window* window) {
 
 void am_native_window_pre_render(am_native_window* window) {
     SDL_GL_MakeCurrent((SDL_Window*)window, gl_context);
+    am_clear_framebuffer(true, true, true);
 }
 
 void am_native_window_post_render(am_native_window* window) {
@@ -191,7 +192,7 @@ int main( int argc, char *argv[] )
         goto quit;
     }
 
-    status = luaL_dofile(L, argv[1]);
+    status = luaL_dofile(L, filename);
     if (report_status(L, status)) goto quit;
     if (windows.size() == 0) goto quit;
 
@@ -204,8 +205,8 @@ int main( int argc, char *argv[] )
     vsync = -2;
 
     while (windows.size() > 0) {
-        if (vsync != (am_vsync ? 1 : 0)) {
-            vsync = (am_vsync ? 1 : 0);
+        if (vsync != (am_conf_vsync ? 1 : 0)) {
+            vsync = (am_conf_vsync ? 1 : 0);
             SDL_GL_SetSwapInterval(vsync);
         }
 
@@ -220,13 +221,13 @@ int main( int argc, char *argv[] )
         dt = fmin(1.0/15.0, t - t0); // fmin in case process was suspended, or last frame took very long
         t_debt += dt;
 
-        if (am_fixed_update_time > 0.0) {
+        if (am_conf_fixed_update_time > 0.0) {
             while (t_debt > 0.0) {
-                if (!am_execute_actions(L, am_fixed_update_time)) {
+                if (!am_execute_actions(L, am_conf_fixed_update_time)) {
                     exit_status = EXIT_FAILURE;
                     goto quit;
                 }
-                t_debt -= am_fixed_update_time;
+                t_debt -= am_conf_fixed_update_time;
             }
         } else {
             if (t_debt > MIN_UPDATE_TIME) {
@@ -253,9 +254,9 @@ int main( int argc, char *argv[] )
 
     }
 
-    am_destroy_engine(L);
 
 quit:
+    if (L != NULL) am_destroy_engine(L);
     for (unsigned int i = 0; i < windows.size(); i++) {
         SDL_DestroyWindow(windows[i]);
     }

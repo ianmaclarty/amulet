@@ -5,6 +5,7 @@
     #define AM_BACKEND_SDL
 #elif defined(AM_HTML)
     #define AM_BACKEND_EMSCRIPTEN
+    #include <emscripten.h>
 #else
     #error unsupported target
 #endif
@@ -31,11 +32,11 @@ extern "C" {
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "am_util.h"
 #include "am_backend.h"
 #include "am_input.h"
 #include "am_embedded_lua.h"
 #include "am_userdata.h"
-#include "am_bit_util.h"
 #include "am_config.h"
 #include "am_reserved_refs.h"
 #include "am_logging.h"

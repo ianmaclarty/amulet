@@ -25,7 +25,7 @@ int am_translate_node::specialized_newindex(lua_State *L) {
 }
 
 int am_create_translate_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 3);
+    int nargs = am_check_nargs(L, 2);
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
     am_translate_node *node = am_new_userdata(L, am_translate_node);
     am_set_scene_node_child(L, node);
@@ -70,7 +70,7 @@ int am_scale_node::specialized_newindex(lua_State *L) {
 }
 
 int am_create_scale_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 3);
+    int nargs = am_check_nargs(L, 2);
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
     am_scale_node *node = am_new_userdata(L, am_scale_node);
     am_set_scene_node_child(L, node);

@@ -12,6 +12,7 @@ amulet
 builds/**/include/*
 builds/**/staging/*
 builds/**/lib/*.a
+builds/**/bin/*
 tags
 settings
 tmp/*

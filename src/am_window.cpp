@@ -1,7 +1,5 @@
 #include "amulet.h"
 
-bool am_vsync = true;
-
 struct am_window : am_nonatomic_userdata {
     bool                needs_closing;
     am_native_window   *native_win;
@@ -88,6 +86,9 @@ static int create_window(lua_State *L) {
         depth_buffer,
         stencil_buffer,
         msaa_samples);
+    if (win->native_win == NULL) {
+        return luaL_error(L, "unable to create native window");
+    }
     win->rstate = new am_render_state();
 
     win->root = NULL;

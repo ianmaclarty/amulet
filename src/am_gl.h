@@ -199,9 +199,6 @@ void am_delete_program(am_program_id program);
 
 // Uniforms and Attributes 
 
-typedef am_gluint am_attribute_index;
-typedef am_gluint am_uniform_index;
-
 enum am_attribute_var_type {
     AM_ATTRIBUTE_VAR_TYPE_FLOAT,
     AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2,
@@ -244,31 +241,36 @@ enum am_attribute_client_type {
 
 int am_attribute_client_type_size(am_attribute_client_type t);
 
-void am_set_attribute_array_enabled(am_attribute_index index, bool enabled);
+void am_set_attribute_array_enabled(am_gluint location, bool enabled);
 
 // *name should be freed with free()
-void am_get_active_attribute(am_program_id program, am_attribute_index index, char **name, am_attribute_var_type *type, int *size);
+void am_get_active_attribute(am_program_id program, am_gluint index,
+    char **name, am_attribute_var_type *type, int *size);
 // *name should be freed with free()
-void am_get_active_uniform(am_program_id program, am_uniform_index index, char **name, am_uniform_var_type *type, int *size);
+void am_get_active_uniform(am_program_id program, am_gluint index,
+    char **name, am_uniform_var_type *type, int *size);
 
-void am_set_uniform1f(am_uniform_index index, float value);
-void am_set_uniform2f(am_uniform_index index, const float *value);
-void am_set_uniform3f(am_uniform_index index, const float *value);
-void am_set_uniform4f(am_uniform_index index, const float *value);
-void am_set_uniform1i(am_uniform_index index, am_glint value);
-void am_set_uniform2i(am_uniform_index index, const am_glint *value);
-void am_set_uniform3i(am_uniform_index index, const am_glint *value);
-void am_set_uniform4i(am_uniform_index index, const am_glint *value);
-void am_set_uniform_mat2(am_uniform_index index, const float *value);
-void am_set_uniform_mat3(am_uniform_index index, const float *value);
-void am_set_uniform_mat4(am_uniform_index index, const float *value);
+am_gluint am_get_attribute_location(am_program_id program, const char *name);
+am_gluint am_get_uniform_location(am_program_id program, const char *name);
 
-void am_set_attribute1f(am_attribute_index index, const float value);
-void am_set_attribute2f(am_attribute_index index, const float *value);
-void am_set_attribute3f(am_attribute_index index, const float *value);
-void am_set_attribute4f(am_attribute_index index, const float *value);
+void am_set_uniform1f(am_gluint location, float value);
+void am_set_uniform2f(am_gluint location, const float *value);
+void am_set_uniform3f(am_gluint location, const float *value);
+void am_set_uniform4f(am_gluint location, const float *value);
+void am_set_uniform1i(am_gluint location, am_glint value);
+void am_set_uniform2i(am_gluint location, const am_glint *value);
+void am_set_uniform3i(am_gluint location, const am_glint *value);
+void am_set_uniform4i(am_gluint location, const am_glint *value);
+void am_set_uniform_mat2(am_gluint location, const float *value);
+void am_set_uniform_mat3(am_gluint location, const float *value);
+void am_set_uniform_mat4(am_gluint location, const float *value);
 
-void am_set_attribute_pointer(am_attribute_index index, int size, am_attribute_client_type type, bool normalized, int stride, int offset);
+void am_set_attribute1f(am_gluint location, const float value);
+void am_set_attribute2f(am_gluint location, const float *value);
+void am_set_attribute3f(am_gluint location, const float *value);
+void am_set_attribute4f(am_gluint location, const float *value);
+
+void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_type type, bool normalized, int stride, int offset);
 
 // Texture Objects
 

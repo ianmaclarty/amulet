@@ -1,7 +1,9 @@
 #include "amulet.h"
 
-static void bind_attribute_array(am_render_state *rstate, am_gluint index, am_attribute_client_type type, int dims, am_buffer_view *view) {
-    am_set_attribute_array_enabled(index, true);
+static void bind_attribute_array(am_render_state *rstate,
+    am_gluint location, am_attribute_client_type type, int dims, am_buffer_view *view)
+{
+    am_set_attribute_array_enabled(location, true);
     am_buffer *buf = view->buffer;
     if (buf->vbo.buffer_id == 0) buf->create_vbo();
     am_bind_buffer(AM_ARRAY_BUFFER, buf->vbo.buffer_id);
@@ -10,7 +12,7 @@ static void bind_attribute_array(am_render_state *rstate, am_gluint index, am_at
         buf->vbo.dirty_end = 0;
         buf->vbo.dirty_start = INT_MAX;
     }
-    am_set_attribute_pointer(index, dims, type, view->normalized, view->stride, view->offset);
+    am_set_attribute_pointer(location, dims, type, view->normalized, view->stride, view->offset);
     if (view->size < rstate->max_draw_array_size) {
         rstate->max_draw_array_size = view->size;
     }
@@ -21,69 +23,69 @@ void am_program_param::bind(am_render_state *rstate) {
     switch (type) {
         case AM_PROGRAM_PARAM_UNIFORM_1F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
-                am_set_uniform1f(index, slot->value.value.f);
+                am_set_uniform1f(location, slot->value.value.f);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_2F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
-                am_set_uniform2f(index, slot->value.value.v2);
+                am_set_uniform2f(location, slot->value.value.v2);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_3F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
-                am_set_uniform3f(index, slot->value.value.v3);
+                am_set_uniform3f(location, slot->value.value.v3);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_4F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
-                am_set_uniform4f(index, slot->value.value.v4);
+                am_set_uniform4f(location, slot->value.value.v4);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT2:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2) {
-                am_set_uniform_mat2(index, slot->value.value.m2);
+                am_set_uniform_mat2(location, slot->value.value.m2);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT3:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3) {
-                am_set_uniform_mat3(index, slot->value.value.m3);
+                am_set_uniform_mat3(location, slot->value.value.m3);
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT4:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-                am_set_uniform_mat4(index, slot->value.value.m4);
+                am_set_uniform_mat4(location, slot->value.value.m4);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
-                am_set_attribute_array_enabled(index, false);
-                am_set_attribute1f(index, slot->value.value.f);
+                am_set_attribute_array_enabled(location, false);
+                am_set_attribute1f(location, slot->value.value.f);
             } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT) {
-                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.value.arr);
+                bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.value.arr);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_2F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
-                am_set_attribute_array_enabled(index, false);
-                am_set_attribute2f(index, slot->value.value.v2);
+                am_set_attribute_array_enabled(location, false);
+                am_set_attribute2f(location, slot->value.value.v2);
             } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC2) {
-                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.value.arr);
+                bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.value.arr);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_3F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
-                am_set_attribute_array_enabled(index, false);
-                am_set_attribute3f(index, slot->value.value.v3);
+                am_set_attribute_array_enabled(location, false);
+                am_set_attribute3f(location, slot->value.value.v3);
             } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC3) {
-                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.value.arr);
+                bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.value.arr);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_4F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
-                am_set_attribute_array_enabled(index, false);
-                am_set_attribute4f(index, slot->value.value.v4);
+                am_set_attribute_array_enabled(location, false);
+                am_set_attribute4f(location, slot->value.value.v4);
             } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC4) {
-                bind_attribute_array(rstate, index, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.value.arr);
+                bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.value.arr);
             }
             break;
     }
@@ -235,7 +237,7 @@ static int create_program(lua_State *L) {
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name str
         am_program_param *param = &params[i];
-        param->index = index;
+        param->location = am_get_attribute_location(program, name_str);
         param->name = name;
         switch (type) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT:
@@ -273,7 +275,7 @@ static int create_program(lua_State *L) {
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name
         am_program_param *param = &params[i];
-        param->index = index;
+        param->location = am_get_uniform_location(program, name_str);
         param->name = name;
         switch (type) {
             case AM_UNIFORM_VAR_TYPE_FLOAT:

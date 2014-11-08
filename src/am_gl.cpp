@@ -3,17 +3,14 @@
 
 #include "amulet.h"
 
-#ifdef AM_BACKEND_SDL
+#if defined(AM_BACKEND_SDL)
     #define GLEW_STATIC 1
     #include "GL/glew.h"
+#elif defined(AM_BACKEND_EMSCRIPTEN)
+    #include <GLES2/gl2.h>
 #endif
 
-#define AM_GLCHECK
-#ifdef AM_GLCHECK
-#define check_for_errors check_glerror(__FILE__, __LINE__, __func__);
-#else
-#define check_for_errors
-#endif
+#define check_for_errors { if (am_conf_check_gl_errors) check_glerror(__FILE__, __LINE__, __func__); }
 
 #define check_initialized(...) {if (!am_gl_initialized) {am_report_error("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
 
@@ -477,17 +474,33 @@ int am_attribute_client_type_size(am_attribute_client_type t) {
     }
 }
 
-void am_set_attribute_array_enabled(am_attribute_index index, bool enabled) {
+void am_set_attribute_array_enabled(am_gluint location, bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnableVertexAttribArray(index);
+        glEnableVertexAttribArray(location);
     } else {
-        glDisableVertexAttribArray(index);
+        glDisableVertexAttribArray(location);
     }
     check_for_errors
 }
 
-void am_get_active_attribute(am_program_id program, am_attribute_index index, char **name, am_attribute_var_type *type, int *size) {
+am_gluint am_get_attribute_location(am_program_id program, const char *name) {
+    check_initialized(0);
+    am_gluint l = glGetAttribLocation(program, name);
+    check_for_errors
+    return l;
+}
+
+am_gluint am_get_uniform_location(am_program_id program, const char *name) {
+    check_initialized(0);
+    am_gluint l = glGetUniformLocation(program, name);
+    check_for_errors
+    return l;
+}
+
+void am_get_active_attribute(am_program_id program, am_gluint index,
+    char **name, am_attribute_var_type *type, int *size)
+{
     check_initialized();
     GLchar gl_name[ATTR_NAME_SIZE];
     GLint gl_size;
@@ -500,7 +513,9 @@ void am_get_active_attribute(am_program_id program, am_attribute_index index, ch
     *type = from_gl_attribute_var_type(gl_type);
 }
 
-void am_get_active_uniform(am_program_id program, am_uniform_index index, char **name, am_uniform_var_type *type, int *size) {
+void am_get_active_uniform(am_program_id program, am_gluint index,
+    char **name, am_uniform_var_type *type, int *size)
+{
     check_initialized();
     GLchar gl_name[UNI_NAME_SIZE];
     GLint gl_size;
@@ -513,100 +528,100 @@ void am_get_active_uniform(am_program_id program, am_uniform_index index, char *
     *type = from_gl_uniform_var_type(gl_type);
 }
 
-void am_set_uniform1f(am_uniform_index index, float value) {
+void am_set_uniform1f(am_gluint location, float value) {
     check_initialized();
-    glUniform1fv(index, 1, &value);
+    glUniform1fv(location, 1, &value);
     check_for_errors
 }
 
-void am_set_uniform2f(am_uniform_index index, const float *value) {
+void am_set_uniform2f(am_gluint location, const float *value) {
     check_initialized();
-    glUniform2fv(index, 1, value);
+    glUniform2fv(location, 1, value);
     check_for_errors
 }
 
-void am_set_uniform3f(am_uniform_index index, const float *value) {
+void am_set_uniform3f(am_gluint location, const float *value) {
     check_initialized();
-    glUniform3fv(index, 1, value);
+    glUniform3fv(location, 1, value);
     check_for_errors
 }
 
-void am_set_uniform4f(am_uniform_index index, const float *value) {
+void am_set_uniform4f(am_gluint location, const float *value) {
     check_initialized();
-    glUniform4fv(index, 1, value);
+    glUniform4fv(location, 1, value);
     check_for_errors
 }
 
-void am_set_uniform1i(am_uniform_index index, am_glint value) {
+void am_set_uniform1i(am_gluint location, am_glint value) {
     check_initialized();
-    glUniform1iv(index, 1, &value);
+    glUniform1iv(location, 1, &value);
     check_for_errors
 }
 
-void am_set_uniform2i(am_uniform_index index, const am_glint *value) {
+void am_set_uniform2i(am_gluint location, const am_glint *value) {
     check_initialized();
-    glUniform2iv(index, 1, value);
+    glUniform2iv(location, 1, value);
     check_for_errors
 }
 
-void am_set_uniform3i(am_uniform_index index, const am_glint *value) {
+void am_set_uniform3i(am_gluint location, const am_glint *value) {
     check_initialized();
-    glUniform3iv(index, 1, value);
+    glUniform3iv(location, 1, value);
     check_for_errors
 }
 
-void am_set_uniform4i(am_uniform_index index, const am_glint *value) {
+void am_set_uniform4i(am_gluint location, const am_glint *value) {
     check_initialized();
-    glUniform4iv(index, 1, value);
+    glUniform4iv(location, 1, value);
     check_for_errors
 }
 
-void am_set_uniform_mat2(am_uniform_index index, const float *value) {
+void am_set_uniform_mat2(am_gluint location, const float *value) {
     check_initialized();
-    glUniformMatrix2fv(index, 1, GL_FALSE, value);
+    glUniformMatrix2fv(location, 1, GL_FALSE, value);
     check_for_errors
 }
 
-void am_set_uniform_mat3(am_uniform_index index, const float *value) {
+void am_set_uniform_mat3(am_gluint location, const float *value) {
     check_initialized();
-    glUniformMatrix3fv(index, 1, GL_FALSE, value);
+    glUniformMatrix3fv(location, 1, GL_FALSE, value);
     check_for_errors
 }
 
-void am_set_uniform_mat4(am_uniform_index index, const float *value) {
+void am_set_uniform_mat4(am_gluint location, const float *value) {
     check_initialized();
-    glUniformMatrix4fv(index, 1, GL_FALSE, value);
+    glUniformMatrix4fv(location, 1, GL_FALSE, value);
     check_for_errors
 }
 
-void am_set_attribute1f(am_attribute_index index, const float value) {
+void am_set_attribute1f(am_gluint location, const float value) {
     check_initialized();
-    glVertexAttrib1f(index, value);
+    glVertexAttrib1f(location, value);
     check_for_errors
 }
 
-void am_set_attribute2f(am_attribute_index index, const float *value) {
+void am_set_attribute2f(am_gluint location, const float *value) {
     check_initialized();
-    glVertexAttrib2fv(index, value);
+    glVertexAttrib2fv(location, value);
     check_for_errors
 }
 
-void am_set_attribute3f(am_attribute_index index, const float *value) {
+void am_set_attribute3f(am_gluint location, const float *value) {
     check_initialized();
-    glVertexAttrib3fv(index, value);
+    glVertexAttrib3fv(location, value);
     check_for_errors
 }
 
-void am_set_attribute4f(am_attribute_index index, const float *value) {
+void am_set_attribute4f(am_gluint location, const float *value) {
     check_initialized();
-    glVertexAttrib4fv(index, value);
+    glVertexAttrib4fv(location, value);
     check_for_errors
 }
 
-void am_set_attribute_pointer(am_attribute_index index, int size, am_attribute_client_type type, bool normalized, int stride, int offset) {
+void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_type type, bool normalized, int stride, int offset) {
     check_initialized();
     GLenum gl_type = to_gl_attr_client_type(type);
-    glVertexAttribPointer(index, size, gl_type, normalized, stride, (void*)((uintptr_t)offset));
+    glVertexAttribPointer(location, size, gl_type, normalized, stride, (void*)((uintptr_t)offset));
     check_for_errors
 }
 

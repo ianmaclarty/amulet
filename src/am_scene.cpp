@@ -151,6 +151,7 @@ static void update_liveness_after_removal(am_scene_node *child, am_scene_node *p
         assert(node_live(parent));
         // remove the child->live_parent link (it should exist)
         bool found_parent = child->live_parents.remove_first(parent);
+        AM_UNUSED(found_parent);
         assert(found_parent);
     }
     if (check_liveness(child)) {

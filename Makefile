@@ -29,7 +29,7 @@ endif
 
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
-ifeq ($(TARGET_PLATFORM),emscripten)
+ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = lua
 else
   AM_DEPS = $(LUAVM) sdl glew png z
@@ -61,10 +61,18 @@ AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
 default: $(AMULET)
 
+ifeq ($(TARGET_PLATFORM),html)
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
+	cp samples/dancing_triangles.lua main.lua
+	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
+	rm main.lua
+	@$(PRINT_BUILD_DONE_MSG)
+else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
 	ln -fs $@ `basename $@`
 	@$(PRINT_BUILD_DONE_MSG)
+endif
 
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR)
 	$(CPP) $(AM_CFLAGS) -c $< -o $@
@@ -75,7 +83,7 @@ $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(SDL_DIR)/build/.libs/libSDL2.a $@
 
 $(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
-	cd $(LUA_DIR) && $(MAKE) clean $(LUA_TARGET) MYCFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)"
+	cd $(LUA_DIR) && $(MAKE) clean $(LUA_TARGET) CC=$(CC) MYCFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)"
 	cp $(LUA_DIR)/src/*.h $(BUILD_LUA_INCLUDE_DIR)/
 	cp $(LUA_DIR)/src/liblua.a $@
 
