@@ -97,7 +97,7 @@ ifeq ($(TARGET_PLATFORM),html)
   EXE_EXT = .html
   LUAVM = lua
   LUA_TARGET = generic
-  XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1
+  XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 --js-library src/am_audio_driver.js
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
   XCFLAGS = 
 endif

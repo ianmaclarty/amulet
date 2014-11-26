@@ -43,7 +43,7 @@ local base = am.draw_arrays()
 local group = am.empty()
 
 local seeds = {}
-for i = 1, 1000 do
+for i = 1, 100 do
     table.insert(seeds, math.random())
 end
 
@@ -57,6 +57,9 @@ end
 
 local top = group:bind_mat4("MVP", MVP):program(prog)
 
+local sound = am.oscillator(220):gain(1)
+sound:make_root()
+
 local t = 0
 top:action(function()
     for i, seed in ipairs(seeds) do
@@ -69,6 +72,8 @@ top:action(function()
         node.size.xy = math.sin(t * seed * 4 + i) * 0.15 + 0.2
     end
     t = t + 1/60
+    --sound.freq = sound.freq * 1.001
+    sound.gain = math.sin(t*10) * 0.5 + 0.5
     return 0
 end)
 

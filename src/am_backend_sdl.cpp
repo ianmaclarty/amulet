@@ -33,6 +33,7 @@ static void load_controller_mappings();
 static void init_gamepad();
 
 static void init_sdl();
+static void init_audio();
 static bool handle_events();
 //static void key_handler(SDL_Window *win, int key, int scancode, int state, int mods);
 //static void gen_controller_key_events();
@@ -215,6 +216,10 @@ int main( int argc, char *argv[] )
             goto quit;
         }
 
+        SDL_LockAudio();
+        am_sync_audio_graph(L);
+        SDL_UnlockAudio();
+
         if (!handle_events()) goto quit;
 
         t = am_get_time();
@@ -278,9 +283,54 @@ static int report_status(lua_State *L, int status) {
 }
 
 static void init_sdl() {
-    SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+    SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
     sdl_initialized = true;
     init_gamepad();
+    init_audio();
+}
+
+static float *audio_buffer = NULL;
+
+static void audio_callback(void *ud, Uint8 *stream, int len) {
+    assert(audio_buffer != NULL);
+    assert(len == (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
+    int num_channels = am_conf_audio_channels;
+    int num_samples = am_conf_audio_buffer_size;
+    float *buffer = audio_buffer;
+    memset(buffer, 0, len);
+    am_audio_bus bus;
+    bus.num_channels = num_channels;
+    bus.num_samples = num_samples;
+    bus.buffer = buffer;
+    for (int i = 0; i < num_channels; i++) {
+        bus.channel_data[i] = bus.buffer + i * num_samples;
+    }
+    am_fill_audio_bus(&bus);
+    // SDL expects channels to be interleaved
+    for (int c = 0; c < num_channels; c++) {
+        for (int i = 0; i < num_samples; i++) {
+            ((float*)stream)[i * num_channels + c] = bus.channel_data[c][i];
+        }
+    }
+}
+
+static void init_audio() {
+    audio_buffer = (float*)malloc(sizeof(float) * am_conf_audio_channels * am_conf_audio_buffer_size);
+    SDL_AudioSpec desired;
+    desired.freq = am_conf_audio_sample_rate;
+    desired.format = AUDIO_F32SYS;
+    desired.channels = am_conf_audio_channels;
+    desired.samples = am_conf_audio_channels * am_conf_audio_buffer_size;
+    desired.callback = audio_callback;
+    desired.userdata = NULL;
+    SDL_AudioSpec obtained;
+    SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
+    am_init_audio(obtained.freq);
+    if (dev == 0) {
+        am_report_error("Failed to open audio: %s\n", SDL_GetError());
+        return;
+    }
+    SDL_PauseAudioDevice(dev, 0);
 }
 
 static bool handle_events() {

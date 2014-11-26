@@ -33,15 +33,41 @@ struct am_buffer_view : am_nonatomic_userdata {
     int                 type_size; // size of each element in bytes
     bool                normalized;
 
-    float get_float(int i);
-    void get_float2(int i, am_vec2 *v2);
-    void get_float3(int i, am_vec3 *v3);
-    void get_float4(int i, am_vec4 *v4);
+    inline uint8_t* view_index_ptr(am_buffer_view *view, int i) {
+        return &view->buffer->data[view->offset + view->stride * i];
+    }
 
-    void set_float(int i, float f);
-    void set_float2(int i, am_vec2 *v2);
-    void set_float3(int i, am_vec3 *v3);
-    void set_float4(int i, am_vec4 *v4);
+    inline float get_float(int i) {
+        return *((float*)view_index_ptr(this, i));
+    }
+
+    inline void get_float2(int i, am_vec2 *v2) {
+        memcpy(&v2->v, view_index_ptr(this, i), sizeof(float) * 2);
+    }
+
+    inline void get_float3(int i, am_vec3 *v3) {
+        memcpy(&v3->v, view_index_ptr(this, i), sizeof(float) * 3);
+    }
+
+    inline void get_float4(int i, am_vec4 *v4) {
+        memcpy(&v4->v, view_index_ptr(this, i), sizeof(float) * 4);
+    }
+
+    inline void set_float(int i, float f) {
+        *((float*)view_index_ptr(this, i)) = f;
+    }
+
+    inline void set_float2(int i, am_vec2 *v2) {
+        memcpy(view_index_ptr(this, i), &v2->v, sizeof(float) * 2);
+    }
+
+    inline void set_float3(int i, am_vec3 *v3) {
+        memcpy(view_index_ptr(this, i), &v3->v, sizeof(float) * 3);
+    }
+
+    inline void set_float4(int i, am_vec4 *v4) {
+        memcpy(view_index_ptr(this, i), &v4->v, sizeof(float) * 4);
+    }
 };
 
 void am_open_buffer_module(lua_State *L);

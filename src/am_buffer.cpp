@@ -28,42 +28,6 @@ void am_buffer::create_vbo() {
     am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
 }
 
-static inline uint8_t* view_index_ptr(am_buffer_view *view, int i) {
-    return &view->buffer->data[view->offset + view->stride * i];
-}
-
-float am_buffer_view::get_float(int i) {
-    return *((float*)view_index_ptr(this, i));
-}
-
-void am_buffer_view::get_float2(int i, am_vec2 *v2) {
-    memcpy(&v2->v, view_index_ptr(this, i), sizeof(float) * 2);
-}
-
-void am_buffer_view::get_float3(int i, am_vec3 *v3) {
-    memcpy(&v3->v, view_index_ptr(this, i), sizeof(float) * 3);
-}
-
-void am_buffer_view::get_float4(int i, am_vec4 *v4) {
-    memcpy(&v4->v, view_index_ptr(this, i), sizeof(float) * 4);
-}
-
-void am_buffer_view::set_float(int i, float f) {
-    *((float*)view_index_ptr(this, i)) = f;
-}
-
-void am_buffer_view::set_float2(int i, am_vec2 *v2) {
-    memcpy(view_index_ptr(this, i), &v2->v, sizeof(float) * 2);
-}
-
-void am_buffer_view::set_float3(int i, am_vec3 *v3) {
-    memcpy(view_index_ptr(this, i), &v3->v, sizeof(float) * 3);
-}
-
-void am_buffer_view::set_float4(int i, am_vec4 *v4) {
-    memcpy(view_index_ptr(this, i), &v4->v, sizeof(float) * 4);
-}
-
 static int create_buffer(lua_State *L) {
     am_check_nargs(L, 1);
     int isnum;

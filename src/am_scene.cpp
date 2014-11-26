@@ -499,7 +499,7 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, create_action, 0);
     lua_setfield(L, -2, "action");
 
-    lua_pushstring(L, "node");
+    lua_pushstring(L, "scene_node");
     lua_setfield(L, -2, "tname");
 
     am_register_metatable(L, MT_am_scene_node, 0);

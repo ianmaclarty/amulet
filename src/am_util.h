@@ -5,3 +5,15 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 
 #define am_align_size(sz) \
     while (sz & AM_ALIGN_MASK) { sz++; }
+
+#define AM_LOOP8(code)  \
+    {                   \
+    { code; }           \
+    { code; }           \
+    { code; }           \
+    { code; }           \
+    { code; }           \
+    { code; }           \
+    { code; }           \
+    { code; }           \
+    }

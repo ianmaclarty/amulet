@@ -32,11 +32,14 @@ extern "C" {
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#define AM_PI 3.14159265358979323846
+
 #include "am_util.h"
 #include "am_backend.h"
 #include "am_input.h"
 #include "am_embedded_lua.h"
 #include "am_userdata.h"
+#include "am_audio.h"
 #include "am_config.h"
 #include "am_reserved_refs.h"
 #include "am_logging.h"
