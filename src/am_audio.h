@@ -83,19 +83,19 @@ struct am_queued_buffer {
 };
 
 struct am_audio_track_node : am_audio_node {
-    am_lua_array<am_queued_buffer> buffer_queue;
-    int fill_func_ref;
+    am_buffer *buffer;
+    int buffer_ref;
     int num_channels;
     int sample_rate;
-    float playback_speed;
-    bool loop;
+    am_audio_param<float> playback_speed;
     int position;
+    bool loop;
 
     am_audio_track_node();
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
-}
+};
 
 enum am_waveform {
     AM_WAVEFORM_SINE,

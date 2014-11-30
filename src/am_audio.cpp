@@ -77,9 +77,75 @@ void am_gain_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     }
 }
 
+// Audio track nodes
+
+am_audio_track_node::am_audio_track_node() 
+    : playback_speed(1.0f)
+{
+    buffer = NULL;
+    buffer_ref = LUA_NOREF;
+    num_channels = 2;
+    sample_rate = 48000;
+    position = 0;
+    loop = false;
+}
+
+void am_audio_track_node::sync_params() {
+    playback_speed.update_target();
+    playback_speed.update_current();
+}
+
+void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
+    float speed = playback_speed.current_value;
+    if (speed < 0.00001f) {
+        // paused
+        return;
+    }
+    int buf_num_channels = num_channels;
+    int buf_num_samples = buffer->size / (buf_num_channels * sizeof(float));
+    int bus_num_samples = bus->num_samples;
+    int bus_num_channels = bus->num_channels;
+    float scaling =
+        speed * ((float)sample_rate / (float)am_conf_audio_sample_rate);
+    for (int c = 0; c < bus_num_channels; c++) {
+        float *bus_data = bus->channel_data[c];
+        float *buf_data = ((float*)buffer->data) + c * buf_num_channels;
+        if (c < buf_num_channels) {
+            for (int s = 0; s < bus_num_samples; s++) {
+                int buf_pos = position + (int)floorf((float)s * scaling);
+                if (loop && (buf_pos >= buf_num_samples)) {
+                    buf_pos %= buf_num_samples;
+                }
+                if (buf_pos < buf_num_samples) {
+                    bus_data[s] += buf_data[buf_pos];
+                }
+            }
+        } else {
+            assert(c > 0);
+            memcpy(bus_data, bus->channel_data[c-1], bus_num_samples * sizeof(float));
+        }
+    }
+}
+
+void am_audio_track_node::post_render(am_audio_context *context, int num_samples) {
+    float scaling =
+        playback_speed.current_value
+        * ((float)sample_rate / (float)am_conf_audio_sample_rate);
+    int buf_samples = buffer->size / (num_channels * sizeof(float));
+    int played_samples = (int)floorf((float)num_samples * scaling);
+    position += played_samples;
+    if (loop && (position >= buf_samples)) {
+        position %= buf_samples;
+    }
+}
+
 // Oscillator Node
 
-am_oscillator_node::am_oscillator_node() : phase(0), freq(440), waveform(AM_WAVEFORM_SINE) {
+am_oscillator_node::am_oscillator_node()
+    : phase(0)
+    , freq(440)
+    , waveform(AM_WAVEFORM_SINE)
+{
     offset = 0;
 }
 
@@ -108,7 +174,7 @@ void am_oscillator_node::render_audio(am_audio_context *context, am_audio_bus *b
             for (int i = 0; i < num_samples; i++) {
                 float val = sinf(AM_PI*2.0f*freq_val*(float)t+phase_val);
                 for (int c = 0; c < num_channels; c++) {
-                    bus->channel_data[c][i] = val;
+                    bus->channel_data[c][i] += val;
                 }
                 phase_val += phase_inc;
                 freq_val += freq_inc;
@@ -120,6 +186,7 @@ void am_oscillator_node::render_audio(am_audio_context *context, am_audio_bus *b
 }
 
 //-------------------------------------------------------------------------
+// Lua bindings.
 
 static int search_uservalues(lua_State *L, am_audio_node *node) {
     if (node_marked(node)) return 0; // cycle
@@ -301,6 +368,8 @@ static int alias(lua_State *L) {
     return 1;
 }
 
+// Gain node lua bindings
+
 static int create_gain_node(lua_State *L) {
     am_check_nargs(L, 2);
     am_gain_node *node = am_new_userdata(L, am_gain_node);
@@ -333,6 +402,49 @@ static void register_gain_node_mt(lua_State *L) {
 
     am_register_metatable(L, MT_am_gain_node, MT_am_audio_node);
 }
+
+// Audio track node lua bindings
+
+static int create_audio_track_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    am_audio_track_node *node = am_new_userdata(L, am_audio_track_node);
+    node->buffer = am_get_userdata(L, am_buffer, 1);
+    node->buffer_ref = node->ref(L, 1);
+    if (nargs > 1) {
+        node->loop = lua_toboolean(L, 2);
+    }
+    if (nargs > 2) {
+        node->playback_speed.set_immediate(luaL_checknumber(L, 3));
+    }
+    return 1;
+}
+
+static void get_playback_speed(lua_State *L, void *obj) {
+    am_audio_track_node *node = (am_audio_track_node*)obj;
+    lua_pushnumber(L, node->playback_speed.pending_value);
+}
+
+static void set_playback_speed(lua_State *L, void *obj) {
+    am_audio_track_node *node = (am_audio_track_node*)obj;
+    node->playback_speed.pending_value = luaL_checknumber(L, 3);
+}
+
+static am_property playback_speed_property = {get_playback_speed, set_playback_speed};
+
+static void register_audio_track_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
+
+    am_register_property(L, "playback_speed", &playback_speed_property);
+
+    lua_pushstring(L, "track");
+    lua_setfield(L, -2, "tname");
+
+    am_register_metatable(L, MT_am_audio_track_node, MT_am_audio_node);
+}
+
+// Oscillator node lua bindings
 
 static int create_oscillator_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
@@ -382,6 +494,8 @@ static void register_oscillator_node_mt(lua_State *L) {
     am_register_metatable(L, MT_am_oscillator_node, MT_am_audio_node);
 }
 
+// Audio node lua bindings
+
 static int make_root(lua_State *L) {
     am_check_nargs(L, 1);
     am_audio_node *node = am_get_userdata(L, am_audio_node, 1);
@@ -430,14 +544,19 @@ static void register_audio_node_mt(lua_State *L) {
     am_register_metatable(L, MT_am_audio_node, 0);
 }
 
+//-------------------------------------------------------------------------
+// Module registration
+
 void am_open_audio_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"oscillator", create_oscillator_node},
+        {"track", create_audio_track_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_audio_node_mt(L);
     register_gain_node_mt(L);
+    register_audio_track_node_mt(L);
     register_oscillator_node_mt(L);
 
     lua_newtable(L);
@@ -445,7 +564,7 @@ void am_open_audio_module(lua_State *L) {
 }
 
 //-------------------------------------------------------------------------
-
+//-------------------------------------------------------------------------
 
 void am_init_audio(int sample_rate) {
     audio_context.sample_rate = sample_rate;

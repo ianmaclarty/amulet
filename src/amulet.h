@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <math.h>
 
 #include <new>
 #include <climits>
@@ -39,7 +40,6 @@ extern "C" {
 #include "am_input.h"
 #include "am_embedded_lua.h"
 #include "am_userdata.h"
-#include "am_audio.h"
 #include "am_config.h"
 #include "am_reserved_refs.h"
 #include "am_logging.h"
@@ -48,6 +48,7 @@ extern "C" {
 #include "am_math.h"
 #include "am_window.h"
 #include "am_buffer.h"
+#include "am_audio.h"
 #include "am_trail.h"
 #include "am_action.h"
 #include "am_scene.h"

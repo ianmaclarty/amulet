@@ -24,6 +24,7 @@ typedef enum {
 
     MT_am_audio_node,
     MT_am_gain_node,
+    MT_am_audio_track_node,
     MT_am_oscillator_node,
 
     MT_am_buffer,
