@@ -10,6 +10,7 @@ static SDL_Surface* sdl_window;
 static const char *filename = "main.lua";
 
 static void init_sdl();
+static void init_audio();
 static bool handle_events();
 static int report_status(lua_State *L, int status);
 
@@ -25,7 +26,6 @@ am_native_window *am_create_native_window(
     int msaa_samples)
 {
     if (sdl_window != NULL) return NULL;
-    /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -46,7 +46,6 @@ am_native_window *am_create_native_window(
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     }
-    */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     Uint32 flags = SDL_OPENGL;
     switch (mode) {
@@ -100,6 +99,8 @@ static void main_loop() {
         return;
     }
 
+    am_sync_audio_graph(L);
+
     if (!handle_events()) {
         run_loop = false;
         return;
@@ -132,7 +133,7 @@ static void main_loop() {
 
     if (t - fps_t0 >= 2.0) {
         fps = (double)frame_count / (t - fps_t0);
-        am_debug("fps = %0.2f", fps);
+        //am_debug("fps = %0.2f", fps);
         fps_t0 = t0;
         fps_max = 0.0;
         frame_count = 0;
@@ -182,7 +183,8 @@ static int report_status(lua_State *L, int status) {
 }
 
 static void init_sdl() {
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    init_audio();
 }
 
 static bool handle_events() {
@@ -221,5 +223,64 @@ static bool handle_events() {
     }
     return true;
 }
+
+static float *audio_buffer = NULL;
+
+static void audio_callback(void *ud, Uint8 *stream, int len) {
+    static int count = 0;
+    /*
+    if (count > 0) {
+        memset(stream, 0, len);
+        return;
+    }
+    */
+    count++;
+    assert(audio_buffer != NULL);
+    if (len != (int)sizeof(int16_t) * am_conf_audio_buffer_size * am_conf_audio_channels) {
+        am_debug("audio buffer size mismatch! (%d vs %d)",
+            len, 
+            (int)sizeof(int16_t) * am_conf_audio_buffer_size * am_conf_audio_channels);
+        memset(stream, 0, len);
+        return;
+    }
+    int num_channels = am_conf_audio_channels;
+    int num_samples = am_conf_audio_buffer_size;
+    float *buffer = audio_buffer;
+    memset(buffer, 0, sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
+    am_audio_bus bus;
+    bus.num_channels = num_channels;
+    bus.num_samples = num_samples;
+    bus.buffer = buffer;
+    for (int i = 0; i < num_channels; i++) {
+        bus.channel_data[i] = bus.buffer + i * num_samples;
+    }
+    am_fill_audio_bus(&bus);
+    // SDL expects channels to be interleaved
+    //am_debug("--------------------------------------------");
+    //am_debug("num_samples = %d", num_samples);
+    for (int c = 0; c < num_channels; c++) {
+        for (int i = 0; i < num_samples; i++) {
+            ((int16_t*)stream)[i * num_channels + c] = (int16_t)(bus.channel_data[c][i] * 32767.0f);
+            //if (c == 0) am_debug("* %d", ((int16_t*)stream)[i * num_channels + c]);
+        }
+    }
+}
+
+static void init_audio() {
+    audio_buffer = (float*)malloc(sizeof(float) * am_conf_audio_channels * am_conf_audio_buffer_size);
+    SDL_AudioSpec desired;
+    desired.freq = am_conf_audio_sample_rate;
+    desired.format = AUDIO_S16LSB;
+    desired.channels = am_conf_audio_channels;
+    desired.samples = am_conf_audio_buffer_size;
+    desired.callback = audio_callback;
+    desired.userdata = NULL;
+    SDL_AudioSpec obtained;
+    SDL_OpenAudio(&desired, &obtained);
+    am_init_audio(obtained.freq);
+    am_debug("sample_rate = %d", obtained.freq);
+    SDL_PauseAudio(0);
+}
+
 
 #endif // AM_BACKEND_EMSCRIPTEN

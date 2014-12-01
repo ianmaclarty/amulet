@@ -57,20 +57,22 @@ end
 
 local top = group:bind_mat4("MVP", MVP):program(prog)
 
-local audio_buf = am.buffer(4 * 2 * 48000)
+local n = 44100
+local audio_buf = am.buffer(4 * 2 * n)
 local left_channel = audio_buf:view("float", 0, 4)
-local right_channel = audio_buf:view("float", 48000*4, 4)
+local right_channel = audio_buf:view("float", n*4, 4)
 local freq = 220
-for i = 1, 48000 do
-    local sample = math.sin(((i-1)/48000) * 2 * math.pi * freq)
+for i = 1, n do
+    local sample = math.sin(((i-1)/n) * 2 * math.pi * freq)
     left_channel[i] = sample
     right_channel[i] = sample
 end
+--local sound = am.oscillator(220)
 --local sound = am.oscillator(220):gain(1)
-local sound = am.track(audio_buf, true, 1.71)
---sound:add(am.track(audio_buf, true, 1.1))
---sound:add(am.track(audio_buf, true, 0.5))
---sound:add(am.track(audio_buf, true, 3.8))
+local sound = am.track(audio_buf, true, 1):gain(0.2)
+sound:add(am.track(audio_buf, true, 1.1))
+sound:add(am.track(audio_buf, true, 0.5))
+sound:add(am.track(audio_buf, true, 3.8))
 sound:make_root()
 
 local t = 0

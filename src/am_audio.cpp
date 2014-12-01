@@ -85,7 +85,7 @@ am_audio_track_node::am_audio_track_node()
     buffer = NULL;
     buffer_ref = LUA_NOREF;
     num_channels = 2;
-    sample_rate = 48000;
+    sample_rate = 44100;
     position = 0;
     loop = false;
 }
