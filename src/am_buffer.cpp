@@ -56,21 +56,23 @@ static int create_buffer_view(lua_State *L) {
         type = AM_BUF_ELEM_TYPE_FLOAT;
         type_size = sizeof(float);
     } else if (strcmp(typestr, "float2") == 0) {
-        type = AM_BUF_ELEM_TYPE_FLOAT_VEC2;
+        type = AM_BUF_ELEM_TYPE_FLOAT2;
         type_size = sizeof(float) * 2;
     } else if (strcmp(typestr, "float3") == 0) {
-        type = AM_BUF_ELEM_TYPE_FLOAT_VEC3;
+        type = AM_BUF_ELEM_TYPE_FLOAT3;
         type_size = sizeof(float) * 3;
     } else if (strcmp(typestr, "float4") == 0) {
-        type = AM_BUF_ELEM_TYPE_FLOAT_VEC4;
+        type = AM_BUF_ELEM_TYPE_FLOAT4;
         type_size = sizeof(float) * 4;
+    } else if (strcmp(typestr, "ubyte") == 0) {
+        type = AM_BUF_ELEM_TYPE_UBYTE;
+        type_size = sizeof(uint8_t);
     } else {
         return luaL_error(L, "unknown buffer view type: '%s'", typestr);
     }
 
     int offset = luaL_checkinteger(L, 3);
     int stride = luaL_checkinteger(L, 4);
-    bool normalized = false;
 
     int size = INT_MAX;
     if (nargs > 4) size = luaL_checkinteger(L, 5);
@@ -81,6 +83,11 @@ static int create_buffer_view(lua_State *L) {
     }
     if (size > max_size) {
         size = max_size;
+    }
+
+    bool normalized = false;
+    if (nargs > 5) {
+        normalized = lua_toboolean(L, 6);
     }
 
     am_buffer_view *view = am_new_userdata(L, am_buffer_view);
@@ -108,16 +115,24 @@ static int buffer_view_index(lua_State *L) {
             lua_pushnumber(L, view->get_float(index-1));
             break;
         }
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC2: {
+        case AM_BUF_ELEM_TYPE_FLOAT2: {
             view->get_float2(index-1, am_new_userdata(L, am_vec2));
             break;
         }
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC3: {
+        case AM_BUF_ELEM_TYPE_FLOAT3: {
             view->get_float3(index-1, am_new_userdata(L, am_vec3));
             break;
         }
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC4: {
+        case AM_BUF_ELEM_TYPE_FLOAT4: {
             view->get_float4(index-1, am_new_userdata(L, am_vec4));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UBYTE: {
+            if (view->normalized) {
+                lua_pushnumber(L, ((lua_Number)view->get_ubyte(index-1)) / 255.0);
+            } else {
+                lua_pushinteger(L, view->get_ubyte(index-1));
+            }
             break;
         }
     }
@@ -139,16 +154,24 @@ static int buffer_view_newindex(lua_State *L) {
             view->set_float(index-1, luaL_checknumber(L, 3));
             break;
         }
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC2: {
+        case AM_BUF_ELEM_TYPE_FLOAT2: {
             view->set_float2(index-1, am_get_userdata(L, am_vec2, 3));
             break;
         }
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC3: {
+        case AM_BUF_ELEM_TYPE_FLOAT3: {
             view->set_float3(index-1, am_get_userdata(L, am_vec3, 3));
             break;
         }
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC4: {
+        case AM_BUF_ELEM_TYPE_FLOAT4: {
             view->set_float4(index-1, am_get_userdata(L, am_vec4, 3));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UBYTE: {
+            if (view->normalized) {
+                view->set_ubyte(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 255.0);
+            } else {
+                view->set_ubyte(index-1, am_clamp(luaL_checkinteger(L, 3), 0, 255));
+            }
             break;
         }
     }
@@ -212,65 +235,17 @@ void am_buf_view_type_to_attr_client_type_and_dimensions(am_buffer_view_type t, 
         case AM_BUF_ELEM_TYPE_FLOAT:
             *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 1;
             return;
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC2:
+        case AM_BUF_ELEM_TYPE_FLOAT2:
             *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 2;
             return;
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC3:
+        case AM_BUF_ELEM_TYPE_FLOAT3:
             *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 3;
             return;
-        case AM_BUF_ELEM_TYPE_FLOAT_VEC4:
+        case AM_BUF_ELEM_TYPE_FLOAT4:
             *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 4;
             return;
-        /*
-        case AM_BUF_ELEM_TYPE_BYTE:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 1;
+        case AM_BUF_ELEM_TYPE_UBYTE:
+            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UBYTE; *dims = 1;
             return;
-        case AM_BUF_ELEM_TYPE_BYTE_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 2;
-            return;
-        case AM_BUF_ELEM_TYPE_BYTE_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 3;
-            return;
-        case AM_BUF_ELEM_TYPE_BYTE_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_BYTE; *dims = 4;
-            return;
-        case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *dims = 1;
-            return;
-        case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *dims = 2;
-            return;
-        case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *dims = 3;
-            return;
-        case AM_BUF_ELEM_TYPE_UNSIGNED_BYTE_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE; *dims = 4;
-            return;
-        case AM_BUF_ELEM_TYPE_SHORT:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *dims = 1;
-            return;
-        case AM_BUF_ELEM_TYPE_SHORT_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *dims = 2;
-            return;
-        case AM_BUF_ELEM_TYPE_SHORT_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *dims = 3;
-            return;
-        case AM_BUF_ELEM_TYPE_SHORT_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_SHORT; *dims = 4;
-            return;
-        case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 1;
-            return;
-        case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 2;
-            return;
-        case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 3;
-            return;
-        case AM_BUF_ELEM_TYPE_UNSIGNED_SHORT_VEC4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT; *dims = 4;
-            return;
-        */
     }
-    return;
 }

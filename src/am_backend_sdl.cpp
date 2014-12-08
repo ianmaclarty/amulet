@@ -16,6 +16,7 @@ enum axis_button {
     NUM_AXIS_BUTTONS
 };
 
+static SDL_AudioDeviceID audio_device = 0;
 static std::vector<SDL_Window*> windows;
 static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
@@ -212,7 +213,6 @@ int main( int argc, char *argv[] )
         }
 
         if (!am_update_windows(L)) {
-            exit_status = EXIT_FAILURE;
             goto quit;
         }
 
@@ -265,8 +265,13 @@ quit:
     for (unsigned int i = 0; i < windows.size(); i++) {
         SDL_DestroyWindow(windows[i]);
     }
-    if (sdl_initialized) SDL_Quit();
-#ifdef LTOSX
+    if (audio_device != 0) {
+        SDL_PauseAudioDevice(audio_device, 1);
+    }
+    if (sdl_initialized) {
+        SDL_Quit();
+    }
+#ifdef AM_OSX
     [pool release];
 #endif
     return exit_status;
@@ -284,9 +289,9 @@ static int report_status(lua_State *L, int status) {
 
 static void init_sdl() {
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
-    sdl_initialized = true;
     init_gamepad();
     init_audio();
+    sdl_initialized = true;
 }
 
 static float *audio_buffer = NULL;
@@ -324,13 +329,13 @@ static void init_audio() {
     desired.callback = audio_callback;
     desired.userdata = NULL;
     SDL_AudioSpec obtained;
-    SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
+    audio_device = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
     am_init_audio(obtained.freq);
-    if (dev == 0) {
+    if (audio_device == 0) {
         am_report_error("Failed to open audio: %s\n", SDL_GetError());
         return;
     }
-    SDL_PauseAudioDevice(dev, 0);
+    SDL_PauseAudioDevice(audio_device, 0);
 }
 
 static bool handle_events() {
@@ -714,7 +719,7 @@ static LTKey convert_key(SDL_Keycode key) {
 
 static bool process_args(int argc, char **argv) {
     bool in_osx_bundle = false;
-#ifdef LTOSX
+#ifdef AM_OSX
     NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
     in_osx_bundle = (bundleIdentifier != nil);
 #endif

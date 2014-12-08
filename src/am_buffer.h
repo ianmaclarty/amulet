@@ -1,8 +1,9 @@
 enum am_buffer_view_type {
     AM_BUF_ELEM_TYPE_FLOAT,
-    AM_BUF_ELEM_TYPE_FLOAT_VEC2,
-    AM_BUF_ELEM_TYPE_FLOAT_VEC3,
-    AM_BUF_ELEM_TYPE_FLOAT_VEC4,
+    AM_BUF_ELEM_TYPE_FLOAT2,
+    AM_BUF_ELEM_TYPE_FLOAT3,
+    AM_BUF_ELEM_TYPE_FLOAT4,
+    AM_BUF_ELEM_TYPE_UBYTE,
 };
 
 struct am_vbo_info {
@@ -67,6 +68,14 @@ struct am_buffer_view : am_nonatomic_userdata {
 
     inline void set_float4(int i, am_vec4 *v4) {
         memcpy(view_index_ptr(this, i), &v4->v, sizeof(float) * 4);
+    }
+
+    inline uint8_t get_ubyte(int i) {
+        return *((uint8_t*)view_index_ptr(this, i));
+    }
+
+    inline void set_ubyte(int i, uint8_t v) {
+        *((uint8_t*)view_index_ptr(this, i)) = v;
     }
 };
 

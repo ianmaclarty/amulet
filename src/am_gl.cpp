@@ -467,8 +467,8 @@ int am_attribute_client_type_size(am_attribute_client_type t) {
     switch (t) {
         case AM_ATTRIBUTE_CLIENT_TYPE_BYTE: return 1;
         case AM_ATTRIBUTE_CLIENT_TYPE_SHORT: return 2;
-        case AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE: return 1;
-        case AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT: return 2;
+        case AM_ATTRIBUTE_CLIENT_TYPE_UBYTE: return 1;
+        case AM_ATTRIBUTE_CLIENT_TYPE_USHORT: return 2;
         case AM_ATTRIBUTE_CLIENT_TYPE_FLOAT: return 4;
         default: am_abort("INTERNAL ERROR: unknown am_attribute_client_type %d", t); return 0;
     }
@@ -957,8 +957,8 @@ static GLenum to_gl_attr_client_type(am_attribute_client_type t) {
     switch (t) {
         case AM_ATTRIBUTE_CLIENT_TYPE_BYTE: return GL_BYTE;
         case AM_ATTRIBUTE_CLIENT_TYPE_SHORT: return GL_SHORT;
-        case AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE: return GL_UNSIGNED_BYTE;
-        case AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT: return GL_UNSIGNED_SHORT;
+        case AM_ATTRIBUTE_CLIENT_TYPE_UBYTE: return GL_UNSIGNED_BYTE;
+        case AM_ATTRIBUTE_CLIENT_TYPE_USHORT: return GL_UNSIGNED_SHORT;
         case AM_ATTRIBUTE_CLIENT_TYPE_FLOAT: return GL_FLOAT;
         default: am_abort("INTERNAL ERROR: unknown am_attribute_client_type %d", t); return 0;
     }
@@ -998,10 +998,10 @@ static GLenum to_gl_texture_format(am_texture_format f) {
 
 static GLenum to_gl_pixel_type(am_pixel_type t) {
     switch (t) {
-        case AM_PIXEL_FORMAT_UNSIGNED_BYTE: return GL_UNSIGNED_BYTE;
-        case AM_PIXEL_FORMAT_UNSIGNED_SHORT_5_6_5: return GL_UNSIGNED_SHORT_5_6_5;
-        case AM_PIXEL_FORMAT_UNSIGNED_SHORT_4_4_4_4: return GL_UNSIGNED_SHORT_4_4_4_4;
-        case AM_PIXEL_FORMAT_UNSIGNED_SHORT_5_5_5_1: return GL_UNSIGNED_SHORT_5_5_5_1;
+        case AM_PIXEL_FORMAT_UBYTE: return GL_UNSIGNED_BYTE;
+        case AM_PIXEL_FORMAT_USHORT_5_6_5: return GL_UNSIGNED_SHORT_5_6_5;
+        case AM_PIXEL_FORMAT_USHORT_4_4_4_4: return GL_UNSIGNED_SHORT_4_4_4_4;
+        case AM_PIXEL_FORMAT_USHORT_5_5_5_1: return GL_UNSIGNED_SHORT_5_5_5_1;
         default: am_abort("INTERNAL ERROR: unknown am_pixel_type %d", t); return 0;
     }
 }
@@ -1070,8 +1070,8 @@ static GLenum to_gl_draw_mode(am_draw_mode m) {
 
 static GLenum to_gl_element_index_type(am_element_index_type t) {
     switch (t) {
-        case AM_ELEMENT_TYPE_UNSIGNED_BYTE: return GL_UNSIGNED_BYTE;
-        case AM_ELEMENT_TYPE_UNSIGNED_SHORT: return GL_UNSIGNED_SHORT;
+        case AM_ELEMENT_TYPE_UBYTE: return GL_UNSIGNED_BYTE;
+        case AM_ELEMENT_TYPE_USHORT: return GL_UNSIGNED_SHORT;
         default: am_abort("INTERNAL ERROR: unknown am_element_index_type %d", t); return 0;
     }
 }

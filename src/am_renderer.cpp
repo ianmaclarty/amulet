@@ -67,7 +67,7 @@ am_render_state::am_render_state() {
     active_indices_id = 0;
     active_indices_max_value = 0;
     active_indices_max_size = 0;
-    active_indices_type = AM_ELEMENT_TYPE_UNSIGNED_SHORT;
+    active_indices_type = AM_ELEMENT_TYPE_USHORT;
 
     max_draw_array_size = 0;
 

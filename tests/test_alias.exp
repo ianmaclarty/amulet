@@ -1,7 +1,7 @@
 A:bind_vec2
 B:bind_vec3
 C:bind_vec4
-node
+scene_node
 AA
 BB
 CC
@@ -9,26 +9,26 @@ CC
 C(bind_vec4)
   B(bind_vec3)
     A(bind_vec2)
-      base(node)
+      base(scene_node)
 
 C(bind_vec4)
   B(bind_vec3)
     A(bind_vec2)
-      base(node)
-        D(node)
+      base(scene_node)
+        D(scene_node)
 
 C(bind_vec4)
   B(bind_vec3)
     A(bind_vec2)
-      base(node)
-        D(node)
-    E(node)
+      base(scene_node)
+        D(scene_node)
+    E(scene_node)
 
 C(bind_vec4)
   B(bind_vec3)
     A(bind_vec2)
-      base(node)
-        D(node)
+      base(scene_node)
+        D(scene_node)
 
 2
 3
@@ -36,22 +36,22 @@ C(bind_vec4)
 ---
 C(bind_vec3)
   B(bind_vec2)
-    A(node)
+    A(scene_node)
       C(bind_vec3) [cycle]
 
-A(node)
+A(scene_node)
   C(bind_vec3)
     B(bind_vec2)
-      A(node) [cycle]
+      A(scene_node) [cycle]
 
 B(bind_vec2)
-  A(node)
+  A(scene_node)
     C(bind_vec3)
       B(bind_vec2) [cycle]
 
 C(bind_vec3)
   B(bind_vec2)
-    A(node)
+    A(scene_node)
       C(bind_vec3) [cycle]
 
 1

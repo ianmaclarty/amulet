@@ -68,7 +68,7 @@ void am_program_param::bind(am_render_state *rstate) {
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
                 am_set_attribute_array_enabled(location, false);
                 am_set_attribute2f(location, slot->value.value.v2);
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC2) {
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT2) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.value.arr);
             }
             break;
@@ -76,7 +76,7 @@ void am_program_param::bind(am_render_state *rstate) {
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
                 am_set_attribute_array_enabled(location, false);
                 am_set_attribute3f(location, slot->value.value.v3);
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC3) {
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT3) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.value.arr);
             }
             break;
@@ -84,7 +84,7 @@ void am_program_param::bind(am_render_state *rstate) {
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
                 am_set_attribute_array_enabled(location, false);
                 am_set_attribute4f(location, slot->value.value.v4);
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT_VEC4) {
+            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT4) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.value.arr);
             }
             break;

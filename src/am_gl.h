@@ -234,8 +234,8 @@ enum am_uniform_var_type {
 enum am_attribute_client_type {
     AM_ATTRIBUTE_CLIENT_TYPE_BYTE,
     AM_ATTRIBUTE_CLIENT_TYPE_SHORT,
-    AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_BYTE,
-    AM_ATTRIBUTE_CLIENT_TYPE_UNSIGNED_SHORT,
+    AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,
+    AM_ATTRIBUTE_CLIENT_TYPE_USHORT,
     AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,
 };
 
@@ -298,10 +298,10 @@ enum am_texture_format {
 };
 
 enum am_pixel_type {
-    AM_PIXEL_FORMAT_UNSIGNED_BYTE,
-    AM_PIXEL_FORMAT_UNSIGNED_SHORT_5_6_5,
-    AM_PIXEL_FORMAT_UNSIGNED_SHORT_4_4_4_4,
-    AM_PIXEL_FORMAT_UNSIGNED_SHORT_5_5_5_1,
+    AM_PIXEL_FORMAT_UBYTE,
+    AM_PIXEL_FORMAT_USHORT_5_6_5,
+    AM_PIXEL_FORMAT_USHORT_4_4_4_4,
+    AM_PIXEL_FORMAT_USHORT_5_5_5_1,
 };
 
 enum am_texture_min_filter {
@@ -408,8 +408,8 @@ enum am_draw_mode {
 };
 
 enum am_element_index_type {
-    AM_ELEMENT_TYPE_UNSIGNED_BYTE,
-    AM_ELEMENT_TYPE_UNSIGNED_SHORT,
+    AM_ELEMENT_TYPE_UBYTE,
+    AM_ELEMENT_TYPE_USHORT,
 };
 
 void am_draw_arrays(am_draw_mode mode, int first, int count);

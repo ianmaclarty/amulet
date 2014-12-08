@@ -1,3 +1,5 @@
+#define am_clamp(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
+
 struct am_vec2 : am_userdata {
     glm::vec2 v;
 };
