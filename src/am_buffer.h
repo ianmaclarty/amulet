@@ -6,22 +6,27 @@ enum am_buffer_view_type {
     AM_BUF_ELEM_TYPE_UBYTE,
 };
 
-struct am_vbo_info {
-    am_buffer_id buffer_id; // 0 if no vbo for this buffer
-    int dirty_start;
-    int dirty_end;
-
-    am_vbo_info();
+struct am_texture2d_info {
+    am_texture_id           texture_id;
+    int                     width;
+    int                     height;
+    am_texture_format       format;
+    am_pixel_type           type;
+    bool                    has_mipmap;
 };
 
 struct am_buffer : am_nonatomic_userdata {
     int                 size;  // in bytes
     uint8_t             *data;
-    am_vbo_info         vbo;
+    am_buffer_id        vbo_id;
+    am_texture2d_info   *texture2d_info;
+    int                 dirty_start;
+    int                 dirty_end;
 
     am_buffer(int sz);
     void destroy();
     void create_vbo();
+    void update_if_dirty();
 };
 
 struct am_buffer_view : am_nonatomic_userdata {
@@ -80,4 +85,3 @@ struct am_buffer_view : am_nonatomic_userdata {
 };
 
 void am_open_buffer_module(lua_State *L);
-void am_buf_view_type_to_attr_client_type_and_dimensions(am_buffer_view_type t, am_attribute_client_type *ctype, int *dims);

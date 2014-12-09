@@ -3,7 +3,7 @@
 typedef enum {
     AM_PARAM_NAME_STRING_TABLE = AM_RESERVED_REFS_START,
     AM_WINDOW_TABLE,
-    AM_AUDIO_ROOTS_TABLE,
+    AM_ROOT_AUDIO_NODE,
 
     MT_am_window,
     MT_am_program,
@@ -12,6 +12,7 @@ typedef enum {
     MT_am_action,
     MT_am_program_node,
     MT_am_bind_array_node,
+    MT_am_bind_sampler2d_node,
     MT_am_bind_mat2_node,
     MT_am_bind_mat3_node,
     MT_am_bind_mat4_node,
@@ -35,6 +36,13 @@ typedef enum {
     MT_am_mat2,
     MT_am_mat3,
     MT_am_mat4,
+
+    ENUM_am_buffer_view_type,
+    ENUM_am_texture_format,
+    ENUM_am_pixel_type,
+    ENUM_am_texture_min_filter,
+    ENUM_am_texture_mag_filter,
+    ENUM_am_texture_wrap,
 
     AM_TRACEBACK_FUNC,
 

@@ -75,6 +75,8 @@ am_render_state::am_render_state() {
 
     bound_program_id = 0;
     active_program = NULL;
+
+    next_free_texture_unit = 0;
 }
 
 am_render_state::~am_render_state() {

@@ -24,10 +24,11 @@ inline static float linear_incf(am_audio_param<float> param, int samples) {
 am_audio_node::am_audio_node() {
     pending_children.owner = this;
     live_children.owner = this;
-    flags = 0;
-    recursion_limit = 0;
     last_sync = 0;
     last_render = 0;
+    flags = 0;
+    recursion_limit = 0;
+    root_ref = LUA_NOREF;
 }
 
 void am_audio_node::sync_params() {
@@ -496,15 +497,14 @@ static void register_oscillator_node_mt(lua_State *L) {
 
 // Audio node lua bindings
 
-static int make_root(lua_State *L) {
-    am_check_nargs(L, 1);
-    am_audio_node *node = am_get_userdata(L, am_audio_node, 1);
-    audio_context.roots.push_back(node);
-    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_AUDIO_ROOTS_TABLE);
-    lua_pushvalue(L, 1);
-    luaL_ref(L, -2);
-    lua_pop(L, 1); // roots table
-    return 0;
+static int create_audio_node(lua_State *L) {
+    am_new_userdata(L, am_audio_node);
+    return 1;
+}
+
+static int get_root_audio_node(lua_State *L) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_ROOT_AUDIO_NODE);
+    return 1;
 }
 
 static void register_audio_node_mt(lua_State *L) {
@@ -535,9 +535,6 @@ static void register_audio_node_mt(lua_State *L) {
     lua_pushcclosure(L, create_gain_node, 0);
     lua_setfield(L, -2, "gain");
 
-    lua_pushcclosure(L, make_root, 0);
-    lua_setfield(L, -2, "make_root");
-
     lua_pushstring(L, "audio_node");
     lua_setfield(L, -2, "tname");
 
@@ -549,8 +546,10 @@ static void register_audio_node_mt(lua_State *L) {
 
 void am_open_audio_module(lua_State *L) {
     luaL_Reg funcs[] = {
+        {"audio_node", create_audio_node},
         {"oscillator", create_oscillator_node},
         {"track", create_audio_track_node},
+        {"root_audio_node", get_root_audio_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
@@ -559,18 +558,21 @@ void am_open_audio_module(lua_State *L) {
     register_audio_track_node_mt(L);
     register_oscillator_node_mt(L);
 
-    lua_newtable(L);
-    lua_rawseti(L, LUA_REGISTRYINDEX, AM_AUDIO_ROOTS_TABLE);
+    audio_context.sample_rate = am_conf_audio_sample_rate;
+    audio_context.sync_id = 0;
+    audio_context.render_id = 0;
+
+    // Create root audio node
+    create_audio_node(L);
+    audio_context.root = am_get_userdata(L, am_audio_node, -1);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_ROOT_AUDIO_NODE);
 }
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 
-void am_init_audio(int sample_rate) {
-    audio_context.sample_rate = sample_rate;
-    audio_context.sync_id = 0;
-    audio_context.render_id = 0;
-    audio_context.roots.clear();
+void am_destroy_audio() {
+    audio_context.root = NULL;
 }
 
 static void do_post_render(am_audio_context *context, int num_samples, am_audio_node *node) {
@@ -583,15 +585,10 @@ static void do_post_render(am_audio_context *context, int num_samples, am_audio_
 }
 
 void am_fill_audio_bus(am_audio_bus *bus) {
-    for (unsigned int i = 0; i < audio_context.roots.size(); i++) {
-        am_audio_node *root = audio_context.roots[i];
-        root->render_audio(&audio_context, bus);
-    }
+    if (audio_context.root == NULL) return;
+    audio_context.root->render_audio(&audio_context, bus);
     audio_context.render_id++;
-    for (unsigned int i = 0; i < audio_context.roots.size(); i++) {
-        am_audio_node *root = audio_context.roots[i];
-        do_post_render(&audio_context, bus->num_samples, root);
-    }
+    do_post_render(&audio_context, bus->num_samples, audio_context.root);
 }
 
 static void sync_children_list(lua_State *L, am_audio_node *node) {
@@ -632,9 +629,7 @@ static void sync_audio_graph(lua_State *L, am_audio_context *context, am_audio_n
 }
 
 void am_sync_audio_graph(lua_State *L) {
+    if (audio_context.root == NULL) return;
     audio_context.sync_id++;
-    for (unsigned int i = 0; i < audio_context.roots.size(); i++) {
-        am_audio_node *root = audio_context.roots[i];
-        sync_audio_graph(L, &audio_context, root);
-    }
+    sync_audio_graph(L, &audio_context, audio_context.root);
 }

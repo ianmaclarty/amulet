@@ -73,6 +73,44 @@ void am_requiref(lua_State *L, const char *modname, lua_CFunction openf) {
 #endif
 }
 
+void am_register_enum(lua_State *L, int enum_id, am_enum_value *values) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, enum_id);
+    if (!(lua_isboolean(L, -1) && lua_toboolean(L, -1))) {
+        am_abort("enum %d already initialized", enum_id);
+    }
+    lua_pop(L, 1);
+    int count = 0;
+    am_enum_value *ptr = values;
+    while (ptr->str != NULL) {
+        ptr++;
+        count++;
+    }
+    lua_createtable(L, count, 0);
+    for (int i = 0; i < count; i++) {
+        lua_pushstring(L, values[i].str);
+        lua_pushinteger(L, values[i].val);
+        lua_rawset(L, -3);
+    }
+    lua_rawseti(L, LUA_REGISTRYINDEX, enum_id);
+}
+
+int am_get_enum_raw(lua_State *L, int enum_id, int idx) {
+    idx = am_absindex(L, idx);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, enum_id);
+    lua_pushvalue(L, idx);
+    lua_rawget(L, -2);
+    if (lua_isnil(L, -1)) {
+        const char *name = lua_tostring(L, idx);
+        if (name == NULL) {
+            name = lua_typename(L, lua_type(L, idx));
+        }
+        return luaL_error(L, "invalid enum value '%s'", name);
+    }
+    int val = lua_tointeger(L, -1);
+    lua_pop(L, 2);
+    return val;
+}
+
 int am_check_nargs(lua_State *L, int n) {
     int nargs = lua_gettop(L);
     if (nargs < n) {

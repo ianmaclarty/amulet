@@ -4,6 +4,15 @@ void am_set_globals_metatable(lua_State *L);
 void am_requiref(lua_State *L, const char *modname, lua_CFunction openf);
 void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs);
 
+struct am_enum_value {
+    const char *str;
+    int val;
+};
+
+void am_register_enum(lua_State *L, int enum_id, am_enum_value *values);
+int am_get_enum_raw(lua_State *L, int enum_id, int idx);
+#define am_get_enum(L, e, idx) ((e)am_get_enum_raw((L), ENUM_##e, (idx)))
+
 int am_check_nargs(lua_State *L, int n);
 
 void am_init_traceback_func(lua_State *L);

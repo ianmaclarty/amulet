@@ -5,17 +5,23 @@ static void bind_attribute_array(am_render_state *rstate,
 {
     am_set_attribute_array_enabled(location, true);
     am_buffer *buf = view->buffer;
-    if (buf->vbo.buffer_id == 0) buf->create_vbo();
-    am_bind_buffer(AM_ARRAY_BUFFER, buf->vbo.buffer_id);
-    if (buf->vbo.dirty_start < buf->vbo.dirty_end) {
-        am_set_buffer_sub_data(AM_ARRAY_BUFFER, buf->vbo.dirty_start, buf->vbo.dirty_end - buf->vbo.dirty_start, buf->data + buf->vbo.dirty_start);
-        buf->vbo.dirty_end = 0;
-        buf->vbo.dirty_start = INT_MAX;
-    }
+    if (buf->vbo_id == 0) buf->create_vbo();
+    buf->update_if_dirty();
+    am_bind_buffer(AM_ARRAY_BUFFER, buf->vbo_id);
     am_set_attribute_pointer(location, dims, type, view->normalized, view->stride, view->offset);
     if (view->size < rstate->max_draw_array_size) {
         rstate->max_draw_array_size = view->size;
     }
+}
+
+static void bind_sampler2d(am_render_state *rstate,
+    am_gluint location, int texture_unit, am_buffer *buf)
+{
+    assert(buf->texture2d_info != NULL);
+    buf->update_if_dirty();
+    am_set_active_texture_unit(texture_unit);
+    am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, buf->texture2d_info->texture_id);
+    am_set_uniform1i(location, texture_unit);
 }
 
 void am_program_param::bind(am_render_state *rstate) {
@@ -54,6 +60,11 @@ void am_program_param::bind(am_render_state *rstate) {
         case AM_PROGRAM_PARAM_UNIFORM_MAT4:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
                 am_set_uniform_mat4(location, slot->value.value.m4);
+            }
+            break;
+        case AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D:
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
+                bind_sampler2d(rstate, location, slot->value.value.sampler2d.texture_unit, slot->value.value.sampler2d.buffer);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
@@ -174,7 +185,7 @@ am_shader_id load_shader(lua_State *L, int type, const char *src) {
 }
 
 static int create_program(lua_State *L) {
-    if (!am_gl_initialized) {
+    if (!am_gl_is_initialized()) {
         return luaL_error(L, "you need to create a window before creating a shader program");
     }
     am_check_nargs(L, 2);
@@ -299,6 +310,9 @@ static int create_program(lua_State *L) {
             case AM_UNIFORM_VAR_TYPE_FLOAT_MAT4:
                 param->type = AM_PROGRAM_PARAM_UNIFORM_MAT4;
                 break;
+            case AM_UNIFORM_VAR_TYPE_SAMPLER_2D:
+                param->type = AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D;
+                break;
             case AM_UNIFORM_VAR_TYPE_INT:
             case AM_UNIFORM_VAR_TYPE_INT_VEC2:
             case AM_UNIFORM_VAR_TYPE_INT_VEC3:
@@ -307,7 +321,6 @@ static int create_program(lua_State *L) {
             case AM_UNIFORM_VAR_TYPE_BOOL_VEC2:
             case AM_UNIFORM_VAR_TYPE_BOOL_VEC3:
             case AM_UNIFORM_VAR_TYPE_BOOL_VEC4:
-            case AM_UNIFORM_VAR_TYPE_SAMPLER_2D:
             case AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE:
             case AM_UNIFORM_VAR_TYPE_UNKNOWN:
                 am_report_message("warning: ignoring uniform '%s' with unsupported type", name_str);
@@ -478,6 +491,45 @@ AM_BIND_VEC_NODE_IMPL(2)
 AM_BIND_VEC_NODE_IMPL(3)
 AM_BIND_VEC_NODE_IMPL(4)
 
+void am_bind_sampler2d_node::render(am_render_state *rstate) {
+    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value old_val = *param;
+    param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D;
+    param->value.sampler2d.texture_unit = rstate->next_free_texture_unit++;
+    param->value.sampler2d.buffer = buffer;
+    render_children(rstate);
+    *param = old_val;
+    rstate->next_free_texture_unit--;
+}
+
+int am_create_bind_sampler2d_node(lua_State *L) {
+    am_check_nargs(L, 3);
+    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
+    am_buffer *buffer = am_get_userdata(L, am_buffer, 3);
+    if (buffer->texture2d_info == NULL) {
+        return luaL_error(L, "call setup_texture2d on this buffer before binding it to a sampler2d");
+    }
+    am_bind_sampler2d_node *node = am_new_userdata(L, am_bind_sampler2d_node);
+    am_set_scene_node_child(L, node);
+    node->name = am_lookup_param_name(L, 2);
+    node->buffer = buffer;
+    node->buffer_ref = node->ref(L, 3); // ref from node to buffer
+
+    return 1;
+}
+
+static void register_bind_sampler2d_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+
+    lua_pushstring(L, "bind_sampler2d");
+    lua_setfield(L, -2, "tname");
+
+    am_register_metatable(L, MT_am_bind_sampler2d_node, MT_am_scene_node);
+}
+
+
 void am_open_program_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"program", create_program},
@@ -487,6 +539,7 @@ void am_open_program_module(lua_State *L) {
     register_program_mt(L);
     register_program_node_mt(L);
     register_bind_array_node_mt(L);
+    register_bind_sampler2d_node_mt(L);
     register_bind_mat2_node_mt(L);
     register_bind_mat3_node_mt(L);
     register_bind_mat4_node_mt(L);

@@ -6,7 +6,7 @@ struct am_audio_context {
     int sample_rate;
     int sync_id;
     int render_id;
-    std::vector<am_audio_node*> roots;
+    am_audio_node* root;
 };
 
 // each channel is a contiguous chunk of memory
@@ -57,6 +57,7 @@ struct am_audio_node : am_nonatomic_userdata {
     int last_render;
     uint32_t flags;
     int recursion_limit;
+    int root_ref;
 
     am_audio_node();
 
@@ -118,6 +119,6 @@ struct am_oscillator_node : am_audio_node {
 
 void am_open_audio_module(lua_State *L);
 
-void am_init_audio(int sample_rate);
+void am_destroy_audio();
 void am_fill_audio_bus(am_audio_bus *bus);
 void am_sync_audio_graph(lua_State *L);

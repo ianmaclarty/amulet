@@ -121,7 +121,7 @@ struct am_render_state {
     am_program_id   bound_program_id;
     am_program      *active_program;
 
-    am_trail        trail;
+    int             next_free_texture_unit;
 
     am_render_state();
     virtual ~am_render_state();

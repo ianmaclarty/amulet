@@ -9,6 +9,7 @@ enum am_program_param_client_type {
     AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3,
     AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4,
     AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY,
+    AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D,
     AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED,
 };
 
@@ -20,10 +21,16 @@ enum am_program_param_type {
     AM_PROGRAM_PARAM_UNIFORM_MAT2,
     AM_PROGRAM_PARAM_UNIFORM_MAT3,
     AM_PROGRAM_PARAM_UNIFORM_MAT4,
+    AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D,
     AM_PROGRAM_PARAM_ATTRIBUTE_1F,
     AM_PROGRAM_PARAM_ATTRIBUTE_2F,
     AM_PROGRAM_PARAM_ATTRIBUTE_3F,
     AM_PROGRAM_PARAM_ATTRIBUTE_4F,
+};
+
+struct am_sampler2d_param_value {
+    am_glint texture_unit;
+    am_buffer *buffer;
 };
 
 struct am_program_param_value {
@@ -37,6 +44,7 @@ struct am_program_param_value {
         float m3[9];
         float m4[16];
         am_buffer_view *arr;
+        am_sampler2d_param_value sampler2d;
     } value;
 };
 
@@ -79,6 +87,14 @@ struct am_bind_array_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
+struct am_bind_sampler2d_node : am_scene_node {
+    am_param_name_id name;
+    am_buffer *buffer;
+    int buffer_ref;
+
+    virtual void render(am_render_state *rstate);
+};
+
 #define AM_BIND_MAT_NODE_DECL(D)                                        \
 struct am_bind_mat##D##_node : am_scene_node {                          \
     am_param_name_id name;                                              \
@@ -105,6 +121,7 @@ AM_BIND_VEC_NODE_DECL(4)
 
 int am_create_program_node(lua_State *L);
 int am_create_bind_array_node(lua_State *L);
+int am_create_bind_sampler2d_node(lua_State *L);
 int am_create_bind_vec2_node(lua_State *L);
 int am_create_bind_vec3_node(lua_State *L);
 int am_create_bind_vec4_node(lua_State *L);

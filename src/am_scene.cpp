@@ -486,6 +486,8 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "bind_vec4");
     lua_pushcclosure(L, am_create_bind_array_node, 0);
     lua_setfield(L, -2, "bind_array");
+    lua_pushcclosure(L, am_create_bind_sampler2d_node, 0);
+    lua_setfield(L, -2, "bind_sampler2d");
     lua_pushcclosure(L, am_create_program_node, 0);
     lua_setfield(L, -2, "program");
     lua_pushcclosure(L, create_empty_node, 0);

@@ -24,7 +24,7 @@ static bool sdl_initialized = false;
 
 static char *filename = NULL;
 
-static bool init_gl();
+static bool init_glew();
 
 static bool controller_present = false;
 static bool axis_button_down[NUM_AXIS_BUTTONS];
@@ -112,12 +112,12 @@ am_native_window *am_create_native_window(
         gl_context_initialized = true;
     }
     SDL_GL_MakeCurrent(win, gl_context);
-    if (!am_gl_initialized) {
-        if (!init_gl()) {
+    if (!am_gl_is_initialized()) {
+        if (!init_glew()) {
             SDL_DestroyWindow(win);
             return NULL;
         }
-        am_gl_initialized = true;
+        am_init_gl();
     }
     windows.push_back(win);
     return (am_native_window*)win;
@@ -146,7 +146,7 @@ double am_get_time() {
     return ((double)SDL_GetTicks())/1000.0;
 }
 
-static bool init_gl() {
+static bool init_glew() {
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
@@ -330,7 +330,6 @@ static void init_audio() {
     desired.userdata = NULL;
     SDL_AudioSpec obtained;
     audio_device = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
-    am_init_audio(obtained.freq);
     if (audio_device == 0) {
         am_report_error("Failed to open audio: %s\n", SDL_GetError());
         return;

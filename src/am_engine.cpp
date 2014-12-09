@@ -30,6 +30,10 @@ lua_State *am_init_engine(bool worker) {
 }
 
 void am_destroy_engine(lua_State *L) {
+    // Audio must be destroyed before closing the lua state, because
+    // closing the lua state will destroy the root audio node.
+    am_destroy_audio();
+    am_destroy_windows(L);
     lua_close(L);
 }
 

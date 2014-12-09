@@ -145,6 +145,14 @@ static void close_windows(lua_State *L) {
     }
 }
 
+void am_destroy_windows(lua_State *L) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        am_window *win = windows[i];
+        win->needs_closing = true;
+    }
+    close_windows(L);
+}
+
 static void draw_windows() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];

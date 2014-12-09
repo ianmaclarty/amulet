@@ -3,7 +3,8 @@ typedef int32_t  am_glint;
 
 // Initialization
 
-extern bool am_gl_initialized;
+void am_init_gl();
+bool am_gl_is_initialized();
 
 // Per-Fragment Operations
 
@@ -128,7 +129,7 @@ enum am_buffer_usage {
     AM_BUFFER_USAGE_DYNAMIC_DRAW
 };
 
-am_buffer_id am_create_buffer();
+am_buffer_id am_create_buffer_object();
 void am_bind_buffer(am_buffer_target target, am_buffer_id buffer);
 void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer_usage usage);
 void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void *data);
@@ -274,6 +275,8 @@ void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_
 
 // Texture Objects
 
+int am_get_max_texture_units();
+
 enum am_texture_bind_target {
     AM_TEXTURE_BIND_TARGET_2D,
     AM_TEXTURE_BIND_TARGET_CUBE_MAP,
@@ -298,10 +301,10 @@ enum am_texture_format {
 };
 
 enum am_pixel_type {
-    AM_PIXEL_FORMAT_UBYTE,
-    AM_PIXEL_FORMAT_USHORT_5_6_5,
-    AM_PIXEL_FORMAT_USHORT_4_4_4_4,
-    AM_PIXEL_FORMAT_USHORT_5_5_5_1,
+    AM_PIXEL_TYPE_UBYTE,
+    AM_PIXEL_TYPE_USHORT_5_6_5,
+    AM_PIXEL_TYPE_USHORT_4_4_4_4,
+    AM_PIXEL_TYPE_USHORT_5_5_5_1,
 };
 
 enum am_texture_min_filter {
@@ -337,6 +340,8 @@ void am_copy_texture_image_2d(am_texture_copy_target target, int level, am_textu
 void am_copy_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int x, int y, int w, int h);
 
 void am_generate_mipmap(am_texture_bind_target target);
+
+int am_texture_required_size(am_texture_format format, int w, int h, am_pixel_type type);
 
 void am_set_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int w, int h, am_pixel_type type, void *data);
 void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int w, int h, am_texture_format format, am_pixel_type type, void *data);

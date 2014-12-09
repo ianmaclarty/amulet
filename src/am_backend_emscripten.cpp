@@ -60,7 +60,7 @@ am_native_window *am_create_native_window(
     if (sdl_window == NULL) {
         return NULL;
     }
-    am_gl_initialized = true;
+    am_init_gl();
     return (am_native_window*)sdl_window;
 }
 
@@ -133,7 +133,7 @@ static void main_loop() {
 
     if (t - fps_t0 >= 2.0) {
         fps = (double)frame_count / (t - fps_t0);
-        //am_debug("fps = %0.2f", fps);
+        am_debug("fps = %0.2f", fps);
         fps_t0 = t0;
         fps_max = 0.0;
         frame_count = 0;
@@ -277,8 +277,6 @@ static void init_audio() {
     desired.userdata = NULL;
     SDL_AudioSpec obtained;
     SDL_OpenAudio(&desired, &obtained);
-    am_init_audio(obtained.freq);
-    am_debug("sample_rate = %d", obtained.freq);
     SDL_PauseAudio(0);
 }
 

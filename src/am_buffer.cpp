@@ -1,38 +1,132 @@
 #include "amulet.h"
 
-am_vbo_info::am_vbo_info() {
-    buffer_id = 0;
-    dirty_start = 0;
-    dirty_end = 0;
-}
-
 am_buffer::am_buffer(int sz) {
     size = sz;
     data = (uint8_t*)malloc(sz);
     memset(data, 0, size);
+    vbo_id = 0;
+    texture2d_info = NULL;
+    dirty_start = INT_MAX;
+    dirty_end = 0;
 }
 
 void am_buffer::destroy() {
     free(data);
-    if (vbo.buffer_id != 0) {
-        am_delete_buffer(vbo.buffer_id);
+    if (vbo_id != 0) {
+        am_delete_buffer(vbo_id);
+        vbo_id = 0;
+    }
+    if (texture2d_info != NULL) {
+        am_delete_texture(texture2d_info->texture_id);
+        free(texture2d_info);
+        texture2d_info = NULL;
+    }
+}
+
+void am_buffer::update_if_dirty() {
+    if (dirty_start < dirty_end) {
+        if (vbo_id != 0) {
+            am_bind_buffer(AM_ARRAY_BUFFER, vbo_id);
+            am_set_buffer_sub_data(AM_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
+        } 
+        if (texture2d_info != NULL) {
+            am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture2d_info->texture_id);
+            int start_row = dirty_start / texture2d_info->width;
+            int end_row = (dirty_end - 1) / texture2d_info->width;
+            am_set_texture_sub_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, 0, start_row, texture2d_info->width,
+                end_row - start_row + 1, texture2d_info->format, texture2d_info->type, data + dirty_start);
+            if (texture2d_info->has_mipmap) am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
+        }
+        dirty_start = INT_MAX;
+        dirty_end = 0;
     }
 }
 
 void am_buffer::create_vbo() {
-    assert(vbo.buffer_id == 0);
-    vbo.buffer_id = am_create_buffer();
-    vbo.dirty_start = INT_MAX;
-    vbo.dirty_end = 0;
-    am_bind_buffer(AM_ARRAY_BUFFER, vbo.buffer_id);
+    assert(vbo_id == 0);
+    update_if_dirty();
+    vbo_id = am_create_buffer_object();
+    am_bind_buffer(AM_ARRAY_BUFFER, vbo_id);
     am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
+}
+
+static int setup_texture2d(lua_State *L) {
+    int nargs = am_check_nargs(L, 3);
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    if (buf->texture2d_info != NULL) {
+        return luaL_error(L, "2d texture already set up for this buffer");
+    }
+    int width = luaL_checkinteger(L, 2);
+    int height = luaL_checkinteger(L, 3);
+    am_texture_min_filter min_filter = AM_MIN_FILTER_NEAREST;
+    am_texture_mag_filter mag_filter = AM_MAG_FILTER_NEAREST;
+    am_texture_wrap s_wrap = AM_TEXTURE_WRAP_CLAMP_TO_EDGE;
+    am_texture_wrap t_wrap = AM_TEXTURE_WRAP_CLAMP_TO_EDGE;
+    am_texture_format format = AM_TEXTURE_FORMAT_RGBA;
+    am_pixel_type type = AM_PIXEL_TYPE_UBYTE;
+    if (nargs > 3) min_filter = am_get_enum(L, am_texture_min_filter, 4);
+    if (nargs > 4) mag_filter = am_get_enum(L, am_texture_mag_filter, 5);
+    if (nargs > 5) s_wrap = am_get_enum(L, am_texture_wrap, 6);
+    if (nargs > 6) t_wrap = am_get_enum(L, am_texture_wrap, 7);
+    if (nargs > 7) format = am_get_enum(L, am_texture_format, 8);
+    if (nargs > 8) type = am_get_enum(L, am_pixel_type, 9);
+    int required_size = am_texture_required_size(format, width, height, type);
+    if (required_size != buf->size) {
+        return luaL_error(L, "buffer has wrong size (%d, expecting %d)", buf->size, required_size);
+    }
+    if (s_wrap == AM_TEXTURE_WRAP_REPEAT && !am_is_power_of_two(width)) {
+        return luaL_error(L, "texture width must be power of two when using repeat (in fact %d)", width);
+    }
+    if (s_wrap == AM_TEXTURE_WRAP_MIRRORED_REPEAT && !am_is_power_of_two(width)) {
+        return luaL_error(L, "texture width must be power of two when using mirrored_repeat (in fact %d)", width);
+    }
+    if (t_wrap == AM_TEXTURE_WRAP_REPEAT && !am_is_power_of_two(height)) {
+        return luaL_error(L, "texture height must be power of two when using repeat (in fact %d)", height);
+    }
+    if (t_wrap == AM_TEXTURE_WRAP_MIRRORED_REPEAT && !am_is_power_of_two(height)) {
+        return luaL_error(L, "texture height must be power of two when using mirrored_repeat (in fact %d)", height);
+    }
+    bool needs_mipmap;
+    switch (min_filter) {
+        case AM_MIN_FILTER_NEAREST:
+        case AM_MIN_FILTER_LINEAR:
+            needs_mipmap = false;
+            break;
+        case AM_MIN_FILTER_NEAREST_MIPMAP_NEAREST:
+        case AM_MIN_FILTER_NEAREST_MIPMAP_LINEAR:
+        case AM_MIN_FILTER_LINEAR_MIPMAP_NEAREST:
+        case AM_MIN_FILTER_LINEAR_MIPMAP_LINEAR:
+            needs_mipmap = true;
+            break;
+    }
+    if (needs_mipmap && !am_is_power_of_two(width)) {
+        return luaL_error(L, "texture width must be power of two when using mipmaps (in fact %d)",
+            width);
+    }
+    if (needs_mipmap && !am_is_power_of_two(height)) {
+        return luaL_error(L, "texture height must be power of two when using mipmaps (in fact %d)",
+            height);
+    }
+    buf->update_if_dirty();
+    buf->texture2d_info = (am_texture2d_info*)malloc(sizeof(am_texture2d_info));
+    buf->texture2d_info->texture_id = am_create_texture();
+    buf->texture2d_info->width = width;
+    buf->texture2d_info->height = height;
+    buf->texture2d_info->format = format;
+    buf->texture2d_info->type = type;
+    buf->texture2d_info->has_mipmap = needs_mipmap;
+    am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, buf->texture2d_info->texture_id);
+    am_set_texture_min_filter(AM_TEXTURE_BIND_TARGET_2D, min_filter);
+    am_set_texture_mag_filter(AM_TEXTURE_BIND_TARGET_2D, mag_filter);
+    am_set_texture_wrap(AM_TEXTURE_BIND_TARGET_2D, s_wrap, t_wrap);
+    am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, format, width, height, type, buf->data);
+    if (needs_mipmap) am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
+    return 0;
 }
 
 static int create_buffer(lua_State *L) {
     am_check_nargs(L, 1);
-    int isnum;
-    int size = lua_tointegerx(L, 1, &isnum);
-    if (!isnum) return luaL_error(L, "expecting size (an integer) at position 1");
+    int size = luaL_checkinteger(L, 1);
     if (size <= 0) return luaL_error(L, "size should be greater than 0");
     am_new_userdata(L, am_buffer, size);
     return 1;
@@ -49,26 +143,24 @@ static int create_buffer_view(lua_State *L) {
 
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
 
-    const char *typestr = luaL_checkstring(L, 2);
-    am_buffer_view_type type;
-    int type_size;
-    if (strcmp(typestr, "float") == 0) {
-        type = AM_BUF_ELEM_TYPE_FLOAT;
-        type_size = sizeof(float);
-    } else if (strcmp(typestr, "float2") == 0) {
-        type = AM_BUF_ELEM_TYPE_FLOAT2;
-        type_size = sizeof(float) * 2;
-    } else if (strcmp(typestr, "float3") == 0) {
-        type = AM_BUF_ELEM_TYPE_FLOAT3;
-        type_size = sizeof(float) * 3;
-    } else if (strcmp(typestr, "float4") == 0) {
-        type = AM_BUF_ELEM_TYPE_FLOAT4;
-        type_size = sizeof(float) * 4;
-    } else if (strcmp(typestr, "ubyte") == 0) {
-        type = AM_BUF_ELEM_TYPE_UBYTE;
-        type_size = sizeof(uint8_t);
-    } else {
-        return luaL_error(L, "unknown buffer view type: '%s'", typestr);
+    am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 2);
+    int type_size = 0;
+    switch (type) {
+        case AM_BUF_ELEM_TYPE_FLOAT:
+            type_size = sizeof(float);
+            break;
+        case AM_BUF_ELEM_TYPE_FLOAT2:
+            type_size = sizeof(float) * 2;
+            break;
+        case AM_BUF_ELEM_TYPE_FLOAT3:
+            type_size = sizeof(float) * 3;
+            break;
+        case AM_BUF_ELEM_TYPE_FLOAT4:
+            type_size = sizeof(float) * 4;
+            break;
+        case AM_BUF_ELEM_TYPE_UBYTE:
+            type_size = sizeof(uint8_t);
+            break;
     }
 
     int offset = luaL_checkinteger(L, 3);
@@ -176,14 +268,14 @@ static int buffer_view_newindex(lua_State *L) {
         }
     }
     am_buffer *buf = view->buffer;
-    if (buf->vbo.buffer_id != 0) {
+    if (buf->vbo_id != 0 || buf->texture2d_info != NULL) {
         int byte_start = view->offset + view->stride * (index-1);
         int byte_end = byte_start + view->type_size;
-        if (byte_start < buf->vbo.dirty_start) {
-            buf->vbo.dirty_start = byte_start;
+        if (byte_start < buf->dirty_start) {
+            buf->dirty_start = byte_start;
         } 
-        if (byte_end > buf->vbo.dirty_end) {
-            buf->vbo.dirty_end = byte_end;
+        if (byte_end > buf->dirty_end) {
+            buf->dirty_end = byte_end;
         }
     }
     return 0;
@@ -202,6 +294,8 @@ static void register_buffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
+    lua_pushcclosure(L, setup_texture2d, 0);
+    lua_setfield(L, -2, "setup_texture2d");
 
     am_register_metatable(L, MT_am_buffer, 0);
 }
@@ -226,26 +320,62 @@ void am_open_buffer_module(lua_State *L) {
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+
+    am_enum_value view_type_enum[] = {
+        {"float",           AM_BUF_ELEM_TYPE_FLOAT},
+        {"float2",          AM_BUF_ELEM_TYPE_FLOAT2},
+        {"float3",          AM_BUF_ELEM_TYPE_FLOAT3},
+        {"float4",          AM_BUF_ELEM_TYPE_FLOAT4},
+        {"ubyte",           AM_BUF_ELEM_TYPE_UBYTE},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_buffer_view_type, view_type_enum);
+
+    am_enum_value texture_format_enum[] = {
+        {"alpha",           AM_TEXTURE_FORMAT_ALPHA},
+        {"luminance",       AM_TEXTURE_FORMAT_LUMINANCE},
+        {"luminance_alpha", AM_TEXTURE_FORMAT_LUMINANCE_ALPHA},
+        {"rgb",             AM_TEXTURE_FORMAT_RGB},
+        {"rgba",            AM_TEXTURE_FORMAT_RGBA},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_texture_format, texture_format_enum);
+
+    am_enum_value pixel_type_enum[] = {
+        {"8",               AM_PIXEL_TYPE_UBYTE},
+        {"565",             AM_PIXEL_TYPE_USHORT_5_6_5},
+        {"4444",            AM_PIXEL_TYPE_USHORT_4_4_4_4},
+        {"5551",            AM_PIXEL_TYPE_USHORT_5_5_5_1},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_pixel_type, pixel_type_enum);
+
+    am_enum_value min_filter_enum[] = {
+        {"nearest",                 AM_MIN_FILTER_NEAREST},
+        {"linear",                  AM_MIN_FILTER_LINEAR},
+        {"nearest_mipmap_nearest",  AM_MIN_FILTER_NEAREST_MIPMAP_NEAREST},
+        {"linear_mipmap_nearest",   AM_MIN_FILTER_LINEAR_MIPMAP_NEAREST},
+        {"nearest_mipmap_linear",   AM_MIN_FILTER_NEAREST_MIPMAP_LINEAR},
+        {"linear_mipmap_linear",    AM_MIN_FILTER_LINEAR_MIPMAP_LINEAR},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_texture_min_filter, min_filter_enum);
+
+    am_enum_value mag_filter_enum[] = {
+        {"nearest",         AM_MAG_FILTER_NEAREST},
+        {"linear",          AM_MAG_FILTER_LINEAR},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_texture_mag_filter, mag_filter_enum);
+
+    am_enum_value texture_wrap_enum[] = {
+        {"clamp_to_edge",   AM_TEXTURE_WRAP_CLAMP_TO_EDGE},
+        {"mirrored_repeat", AM_TEXTURE_WRAP_MIRRORED_REPEAT},
+        {"repeat",          AM_TEXTURE_WRAP_REPEAT},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_texture_wrap, texture_wrap_enum);
+
     register_buffer_mt(L);
     register_buffer_view_mt(L);
-}
-
-void am_buf_view_type_to_attr_client_type_and_dimensions(am_buffer_view_type t, am_attribute_client_type *ctype, int *dims) {
-    switch (t) {
-        case AM_BUF_ELEM_TYPE_FLOAT:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 1;
-            return;
-        case AM_BUF_ELEM_TYPE_FLOAT2:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 2;
-            return;
-        case AM_BUF_ELEM_TYPE_FLOAT3:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 3;
-            return;
-        case AM_BUF_ELEM_TYPE_FLOAT4:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_FLOAT; *dims = 4;
-            return;
-        case AM_BUF_ELEM_TYPE_UBYTE:
-            *ctype = AM_ATTRIBUTE_CLIENT_TYPE_UBYTE; *dims = 1;
-            return;
-    }
 }

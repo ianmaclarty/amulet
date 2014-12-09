@@ -17,7 +17,18 @@
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
 
-bool am_gl_initialized = false;
+static bool am_gl_initialized = false;
+
+void am_init_gl() {
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+    am_gl_initialized = true;
+}
+
+bool am_gl_is_initialized() {
+    return am_gl_initialized;
+}
 
 static void check_glerror(const char *file, int line, const char *func);
 
@@ -202,7 +213,7 @@ void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) 
 
 // Buffer Objects
 
-am_buffer_id am_create_buffer() {
+am_buffer_id am_create_buffer_object() {
     check_initialized(0);
     GLuint b;
     glGenBuffers(1, &b);
@@ -627,9 +638,17 @@ void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_
 
 // Texture Objects
 
+int am_get_max_texture_units() {
+    return GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS;
+}
+
 void am_set_active_texture_unit(int texture_unit) {
     check_initialized();
-    glActiveTexture(GL_TEXTURE0 + texture_unit);
+    if (texture_unit < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
+        glActiveTexture(GL_TEXTURE0 + texture_unit);
+    } else {
+        am_report_error("warning: too many active texture units (max %d)", GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+    }
     check_for_errors
 }
 
@@ -674,6 +693,28 @@ void am_generate_mipmap(am_texture_bind_target target) {
     GLenum gl_target = to_gl_texture_bind_target(target);
     glGenerateMipmap(gl_target);
     check_for_errors
+}
+
+int am_texture_required_size(am_texture_format format, int w, int h, am_pixel_type type) {
+    switch (type) {
+        case AM_PIXEL_TYPE_UBYTE:
+            switch (format) {
+                case AM_TEXTURE_FORMAT_ALPHA:
+                case AM_TEXTURE_FORMAT_LUMINANCE:
+                    return w * h;
+                case AM_TEXTURE_FORMAT_LUMINANCE_ALPHA:
+                    return 2 * w * h;
+                case AM_TEXTURE_FORMAT_RGB:
+                    return 3 * w * h;
+                case AM_TEXTURE_FORMAT_RGBA:
+                    return 4 * w * h;
+            }
+        case AM_PIXEL_TYPE_USHORT_5_6_5:
+        case AM_PIXEL_TYPE_USHORT_4_4_4_4:
+        case AM_PIXEL_TYPE_USHORT_5_5_5_1:
+            return 2 * w * h;
+    }
+    return 0;
 }
 
 void am_set_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int w, int h, am_pixel_type type, void *data) {
@@ -998,10 +1039,10 @@ static GLenum to_gl_texture_format(am_texture_format f) {
 
 static GLenum to_gl_pixel_type(am_pixel_type t) {
     switch (t) {
-        case AM_PIXEL_FORMAT_UBYTE: return GL_UNSIGNED_BYTE;
-        case AM_PIXEL_FORMAT_USHORT_5_6_5: return GL_UNSIGNED_SHORT_5_6_5;
-        case AM_PIXEL_FORMAT_USHORT_4_4_4_4: return GL_UNSIGNED_SHORT_4_4_4_4;
-        case AM_PIXEL_FORMAT_USHORT_5_5_5_1: return GL_UNSIGNED_SHORT_5_5_5_1;
+        case AM_PIXEL_TYPE_UBYTE: return GL_UNSIGNED_BYTE;
+        case AM_PIXEL_TYPE_USHORT_5_6_5: return GL_UNSIGNED_SHORT_5_6_5;
+        case AM_PIXEL_TYPE_USHORT_4_4_4_4: return GL_UNSIGNED_SHORT_4_4_4_4;
+        case AM_PIXEL_TYPE_USHORT_5_5_5_1: return GL_UNSIGNED_SHORT_5_5_5_1;
         default: am_abort("INTERNAL ERROR: unknown am_pixel_type %d", t); return 0;
     }
 }

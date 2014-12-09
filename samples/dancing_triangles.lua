@@ -73,7 +73,7 @@ local sound = am.track(audio_buf, true, 1):gain(0.2)
 sound:add(am.track(audio_buf, true, 1.1))
 sound:add(am.track(audio_buf, true, 0.5))
 sound:add(am.track(audio_buf, true, 3.8))
-sound:make_root()
+am.root_audio_node():add(sound)
 
 local t = 0
 top:action(function()

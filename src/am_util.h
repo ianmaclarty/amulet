@@ -6,14 +6,4 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #define am_align_size(sz) \
     while (sz & AM_ALIGN_MASK) { sz++; }
 
-#define AM_LOOP8(code)  \
-    {                   \
-    { code; }           \
-    { code; }           \
-    { code; }           \
-    { code; }           \
-    { code; }           \
-    { code; }           \
-    { code; }           \
-    { code; }           \
-    }
+#define am_is_power_of_two(n) ((((n)-1) & (n)) == 0)
