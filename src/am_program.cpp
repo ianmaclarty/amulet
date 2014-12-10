@@ -493,13 +493,21 @@ AM_BIND_VEC_NODE_IMPL(4)
 
 void am_bind_sampler2d_node::render(am_render_state *rstate) {
     am_program_param_value *param = &am_param_name_map[name].value;
-    am_program_param_value old_val = *param;
-    param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D;
-    param->value.sampler2d.texture_unit = rstate->next_free_texture_unit++;
-    param->value.sampler2d.buffer = buffer;
-    render_children(rstate);
-    *param = old_val;
-    rstate->next_free_texture_unit--;
+    if (param->type != AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
+        am_program_param_value old_val = *param;
+        param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D;
+        param->value.sampler2d.texture_unit = rstate->next_free_texture_unit++;
+        param->value.sampler2d.buffer = buffer;
+        render_children(rstate);
+        *param = old_val;
+        rstate->next_free_texture_unit--;
+    } else {
+        // Reuse texture unit
+        am_buffer *old_buf = param->value.sampler2d.buffer;
+        param->value.sampler2d.buffer = buffer;
+        render_children(rstate);
+        param->value.sampler2d.buffer = old_buf;
+    }
 }
 
 int am_create_bind_sampler2d_node(lua_State *L) {

@@ -80,7 +80,7 @@ AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
 LUA_TARGET = posix
-XCFLAGS = -Werror -pthread -fno-strict-aliasing
+XCFLAGS = -ffast-math -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 
 # Adjust flags for target
@@ -111,6 +111,7 @@ ifeq ($(TARGET_PLATFORM),win32)
   AR = $(VC_LIB)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
+  XCFLAGS = -fp:fast -Wall -WX
 endif
 
 # Adjust flags for grade
