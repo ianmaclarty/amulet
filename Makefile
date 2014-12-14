@@ -63,7 +63,7 @@ default: $(AMULET)
 
 ifeq ($(TARGET_PLATFORM),html)
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
-	cp samples/marpat_dorito.lua main.lua
+	cp samples/dancing_triangles.lua main.lua
 	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
 	rm main.lua
 	@$(PRINT_BUILD_DONE_MSG)

@@ -280,5 +280,4 @@ static void init_audio() {
     SDL_PauseAudio(0);
 }
 
-
 #endif // AM_BACKEND_EMSCRIPTEN

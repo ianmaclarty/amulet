@@ -121,3 +121,13 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
     }
     return true;
 }
+
+extern "C" {
+void am_restart_engine(const char *script) {
+}
+void am_pause_engine(void) {
+}
+void am_resume_engine(void) {
+}
+}
+

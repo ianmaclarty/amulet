@@ -83,6 +83,8 @@ LUA_TARGET = posix
 XCFLAGS = -ffast-math -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 
+EMSCRIPTEN_EXPORTS_OPT=-s EXPORTED_FUNCTIONS="['_main', '_am_run_script']"
+
 # Adjust flags for target
 ifeq ($(TARGET_PLATFORM),osx)
   CC = clang
@@ -97,9 +99,9 @@ ifeq ($(TARGET_PLATFORM),html)
   EXE_EXT = .html
   LUAVM = lua
   LUA_TARGET = generic
-  XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1
+  XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
-  XCFLAGS = 
+  XCFLAGS = $(EMSCRIPTEN_EXPORTS_OPT)
 endif
 ifeq ($(TARGET_PLATFORM),win32)
   EXE_EXT = .exe

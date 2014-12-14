@@ -261,12 +261,16 @@ int main( int argc, char *argv[] )
 
 
 quit:
+    if (audio_device != 0) {
+        SDL_PauseAudioDevice(audio_device, 1);
+        // Make sure last audio callback completes
+        // (not sure this is necessary, but it doesn't hurt)
+        SDL_LockAudio();
+        SDL_UnlockAudio();
+    }
     if (L != NULL) am_destroy_engine(L);
     for (unsigned int i = 0; i < windows.size(); i++) {
         SDL_DestroyWindow(windows[i]);
-    }
-    if (audio_device != 0) {
-        SDL_PauseAudioDevice(audio_device, 1);
     }
     if (sdl_initialized) {
         SDL_Quit();
