@@ -84,4 +84,4 @@ struct am_buffer_view : am_nonatomic_userdata {
     }
 };
 
-void am_open_buffer_module(lua_State *L);
+void am_open_buffer_module(lua_State *L, bool worker);

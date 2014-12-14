@@ -281,7 +281,7 @@ static int buffer_view_newindex(lua_State *L) {
     return 0;
 }
 
-static void register_buffer_mt(lua_State *L) {
+static void register_buffer_mt(lua_State *L, bool worker) {
     lua_newtable(L);
 
     lua_pushvalue(L, -1);
@@ -294,8 +294,10 @@ static void register_buffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
-    lua_pushcclosure(L, setup_texture2d, 0);
-    lua_setfield(L, -2, "setup_texture2d");
+    if (!worker) {
+        lua_pushcclosure(L, setup_texture2d, 0);
+        lua_setfield(L, -2, "setup_texture2d");
+    }
 
     am_register_metatable(L, MT_am_buffer, 0);
 }
@@ -314,7 +316,7 @@ static void register_buffer_view_mt(lua_State *L) {
     am_register_metatable(L, MT_am_buffer_view, 0);
 }
 
-void am_open_buffer_module(lua_State *L) {
+void am_open_buffer_module(lua_State *L, bool worker) {
     luaL_Reg funcs[] = {
         {"buffer", create_buffer},
         {NULL, NULL}
@@ -331,51 +333,53 @@ void am_open_buffer_module(lua_State *L) {
     };
     am_register_enum(L, ENUM_am_buffer_view_type, view_type_enum);
 
-    am_enum_value texture_format_enum[] = {
-        {"alpha",           AM_TEXTURE_FORMAT_ALPHA},
-        {"luminance",       AM_TEXTURE_FORMAT_LUMINANCE},
-        {"luminance_alpha", AM_TEXTURE_FORMAT_LUMINANCE_ALPHA},
-        {"rgb",             AM_TEXTURE_FORMAT_RGB},
-        {"rgba",            AM_TEXTURE_FORMAT_RGBA},
-        {NULL, 0}
-    };
-    am_register_enum(L, ENUM_am_texture_format, texture_format_enum);
+    if (!worker) {
+        am_enum_value texture_format_enum[] = {
+            {"alpha",           AM_TEXTURE_FORMAT_ALPHA},
+            {"luminance",       AM_TEXTURE_FORMAT_LUMINANCE},
+            {"luminance_alpha", AM_TEXTURE_FORMAT_LUMINANCE_ALPHA},
+            {"rgb",             AM_TEXTURE_FORMAT_RGB},
+            {"rgba",            AM_TEXTURE_FORMAT_RGBA},
+            {NULL, 0}
+        };
+        am_register_enum(L, ENUM_am_texture_format, texture_format_enum);
 
-    am_enum_value pixel_type_enum[] = {
-        {"8",               AM_PIXEL_TYPE_UBYTE},
-        {"565",             AM_PIXEL_TYPE_USHORT_5_6_5},
-        {"4444",            AM_PIXEL_TYPE_USHORT_4_4_4_4},
-        {"5551",            AM_PIXEL_TYPE_USHORT_5_5_5_1},
-        {NULL, 0}
-    };
-    am_register_enum(L, ENUM_am_pixel_type, pixel_type_enum);
+        am_enum_value pixel_type_enum[] = {
+            {"8",               AM_PIXEL_TYPE_UBYTE},
+            {"565",             AM_PIXEL_TYPE_USHORT_5_6_5},
+            {"4444",            AM_PIXEL_TYPE_USHORT_4_4_4_4},
+            {"5551",            AM_PIXEL_TYPE_USHORT_5_5_5_1},
+            {NULL, 0}
+        };
+        am_register_enum(L, ENUM_am_pixel_type, pixel_type_enum);
 
-    am_enum_value min_filter_enum[] = {
-        {"nearest",                 AM_MIN_FILTER_NEAREST},
-        {"linear",                  AM_MIN_FILTER_LINEAR},
-        {"nearest_mipmap_nearest",  AM_MIN_FILTER_NEAREST_MIPMAP_NEAREST},
-        {"linear_mipmap_nearest",   AM_MIN_FILTER_LINEAR_MIPMAP_NEAREST},
-        {"nearest_mipmap_linear",   AM_MIN_FILTER_NEAREST_MIPMAP_LINEAR},
-        {"linear_mipmap_linear",    AM_MIN_FILTER_LINEAR_MIPMAP_LINEAR},
-        {NULL, 0}
-    };
-    am_register_enum(L, ENUM_am_texture_min_filter, min_filter_enum);
+        am_enum_value min_filter_enum[] = {
+            {"nearest",                 AM_MIN_FILTER_NEAREST},
+            {"linear",                  AM_MIN_FILTER_LINEAR},
+            {"nearest_mipmap_nearest",  AM_MIN_FILTER_NEAREST_MIPMAP_NEAREST},
+            {"linear_mipmap_nearest",   AM_MIN_FILTER_LINEAR_MIPMAP_NEAREST},
+            {"nearest_mipmap_linear",   AM_MIN_FILTER_NEAREST_MIPMAP_LINEAR},
+            {"linear_mipmap_linear",    AM_MIN_FILTER_LINEAR_MIPMAP_LINEAR},
+            {NULL, 0}
+        };
+        am_register_enum(L, ENUM_am_texture_min_filter, min_filter_enum);
 
-    am_enum_value mag_filter_enum[] = {
-        {"nearest",         AM_MAG_FILTER_NEAREST},
-        {"linear",          AM_MAG_FILTER_LINEAR},
-        {NULL, 0}
-    };
-    am_register_enum(L, ENUM_am_texture_mag_filter, mag_filter_enum);
+        am_enum_value mag_filter_enum[] = {
+            {"nearest",         AM_MAG_FILTER_NEAREST},
+            {"linear",          AM_MAG_FILTER_LINEAR},
+            {NULL, 0}
+        };
+        am_register_enum(L, ENUM_am_texture_mag_filter, mag_filter_enum);
 
-    am_enum_value texture_wrap_enum[] = {
-        {"clamp_to_edge",   AM_TEXTURE_WRAP_CLAMP_TO_EDGE},
-        {"mirrored_repeat", AM_TEXTURE_WRAP_MIRRORED_REPEAT},
-        {"repeat",          AM_TEXTURE_WRAP_REPEAT},
-        {NULL, 0}
-    };
-    am_register_enum(L, ENUM_am_texture_wrap, texture_wrap_enum);
+        am_enum_value texture_wrap_enum[] = {
+            {"clamp_to_edge",   AM_TEXTURE_WRAP_CLAMP_TO_EDGE},
+            {"mirrored_repeat", AM_TEXTURE_WRAP_MIRRORED_REPEAT},
+            {"repeat",          AM_TEXTURE_WRAP_REPEAT},
+            {NULL, 0}
+        };
+        am_register_enum(L, ENUM_am_texture_wrap, texture_wrap_enum);
+    }
 
-    register_buffer_mt(L);
+    register_buffer_mt(L, worker);
     register_buffer_view_mt(L);
 }
