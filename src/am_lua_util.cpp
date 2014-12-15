@@ -170,6 +170,22 @@ bool am_call_amulet(lua_State *L, const char *func, int nargs, int nresults) {
     return am_call(L, nargs, nresults);
 }
 
+static bool load_script(lua_State *L, const char *script, const char *name) {
+    char lname[128];
+    snprintf(lname, 128, "=%s", name);
+    lname[127] = 0;
+    int status = luaL_loadbuffer(L, script, strlen(script), lname);
+    return (check_call_status(L, status) == 0);
+}
+
+bool am_run_script(lua_State *L, const char *script, const char *name) {
+    if (load_script(L, script, name)) {
+        return am_call(L, 0, 0);
+    } else {
+        return false;
+    }
+}
+
 void am_init_traceback_func(lua_State *L) {
     lua_pushcclosure(L, traceback, 0);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_TRACEBACK_FUNC);

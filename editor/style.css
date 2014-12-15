@@ -1,0 +1,53 @@
+html, body {
+    height:100%;
+    margin: 0;
+    padding: 0;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    background-color: #999;
+} 
+
+div {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+#top-panel {
+    width: 100%;
+    height: 40px;
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#top-panel * {
+    float: left;
+}
+
+#left-panel {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 700px;
+    bottom: 0;
+}
+
+#right-panel {
+    position: absolute;
+    top: 40px;
+    left: 720px;
+    right: 0;
+    bottom: 0;
+}
+
+#lua-script-editor {
+    width: 100%;
+    height: 100%;
+}
+
+#output {
+    width: 640px;
+}

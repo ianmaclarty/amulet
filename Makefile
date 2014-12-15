@@ -57,13 +57,23 @@ AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 AM_CFLAGS = -Wall $(AM_DEF_FLAGS) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS)
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
+HTML_EDITOR_FILES := $(wildcard editor/*.js editor/*.css editor/*.html editor/*.lua)
+BUILD_HTML_EDITOR_FILES = $(patsubst editor/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
+
 # Rules
 
-default: $(AMULET)
+default: all
+
+.PHONY: all
+ifeq ($(TARGET_PLATFORM),html)
+all: $(BUILD_HTML_EDITOR_FILES) $(AMULET) 
+else
+all: $(AMULET)
+endif
 
 ifeq ($(TARGET_PLATFORM),html)
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
-	cp samples/dancing_triangles.lua main.lua
+	cp samples/pattern_pyramid.lua main.lua
 	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
 	rm main.lua
 	@$(PRINT_BUILD_DONE_MSG)
@@ -111,6 +121,9 @@ $(ZLIB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 
 $(BUILD_DIRS): %:
 	mkdir -p $@
+
+$(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: editor/% 
+	cp $< $@
 
 # Embedded Lua code
 

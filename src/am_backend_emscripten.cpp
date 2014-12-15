@@ -133,7 +133,7 @@ static void main_loop() {
 
     if (t - fps_t0 >= 2.0) {
         fps = (double)frame_count / (t - fps_t0);
-        am_debug("fps = %0.2f", fps);
+        //am_debug("fps = %0.2f", fps);
         fps_t0 = t0;
         fps_max = 0.0;
         frame_count = 0;
@@ -163,13 +163,6 @@ int main( int argc, char *argv[] )
 
     emscripten_set_main_loop(main_loop, 0, 0);
     return 0;
-
-/*
-quit:
-    if (L != NULL) am_destroy_engine(L);
-    SDL_Quit();
-    return 0;
-*/
 }
 
 static int report_status(lua_State *L, int status) {
@@ -278,6 +271,18 @@ static void init_audio() {
     SDL_AudioSpec obtained;
     SDL_OpenAudio(&desired, &obtained);
     SDL_PauseAudio(0);
+}
+
+extern "C" {
+void am_restart_with_script(const char *script) {
+    am_destroy_engine(L);
+    L = am_init_engine(false);
+    if (am_run_script(L, script, "main.lua")) {
+        run_loop = true;
+    } else {
+        run_loop = false;
+    }
+}
 }
 
 #endif // AM_BACKEND_EMSCRIPTEN

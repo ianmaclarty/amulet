@@ -18,6 +18,7 @@ int am_check_nargs(lua_State *L, int n);
 void am_init_traceback_func(lua_State *L);
 bool am_call(lua_State *L, int nargs, int nresults);
 bool am_call_amulet(lua_State *L, const char *func, int nargs, int nresults);
+bool am_run_script(lua_State *L, const char *script, const char *name);
 
 // The caller must ensure v is live and was created
 // with lua_newuserdata.
