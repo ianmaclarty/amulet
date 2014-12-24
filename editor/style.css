@@ -55,6 +55,12 @@ div {
     background-color: #662288;
 }
 
+.CodeMirror {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+}
+
 #right-panel {
     position: absolute;
     top: 40px;
@@ -93,8 +99,21 @@ div {
     z-index: 11;
 }
 
-.CodeMirror {
+#status-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    font-size: 14px;
+    background-color: #000;
+    z-index: 1000;
+}
+
+#status {
+    position: absolute;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    left: 10px;
+    top: 10px;
 }

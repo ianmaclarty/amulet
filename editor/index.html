@@ -4,13 +4,14 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Amulet</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="codemirror-4.8.css">
+    <link rel="stylesheet" href="style.css">
     <script src="codemirror-4.8-compressed.js"></script>
-    <script src="jquery.js" type="text/javascript"></script>
+    <script src="jquery-2.1.3.min.js" type="text/javascript"></script>
     <script type="text/javascript">
 
 var editor;
+var status_timer;
 
 function init_controls() {
     $("#refresh").click(function() {
@@ -114,11 +115,24 @@ function init_hsplitter() {
     });
 }
 
+var dots = 3;
+function animate_status() {
+    dots = (dots + 1) % 10;
+    var text = "Loading";
+    for (var i = 0; i < dots; i++) {
+        text += ".";
+    }
+    $("#status").text(text);
+}
+
 function setup() {
     init_controls();
     init_editor();
     init_vsplitter();
     init_hsplitter();
+    $("#status-overlay").hide();
+    clearInterval(status_timer);
+    status_timer = null;
 }
 
     </script>
@@ -136,10 +150,6 @@ function setup() {
       </span>
       -->
       <button id="refresh">Refresh</button>
-      <div class="emscripten">
-        <progress value="0" max="100" id="progress" hidden=1></progress>
-      </div>
-      <div class="emscripten" id="status">Downloading...</div>
     </div>
     <div id="left-panel">
         <div id="editor-panel">
@@ -159,10 +169,14 @@ function setup() {
         </div>
     </div>
 
+    <div id="status-overlay">
+        <div id="status">Loading...</div>
+    </div>
+
     <script type='text/javascript'>
 
 var statusElement = document.getElementById('status');
-var progressElement = document.getElementById('progress');
+status_timer = setInterval(animate_status, 500);
 
 var Module = {
   preRun: [setup],
@@ -204,22 +218,7 @@ var Module = {
   })(),
   keyboardListeningElement: document.getElementById('canvas'),
   setStatus: function(text) {
-    if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-    if (text === Module.setStatus.text) return;
-    var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-    var now = Date.now();
-    if (m && now - Date.now() < 30) return; // if this is a progress update, skip it if too soon
-    if (m) {
-      text = m[1];
-      progressElement.value = parseInt(m[2])*100;
-      progressElement.max = parseInt(m[4])*100;
-      progressElement.hidden = false;
-    } else {
-      progressElement.value = null;
-      progressElement.max = null;
-      progressElement.hidden = true;
-    }
-    statusElement.innerHTML = text;
+    //statusElement.innerHTML = text;
   },
   totalDependencies: 0,
   monitorRunDependencies: function(left) {
@@ -235,6 +234,7 @@ window.onerror = function(event) {
     if (text) Module.printErr('[post-exception status] ' + text);
   };
 };
+
 
     </script>
     <script async type="text/javascript" src="amulet.js"></script>
