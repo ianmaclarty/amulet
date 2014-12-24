@@ -200,12 +200,12 @@ static int create_program(lua_State *L) {
 
     am_shader_id vertex_shader = load_shader(L, VERTEX_SHADER, vertex_shader_src);
     if (vertex_shader == 0) {
-        return lua_error(L);
+        return luaL_error(L, lua_tostring(L, -1));
     }
     am_shader_id fragment_shader = load_shader(L, FRAGMENT_SHADER, fragment_shader_src);
     if (fragment_shader == 0) {
         am_delete_shader(vertex_shader);
-        return lua_error(L);
+        return luaL_error(L, lua_tostring(L, -1));
     }
 
     am_program_id program = am_create_program();
@@ -227,7 +227,7 @@ static int create_program(lua_State *L) {
         lua_pushfstring(L, "shader program link error:\n%s", msg);
         free(msg);
         am_delete_program(program);
-        lua_error(L);
+        return luaL_error(L, lua_tostring(L, -1));
     }
 
     int num_attributes = am_get_program_active_attributes(program);
