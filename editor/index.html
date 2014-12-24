@@ -5,16 +5,26 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Amulet</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="codemirror-4.8.css">
+    <script src="codemirror-4.8-compressed.js"></script>
     <script src="jquery.js" type="text/javascript"></script>
     <script type="text/javascript">
 
+var editor;
+
 function setup() {
     $("#refresh").click(function() {
-      Module.ccall('am_restart_with_script', null, ['string'], [$("#lua-script-editor").val()]);
+        var code = editor.getDoc().getValue();
+        Module.ccall('am_restart_with_script', null, ['string'], [code]);
     });
     $.get("example.lua", function(data) {
-        $("#lua-script-editor").val(data);
+        editor.getDoc().setValue(data);
     }, "text");
+    
+    editor = CodeMirror.fromTextArea(document.getElementById("lua-script-editor"), {
+        lineNumbers: true,
+        mode: "lua"
+    });
 }
 
     </script>
