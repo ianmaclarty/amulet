@@ -19,18 +19,9 @@ div {
     box-sizing: border-box;
 }
 
-#top-panel {
-    width: 100%;
-    height: 40px;
-    z-index: 100;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
 #left-panel {
     position: absolute;
-    top: 40px;
+    top: 0;
     left: 0;
     width: 700px;
     bottom: 0;
@@ -39,7 +30,7 @@ div {
 #vsplitter {
     position: absolute;
     width: 10px;
-    top: 40px;
+    top: 0;
     left: 700px;
     bottom: 0;
     cursor: col-resize;
@@ -63,15 +54,24 @@ div {
 
 #right-panel {
     position: absolute;
-    top: 40px;
+    top: 0;
     left: 710px;
     right: 0;
     bottom: 0;
 }
 
-#canvas-panel {
+#toolbar {
+    width: 100%;
+    height: 30px;
+    z-index: 100;
     position: absolute;
     top: 0;
+    left: 0;
+}
+
+#canvas-panel {
+    position: absolute;
+    top: 30px;
     bottom: 210px;
     width: 100%;
     background-color: #008888;

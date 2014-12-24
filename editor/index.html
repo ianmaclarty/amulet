@@ -139,18 +139,6 @@ function setup() {
   </head>
   <body>
 
-
-    
-    <div id="top-panel">
-      <!--
-      <span><input type="checkbox" id="resize">Resize canvas</span>
-      <span><input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer &nbsp;&nbsp;&nbsp;</span>
-      <span><input type="button" value="Fullscreen" onclick="Module.requestFullScreen(document.getElementById('pointerLock').checked, 
-                                                                                document.getElementById('resize').checked)">
-      </span>
-      -->
-      <button id="refresh">Refresh</button>
-    </div>
     <div id="left-panel">
         <div id="editor-panel">
             <textarea id="editor"></textarea>
@@ -159,6 +147,16 @@ function setup() {
     <div id="vsplitter">
     </div>
     <div id="right-panel">
+        <div id="toolbar">
+          <!--
+          <span><input type="checkbox" id="resize">Resize canvas</span>
+          <span><input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer &nbsp;&nbsp;&nbsp;</span>
+          <span><input type="button" value="Fullscreen" onclick="Module.requestFullScreen(document.getElementById('pointerLock').checked, 
+                                                                                    document.getElementById('resize').checked)">
+          </span>
+          -->
+          <button id="refresh">Refresh</button>
+        </div>
         <div id="canvas-panel">
             <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
         </div>
