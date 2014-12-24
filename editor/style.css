@@ -1,5 +1,5 @@
 html, body {
-    height:100%;
+    height: 100%;
     margin: 0;
     padding: 0;
     font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -7,11 +7,16 @@ html, body {
     background-color: #999;
 } 
 
+.clear {
+    clear: both;
+}
+
 div {
     margin: 0;
     padding: 0;
     border: none;
     background: none;
+    box-sizing: border-box;
 }
 
 #top-panel {
@@ -23,10 +28,6 @@ div {
     left: 0;
 }
 
-#top-panel * {
-    float: left;
-}
-
 #left-panel {
     position: absolute;
     top: 40px;
@@ -35,19 +36,65 @@ div {
     bottom: 0;
 }
 
+#vsplitter {
+    position: absolute;
+    width: 10px;
+    top: 40px;
+    left: 700px;
+    bottom: 0;
+    cursor: col-resize;
+    background-color: #ffff00;
+    z-index: 10;
+}
+
+#editor-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #662288;
+}
+
 #right-panel {
     position: absolute;
     top: 40px;
-    left: 720px;
+    left: 710px;
     right: 0;
     bottom: 0;
 }
 
-#lua-script-editor {
+#canvas-panel {
+    position: absolute;
+    top: 0;
+    bottom: 210px;
     width: 100%;
-    height: 100%;
+    background-color: #008888;
 }
 
-#output {
-    width: 640px;
+#hsplitter {
+    position: absolute;
+    bottom: 200px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    cursor: row-resize;
+    background-color: #ffff00;
+    z-index: 10;
+}
+
+#output-panel {
+    position: absolute;
+    background-color: #ff8888;
+    height: 200px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow-y: scroll;
+    z-index: 11;
+}
+
+.CodeMirror {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
 }

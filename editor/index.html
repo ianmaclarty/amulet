@@ -12,19 +12,113 @@
 
 var editor;
 
-function setup() {
+function init_controls() {
     $("#refresh").click(function() {
         var code = editor.getDoc().getValue();
         Module.ccall('am_restart_with_script', null, ['string'], [code]);
     });
+}
+
+function init_editor() {
+    editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+        lineNumbers: true,
+        mode: "lua",
+        indentUnit: 4,
+        extraKeys: {"Tab": "indentMore", "Shift-Tab": "indentLess"}, 
+        electricChars: true,
+    });
+
+    // load example script
     $.get("example.lua", function(data) {
         editor.getDoc().setValue(data);
     }, "text");
-    
-    editor = CodeMirror.fromTextArea(document.getElementById("lua-script-editor"), {
-        lineNumbers: true,
-        mode: "lua"
+}
+
+function init_vsplitter() {
+    var dragging = false;
+    $("#vsplitter").on("mousedown", function(evt) {
+        if (evt.which == 1 && !dragging) {
+            var start_page_x = evt.pageX;
+            var splitter = $(this);
+            var left = $(this).prev();
+            var right = $(this).next();
+            var splitter_width = parseInt(splitter.css("width").replace("px", ""));
+            var start_splitter_left = parseInt(splitter.css("left").replace("px", ""));
+            var start_right_width = parseInt(right.css("width").replace("px", ""));
+
+            function m_move(evt) {
+                var delta_x = evt.pageX - start_page_x;
+                var l = start_splitter_left + delta_x;
+                if (l < 0) {
+                    l = 0;
+                } else if (l > start_splitter_left + start_right_width) {
+                    l = start_splitter_left + start_right_width;
+                }
+                left.css("width", l);
+                splitter.css("left", l);
+                right.css("left", l + splitter_width);
+                return false;
+            }
+            function m_up(evt) {
+                $(document).off("mousemove", m_move);
+                $(document).off("mouseup", m_up);
+                dragging = false;
+            }
+            $(document).on("mousemove", m_move).on("mouseup", m_up);
+            dragging = true;
+            return false;
+        }
     });
+}
+
+function init_hsplitter() {
+    var dragging = false;
+    $("#hsplitter").on("mousedown", function(evt) {
+        if (evt.which == 1 && !dragging) {
+            var start_page_y = evt.pageY;
+            var splitter = $(this);
+            var above = $(this).prev();
+            var below = $(this).next();
+            var splitter_height = parseInt(splitter.css("height").replace("px", ""));
+            var start_splitter_bottom = parseInt(splitter.css("bottom").replace("px", ""));
+            var start_below_height = parseInt(below.css("height").replace("px", ""));
+            var start_above_bottom = parseInt(above.css("bottom").replace("px", ""));
+            var start_above_height = parseInt(above.css("height").replace("px", ""));
+
+            function m_move(evt) {
+                var delta_y = start_page_y - evt.pageY;
+                if (start_above_height - delta_y < 0) {
+                    splitter.css("bottom", start_above_height + start_below_height);
+                    above.css("bottom", start_above_height + start_below_height + splitter_height);
+                    below.css("height", start_above_height + start_below_height);
+                } else if (start_below_height + delta_y < 0) {
+                    splitter.css("bottom", 0);
+                    above.css("bottom", splitter_height);
+                    below.css("height", 0);
+                } else {
+                    splitter.css("bottom", start_splitter_bottom + delta_y);
+                    above.css("bottom", start_above_bottom + delta_y);
+                    below.css("height", start_below_height + delta_y);
+                }
+                return false;
+            }
+            function m_up(evt) {
+                $(document).off("mousemove", m_move);
+                $(document).off("mouseup", m_up);
+                dragging = false;
+            }
+            $(document).on("mousemove", m_move).on("mouseup", m_up);
+            dragging = true;
+            return false;
+        }
+    });
+}
+
+function setup() {
+    init_controls();
+    init_editor();
+    init_vsplitter();
+    init_hsplitter();
 }
 
     </script>
@@ -48,11 +142,17 @@ function setup() {
       <div class="emscripten" id="status">Downloading...</div>
     </div>
     <div id="left-panel">
-        <textarea id="lua-script-editor"></textarea>
+        <div id="editor-panel">
+            <textarea id="editor"></textarea>
+        </div>
+    </div>
+    <div id="vsplitter">
     </div>
     <div id="right-panel">
         <div id="canvas-panel">
             <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+        </div>
+        <div id="hsplitter">
         </div>
         <div id="output-panel">
             <textarea id="output" rows="8"></textarea>
