@@ -4,7 +4,7 @@ html, body {
     padding: 0;
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: 15px;
-    background-color: #999;
+    background-color: #4e4e4e;
 } 
 
 .clear {
@@ -19,23 +19,35 @@ div {
     box-sizing: border-box;
 }
 
-#left-panel {
+#toolbar {
+    width: 100%;
+    height: 30px;
     position: absolute;
     top: 0;
     left: 0;
-    width: 700px;
-    bottom: 0;
+}
+
+#left-panel {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    width: 800px;
+    bottom: 7px;
 }
 
 #vsplitter {
     position: absolute;
-    width: 10px;
-    top: 0;
-    left: 700px;
+    width: 7px;
+    top: 30px;
+    left: 800px;
     bottom: 0;
     cursor: col-resize;
-    background-color: #ffff00;
-    z-index: 10;
+}
+
+#vsplitter:hover,
+#hsplitter:hover
+{
+    background-color: #888;
 }
 
 #editor-panel {
@@ -54,25 +66,16 @@ div {
 
 #right-panel {
     position: absolute;
-    top: 0;
-    left: 710px;
-    right: 0;
-    bottom: 0;
-}
-
-#toolbar {
-    width: 100%;
-    height: 30px;
-    z-index: 100;
-    position: absolute;
-    top: 0;
-    left: 0;
+    top: 30px;
+    left: 807px;
+    right: 7px;
+    bottom: 7px;
 }
 
 #canvas-panel {
     position: absolute;
-    top: 30px;
-    bottom: 210px;
+    top: 0;
+    bottom: 207px;
     width: 100%;
     background-color: #008888;
 }
@@ -82,10 +85,8 @@ div {
     bottom: 200px;
     left: 0;
     width: 100%;
-    height: 10px;
+    height: 7px;
     cursor: row-resize;
-    background-color: #ffff00;
-    z-index: 10;
 }
 
 #output-panel {
@@ -96,24 +97,25 @@ div {
     left: 0;
     width: 100%;
     overflow-y: scroll;
-    z-index: 11;
 }
 
-#status-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    z-index: 1000;
-}
+/* CodeMirror theme */
 
-#status {
-    position: absolute;
-    font-size: 24px;
-    font-weight: bold;
-    color: #fff;
-    left: 10px;
-    top: 10px;
-}
+.cm-s-amulet.CodeMirror {background: #111; color: #ffffec;}
+.cm-s-amulet div.CodeMirror-selected {background: #444 !important;}
+.cm-s-amulet .CodeMirror-gutters {background: #4e4e4e; border-right: 0px;}
+.cm-s-amulet .CodeMirror-guttermarker { color: white; }
+.cm-s-amulet .CodeMirror-guttermarker-subtle { color: grey; }
+.cm-s-amulet .CodeMirror-linenumber {color: #dadada;}
+.cm-s-amulet .CodeMirror-cursor {border-left: 2px solid #ffffec !important;}
+
+.cm-s-amulet span.cm-comment {color: #ff77ff; font-style: italic;}
+.cm-s-amulet span.cm-number {color: #ffffec;}
+.cm-s-amulet span.cm-keyword {color: #33ff33;}
+.cm-s-amulet span.cm-string {color: #ffaa00;}
+.cm-s-amulet span.cm-variable {color: #ffffec;}
+.cm-s-amulet span.cm-variable-2 {color: #ffffec;} /* specials */
+.cm-s-amulet span.cm-builtin {color: #ffffec;}
+
+.cm-s-amulet .CodeMirror-activeline-background {background: #494b41 !important;}
+.cm-s-amulet .CodeMirror-matchingbracket {color: #222 !important;}

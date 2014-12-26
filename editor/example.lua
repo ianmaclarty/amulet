@@ -1,3 +1,4 @@
+-- hello welcome to amulet
 local am = amulet
 local win = am.create_window({title = "demo", width = 640, height = 480})
 

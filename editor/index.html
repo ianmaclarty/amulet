@@ -4,12 +4,64 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Amulet</title>
-    <link rel="stylesheet" href="codemirror-4.8.css">
+    <link rel="stylesheet" href="codemirror-4.9.css">
     <link rel="stylesheet" href="style.css">
-    <script src="codemirror-4.8-compressed.js"></script>
-    <script src="jquery-2.1.3.min.js" type="text/javascript"></script>
-    <script type="text/javascript">
+    <style type="text/css">
+#status-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 1000;
+}
 
+#status {
+    position: absolute;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    left: 10px;
+    top: 10px;
+}
+    </style>
+  </head>
+  <body>
+
+    <div id="status-overlay">
+        <div id="status">Loading...</div>
+    </div>
+
+    <div id="toolbar">
+      <!--
+      <span><input type="checkbox" id="resize">Resize canvas</span>
+      <span><input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer &nbsp;&nbsp;&nbsp;</span>
+      <span><input type="button" value="Fullscreen" onclick="Module.requestFullScreen(document.getElementById('pointerLock').checked, 
+                                                                                document.getElementById('resize').checked)">
+      </span>
+      -->
+      <button id="refresh">Refresh</button>
+    </div>
+    <div id="left-panel">
+        <div id="editor-panel">
+            <textarea id="editor"></textarea>
+        </div>
+    </div>
+    <div id="vsplitter">
+    </div>
+    <div id="right-panel">
+        <div id="canvas-panel">
+            <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+        </div>
+        <div id="hsplitter">
+        </div>
+        <div id="output-panel">
+            <textarea id="output" rows="8"></textarea>
+        </div>
+    </div>
+
+    <script type='text/javascript'>
 var editor;
 var status_timer;
 
@@ -22,11 +74,17 @@ function init_controls() {
 
 function init_editor() {
     editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+        mode: {
+            name: "lua",
+            //specials: ["am.create_window"],
+        },
+        theme: "amulet",
         lineNumbers: true,
-        mode: "lua",
         indentUnit: 4,
+        indentWithTabs: true,
+        smartIndent: false,
         extraKeys: {"Tab": "indentMore", "Shift-Tab": "indentLess"}, 
-        electricChars: true,
+        electricChars: false,
     });
 
     // load example script
@@ -115,14 +173,26 @@ function init_hsplitter() {
     });
 }
 
+function set_status_text(text) {
+    $("#status").text(text);
+}
+
 var dots = 3;
-function animate_status() {
+function animate_loading_status() {
     dots = (dots + 1) % 10;
     var text = "Loading";
     for (var i = 0; i < dots; i++) {
         text += ".";
     }
-    $("#status").text(text);
+    set_status_text(text);
+}
+
+status_timer = setInterval(animate_loading_status, 500);
+
+function remove_status_overlay() {
+    $("#status-overlay").hide();
+    clearInterval(status_timer);
+    status_timer = null;
 }
 
 function setup() {
@@ -130,51 +200,10 @@ function setup() {
     init_editor();
     init_vsplitter();
     init_hsplitter();
-    $("#status-overlay").hide();
-    clearInterval(status_timer);
-    status_timer = null;
+    remove_status_overlay();
 }
 
-    </script>
-  </head>
-  <body>
-
-    <div id="left-panel">
-        <div id="editor-panel">
-            <textarea id="editor"></textarea>
-        </div>
-    </div>
-    <div id="vsplitter">
-    </div>
-    <div id="right-panel">
-        <div id="toolbar">
-          <!--
-          <span><input type="checkbox" id="resize">Resize canvas</span>
-          <span><input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer &nbsp;&nbsp;&nbsp;</span>
-          <span><input type="button" value="Fullscreen" onclick="Module.requestFullScreen(document.getElementById('pointerLock').checked, 
-                                                                                    document.getElementById('resize').checked)">
-          </span>
-          -->
-          <button id="refresh">Refresh</button>
-        </div>
-        <div id="canvas-panel">
-            <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
-        </div>
-        <div id="hsplitter">
-        </div>
-        <div id="output-panel">
-            <textarea id="output" rows="8"></textarea>
-        </div>
-    </div>
-
-    <div id="status-overlay">
-        <div id="status">Loading...</div>
-    </div>
-
-    <script type='text/javascript'>
-
-var statusElement = document.getElementById('status');
-status_timer = setInterval(animate_status, 500);
+//------------------------------------------------------------------------
 
 var Module = {
   preRun: [setup],
@@ -216,7 +245,7 @@ var Module = {
   })(),
   keyboardListeningElement: document.getElementById('canvas'),
   setStatus: function(text) {
-    //statusElement.innerHTML = text;
+      console.log(text);
   },
   totalDependencies: 0,
   monitorRunDependencies: function(left) {
@@ -227,7 +256,7 @@ var Module = {
 Module.setStatus('Downloading...');
 window.onerror = function(event) {
   // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
-  Module.setStatus('Exception thrown, see JavaScript console');
+  set_status_text('Oops, something went wrong. See JavaScript console for details.');
   Module.setStatus = function(text) {
     if (text) Module.printErr('[post-exception status] ' + text);
   };
@@ -235,6 +264,8 @@ window.onerror = function(event) {
 
 
     </script>
+    <script src="codemirror-4.9-compressed.js"></script>
+    <script src="jquery-2.1.3.min.js" type="text/javascript"></script>
     <script async type="text/javascript" src="amulet.js"></script>
   </body>
 </html>
