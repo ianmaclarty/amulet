@@ -77,7 +77,9 @@ div {
     top: 0;
     bottom: 207px;
     width: 100%;
-    background-color: #000;
+    background-color: #111;
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 #hsplitter {
@@ -91,12 +93,13 @@ div {
 
 #output-panel {
     position: absolute;
-    background-color: #ff8888;
+    background-color: #111;
     height: 200px;
     bottom: 0;
     left: 0;
     width: 100%;
     overflow-y: scroll;
+    color: #aaa;
 }
 
 /* CodeMirror theme */

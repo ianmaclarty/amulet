@@ -83,7 +83,7 @@ LUA_TARGET = posix
 XCFLAGS = -ffast-math -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 
-EMSCRIPTEN_EXPORTS_OPT=-s EXPORTED_FUNCTIONS="['_main', '_am_restart_with_script']"
+EMSCRIPTEN_EXPORTS_OPT=-s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_resize']"
 
 # Adjust flags for target
 ifeq ($(TARGET_PLATFORM),osx)

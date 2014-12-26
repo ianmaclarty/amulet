@@ -23,7 +23,8 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples)
+    int msaa_samples,
+    int *drawable_width, int *drawable_height)
 {
     if (sdl_window != NULL) return NULL;
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -61,7 +62,8 @@ am_native_window *am_create_native_window(
     sdl_window = SDL_SetVideoMode(0, 0, 16, flags);
     if (sdl_window == NULL) return NULL;
     am_init_gl();
-    am_debug("w = %d, h = %d", sdl_window->w, sdl_window->h);
+    *drawable_width = sdl_window->w;
+    *drawable_height = sdl_window->h;
     return (am_native_window*)sdl_window;
 }
 
@@ -279,7 +281,8 @@ static void init_audio() {
 }
 
 extern "C" {
-void am_restart_with_script(const char *script) {
+
+void am_emscripten_run(const char *script) {
     am_destroy_engine(L);
     L = am_init_engine(false);
     if (am_run_script(L, script, "main.lua")) {
@@ -288,6 +291,13 @@ void am_restart_with_script(const char *script) {
         run_loop = false;
     }
 }
+
+void am_emscripten_resize(int w, int h) {
+    if (sdl_window != NULL) {
+        am_handle_window_resize((am_native_window*)sdl_window, w, h);
+    }
+}
+
 }
 
 #endif // AM_BACKEND_EMSCRIPTEN

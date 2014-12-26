@@ -15,7 +15,8 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples);
+    int msaa_samples,
+    int *drawable_width, int *drawable_height);
 
 void am_destroy_native_window(am_native_window* window);
 

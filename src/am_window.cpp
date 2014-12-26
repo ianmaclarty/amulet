@@ -7,6 +7,8 @@ struct am_window : am_nonatomic_userdata {
     am_scene_node      *root;
     int                 root_ref;
     int                 window_ref;
+    int                 drawable_width;
+    int                 drawable_height;
 };
 
 static std::vector<am_window*> windows;
@@ -19,7 +21,7 @@ static int create_window(lua_State *L) {
     int left = -1;
     int width = 640;
     int height = 480;
-    const char *title = "Amulet Player";
+    const char *title = "Untitled";
     bool resizable = false;
     bool borderless = false;
     bool depth_buffer = true;
@@ -85,11 +87,14 @@ static int create_window(lua_State *L) {
         borderless,
         depth_buffer,
         stencil_buffer,
-        msaa_samples);
+        msaa_samples,
+        &win->drawable_width,
+        &win->drawable_height);
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
     win->rstate = new am_render_state();
+    win->rstate->viewport_state.set(0, 0, win->drawable_width, win->drawable_height);
 
     win->root = NULL;
     win->root_ref = LUA_NOREF;
@@ -104,13 +109,29 @@ static int create_window(lua_State *L) {
     return 1;
 }
 
-void am_handle_window_close(am_native_window *w) {
+static am_window* find_window(am_native_window *nwin) {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
-        if (win->native_win == w) {
-            win->needs_closing = true;
-            break;
+        if (win->native_win == nwin) {
+            return win;
         }
+    }
+    return NULL;
+}
+
+void am_handle_window_close(am_native_window *nwin) {
+    am_window *win = find_window(nwin);
+    if (win != NULL) {
+        win->needs_closing = true;
+    }
+}
+
+void am_handle_window_resize(am_native_window *nwin, int w, int h) {
+    am_window *win = find_window(nwin);
+    if (win != NULL) {
+        win->drawable_width = w;
+        win->drawable_height = h;
+        win->rstate->viewport_state.set(0, 0, w, h);
     }
 }
 

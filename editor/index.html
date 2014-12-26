@@ -68,7 +68,7 @@ var status_timer;
 function init_controls() {
     $("#refresh").click(function() {
         var code = editor.getDoc().getValue();
-        Module.ccall('am_restart_with_script', null, ['string'], [code]);
+        Module.ccall('am_emscripten_run', null, ['string'], [code]);
     });
 }
 
@@ -81,9 +81,9 @@ function init_editor() {
         theme: "amulet",
         lineNumbers: true,
         indentUnit: 4,
-        indentWithTabs: true,
+        indentWithTabs: false,
         smartIndent: false,
-        extraKeys: {"Tab": "indentMore", "Shift-Tab": "indentLess"}, 
+        //extraKeys: {"Tab": "indentMore", "Shift-Tab": "indentLess"}, 
         electricChars: false,
     });
 
@@ -95,9 +95,12 @@ function init_editor() {
 
 function resize_canvas() {
     var canvas_panel = $("#canvas-panel");
-    var canvas = $("#canvas");
-    canvas.width(canvas_panel.outerWidth());
-    canvas.height(canvas_panel.outerHeight());
+    var canvas = document.getElementById("canvas");
+    var w = canvas_panel.outerWidth();
+    var h = canvas_panel.outerHeight();
+    canvas.width = w;
+    canvas.height = h;
+    Module.ccall('am_emscripten_resize', null, ['number', 'number'], [w, h]);
 }
 
 function init_resize_handler() {

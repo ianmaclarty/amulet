@@ -55,7 +55,8 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples)
+    int msaa_samples,
+    int *drawable_width, int *drawable_height)
 {
     if (!sdl_initialized) {
         init_sdl();
@@ -120,6 +121,7 @@ am_native_window *am_create_native_window(
         am_init_gl();
     }
     windows.push_back(win);
+    SDL_GL_GetDrawableSize(win, drawable_width, drawable_height);
     return (am_native_window*)win;
 }
 
@@ -352,6 +354,15 @@ static bool handle_events() {
                         for (unsigned int i = 0; i < windows.size(); i++) {
                             if (SDL_GetWindowID(windows[i]) == event.window.windowID) {
                                 am_handle_window_close((am_native_window*)windows[i]);
+                            }
+                        }
+                        break;
+                    case SDL_WINDOWEVENT_RESIZED:
+                        for (unsigned int i = 0; i < windows.size(); i++) {
+                            if (SDL_GetWindowID(windows[i]) == event.window.windowID) {
+                                int w, h;
+                                SDL_GL_GetDrawableSize(windows[i], &w, &h);
+                                am_handle_window_resize((am_native_window*)windows[i], w, h);
                             }
                         }
                         break;

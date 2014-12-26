@@ -20,6 +20,7 @@
 static bool am_gl_initialized = false;
 
 void am_init_gl() {
+    assert(!am_gl_initialized);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);

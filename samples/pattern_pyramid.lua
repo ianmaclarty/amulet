@@ -1,5 +1,5 @@
 local am = amulet
-local win = am.create_window({title = "demo", width = 640, height = 480})
+local win = am.create_window({title = "demo", width = 640, height = 480, resizable = true})
 
 local vshader = [[
     attribute vec2 vert;

@@ -1,9 +1,32 @@
 #include "amulet.h"
 
-void am_render_state::draw_arrays(int first, int draw_array_count) {
-    if (active_program == NULL) return;
+void am_viewport_state::set(int x, int y, int w, int h) {
+    dirty = am_viewport_state::x != x ||
+        am_viewport_state::y != y ||
+        am_viewport_state::w != w ||
+        am_viewport_state::h != h;
+    am_viewport_state::x = x;
+    am_viewport_state::y = y;
+    am_viewport_state::w = w;
+    am_viewport_state::h = h;
+}
+
+void am_viewport_state::update() {
+    if (dirty) {
+        am_set_viewport(x, y, w, h);
+        dirty = false;
+    }
+}
+
+void am_render_state::update_state() {
+    viewport_state.update();
     bind_active_program();
     bind_active_program_params();
+}
+
+void am_render_state::draw_arrays(int first, int draw_array_count) {
+    if (active_program == NULL) return;
+    update_state();
     if (validate_active_program()) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
             // no vertex arrays have been set and no size has been specified
@@ -52,17 +75,11 @@ void am_render_state::bind_active_indices() {
 }
 
 am_render_state::am_render_state() {
-    framebuffer_state_dirty = true;
-    blend_state_dirty = true;
-    depth_test_state_dirty = true;
-    stencil_test_state_dirty = true;
-    scissor_test_state_dirty = true;
-    sample_coverage_state_dirty = true;
-    viewport_state_dirty = true;
-    facecull_state_dirty = true;
-    polygon_offset_state_dirty = true;
-    line_state_dirty = true;
-    dither_state_dirty = true;
+    viewport_state.x = 0;
+    viewport_state.y = 0;
+    viewport_state.w = 0;
+    viewport_state.h = 0;
+    viewport_state.dirty = true;
 
     active_indices_id = 0;
     active_indices_max_value = 0;
