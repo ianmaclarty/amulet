@@ -52,7 +52,7 @@
     </div>
     <div id="right-panel">
         <div id="canvas-panel">
-            <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+            <!-- see init_canvas function -->
         </div>
         <div id="hsplitter">
         </div>
@@ -93,6 +93,33 @@ function init_editor() {
     }, "text");
 }
 
+function resize_canvas() {
+    var canvas_panel = $("#canvas-panel");
+    var canvas = $("#canvas");
+    canvas.width(canvas_panel.outerWidth());
+    canvas.height(canvas_panel.outerHeight());
+}
+
+function init_resize_handler() {
+    $(window).resize(function() {
+        resize_canvas();
+    });
+}
+
+function init_canvas() {
+    var canvas_panel = $("#canvas-panel");
+    var width = canvas_panel.outerWidth();
+    var height = canvas_panel.outerHeight();
+    $("#canvas-panel").html('<canvas id="canvas" width="' + width + '" height="' + height + '" oncontextmenu="event.preventDefault()"></canvas>');
+    var canvas = document.getElementById("canvas");
+    // Pop up an alert when webgl context is lost.
+    // TODO: handle webgl context restore event.
+    // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+    canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+    init_resize_handler();
+    Module.canvas = canvas;
+}
+
 function init_vsplitter() {
     var dragging = false;
     $("#vsplitter").on("mousedown", function(evt) {
@@ -116,6 +143,7 @@ function init_vsplitter() {
                 left.css("width", l);
                 splitter.css("left", l);
                 right.css("left", l + splitter_width);
+                resize_canvas();
                 return false;
             }
             function m_up(evt) {
@@ -159,6 +187,7 @@ function init_hsplitter() {
                     above.css("bottom", start_above_bottom + delta_y);
                     below.css("height", start_below_height + delta_y);
                 }
+                resize_canvas();
                 return false;
             }
             function m_up(evt) {
@@ -188,19 +217,29 @@ function animate_loading_status() {
 }
 
 status_timer = setInterval(animate_loading_status, 500);
-
-function remove_status_overlay() {
-    $("#status-overlay").hide();
+function clear_status_timer() {
     clearInterval(status_timer);
     status_timer = null;
 }
 
+function remove_status_overlay() {
+    $("#status-overlay").hide();
+    clear_status_timer();
+}
+
 function setup() {
-    init_controls();
-    init_editor();
-    init_vsplitter();
-    init_hsplitter();
-    remove_status_overlay();
+    try {
+        init_controls();
+        init_editor();
+        init_vsplitter();
+        init_hsplitter();
+        init_canvas();
+        remove_status_overlay();
+    } catch (e) {
+        clear_status_timer();
+        set_status_text('Something went wrong. See JavaScript console for details.');
+        throw e;
+    }
 }
 
 //------------------------------------------------------------------------
@@ -233,17 +272,8 @@ var Module = {
       console.error(text);
     }
   },
-  canvas: (function() {
-    var canvas = document.getElementById('canvas');
-
-    // As a default initial behavior, pop up an alert when webgl context is lost. To make your
-    // application robust, you may want to override this behavior before shipping!
-    // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
-    canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
-
-    return canvas;
-  })(),
-  keyboardListeningElement: document.getElementById('canvas'),
+  canvas: null, // initialized in init_canvas
+  keyboardListeningElement: document.getElementById('canvas-panel'),
   setStatus: function(text) {
       console.log(text);
   },
@@ -256,7 +286,7 @@ var Module = {
 Module.setStatus('Downloading...');
 window.onerror = function(event) {
   // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
-  set_status_text('Oops, something went wrong. See JavaScript console for details.');
+  set_status_text('Something went wrong. See JavaScript console for details.');
   Module.setStatus = function(text) {
     if (text) Module.printErr('[post-exception status] ' + text);
   };

@@ -77,7 +77,7 @@ div {
     top: 0;
     bottom: 207px;
     width: 100%;
-    background-color: #008888;
+    background-color: #000;
 }
 
 #hsplitter {
@@ -110,12 +110,12 @@ div {
 .cm-s-amulet .CodeMirror-cursor {border-left: 2px solid #ffffec !important;}
 
 .cm-s-amulet span.cm-comment {color: #ff77ff; font-style: italic;}
-.cm-s-amulet span.cm-number {color: #ffffec;}
+.cm-s-amulet span.cm-number {color: #ff1111;}
 .cm-s-amulet span.cm-keyword {color: #33ff33;}
 .cm-s-amulet span.cm-string {color: #ffaa00;}
 .cm-s-amulet span.cm-variable {color: #ffffec;}
 .cm-s-amulet span.cm-variable-2 {color: #ffffec;} /* specials */
-.cm-s-amulet span.cm-builtin {color: #ffffec;}
+.cm-s-amulet span.cm-builtin {color: #33aaff;}
 
 .cm-s-amulet .CodeMirror-activeline-background {background: #494b41 !important;}
 .cm-s-amulet .CodeMirror-matchingbracket {color: #222 !important;}

@@ -56,11 +56,12 @@ am_native_window *am_create_native_window(
     if (resizable) flags |= SDL_RESIZABLE;
     if (width < 0) width = 0;
     if (height < 0) height = 0;
-    sdl_window = SDL_SetVideoMode(width, height, 16, flags);
-    if (sdl_window == NULL) {
-        return NULL;
-    }
+    // We ignore the supplied width and height and use 0,0 instead.
+    // This will cause the system to use the current canvas element size.
+    sdl_window = SDL_SetVideoMode(0, 0, 16, flags);
+    if (sdl_window == NULL) return NULL;
     am_init_gl();
+    am_debug("w = %d, h = %d", sdl_window->w, sdl_window->h);
     return (am_native_window*)sdl_window;
 }
 
@@ -210,6 +211,10 @@ static bool handle_events() {
                     am_call_amulet(L, "_key_up", 1, 0);
                 }
                 */
+                break;
+            }
+            case SDL_VIDEORESIZE: {
+                am_debug("resize w = %d", event.resize.w);
                 break;
             }
         }
