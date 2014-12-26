@@ -120,9 +120,64 @@ function init_canvas() {
     // Pop up an alert when webgl context is lost.
     // TODO: handle webgl context restore event.
     // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
-    canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+    canvas.addEventListener("webglcontextlost", function(e) {
+        alert('WebGL context lost. You will need to reload the page or, failing that, restart your browser).');
+        e.preventDefault();
+    }, false);
     init_resize_handler();
     Module.canvas = canvas;
+}
+
+function get_storage_object(key) {
+    var item = localStorage.getItem(key);
+    if (!item) {
+        return null;
+    } else {
+        console.log(item);
+        return JSON.parse(item);
+    }
+}
+
+function set_storate_object(key, obj) {
+    localStorage.setItem(key, JSON.stringify(obj));
+}
+
+function init_layout() {
+    var layout = get_storage_object("layout");
+    if (!layout) {
+        layout = {};
+    }
+    if (!layout.left_panel_width) {
+        var page_width = $("body").outerWidth();
+        var left_panel_width = Math.floor(page_width / 2);
+        layout.left_panel_width = left_panel_width;
+    }
+    if (!layout.output_panel_height) {
+        layout.output_panel_height = 200;
+    }
+    console.log(JSON.stringify(layout));
+    set_storate_object("layout", layout);
+
+    var splitter_width = $("#vsplitter").outerWidth();
+    var splitter_height = $("#hsplitter").outerHeight();
+    var right_panel_left = layout.left_panel_width + splitter_width;
+
+    $("#left-panel").css("width", layout.left_panel_width);
+    $("#vsplitter").css("left", layout.left_panel_width);
+    $("#right-panel").css("left", layout.left_panel_width + splitter_width);
+
+    console.log(layout.output_panel_height + splitter_height);
+    $("#canvas-panel").css("bottom", layout.output_panel_height + splitter_height);
+    $("#hsplitter").css("bottom", layout.output_panel_height);
+    $("#output-panel").css("height", layout.output_panel_height);
+}
+
+function save_layout() {
+    layout = {
+        left_panel_width: $("#left-panel").outerWidth(),
+        output_panel_height: $("#output-panel").outerHeight()
+    };
+    set_storate_object("layout", layout);
 }
 
 function init_vsplitter() {
@@ -148,12 +203,13 @@ function init_vsplitter() {
                 left.css("width", l);
                 splitter.css("left", l);
                 right.css("left", l + splitter_width);
-                resize_canvas();
                 return false;
             }
             function m_up(evt) {
                 $(document).off("mousemove", m_move);
                 $(document).off("mouseup", m_up);
+                resize_canvas();
+                save_layout();
                 dragging = false;
             }
             $(document).on("mousemove", m_move).on("mouseup", m_up);
@@ -192,12 +248,13 @@ function init_hsplitter() {
                     above.css("bottom", start_above_bottom + delta_y);
                     below.css("height", start_below_height + delta_y);
                 }
-                resize_canvas();
                 return false;
             }
             function m_up(evt) {
                 $(document).off("mousemove", m_move);
                 $(document).off("mouseup", m_up);
+                resize_canvas();
+                save_layout();
                 dragging = false;
             }
             $(document).on("mousemove", m_move).on("mouseup", m_up);
@@ -236,6 +293,7 @@ function setup() {
     try {
         init_controls();
         init_editor();
+        init_layout();
         init_vsplitter();
         init_hsplitter();
         init_canvas();
