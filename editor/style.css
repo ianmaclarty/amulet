@@ -114,8 +114,30 @@ div {
     bottom: 0;
     left: 0;
     width: 100%;
-    overflow-y: scroll;
+    overflow-x: auto;
+    overflow-y: auto;
     color: #aaa;
+    padding: 3px;
+}
+
+#output-panel .output-item {
+    font-family: monospace;
+    font-size: 14px;
+    color: #ffffec;
+}
+
+#output-panel .running {
+    color: #33ff33;
+}
+
+#output-panel a.error-link {
+    color: #ff1111;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.error-highlight {
+    background-color: #ff1111;
 }
 
 /* CodeMirror theme */

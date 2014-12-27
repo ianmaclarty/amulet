@@ -56,7 +56,6 @@
         <div id="hsplitter">
         </div>
         <div id="output-panel">
-            <textarea id="output" rows="8"></textarea>
         </div>
     </div>
 
@@ -67,10 +66,12 @@ var status_timer;
 function init_controls() {
     $("#run").click(function() {
         var code = editor.getDoc().getValue();
+        clear_output();
+        log_output("Running...", "running");
         Module.ccall('am_emscripten_run', null, ['string'], [code]);
     });
     $("#fullscreen").click(function() {
-        Module.requestFullScreen(false /* pointer lock */, true);
+        Module.requestFullScreen(false /* pointer lock */, true /* resize canvas */);
     });
 }
 
@@ -85,7 +86,7 @@ function init_editor() {
         indentUnit: 4,
         indentWithTabs: false,
         smartIndent: false,
-        //extraKeys: {"Tab": "indentMore", "Shift-Tab": "indentLess"}, 
+        extraKeys: {"Tab": "indentMore", "Shift-Tab": "indentLess"}, 
         electricChars: false,
     });
 
@@ -289,6 +290,50 @@ function remove_status_overlay() {
     clear_status_timer();
 }
 
+function highlight_error(line) {
+    editor.focus();
+    editor.getDoc().setCursor(line-1, 0);
+    var n = 2;
+    while (n > 0) {
+        setTimeout(function() {
+            editor.getDoc().addLineClass(line-1, "background", "error-highlight");
+        }, (n-1)*400);
+        setTimeout(function() {
+            editor.getDoc().removeLineClass(line-1, "background", "error-highlight");
+        }, (n-1)*400+200);
+        n--;
+    }
+}
+
+var num_output_items = 0;
+var max_output_items = 1000;
+function log_output(text, cls) {
+    console.log(text);
+
+    var panel = document.getElementById("output-panel");
+
+    num_output_items++;
+    while (num_output_items > max_output_items) {
+        panel.removeChild(panel.childNodes[0]);
+        num_output_items--;
+    }
+
+    text = text.replace(/&/g, "&amp;");
+    text = text.replace(/</g, "&lt;");
+    text = text.replace(/>/g, "&gt;");
+    text = text.replace('\n', '<br>', 'g');
+    text = text.replace(/^(main\.lua):([0-9]+):/, '<a class="error-link" onclick="window.highlight_error($2); return false;">$1:$2</a>:');
+
+    if (!cls) cls = "";
+    panel.innerHTML += '<div class="output-item ' + cls + '">' + text + '</div>';
+    panel.scrollTop = panel.scrollHeight; // focus on bottom
+}
+
+function clear_output() {
+    num_output_items = 0;
+    document.getElementById("output-panel").innerHTML = "";
+}
+
 function setup() {
     try {
         init_controls();
@@ -298,6 +343,7 @@ function setup() {
         init_hsplitter();
         init_canvas();
         remove_status_overlay();
+        log_output("Running...", "running");
     } catch (e) {
         clear_status_timer();
         set_status_text('Something went wrong. See JavaScript console for details.');
@@ -310,23 +356,10 @@ function setup() {
 var Module = {
   preRun: [setup],
   postRun: [],
-  print: (function() {
-    var element = document.getElementById('output');
-    if (element) element.value = ''; // clear browser cache
-    return function(text) {
+  print: function(text) {
       text = Array.prototype.slice.call(arguments).join(' ');
-      // These replacements are necessary if you render to raw HTML
-      //text = text.replace(/&/g, "&amp;");
-      //text = text.replace(/</g, "&lt;");
-      //text = text.replace(/>/g, "&gt;");
-      //text = text.replace('\n', '<br>', 'g');
-      console.log(text);
-      if (element) {
-        element.value += text + "\n";
-        element.scrollTop = element.scrollHeight; // focus on bottom
-      }
-    };
-  })(),
+      log_output(text);
+  },
   printErr: function(text) {
     text = Array.prototype.slice.call(arguments).join(' ');
     if (0) { // XXX disabled for safety typeof dump == 'function') {
