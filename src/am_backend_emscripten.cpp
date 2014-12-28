@@ -216,8 +216,8 @@ static bool handle_events() {
                 break;
             }
             case SDL_VIDEORESIZE: {
-                am_debug("resize w = %d, h = %d", event.resize.w, event.resize.h);
-                am_handle_window_resize((am_native_window*)sdl_window, event.resize.w, event.resize.h);
+                //am_debug("resize w = %d, h = %d", event.resize.w, event.resize.h);
+                //am_handle_window_resize((am_native_window*)sdl_window, event.resize.w, event.resize.h);
                 break;
             }
         }

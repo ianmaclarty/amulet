@@ -59,6 +59,7 @@ AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
 HTML_EDITOR_FILES := $(wildcard editor/*.js editor/*.css editor/*.html editor/*.lua)
 BUILD_HTML_EDITOR_FILES = $(patsubst editor/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
+DEFAULT_HTML_EDITOR_SCRIPT = editor/example.lua
 
 # Rules
 
@@ -72,8 +73,8 @@ all: $(AMULET)
 endif
 
 ifeq ($(TARGET_PLATFORM),html)
-$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
-	cp samples/pattern_pyramid.lua main.lua
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(DEFAULT_HTML_EDITOR_SCRIPT) | $(BUILD_BIN_DIR)
+	cp $(DEFAULT_HTML_EDITOR_SCRIPT) main.lua
 	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
 	rm main.lua
 	@$(PRINT_BUILD_DONE_MSG)

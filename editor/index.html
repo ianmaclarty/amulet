@@ -35,12 +35,7 @@
 
     <div id="top-panel">
         <span class="title">Amulet</span>
-        <!--
-        <span><input type="checkbox" id="resize">Resize canvas</span>
-        <span><input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer &nbsp;&nbsp;&nbsp;</span>
-        -->
-        <a id="run">RUN</a>
-        <a id="fullscreen">FULLSCREEN</a>
+        <a id="run">Run</a>
     </div>
     <div id="left-panel">
         <div id="editor-panel">
@@ -70,9 +65,6 @@ function init_controls() {
         log_output("Running...", "running");
         Module.ccall('am_emscripten_run', null, ['string'], [code]);
     });
-    $("#fullscreen").click(function() {
-        Module.requestFullScreen(false /* pointer lock */, true /* resize canvas */);
-    });
 }
 
 function init_editor() {
@@ -97,13 +89,14 @@ function init_editor() {
 }
 
 function resize_canvas() {
-    var canvas_panel = $("#canvas-panel");
     var canvas = document.getElementById("canvas");
-    var w = canvas_panel.outerWidth();
-    var h = canvas_panel.outerHeight();
+    var canvas_parent = $("#canvas").parent();
+    var w = canvas_parent.outerWidth();
+    var h = canvas_parent.outerHeight();
     canvas.width = w;
     canvas.height = h;
     Module.ccall('am_emscripten_resize', null, ['number', 'number'], [w, h]);
+    //log_output("resize_canvas called " + w + "x" + h);
 }
 
 function init_resize_handler() {
@@ -322,7 +315,7 @@ function log_output(text, cls) {
     text = text.replace(/</g, "&lt;");
     text = text.replace(/>/g, "&gt;");
     text = text.replace('\n', '<br>', 'g');
-    text = text.replace(/^(main\.lua):([0-9]+):/, '<a class="error-link" onclick="window.highlight_error($2); return false;">$1:$2</a>:');
+    text = text.replace(/(main\.lua):([0-9]+)/g, '<a class="error-link" onclick="window.highlight_error($2); return false;">$1:$2</a>');
 
     if (!cls) cls = "";
     panel.innerHTML += '<div class="output-item ' + cls + '">' + text + '</div>';
