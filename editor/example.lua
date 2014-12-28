@@ -2,6 +2,7 @@ local win = amulet.create_window({})
 
 -- create the shader program
 local vshader = [[
+    precision mediump float;
     attribute vec2 vert;
     attribute vec2 uv;
     varying vec2 v_uv;
@@ -9,18 +10,18 @@ local vshader = [[
     void main() {
         v_uv = uv + vec2(t, t);
         float len = length(vert);
+        vec2 pos = vert;
         if (len > 0.1) {
             float angle = atan(vert.y, vert.x) + t;
-            vert = vec2(cos(angle), sin(angle)) * len;
+            pos = vec2(cos(angle), sin(angle)) * len;
         }
-        gl_Position = vec4(vert, 0, 1);
+        gl_Position = vec4(pos, 0, 1);
     }
 ]]
 local fshader = [[
     precision mediump float;
     varying vec2 v_uv;
     uniform sampler2D tex1;
-    uniform float t;
     void main() {
         gl_FragColor = texture2D(tex1, v_uv);
     }
