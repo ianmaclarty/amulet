@@ -696,25 +696,26 @@ void am_generate_mipmap(am_texture_bind_target target) {
     check_for_errors
 }
 
-int am_texture_required_size(am_texture_format format, int w, int h, am_pixel_type type) {
+int am_compute_pixel_size(am_texture_format format, am_pixel_type type) {
     switch (type) {
         case AM_PIXEL_TYPE_UBYTE:
             switch (format) {
                 case AM_TEXTURE_FORMAT_ALPHA:
                 case AM_TEXTURE_FORMAT_LUMINANCE:
-                    return w * h;
+                    return 1;
                 case AM_TEXTURE_FORMAT_LUMINANCE_ALPHA:
-                    return 2 * w * h;
+                    return 2;
                 case AM_TEXTURE_FORMAT_RGB:
-                    return 3 * w * h;
+                    return 3;
                 case AM_TEXTURE_FORMAT_RGBA:
-                    return 4 * w * h;
+                    return 4;
             }
         case AM_PIXEL_TYPE_USHORT_5_6_5:
         case AM_PIXEL_TYPE_USHORT_4_4_4_4:
         case AM_PIXEL_TYPE_USHORT_5_5_5_1:
-            return 2 * w * h;
+            return 2;
     }
+    assert(false);
     return 0;
 }
 

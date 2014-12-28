@@ -31,10 +31,22 @@ void am_buffer::update_if_dirty() {
         } 
         if (texture2d_info != NULL) {
             am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture2d_info->texture_id);
-            int start_row = dirty_start / texture2d_info->width;
-            int end_row = (dirty_end - 1) / texture2d_info->width;
-            am_set_texture_sub_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, 0, start_row, texture2d_info->width,
-                end_row - start_row + 1, texture2d_info->format, texture2d_info->type, data + dirty_start);
+            int pixel_size = texture2d_info->pixel_size;
+            int dirty_pixel_start = dirty_start / pixel_size;
+            int dirty_pixel_end = (dirty_end - 1) / pixel_size + 1;
+            int start_row = dirty_pixel_start / texture2d_info->width;
+            int end_row = (dirty_pixel_end - 1) / texture2d_info->width;
+            if (start_row == end_row) {
+                int x = dirty_pixel_start % texture2d_info->width;
+                int data_offset = dirty_pixel_start * pixel_size;
+                am_set_texture_sub_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, x, start_row,
+                    dirty_pixel_end - dirty_pixel_start, 1,
+                    texture2d_info->format, texture2d_info->type, data + data_offset);
+            } else {
+                int data_offset = start_row * texture2d_info->width * pixel_size;
+                am_set_texture_sub_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, 0, start_row, texture2d_info->width,
+                    end_row - start_row + 1, texture2d_info->format, texture2d_info->type, data + data_offset);
+            }
             if (texture2d_info->has_mipmap) am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
         }
         dirty_start = INT_MAX;
@@ -70,7 +82,8 @@ static int setup_texture2d(lua_State *L) {
     if (nargs > 6) t_wrap = am_get_enum(L, am_texture_wrap, 7);
     if (nargs > 7) format = am_get_enum(L, am_texture_format, 8);
     if (nargs > 8) type = am_get_enum(L, am_pixel_type, 9);
-    int required_size = am_texture_required_size(format, width, height, type);
+    int pixel_size = am_compute_pixel_size(format, type);
+    int required_size = pixel_size * width * height;
     if (required_size != buf->size) {
         return luaL_error(L, "buffer has wrong size (%d, expecting %d)", buf->size, required_size);
     }
@@ -114,6 +127,7 @@ static int setup_texture2d(lua_State *L) {
     buf->texture2d_info->height = height;
     buf->texture2d_info->format = format;
     buf->texture2d_info->type = type;
+    buf->texture2d_info->pixel_size = pixel_size;
     buf->texture2d_info->has_mipmap = needs_mipmap;
     am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, buf->texture2d_info->texture_id);
     am_set_texture_min_filter(AM_TEXTURE_BIND_TARGET_2D, min_filter);
@@ -161,19 +175,33 @@ static int create_buffer_view(lua_State *L) {
         case AM_BUF_ELEM_TYPE_UBYTE:
             type_size = sizeof(uint8_t);
             break;
+        case AM_BUF_ELEM_TYPE_USHORT:
+            type_size = sizeof(uint16_t);
+            break;
+        case AM_BUF_ELEM_TYPE_SHORT:
+            type_size = sizeof(int16_t);
+            break;
+        case AM_BUF_ELEM_TYPE_INT:
+            type_size = sizeof(int32_t);
+            break;
     }
 
     int offset = luaL_checkinteger(L, 3);
     int stride = luaL_checkinteger(L, 4);
 
-    int size = INT_MAX;
-    if (nargs > 4) size = luaL_checkinteger(L, 5);
     int available_bytes = buf->size - offset - type_size;
     int max_size = 0;
     if (available_bytes > 0) {
-        max_size = available_bytes / stride + 1;
+        max_size = (buf->size - offset - type_size) / stride + 1;
     }
-    if (size > max_size) {
+    int size;
+    if (nargs > 4) {
+        size = luaL_checkinteger(L, 5);
+        if (size > max_size) {
+            return luaL_error(L, "the buffer is too small for %d %ss with stride %d (max %d)",
+                size, lua_tostring(L, 2), stride, max_size);
+        }
+    } else {
         size = max_size;
     }
 
@@ -227,6 +255,30 @@ static int buffer_view_index(lua_State *L) {
             }
             break;
         }
+        case AM_BUF_ELEM_TYPE_USHORT: {
+            if (view->normalized) {
+                lua_pushnumber(L, ((lua_Number)view->get_ushort(index-1)) / 65535.0);
+            } else {
+                lua_pushinteger(L, view->get_ushort(index-1));
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_SHORT: {
+            if (view->normalized) {
+                lua_pushnumber(L, ((lua_Number)view->get_short(index-1)) / 32767.0);
+            } else {
+                lua_pushinteger(L, view->get_short(index-1));
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_INT: {
+            if (view->normalized) {
+                lua_pushnumber(L, ((lua_Number)view->get_int(index-1)) / 2147483647.0);
+            } else {
+                lua_pushinteger(L, view->get_int(index-1));
+            }
+            break;
+        }
     }
     return 1;
 }
@@ -263,6 +315,30 @@ static int buffer_view_newindex(lua_State *L) {
                 view->set_ubyte(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 255.0);
             } else {
                 view->set_ubyte(index-1, am_clamp(luaL_checkinteger(L, 3), 0, 255));
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_USHORT: {
+            if (view->normalized) {
+                view->set_ushort(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 65535.0);
+            } else {
+                view->set_ushort(index-1, am_clamp(luaL_checkinteger(L, 3), 0, UINT16_MAX));
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_SHORT: {
+            if (view->normalized) {
+                view->set_short(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 32767.0);
+            } else {
+                view->set_short(index-1, am_clamp(luaL_checkinteger(L, 3), INT16_MIN, INT16_MAX));
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_INT: {
+            if (view->normalized) {
+                view->set_int(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 2147483647.0);
+            } else {
+                view->set_int(index-1, am_clamp(luaL_checkinteger(L, 3), INT32_MIN, INT32_MAX));
             }
             break;
         }
@@ -329,6 +405,9 @@ void am_open_buffer_module(lua_State *L, bool worker) {
         {"float3",          AM_BUF_ELEM_TYPE_FLOAT3},
         {"float4",          AM_BUF_ELEM_TYPE_FLOAT4},
         {"ubyte",           AM_BUF_ELEM_TYPE_UBYTE},
+        {"ushort",          AM_BUF_ELEM_TYPE_USHORT},
+        {"short",           AM_BUF_ELEM_TYPE_SHORT},
+        {"int",             AM_BUF_ELEM_TYPE_INT},
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_buffer_view_type, view_type_enum);

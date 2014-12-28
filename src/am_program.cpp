@@ -384,6 +384,54 @@ void am_program_node::render(am_render_state *rstate) {
     rstate->active_program = old_program;
 }
 
+void am_bind_float_node::render(am_render_state *rstate) {
+    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value old_val = *param;
+    param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_1F;
+    param->value.f = value;
+    render_children(rstate);
+    *param = old_val;
+}
+
+int am_create_bind_float_node(lua_State *L) {
+    am_check_nargs(L, 3);
+    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
+    float val = luaL_checknumber(L, 3);
+    am_bind_float_node *node = am_new_userdata(L, am_bind_float_node);
+
+    am_set_scene_node_child(L, node);
+    node->name = am_lookup_param_name(L, 2);
+    node->value = val;
+
+    return 1;
+}
+
+static void get_bind_float_node_value(lua_State *L, void *obj) {
+    am_bind_float_node *node = (am_bind_float_node*)obj;
+    lua_pushnumber(L, node->value);
+}
+
+static void set_bind_float_node_value(lua_State *L, void *obj) {
+    am_bind_float_node *node = (am_bind_float_node*)obj;
+    node->value = luaL_checknumber(L, 3);
+}
+
+static am_property bind_float_node_value_property =
+    {get_bind_float_node_value, set_bind_float_node_value};
+
+static void register_bind_float_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+
+    am_register_property(L, "value", &bind_float_node_value_property);
+
+    lua_pushstring(L, "bind_float");
+    lua_setfield(L, -2, "tname");
+
+    am_register_metatable(L, MT_am_bind_float_node, MT_am_scene_node);
+}
+
 void am_bind_array_node::render(am_render_state *rstate) {
     am_program_param_value *param = &am_param_name_map[name].value;
     am_program_param_value old_val = *param;
@@ -546,6 +594,7 @@ void am_open_program_module(lua_State *L) {
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_program_mt(L);
     register_program_node_mt(L);
+    register_bind_float_node_mt(L);
     register_bind_array_node_mt(L);
     register_bind_sampler2d_node_mt(L);
     register_bind_mat2_node_mt(L);

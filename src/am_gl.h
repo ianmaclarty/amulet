@@ -341,7 +341,7 @@ void am_copy_texture_sub_image_2d(am_texture_copy_target target, int level, int 
 
 void am_generate_mipmap(am_texture_bind_target target);
 
-int am_texture_required_size(am_texture_format format, int w, int h, am_pixel_type type);
+int am_compute_pixel_size(am_texture_format format, am_pixel_type type);
 
 void am_set_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int w, int h, am_pixel_type type, void *data);
 void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int w, int h, am_texture_format format, am_pixel_type type, void *data);

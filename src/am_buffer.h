@@ -4,6 +4,9 @@ enum am_buffer_view_type {
     AM_BUF_ELEM_TYPE_FLOAT3,
     AM_BUF_ELEM_TYPE_FLOAT4,
     AM_BUF_ELEM_TYPE_UBYTE,
+    AM_BUF_ELEM_TYPE_USHORT,
+    AM_BUF_ELEM_TYPE_SHORT,
+    AM_BUF_ELEM_TYPE_INT,
 };
 
 struct am_texture2d_info {
@@ -12,6 +15,7 @@ struct am_texture2d_info {
     int                     height;
     am_texture_format       format;
     am_pixel_type           type;
+    int                     pixel_size;
     bool                    has_mipmap;
 };
 
@@ -81,6 +85,30 @@ struct am_buffer_view : am_nonatomic_userdata {
 
     inline void set_ubyte(int i, uint8_t v) {
         *((uint8_t*)view_index_ptr(this, i)) = v;
+    }
+
+    inline uint16_t get_ushort(int i) {
+        return *((uint16_t*)view_index_ptr(this, i));
+    }
+
+    inline void set_ushort(int i, uint16_t v) {
+        *((uint16_t*)view_index_ptr(this, i)) = v;
+    }
+
+    inline int16_t get_short(int i) {
+        return *((int16_t*)view_index_ptr(this, i));
+    }
+
+    inline void set_short(int i, int16_t v) {
+        *((int16_t*)view_index_ptr(this, i)) = v;
+    }
+
+    inline int32_t get_int(int i) {
+        return *((int32_t*)view_index_ptr(this, i));
+    }
+
+    inline void set_int(int i, int32_t v) {
+        *((int32_t*)view_index_ptr(this, i)) = v;
     }
 };
 

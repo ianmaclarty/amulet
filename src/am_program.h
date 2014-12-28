@@ -79,6 +79,13 @@ struct am_program_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
+struct am_bind_float_node : am_scene_node {
+    am_param_name_id name;
+    float value;
+
+    virtual void render(am_render_state *rstate);
+};
+
 struct am_bind_array_node : am_scene_node {
     am_param_name_id name;
     am_buffer_view *arr;
@@ -120,6 +127,7 @@ AM_BIND_VEC_NODE_DECL(3)
 AM_BIND_VEC_NODE_DECL(4)
 
 int am_create_program_node(lua_State *L);
+int am_create_bind_float_node(lua_State *L);
 int am_create_bind_array_node(lua_State *L);
 int am_create_bind_sampler2d_node(lua_State *L);
 int am_create_bind_vec2_node(lua_State *L);

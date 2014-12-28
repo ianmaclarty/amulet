@@ -72,4 +72,28 @@ viewubn[2] = 0.5
 print(viewubn[2] * 255)
 print(viewub[2])
 
+local viewushort = buf2:view("ushort", 0, 2, 5, false)
+viewushort[1] = 60000
+print(viewushort[1])
+
+local viewshort = buf2:view("short", 0, 2, 5, false)
+viewshort[1] = -20000
+print(viewshort[1])
+
+local viewint = buf2:view("int", 0, 4, 2, false)
+viewint[1] = 9999999
+print(viewint[1])
+
+local viewushortn = buf2:view("ushort", 0, 2, 5, true)
+viewushortn[1] = 0.5
+print(string.format("%0.2f", viewushortn[1]))
+
+local viewshortn = buf2:view("short", 0, 2, 5, true)
+viewshortn[1] = -0.5
+print(string.format("%0.2f", viewshortn[1]))
+
+local viewintn = buf2:view("int", 0, 4, 2, true)
+viewintn[1] = -0.25
+print(string.format("%0.2f", viewintn[1]))
+
 print("ok")
