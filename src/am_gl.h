@@ -4,6 +4,7 @@ typedef int32_t  am_glint;
 // Initialization
 
 void am_init_gl();
+void am_destroy_gl();
 bool am_gl_is_initialized();
 
 // Per-Fragment Operations
@@ -174,14 +175,15 @@ void am_set_dither_enabled(bool enabled);
 typedef am_gluint am_shader_id;
 typedef am_gluint am_program_id;
 
-am_program_id am_create_program();
-am_shader_id am_create_vertex_shader();
-am_shader_id am_create_fragment_shader();
+enum am_shader_type {
+    AM_VERTEX_SHADER,
+    AM_FRAGMENT_SHADER,
+};
 
-void am_set_shader_source(am_shader_id shader, const char *src);
-bool am_compile_shader(am_shader_id shader);
-// returned string should be freed with free()
-const char *am_get_shader_info_log(am_shader_id shader);
+am_program_id am_create_program();
+am_shader_id am_create_shader(am_shader_type type);
+// returns false on error and sets msg, which should be freed with free()
+bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg);
 
 void am_attach_shader(am_program_id program, am_shader_id shader);
 bool am_link_program(am_program_id program);

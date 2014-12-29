@@ -99,7 +99,7 @@ static int setup_texture2d(lua_State *L) {
     if (t_wrap == AM_TEXTURE_WRAP_MIRRORED_REPEAT && !am_is_power_of_two(height)) {
         return luaL_error(L, "texture height must be power of two when using mirrored_repeat (in fact %d)", height);
     }
-    bool needs_mipmap;
+    bool needs_mipmap = false;
     switch (min_filter) {
         case AM_MIN_FILTER_NEAREST:
         case AM_MIN_FILTER_LINEAR:

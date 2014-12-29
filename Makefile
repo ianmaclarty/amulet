@@ -32,12 +32,18 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = lua
 else
-  AM_DEPS = $(LUAVM) sdl glew png z
+  ifeq ($(TARGET_PLATFORM),win32)
+    AM_DEPS = $(LUAVM) sdl glew png z
+  else
+    AM_DEPS = $(LUAVM) sdl glew png z angle
+    AM_DEFS += AM_USE_ANGLE
+  endif
 endif
 
 DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(AM_DEPS))
 
 SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
+ANGLE_ALIB = $(BUILD_LIB_DIR)/libangle$(ALIB_EXT)
 GLEW_ALIB = $(BUILD_LIB_DIR)/libglew$(ALIB_EXT)
 LUA_ALIB = $(BUILD_LIB_DIR)/liblua$(ALIB_EXT)
 LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
@@ -54,7 +60,7 @@ AM_INCLUDE_FLAGS = $(INCLUDE_OPT)$(BUILD_INC_DIR) $(INCLUDE_OPT)$(BUILD_LUAVM_IN
 
 AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 
-AM_CFLAGS = -Wall $(AM_DEF_FLAGS) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS)
+AM_CFLAGS = $(AM_DEF_FLAGS) $(COMMON_CFLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS)
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
 HTML_EDITOR_FILES := $(wildcard editor/*.js editor/*.css editor/*.html editor/*.lua)
@@ -92,6 +98,12 @@ $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
 	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
 	cp $(SDL_DIR)/build/.libs/libSDL2.a $@
+
+$(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(ANGLE_DIR) && $(MAKE) clean all
+	cp $(ANGLE_DIR)/libangle$(ALIB_EXT) $@
+	cp -r $(ANGLE_DIR)/include/GLSLANG $(BUILD_INC_DIR)/
+	cp -r $(ANGLE_DIR)/include/KHR $(BUILD_INC_DIR)/
 
 $(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
 	cd $(LUA_DIR) && $(MAKE) clean $(LUA_TARGET) CC=$(CC) MYCFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)"

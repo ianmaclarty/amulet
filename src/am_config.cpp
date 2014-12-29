@@ -15,6 +15,9 @@ int am_conf_audio_buffer_size = 1024;
 int am_conf_audio_channels = 2;
 int am_conf_audio_sample_rate = 44100;
 
-// Note: enabling these causes substantial slowdowns on html
+// Note: enabling either of the following two options causes substantial
+// slowdowns on the html backend in some browsers
 bool am_conf_validate_shader_programs = false;
 bool am_conf_check_gl_errors = false;
+
+bool am_conf_dump_translated_shaders = false;

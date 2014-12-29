@@ -152,34 +152,29 @@ am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
     }
 }
 
-#define VERTEX_SHADER 0
-#define FRAGMENT_SHADER 1
-
-am_shader_id load_shader(lua_State *L, int type, const char *src) {
-    am_shader_id shader = 0;
-    switch (type) {
-        case VERTEX_SHADER: shader = am_create_vertex_shader(); break;
-        case FRAGMENT_SHADER: shader = am_create_fragment_shader(); break;
-    }
+am_shader_id load_shader(lua_State *L, am_shader_type type, const char *src) {
+    am_shader_id shader = am_create_shader(type);
     if (shader == 0) {
         lua_pushstring(L, "unable to create new shader");
         return 0;
     }
 
-    am_set_shader_source(shader, src);
-    bool compiled = am_compile_shader(shader);
+    char *msg = NULL;
+    bool compiled = am_compile_shader(shader, type, src, &msg);
     if (!compiled) {
+        assert(msg != NULL);
         const char *type_str = "<unknown>";
         switch (type) {
-            case VERTEX_SHADER: type_str = "vertex"; break;
-            case FRAGMENT_SHADER: type_str = "fragment"; break;
+            case AM_VERTEX_SHADER: type_str = "vertex"; break;
+            case AM_FRAGMENT_SHADER: type_str = "fragment"; break;
         }
-        const char *msg = am_get_shader_info_log(shader);
         lua_pushfstring(L, "%s shader compilation error:\n%s", type_str, msg);
         free((void*)msg);
         am_delete_shader(shader);
         return 0;
-   }
+    } else {
+        assert(msg == NULL);
+    }
 
    return shader;
 }
@@ -198,11 +193,11 @@ static int create_program(lua_State *L) {
         return luaL_error(L, "expecting fragment shader source string in position 2");
     }
 
-    am_shader_id vertex_shader = load_shader(L, VERTEX_SHADER, vertex_shader_src);
+    am_shader_id vertex_shader = load_shader(L, AM_VERTEX_SHADER, vertex_shader_src);
     if (vertex_shader == 0) {
         return luaL_error(L, lua_tostring(L, -1));
     }
-    am_shader_id fragment_shader = load_shader(L, FRAGMENT_SHADER, fragment_shader_src);
+    am_shader_id fragment_shader = load_shader(L, AM_FRAGMENT_SHADER, fragment_shader_src);
     if (fragment_shader == 0) {
         am_delete_shader(vertex_shader);
         return luaL_error(L, lua_tostring(L, -1));

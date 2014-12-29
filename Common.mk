@@ -1,3 +1,8 @@
+TARGET_PLATFORMS = linux32 linux64 win32 osx ios android html
+
+DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
+RELEASE_TARGETS = $(patsubst %,%.release,$(TARGET_PLATFORMS))
+
 # Directories
 
 DEPS_DIR   = deps
@@ -17,11 +22,6 @@ VC_LINK=link.exe
 VC_LIB=lib.exe
 
 # Host settings (this is the *build* host, not the host we want to run on)
-
-TARGET_PLATFORMS = linux32 linux64 win32 osx ios android html
-
-DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
-RELEASE_TARGETS = $(patsubst %,%.release,$(TARGET_PLATFORMS))
 
 PATH_SEP = :
 
@@ -80,7 +80,7 @@ AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
 LUA_TARGET = posix
-XCFLAGS = -ffast-math -Werror -pthread -fno-strict-aliasing
+XCFLAGS = -Wall -Werror -ffast-math -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 
 EMSCRIPTEN_EXPORTS_OPT=-s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_resize']"
@@ -149,4 +149,4 @@ else
   endif
 endif
 
-COMMON_CFLAGS = $(GRADE_CFLAGS) $(XCFLAGS) $(CFLAGS)
+COMMON_CFLAGS = $(GRADE_CFLAGS) $(CFLAGS)

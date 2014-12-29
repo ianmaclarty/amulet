@@ -11,3 +11,4 @@ extern int am_conf_audio_sample_rate;
 // dev options
 extern bool am_conf_validate_shader_programs;
 extern bool am_conf_check_gl_errors;
+extern bool am_conf_dump_translated_shaders;

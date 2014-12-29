@@ -10,12 +10,23 @@
     #include <GLES2/gl2.h>
 #endif
 
+#if defined(AM_USE_ANGLE)
+#include "GLSLANG/ShaderLang.h"
+#endif
+
 #define check_for_errors { if (am_conf_check_gl_errors) check_glerror(__FILE__, __LINE__, __func__); }
 
 #define check_initialized(...) {if (!am_gl_initialized) {am_report_error("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
 
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
+
+#if defined(AM_USE_ANGLE)
+static void init_angle();
+static void destroy_angle();
+static void angle_translate_shader(am_shader_type type,
+    const char *src, char **objcode, char **errmsg);
+#endif
 
 static bool am_gl_initialized = false;
 
@@ -24,7 +35,17 @@ void am_init_gl() {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+#if defined(AM_USE_ANGLE)
+    init_angle();
+#endif
     am_gl_initialized = true;
+}
+
+void am_destroy_gl() {
+    if (!am_gl_initialized) return;
+#if defined(AM_USE_ANGLE)
+    destroy_angle();
+#endif
 }
 
 bool am_gl_is_initialized() {
@@ -349,49 +370,57 @@ am_program_id am_create_program() {
     return p;
 }
 
-am_shader_id am_create_vertex_shader() {
+am_shader_id am_create_shader(am_shader_type type) {
     check_initialized(0);
-    GLuint s = glCreateShader(GL_VERTEX_SHADER);
+    GLuint s = 0;
+    switch (type) {
+        case AM_VERTEX_SHADER: s = glCreateShader(GL_VERTEX_SHADER); break;
+        case AM_FRAGMENT_SHADER: s = glCreateShader(GL_FRAGMENT_SHADER); break;
+    }
     check_for_errors
     return s;
 }
 
-am_shader_id am_create_fragment_shader() {
-    check_initialized(0);
-    GLuint s = glCreateShader(GL_FRAGMENT_SHADER);
-    check_for_errors
-    return s;
-}
-
-void am_set_shader_source(am_shader_id shader, const char *src) {
-    check_initialized();
+bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg) {
+    if (!am_gl_initialized) {
+        const char *m = "gl not initialized";
+        *msg = (char*)malloc(strlen(m) + 1);
+        strcpy(*msg, m);
+        return false;
+    }
+#if defined(AM_USE_ANGLE)
+    char *translate_objcode = NULL;
+    char *translate_errmsg = NULL;
+    angle_translate_shader(type, src, &translate_objcode, &translate_errmsg);
+    if (translate_errmsg != NULL) {
+        *msg = translate_errmsg;
+        return false;
+    }
+    assert(translate_objcode != NULL);
+    glShaderSource(shader, 1, (const char**)&translate_objcode, NULL);
+    free(translate_objcode);
+#else
     glShaderSource(shader, 1, &src, NULL);
+#endif
     check_for_errors
-}
 
-bool am_compile_shader(am_shader_id shader) {
-    check_initialized(false);
     GLint compiled;
     glCompileShader(shader);
     glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
     check_for_errors
-    return compiled;
-}
-
-const char *am_get_shader_info_log(am_shader_id shader) {
-    check_initialized("gl not initialized");
-    GLint len = 0;
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-    if (len > 1) {
-        char* msg = (char*)malloc(sizeof(char) * len);
-        glGetShaderInfoLog(shader, len, NULL, msg);
-        return msg;
-    } else {
-        const char *cmsg = "unknown error";
-        char* msg = (char*)malloc(strlen(cmsg) + 1);
-        strcpy(msg, cmsg);
-        return msg;
+    if (!compiled) {
+        GLint len = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+        if (len > 1) {
+            *msg = (char*)malloc(sizeof(char) * len);
+            glGetShaderInfoLog(shader, len, NULL, *msg);
+        } else {
+            const char *cmsg = "unknown error";
+            *msg = (char*)malloc(strlen(cmsg) + 1);
+            strcpy(*msg, cmsg);
+        }
     }
+    return compiled;
 }
 
 void am_attach_shader(am_program_id program, am_shader_id shader) {
@@ -1187,3 +1216,68 @@ static void check_glerror(const char *file, int line, const char *func) {
         }
     }
 }
+
+#if defined(AM_USE_ANGLE)
+
+static ShBuiltInResources angle_resources;
+static ShHandle angle_vcompiler;
+static ShHandle angle_fcompiler;
+static int angle_comp_options =
+    SH_OBJECT_CODE | SH_INIT_GL_POSITION |
+    SH_UNFOLD_SHORT_CIRCUIT | SH_INIT_VARYINGS_WITHOUT_STATIC_USE;
+
+static void init_angle() {
+    ShInitialize();
+
+    ShInitBuiltInResources(&angle_resources);
+    angle_resources.MaxVertexAttribs = 16;
+    angle_resources.MaxVertexUniformVectors = 128;
+    angle_resources.MaxVaryingVectors = 16;
+    angle_resources.MaxVertexTextureImageUnits = 8;
+    angle_resources.MaxCombinedTextureImageUnits = 16;
+    angle_resources.MaxTextureImageUnits = 16;
+    angle_resources.MaxFragmentUniformVectors = 32;
+    angle_resources.MaxDrawBuffers = 4;
+
+    ShShaderSpec spec = SH_GLES2_SPEC;
+    ShShaderOutput output = SH_GLSL_OUTPUT;
+
+    angle_vcompiler = ShConstructCompiler(SH_VERTEX_SHADER, spec, output, &angle_resources);
+    angle_fcompiler = ShConstructCompiler(SH_FRAGMENT_SHADER, spec, output, &angle_resources);
+}
+
+static void destroy_angle() {
+    ShDestruct(angle_vcompiler);
+    ShDestruct(angle_fcompiler);
+}
+
+static void angle_translate_shader(am_shader_type type,
+    const char *src, char **objcode, char **errmsg)
+{
+    size_t bufferLen = 0;
+
+    *objcode = NULL;
+    *errmsg = NULL;
+    ShHandle compiler = NULL;
+
+    switch (type) {
+        case AM_VERTEX_SHADER: compiler = angle_vcompiler; break;
+        case AM_FRAGMENT_SHADER: compiler = angle_fcompiler; break;
+    }
+    int ret = ShCompile(compiler, &src, 1, angle_comp_options);
+    if (ret) {
+        ShGetInfo(compiler, SH_OBJECT_CODE_LENGTH, &bufferLen);
+        *objcode = (char*) malloc(bufferLen + 1);
+        memset(*objcode, 0, bufferLen + 1);
+        ShGetObjectCode(compiler, *objcode);
+        if (am_conf_dump_translated_shaders) {
+            am_debug("translated shader:\n%s", *objcode);
+        }
+    } else {
+        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &bufferLen);
+        *errmsg = (char*) malloc(bufferLen + 1);
+        memset(*errmsg, 0, bufferLen + 1);
+        ShGetInfoLog(compiler, *errmsg);
+    }
+}
+#endif
