@@ -5,17 +5,12 @@ local vshader = [[
     precision mediump float;
     attribute vec2 vert;
     attribute vec2 uv;
-    varying vec2 v_uv;
     uniform float t;
+    uniform mat4 MVP;
+    varying vec2 v_uv;
     void main() {
         v_uv = uv + vec2(t, t);
-        float len = length(vert);
-        vec2 pos = vert;
-        if (len > 0.1) {
-            float angle = atan(vert.y, vert.x) + t;
-            pos = vec2(cos(angle), sin(angle)) * len;
-        }
-        gl_Position = vec4(pos, 0, 1);
+        gl_Position = MVP * vec4(vert, 0, 1);
     }
 ]]
 local fshader = [[
@@ -64,12 +59,16 @@ local node = amulet.draw_arrays()
     :bind_array("uv", uvs)
     :bind_sampler2d("tex1", tbuf)
     :bind_float("t", 0):alias("t")
+    :rotate2d("MVP"):alias("rotation")
+    :bind_mat4("MVP", math.mat4(1))
     :program(prog)
 
 -- create an action on the node that changes the colour
--- of random pixels in the texture and updates the t uniform
+-- of random pixels in the texture, rotates the MVP matrix
+-- and updates the t uniform
 node:action(function()
     tview[math.random(n^2)] = math.random(2^16)
+    node.rotation.angle = amulet.frame_time()
     node.t.value = amulet.frame_time()
     return 0
 end)

@@ -22,6 +22,7 @@ typedef enum {
     MT_am_bind_vec4_node,
     MT_am_translate_node,
     MT_am_scale_node,
+    MT_am_rotate2d_node,
     MT_am_draw_arrays_node,
 
     MT_am_audio_node,
