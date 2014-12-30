@@ -68,11 +68,9 @@ local node = amulet.draw_arrays()
 
 -- create an action on the node that changes the colour
 -- of random pixels in the texture and updates the t uniform
-local t = 0
 node:action(function()
     tview[math.random(n^2)] = math.random(2^16)
-    t = t + 1/60
-    node.t.value = t
+    node.t.value = amulet.frame_time()
     return 0
 end)
 

@@ -14,6 +14,7 @@ lua_State *am_init_engine(bool worker) {
     if (!worker) {
         am_init_param_name_map(L);
         am_init_actions();
+        am_open_time_module(L);
         am_open_window_module(L);
         am_open_scene_module(L);
         am_open_program_module(L);

@@ -135,7 +135,7 @@ $(ZLIB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 $(BUILD_DIRS): %:
 	mkdir -p $@
 
-$(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: editor/% 
+$(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: editor/% | $(BUILD_BIN_DIR)
 	cp $< $@
 
 # Embedded Lua code

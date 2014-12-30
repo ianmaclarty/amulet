@@ -6,6 +6,7 @@ enum am_buffer_view_type {
     AM_BUF_ELEM_TYPE_UBYTE,
     AM_BUF_ELEM_TYPE_USHORT,
     AM_BUF_ELEM_TYPE_SHORT,
+    AM_BUF_ELEM_TYPE_UINT,
     AM_BUF_ELEM_TYPE_INT,
 };
 
@@ -103,6 +104,14 @@ struct am_buffer_view : am_nonatomic_userdata {
         *((int16_t*)view_index_ptr(this, i)) = v;
     }
 
+    inline uint32_t get_uint(int i) {
+        return *((uint32_t*)view_index_ptr(this, i));
+    }
+
+    inline void set_uint(int i, uint32_t v) {
+        *((uint32_t*)view_index_ptr(this, i)) = v;
+    }
+
     inline int32_t get_int(int i) {
         return *((int32_t*)view_index_ptr(this, i));
     }
@@ -111,5 +120,20 @@ struct am_buffer_view : am_nonatomic_userdata {
         *((int32_t*)view_index_ptr(this, i)) = v;
     }
 };
+
+typedef am_buffer_view am_buffer_view_float;
+typedef am_buffer_view am_buffer_view_float2;
+typedef am_buffer_view am_buffer_view_float3;
+typedef am_buffer_view am_buffer_view_float4;
+typedef am_buffer_view am_buffer_view_ubyte;
+typedef am_buffer_view am_buffer_view_ubyte_normalized;
+typedef am_buffer_view am_buffer_view_short;
+typedef am_buffer_view am_buffer_view_short_normalized;
+typedef am_buffer_view am_buffer_view_ushort;
+typedef am_buffer_view am_buffer_view_ushort_normalized;
+typedef am_buffer_view am_buffer_view_int;
+typedef am_buffer_view am_buffer_view_int_normalized;
+typedef am_buffer_view am_buffer_view_uint;
+typedef am_buffer_view am_buffer_view_uint_normalized;
 
 void am_open_buffer_module(lua_State *L, bool worker);

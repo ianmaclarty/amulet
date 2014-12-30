@@ -158,6 +158,15 @@ static int create_buffer_view(lua_State *L) {
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
 
     am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 2);
+
+    int offset = luaL_checkinteger(L, 3);
+    int stride = luaL_checkinteger(L, 4);
+
+    bool normalized = false;
+    if (nargs > 5) {
+        normalized = lua_toboolean(L, 6);
+    }
+
     int type_size = 0;
     switch (type) {
         case AM_BUF_ELEM_TYPE_FLOAT:
@@ -181,13 +190,14 @@ static int create_buffer_view(lua_State *L) {
         case AM_BUF_ELEM_TYPE_SHORT:
             type_size = sizeof(int16_t);
             break;
+        case AM_BUF_ELEM_TYPE_UINT:
+            type_size = sizeof(int32_t);
+            break;
         case AM_BUF_ELEM_TYPE_INT:
             type_size = sizeof(int32_t);
             break;
     }
-
-    int offset = luaL_checkinteger(L, 3);
-    int stride = luaL_checkinteger(L, 4);
+    assert(type_size > 0);
 
     int available_bytes = buf->size - offset - type_size;
     int max_size = 0;
@@ -203,11 +213,6 @@ static int create_buffer_view(lua_State *L) {
         }
     } else {
         size = max_size;
-    }
-
-    bool normalized = false;
-    if (nargs > 5) {
-        normalized = lua_toboolean(L, 6);
     }
 
     am_buffer_view *view = am_new_userdata(L, am_buffer_view);
@@ -271,6 +276,14 @@ static int buffer_view_index(lua_State *L) {
             }
             break;
         }
+        case AM_BUF_ELEM_TYPE_UINT: {
+            if (view->normalized) {
+                lua_pushnumber(L, ((lua_Number)view->get_int(index-1)) / (lua_Number)UINT32_MAX);
+            } else {
+                lua_pushnumber(L, view->get_uint(index-1));
+            }
+            break;
+        }
         case AM_BUF_ELEM_TYPE_INT: {
             if (view->normalized) {
                 lua_pushnumber(L, ((lua_Number)view->get_int(index-1)) / 2147483647.0);
@@ -331,6 +344,14 @@ static int buffer_view_newindex(lua_State *L) {
                 view->set_short(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 32767.0);
             } else {
                 view->set_short(index-1, am_clamp(luaL_checkinteger(L, 3), INT16_MIN, INT16_MAX));
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UINT: {
+            if (view->normalized) {
+                view->set_uint(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * (lua_Number)UINT32_MAX);
+            } else {
+                view->set_uint(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, (lua_Number)UINT32_MAX));
             }
             break;
         }
@@ -407,6 +428,7 @@ void am_open_buffer_module(lua_State *L, bool worker) {
         {"ubyte",           AM_BUF_ELEM_TYPE_UBYTE},
         {"ushort",          AM_BUF_ELEM_TYPE_USHORT},
         {"short",           AM_BUF_ELEM_TYPE_SHORT},
+        {"uint",            AM_BUF_ELEM_TYPE_UINT},
         {"int",             AM_BUF_ELEM_TYPE_INT},
         {NULL, 0}
     };

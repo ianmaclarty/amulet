@@ -16,6 +16,10 @@ enum axis_button {
     NUM_AXIS_BUTTONS
 };
 
+static double fps = 1.0;
+static double frame_time = 0.0;
+static double delta_time = 1.0/60.0;
+
 static SDL_AudioDeviceID audio_device = 0;
 static std::vector<SDL_Window*> windows;
 static SDL_GLContext gl_context;
@@ -144,8 +148,20 @@ void am_native_window_post_render(am_native_window* window) {
     SDL_GL_SwapWindow((SDL_Window*)window);
 }
 
-double am_get_time() {
+double am_get_current_time() {
     return ((double)SDL_GetTicks())/1000.0;
+}
+
+double am_get_frame_time() {
+    return frame_time;
+}
+
+double am_get_delta_time() {
+    return delta_time;
+}
+
+double am_get_average_fps() {
+    return fps;
 }
 
 static bool init_glew() {
@@ -164,17 +180,13 @@ static bool init_glew() {
     return true;
 }
 
-static double fps = 1.0;
-
 int main( int argc, char *argv[] )
 {
     int vsync;
     double t0;
-    double t;
     double t_debt;
     double fps_t0;
     double fps_max;
-    double dt;
     long long frame_count;
     int status;
     lua_State *L = NULL;
@@ -196,12 +208,14 @@ int main( int argc, char *argv[] )
         goto quit;
     }
 
+    frame_time = am_get_current_time();
+
     status = luaL_dofile(L, filename);
     if (report_status(L, status)) goto quit;
     if (windows.size() == 0) goto quit;
 
-    t0 = am_get_time();
-    t = t0;
+    t0 = am_get_current_time();
+    frame_time = t0;
     t_debt = 0.0;
     fps_t0 = 0.0;
     fps_max = 0.0;
@@ -224,9 +238,9 @@ int main( int argc, char *argv[] )
 
         if (!handle_events()) goto quit;
 
-        t = am_get_time();
-        dt = fmin(1.0/15.0, t - t0); // fmin in case process was suspended, or last frame took very long
-        t_debt += dt;
+        frame_time = am_get_current_time();
+        delta_time = fmin(1.0/15.0, frame_time - t0); // fmin in case process was suspended, or last frame took very long
+        t_debt += delta_time;
 
         if (am_conf_fixed_update_time > 0.0) {
             while (t_debt > 0.0) {
@@ -246,13 +260,13 @@ int main( int argc, char *argv[] )
             }
         }
 
-        fps_max = fmax(fps_max, dt);
-        t0 = t;
+        fps_max = fmax(fps_max, delta_time);
+        t0 = frame_time;
 
         frame_count++;
 
-        if (t - fps_t0 >= 2.0) {
-            fps = (double)frame_count / (t - fps_t0);
+        if (frame_time - fps_t0 >= 2.0) {
+            fps = (double)frame_count / (frame_time - fps_t0);
             //am_debug("fps = %0.2f", fps);
             fps_t0 = t0;
             fps_max = 0.0;

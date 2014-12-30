@@ -78,21 +78,32 @@ void am_native_window_post_render(am_native_window* win) {
     SDL_GL_SwapBuffers();
 }
 
-double am_get_time() {
+static lua_State *L = NULL;
+static double t0;
+static double frame_time = 0.0;
+static double t_debt;
+static double fps = 1.0;
+static double fps_t0;
+static double fps_max;
+static double delta_time = 1.0/60.0;
+static long long frame_count = 0;
+static bool run_loop = true;
+
+double am_get_current_time() {
     return ((double)SDL_GetTicks())/1000.0;
 }
 
-static double fps = 1.0;
+double am_get_frame_time() {
+    return frame_time;
+}
 
-static lua_State *L = NULL;
-static double t0;
-static double t;
-static double t_debt;
-static double fps_t0;
-static double fps_max;
-static double dt;
-static long long frame_count = 0;
-static bool run_loop = true;
+double am_get_delta_time() {
+    return delta_time;
+}
+
+double am_get_average_fps() {
+    return fps;
+}
 
 static void main_loop() {
     if (!run_loop || sdl_window == NULL) return;
@@ -109,9 +120,9 @@ static void main_loop() {
         return;
     }
 
-    t = am_get_time();
-    dt = fmin(1.0/15.0, t - t0); // fmin in case process was suspended, or last frame took very long
-    t_debt += dt;
+    frame_time = am_get_current_time();
+    delta_time = fmin(1.0/15.0, frame_time - t0); // fmin in case process was suspended, or last frame took very long
+    t_debt += delta_time;
 
     if (am_conf_fixed_update_time > 0.0) {
         while (t_debt > 0.0) {
@@ -129,13 +140,13 @@ static void main_loop() {
         t_debt = 0.0;
     }
 
-    fps_max = fmax(fps_max, dt);
-    t0 = t;
+    fps_max = fmax(fps_max, delta_time);
+    t0 = frame_time;
 
     frame_count++;
 
-    if (t - fps_t0 >= 2.0) {
-        fps = (double)frame_count / (t - fps_t0);
+    if (frame_time - fps_t0 >= 2.0) {
+        fps = (double)frame_count / (frame_time - fps_t0);
         //am_debug("fps = %0.2f", fps);
         fps_t0 = t0;
         fps_max = 0.0;
@@ -153,12 +164,14 @@ int main( int argc, char *argv[] )
     L = am_init_engine(false);
     if (L == NULL) return 1;
 
+    frame_time = am_get_current_time();
+
     status = luaL_dofile(L, filename);
     if (report_status(L, status)) return 1;
     if (sdl_window == NULL) return 1;
 
-    t0 = am_get_time();
-    t = t0;
+    t0 = am_get_current_time();
+    frame_time = t0;
     t_debt = 0.0;
     fps_t0 = 0.0;
     fps_max = 0.0;
