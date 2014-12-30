@@ -298,32 +298,28 @@ function highlight_error(line) {
     }
 }
 
-var num_output_items = 0;
-var max_output_items = 1000;
+var max_output_items = 100;
+var output_items = [];
 function log_output(text, cls) {
-    console.log(text);
-
     var panel = document.getElementById("output-panel");
-
-    num_output_items++;
-    while (num_output_items > max_output_items) {
-        panel.removeChild(panel.childNodes[0]);
-        num_output_items--;
-    }
 
     text = text.replace(/&/g, "&amp;");
     text = text.replace(/</g, "&lt;");
     text = text.replace(/>/g, "&gt;");
     text = text.replace('\n', '<br>', 'g');
     text = text.replace(/(main\.lua):([0-9]+)/g, '<a class="error-link" onclick="window.highlight_error($2); return false;">$1:$2</a>');
-
     if (!cls) cls = "";
-    panel.innerHTML += '<div class="output-item ' + cls + '">' + text + '</div>';
+    output_items.push('<div class="output-item ' + cls + '">' + text + '</div>');
+
+    while (output_items.length > max_output_items) {
+        output_items.splice(0, 1);
+    }
+    panel.innerHTML = output_items.join("\n");
     panel.scrollTop = panel.scrollHeight; // focus on bottom
 }
 
 function clear_output() {
-    num_output_items = 0;
+    output_items = [];
     document.getElementById("output-panel").innerHTML = "";
 }
 
