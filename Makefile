@@ -63,9 +63,9 @@ AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 AM_CFLAGS = $(AM_DEF_FLAGS) $(COMMON_CFLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS)
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
-HTML_EDITOR_FILES := $(wildcard editor/*.js editor/*.css editor/*.html editor/*.lua)
+DEFAULT_HTML_EDITOR_SCRIPT = samples/kaleidoscope.lua
+HTML_EDITOR_FILES := $(wildcard editor/*.js editor/*.css editor/*.html)
 BUILD_HTML_EDITOR_FILES = $(patsubst editor/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
-DEFAULT_HTML_EDITOR_SCRIPT = editor/example.lua
 
 # Rules
 
@@ -73,7 +73,7 @@ default: all
 
 .PHONY: all
 ifeq ($(TARGET_PLATFORM),html)
-all: $(BUILD_HTML_EDITOR_FILES) $(AMULET) 
+all: $(BUILD_HTML_EDITOR_FILES) $(BUILD_BIN_DIR)/example.lua $(AMULET) 
 else
 all: $(AMULET)
 endif
@@ -136,6 +136,9 @@ $(BUILD_DIRS): %:
 	mkdir -p $@
 
 $(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: editor/% | $(BUILD_BIN_DIR)
+	cp $< $@
+
+$(BUILD_BIN_DIR)/example.lua: $(DEFAULT_HTML_EDITOR_SCRIPT)
 	cp $< $@
 
 # Embedded Lua code
