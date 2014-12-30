@@ -5,7 +5,8 @@ am_buffer::am_buffer(int sz) {
     data = (uint8_t*)malloc(sz);
     memset(data, 0, size);
     vbo_id = 0;
-    texture2d_info = NULL;
+    texture2d = NULL;
+    texture2d_ref = LUA_NOREF;
     dirty_start = INT_MAX;
     dirty_end = 0;
 }
@@ -16,11 +17,6 @@ void am_buffer::destroy() {
         am_delete_buffer(vbo_id);
         vbo_id = 0;
     }
-    if (texture2d_info != NULL) {
-        am_delete_texture(texture2d_info->texture_id);
-        free(texture2d_info);
-        texture2d_info = NULL;
-    }
 }
 
 void am_buffer::update_if_dirty() {
@@ -29,25 +25,8 @@ void am_buffer::update_if_dirty() {
             am_bind_buffer(AM_ARRAY_BUFFER, vbo_id);
             am_set_buffer_sub_data(AM_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
         } 
-        if (texture2d_info != NULL) {
-            am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture2d_info->texture_id);
-            int pixel_size = texture2d_info->pixel_size;
-            int dirty_pixel_start = dirty_start / pixel_size;
-            int dirty_pixel_end = (dirty_end - 1) / pixel_size + 1;
-            int start_row = dirty_pixel_start / texture2d_info->width;
-            int end_row = (dirty_pixel_end - 1) / texture2d_info->width;
-            if (start_row == end_row) {
-                int x = dirty_pixel_start % texture2d_info->width;
-                int data_offset = dirty_pixel_start * pixel_size;
-                am_set_texture_sub_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, x, start_row,
-                    dirty_pixel_end - dirty_pixel_start, 1,
-                    texture2d_info->format, texture2d_info->type, data + data_offset);
-            } else {
-                int data_offset = start_row * texture2d_info->width * pixel_size;
-                am_set_texture_sub_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, 0, start_row, texture2d_info->width,
-                    end_row - start_row + 1, texture2d_info->format, texture2d_info->type, data + data_offset);
-            }
-            if (texture2d_info->has_mipmap) am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
+        if (texture2d != NULL) {
+            texture2d->update_from_buffer();
         }
         dirty_start = INT_MAX;
         dirty_end = 0;
@@ -60,82 +39,6 @@ void am_buffer::create_vbo() {
     vbo_id = am_create_buffer_object();
     am_bind_buffer(AM_ARRAY_BUFFER, vbo_id);
     am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
-}
-
-static int setup_texture2d(lua_State *L) {
-    int nargs = am_check_nargs(L, 3);
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
-    if (buf->texture2d_info != NULL) {
-        return luaL_error(L, "2d texture already set up for this buffer");
-    }
-    int width = luaL_checkinteger(L, 2);
-    int height = luaL_checkinteger(L, 3);
-    am_texture_min_filter min_filter = AM_MIN_FILTER_NEAREST;
-    am_texture_mag_filter mag_filter = AM_MAG_FILTER_NEAREST;
-    am_texture_wrap s_wrap = AM_TEXTURE_WRAP_CLAMP_TO_EDGE;
-    am_texture_wrap t_wrap = AM_TEXTURE_WRAP_CLAMP_TO_EDGE;
-    am_texture_format format = AM_TEXTURE_FORMAT_RGBA;
-    am_pixel_type type = AM_PIXEL_TYPE_UBYTE;
-    if (nargs > 3) min_filter = am_get_enum(L, am_texture_min_filter, 4);
-    if (nargs > 4) mag_filter = am_get_enum(L, am_texture_mag_filter, 5);
-    if (nargs > 5) s_wrap = am_get_enum(L, am_texture_wrap, 6);
-    if (nargs > 6) t_wrap = am_get_enum(L, am_texture_wrap, 7);
-    if (nargs > 7) format = am_get_enum(L, am_texture_format, 8);
-    if (nargs > 8) type = am_get_enum(L, am_pixel_type, 9);
-    int pixel_size = am_compute_pixel_size(format, type);
-    int required_size = pixel_size * width * height;
-    if (required_size != buf->size) {
-        return luaL_error(L, "buffer has wrong size (%d, expecting %d)", buf->size, required_size);
-    }
-    if (s_wrap == AM_TEXTURE_WRAP_REPEAT && !am_is_power_of_two(width)) {
-        return luaL_error(L, "texture width must be power of two when using repeat (in fact %d)", width);
-    }
-    if (s_wrap == AM_TEXTURE_WRAP_MIRRORED_REPEAT && !am_is_power_of_two(width)) {
-        return luaL_error(L, "texture width must be power of two when using mirrored_repeat (in fact %d)", width);
-    }
-    if (t_wrap == AM_TEXTURE_WRAP_REPEAT && !am_is_power_of_two(height)) {
-        return luaL_error(L, "texture height must be power of two when using repeat (in fact %d)", height);
-    }
-    if (t_wrap == AM_TEXTURE_WRAP_MIRRORED_REPEAT && !am_is_power_of_two(height)) {
-        return luaL_error(L, "texture height must be power of two when using mirrored_repeat (in fact %d)", height);
-    }
-    bool needs_mipmap = false;
-    switch (min_filter) {
-        case AM_MIN_FILTER_NEAREST:
-        case AM_MIN_FILTER_LINEAR:
-            needs_mipmap = false;
-            break;
-        case AM_MIN_FILTER_NEAREST_MIPMAP_NEAREST:
-        case AM_MIN_FILTER_NEAREST_MIPMAP_LINEAR:
-        case AM_MIN_FILTER_LINEAR_MIPMAP_NEAREST:
-        case AM_MIN_FILTER_LINEAR_MIPMAP_LINEAR:
-            needs_mipmap = true;
-            break;
-    }
-    if (needs_mipmap && !am_is_power_of_two(width)) {
-        return luaL_error(L, "texture width must be power of two when using mipmaps (in fact %d)",
-            width);
-    }
-    if (needs_mipmap && !am_is_power_of_two(height)) {
-        return luaL_error(L, "texture height must be power of two when using mipmaps (in fact %d)",
-            height);
-    }
-    buf->update_if_dirty();
-    buf->texture2d_info = (am_texture2d_info*)malloc(sizeof(am_texture2d_info));
-    buf->texture2d_info->texture_id = am_create_texture();
-    buf->texture2d_info->width = width;
-    buf->texture2d_info->height = height;
-    buf->texture2d_info->format = format;
-    buf->texture2d_info->type = type;
-    buf->texture2d_info->pixel_size = pixel_size;
-    buf->texture2d_info->has_mipmap = needs_mipmap;
-    am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, buf->texture2d_info->texture_id);
-    am_set_texture_min_filter(AM_TEXTURE_BIND_TARGET_2D, min_filter);
-    am_set_texture_mag_filter(AM_TEXTURE_BIND_TARGET_2D, mag_filter);
-    am_set_texture_wrap(AM_TEXTURE_BIND_TARGET_2D, s_wrap, t_wrap);
-    am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, format, width, height, type, buf->data);
-    if (needs_mipmap) am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
-    return 0;
 }
 
 static int create_buffer(lua_State *L) {
@@ -365,7 +268,7 @@ static int buffer_view_newindex(lua_State *L) {
         }
     }
     am_buffer *buf = view->buffer;
-    if (buf->vbo_id != 0 || buf->texture2d_info != NULL) {
+    if (buf->vbo_id != 0 || buf->texture2d != NULL) {
         int byte_start = view->offset + view->stride * (index-1);
         int byte_end = byte_start + view->type_size;
         if (byte_start < buf->dirty_start) {
@@ -378,7 +281,7 @@ static int buffer_view_newindex(lua_State *L) {
     return 0;
 }
 
-static void register_buffer_mt(lua_State *L, bool worker) {
+static void register_buffer_mt(lua_State *L) {
     lua_newtable(L);
 
     lua_pushvalue(L, -1);
@@ -391,10 +294,6 @@ static void register_buffer_mt(lua_State *L, bool worker) {
 
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
-    if (!worker) {
-        lua_pushcclosure(L, setup_texture2d, 0);
-        lua_setfield(L, -2, "setup_texture2d");
-    }
 
     am_register_metatable(L, MT_am_buffer, 0);
 }
@@ -413,7 +312,7 @@ static void register_buffer_view_mt(lua_State *L) {
     am_register_metatable(L, MT_am_buffer_view, 0);
 }
 
-void am_open_buffer_module(lua_State *L, bool worker) {
+void am_open_buffer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"buffer", create_buffer},
         {NULL, NULL}
@@ -434,53 +333,6 @@ void am_open_buffer_module(lua_State *L, bool worker) {
     };
     am_register_enum(L, ENUM_am_buffer_view_type, view_type_enum);
 
-    if (!worker) {
-        am_enum_value texture_format_enum[] = {
-            {"alpha",           AM_TEXTURE_FORMAT_ALPHA},
-            {"luminance",       AM_TEXTURE_FORMAT_LUMINANCE},
-            {"luminance_alpha", AM_TEXTURE_FORMAT_LUMINANCE_ALPHA},
-            {"rgb",             AM_TEXTURE_FORMAT_RGB},
-            {"rgba",            AM_TEXTURE_FORMAT_RGBA},
-            {NULL, 0}
-        };
-        am_register_enum(L, ENUM_am_texture_format, texture_format_enum);
-
-        am_enum_value pixel_type_enum[] = {
-            {"8",               AM_PIXEL_TYPE_UBYTE},
-            {"565",             AM_PIXEL_TYPE_USHORT_5_6_5},
-            {"4444",            AM_PIXEL_TYPE_USHORT_4_4_4_4},
-            {"5551",            AM_PIXEL_TYPE_USHORT_5_5_5_1},
-            {NULL, 0}
-        };
-        am_register_enum(L, ENUM_am_pixel_type, pixel_type_enum);
-
-        am_enum_value min_filter_enum[] = {
-            {"nearest",                 AM_MIN_FILTER_NEAREST},
-            {"linear",                  AM_MIN_FILTER_LINEAR},
-            {"nearest_mipmap_nearest",  AM_MIN_FILTER_NEAREST_MIPMAP_NEAREST},
-            {"linear_mipmap_nearest",   AM_MIN_FILTER_LINEAR_MIPMAP_NEAREST},
-            {"nearest_mipmap_linear",   AM_MIN_FILTER_NEAREST_MIPMAP_LINEAR},
-            {"linear_mipmap_linear",    AM_MIN_FILTER_LINEAR_MIPMAP_LINEAR},
-            {NULL, 0}
-        };
-        am_register_enum(L, ENUM_am_texture_min_filter, min_filter_enum);
-
-        am_enum_value mag_filter_enum[] = {
-            {"nearest",         AM_MAG_FILTER_NEAREST},
-            {"linear",          AM_MAG_FILTER_LINEAR},
-            {NULL, 0}
-        };
-        am_register_enum(L, ENUM_am_texture_mag_filter, mag_filter_enum);
-
-        am_enum_value texture_wrap_enum[] = {
-            {"clamp_to_edge",   AM_TEXTURE_WRAP_CLAMP_TO_EDGE},
-            {"mirrored_repeat", AM_TEXTURE_WRAP_MIRRORED_REPEAT},
-            {"repeat",          AM_TEXTURE_WRAP_REPEAT},
-            {NULL, 0}
-        };
-        am_register_enum(L, ENUM_am_texture_wrap, texture_wrap_enum);
-    }
-
-    register_buffer_mt(L, worker);
+    register_buffer_mt(L);
     register_buffer_view_mt(L);
 }

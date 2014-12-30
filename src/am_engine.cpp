@@ -10,14 +10,15 @@ lua_State *am_init_engine(bool worker) {
     open_stdlualibs(L);
     am_init_traceback_func(L);
     am_open_math_module(L);
-    am_open_buffer_module(L, worker);
+    am_open_time_module(L);
+    am_open_buffer_module(L);
     if (!worker) {
         am_init_param_name_map(L);
         am_init_actions();
-        am_open_time_module(L);
         am_open_window_module(L);
         am_open_scene_module(L);
         am_open_program_module(L);
+        am_open_texture2d_module(L);
         am_open_transforms_module(L);
         am_open_renderer_module(L);
         am_open_audio_module(L);

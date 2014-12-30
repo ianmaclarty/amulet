@@ -47,17 +47,22 @@ local tview = tbuf:view("ushort", 0, 2)
 for i = 1, n^2 do
     tview[i] = math.random(2^16)
 end
-tbuf:setup_texture2d(n, n,
-    "nearest", "nearest",
-    "mirrored_repeat", "mirrored_repeat",
-    "rgb", "565")
+local texture = amulet.create_texture2d{
+    buffer = tbuf,
+    width = n,
+    height = n,
+    swrap = "mirrored_repeat",
+    twrap = "mirrored_repeat",
+    format = "rgb",
+    type = "565"
+}
 
 -- create node that will render the vertices using
 -- the program and texture we created
 local node = amulet.draw_arrays()
     :bind_array("vert", verts)
     :bind_array("uv", uvs)
-    :bind_sampler2d("tex1", tbuf)
+    :bind_sampler2d("tex1", texture)
     :bind_float("t", 0):alias("t")
     :rotate2d("MVP"):alias("rotation")
     :bind_mat4("MVP", math.mat4(1))

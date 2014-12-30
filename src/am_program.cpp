@@ -15,12 +15,13 @@ static void bind_attribute_array(am_render_state *rstate,
 }
 
 static void bind_sampler2d(am_render_state *rstate,
-    am_gluint location, int texture_unit, am_buffer *buf)
+    am_gluint location, int texture_unit, am_texture2d *texture)
 {
-    assert(buf->texture2d_info != NULL);
-    buf->update_if_dirty();
+    if (texture->buffer != NULL) {
+        texture->buffer->update_if_dirty();
+    }
     am_set_active_texture_unit(texture_unit);
-    am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, buf->texture2d_info->texture_id);
+    am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture->texture_id);
     am_set_uniform1i(location, texture_unit);
 }
 
@@ -64,7 +65,7 @@ void am_program_param::bind(am_render_state *rstate) {
             break;
         case AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
-                bind_sampler2d(rstate, location, slot->value.value.sampler2d.texture_unit, slot->value.value.sampler2d.buffer);
+                bind_sampler2d(rstate, location, slot->value.value.sampler2d.texture_unit, slot->value.value.sampler2d.texture);
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
@@ -540,31 +541,28 @@ void am_bind_sampler2d_node::render(am_render_state *rstate) {
         am_program_param_value old_val = *param;
         param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D;
         param->value.sampler2d.texture_unit = rstate->next_free_texture_unit++;
-        param->value.sampler2d.buffer = buffer;
+        param->value.sampler2d.texture = texture;
         render_children(rstate);
         *param = old_val;
         rstate->next_free_texture_unit--;
     } else {
         // Reuse texture unit
-        am_buffer *old_buf = param->value.sampler2d.buffer;
-        param->value.sampler2d.buffer = buffer;
+        am_texture2d *old_tex = param->value.sampler2d.texture;
+        param->value.sampler2d.texture = texture;
         render_children(rstate);
-        param->value.sampler2d.buffer = old_buf;
+        param->value.sampler2d.texture = old_tex;
     }
 }
 
 int am_create_bind_sampler2d_node(lua_State *L) {
     am_check_nargs(L, 3);
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
-    am_buffer *buffer = am_get_userdata(L, am_buffer, 3);
-    if (buffer->texture2d_info == NULL) {
-        return luaL_error(L, "call setup_texture2d on this buffer before binding it to a sampler2d");
-    }
+    am_texture2d *texture = am_get_userdata(L, am_texture2d, 3);
     am_bind_sampler2d_node *node = am_new_userdata(L, am_bind_sampler2d_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
-    node->buffer = buffer;
-    node->buffer_ref = node->ref(L, 3); // ref from node to buffer
+    node->texture = texture;
+    node->texture_ref = node->ref(L, 3); // ref from node to texture
 
     return 1;
 }

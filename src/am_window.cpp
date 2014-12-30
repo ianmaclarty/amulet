@@ -72,7 +72,7 @@ static int create_window(lua_State *L) {
                 return luaL_error(L, "msaa_samples can't be negative");
             }
         } else {
-            return luaL_error(L, "unrecognised window setting: '%s'");
+            return luaL_error(L, "unrecognised window setting: '%s'", key);
         }
         lua_pop(L, 1); // pop value
     }

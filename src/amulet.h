@@ -49,6 +49,7 @@ extern "C" {
 #include "am_math.h"
 #include "am_window.h"
 #include "am_buffer.h"
+#include "am_texture2d.h"
 #include "am_audio.h"
 #include "am_trail.h"
 #include "am_action.h"

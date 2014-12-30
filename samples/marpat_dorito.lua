@@ -39,14 +39,21 @@ local tview = tbuf:view("ubyte", 0, 1)
 for i = 1, n^2 do
     tview[i] = math.random() * 255
 end
-tbuf:setup_texture2d(n, n, "nearest", "nearest", "repeat", "repeat", "luminance")
+local texture = am.create_texture2d{
+    width = n,
+    height = n,
+    swrap = "repeat",
+    twrap = "repeat",
+    format = "luminance",
+    buffer = tbuf
+}
 
 local MVP = math.mat4(1)
 
 local node = am.draw_arrays()
     :bind_array("x", xview)
     :bind_array("y", yview)
-    :bind_sampler2d("tex1", tbuf)
+    :bind_sampler2d("tex1", texture)
     :bind_mat4("MVP", MVP)
     :program(prog)
 

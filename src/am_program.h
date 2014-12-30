@@ -30,7 +30,7 @@ enum am_program_param_type {
 
 struct am_sampler2d_param_value {
     am_glint texture_unit;
-    am_buffer *buffer;
+    am_texture2d *texture;
 };
 
 struct am_program_param_value {
@@ -96,8 +96,8 @@ struct am_bind_array_node : am_scene_node {
 
 struct am_bind_sampler2d_node : am_scene_node {
     am_param_name_id name;
-    am_buffer *buffer;
-    int buffer_ref;
+    am_texture2d *texture;
+    int texture_ref;
 
     virtual void render(am_render_state *rstate);
 };

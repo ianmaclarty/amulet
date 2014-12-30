@@ -10,21 +10,14 @@ enum am_buffer_view_type {
     AM_BUF_ELEM_TYPE_INT,
 };
 
-struct am_texture2d_info {
-    am_texture_id           texture_id;
-    int                     width;
-    int                     height;
-    am_texture_format       format;
-    am_pixel_type           type;
-    int                     pixel_size;
-    bool                    has_mipmap;
-};
+struct am_texture2d;
 
 struct am_buffer : am_nonatomic_userdata {
     int                 size;  // in bytes
     uint8_t             *data;
     am_buffer_id        vbo_id;
-    am_texture2d_info   *texture2d_info;
+    am_texture2d        *texture2d;
+    int                 texture2d_ref;
     int                 dirty_start;
     int                 dirty_end;
 
@@ -136,4 +129,4 @@ typedef am_buffer_view am_buffer_view_int_normalized;
 typedef am_buffer_view am_buffer_view_uint;
 typedef am_buffer_view am_buffer_view_uint_normalized;
 
-void am_open_buffer_module(lua_State *L, bool worker);
+void am_open_buffer_module(lua_State *L);
