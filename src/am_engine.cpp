@@ -19,6 +19,7 @@ lua_State *am_init_engine(bool worker) {
         am_open_scene_module(L);
         am_open_program_module(L);
         am_open_texture2d_module(L);
+        am_open_framebuffer_module(L);
         am_open_transforms_module(L);
         am_open_renderer_module(L);
         am_open_audio_module(L);

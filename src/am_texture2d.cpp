@@ -1,6 +1,8 @@
 #include "amulet.h"
 
 static int create_texture2d(lua_State *L) {
+    am_check_nargs(L, 1);
+    if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
     int width = -1;
     int height = -1;
     am_texture_min_filter min_filter = AM_MIN_FILTER_NEAREST;
@@ -10,7 +12,6 @@ static int create_texture2d(lua_State *L) {
     am_texture_format format = AM_TEXTURE_FORMAT_RGBA;
     am_pixel_type type = AM_PIXEL_TYPE_UBYTE;
     am_buffer *buffer = NULL;
-    am_check_nargs(L, 1);
     lua_pushnil(L);
     while (lua_next(L, 1) != 0) {
         const char *key = luaL_checkstring(L, -2);
@@ -145,10 +146,7 @@ void am_texture2d::update_from_buffer() {
 
 static int texture2d_gc(lua_State *L) {
     am_texture2d *texture = am_get_userdata(L, am_texture2d, 1);
-    if (texture->texture_id != 0) {
-        am_delete_texture(texture->texture_id);
-        texture->texture_id = 0;
-    }
+    am_delete_texture(texture->texture_id);
     return 0;
 }
 

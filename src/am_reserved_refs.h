@@ -8,6 +8,7 @@ typedef enum {
     MT_am_window,
     MT_am_program,
     MT_am_texture2d,
+    MT_am_framebuffer,
 
     MT_am_scene_node,
     MT_am_action,
