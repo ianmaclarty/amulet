@@ -3,12 +3,11 @@
 struct am_window : am_nonatomic_userdata {
     bool                needs_closing;
     am_native_window   *native_win;
-    am_render_state    *rstate;
     am_scene_node      *root;
     int                 root_ref;
     int                 window_ref;
-    int                 drawable_width;
-    int                 drawable_height;
+    int                 width;  // pixels
+    int                 height; // pixels
 };
 
 static std::vector<am_window*> windows;
@@ -88,13 +87,11 @@ static int create_window(lua_State *L) {
         depth_buffer,
         stencil_buffer,
         msaa_samples,
-        &win->drawable_width,
-        &win->drawable_height);
+        &win->width,
+        &win->height);
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
-    win->rstate = new am_render_state();
-    win->rstate->viewport_state.set(0, 0, win->drawable_width, win->drawable_height);
 
     win->root = NULL;
     win->root_ref = LUA_NOREF;
@@ -129,9 +126,8 @@ void am_handle_window_close(am_native_window *nwin) {
 void am_handle_window_resize(am_native_window *nwin, int w, int h) {
     am_window *win = find_window(nwin);
     if (win != NULL) {
-        win->drawable_width = w;
-        win->drawable_height = h;
-        win->rstate->viewport_state.set(0, 0, w, h);
+        win->width = w;
+        win->height = h;
     }
 }
 
@@ -152,8 +148,6 @@ static void close_windows(lua_State *L) {
         if (win->needs_closing) {
             am_destroy_native_window(win->native_win);
             win->native_win = NULL;
-            delete win->rstate;
-            win->rstate = NULL;
             win->needs_closing = false;
             lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
             luaL_unref(L, -1, win->window_ref);
@@ -179,15 +173,27 @@ static void draw_windows() {
         am_window *win = windows[i];
         if (!win->needs_closing && win->root != NULL) {
             am_native_window_pre_render(win->native_win);
-            win->root->render(win->rstate);
+            am_render_state *rstate = &am_global_render_state;
+            rstate->viewport_state.set(0, 0, win->width, win->height);
+            rstate->active_framebuffer_id = 0;
+            rstate->bound_framebuffer_id = 0;
+            am_bind_framebuffer(0); // create_framebuffer binds the framebuffer without changing the
+                                    // render_state
+            am_clear_framebuffer(true, true, true);
+            win->root->render(rstate);
             am_native_window_post_render(win->native_win);
         }
     }
 }
 
 bool am_update_windows(lua_State *L) {
+    static unsigned int frame = 0;
     close_windows(L);
     draw_windows();
+    frame++;
+    if (am_conf_log_gl_calls) {
+        am_debug("GL: ===================== END FRAME %d ==========================", frame);
+    }
     return windows.size() > 0;
 }
 

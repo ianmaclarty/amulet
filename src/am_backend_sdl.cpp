@@ -141,7 +141,6 @@ void am_destroy_native_window(am_native_window* window) {
 
 void am_native_window_pre_render(am_native_window* window) {
     SDL_GL_MakeCurrent((SDL_Window*)window, gl_context);
-    am_clear_framebuffer(true, true, true);
 }
 
 void am_native_window_post_render(am_native_window* window) {

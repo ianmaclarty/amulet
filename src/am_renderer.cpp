@@ -1,10 +1,9 @@
 #include "amulet.h"
 
+am_render_state am_global_render_state;
+
 void am_viewport_state::set(int x, int y, int w, int h) {
-    dirty = am_viewport_state::x != x ||
-        am_viewport_state::y != y ||
-        am_viewport_state::w != w ||
-        am_viewport_state::h != h;
+    dirty = true;
     am_viewport_state::x = x;
     am_viewport_state::y = y;
     am_viewport_state::w = w;
@@ -19,9 +18,17 @@ void am_viewport_state::update() {
 }
 
 void am_render_state::update_state() {
+    bind_active_framebuffer();
     viewport_state.update();
     bind_active_program();
     bind_active_program_params();
+}
+
+void am_render_state::bind_active_framebuffer() {
+    if (bound_framebuffer_id != active_framebuffer_id) {
+        am_bind_framebuffer(active_framebuffer_id);
+        bound_framebuffer_id = active_framebuffer_id;
+    }
 }
 
 void am_render_state::draw_arrays(int first, int draw_array_count) {
@@ -75,6 +82,9 @@ void am_render_state::bind_active_indices() {
 }
 
 am_render_state::am_render_state() {
+    active_framebuffer_id = 0;
+    bound_framebuffer_id = 0;
+
     viewport_state.x = 0;
     viewport_state.y = 0;
     viewport_state.w = 0;

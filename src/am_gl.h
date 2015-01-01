@@ -378,6 +378,7 @@ void am_read_pixels(int x, int y, int w, int h, void *data);
 // Framebuffer Objects
 
 enum am_framebuffer_status {
+    AM_FRAMEBUFFER_STATUS_COMPLETE,
     AM_FRAMEBUFFER_STATUS_INCOMPLETE_ATTACHMENT,
     AM_FRAMEBUFFER_STATUS_INCOMPLETE_DIMENSIONS,
     AM_FRAMEBUFFER_STATUS_INCOMPLETE_MISSING_ATTACHMENT,
