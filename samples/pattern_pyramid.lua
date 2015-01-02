@@ -1,5 +1,5 @@
 local am = amulet
-local win = am.create_window({title = "demo", width = 640, height = 480, resizable = true})
+local win = am.window({title = "demo", width = 640, height = 480, resizable = true})
 
 local vshader = [[
     attribute vec2 vert;
@@ -31,15 +31,21 @@ local tview = tbuf:view("ubyte", 0, 1)
 for i = 1, n^2 do
     tview[i] = math.random() * 255
 end
-tbuf:setup_texture2d(n, n,
-    "linear", "linear",
-    "mirrored_repeat", "mirrored_repeat",
-    "luminance")
+local texture = am.texture2d{
+    width = n,
+    height = n,
+    minfilter = "linear",
+    magfilter = "linear",
+    swrap = "mirrored_repeat",
+    twrap = "mirrored_repeat",
+    format = "luminance",
+    buffer = tbuf
+}
 
 local node = am.draw_arrays()
     :bind_array("vert", verts)
-    :bind_sampler2d("tex1", tbuf)
-    :program(prog)
+    :bind_sampler2d("tex1", texture)
+    :bind_program(prog)
 
 node:action(function()
     tview[math.random(n^2)] = math.random() * 255

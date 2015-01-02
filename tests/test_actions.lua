@@ -1,8 +1,8 @@
 local am = amulet
 
-local win = am.create_window({title = "test", width = 100, height = 100})
+local win = am.window({title = "test", width = 100, height = 100})
 
-win.root = am.empty()
+win.root = am.group()
 
 local frame = 1
 win.root:action(function()

@@ -1,4 +1,3 @@
-print("start")
 local am = amulet
 
 local vshader = [[
@@ -28,7 +27,7 @@ local fshader = [[
     }
 ]]
 
-local win = am.create_window({title = "rgb_triangle", width = 640, height = 480})
+local win = am.window({title = "rgb_triangle", width = 640, height = 480})
 
 local prog = am.program(vshader, fshader)
 
@@ -61,8 +60,6 @@ local node = am.draw_arrays()
     :bind_array("r", rview)
     :bind_array("g", gview)
     :bind_array("b", bview)
-    :program(prog)
+    :bind_program(prog)
 
 win.root = node
-
-print("done")

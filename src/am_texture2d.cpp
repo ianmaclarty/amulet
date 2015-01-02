@@ -167,7 +167,7 @@ static void register_texture2d_mt(lua_State *L) {
 
 void am_open_texture2d_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"create_texture2d",    create_texture2d},
+        {"texture2d",    create_texture2d},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

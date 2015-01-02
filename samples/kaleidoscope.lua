@@ -1,4 +1,4 @@
-local win = amulet.create_window({})
+local win = amulet.window({})
 
 -- create the shader program
 local vshader = [[
@@ -47,7 +47,7 @@ local tview = tbuf:view("ushort", 0, 2)
 for i = 1, n^2 do
     tview[i] = math.random(2^16)
 end
-local texture = amulet.create_texture2d{
+local texture = amulet.texture2d{
     buffer = tbuf,
     width = n,
     height = n,
@@ -66,7 +66,7 @@ local node = amulet.draw_arrays()
     :bind_float("t", 0):alias("t")
     :rotate2d("MVP"):alias("rotation")
     :bind_mat4("MVP", math.mat4(1))
-    :program(prog)
+    :bind_program(prog)
 
 -- create an action on the node that changes the colour
 -- of random pixels in the texture, rotates the MVP matrix

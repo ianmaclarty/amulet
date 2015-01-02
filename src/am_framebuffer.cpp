@@ -63,7 +63,7 @@ static void register_framebuffer_mt(lua_State *L) {
 
 void am_open_framebuffer_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"create_framebuffer",    create_framebuffer},
+        {"framebuffer",    create_framebuffer},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

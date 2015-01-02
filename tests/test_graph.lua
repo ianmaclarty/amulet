@@ -8,8 +8,8 @@ function print_graph2(node, visited, indent)
     else
         print(indent..node.name)
         visited[node] = true
-        for i, child in node:children() do
-            assert(child == node:child(i))
+        for i = 1, node.num_children do
+            local child = node:child(i)
             print_graph2(child, visited, indent.."  ")
         end
         visited[node] = nil
@@ -22,17 +22,17 @@ function print_graph(root)
     print_graph2(root, {}, "")
 end
 
-local win = am.create_window({title = "test", width = 100, height = 100})
+local win = am.window({title = "test", width = 100, height = 100})
 
 local cycles
 
-local root = am.empty()
+local root = am.group()
 root:alias("name", "root")
-local child1 = am.empty():bind_vec2("test", math.vec2(0))
+local child1 = am.group():bind_vec2("test", math.vec2(0))
 child1:remove_all()
 child1:alias("name", "child1")
 local frame = 0
-local child2 = am.empty():action(function()
+local child2 = am.group():action(function()
     frame = frame + 1
     print("*child2 action frame "..frame.."*")
     if frame == 2 then
@@ -45,7 +45,7 @@ local child2 = am.empty():action(function()
     return 0
 end)
 child2:alias("name", "child2")
-local child3 = am.empty()
+local child3 = am.group()
 child3:alias{name = "child3"}
 
 local

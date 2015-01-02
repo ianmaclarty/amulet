@@ -21,7 +21,7 @@ static int create_window(lua_State *L) {
     int width = 640;
     int height = 480;
     const char *title = "Untitled";
-    bool resizable = false;
+    bool resizable = true;
     bool borderless = false;
     bool depth_buffer = true;
     bool stencil_buffer = true;
@@ -243,7 +243,7 @@ static void register_window_mt(lua_State *L) {
 
 void am_open_window_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"create_window",    create_window},
+        {"window",    create_window},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

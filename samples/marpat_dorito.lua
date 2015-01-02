@@ -19,7 +19,7 @@ local fshader = [[
     }
 ]]
 
-local win = am.create_window({title = "Marpat Dorito", width = 640, height = 480})
+local win = am.window({title = "Marpat Dorito", width = 640, height = 480})
 
 local prog = am.program(vshader, fshader)
 
@@ -39,7 +39,7 @@ local tview = tbuf:view("ubyte", 0, 1)
 for i = 1, n^2 do
     tview[i] = math.random() * 255
 end
-local texture = am.create_texture2d{
+local texture = am.texture2d{
     width = n,
     height = n,
     swrap = "repeat",
@@ -55,7 +55,7 @@ local node = am.draw_arrays()
     :bind_array("y", yview)
     :bind_sampler2d("tex1", texture)
     :bind_mat4("MVP", MVP)
-    :program(prog)
+    :bind_program(prog)
 
 --[[
 node:action(function()

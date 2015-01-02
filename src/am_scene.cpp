@@ -353,11 +353,25 @@ void am_set_scene_node_child(lua_State *L, am_scene_node *parent) {
     update_liveness_after_insertion(L, child, parent);
 }
 
-static int create_empty_node(lua_State *L) {
+static int create_wrap_node(lua_State *L) {
     int nargs = am_check_nargs(L, 0);
     am_scene_node *node = am_new_userdata(L, am_scene_node);
     if (nargs > 0) {
         am_set_scene_node_child(L, node);
+    }
+    return 1;
+}
+
+static int create_group_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 0);
+    am_scene_node *node = am_new_userdata(L, am_scene_node);
+    for (int i = 0; i < nargs; i++) {
+        am_scene_node *child = am_get_userdata(L, am_scene_node, i+1);
+        am_node_child child_slot;
+        child_slot.child = child;
+        child_slot.ref = node->ref(L, i+1); // ref from node to child
+        node->children.push_back(L, child_slot);
+        update_liveness_after_insertion(L, child, node);
     }
     return 1;
 }
@@ -394,6 +408,13 @@ static int get_child(lua_State *L) {
         return 0;
     }
 }
+
+static void get_num_children(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    lua_pushinteger(L, node->children.size);
+}
+
+static am_property num_children_property = {get_num_children, NULL};
 
 static inline void check_alias(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
@@ -454,9 +475,11 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
 
     lua_pushcclosure(L, child_pairs, 0);
-    lua_setfield(L, -2, "children");
+    lua_setfield(L, -2, "child_pairs");
     lua_pushcclosure(L, get_child, 0);
     lua_setfield(L, -2, "child");
+
+    am_register_property(L, "num_children", &num_children_property);
 
     lua_pushcclosure(L, alias, 0);
     lua_setfield(L, -2, "alias");
@@ -491,9 +514,9 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, am_create_bind_sampler2d_node, 0);
     lua_setfield(L, -2, "bind_sampler2d");
     lua_pushcclosure(L, am_create_program_node, 0);
-    lua_setfield(L, -2, "program");
-    lua_pushcclosure(L, create_empty_node, 0);
-    lua_setfield(L, -2, "empty");
+    lua_setfield(L, -2, "bind_program");
+    lua_pushcclosure(L, create_wrap_node, 0);
+    lua_setfield(L, -2, "wrap");
 
     lua_pushcclosure(L, am_create_translate_node, 0);
     lua_setfield(L, -2, "translate");
@@ -513,7 +536,7 @@ static void register_scene_node_mt(lua_State *L) {
 
 void am_open_scene_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"empty", create_empty_node},
+        {"group", create_group_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

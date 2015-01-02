@@ -21,7 +21,7 @@ local fshader = [[
     }
 ]]
 
-local win = am.create_window({title = "test1"})
+local win = am.window({title = "test1"})
 
 local prog = am.program(vshader, fshader)
 
@@ -40,7 +40,7 @@ local base = am.draw_arrays()
     :bind_array("x", xview)
     :bind_array("y", yview)
 
-local group = am.empty()
+local group = am.group()
 
 local seeds = {}
 for i = 1, 100 do
@@ -55,7 +55,7 @@ for i, seed in ipairs(seeds) do
     group:append(node)
 end
 
-local top = group:bind_mat4("MVP", MVP):program(prog)
+local top = group:bind_mat4("MVP", MVP):bind_program(prog)
 
 local n = 44100
 local audio_buf = am.buffer(4 * 2 * n)
