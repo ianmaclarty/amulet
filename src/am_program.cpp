@@ -161,7 +161,9 @@ am_shader_id load_shader(lua_State *L, am_shader_type type, const char *src) {
     }
 
     char *msg = NULL;
-    bool compiled = am_compile_shader(shader, type, src, &msg);
+    char *line_str = NULL;
+    int line_no = -1;
+    bool compiled = am_compile_shader(shader, type, src, &msg, &line_no, &line_str);
     if (!compiled) {
         assert(msg != NULL);
         const char *type_str = "<unknown>";
@@ -169,7 +171,14 @@ am_shader_id load_shader(lua_State *L, am_shader_type type, const char *src) {
             case AM_VERTEX_SHADER: type_str = "vertex"; break;
             case AM_FRAGMENT_SHADER: type_str = "fragment"; break;
         }
-        lua_pushfstring(L, "%s shader compilation error:\n%s", type_str, msg);
+        if (line_str != NULL && line_no > 0) {
+            const char *nl = "";
+            if (strlen(msg) > 0 && msg[strlen(msg)-1] != '\n') nl = "\n";
+            lua_pushfstring(L, "%s shader compilation error:\n%s%sLINE %d: %s", type_str, msg, nl, line_no, line_str);
+            free((void*)line_str);
+        } else {
+            lua_pushfstring(L, "%s shader compilation error:\n%s", type_str, msg);
+        }
         free((void*)msg);
         am_delete_shader(shader);
         return 0;

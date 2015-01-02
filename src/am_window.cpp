@@ -23,8 +23,8 @@ static int create_window(lua_State *L) {
     const char *title = "Untitled";
     bool resizable = true;
     bool borderless = false;
-    bool depth_buffer = true;
-    bool stencil_buffer = true;
+    bool depth_buffer = false;
+    bool stencil_buffer = false;
     int msaa_samples = 0;
 
     lua_pushnil(L);
@@ -175,10 +175,7 @@ static void draw_windows() {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
             rstate->viewport_state.set(0, 0, win->width, win->height);
-            rstate->active_framebuffer_id = 0;
-            rstate->bound_framebuffer_id = 0;
-            am_bind_framebuffer(0); // create_framebuffer binds the framebuffer without changing the
-                                    // render_state
+            am_bind_framebuffer(0);
             am_clear_framebuffer(true, true, true);
             win->root->render(rstate);
             am_native_window_post_render(win->native_win);

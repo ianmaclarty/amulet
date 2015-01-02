@@ -101,9 +101,6 @@ struct am_dither_state {
 };
 
 struct am_render_state {
-    am_framebuffer_id       active_framebuffer_id;
-    am_framebuffer_id       bound_framebuffer_id;
-
     am_viewport_state       viewport_state;
 
     am_buffer_id            active_indices_id;
@@ -125,7 +122,6 @@ struct am_render_state {
 
     void draw_arrays(int first, int count);
     bool validate_active_program();
-    void bind_active_framebuffer();
     void bind_active_program();
     void bind_active_program_params();
     void bind_active_indices();

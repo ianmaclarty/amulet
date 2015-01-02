@@ -182,8 +182,9 @@ enum am_shader_type {
 
 am_program_id am_create_program();
 am_shader_id am_create_shader(am_shader_type type);
-// returns false on error and sets msg, which should be freed with free()
-bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg);
+// returns false on error and sets msg, line_no and line_str.
+// msg and line_str should be freed with free() if set.
+bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg, int *line_no, char **line_str);
 
 void am_attach_shader(am_program_id program, am_shader_id shader);
 bool am_link_program(am_program_id program);

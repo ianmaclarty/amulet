@@ -62,7 +62,7 @@ function init_controls() {
     $("#run").click(function() {
         var code = editor.getDoc().getValue();
         clear_output();
-        log_output("Running...", "running");
+        log_start();
         Module.ccall('am_emscripten_run', null, ['string'], [code]);
     });
 }
@@ -318,6 +318,17 @@ function log_output(text, cls) {
     panel.scrollTop = panel.scrollHeight; // focus on bottom
 }
 
+function log_start() {
+    var now = new Date();
+    var hr = now.getHours();
+    var min = now.getMinutes();
+    var sec = now.getSeconds();
+    if (hr < 10) hr = "0" + hr;
+    if (min < 10) min = "0" + min;
+    if (sec < 10) sec = "0" + sec;
+    log_output("Started at " + hr + ":" + min + ":" + sec + "...", "running");
+}
+
 function clear_output() {
     output_items = [];
     document.getElementById("output-panel").innerHTML = "";
@@ -332,7 +343,7 @@ function setup() {
         init_hsplitter();
         init_canvas();
         remove_status_overlay();
-        log_output("Running...", "running");
+        log_start();
     } catch (e) {
         clear_status_timer();
         set_status_text('Something went wrong. See JavaScript console for details.');

@@ -32,7 +32,7 @@ static int render_node_to_framebuffer(lua_State *L) {
         fb->color_attachment0->buffer->update_if_dirty();
     }
     rstate->viewport_state.set(0, 0, fb->width, fb->height);
-    rstate->active_framebuffer_id = fb->framebuffer_id;
+    am_bind_framebuffer(fb->framebuffer_id);
     node->render(rstate);
     return 0;
 }

@@ -106,6 +106,8 @@ static am_attribute_var_type from_gl_attribute_var_type(GLenum gl_type);
 static am_uniform_var_type from_gl_uniform_var_type(GLenum gl_type);
 static am_framebuffer_status from_gl_framebuffer_status(GLenum gl_status);
 
+static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str);
+
 // Per-Fragment Operations
 
 void am_set_blend_enabled(bool enabled) {
@@ -459,7 +461,10 @@ am_shader_id am_create_shader(am_shader_type type) {
     return s;
 }
 
-bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg) {
+bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg, int *line_no, char **line_str) {
+    *msg = NULL;
+    *line_str = NULL;
+    *line_no = -1;
     if (!am_gl_initialized) {
         const char *m = "gl not initialized";
         *msg = (char*)malloc(strlen(m) + 1);
@@ -473,6 +478,7 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
     angle_translate_shader(type, src, &translate_objcode, &translate_errmsg);
     if (translate_errmsg != NULL) {
         *msg = translate_errmsg;
+        get_src_error_line(*msg, src, line_no, line_str);
         compiled = 0;
         goto end;
     }
@@ -493,6 +499,7 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
         if (len > 1) {
             *msg = (char*)malloc(sizeof(char) * len);
             glGetShaderInfoLog(shader, len, NULL, *msg);
+            get_src_error_line(*msg, src, line_no, line_str);
         } else {
             const char *cmsg = "unknown error";
             *msg = (char*)malloc(strlen(cmsg) + 1);
@@ -1651,6 +1658,29 @@ static const char *gl_draw_mode_str(GLenum e) {
     return "<UNKNOWN GL CONSTANT>";
 }
 
+static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str) {
+    *line_no = -1;
+    *line_str = NULL;
+    int res = sscanf(errmsg, "ERROR: 0:%d:", line_no);
+    if (res == 0 || *line_no < 1) return;
+    const char *ptr = src;
+    int l = 1;
+    while (*ptr != '\0') {   
+        if (l == *line_no) {
+            const char *start = ptr;
+            while (*ptr != '\0' && *ptr != '\n') ptr++;
+            const char *end = ptr;
+            size_t len = end - start;
+            *line_str = (char*)malloc(len+1);
+            memcpy(*line_str, start, len);
+            (*line_str)[len] = '\0';
+            return;
+        }
+        if (*ptr == '\n') l++;
+        ptr++;
+    }
+}
+
 //-------------------------------------------------------------------------------------------------
 // Angle shader translater
 #if defined(AM_USE_ANGLE)
@@ -1675,7 +1705,7 @@ static void init_angle() {
     angle_resources.MaxFragmentUniformVectors = 32;
     angle_resources.MaxDrawBuffers = 4;
 
-    ShShaderSpec spec = SH_GLES2_SPEC;
+    ShShaderSpec spec = SH_WEBGL_SPEC;
     ShShaderOutput output = SH_GLSL_OUTPUT;
 
     angle_vcompiler = ShConstructCompiler(SH_VERTEX_SHADER, spec, output, &angle_resources);
