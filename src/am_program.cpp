@@ -25,88 +25,152 @@ static void bind_sampler2d(am_render_state *rstate,
     am_set_uniform1i(location, texture_unit);
 }
 
-/*
-static void report_incompatible_param_type(am_program_param *param, am_program_param_client_type ctype) {
+static void report_incompatible_param_type(am_program_param *param) {
     am_program_param_name_slot *slot = &am_param_name_map[param->name];
+    const char *shader_type = "unrecognised shader parameter";
+    const char *client_type = "unrecognised client type";
+    switch (param->type) {
+        case AM_PROGRAM_PARAM_UNIFORM_1F: shader_type = "float uniform"; break;
+        case AM_PROGRAM_PARAM_UNIFORM_2F: shader_type = "vec2 uniform"; break;
+        case AM_PROGRAM_PARAM_UNIFORM_3F: shader_type = "vec3 uniform"; break;
+        case AM_PROGRAM_PARAM_UNIFORM_4F: shader_type = "vec4 uniform"; break;
+        case AM_PROGRAM_PARAM_UNIFORM_MAT2: shader_type = "mat2 uniform"; break;
+        case AM_PROGRAM_PARAM_UNIFORM_MAT3: shader_type = "mat3 uniform"; break;
+        case AM_PROGRAM_PARAM_UNIFORM_MAT4: shader_type = "mat4 uniform"; break;
+        case AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D: shader_type = "sampler2D uniform"; break;
+        case AM_PROGRAM_PARAM_ATTRIBUTE_1F: shader_type = "float attribute"; break;
+        case AM_PROGRAM_PARAM_ATTRIBUTE_2F: shader_type = "vec2 attribute"; break;
+        case AM_PROGRAM_PARAM_ATTRIBUTE_3F: shader_type = "vec3 attribute"; break;
+        case AM_PROGRAM_PARAM_ATTRIBUTE_4F: shader_type = "vec4 attribute"; break;
+    }
+    switch (slot->value.type) {
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_1F: client_type = " float"; break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_2F: client_type = " vec2"; break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_3F: client_type = " vec3"; break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_4F: client_type = " vec4"; break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2: client_type = " mat2"; break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3: client_type = " mat3"; break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4: client_type = " mat4"; break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY: {
+            switch (slot->value.value.arr->type) {
+                case AM_BUF_ELEM_TYPE_FLOAT: client_type = "n array of floats"; break;
+                case AM_BUF_ELEM_TYPE_FLOAT2: client_type = "n array of vec2s"; break;
+                case AM_BUF_ELEM_TYPE_FLOAT3: client_type = "n array of vec3s"; break;
+                case AM_BUF_ELEM_TYPE_FLOAT4: client_type = "n array of vec4s"; break;
+                case AM_BUF_ELEM_TYPE_UBYTE: client_type = "n array of ubytes"; break;
+                case AM_BUF_ELEM_TYPE_USHORT: client_type = "n array of ushorts"; break;
+                case AM_BUF_ELEM_TYPE_SHORT: client_type = "n array of shorts"; break;
+                case AM_BUF_ELEM_TYPE_UINT: client_type = "n array of uints"; break;
+                case AM_BUF_ELEM_TYPE_INT: client_type = "n array of ints"; break;
+            }
+            break;
+        }
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D: client_type = " texture2d"; break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED: client_type = "n uninitialized value"; break;
+    }
+    if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED) {
+        am_log1("WARNING: %s '%s' was not bound to anything",
+            shader_type, slot->name);
+    } else {
+        am_log1("WARNING: ignoring incompatible binding of %s '%s' to a%s",
+            shader_type, slot->name, client_type);
+    }
 }
-*/
 
 void am_program_param::bind(am_render_state *rstate) {
     am_program_param_name_slot *slot = &am_param_name_map[name];
+    bool bound = false;
     switch (type) {
         case AM_PROGRAM_PARAM_UNIFORM_1F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
                 am_set_uniform1f(location, slot->value.value.f);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_2F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
                 am_set_uniform2f(location, slot->value.value.v2);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_3F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
                 am_set_uniform3f(location, slot->value.value.v3);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_4F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
                 am_set_uniform4f(location, slot->value.value.v4);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT2:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2) {
                 am_set_uniform_mat2(location, slot->value.value.m2);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT3:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3) {
                 am_set_uniform_mat3(location, slot->value.value.m3);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT4:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
                 am_set_uniform_mat4(location, slot->value.value.m4);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
                 bind_sampler2d(rstate, location, slot->value.value.sampler2d.texture_unit, slot->value.value.sampler2d.texture);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
                 am_set_attribute_array_enabled(location, false);
                 am_set_attribute1f(location, slot->value.value.f);
+                bound = true;
             } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.value.arr);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_2F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
                 am_set_attribute_array_enabled(location, false);
                 am_set_attribute2f(location, slot->value.value.v2);
+                bound = true;
             } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT2) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.value.arr);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_3F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
                 am_set_attribute_array_enabled(location, false);
                 am_set_attribute3f(location, slot->value.value.v3);
+                bound = true;
             } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT3) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.value.arr);
+                bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_4F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
                 am_set_attribute_array_enabled(location, false);
                 am_set_attribute4f(location, slot->value.value.v4);
+                bound = true;
             } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT4) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.value.arr);
+                bound = true;
             }
             break;
     }
+    if (!bound) report_incompatible_param_type(this);
 }
 
 static int am_param_name_map_capacity = 0;
@@ -148,9 +212,10 @@ am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
             am_param_name_map = (am_program_param_name_slot*)realloc(am_param_name_map, sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
             for (int i = old_capacity; i < am_param_name_map_capacity; i++) {
                 am_param_name_map[i].name = NULL;
+                am_param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
             }
-            am_param_name_map[name_ref].name = lua_tostring(L, name_idx);
         }
+        am_param_name_map[name_ref].name = lua_tostring(L, name_idx);
         return name_ref;
     } else {
         int name_ref = lua_tointeger(L, -1);
