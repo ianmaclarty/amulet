@@ -20,7 +20,7 @@ local fshader = [[
 
 local prog = am.program(vshader, fshader)
 
-local verts = am.buffer(4 * 6):view("float2", 0, 8)
+local verts = am.buffer(4 * 6):view("vec2", 0, 8)
 verts[1] = math.vec2(-0.8, -0.7)
 verts[2] = math.vec2(0, 0.7)
 verts[3] = math.vec2(0.8, -0.7)

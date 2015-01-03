@@ -38,17 +38,17 @@ end
 assert(total1 == total2)
 print(total2)
 
-local view2 = buf:view("float2", 0, 8)
+local view2 = buf:view("vec2", 0, 8)
 printvec(view2[1])
 printvec(view2[1000])
 printv_and_restore(view2, 10, math.vec2(-1, -2))
 
-local view3 = buf:view("float3", 0, 12)
+local view3 = buf:view("vec3", 0, 12)
 printvec(view3[1])
 printvec(view3[1000])
 printv_and_restore(view3, 10, math.vec3(-1, -2, -3))
 
-local view4 = buf:view("float4", 0, 16)
+local view4 = buf:view("vec4", 0, 16)
 printvec(view4[1])
 printvec(view4[1000])
 printv_and_restore(view4, 10, math.vec4(-1, -2, -3, -4))

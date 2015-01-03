@@ -321,9 +321,9 @@ void am_open_buffer_module(lua_State *L) {
 
     am_enum_value view_type_enum[] = {
         {"float",           AM_BUF_ELEM_TYPE_FLOAT},
-        {"float2",          AM_BUF_ELEM_TYPE_FLOAT2},
-        {"float3",          AM_BUF_ELEM_TYPE_FLOAT3},
-        {"float4",          AM_BUF_ELEM_TYPE_FLOAT4},
+        {"vec2",            AM_BUF_ELEM_TYPE_FLOAT2},
+        {"vec3",            AM_BUF_ELEM_TYPE_FLOAT3},
+        {"vec4",            AM_BUF_ELEM_TYPE_FLOAT4},
         {"ubyte",           AM_BUF_ELEM_TYPE_UBYTE},
         {"ushort",          AM_BUF_ELEM_TYPE_USHORT},
         {"short",           AM_BUF_ELEM_TYPE_SHORT},

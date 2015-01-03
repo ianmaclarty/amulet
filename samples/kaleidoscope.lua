@@ -63,8 +63,8 @@ local prog2 = amulet.program(vshader2, fshader2)
 -- setup vertices and texture coords
 local num_segments = 9
 local vbuf = amulet.buffer(16 * 3 * num_segments)
-local verts = vbuf:view("float2", 0, 16)
-local uvs = vbuf:view("float2", 8, 16)
+local verts = vbuf:view("vec2", 0, 16)
+local uvs = vbuf:view("vec2", 8, 16)
 local uv_scale = 5
 for i = 0, num_segments-1 do
     local angle1 = (i / num_segments) * math.pi * 2
@@ -113,8 +113,8 @@ local ppfb = amulet.framebuffer(pptexture)
 
 -- create node to apply post-processing
 local buf2 = amulet.buffer(4 * 4 * 6)
-local verts2 = buf2:view("float2", 0, 16)
-local uvs2 = buf2:view("float2", 8, 16)
+local verts2 = buf2:view("vec2", 0, 16)
+local uvs2 = buf2:view("vec2", 8, 16)
 verts2[1] = math.vec2(-1, -1)
 verts2[2] = math.vec2(-1, 1)
 verts2[3] = math.vec2(1, 1)
