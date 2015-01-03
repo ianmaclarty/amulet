@@ -74,6 +74,7 @@ OBJ_EXT = .o
 DEF_OPT = -D
 INCLUDE_OPT = -I
 CC = gcc
+HOSTCC = gcc
 CPP = g++
 LINK = g++
 AR = ar
@@ -96,7 +97,6 @@ ifeq ($(TARGET_PLATFORM),html)
   CPP = em++
   AR = emar
   LINK = em++
-  EXE_EXT = .html
   LUAVM = lua
   LUA_TARGET = generic
   XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT)

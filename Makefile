@@ -31,6 +31,7 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
 ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = lua
+  AMULET = $(BUILD_BIN_DIR)/amulet.html
 else
   ifeq ($(TARGET_PLATFORM),win32)
     AM_DEPS = $(LUAVM) sdl glew png z
@@ -51,7 +52,7 @@ LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 LIBPNG_ALIB = $(BUILD_LIB_DIR)/libpng$(ALIB_EXT)
 ZLIB_ALIB = $(BUILD_LIB_DIR)/libz$(ALIB_EXT)
 
-AM_CPP_FILES = $(sort $(wildcard $(SRC_DIR)/*.cpp) src/am_embedded_lua.cpp)
+AM_CPP_FILES = $(sort $(wildcard $(SRC_DIR)/*.cpp) src/am_embedded_data.cpp)
 AM_H_FILES = $(wildcard $(SRC_DIR)/*.h)
 AM_OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_OBJ_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
 
@@ -143,20 +144,14 @@ $(BUILD_BIN_DIR)/example.lua: $(DEFAULT_HTML_EDITOR_SCRIPT)
 
 # Embedded Lua code
 
-EMBEDDED_LUA_FILES = $(wildcard src/*.lua)
+tools/embed$(EXE_EXT): tools/embed.c
+	$(HOSTCC) -o $@ $<
 
-src/am_embedded_lua.cpp: $(EMBEDDED_LUA_FILES)
-	echo "#include \"amulet.h\"" > $@; \
-	echo "am_embedded_lua_script am_embedded_lua_scripts[] = {" >> $@; \
-	for f in `ls src/*.lua | sort`; do \
-		name=`basename $$f`; \
-		echo "{\""$$name"\", " >> $@; \
-		cat $$f | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/^/    "/' | sed 's/$$/\\n"/' >> $@; \
-		echo "    }," >> $@; \
-		echo >> $@; \
-	done; \
-	echo "{NULL, NULL}};" >> $@; \
-	echo "" >> $@
+EMBEDDED_LUA_FILES = $(wildcard embedded_lua/*.lua)
+EMBEDDED_FILES = $(EMBEDDED_LUA_FILES)
+
+src/am_embedded_data.cpp: $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
+	tools/embed$(EXE_EXT) $(EMBEDDED_FILES) > $@
 
 # Cleanup
 

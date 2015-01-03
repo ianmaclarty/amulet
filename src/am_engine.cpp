@@ -82,48 +82,31 @@ static void open_stdlualibs(lua_State *L) {
 
 #define MAX_CHUNKNAME_SIZE 100
 
-#define AM_SCRIPT_MAIN      1
-#define AM_SCRIPT_WORKER    2
-
-static int get_script_thread_filter(const char *filename) {
-    if (strstr(filename, "-w.lua") != NULL) {
-        return AM_SCRIPT_WORKER;
-    } else if (strstr(filename, "-m.lua") != NULL) {
-        return AM_SCRIPT_MAIN;
-    } else if (strstr(filename, "-mw.lua") != NULL) {
-        return AM_SCRIPT_WORKER | AM_SCRIPT_MAIN;
-    } else {
-        return 0;
+static bool run_embedded_script(lua_State *L, const char *filename) {
+    char chunkname[MAX_CHUNKNAME_SIZE];
+    am_embedded_file_record *rec = am_get_embedded_file(filename);
+    if (rec == NULL) {
+        am_log0("embedded file '%s' missing", filename);
+        return false;
     }
+    snprintf(chunkname, MAX_CHUNKNAME_SIZE, "@%s", filename);
+    int r = luaL_loadbuffer(L, (char*)rec->data, rec->len, chunkname);
+    if (r == 0) {
+        if (!am_call(L, 0, 0)) {
+            return false;
+        }
+    } else {
+        const char *msg = lua_tostring(L, -1);
+        am_log0("%s", msg);
+        return false;
+    }
+    return true;
 }
 
 static bool run_embedded_scripts(lua_State *L, bool worker) {
-    am_embedded_lua_script *script = &am_embedded_lua_scripts[0];
-    char chunkname[MAX_CHUNKNAME_SIZE];
-    while (script->filename != NULL) {
-        int filter = get_script_thread_filter(script->filename);
-        if (filter == 0) {
-            am_log0("embedded script '%s' has no thread filter spec", script->filename);
-            return false;
-        }
-        if ((worker && (filter & AM_SCRIPT_WORKER)) ||
-            ((!worker) && (filter & AM_SCRIPT_MAIN)))
-        {
-            snprintf(chunkname, MAX_CHUNKNAME_SIZE, "@%s", script->filename);
-            chunkname[MAX_CHUNKNAME_SIZE-1] = 0;
-            int r = luaL_loadbuffer(L, script->script, strlen(script->script), chunkname);
-            if (r == 0) {
-                if (!am_call(L, 0, 0)) {
-                    return false;
-                }
-            } else {
-                const char *msg = lua_tostring(L, -1);
-                am_log0("%s", msg);
-                return false;
-            }
-        }
-        script++;
-    }
-    return true;
+    return
+        run_embedded_script(L, "embedded_lua/extra.lua") &&
+        run_embedded_script(L, "embedded_lua/config.lua") &&
+        run_embedded_script(L, "embedded_lua/input.lua");
 }
 

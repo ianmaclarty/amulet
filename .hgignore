@@ -18,7 +18,9 @@ settings
 tmp/*
 *.orig
 
-src/am_embedded_lua.cpp
+src/am_embedded_data.cpp
+
+tools/embed
 
 deps/SDL2-*/Makefile
 deps/SDL2-*/Makefile.rules

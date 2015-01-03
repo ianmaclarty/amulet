@@ -39,7 +39,7 @@ extern "C" {
 #include "am_backend.h"
 #include "am_time.h"
 #include "am_input.h"
-#include "am_embedded_lua.h"
+#include "am_embedded.h"
 #include "am_userdata.h"
 #include "am_config.h"
 #include "am_reserved_refs.h"

@@ -1,3 +1,5 @@
+-- extra table functions
+
 function table.clone(t)
     local copy = {}
     for k, v in pairs(t) do
@@ -56,3 +58,20 @@ function table_tostring(t, indent)
 end
 
 table.tostring = table_tostring
+
+-- extra builtins
+
+function log(fmt, ...)
+    amulet.log(string.format(fmt, ...), false, 2)
+end
+
+function log1(fmt, ...)
+    amulet.log(string.format(fmt, ...), true, 2)
+end
+
+vec2 = math.vec2
+vec3 = math.vec3
+vec4 = math.vec4
+mat2 = math.mat2
+mat3 = math.mat3
+mat4 = math.mat4
