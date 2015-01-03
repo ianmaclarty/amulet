@@ -9,6 +9,7 @@ lua_State *am_init_engine(bool worker) {
     init_reserved_refs(L);
     open_stdlualibs(L);
     am_init_traceback_func(L);
+    am_open_logging_module(L);
     am_open_math_module(L);
     am_open_time_module(L);
     am_open_buffer_module(L);
@@ -38,6 +39,7 @@ void am_destroy_engine(lua_State *L) {
     am_destroy_audio();
     am_destroy_windows(L);
     lua_close(L);
+    am_reset_log_cache();
 }
 
 static void init_reserved_refs(lua_State *L) {
@@ -101,7 +103,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
     while (script->filename != NULL) {
         int filter = get_script_thread_filter(script->filename);
         if (filter == 0) {
-            am_report_error("embedded script '%s' has no thread filter spec", script->filename);
+            am_log0("embedded script '%s' has no thread filter spec", script->filename);
             return false;
         }
         if ((worker && (filter & AM_SCRIPT_WORKER)) ||
@@ -116,7 +118,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
                 }
             } else {
                 const char *msg = lua_tostring(L, -1);
-                am_report_error(msg);
+                am_log0("%s", msg);
                 return false;
             }
         }

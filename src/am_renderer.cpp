@@ -45,7 +45,7 @@ bool am_render_state::validate_active_program() {
         bool valid = am_validate_program(active_program->program_id);
         if (!valid) {
             char *log = am_get_program_info_log(active_program->program_id);
-            am_report_error("shader program failed validation: %s", log);
+            am_log1("WARNING: shader program failed validation: %s", log);
             free(log);
         }
         return valid;

@@ -18,7 +18,7 @@
 
 #define log_gl_call(fmt, ...) {if (am_conf_log_gl_calls) {am_debug("GL: " fmt, __VA_ARGS__);}}
 
-#define check_initialized(...) {if (!am_gl_initialized) {am_report_error("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
+#define check_initialized(...) {if (!am_gl_initialized) {am_log1("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
 
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
@@ -806,7 +806,7 @@ void am_set_active_texture_unit(int texture_unit) {
         glActiveTexture(GL_TEXTURE0 + texture_unit);
         log_gl_call("glActiveTexture(GL_TEXTURE%d)", texture_unit);
     } else {
-        am_report_error("warning: too many active texture units (max %d)", GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+        am_log1("WARNING: too many active texture units (max %d)", GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
     }
     check_for_errors
 }
@@ -1404,7 +1404,7 @@ static void check_glerror(const char *file, int line, const char *func) {
                 case GL_INVALID_FRAMEBUFFER_OPERATION: str = "INVALID_FRAMEBUFFER_OPERATION"; break;
                 case GL_OUT_OF_MEMORY: str = "OUT_OF_MEMORY"; break;
             }
-            am_report_error("OpenGL error at %s:%d %s: %s", file, line, func, str);
+            am_log1("OpenGL error at %s:%d %s: %s", file, line, func, str);
         }
     }
 }

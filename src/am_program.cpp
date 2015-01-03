@@ -25,6 +25,12 @@ static void bind_sampler2d(am_render_state *rstate,
     am_set_uniform1i(location, texture_unit);
 }
 
+/*
+static void report_incompatible_param_type(am_program_param *param, am_program_param_client_type ctype) {
+    am_program_param_name_slot *slot = &am_param_name_map[param->name];
+}
+*/
+
 void am_program_param::bind(am_render_state *rstate) {
     am_program_param_name_slot *slot = &am_param_name_map[name];
     switch (type) {
@@ -174,7 +180,7 @@ am_shader_id load_shader(lua_State *L, am_shader_type type, const char *src) {
         if (line_str != NULL && line_no > 0) {
             const char *nl = "";
             if (strlen(msg) > 0 && msg[strlen(msg)-1] != '\n') nl = "\n";
-            lua_pushfstring(L, "%s shader compilation error:\n%s%sLINE %d: %s", type_str, msg, nl, line_no, line_str);
+            lua_pushfstring(L, "%s shader compilation error:\n%s%s[%d: %s]", type_str, msg, nl, line_no, line_str);
             free((void*)line_str);
         } else {
             lua_pushfstring(L, "%s shader compilation error:\n%s", type_str, msg);
@@ -272,7 +278,7 @@ static int create_program(lua_State *L) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3:
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4:
             case AM_ATTRIBUTE_VAR_TYPE_UNKNOWN:
-                am_report_message("warning: ignoring attribute '%s' with unsupported type", name_str);
+                am_log(L, 1, false, "WARNING: ignoring attribute '%s' with unsupported type", name_str);
                 num_params--;
                 free(name_str);
                 continue;
@@ -328,7 +334,7 @@ static int create_program(lua_State *L) {
             case AM_UNIFORM_VAR_TYPE_BOOL_VEC4:
             case AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE:
             case AM_UNIFORM_VAR_TYPE_UNKNOWN:
-                am_report_message("warning: ignoring uniform '%s' with unsupported type", name_str);
+                am_log(L, 1, false, "WARNING: ignoring uniform '%s' with unsupported type", name_str);
                 num_params--;
                 free(name_str);
                 continue;

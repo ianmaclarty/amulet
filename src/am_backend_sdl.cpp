@@ -303,7 +303,7 @@ static int report_status(lua_State *L, int status) {
     if (status && !lua_isnil(L, -1)) {
         const char *msg = lua_tostring(L, -1);
         if (msg == NULL) msg = "(error object is not a string)";
-        fprintf(stderr, "%s\n", msg);
+        am_log0("%s", msg);
         lua_pop(L, 1);
     }
     return status;
@@ -353,7 +353,7 @@ static void init_audio() {
     SDL_AudioSpec obtained;
     audio_device = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
     if (audio_device == 0) {
-        am_report_error("Failed to open audio: %s\n", SDL_GetError());
+        am_log0("Failed to open audio: %s", SDL_GetError());
         return;
     }
     SDL_PauseAudioDevice(audio_device, 0);
@@ -756,10 +756,10 @@ static bool process_args(int argc, char **argv) {
     if (!in_osx_bundle) { // When invoked from an OSX bundle extra arguments may be set by the OS.
         for (int i = 1; i < argc; i++) {
             if (argv[i][0] == '-') {
-                am_report_error("Unrecognised option: %s", argv[i]);
+                am_log0("Unrecognised option: %s", argv[i]);
                 return false;
             } else if (filename != NULL) {
-                am_report_error("Unrecognised option: %s", argv[i]);
+                am_log0("Unrecognised option: %s", argv[i]);
                 return false;
             } else {
                 filename = argv[i];
@@ -767,7 +767,7 @@ static bool process_args(int argc, char **argv) {
         }
     }
     if (filename == NULL) {
-        am_report_error("Expecting a filename");
+        am_log0("%s", "Expecting a filename");
         return false;
     }
     return true;

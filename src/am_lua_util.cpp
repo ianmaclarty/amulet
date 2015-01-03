@@ -43,18 +43,29 @@ static void setfuncs(lua_State *L, const luaL_Reg *l) {
 }
 
 void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs) {
-    lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
-    lua_getfield(L, -1, name);
-    if (lua_isnil(L, -1)) {
+    if (name == NULL) {
+        // global namespace
+#ifdef AM_LUAJIT
+        lua_pushvalue(L, LUA_GLOBALSINDEX);
+#else
+        lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+#endif
+        setfuncs(L, funcs);
         lua_pop(L, 1);
-        lua_newtable(L);
-        lua_pushvalue(L, -1);
-        lua_setfield(L, -3, name);
-        lua_pushvalue(L, -1);
-        lua_setglobal(L, name);
+    } else {
+        lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
+        lua_getfield(L, -1, name);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            lua_newtable(L);
+            lua_pushvalue(L, -1);
+            lua_setfield(L, -3, name);
+            lua_pushvalue(L, -1);
+            lua_setglobal(L, name);
+        }
+        setfuncs(L, funcs);
+        lua_pop(L, 2);
     }
-    setfuncs(L, funcs);
-    lua_pop(L, 2);
 }
 
 void am_requiref(lua_State *L, const char *modname, lua_CFunction openf) {
@@ -124,7 +135,7 @@ static int check_call_status(lua_State *L, int status) {
         const char *msg = lua_tostring(L, -1);
         lua_pop(L, 1);
         if (msg == NULL) msg = "unknown error";
-        am_report_error("%s", msg);
+        am_log0("%s", msg);
     }
     return status;
 }
