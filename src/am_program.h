@@ -138,3 +138,6 @@ int am_create_bind_mat3_node(lua_State *L);
 int am_create_bind_mat4_node(lua_State *L);
 
 void am_open_program_module(lua_State *L);
+
+const char *am_program_param_type_name(am_program_param_type t);
+const char *am_program_param_client_type_name(am_program_param_name_slot *slot);

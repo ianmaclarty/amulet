@@ -522,8 +522,8 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "translate");
     lua_pushcclosure(L, am_create_scale_node, 0);
     lua_setfield(L, -2, "scale");
-    lua_pushcclosure(L, am_create_rotate2d_node, 0);
-    lua_setfield(L, -2, "rotate2d");
+    lua_pushcclosure(L, am_create_rotate_node, 0);
+    lua_setfield(L, -2, "rotate");
 
     lua_pushcclosure(L, create_action, 0);
     lua_setfield(L, -2, "action");

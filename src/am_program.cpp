@@ -27,53 +27,22 @@ static void bind_sampler2d(am_render_state *rstate,
 
 static void report_incompatible_param_type(am_program_param *param) {
     am_program_param_name_slot *slot = &am_param_name_map[param->name];
-    const char *shader_type = "unrecognised shader parameter";
-    const char *client_type = "unrecognised client type";
-    switch (param->type) {
-        case AM_PROGRAM_PARAM_UNIFORM_1F: shader_type = "float uniform"; break;
-        case AM_PROGRAM_PARAM_UNIFORM_2F: shader_type = "vec2 uniform"; break;
-        case AM_PROGRAM_PARAM_UNIFORM_3F: shader_type = "vec3 uniform"; break;
-        case AM_PROGRAM_PARAM_UNIFORM_4F: shader_type = "vec4 uniform"; break;
-        case AM_PROGRAM_PARAM_UNIFORM_MAT2: shader_type = "mat2 uniform"; break;
-        case AM_PROGRAM_PARAM_UNIFORM_MAT3: shader_type = "mat3 uniform"; break;
-        case AM_PROGRAM_PARAM_UNIFORM_MAT4: shader_type = "mat4 uniform"; break;
-        case AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D: shader_type = "sampler2D uniform"; break;
-        case AM_PROGRAM_PARAM_ATTRIBUTE_1F: shader_type = "float attribute"; break;
-        case AM_PROGRAM_PARAM_ATTRIBUTE_2F: shader_type = "vec2 attribute"; break;
-        case AM_PROGRAM_PARAM_ATTRIBUTE_3F: shader_type = "vec3 attribute"; break;
-        case AM_PROGRAM_PARAM_ATTRIBUTE_4F: shader_type = "vec4 attribute"; break;
-    }
-    switch (slot->value.type) {
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_1F: client_type = " float"; break;
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_2F: client_type = " vec2"; break;
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_3F: client_type = " vec3"; break;
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_4F: client_type = " vec4"; break;
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2: client_type = " mat2"; break;
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3: client_type = " mat3"; break;
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4: client_type = " mat4"; break;
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY: {
-            switch (slot->value.value.arr->type) {
-                case AM_BUF_ELEM_TYPE_FLOAT: client_type = "n array of floats"; break;
-                case AM_BUF_ELEM_TYPE_FLOAT2: client_type = "n array of vec2s"; break;
-                case AM_BUF_ELEM_TYPE_FLOAT3: client_type = "n array of vec3s"; break;
-                case AM_BUF_ELEM_TYPE_FLOAT4: client_type = "n array of vec4s"; break;
-                case AM_BUF_ELEM_TYPE_UBYTE: client_type = "n array of ubytes"; break;
-                case AM_BUF_ELEM_TYPE_USHORT: client_type = "n array of ushorts"; break;
-                case AM_BUF_ELEM_TYPE_SHORT: client_type = "n array of shorts"; break;
-                case AM_BUF_ELEM_TYPE_UINT: client_type = "n array of uints"; break;
-                case AM_BUF_ELEM_TYPE_INT: client_type = "n array of ints"; break;
-            }
-            break;
-        }
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D: client_type = " texture2d"; break;
-        case AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED: client_type = "n uninitialized value"; break;
+    const char *shader_type;
+    const char *client_type;
+    shader_type = am_program_param_type_name(param->type);
+    client_type = am_program_param_client_type_name(slot);
+    const char *client_type_prefix = " ";
+    if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY ||
+        slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED)
+    {
+        client_type_prefix = "n ";
     }
     if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED) {
         am_log1("WARNING: %s '%s' was not bound to anything",
             shader_type, slot->name);
     } else {
-        am_log1("WARNING: ignoring incompatible binding of %s '%s' to a%s",
-            shader_type, slot->name, client_type);
+        am_log1("WARNING: ignoring incompatible binding of %s '%s' to a%s%s",
+            shader_type, slot->name, client_type_prefix, client_type);
     }
 }
 
@@ -658,7 +627,6 @@ static void register_bind_sampler2d_node_mt(lua_State *L) {
     am_register_metatable(L, MT_am_bind_sampler2d_node, MT_am_scene_node);
 }
 
-
 void am_open_program_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"program", create_program},
@@ -676,4 +644,51 @@ void am_open_program_module(lua_State *L) {
     register_bind_vec2_node_mt(L);
     register_bind_vec3_node_mt(L);
     register_bind_vec4_node_mt(L);
+}
+
+const char *am_program_param_type_name(am_program_param_type t) {
+    switch (t) {
+        case AM_PROGRAM_PARAM_UNIFORM_1F: return "float uniform";
+        case AM_PROGRAM_PARAM_UNIFORM_2F: return "vec2 uniform";
+        case AM_PROGRAM_PARAM_UNIFORM_3F: return "vec3 uniform";
+        case AM_PROGRAM_PARAM_UNIFORM_4F: return "vec4 uniform";
+        case AM_PROGRAM_PARAM_UNIFORM_MAT2: return "mat2 uniform";
+        case AM_PROGRAM_PARAM_UNIFORM_MAT3: return "mat3 uniform";
+        case AM_PROGRAM_PARAM_UNIFORM_MAT4: return "mat4 uniform";
+        case AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D: return "sampler2D uniform";
+        case AM_PROGRAM_PARAM_ATTRIBUTE_1F: return "float attribute";
+        case AM_PROGRAM_PARAM_ATTRIBUTE_2F: return "vec2 attribute";
+        case AM_PROGRAM_PARAM_ATTRIBUTE_3F: return "vec3 attribute";
+        case AM_PROGRAM_PARAM_ATTRIBUTE_4F: return "vec4 attribute";
+    }
+    return NULL;
+}
+
+const char *am_program_param_client_type_name(am_program_param_name_slot *slot) {
+    switch (slot->value.type) {
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_1F: return "float";
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_2F: return "vec2";
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_3F: return "vec3";
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_4F: return "vec4";
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2: return "mat2";
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3: return "mat3";
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4: return "mat4";
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY: {
+            switch (slot->value.value.arr->type) {
+                case AM_BUF_ELEM_TYPE_FLOAT: return "array of floats";
+                case AM_BUF_ELEM_TYPE_FLOAT2: return "array of vec2s";
+                case AM_BUF_ELEM_TYPE_FLOAT3: return "array of vec3s";
+                case AM_BUF_ELEM_TYPE_FLOAT4: return "array of vec4s";
+                case AM_BUF_ELEM_TYPE_UBYTE: return "array of ubytes";
+                case AM_BUF_ELEM_TYPE_USHORT: return "array of ushorts";
+                case AM_BUF_ELEM_TYPE_SHORT: return "array of shorts";
+                case AM_BUF_ELEM_TYPE_UINT: return "array of uints";
+                case AM_BUF_ELEM_TYPE_INT: return "array of ints";
+            }
+            break;
+        }
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D: return "texture2d";
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED: return "uninitialized parameter";
+    }
+    return NULL;
 }

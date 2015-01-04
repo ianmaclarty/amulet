@@ -289,9 +289,9 @@ quit:
     }
     if (sdl_initialized) {
         SDL_Quit();
-        if (am_gl_is_initialized()) {
-            am_destroy_gl();
-        }
+    }
+    if (am_gl_is_initialized()) {
+        am_destroy_gl();
     }
 #ifdef AM_OSX
     [pool release];

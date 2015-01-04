@@ -66,6 +66,8 @@ static int vec_faceforward(lua_State *L);
 static int vec_reflect(lua_State *L);
 static int vec_refract(lua_State *L);
 
+static int perspective(lua_State *L);
+
 #define REGISTER_VEC_MT(T, MTID)                        \
     lua_newtable(L);                                    \
     lua_pushcclosure(L, T##_index, 0);                  \
@@ -124,6 +126,7 @@ void am_open_math_module(lua_State *L) {
         {"faceforward", vec_faceforward},
         {"reflect",     vec_reflect},
         {"refract",     vec_refract},
+        {"perspective", perspective},
         {NULL, NULL}
     };
     am_open_module(L, "math", funcs);
@@ -1013,5 +1016,18 @@ static int vec_refract(lua_State *L) {
             break;
         }
     }
+    return 1;
+}
+
+//----------------------- mat functions -------------------------//
+
+static int perspective(lua_State *L) {
+    am_check_nargs(L, 4);
+    float fovy = luaL_checknumber(L, 1);
+    float aspect = luaL_checknumber(L, 2);
+    float near = luaL_checknumber(L, 3);
+    float far = luaL_checknumber(L, 4);
+    am_mat4 *m = am_new_userdata(L, am_mat4);
+    m->m = glm::perspective(fovy, aspect, near, far);
     return 1;
 }

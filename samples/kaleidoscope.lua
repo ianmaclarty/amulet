@@ -101,7 +101,7 @@ local node1 = amulet.draw_arrays()
     :bind_array("uv", uvs)
     :bind_sampler2d("tex", pattern_texture)
     :bind_float("t", 0):alias("t")
-    :rotate2d("MVP"):alias("rotation")
+    :rotate("MVP"):alias("rotation")
     :bind_mat4("MVP", mat4(1))
     :bind_program(prog1)
 
