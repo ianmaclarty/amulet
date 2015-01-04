@@ -3,11 +3,11 @@
 am_render_state am_global_render_state;
 
 void am_viewport_state::set(int x, int y, int w, int h) {
-    dirty = true;
     am_viewport_state::x = x;
     am_viewport_state::y = y;
     am_viewport_state::w = w;
     am_viewport_state::h = h;
+    dirty = true;
 }
 
 void am_viewport_state::update() {
@@ -17,10 +17,38 @@ void am_viewport_state::update() {
     }
 }
 
+void am_depth_test_state::set(bool enabled, am_depth_func func) {
+    am_depth_test_state::enabled = enabled;
+    am_depth_test_state::func = func;
+    dirty = true;
+}
+
+void am_depth_test_state::restore(am_depth_test_state *old) {
+    am_depth_test_state::enabled = old->enabled;
+    am_depth_test_state::func = old->func;
+    dirty = true;
+}
+
+void am_depth_test_state::update() {
+    if (dirty) {
+        am_set_depth_test_enabled(enabled);
+        am_set_depth_func(func);
+        dirty = false;
+    }
+}
+
 void am_render_state::update_state() {
     viewport_state.update();
+    depth_test_state.update();
     bind_active_program();
     bind_active_program_params();
+}
+
+void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer) {
+    am_bind_framebuffer(fb);
+    viewport_state.set(0, 0, w, h);
+    depth_test_state.set(has_depthbuffer, AM_DEPTH_FUNC_LESS);
+    if (clear) am_clear_framebuffer(true, true, true);
 }
 
 void am_render_state::draw_arrays(int first, int draw_array_count) {
@@ -78,6 +106,10 @@ am_render_state::am_render_state() {
     viewport_state.y = 0;
     viewport_state.w = 0;
     viewport_state.h = 0;
+    viewport_state.dirty = true;
+
+    depth_test_state.enabled = false;
+    depth_test_state.func = AM_DEPTH_FUNC_LESS;
     viewport_state.dirty = true;
 
     active_indices_id = 0;

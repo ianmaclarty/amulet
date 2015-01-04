@@ -8,6 +8,8 @@ struct am_window : am_nonatomic_userdata {
     int                 window_ref;
     int                 width;  // pixels
     int                 height; // pixels
+    bool                has_depth_buffer;
+    bool                has_stencil_buffer;
 };
 
 static std::vector<am_window*> windows;
@@ -96,6 +98,9 @@ static int create_window(lua_State *L) {
     win->root = NULL;
     win->root_ref = LUA_NOREF;
 
+    win->has_depth_buffer = depth_buffer;
+    win->has_stencil_buffer = stencil_buffer;
+
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
     lua_pushvalue(L, -2);
     win->window_ref = luaL_ref(L, -2);
@@ -174,9 +179,7 @@ static void draw_windows() {
         if (!win->needs_closing && win->root != NULL) {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
-            rstate->viewport_state.set(0, 0, win->width, win->height);
-            am_bind_framebuffer(0);
-            am_clear_framebuffer(true, true, true);
+            rstate->setup(0, true, win->width, win->height, win->has_depth_buffer);
             win->root->render(rstate);
             am_native_window_post_render(win->native_win);
         }

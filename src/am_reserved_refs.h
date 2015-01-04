@@ -25,6 +25,7 @@ typedef enum {
     MT_am_translate_node,
     MT_am_scale_node,
     MT_am_rotate_node,
+    MT_am_depth_pass_node,
     MT_am_draw_arrays_node,
 
     MT_am_audio_node,
@@ -47,6 +48,7 @@ typedef enum {
     ENUM_am_texture_min_filter,
     ENUM_am_texture_mag_filter,
     ENUM_am_texture_wrap,
+    ENUM_am_depth_func,
 
     AM_TRACEBACK_FUNC,
 

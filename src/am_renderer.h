@@ -1,6 +1,27 @@
 struct am_program;
 struct am_program_param;
 
+struct am_viewport_state {
+    bool                    dirty;
+    int                     x;
+    int                     y;
+    int                     w;
+    int                     h;
+
+    void set(int x, int y, int w, int h);
+    void update();
+};
+
+struct am_depth_test_state {
+    bool                    dirty;
+    bool                    enabled;
+    am_depth_func           func;
+
+    void set(bool enabled, am_depth_func func);
+    void restore(am_depth_test_state *old);
+    void update();
+};
+
 struct am_blend_state {
     bool                    enabled;
     am_blend_equation       equation_rgb;
@@ -13,13 +34,6 @@ struct am_blend_state {
     float                   color_g;
     float                   color_b;
     float                   color_a;
-};
-
-struct am_depth_test_state {
-    bool                    enabled;
-    am_depth_func           func;
-    float                   range_near;
-    float                   range_far;
 };
 
 struct am_stencil_test_state {
@@ -51,17 +65,6 @@ struct am_sample_coverage_state {
     bool                    sample_coverage_enabled;
     float                   sample_coverage_value;
     bool                    sample_coverage_invert;
-};
-
-struct am_viewport_state {
-    bool                    dirty;
-    int                     x;
-    int                     y;
-    int                     w;
-    int                     h;
-
-    void set(int x, int y, int w, int h);
-    void update();
 };
 
 struct am_facecull_state {
@@ -102,6 +105,7 @@ struct am_dither_state {
 
 struct am_render_state {
     am_viewport_state       viewport_state;
+    am_depth_test_state     depth_test_state;
 
     am_buffer_id            active_indices_id;
     int                     active_indices_max_value;
@@ -126,6 +130,7 @@ struct am_render_state {
     void bind_active_program_params();
     void bind_active_indices();
     void update_state();
+    void setup(am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
 };
 
 struct am_draw_arrays_node : am_scene_node {

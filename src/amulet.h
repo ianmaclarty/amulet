@@ -58,4 +58,5 @@ extern "C" {
 #include "am_renderer.h"
 #include "am_program.h"
 #include "am_transforms.h"
+#include "am_depthbuffer.h"
 #include "am_engine.h"
