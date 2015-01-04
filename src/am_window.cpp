@@ -8,8 +8,8 @@ struct am_window : am_nonatomic_userdata {
     int                 window_ref;
     int                 width;  // pixels
     int                 height; // pixels
-    bool                has_depth_buffer;
-    bool                has_stencil_buffer;
+    bool                has_depthbuffer;
+    bool                has_stencilbuffer;
 };
 
 static std::vector<am_window*> windows;
@@ -25,8 +25,8 @@ static int create_window(lua_State *L) {
     const char *title = "Untitled";
     bool resizable = true;
     bool borderless = false;
-    bool depth_buffer = false;
-    bool stencil_buffer = false;
+    bool depthbuffer = false;
+    bool stencilbuffer = false;
     int msaa_samples = 0;
 
     lua_pushnil(L);
@@ -63,10 +63,10 @@ static int create_window(lua_State *L) {
             resizable = lua_toboolean(L, -1);
         } else if (strcmp(key, "borderless") == 0) {
             borderless = lua_toboolean(L, -1);
-        } else if (strcmp(key, "depth_buffer") == 0) {
-            depth_buffer = lua_toboolean(L, -1);
-        } else if (strcmp(key, "stencil_buffer") == 0) {
-            stencil_buffer = lua_toboolean(L, -1);
+        } else if (strcmp(key, "depthbuffer") == 0) {
+            depthbuffer = lua_toboolean(L, -1);
+        } else if (strcmp(key, "stencilbuffer") == 0) {
+            stencilbuffer = lua_toboolean(L, -1);
         } else if (strcmp(key, "msaa_samples") == 0) {
             msaa_samples = luaL_checkinteger(L, -1);
             if (msaa_samples < 0) {
@@ -86,8 +86,8 @@ static int create_window(lua_State *L) {
         title,
         resizable,
         borderless,
-        depth_buffer,
-        stencil_buffer,
+        depthbuffer,
+        stencilbuffer,
         msaa_samples,
         &win->width,
         &win->height);
@@ -98,8 +98,8 @@ static int create_window(lua_State *L) {
     win->root = NULL;
     win->root_ref = LUA_NOREF;
 
-    win->has_depth_buffer = depth_buffer;
-    win->has_stencil_buffer = stencil_buffer;
+    win->has_depthbuffer = depthbuffer;
+    win->has_stencilbuffer = stencilbuffer;
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
     lua_pushvalue(L, -2);
@@ -179,7 +179,7 @@ static void draw_windows() {
         if (!win->needs_closing && win->root != NULL) {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
-            rstate->setup(0, true, win->width, win->height, win->has_depth_buffer);
+            rstate->setup(0, true, win->width, win->height, win->has_depthbuffer);
             win->root->render(rstate);
             am_native_window_post_render(win->native_win);
         }
