@@ -39,13 +39,13 @@ static void init_gamepad();
 
 static void init_sdl();
 static void init_audio();
-static bool handle_events();
+static bool handle_events(lua_State *L);
 //static void key_handler(SDL_Window *win, int key, int scancode, int state, int mods);
 //static void gen_controller_key_events();
 //static void mouse_button_handler(SDL_Window *win, int button, int action, int mods);
 //static void mouse_pos_handler(SDL_Window *win, double x, double y);
 //static void resize_handler(SDL_Window *win, int w, int h);
-//static am_key convert_key(int key);
+static am_key convert_key(int key);
 //static bool controller_to_keys = true;
 static bool process_args(int argc, char **argv);
 static int report_status(lua_State *L, int status);
@@ -235,7 +235,7 @@ int main( int argc, char *argv[] )
         am_sync_audio_graph(L);
         SDL_UnlockAudio();
 
-        if (!handle_events()) goto quit;
+        if (!handle_events(L)) goto quit;
 
         frame_time = am_get_current_time();
         delta_time = fmin(1.0/15.0, frame_time - t0); // fmin in case process was suspended, or last frame took very long
@@ -359,7 +359,7 @@ static void init_audio() {
     SDL_PauseAudioDevice(audio_device, 0);
 }
 
-static bool handle_events() {
+static bool handle_events(lua_State *L) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -386,23 +386,19 @@ static bool handle_events() {
                 break;
             }
             case SDL_KEYDOWN: {
-                /*
                 if (!event.key.repeat) {
-                    const char *key = SDL_GetKeyName(event.key.keysym.sym);
-                    lua_pushstring(L, key);
+                    am_key key = convert_key(event.key.keysym.sym);
+                    lua_pushstring(L, am_key_name(key));
                     am_call_amulet(L, "_key_down", 1, 0);
                 }
-                */
                 break;
             }
             case SDL_KEYUP: {
-                /*
                 if (!event.key.repeat) {
-                    const char *key = SDL_GetKeyName(event.key.keysym.sym);
-                    lua_pushstring(L, key);
+                    am_key key = convert_key(event.key.keysym.sym);
+                    lua_pushstring(L, am_key_name(key));
                     am_call_amulet(L, "_key_up", 1, 0);
                 }
-                */
                 break;
             }
         }
@@ -410,342 +406,68 @@ static bool handle_events() {
     return true;
 }
 
-/*
-static void handle_events(lua_State *L) {
-    am_call_amulet(L, "_clear_keys", 0, 0);
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        switch (event.type) {
-            case SDL_QUIT: {
-                // close all windows and stop processing any more events
-                for (unsigned int i = 0; i < windows.size(); i++) {
-                    windows[i]->needs_closing = true;
-                }
-                close_windows(L);
-                break;
-            }
-            case SDL_WINDOWEVENT: {
-                switch (event.window.event) {
-                    case SDL_WINDOWEVENT_CLOSE: {
-                        for (unsigned int i = 0; i < windows.size(); i++) {
-                            if (SDL_GetWindowID(windows[i]->sdl_win) == event.window.windowID) {
-                                if (windows[i]->open) {
-                                    windows[i]->needs_closing = true;
-                                    close_windows(L);
-                                    break;
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-                break;
-            }
-            case SDL_KEYDOWN: {
-                if (!event.key.repeat) {
-                    const char *key = SDL_GetKeyName(event.key.keysym.sym);
-                    lua_pushstring(L, key);
-                    am_call_amulet(L, "_key_down", 1, 0);
-                }
-                break;
-            }
-            case SDL_KEYUP: {
-                if (!event.key.repeat) {
-                    const char *key = SDL_GetKeyName(event.key.keysym.sym);
-                    lua_pushstring(L, key);
-                    am_call_amulet(L, "_key_up", 1, 0);
-                }
-                break;
-            }
-        }
-    }
-}
-*/
-
-/*
-static void handle_events() {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        switch (event.type) {
-            case SDL_KEYDOWN: {
-                if (!event.key.repeat) {
-                    LTKey ltkey = convert_key(event.key.keysym.sym);
-                    ltLuaKeyDown(ltkey);
-                }
-                break;
-            }
-            case SDL_KEYUP: {
-                if (!event.key.repeat) {
-                    LTKey ltkey = convert_key(event.key.keysym.sym);
-                    ltLuaKeyUp(ltkey);
-                }
-                break;
-            }
-            case SDL_WINDOWEVENT: {
-                switch (event.window.event) {
-                    case SDL_WINDOWEVENT_CLOSE: {
-                        lt_quit = true;
-                        break;
-                    }
-                    case SDL_WINDOWEVENT_RESIZED: {
-                        SDL_GL_GetDrawableSize(window, &framebuffer_width, &framebuffer_height);
-                        SDL_GetWindowSize(window, &screen_window_width, &screen_window_height);
-                        int w = event.window.data1;
-                        int h = event.window.data2;
-                        ltLuaResizeWindow(framebuffer_width, framebuffer_height);
-                        break;
-                    }
-                }
-                break;
-            }
-            case SDL_CONTROLLERDEVICEADDED: {
-                if (!controller_present) {
-                    int joystickid = event.cdevice.which;
-                    SDL_GameController *controller = SDL_GameControllerOpen(joystickid);
-                    if (controller != NULL) {
-                        controller_present = true;
-                    }
-                }
-                break;
-            }
-            case SDL_CONTROLLERDEVICEREMOVED: {
-                controller_present = false;
-                break;
-            }
-            case SDL_CONTROLLERBUTTONDOWN: {
-                if (lt_controller_enabled) {
-                    ltLuaKeyDown(controller_button_to_key((SDL_GameControllerButton)event.cbutton.button));
-                }
-                break;
-            }
-            case SDL_CONTROLLERBUTTONUP: {
-                if (lt_controller_enabled) {
-                    ltLuaKeyUp(controller_button_to_key((SDL_GameControllerButton)event.cbutton.button));
-                }
-                break;
-            }
-            case SDL_CONTROLLERAXISMOTION: {
-                Uint8 axis = event.caxis.axis;
-                float val = (float)event.caxis.value / 32768.0f;
-                float movement = val - axis_hwm[axis];
-                float movement_mag = fabs(movement);
-                switch (axis) {
-                    case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
-                        if (val > 0.5f && !axis_button_down[AXIS_BUTTON_LEFT]) {
-                            axis_button_down[AXIS_BUTTON_LEFT] = true;
-                            ltLuaKeyDown(LT_KEY_LEFT);
-                        } else if (val < 0.4f && axis_button_down[AXIS_BUTTON_LEFT]) {
-                            axis_button_down[AXIS_BUTTON_LEFT] = false;
-                            ltLuaKeyUp(LT_KEY_LEFT);
-                        }
-                        break;
-                    case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
-                        if (val > 0.5f && !axis_button_down[AXIS_BUTTON_RIGHT]) {
-                            axis_button_down[AXIS_BUTTON_RIGHT] = true;
-                            ltLuaKeyDown(LT_KEY_RIGHT);
-                        } else if (val < 0.4f && axis_button_down[AXIS_BUTTON_RIGHT]) {
-                            axis_button_down[AXIS_BUTTON_RIGHT] = false;
-                            ltLuaKeyUp(LT_KEY_RIGHT);
-                        }
-                        break;
-                    case SDL_CONTROLLER_AXIS_LEFTX:
-                        if (val < -0.5f && !axis_button_down[AXIS_BUTTON_LEFT]) {
-                            axis_button_down[AXIS_BUTTON_LEFT] = true;
-                            if (axis_button_down[AXIS_BUTTON_RIGHT]) {
-                                axis_button_down[AXIS_BUTTON_RIGHT] = false;
-                                ltLuaKeyUp(LT_KEY_RIGHT);
-                            }
-                            ltLuaKeyDown(LT_KEY_LEFT);
-                            axis_hwm[axis] = val;
-                        } else if (val > 0.5f && !axis_button_down[AXIS_BUTTON_RIGHT]) {
-                            axis_button_down[AXIS_BUTTON_RIGHT] = true;
-                            if (axis_button_down[AXIS_BUTTON_LEFT]) {
-                                axis_button_down[AXIS_BUTTON_LEFT] = false;
-                                ltLuaKeyUp(LT_KEY_LEFT);
-                            }
-                            ltLuaKeyDown(LT_KEY_RIGHT);
-                            axis_hwm[axis] = val;
-                        } else if (val > -0.4f && val < 0.4f && movement_mag > 0.2f) {
-                            if (axis_button_down[AXIS_BUTTON_LEFT]) {
-                                axis_button_down[AXIS_BUTTON_LEFT] = false;
-                                ltLuaKeyUp(LT_KEY_LEFT);
-                            }
-                            if (axis_button_down[AXIS_BUTTON_RIGHT]) {
-                                axis_button_down[AXIS_BUTTON_RIGHT] = false;
-                                ltLuaKeyUp(LT_KEY_RIGHT);
-                            }
-                            axis_hwm[axis] = val;
-                        }
-                        break;
-                    case SDL_CONTROLLER_AXIS_LEFTY:
-                        if (val < -0.5f && !axis_button_down[AXIS_BUTTON_UP]) {
-                            axis_button_down[AXIS_BUTTON_UP] = true;
-                            if (axis_button_down[AXIS_BUTTON_DOWN]) {
-                                axis_button_down[AXIS_BUTTON_DOWN] = false;
-                                ltLuaKeyUp(LT_KEY_DOWN);
-                            }
-                            ltLuaKeyDown(LT_KEY_UP);
-                            axis_hwm[axis] = val;
-                        } else if (val > 0.5f && !axis_button_down[AXIS_BUTTON_DOWN]) {
-                            axis_button_down[AXIS_BUTTON_DOWN] = true;
-                            if (axis_button_down[AXIS_BUTTON_UP]) {
-                                axis_button_down[AXIS_BUTTON_UP] = false;
-                                ltLuaKeyUp(LT_KEY_UP);
-                            }
-                            ltLuaKeyDown(LT_KEY_DOWN);
-                            axis_hwm[axis] = val;
-                        } else if (val > -0.4f && val < 0.4f && movement_mag > 0.2f) {
-                            if (axis_button_down[AXIS_BUTTON_UP]) {
-                                axis_button_down[AXIS_BUTTON_UP] = false;
-                                ltLuaKeyUp(LT_KEY_UP);
-                            }
-                            if (axis_button_down[AXIS_BUTTON_DOWN]) {
-                                axis_button_down[AXIS_BUTTON_DOWN] = false;
-                                ltLuaKeyUp(LT_KEY_DOWN);
-                            }
-                            axis_hwm[axis] = val;
-                        }
-                        break;
-                    case SDL_CONTROLLER_AXIS_RIGHTX:
-                        if (val < -0.5f && !axis_button_down[AXIS_BUTTON_LEFT]) {
-                            axis_button_down[AXIS_BUTTON_LEFT] = true;
-                            if (axis_button_down[AXIS_BUTTON_RIGHT]) {
-                                axis_button_down[AXIS_BUTTON_RIGHT] = false;
-                                ltLuaKeyUp(LT_KEY_RIGHT);
-                            }
-                            ltLuaKeyDown(LT_KEY_LEFT);
-                            axis_hwm[axis] = val;
-                        } else if (val > 0.5f && !axis_button_down[AXIS_BUTTON_RIGHT]) {
-                            axis_button_down[AXIS_BUTTON_RIGHT] = true;
-                            if (axis_button_down[AXIS_BUTTON_LEFT]) {
-                                axis_button_down[AXIS_BUTTON_LEFT] = false;
-                                ltLuaKeyUp(LT_KEY_LEFT);
-                            }
-                            ltLuaKeyDown(LT_KEY_RIGHT);
-                            axis_hwm[axis] = val;
-                        } else if (val > -0.4f && val < 0.4f && movement_mag > 0.2f) {
-                            if (axis_button_down[AXIS_BUTTON_LEFT]) {
-                                axis_button_down[AXIS_BUTTON_LEFT] = false;
-                                ltLuaKeyUp(LT_KEY_LEFT);
-                            }
-                            if (axis_button_down[AXIS_BUTTON_RIGHT]) {
-                                axis_button_down[AXIS_BUTTON_RIGHT] = false;
-                                ltLuaKeyUp(LT_KEY_RIGHT);
-                            }
-                            axis_hwm[axis] = val;
-                        }
-                        break;
-                    case SDL_CONTROLLER_AXIS_RIGHTY:
-                        if (val < -0.5f && !axis_button_down[AXIS_BUTTON_UP]) {
-                            axis_button_down[AXIS_BUTTON_UP] = true;
-                            if (axis_button_down[AXIS_BUTTON_DOWN]) {
-                                axis_button_down[AXIS_BUTTON_DOWN] = false;
-                                ltLuaKeyUp(LT_KEY_DOWN);
-                            }
-                            ltLuaKeyDown(LT_KEY_UP);
-                            axis_hwm[axis] = val;
-                        } else if (val > 0.5f && !axis_button_down[AXIS_BUTTON_DOWN]) {
-                            axis_button_down[AXIS_BUTTON_DOWN] = true;
-                            if (axis_button_down[AXIS_BUTTON_UP]) {
-                                axis_button_down[AXIS_BUTTON_UP] = false;
-                                ltLuaKeyUp(LT_KEY_UP);
-                            }
-                            ltLuaKeyDown(LT_KEY_DOWN);
-                            axis_hwm[axis] = val;
-                        } else if (val > -0.4f && val < 0.4f && movement_mag > 0.2f) {
-                            if (axis_button_down[AXIS_BUTTON_UP]) {
-                                axis_button_down[AXIS_BUTTON_UP] = false;
-                                ltLuaKeyUp(LT_KEY_UP);
-                            }
-                            if (axis_button_down[AXIS_BUTTON_DOWN]) {
-                                axis_button_down[AXIS_BUTTON_DOWN] = false;
-                                ltLuaKeyUp(LT_KEY_DOWN);
-                            }
-                            axis_hwm[axis] = val;
-                        }
-                        break;
-                }
-                break;
-            }
-            case SDL_QUIT: {
-                lt_quit = true;
-                break;
-            }
-        }
-    }
-}
-
-static int to_framebuf_x(double x) {
-    return (x/(double)screen_window_width)*(double)framebuffer_width;
-}
-
-static int to_framebuf_y(double y) {
-    return (y/(double)screen_window_height)*(double)framebuffer_height;
-}
-
-static LTKey convert_key(SDL_Keycode key) {
+static am_key convert_key(SDL_Keycode key) {
     switch(key) {
-        case SDLK_TAB: return LT_KEY_TAB;
-        case SDLK_RETURN: return LT_KEY_ENTER;
-        case SDLK_ESCAPE: return LT_KEY_ESC;
-        case SDLK_SPACE: return LT_KEY_SPACE;
-        case SDLK_QUOTE: return LT_KEY_APOS;
-        case SDLK_EQUALS: return LT_KEY_PLUS;
-        case SDLK_COMMA: return LT_KEY_COMMA;
-        case SDLK_MINUS: return LT_KEY_MINUS;
-        case SDLK_PERIOD: return LT_KEY_PERIOD;
-        case SDLK_SLASH: return LT_KEY_SLASH;
-        case SDLK_0: return LT_KEY_0;
-        case SDLK_1: return LT_KEY_1;
-        case SDLK_2: return LT_KEY_2;
-        case SDLK_3: return LT_KEY_3;
-        case SDLK_4: return LT_KEY_4;
-        case SDLK_5: return LT_KEY_5;
-        case SDLK_6: return LT_KEY_6;
-        case SDLK_7: return LT_KEY_7;
-        case SDLK_8: return LT_KEY_8;
-        case SDLK_9: return LT_KEY_9;
-        case SDLK_SEMICOLON: return LT_KEY_SEMI_COLON;
-        case SDLK_LEFTBRACKET: return LT_KEY_LEFT_BRACKET;
-        case SDLK_BACKSLASH: return LT_KEY_BACKSLASH;
-        case SDLK_RIGHTBRACKET: return LT_KEY_RIGHT_BRACKET;
-        case SDLK_BACKQUOTE: return LT_KEY_TICK;
-        case SDLK_a: return LT_KEY_A;
-        case SDLK_b: return LT_KEY_B;
-        case SDLK_c: return LT_KEY_C;
-        case SDLK_d: return LT_KEY_D;
-        case SDLK_e: return LT_KEY_E;
-        case SDLK_f: return LT_KEY_F;
-        case SDLK_g: return LT_KEY_G;
-        case SDLK_h: return LT_KEY_H;
-        case SDLK_i: return LT_KEY_I;
-        case SDLK_j: return LT_KEY_J;
-        case SDLK_k: return LT_KEY_K;
-        case SDLK_l: return LT_KEY_L;
-        case SDLK_m: return LT_KEY_M;
-        case SDLK_n: return LT_KEY_N;
-        case SDLK_o: return LT_KEY_O;
-        case SDLK_p: return LT_KEY_P;
-        case SDLK_q: return LT_KEY_Q;
-        case SDLK_r: return LT_KEY_R;
-        case SDLK_s: return LT_KEY_S;
-        case SDLK_t: return LT_KEY_T;
-        case SDLK_u: return LT_KEY_U;
-        case SDLK_v: return LT_KEY_V;
-        case SDLK_w: return LT_KEY_W;
-        case SDLK_x: return LT_KEY_X;
-        case SDLK_y: return LT_KEY_Y;
-        case SDLK_z: return LT_KEY_Z;
-        case SDLK_DELETE: return LT_KEY_DEL;
-        case SDLK_BACKSPACE: return LT_KEY_DEL;
-        case SDLK_UP: return LT_KEY_UP;
-        case SDLK_DOWN: return LT_KEY_DOWN;
-        case SDLK_RIGHT: return LT_KEY_RIGHT;
-        case SDLK_LEFT: return LT_KEY_LEFT;
+        case SDLK_TAB: return AM_KEY_TAB;
+        case SDLK_RETURN: return AM_KEY_ENTER;
+        case SDLK_ESCAPE: return AM_KEY_ESCAPE;
+        case SDLK_SPACE: return AM_KEY_SPACE;
+        case SDLK_QUOTE: return AM_KEY_QUOTE;
+        case SDLK_EQUALS: return AM_KEY_EQUALS;
+        case SDLK_COMMA: return AM_KEY_COMMA;
+        case SDLK_MINUS: return AM_KEY_MINUS;
+        case SDLK_PERIOD: return AM_KEY_PERIOD;
+        case SDLK_SLASH: return AM_KEY_SLASH;
+        case SDLK_0: return AM_KEY_0;
+        case SDLK_1: return AM_KEY_1;
+        case SDLK_2: return AM_KEY_2;
+        case SDLK_3: return AM_KEY_3;
+        case SDLK_4: return AM_KEY_4;
+        case SDLK_5: return AM_KEY_5;
+        case SDLK_6: return AM_KEY_6;
+        case SDLK_7: return AM_KEY_7;
+        case SDLK_8: return AM_KEY_8;
+        case SDLK_9: return AM_KEY_9;
+        case SDLK_SEMICOLON: return AM_KEY_SEMICOLON;
+        case SDLK_LEFTBRACKET: return AM_KEY_LEFTBRACKET;
+        case SDLK_BACKSLASH: return AM_KEY_BACKSLASH;
+        case SDLK_RIGHTBRACKET: return AM_KEY_RIGHTBRACKET;
+        case SDLK_BACKQUOTE: return AM_KEY_BACKQUOTE;
+        case SDLK_a: return AM_KEY_A;
+        case SDLK_b: return AM_KEY_B;
+        case SDLK_c: return AM_KEY_C;
+        case SDLK_d: return AM_KEY_D;
+        case SDLK_e: return AM_KEY_E;
+        case SDLK_f: return AM_KEY_F;
+        case SDLK_g: return AM_KEY_G;
+        case SDLK_h: return AM_KEY_H;
+        case SDLK_i: return AM_KEY_I;
+        case SDLK_j: return AM_KEY_J;
+        case SDLK_k: return AM_KEY_K;
+        case SDLK_l: return AM_KEY_L;
+        case SDLK_m: return AM_KEY_M;
+        case SDLK_n: return AM_KEY_N;
+        case SDLK_o: return AM_KEY_O;
+        case SDLK_p: return AM_KEY_P;
+        case SDLK_q: return AM_KEY_Q;
+        case SDLK_r: return AM_KEY_R;
+        case SDLK_s: return AM_KEY_S;
+        case SDLK_t: return AM_KEY_T;
+        case SDLK_u: return AM_KEY_U;
+        case SDLK_v: return AM_KEY_V;
+        case SDLK_w: return AM_KEY_W;
+        case SDLK_x: return AM_KEY_X;
+        case SDLK_y: return AM_KEY_Y;
+        case SDLK_z: return AM_KEY_Z;
+        case SDLK_DELETE: return AM_KEY_DELETE;
+        case SDLK_BACKSPACE: return AM_KEY_BACKSPACE;
+        case SDLK_UP: return AM_KEY_UP;
+        case SDLK_DOWN: return AM_KEY_DOWN;
+        case SDLK_RIGHT: return AM_KEY_RIGHT;
+        case SDLK_LEFT: return AM_KEY_LEFT;
     }
-    return LT_KEY_UNKNOWN;
+    return AM_KEY_UNKNOWN;
 }
-*/
 
 static bool process_args(int argc, char **argv) {
     bool in_osx_bundle = false;

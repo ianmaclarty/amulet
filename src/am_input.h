@@ -1,4 +1,4 @@
-enum {
+enum am_key {
     AM_KEY_UNKNOWN,
 
     AM_KEY_A,
@@ -39,7 +39,7 @@ enum {
     AM_KEY_9,
     AM_KEY_0,
 
-    AM_KEY_RETURN,
+    AM_KEY_ENTER,
     AM_KEY_ESCAPE,
     AM_KEY_BACKSPACE,
     AM_KEY_TAB,
@@ -51,8 +51,8 @@ enum {
     AM_KEY_RIGHTBRACKET,
     AM_KEY_BACKSLASH,
     AM_KEY_SEMICOLON,
-    AM_KEY_APOSTROPHE,
-    AM_KEY_TILDE,
+    AM_KEY_QUOTE,
+    AM_KEY_BACKQUOTE,
     AM_KEY_COMMA,
     AM_KEY_PERIOD,
     AM_KEY_SLASH,
@@ -143,3 +143,5 @@ enum am_gamepad_axis {
     AM_GAMEPAD_RT,
     AM_GAMEPAD_NUM_AXES
 };
+
+const char *am_key_name(am_key key);
