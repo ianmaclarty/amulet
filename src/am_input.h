@@ -144,4 +144,19 @@ enum am_gamepad_axis {
     AM_GAMEPAD_NUM_AXES
 };
 
+enum am_mouse_button {
+    AM_MOUSE_BUTTON_LEFT,
+    AM_MOUSE_BUTTON_RIGHT,
+    AM_MOUSE_BUTTON_MIDDLE,
+};
+
 const char *am_key_name(am_key key);
+
+/*
+TODO
+void am_handle_key_down(lua_State *L, am_native_window *nwin, am_key key);
+void am_handle_key_up(lua_State *L, am_native_window *nwin, am_key key);
+void am_handle_mouse_move(lua_State *L, am_native_window *nwin, float x, float y);
+void am_handle_mouse_down(lua_State *L, am_native_window *nwin, am_mouse_button button);
+void am_handle_mouse_up(lua_State *L, am_native_window *nwin, am_mouse_button button);
+*/

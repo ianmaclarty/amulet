@@ -89,7 +89,7 @@ bool am_execute_actions(lua_State *L, double dt) {
         node->pushref(L, action->func_ref);         // push action function
         node->push(L);
         bool success = am_call(L, 1, 1);            // run action function (pops node, function)
-        if (!success) return success;
+        if (!success) return false;
         if (!lua_toboolean(L, -1)) {
             // action finished, remove it.
 

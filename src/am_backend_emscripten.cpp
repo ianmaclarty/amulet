@@ -197,6 +197,7 @@ static void init_sdl() {
 }
 
 static bool handle_events() {
+    am_call_amulet(L, "_clear_input", 0, 0);
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {

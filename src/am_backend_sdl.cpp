@@ -46,6 +46,7 @@ static bool handle_events(lua_State *L);
 //static void mouse_pos_handler(SDL_Window *win, double x, double y);
 //static void resize_handler(SDL_Window *win, int w, int h);
 static am_key convert_key(int key);
+static void init_mouse_state(SDL_Window *window);
 //static bool controller_to_keys = true;
 static bool process_args(int argc, char **argv);
 static int report_status(lua_State *L, int status);
@@ -126,6 +127,7 @@ am_native_window *am_create_native_window(
     }
     windows.push_back(win);
     SDL_GL_GetDrawableSize(win, drawable_width, drawable_height);
+    init_mouse_state(win);
     return (am_native_window*)win;
 }
 
@@ -161,6 +163,14 @@ double am_get_delta_time() {
 
 double am_get_average_fps() {
     return fps;
+}
+
+bool am_set_relative_mouse_mode(bool enabled) {
+    if (sdl_initialized) {
+        return SDL_SetRelativeMouseMode(enabled ? SDL_TRUE : SDL_FALSE) == 0;
+    } else {
+        return false;
+    }
 }
 
 static bool init_glew() {
@@ -359,7 +369,26 @@ static void init_audio() {
     SDL_PauseAudioDevice(audio_device, 0);
 }
 
+static int mouse_x = 0;
+static int mouse_y = 0;
+
+static void init_mouse_state(SDL_Window *window) {
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+}
+
+static void update_mouse_state(lua_State *L) {
+    if (windows.size() == 0) return;
+    int w, h;
+    SDL_GetWindowSize(windows[0], &w, &h);
+    float norm_x = ((float)mouse_x / (float)w) * 2.0f - 1.0f;
+    float norm_y = (1.0f - (float)mouse_y / (float)h) * 2.0f - 1.0f;
+    lua_pushnumber(L, norm_x);
+    lua_pushnumber(L, norm_y);
+    am_call_amulet(L, "_mouse_move", 2, 0);
+}
+
 static bool handle_events(lua_State *L) {
+    am_call_amulet(L, "_clear_input", 0, 0);
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -401,8 +430,19 @@ static bool handle_events(lua_State *L) {
                 }
                 break;
             }
+            case SDL_MOUSEMOTION: {
+                for (unsigned int i = 0; i < windows.size(); i++) {
+                    if (SDL_GetWindowID(windows[i]) == event.motion.windowID) {
+                        mouse_x += event.motion.xrel;
+                        mouse_y += event.motion.yrel;
+                        break;
+                    }
+                }
+                break;
+            }
         }
     }
+    update_mouse_state(L);
     return true;
 }
 

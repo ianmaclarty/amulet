@@ -10,6 +10,7 @@ struct am_window : am_nonatomic_userdata {
     int                 height; // pixels
     bool                has_depthbuffer;
     bool                has_stencilbuffer;
+    bool                relative_mouse_mode;
 };
 
 static std::vector<am_window*> windows;
@@ -224,6 +225,18 @@ static void set_root_node(lua_State *L, void *obj) {
 
 static am_property root_property = {get_root_node, set_root_node};
 
+static void get_relative_mouse_mode(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushboolean(L, window->relative_mouse_mode);
+}
+
+static void set_relative_mouse_mode(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    window->relative_mouse_mode = am_set_relative_mouse_mode(lua_toboolean(L, 3));
+}
+
+static am_property relative_mouse_mode_property = {get_relative_mouse_mode, set_relative_mouse_mode};
+
 static void register_window_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -231,6 +244,7 @@ static void register_window_mt(lua_State *L) {
     am_set_default_newindex_func(L);
 
     am_register_property(L, "root", &root_property);
+    am_register_property(L, "relative_mouse_mode", &relative_mouse_mode_property);
 
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");
