@@ -65,8 +65,8 @@ AM_CFLAGS = $(AM_DEF_FLAGS) $(COMMON_CFLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS)
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
 DEFAULT_HTML_EDITOR_SCRIPT = samples/kaleidoscope.lua
-HTML_EDITOR_FILES := $(wildcard editor/*.js editor/*.css editor/*.html)
-BUILD_HTML_EDITOR_FILES = $(patsubst editor/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
+HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html)
+BUILD_HTML_EDITOR_FILES = $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 
 # Rules
 
@@ -136,7 +136,7 @@ $(ZLIB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 $(BUILD_DIRS): %:
 	mkdir -p $@
 
-$(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: editor/% | $(BUILD_BIN_DIR)
+$(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: html/% | $(BUILD_BIN_DIR)
 	cp $< $@
 
 $(BUILD_BIN_DIR)/example.lua: $(DEFAULT_HTML_EDITOR_SCRIPT)
