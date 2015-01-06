@@ -12,6 +12,8 @@ static const char *filename = "main.lua";
 static void init_sdl();
 static void init_audio();
 static bool handle_events();
+static am_key convert_key(SDL_Keycode key);
+static void init_mouse_state();
 static int report_status(lua_State *L, int status);
 
 am_native_window *am_create_native_window(
@@ -64,6 +66,7 @@ am_native_window *am_create_native_window(
     am_init_gl();
     *drawable_width = sdl_window->w;
     *drawable_height = sdl_window->h;
+    init_mouse_state();
     return (am_native_window*)sdl_window;
 }
 
@@ -191,9 +194,26 @@ static int report_status(lua_State *L, int status) {
     return status;
 }
 
+static int mouse_x = 0;
+static int mouse_y = 0;
+
+static void init_mouse_state() {
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+}
+
 static void init_sdl() {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
     init_audio();
+}
+
+static void update_mouse_state(lua_State *L) {
+    int w = sdl_window->w;
+    int h = sdl_window->h;
+    float norm_x = ((float)mouse_x / (float)w) * 2.0f - 1.0f;
+    float norm_y = (1.0f - (float)mouse_y / (float)h) * 2.0f - 1.0f;
+    lua_pushnumber(L, norm_x);
+    lua_pushnumber(L, norm_y);
+    am_call_amulet(L, "_mouse_move", 2, 0);
 }
 
 static bool handle_events() {
@@ -210,23 +230,24 @@ static bool handle_events() {
                 break;
             }
             case SDL_KEYDOWN: {
-                /*
                 if (!event.key.repeat) {
-                    const char *key = SDL_GetKeyName(event.key.keysym.sym);
-                    lua_pushstring(L, key);
+                    am_key key = convert_key(event.key.keysym.sym);
+                    lua_pushstring(L, am_key_name(key));
                     am_call_amulet(L, "_key_down", 1, 0);
                 }
-                */
                 break;
             }
             case SDL_KEYUP: {
-                /*
                 if (!event.key.repeat) {
-                    const char *key = SDL_GetKeyName(event.key.keysym.sym);
-                    lua_pushstring(L, key);
+                    am_key key = convert_key(event.key.keysym.sym);
+                    lua_pushstring(L, am_key_name(key));
                     am_call_amulet(L, "_key_up", 1, 0);
                 }
-                */
+                break;
+            }
+            case SDL_MOUSEMOTION: {
+                mouse_x += event.motion.xrel;
+                mouse_y += event.motion.yrel;
                 break;
             }
             case SDL_VIDEORESIZE: {
@@ -236,20 +257,13 @@ static bool handle_events() {
             }
         }
     }
+    update_mouse_state(L);
     return true;
 }
 
 static float *audio_buffer = NULL;
 
 static void audio_callback(void *ud, Uint8 *stream, int len) {
-    static int count = 0;
-    /*
-    if (count > 0) {
-        memset(stream, 0, len);
-        return;
-    }
-    */
-    count++;
     assert(audio_buffer != NULL);
     if (len != (int)sizeof(int16_t) * am_conf_audio_buffer_size * am_conf_audio_channels) {
         am_debug("audio buffer size mismatch! (%d vs %d)",
@@ -262,17 +276,14 @@ static void audio_callback(void *ud, Uint8 *stream, int len) {
     int num_samples = am_conf_audio_buffer_size;
     float *buffer = audio_buffer;
     memset(buffer, 0, sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
-    am_audio_bus bus;
-    bus.num_channels = num_channels;
-    bus.num_samples = num_samples;
-    bus.buffer = buffer;
-    for (int i = 0; i < num_channels; i++) {
-        bus.channel_data[i] = bus.buffer + i * num_samples;
-    }
+    am_audio_bus bus(num_channels, num_samples, buffer);
     am_fill_audio_bus(&bus);
     // SDL expects channels to be interleaved
     //am_debug("--------------------------------------------");
     //am_debug("num_samples = %d", num_samples);
+    // XXX The emscripten SDL driver then converts
+    //     this back into non-interleaved format.
+    //     We should just pass this buffer directly to web audio.
     for (int c = 0; c < num_channels; c++) {
         for (int i = 0; i < num_samples; i++) {
             ((int16_t*)stream)[i * num_channels + c] = (int16_t)(bus.channel_data[c][i] * 32767.0f);
@@ -293,6 +304,73 @@ static void init_audio() {
     SDL_AudioSpec obtained;
     SDL_OpenAudio(&desired, &obtained);
     SDL_PauseAudio(0);
+}
+
+bool am_set_relative_mouse_mode(bool enabled) {
+    return false;
+}
+
+static am_key convert_key(SDL_Keycode key) {
+    switch(key) {
+        case SDLK_TAB: return AM_KEY_TAB;
+        case SDLK_RETURN: return AM_KEY_ENTER;
+        case SDLK_ESCAPE: return AM_KEY_ESCAPE;
+        case SDLK_SPACE: return AM_KEY_SPACE;
+        case SDLK_QUOTE: return AM_KEY_QUOTE;
+        case SDLK_EQUALS: return AM_KEY_EQUALS;
+        case SDLK_COMMA: return AM_KEY_COMMA;
+        case SDLK_MINUS: return AM_KEY_MINUS;
+        case SDLK_PERIOD: return AM_KEY_PERIOD;
+        case SDLK_SLASH: return AM_KEY_SLASH;
+        case SDLK_0: return AM_KEY_0;
+        case SDLK_1: return AM_KEY_1;
+        case SDLK_2: return AM_KEY_2;
+        case SDLK_3: return AM_KEY_3;
+        case SDLK_4: return AM_KEY_4;
+        case SDLK_5: return AM_KEY_5;
+        case SDLK_6: return AM_KEY_6;
+        case SDLK_7: return AM_KEY_7;
+        case SDLK_8: return AM_KEY_8;
+        case SDLK_9: return AM_KEY_9;
+        case SDLK_SEMICOLON: return AM_KEY_SEMICOLON;
+        case SDLK_LEFTBRACKET: return AM_KEY_LEFTBRACKET;
+        case SDLK_BACKSLASH: return AM_KEY_BACKSLASH;
+        case SDLK_RIGHTBRACKET: return AM_KEY_RIGHTBRACKET;
+        case SDLK_BACKQUOTE: return AM_KEY_BACKQUOTE;
+        case SDLK_a: return AM_KEY_A;
+        case SDLK_b: return AM_KEY_B;
+        case SDLK_c: return AM_KEY_C;
+        case SDLK_d: return AM_KEY_D;
+        case SDLK_e: return AM_KEY_E;
+        case SDLK_f: return AM_KEY_F;
+        case SDLK_g: return AM_KEY_G;
+        case SDLK_h: return AM_KEY_H;
+        case SDLK_i: return AM_KEY_I;
+        case SDLK_j: return AM_KEY_J;
+        case SDLK_k: return AM_KEY_K;
+        case SDLK_l: return AM_KEY_L;
+        case SDLK_m: return AM_KEY_M;
+        case SDLK_n: return AM_KEY_N;
+        case SDLK_o: return AM_KEY_O;
+        case SDLK_p: return AM_KEY_P;
+        case SDLK_q: return AM_KEY_Q;
+        case SDLK_r: return AM_KEY_R;
+        case SDLK_s: return AM_KEY_S;
+        case SDLK_t: return AM_KEY_T;
+        case SDLK_u: return AM_KEY_U;
+        case SDLK_v: return AM_KEY_V;
+        case SDLK_w: return AM_KEY_W;
+        case SDLK_x: return AM_KEY_X;
+        case SDLK_y: return AM_KEY_Y;
+        case SDLK_z: return AM_KEY_Z;
+        case SDLK_DELETE: return AM_KEY_DELETE;
+        case SDLK_BACKSPACE: return AM_KEY_BACKSPACE;
+        case SDLK_UP: return AM_KEY_UP;
+        case SDLK_DOWN: return AM_KEY_DOWN;
+        case SDLK_RIGHT: return AM_KEY_RIGHT;
+        case SDLK_LEFT: return AM_KEY_LEFT;
+    }
+    return AM_KEY_UNKNOWN;
 }
 
 extern "C" {

@@ -145,9 +145,8 @@ function main_action()
 
     update_kaleidoscope_node()
 
-    buildings_node.facing.angle = am.mouse_position.x
-    buildings_node.pitch.angle = am.mouse_position.y - 1
-
+    buildings_node.facing.angle = am.mouse_position.x * math.pi
+    buildings_node.pitch.angle = am.mouse_position.y * math.pi- 1
 
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)
