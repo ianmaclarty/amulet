@@ -333,15 +333,8 @@ static void audio_callback(void *ud, Uint8 *stream, int len) {
     assert(len == (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
     int num_channels = am_conf_audio_channels;
     int num_samples = am_conf_audio_buffer_size;
-    float *buffer = audio_buffer;
-    memset(buffer, 0, len);
-    am_audio_bus bus;
-    bus.num_channels = num_channels;
-    bus.num_samples = num_samples;
-    bus.buffer = buffer;
-    for (int i = 0; i < num_channels; i++) {
-        bus.channel_data[i] = bus.buffer + i * num_samples;
-    }
+    memset(audio_buffer, 0, len);
+    am_audio_bus bus(num_channels, num_samples, audio_buffer);
     am_fill_audio_bus(&bus);
     // SDL expects channels to be interleaved
     for (int c = 0; c < num_channels; c++) {

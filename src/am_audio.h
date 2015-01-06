@@ -16,6 +16,11 @@ struct am_audio_bus {
     int num_samples; // per channel
     float *channel_data[AM_MAX_CHANNELS]; // these point ...
     float *buffer;                        // ... into this
+    bool owns_buffer;
+
+    am_audio_bus(int num_channels, int num_samples, float *buffer);
+    am_audio_bus(am_audio_bus *bus);
+    ~am_audio_bus();
 };
 
 struct am_audio_node_child {

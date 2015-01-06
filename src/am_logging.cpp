@@ -64,7 +64,7 @@ void am_log(lua_State *L, int level, bool once, const char *fmt, ...) {
         int r = lua_getstack(L, level, &ar);
         if (r) {
             lua_getinfo(L, "Sl", &ar);
-            char *tmp = (char*)malloc(strlen(msg+1));
+            char *tmp = (char*)malloc(strlen(msg)+1);
             strcpy(tmp, msg);
             snprintf(msg, MAX_MSG_LEN, "%s:%d: %s", ar.short_src, ar.currentline, tmp);
             free((void*)tmp);

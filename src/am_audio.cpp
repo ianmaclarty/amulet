@@ -13,6 +13,69 @@
 
 static am_audio_context audio_context;
 
+// Audio Bus
+
+// all buffers in the pool have the same size
+// current_pool_bufsize is the size of each buffer in the
+// pool, in bytes.
+static std::vector<void*> buffer_pool;
+static int current_pool_bufsize = 0;
+static unsigned int bufpool_top = 0;
+
+static void* push_buffer(int size) {
+    if (size != current_pool_bufsize) {
+        // size of audio buffer has changed, clear pool
+        for (unsigned int i = 0; i < buffer_pool.size(); i++) {
+            free(buffer_pool[i]);
+        }
+        buffer_pool.clear();
+        current_pool_bufsize = size;
+        bufpool_top = 0;
+    }
+    assert(bufpool_top <= buffer_pool.size());
+    if (bufpool_top == buffer_pool.size()) {
+        buffer_pool.push_back(malloc(size));
+    }
+    void *buf = buffer_pool[bufpool_top++];
+    memset(buf, 0, size);
+    return buf;
+}
+
+static void pop_buffer(void *buf) {
+    bufpool_top--;
+    assert(bufpool_top >= 0);
+    assert(buffer_pool.size() > bufpool_top);
+    assert(buffer_pool[bufpool_top] == buf);
+}
+
+static void setup_channels(am_audio_bus *bus) {
+    for (int i = 0; i < bus->num_channels; i++) {
+        bus->channel_data[i] = bus->buffer + i * bus->num_samples;
+    }
+}
+
+am_audio_bus::am_audio_bus(int nchannels, int nsamples, float* buf) {
+    num_channels = nchannels;
+    num_samples = nsamples;
+    buffer = buf;
+    owns_buffer = false;
+    setup_channels(this);
+}
+
+am_audio_bus::am_audio_bus(am_audio_bus *bus) {
+    num_channels = bus->num_channels;
+    num_samples = bus->num_samples;
+    buffer = (float*)push_buffer(num_channels * num_samples * sizeof(float));
+    owns_buffer = true;
+    setup_channels(this);
+}
+
+am_audio_bus::~am_audio_bus() {
+    if (owns_buffer) {
+        pop_buffer(buffer);
+    }
+}
+
 // Audio Param
 
 inline static float linear_incf(am_audio_param<float> param, int samples) {
@@ -65,14 +128,15 @@ void am_gain_node::post_render(am_audio_context *context, int num_samples) {
 }
 
 void am_gain_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
-    render_children(context, bus);
+    am_audio_bus tmp(bus);
+    render_children(context, &tmp);
     int num_channels = bus->num_channels;
     int num_samples = bus->num_samples;
     float gain_inc = linear_incf(gain, num_samples);
     float gain_val = gain.current_value;
     for (int i = 0; i < num_samples; i++) {
         for (int c = 0; c < num_channels; c++) {
-            bus->channel_data[c][i] *= gain_val;
+            bus->channel_data[c][i] += tmp.channel_data[c][i] * gain_val;
         }
         gain_val += gain_inc;
     }

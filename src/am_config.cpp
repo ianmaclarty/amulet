@@ -9,7 +9,7 @@ int am_conf_vsync = true;
 // More likely to get drop outs in browser, so use larger buffer
 int am_conf_audio_buffer_size = 2048;
 #else
-int am_conf_audio_buffer_size = 1024;
+int am_conf_audio_buffer_size = 512;
 #endif
 
 int am_conf_audio_channels = 2;

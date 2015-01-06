@@ -14,6 +14,9 @@ local create_kaleidoscope_shader
 local create_kaleidoscope_node
 local create_blur_shader
 local create_blur_node
+local init_audio
+local chimes
+local play_chime
 
 local kaleidoscope_node
 local kaleidoscope_shader
@@ -71,27 +74,31 @@ function init()
 
     win.root = blur_node
     win.root:action(main_action)
+
+    init_audio()
+    play_chime(1)
 end
 
 local zones = {
-    {distance = 2, num_segments = 2, x_repeat = 1, y_repeat = 1, limit1 = 3},
-    {distance = 3.5, num_segments = 2, x_repeat = 2, y_repeat = 1, limit1 = 1},
-    {distance = 5, num_segments = 3, x_repeat = 2, y_repeat = 2, limit1 = 0},
-    {distance = 6, num_segments = 4, x_repeat = 2, y_repeat = 2, limit1 = -5},
-    {distance = 7, num_segments = 5, x_repeat = 2, y_repeat = 3, limit1 = -15},
-    {distance = 8, num_segments = 9, x_repeat = 2, y_repeat = 3, limit1 = -20},
-    {distance = 9, num_segments = 17, x_repeat = 2, y_repeat = 5, limit1 = -40},
-    {distance = 10, num_segments = 30, x_repeat = 2, y_repeat = 6, limit1 = -80},
-    {distance = 11, num_segments = 60, x_repeat = 2, y_repeat = 8, limit1 = -500},
-    {distance = 12, num_segments = 1, x_repeat = 1, y_repeat = 1, limit1 = 20},
+    {distance = 0,  num_segments = 1,  x_repeat = 1, y_repeat = 1, limit1 = 20,   freq = 110},
+    {distance = 2,  num_segments = 2,  x_repeat = 1, y_repeat = 1, limit1 = 3,    freq = 220 * 2^(2/12)},
+    {distance = 3,  num_segments = 2,  x_repeat = 2, y_repeat = 1, limit1 = 1,    freq = 220 * 2^(4/12)},
+    {distance = 4,  num_segments = 3,  x_repeat = 2, y_repeat = 2, limit1 = 0,    freq = 220 * 2^(6/12)},
+    {distance = 5,  num_segments = 4,  x_repeat = 2, y_repeat = 2, limit1 = -5,   freq = 220 * 2^(7/12)},
+    {distance = 6,  num_segments = 5,  x_repeat = 2, y_repeat = 3, limit1 = -15,  freq = 220 * 2^(9/12)},
+    {distance = 7,  num_segments = 9,  x_repeat = 2, y_repeat = 3, limit1 = -20,  freq = 220 * 2^(11/12)},
+    {distance = 8,  num_segments = 17, x_repeat = 2, y_repeat = 5, limit1 = -40,  freq = 220 * 2^(13/12)},
+    {distance = 9,  num_segments = 30, x_repeat = 2, y_repeat = 6, limit1 = -80,  freq = 220 * 2^(15/12)},
+    {distance = 10, num_segments = 60, x_repeat = 2, y_repeat = 8, limit1 = -500, freq = 220 * 2^(17/12)},
+    {distance = 11, num_segments = 1,  x_repeat = 1, y_repeat = 1, limit1 = 20,   freq = 220},
 }
 
-local current_zone = 0
+local current_zone = 1
 
 local
 function update_kaleidoscope_node()
     local zn = #zones
-    local d = math.length(buildings_node.position.xz)
+    local d = math.max(math.abs(buildings_node.position.x), math.abs(buildings_node.position.z))
     for i, zone in ipairs(zones) do
         if d < zone.distance then
             zn = i - 1
@@ -100,14 +107,10 @@ function update_kaleidoscope_node()
     end
     if zn ~= current_zone then
         current_zone = zn
-        local zone
-        if zn > 0 then
-            zone = zones[zn]
-        else
-            zone = {num_segments = 1, x_repeat = 1, y_repeat = 1, limit1 = 20}
-        end
+        local zone = zones[zn]
         kaleidoscope_node = create_kaleidoscope_node(kaleidoscope_tex, zone.num_segments, zone.x_repeat, zone.y_repeat)
         buildings_node.limit1.value = zone.limit1
+        play_chime(zn)
     end
 end
 
@@ -443,6 +446,67 @@ function create_blur_shader()
         }
     ]]
     return am.program(vshader, fshader)
+end
+
+local num_active_chimes = 1
+
+function init_audio()
+    chimes = {}
+    for i = 1, #zones do
+        local rate = 44100
+        local freq = zones[i].freq
+        local num_samples = math.floor(rate / freq)
+        local audio_buf = am.buffer(4 * 2 * num_samples)
+        local left_channel = audio_buf:view("float", 0, 4)
+        local right_channel = audio_buf:view("float", num_samples*4, 4)
+        for i = 0, num_samples-1 do
+            local sample = math.sin((i/rate) * 2 * math.pi * freq)
+            left_channel[i+1] = sample 
+            right_channel[i+1] = sample
+        end
+        chimes[i] = am.track(audio_buf, true, 1):gain(0.1)
+    end
+    local primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73 }
+    win.root:action(function()
+        for i = 1, num_active_chimes do
+            chimes[i].gain = (math.sin(am.current_time() * primes[i]) * 0.2 + 0.8) * math.min(0.4, 1/num_active_chimes)
+        end
+        return 0
+    end)
+    --[[
+    for i = 1, #zones do
+        local rate = 44100
+        local len = 1
+        local num_samples = rate * len
+        local audio_buf = am.buffer(4 * 2 * num_samples)
+        local left_channel = audio_buf:view("float", 0, 4)
+        local right_channel = audio_buf:view("float", num_samples*4, 4)
+        local freq = zones[i].freq
+        for i = 1, num_samples do
+            local gain = 1 - (i/num_samples)
+            local sample = (math.sin(((i-1)/num_samples) * 2 * math.pi * freq) * 0.3
+                + math.cos(((i-1)/num_samples) * 1.3333 * math.pi * freq) * 0.3
+                + math.sin(((i-1)/num_samples) * 0.4 * math.pi * freq) * 0.3
+                )-- * gain
+            left_channel[i] = sample 
+            right_channel[i] = sample
+        end
+        chimes[i] = audio_buf
+    end
+    ]]
+
+end
+
+function play_chime(c)
+    am.root_audio_node():remove_all()
+    if c < #zones and c > 1 then
+        for i = c, 1, -1 do
+            am.root_audio_node():add(chimes[i])
+        end
+        num_active_chimes = c
+    else
+        num_active_chimes = 0
+    end
 end
 
 init()
