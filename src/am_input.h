@@ -148,9 +148,13 @@ enum am_mouse_button {
     AM_MOUSE_BUTTON_LEFT,
     AM_MOUSE_BUTTON_RIGHT,
     AM_MOUSE_BUTTON_MIDDLE,
+    AM_MOUSE_BUTTON_X1,
+    AM_MOUSE_BUTTON_X2,
+    AM_MOUSE_BUTTON_UNKNOWN,
 };
 
 const char *am_key_name(am_key key);
+const char *am_mouse_button_name(am_mouse_button button);
 
 /*
 TODO

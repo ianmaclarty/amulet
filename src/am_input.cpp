@@ -109,3 +109,15 @@ const char *am_key_name(am_key key) {
     }
     return NULL;
 }
+
+const char *am_mouse_button_name(am_mouse_button button) {
+    switch (button) {
+        case AM_MOUSE_BUTTON_LEFT: return "left";
+        case AM_MOUSE_BUTTON_RIGHT: return "right";
+        case AM_MOUSE_BUTTON_MIDDLE: return "middle";
+        case AM_MOUSE_BUTTON_X1: return "x1";
+        case AM_MOUSE_BUTTON_X2: return "x2";
+        case AM_MOUSE_BUTTON_UNKNOWN: return "unknown";
+    }
+    return NULL;
+}

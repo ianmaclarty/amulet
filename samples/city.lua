@@ -86,10 +86,10 @@ local zones = {
     {distance = 4,  num_segments = 3,  x_repeat = 2, y_repeat = 2, limit1 = 0,    freq = 220 * 2^(6/12)},
     {distance = 5,  num_segments = 4,  x_repeat = 2, y_repeat = 2, limit1 = -5,   freq = 220 * 2^(7/12)},
     {distance = 6,  num_segments = 5,  x_repeat = 2, y_repeat = 3, limit1 = -15,  freq = 220 * 2^(9/12)},
-    {distance = 7,  num_segments = 9,  x_repeat = 2, y_repeat = 3, limit1 = -20,  freq = 220 * 2^(11/12)},
-    {distance = 8,  num_segments = 17, x_repeat = 2, y_repeat = 5, limit1 = -40,  freq = 220 * 2^(13/12)},
-    {distance = 9,  num_segments = 30, x_repeat = 2, y_repeat = 6, limit1 = -80,  freq = 220 * 2^(15/12)},
-    {distance = 10, num_segments = 60, x_repeat = 2, y_repeat = 8, limit1 = -500, freq = 220 * 2^(17/12)},
+    {distance = 7,  num_segments = 9,  x_repeat = 2, y_repeat = 4, limit1 = -20,  freq = 220 * 2^(11/12)},
+    {distance = 8,  num_segments = 17, x_repeat = 2, y_repeat = 2, limit1 = -40,  freq = 220 * 2^(13/12)},
+    {distance = 9,  num_segments = 30, x_repeat = 2, y_repeat = 1, limit1 = -80,  freq = 220 * 2^(15/12)},
+    {distance = 10, num_segments = 500, x_repeat = 2, y_repeat = 8, limit1 = -500, freq = 220 * 2^(17/12)},
     {distance = 11, num_segments = 1,  x_repeat = 1, y_repeat = 1, limit1 = 20,   freq = 220},
 }
 
@@ -121,7 +121,7 @@ function main_action()
     local turn_speed = 2
     local walk_speed = 0.3
     local strafe_speed = 0.2
-    if am.key_down.w then
+    if am.key_down.w or am.mouse_button_down.left then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
         buildings_node.position.xz = buildings_node.position.xz + dir * walk_speed * am.delta_time()
     elseif am.key_down.s then
@@ -138,7 +138,7 @@ function main_action()
     if am.key_pressed.escape then
         win:close()
     end
-    if am.key_down.w or am.key_down.s then
+    if am.key_down.w or am.key_down.s or am.mouse_button_down.left then
         walk_t = walk_t + am.delta_time()
         buildings_node.position.y = -0.1 + math.sin(walk_t*10) * 0.005
     end
@@ -146,7 +146,7 @@ function main_action()
     update_kaleidoscope_node()
 
     buildings_node.facing.angle = am.mouse_position.x * math.pi
-    buildings_node.pitch.angle = am.mouse_position.y * math.pi- 1
+    buildings_node.pitch.angle = am.mouse_position.y * math.pi - 1
 
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)
@@ -467,33 +467,14 @@ function init_audio()
     end
     local primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73 }
     win.root:action(function()
+        local pos = am.mouse_position
         for i = 1, num_active_chimes do
-            chimes[i].gain = (math.sin(am.current_time() * primes[i]) * 0.2 + 0.8) * math.min(0.4, 1/num_active_chimes)
+            local z = math.cos(pos.x * pos.y + i) * 0.4 + 0.6
+            chimes[i].gain = (math.sin(am.current_time() * primes[i]) * 0.4 + 0.6) * math.min(0.4, 1/num_active_chimes)
+                * z
         end
         return 0
     end)
-    --[[
-    for i = 1, #zones do
-        local rate = 44100
-        local len = 1
-        local num_samples = rate * len
-        local audio_buf = am.buffer(4 * 2 * num_samples)
-        local left_channel = audio_buf:view("float", 0, 4)
-        local right_channel = audio_buf:view("float", num_samples*4, 4)
-        local freq = zones[i].freq
-        for i = 1, num_samples do
-            local gain = 1 - (i/num_samples)
-            local sample = (math.sin(((i-1)/num_samples) * 2 * math.pi * freq) * 0.3
-                + math.cos(((i-1)/num_samples) * 1.3333 * math.pi * freq) * 0.3
-                + math.sin(((i-1)/num_samples) * 0.4 * math.pi * freq) * 0.3
-                )-- * gain
-            left_channel[i] = sample 
-            right_channel[i] = sample
-        end
-        chimes[i] = audio_buf
-    end
-    ]]
-
 end
 
 function play_chime(c)

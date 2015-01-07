@@ -46,6 +46,7 @@ static bool handle_events(lua_State *L);
 //static void mouse_pos_handler(SDL_Window *win, double x, double y);
 //static void resize_handler(SDL_Window *win, int w, int h);
 static am_key convert_key(int key);
+static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state(SDL_Window *window);
 //static bool controller_to_keys = true;
 static bool process_args(int argc, char **argv);
@@ -433,6 +434,20 @@ static bool handle_events(lua_State *L) {
                 }
                 break;
             }
+            case SDL_MOUSEBUTTONDOWN: {
+                if (event.button.which != SDL_TOUCH_MOUSEID) {
+                    lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
+                    am_call_amulet(L, "_mouse_down", 1, 0);
+                }
+                break;
+            }
+            case SDL_MOUSEBUTTONUP: {
+                if (event.button.which != SDL_TOUCH_MOUSEID) {
+                    lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
+                    am_call_amulet(L, "_mouse_up", 1, 0);
+                }
+                break;
+            }
         }
     }
     update_mouse_state(L);
@@ -500,6 +515,17 @@ static am_key convert_key(SDL_Keycode key) {
         case SDLK_LEFT: return AM_KEY_LEFT;
     }
     return AM_KEY_UNKNOWN;
+}
+
+static am_mouse_button convert_mouse_button(Uint8 button) {
+    switch (button) {
+        case SDL_BUTTON_LEFT: return AM_MOUSE_BUTTON_LEFT;
+        case SDL_BUTTON_MIDDLE: return AM_MOUSE_BUTTON_MIDDLE;
+        case SDL_BUTTON_RIGHT: return AM_MOUSE_BUTTON_RIGHT;
+        case SDL_BUTTON_X1: return AM_MOUSE_BUTTON_X1;
+        case SDL_BUTTON_X2: return AM_MOUSE_BUTTON_X2;
+    }
+    return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
 static bool process_args(int argc, char **argv) {

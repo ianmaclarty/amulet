@@ -13,6 +13,7 @@ static void init_sdl();
 static void init_audio();
 static bool handle_events();
 static am_key convert_key(SDL_Keycode key);
+static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state();
 static int report_status(lua_State *L, int status);
 
@@ -250,6 +251,20 @@ static bool handle_events() {
                 mouse_y += event.motion.yrel;
                 break;
             }
+            case SDL_MOUSEBUTTONDOWN: {
+                if (event.button.which != SDL_TOUCH_MOUSEID) {
+                    lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
+                    am_call_amulet(L, "_mouse_down", 1, 0);
+                }
+                break;
+            }
+            case SDL_MOUSEBUTTONUP: {
+                if (event.button.which != SDL_TOUCH_MOUSEID) {
+                    lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
+                    am_call_amulet(L, "_mouse_up", 1, 0);
+                }
+                break;
+            }
             case SDL_VIDEORESIZE: {
                 //am_debug("resize w = %d, h = %d", event.resize.w, event.resize.h);
                 //am_handle_window_resize((am_native_window*)sdl_window, event.resize.w, event.resize.h);
@@ -371,6 +386,17 @@ static am_key convert_key(SDL_Keycode key) {
         case SDLK_LEFT: return AM_KEY_LEFT;
     }
     return AM_KEY_UNKNOWN;
+}
+
+static am_mouse_button convert_mouse_button(Uint8 button) {
+    switch (button) {
+        case SDL_BUTTON_LEFT: return AM_MOUSE_BUTTON_LEFT;
+        case SDL_BUTTON_MIDDLE: return AM_MOUSE_BUTTON_MIDDLE;
+        case SDL_BUTTON_RIGHT: return AM_MOUSE_BUTTON_RIGHT;
+        case SDL_BUTTON_X1: return AM_MOUSE_BUTTON_X1;
+        case SDL_BUTTON_X2: return AM_MOUSE_BUTTON_X2;
+    }
+    return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
 extern "C" {
