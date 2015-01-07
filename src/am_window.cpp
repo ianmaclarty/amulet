@@ -138,6 +138,11 @@ void am_handle_window_resize(am_native_window *nwin, int w, int h) {
 }
 
 static int close_window(lua_State *L) {
+#if defined(AM_BACKEND_EMSCRIPTEN)
+    // closing the window only stops the program running, which
+    // just looks like it's crashed to the user.
+    return 0;
+#else
     am_check_nargs(L, 1);
     am_window *win = am_get_userdata(L, am_window, 1);
     if (win->needs_closing) {
@@ -145,6 +150,7 @@ static int close_window(lua_State *L) {
     }
     win->needs_closing = true;
     return 0;
+#endif
 }
 
 static void close_windows(lua_State *L) {

@@ -232,9 +232,13 @@ static bool handle_events() {
             }
             case SDL_KEYDOWN: {
                 if (!event.key.repeat) {
-                    am_key key = convert_key(event.key.keysym.sym);
-                    lua_pushstring(L, am_key_name(key));
-                    am_call_amulet(L, "_key_down", 1, 0);
+                    if (event.key.keysym.sym == SDLK_RETURN && (SDL_GetModState() & KMOD_ALT)) {
+                        SDL_WM_ToggleFullScreen(sdl_window);
+                    } else {
+                        am_key key = convert_key(event.key.keysym.sym);
+                        lua_pushstring(L, am_key_name(key));
+                        am_call_amulet(L, "_key_down", 1, 0);
+                    }
                 }
                 break;
             }
