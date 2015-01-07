@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Amulet</title>
+    <script src="jquery-2.1.3.min.js" type="text/javascript"></script>
+    <style type="text/css">
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    background-color: #070707;
+} 
+#status-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #4e4e4e;
+    z-index: 1000;
+}
+#status {
+    position: absolute;
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    left: 10px;
+    top: 3px;
+}
+#canvas-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    /*
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    */
+}
+    </style>
+  </head>
+  <body>
+    <div id="status-overlay">
+        <div id="status">Loading...</div>
+    </div>
+        <div id="canvas-panel">
+            <!-- see init_canvas function -->
+        </div>
+    </div>
+
+    <script type='text/javascript'>
+var status_timer;
+
+var havePointerLock = 'pointerLockElement' in document ||
+    'mozPointerLockElement' in document ||
+    'webkitPointerLockElement' in document;
+
+function run(script) {
+    $.get(script, function(data) {
+        Module.ccall('am_emscripten_run', null, ['string'], [data]);
+    }, "text");
+}
+
+function resize_canvas() {
+    var canvas = document.getElementById("canvas");
+    var canvas_parent = $("#canvas").parent();
+    var w = canvas_parent.outerWidth();
+    var h = canvas_parent.outerHeight();
+    canvas.width = w;
+    canvas.height = h;
+    Module.ccall('am_emscripten_resize', null, ['number', 'number'], [w, h]);
+    //log_output("resize_canvas called " + w + "x" + h);
+}
+
+function init_resize_handler() {
+    $(window).resize(function() {
+        resize_canvas();
+    });
+}
+
+function init_canvas() {
+    var canvas_panel = $("#canvas-panel");
+    var width = canvas_panel.outerWidth();
+    var height = canvas_panel.outerHeight();
+    $("#canvas-panel").html('<canvas id="canvas" width="' + width + '" height="' + height + '" oncontextmenu="event.preventDefault()"></canvas>');
+    var canvas = document.getElementById("canvas");
+    // Pop up an alert when webgl context is lost.
+    // TODO: handle webgl context restore event.
+    // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+    canvas.addEventListener("webglcontextlost", function(e) {
+        alert('WebGL context lost. You will need to reload the page or, failing that, restart your browser).');
+        e.preventDefault();
+    }, false);
+    init_resize_handler();
+    Module.canvas = canvas;
+    if (havePointerLock) {
+        $(canvas).click(function() {
+            canvas.requestPointerLock =
+                canvas.requestPointerLock ||
+                canvas.mozRequestPointerLock ||
+                canvas.webkitRequestPointerLock;
+            canvas.requestPointerLock();
+        });
+    }
+}
+
+function set_status_text(text) {
+    $("#status").text(text);
+}
+
+var dots = 3;
+function animate_loading_status() {
+    dots = (dots + 1) % 10;
+    var text = "Loading";
+    for (var i = 0; i < dots; i++) {
+        text += ".";
+    }
+    set_status_text(text);
+}
+
+status_timer = setInterval(animate_loading_status, 500);
+function clear_status_timer() {
+    clearInterval(status_timer);
+    status_timer = null;
+}
+
+function remove_status_overlay() {
+    $("#status-overlay").hide();
+    clear_status_timer();
+}
+
+function setup() {
+    try {
+        init_canvas();
+        remove_status_overlay();
+    } catch (e) {
+        clear_status_timer();
+        set_status_text('Something went wrong. See JavaScript console for details.');
+        throw e;
+    }
+}
+
+//------------------------------------------------------------------------
+
+var Module = {
+  preRun: [setup],
+  postRun: [],
+  print: function(text) {
+      console.log(text);
+  },
+  printErr: function(text) {
+    text = Array.prototype.slice.call(arguments).join(' ');
+    console.error(text);
+  },
+  canvas: null, // initialized in init_canvas
+  keyboardListeningElement: document,
+  setStatus: function(text) {
+      console.log(text);
+  },
+  totalDependencies: 0,
+  monitorRunDependencies: function(left) {
+    this.totalDependencies = Math.max(this.totalDependencies, left);
+    Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+  }
+};
+Module.setStatus('Downloading...');
+window.onerror = function(event) {
+  // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
+  set_status_text('Something went wrong. See JavaScript console for details.');
+  Module.setStatus = function(text) {
+    if (text) Module.printErr('[post-exception status] ' + text);
+  };
+};
+    </script>
+    <script async type="text/javascript" src="amulet.js"></script>
+  </body>
+</html>

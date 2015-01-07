@@ -90,7 +90,7 @@ static bool run_embedded_script(lua_State *L, const char *filename) {
         am_log0("embedded file '%s' missing", filename);
         return false;
     }
-    snprintf(chunkname, MAX_CHUNKNAME_SIZE, "@%s", filename);
+    snprintf(chunkname, MAX_CHUNKNAME_SIZE, "@embedded-%s", filename);
     int r = luaL_loadbuffer(L, (char*)rec->data, rec->len, chunkname);
     if (r == 0) {
         if (!am_call(L, 0, 0)) {
@@ -106,8 +106,8 @@ static bool run_embedded_script(lua_State *L, const char *filename) {
 
 static bool run_embedded_scripts(lua_State *L, bool worker) {
     return
-        run_embedded_script(L, "embedded_lua/extra.lua") &&
-        run_embedded_script(L, "embedded_lua/config.lua") &&
-        run_embedded_script(L, "embedded_lua/input.lua");
+        run_embedded_script(L, "lua/extra.lua") &&
+        run_embedded_script(L, "lua/config.lua") &&
+        run_embedded_script(L, "lua/input.lua");
 }
 
