@@ -17,6 +17,7 @@ tags
 settings
 tmp/*
 *.orig
+log
 
 src/am_embedded_data.cpp
 

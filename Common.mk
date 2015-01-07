@@ -84,7 +84,8 @@ LUA_TARGET = posix
 XCFLAGS = -Wall -Werror -ffast-math -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 
-EMSCRIPTEN_EXPORTS_OPT=-s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_resize']"
+EMSCRIPTEN_LIBS = --js-library src/library_sdl.js
+EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_resize']"
 
 # Adjust flags for target
 ifeq ($(TARGET_PLATFORM),osx)
@@ -99,7 +100,7 @@ ifeq ($(TARGET_PLATFORM),html)
   LINK = em++
   LUAVM = lua
   LUA_TARGET = generic
-  XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT)
+  XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
   XCFLAGS = $(EMSCRIPTEN_EXPORTS_OPT)
 endif
