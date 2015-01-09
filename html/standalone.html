@@ -12,7 +12,8 @@ html, body {
     padding: 0;
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: 15px;
-    background-color: #070707;
+    overflow-x: hidden;
+    overflow-y: hidden;
 } 
 #status-overlay {
     position: absolute;
@@ -31,16 +32,12 @@ html, body {
     left: 10px;
     top: 3px;
 }
-#canvas-panel,
-#canvas-panel div
-{
+#canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    overflow-x: hidden;
-    overflow-y: hidden;
 }
     </style>
   </head>
@@ -48,10 +45,7 @@ html, body {
     <div id="status-overlay">
         <div id="status">Loading...</div>
     </div>
-        <div id="canvas-panel">
-            <!-- see init_canvas function -->
-        </div>
-    </div>
+    <canvas id="canvas" width="100" height="100"></canvas>
 
     <script type='text/javascript'>
 var status_timer;
@@ -66,28 +60,7 @@ function run(script) {
     }, "text");
 }
 
-function resize_canvas() {
-    var canvas = document.getElementById("canvas");
-    var canvas_parent = $("#canvas").parent();
-    var w = canvas_parent.outerWidth();
-    var h = canvas_parent.outerHeight();
-    canvas.width = w;
-    canvas.height = h;
-    Module.ccall('am_emscripten_resize', null, ['number', 'number'], [w, h]);
-    //log_output("resize_canvas called " + w + "x" + h);
-}
-
-function init_resize_handler() {
-    $(window).resize(function() {
-        resize_canvas();
-    });
-}
-
 function init_canvas() {
-    var canvas_panel = $("#canvas-panel");
-    var width = canvas_panel.outerWidth();
-    var height = canvas_panel.outerHeight();
-    $("#canvas-panel").html('<canvas id="canvas" width="' + width + '" height="' + height + '" oncontextmenu="event.preventDefault()"></canvas>');
     var canvas = document.getElementById("canvas");
     // Pop up an alert when webgl context is lost.
     // TODO: handle webgl context restore event.
@@ -96,8 +69,6 @@ function init_canvas() {
         alert('WebGL context lost. You will need to reload the page or, failing that, restart your browser).');
         e.preventDefault();
     }, false);
-    init_resize_handler();
-    Module.canvas = canvas;
     if (havePointerLock) {
         $(canvas).click(function() {
             canvas.requestPointerLock =
@@ -157,7 +128,7 @@ var Module = {
     text = Array.prototype.slice.call(arguments).join(' ');
     console.error(text);
   },
-  canvas: null, // initialized in init_canvas
+  canvas: document.getElementById("canvas"),
   keyboardListeningElement: document,
   setStatus: function(text) {
       console.log(text);

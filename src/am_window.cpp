@@ -89,9 +89,8 @@ static int create_window(lua_State *L) {
         borderless,
         depthbuffer,
         stencilbuffer,
-        msaa_samples,
-        &win->width,
-        &win->height);
+        msaa_samples);
+    am_get_native_window_size(win->native_win, &win->width, &win->height);
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
@@ -126,14 +125,6 @@ void am_handle_window_close(am_native_window *nwin) {
     am_window *win = find_window(nwin);
     if (win != NULL) {
         win->needs_closing = true;
-    }
-}
-
-void am_handle_window_resize(am_native_window *nwin, int w, int h) {
-    am_window *win = find_window(nwin);
-    if (win != NULL) {
-        win->width = w;
-        win->height = h;
     }
 }
 
@@ -186,6 +177,7 @@ static void draw_windows() {
         if (!win->needs_closing && win->root != NULL) {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
+            am_get_native_window_size(win->native_win, &win->width, &win->height);
             rstate->setup(0, true, win->width, win->height, win->has_depthbuffer);
             win->root->render(rstate);
             am_native_window_post_render(win->native_win);

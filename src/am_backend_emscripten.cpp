@@ -26,8 +26,7 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples,
-    int *drawable_width, int *drawable_height)
+    int msaa_samples)
 {
     if (sdl_window != NULL) return NULL;
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -65,10 +64,18 @@ am_native_window *am_create_native_window(
     sdl_window = SDL_SetVideoMode(0, 0, 16, flags);
     if (sdl_window == NULL) return NULL;
     am_init_gl();
-    *drawable_width = sdl_window->w;
-    *drawable_height = sdl_window->h;
     init_mouse_state();
     return (am_native_window*)sdl_window;
+}
+
+static int oldw = 0;
+static int oldh = 0;
+void am_get_native_window_size(am_native_window *window, int *w, int *h) {
+    SDL_GetWindowSize(NULL /* unused */, w, h);
+    if (oldw != *w || oldh != *h) {
+        am_debug("native window size changed to %dx%d", *w, *h);
+        oldw = *w; oldh = *h;
+    }
 }
 
 void am_destroy_native_window(am_native_window* win) {
@@ -208,8 +215,8 @@ static void init_sdl() {
 }
 
 static void update_mouse_state(lua_State *L) {
-    int w = sdl_window->w;
-    int h = sdl_window->h;
+    int w, h;
+    SDL_GetWindowSize(NULL, &w, &h);
     float norm_x = ((float)mouse_x / (float)w) * 2.0f - 1.0f;
     float norm_y = (1.0f - (float)mouse_y / (float)h) * 2.0f - 1.0f;
     lua_pushnumber(L, norm_x);
@@ -417,7 +424,7 @@ void am_emscripten_run(const char *script) {
 
 void am_emscripten_resize(int w, int h) {
     if (sdl_window != NULL) {
-        am_handle_window_resize((am_native_window*)sdl_window, w, h);
+        //am_handle_window_resize((am_native_window*)sdl_window, w, h);
     }
 }
 

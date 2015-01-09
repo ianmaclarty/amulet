@@ -670,8 +670,13 @@ var LibrarySDL = {
             SDL.canRequestFullscreen = true;
           } else if (event.type === 'keyup' || event.type === 'mouseup') {
             if (SDL.isRequestingFullscreen) {
-              Module['requestFullScreen'](true, true);
-              SDL.isRequestingFullscreen = false;
+                var canvas = Module.canvas;
+                canvas.requestFullScreen = canvas['requestFullScreen'] ||
+                    canvas['mozRequestFullScreen'] ||
+                    canvas['msRequestFullscreen'] ||
+                    (canvas['webkitRequestFullScreen'] ? function() { canvas['webkitRequestFullScreen'](Element['ALLOW_KEYBOARD_INPUT']) } : null);
+                canvas.requestFullScreen();
+                SDL.isRequestingFullscreen = false;
             }
             SDL.canRequestFullscreen = false;
           }
@@ -1988,8 +1993,21 @@ var LibrarySDL = {
   SDL_WM_GrabInput: function() {},
   
   SDL_WM_ToggleFullScreen: function(surf) {
-    if (Browser.isFullScreen) {
-      Module['canvas'].cancelFullScreen();
+    console.log("SDL_WM_ToggleFullScreen");
+    if ((document['webkitFullScreenElement'] || document['webkitFullscreenElement'] ||
+         document['mozFullScreenElement'] || document['mozFullscreenElement'] ||
+         document['fullScreenElement'] || document['fullscreenElement'] ||
+         document['msFullScreenElement'] || document['msFullscreenElement'] ||
+         document['webkitCurrentFullScreenElement']) === Module['canvas']) {
+      var canvas = Module['canvas'];
+      canvas.cancelFullScreen = document['cancelFullScreen'] ||
+                                document['mozCancelFullScreen'] ||
+                                document['webkitCancelFullScreen'] ||
+                                document['msExitFullscreen'] ||
+                                document['exitFullscreen'] ||
+                                function() {};
+      canvas.cancelFullScreen = canvas.cancelFullScreen.bind(document);
+      canvas.cancelFullScreen();
       return 1;
     } else {
       if (!SDL.canRequestFullscreen) {
@@ -3053,8 +3071,18 @@ var LibrarySDL = {
   },
 
   SDL_GetWindowSize: function(window, width, height){
-    var w = Module['canvas'].width;
-    var h = Module['canvas'].height;
+    var canvas = Module['canvas'];
+    var w = canvas.width;
+    var h = canvas.height;
+    // We call this each frame, so might as well update the 
+    // rendering size of the canvas here as well.
+    if (w != canvas.clientWidth || h != canvas.clientHeight) {
+        w = canvas.clientWidth;
+        h = canvas.clientHeight;
+        canvas.width = w;
+        canvas.height = h;
+        //console.log("updated canvas size to " + w + "x" + h);
+    }
     if (width) {{{ makeSetValue('width', '0', 'w', 'i32') }}};
     if (height) {{{ makeSetValue('height', '0', 'h', 'i32') }}};
   },

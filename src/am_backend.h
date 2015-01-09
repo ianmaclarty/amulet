@@ -15,13 +15,14 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples,
-    int *drawable_width, int *drawable_height);
+    int msaa_samples);
 
-void am_destroy_native_window(am_native_window* window);
+void am_get_native_window_size(am_native_window *window, int *w, int *h);
 
-void am_native_window_pre_render(am_native_window* window);
-void am_native_window_post_render(am_native_window* window);
+void am_destroy_native_window(am_native_window *window);
+
+void am_native_window_pre_render(am_native_window *window);
+void am_native_window_post_render(am_native_window *window);
 
 double am_get_current_time();
 double am_get_frame_time();
