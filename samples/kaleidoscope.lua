@@ -143,8 +143,8 @@ win.root = node2
 -- blur shader (since it's the root).
 win.root:action(function()
     pattern_tex_view[math.random(pattern_tex_size^2)] = math.random(2^16)
-    node1.rotation.angle = amulet.frame_time()
-    node1.t.value = amulet.frame_time()
+    node1.rotation.angle = amulet.frame_time
+    node1.t.value = amulet.frame_time
     ppfb:render(node1)
     return 0
 end)

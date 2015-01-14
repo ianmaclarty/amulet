@@ -1,7 +1,8 @@
 extern int am_conf_default_recursion_limit;
 extern int am_conf_default_action_priority;
 
-extern int am_conf_fixed_update_time;
+extern double am_conf_fixed_delta_time;
+extern double am_conf_min_delta_time;
 extern int am_conf_vsync;
 
 extern int am_conf_audio_buffer_size;

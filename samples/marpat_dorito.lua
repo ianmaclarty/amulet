@@ -57,13 +57,10 @@ local node = am.draw_arrays()
     :bind_mat4("MVP", MVP)
     :bind_program(prog)
 
---[[
 node:action(function()
-    for i = 1, n^2 do
-        tview[i] = math.random() * 255
-    end
+    --local stats = am.perf_stats()
+    --log("FPS: %0.2f [%0.2f]", stats.avg_fps, stats.min_fps)
     return 0
 end)
-]]
 
 win.root = node

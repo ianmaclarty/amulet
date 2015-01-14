@@ -76,6 +76,7 @@ static inline bool action_is_scheduled(am_action *action) {
 }
 
 bool am_execute_actions(lua_State *L, double dt) {
+    am_update_times(L, dt);
     am_action *action = first;
     while (action != NULL) {
         assert(action_is_scheduled(action));

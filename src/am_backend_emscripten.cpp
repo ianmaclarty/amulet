@@ -104,18 +104,6 @@ double am_get_current_time() {
     return ((double)SDL_GetTicks())/1000.0;
 }
 
-double am_get_frame_time() {
-    return frame_time;
-}
-
-double am_get_delta_time() {
-    return delta_time;
-}
-
-double am_get_average_fps() {
-    return fps;
-}
-
 static void main_loop() {
     if (!run_loop || sdl_window == NULL) return;
 
@@ -132,16 +120,16 @@ static void main_loop() {
     }
 
     frame_time = am_get_current_time();
-    delta_time = fmin(1.0/15.0, frame_time - t0); // fmin in case process was suspended, or last frame took very long
+    delta_time = fmin(am_conf_min_delta_time, frame_time - t0); // fmin in case process was suspended, or last frame took very long
     t_debt += delta_time;
 
-    if (am_conf_fixed_update_time > 0.0) {
+    if (am_conf_fixed_delta_time > 0.0) {
         while (t_debt > 0.0) {
-            if (!am_execute_actions(L, am_conf_fixed_update_time)) {
+            if (!am_execute_actions(L, am_conf_fixed_delta_time)) {
                 run_loop = false;
                 return;
             }
-            t_debt -= am_conf_fixed_update_time;
+            t_debt -= am_conf_fixed_delta_time;
         }
     } else {
         if (!am_execute_actions(L, t_debt)) {

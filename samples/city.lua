@@ -123,23 +123,23 @@ function main_action()
     local strafe_speed = 0.2
     if am.key_down.w or am.mouse_button_down.left then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
-        buildings_node.position.xz = buildings_node.position.xz + dir * walk_speed * am.delta_time()
+        buildings_node.position.xz = buildings_node.position.xz + dir * walk_speed * am.delta_time
     elseif am.key_down.s then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
-        buildings_node.position.xz = buildings_node.position.xz - dir * walk_speed * am.delta_time()
+        buildings_node.position.xz = buildings_node.position.xz - dir * walk_speed * am.delta_time
     end
     if am.key_down.a then
         local dir = vec2(math.cos(facing+math.pi), math.sin(facing+math.pi))
-        buildings_node.position.xz = buildings_node.position.xz - dir * strafe_speed * am.delta_time()
+        buildings_node.position.xz = buildings_node.position.xz - dir * strafe_speed * am.delta_time
     elseif am.key_down.d then
         local dir = vec2(math.cos(facing+math.pi), math.sin(facing+math.pi))
-        buildings_node.position.xz = buildings_node.position.xz + dir * strafe_speed * am.delta_time()
+        buildings_node.position.xz = buildings_node.position.xz + dir * strafe_speed * am.delta_time
     end
     if am.key_pressed.escape then
         win:close()
     end
     if am.key_down.w or am.key_down.s or am.mouse_button_down.left then
-        walk_t = walk_t + am.delta_time()
+        walk_t = walk_t + am.delta_time
         buildings_node.position.y = -0.1 + math.sin(walk_t*10) * 0.005
     end
 
@@ -151,6 +151,9 @@ function main_action()
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)
     blur_fb:render(kaleidoscope_node)
+
+    local stats = am.perf_stats()
+    log("FPS: %0.2f [%0.2f]", stats.avg_fps, stats.min_fps)
     return 0
 end
 
@@ -470,7 +473,7 @@ function init_audio()
         local pos = am.mouse_position
         for i = 1, num_active_chimes do
             local z = math.cos(pos.x * pos.y + i) * 0.4 + 0.6
-            chimes[i].gain = (math.sin(am.current_time() * primes[i]) * 0.4 + 0.6) * math.min(0.4, 1/num_active_chimes)
+            chimes[i].gain = (math.sin(am.frame_time * primes[i]) * 0.4 + 0.6) * math.min(0.4, 1/num_active_chimes)
                 * z
         end
         return 0

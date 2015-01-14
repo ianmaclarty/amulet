@@ -25,8 +25,5 @@ void am_native_window_pre_render(am_native_window *window);
 void am_native_window_post_render(am_native_window *window);
 
 double am_get_current_time();
-double am_get_frame_time();
-double am_get_delta_time();
-double am_get_average_fps();
 
 bool am_set_relative_mouse_mode(bool enabled);

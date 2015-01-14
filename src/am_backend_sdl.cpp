@@ -61,8 +61,7 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples,
-    int *drawable_width, int *drawable_height)
+    int msaa_samples)
 {
     if (!sdl_initialized) {
         init_sdl();
@@ -127,9 +126,16 @@ am_native_window *am_create_native_window(
         am_init_gl();
     }
     windows.push_back(win);
-    SDL_GL_GetDrawableSize(win, drawable_width, drawable_height);
     init_mouse_state(win);
     return (am_native_window*)win;
+}
+
+void am_get_native_window_size(am_native_window *window, int *w, int *h) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i] == (SDL_Window*)window) {
+            SDL_GL_GetDrawableSize(windows[i], w, h);
+        }
+    }
 }
 
 void am_destroy_native_window(am_native_window* window) {
@@ -152,18 +158,6 @@ void am_native_window_post_render(am_native_window* window) {
 
 double am_get_current_time() {
     return ((double)SDL_GetTicks())/1000.0;
-}
-
-double am_get_frame_time() {
-    return frame_time;
-}
-
-double am_get_delta_time() {
-    return delta_time;
-}
-
-double am_get_average_fps() {
-    return fps;
 }
 
 bool am_set_relative_mouse_mode(bool enabled) {
@@ -249,16 +243,16 @@ int main( int argc, char *argv[] )
         if (!handle_events(L)) goto quit;
 
         frame_time = am_get_current_time();
-        delta_time = fmin(1.0/15.0, frame_time - t0); // fmin in case process was suspended, or last frame took very long
+        delta_time = fmin(am_conf_min_delta_time, frame_time - t0); // fmin in case process was suspended, or last frame took very long
         t_debt += delta_time;
 
-        if (am_conf_fixed_update_time > 0.0) {
+        if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
-                if (!am_execute_actions(L, am_conf_fixed_update_time)) {
+                if (!am_execute_actions(L, am_conf_fixed_delta_time)) {
                     exit_status = EXIT_FAILURE;
                     goto quit;
                 }
-                t_debt -= am_conf_fixed_update_time;
+                t_debt -= am_conf_fixed_delta_time;
             }
         } else {
             if (t_debt > MIN_UPDATE_TIME) {
@@ -397,13 +391,7 @@ static bool handle_events(lua_State *L) {
                         }
                         break;
                     case SDL_WINDOWEVENT_RESIZED:
-                        for (unsigned int i = 0; i < windows.size(); i++) {
-                            if (SDL_GetWindowID(windows[i]) == event.window.windowID) {
-                                int w, h;
-                                SDL_GL_GetDrawableSize(windows[i], &w, &h);
-                                am_handle_window_resize((am_native_window*)windows[i], w, h);
-                            }
-                        }
+                        // ignored, since we recompute window size each frame
                         break;
                 }
                 break;
