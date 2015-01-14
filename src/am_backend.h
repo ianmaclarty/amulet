@@ -27,3 +27,6 @@ void am_native_window_post_render(am_native_window *window);
 double am_get_current_time();
 
 bool am_set_relative_mouse_mode(bool enabled);
+
+// returned pointer should be freed with free()
+void *am_read_resource(const char *filename, int *len);

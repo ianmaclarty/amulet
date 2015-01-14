@@ -2,12 +2,14 @@
 
 static void init_reserved_refs(lua_State *L);
 static void open_stdlualibs(lua_State *L);
+static void init_package_searcher(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
 
 lua_State *am_init_engine(bool worker) {
     lua_State *L = luaL_newstate();
     init_reserved_refs(L);
     open_stdlualibs(L);
+    init_package_searcher(L);
     am_init_traceback_func(L);
     am_open_logging_module(L);
     am_open_math_module(L);
@@ -79,6 +81,19 @@ static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "ffi",       luaopen_ffi);
     am_requiref(L, "jit",       luaopen_jit);
 #endif
+}
+
+static void init_package_searcher(lua_State *L) {
+    lua_getglobal(L, "package");
+    lua_newtable(L);
+    lua_pushcclosure(L, am_package_searcher, 0);
+    lua_rawseti(L, -2, 1);
+#ifdef AM_LUAJIT
+    lua_setfield(L, -2, "loaders");
+#else
+    lua_setfield(L, -2, "searchers");
+#endif
+    lua_pop(L, 1);
 }
 
 #define MAX_CHUNKNAME_SIZE 100

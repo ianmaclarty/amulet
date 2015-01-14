@@ -168,6 +168,32 @@ bool am_set_relative_mouse_mode(bool enabled) {
     }
 }
 
+void *am_read_resource(const char *filename, int *len) {
+    SDL_RWops *f = NULL;
+    f = SDL_RWFromFile(filename, "r");
+    if (f == NULL) {
+        am_log0("unable to open file '%s': %s", filename, SDL_GetError());
+        return NULL;
+    }
+    size_t capacity = (size_t)SDL_RWsize(f);
+    if (capacity < 0) capacity = 1024;
+    char *buf = (char*)malloc(capacity);
+    char *ptr = buf;
+    size_t total = 0;
+    while (true) {
+        size_t n = SDL_RWread(f, (void*)ptr, 1, capacity - total);
+        total += n;
+        if (n == 0) {
+            *len = (int)total;
+            return buf;
+        } else if (capacity - total == 0) {
+            capacity *= 2;
+            buf = (char*)realloc(buf, capacity);
+            ptr = buf + total;
+        }
+    }
+}
+
 static bool init_glew() {
     GLenum err = glewInit();
     if (GLEW_OK != err)

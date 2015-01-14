@@ -183,7 +183,7 @@ bool am_call_amulet(lua_State *L, const char *func, int nargs, int nresults) {
 
 static bool load_script(lua_State *L, const char *script, const char *name) {
     char lname[128];
-    snprintf(lname, 128, "=%s", name);
+    snprintf(lname, 128, "@%s", name);
     lname[127] = 0;
     int status = luaL_loadbuffer(L, script, strlen(script), lname);
     return (check_call_status(L, status) == 0);
@@ -200,6 +200,37 @@ bool am_run_script(lua_State *L, const char *script, const char *name) {
 void am_init_traceback_func(lua_State *L) {
     lua_pushcclosure(L, traceback, 0);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_TRACEBACK_FUNC);
+}
+
+static int loader(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *modname = lua_tostring(L, 1);
+    if (modname == NULL) {
+        return luaL_error(L, "require expects a string as its single argument");
+    }
+    int sz;
+    void *buf = am_read_resource(modname, &sz);
+    if (buf == NULL) {
+        return luaL_error(L, "unable to open module '%s'", modname);
+    }
+    char lname[128];
+    snprintf(lname, 128, "@%s", modname);
+    lname[127] = 0;
+    char *str = (char*)malloc(sz+1);
+    memcpy(str, buf, sz);
+    str[sz] = 0;
+    int res = luaL_loadbuffer(L, (const char*)buf, sz, lname);
+    free(buf);
+    if (res != 0) {
+        return lua_error(L);
+    }
+    lua_call(L, 0, 1);
+    return 1;
+}
+
+int am_package_searcher(lua_State *L) {
+    lua_pushcclosure(L, loader, 0);
+    return 1;
 }
 
 #ifdef AM_LUAJIT
