@@ -398,6 +398,11 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
     return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
+void *am_read_resource(const char *filename, int *len) {
+    am_log0("%s", "sorry, require() not yet supported in html backend");
+    return NULL;
+}
+
 extern "C" {
 
 void am_emscripten_run(const char *script) {
