@@ -26,7 +26,7 @@ static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
 
-static char *filename = NULL;
+static const char *filename = NULL;
 
 static bool init_glew();
 
@@ -50,7 +50,6 @@ static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state(SDL_Window *window);
 //static bool controller_to_keys = true;
 static bool process_args(int argc, char **argv);
-static int report_status(lua_State *L, int status);
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -169,8 +168,11 @@ bool am_set_relative_mouse_mode(bool enabled) {
 }
 
 void *am_read_resource(const char *filename, int *len) {
+    char *path = (char*)malloc(strlen(am_conf_data_dir) + 1 + strlen(filename) + 1);
+    sprintf(path, "%s%c%s", am_conf_data_dir, AM_PATH_SEP, filename);
     SDL_RWops *f = NULL;
-    f = SDL_RWFromFile(filename, "r");
+    f = SDL_RWFromFile(path, "r");
+    free(path);
     if (f == NULL) {
         am_log0("unable to open file '%s': %s", filename, SDL_GetError());
         return NULL;
@@ -196,14 +198,12 @@ void *am_read_resource(const char *filename, int *len) {
 
 static bool init_glew() {
     GLenum err = glewInit();
-    if (GLEW_OK != err)
-    {
+    if (GLEW_OK != err) {
         am_abort("Error initializing OpenGL: %s", glewGetErrorString(err));
         return false;
     }
 
-    if (!GLEW_VERSION_2_1)
-    {
+    if (!GLEW_VERSION_2_1) {
         am_abort("Sorry, OpenGL 2.1 is required.");
         return false;
     }
@@ -218,7 +218,6 @@ int main( int argc, char *argv[] )
     double fps_t0;
     double fps_max;
     long long frame_count;
-    int status;
     lua_State *L = NULL;
 
     int exit_status = EXIT_SUCCESS;
@@ -240,8 +239,9 @@ int main( int argc, char *argv[] )
 
     frame_time = am_get_current_time();
 
-    status = luaL_dofile(L, filename);
-    if (report_status(L, status)) goto quit;
+    lua_pushcclosure(L, am_load_module, 0);
+    lua_pushstring(L, filename);
+    if (!am_call(L, 1, 0)) goto quit;
     if (windows.size() == 0) goto quit;
 
     t0 = am_get_current_time();
@@ -328,16 +328,6 @@ quit:
     [pool release];
 #endif
     return exit_status;
-}
-
-static int report_status(lua_State *L, int status) {
-    if (status && !lua_isnil(L, -1)) {
-        const char *msg = lua_tostring(L, -1);
-        if (msg == NULL) msg = "(error object is not a string)";
-        am_log0("%s", msg);
-        lua_pop(L, 1);
-    }
-    return status;
 }
 
 static void init_sdl() {
@@ -562,8 +552,13 @@ static bool process_args(int argc, char **argv) {
         }
     }
     if (filename == NULL) {
-        am_log0("%s", "Expecting a filename");
-        return false;
+        filename = "main.lua";
+    }
+    char *last_slash = strrchr((char*)filename, AM_PATH_SEP);
+    if (last_slash != NULL) {
+        am_conf_data_dir = filename;
+        *last_slash = '\0';
+        filename = last_slash+1;
     }
     return true;
 }

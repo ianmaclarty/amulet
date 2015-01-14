@@ -16,6 +16,8 @@ int am_conf_audio_buffer_size = 1024;
 int am_conf_audio_channels = 2;
 int am_conf_audio_sample_rate = 44100;
 
+const char *am_conf_data_dir = ".";
+
 // Note: enabling either of the following two options causes substantial
 // slowdowns on the html backend in some browsers
 #ifdef AM_DEBUG

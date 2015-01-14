@@ -121,6 +121,7 @@ static bool run_embedded_script(lua_State *L, const char *filename) {
 
 static bool run_embedded_scripts(lua_State *L, bool worker) {
     return
+        run_embedded_script(L, "lua/traceback.lua") &&
         run_embedded_script(L, "lua/extra.lua") &&
         run_embedded_script(L, "lua/config.lua") &&
         run_embedded_script(L, "lua/time.lua") &&

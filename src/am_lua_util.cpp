@@ -140,24 +140,9 @@ static int check_call_status(lua_State *L, int status) {
     return status;
 }
 
-// Copied from lua source.
 static int traceback(lua_State *L) {
-  if (!lua_isstring(L, 1))  /* 'message' not a string? */
-    return 1;  /* keep it intact */
-  lua_getglobal(L, "debug");
-  if (!lua_istable(L, -1)) {
-    lua_pop(L, 1);
+    am_call_amulet(L, "_traceback", 1, 1);
     return 1;
-  }
-  lua_getfield(L, -1, "traceback");
-  if (!lua_isfunction(L, -1)) {
-    lua_pop(L, 2);
-    return 1;
-  }
-  lua_pushvalue(L, 1);  /* pass error message */
-  lua_pushinteger(L, 2);  /* skip this function and traceback */
-  lua_call(L, 2, 1);  /* call debug.traceback */
-  return 1;
 }
 
 bool am_call(lua_State *L, int nargs, int nresults) {
@@ -202,7 +187,7 @@ void am_init_traceback_func(lua_State *L) {
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_TRACEBACK_FUNC);
 }
 
-static int loader(lua_State *L) {
+int am_load_module(lua_State *L) {
     am_check_nargs(L, 1);
     const char *modname = lua_tostring(L, 1);
     if (modname == NULL) {
@@ -221,15 +206,13 @@ static int loader(lua_State *L) {
     str[sz] = 0;
     int res = luaL_loadbuffer(L, (const char*)buf, sz, lname);
     free(buf);
-    if (res != 0) {
-        return lua_error(L);
-    }
+    if (res != 0) return lua_error(L);
     lua_call(L, 0, 1);
     return 1;
 }
 
 int am_package_searcher(lua_State *L) {
-    lua_pushcclosure(L, loader, 0);
+    lua_pushcclosure(L, am_load_module, 0);
     return 1;
 }
 

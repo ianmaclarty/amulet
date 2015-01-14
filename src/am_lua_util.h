@@ -24,6 +24,7 @@ bool am_run_script(lua_State *L, const char *script, const char *name);
 // with lua_newuserdata.
 void lua_unsafe_pushuserdata(lua_State *L, void *v);
 
+int am_load_module(lua_State *L);
 int am_package_searcher(lua_State *L);
 
 #ifdef AM_LUAJIT
