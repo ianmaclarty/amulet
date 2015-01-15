@@ -152,8 +152,8 @@ function main_action()
     kaleidoscope_fb:render(buildings_node)
     blur_fb:render(kaleidoscope_node)
 
-    local stats = am.perf_stats()
-    log("FPS: %0.2f [%0.2f]", stats.avg_fps, stats.min_fps)
+    --local stats = am.perf_stats()
+    --log("FPS: %0.2f [%0.2f]", stats.avg_fps, stats.min_fps)
     return 0
 end
 

@@ -6,6 +6,8 @@
 #include "GL/glew.h"
 #include "SDL.h"
 
+#import <AppKit/AppKit.h>
+
 #define MIN_UPDATE_TIME (1.0/400.0)
 
 enum axis_button {
@@ -177,8 +179,11 @@ void *am_read_resource(const char *filename, int *len) {
         am_log0("unable to open file '%s': %s", filename, SDL_GetError());
         return NULL;
     }
-    size_t capacity = (size_t)SDL_RWsize(f);
-    if (capacity < 0) capacity = 1024;
+    Sint64 sz = (size_t)SDL_RWsize(f);
+    size_t capacity = 1024;
+    if (sz >= 0) {
+        capacity = (size_t)sz;
+    }
     char *buf = (char*)malloc(capacity);
     char *ptr = buf;
     size_t total = 0;
@@ -361,11 +366,19 @@ static void init_audio() {
     desired.freq = am_conf_audio_sample_rate;
     desired.format = AUDIO_F32SYS;
     desired.channels = am_conf_audio_channels;
+#ifdef AM_OSX // XXX Needed for 2nd assert in audio_callback to pass. SDL2 bug?
+    desired.samples = am_conf_audio_buffer_size;
+#else
     desired.samples = am_conf_audio_channels * am_conf_audio_buffer_size;
+#endif
     desired.callback = audio_callback;
     desired.userdata = NULL;
     SDL_AudioSpec obtained;
+    //am_debug("desired: freq = %d, channels = %d, samples = %d, format = %d",
+    //    desired.freq, desired.channels, desired.samples, desired.format);
     audio_device = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
+    //am_debug("obtained: freq = %d, channels = %d, samples = %d, format = %d",
+    //    obtained.freq, obtained.channels, obtained.samples, obtained.format);
     if (audio_device == 0) {
         am_log0("Failed to open audio: %s", SDL_GetError());
         return;

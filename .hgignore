@@ -5,10 +5,11 @@ syntax: glob
 *.obj
 *.d
 *.lo
+*.dylib
+*.exe
 config.log
 config.status
 amulet
-*.exe
 builds/**/include/*
 builds/**/staging/*
 builds/**/lib/*.a
