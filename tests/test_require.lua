@@ -1,0 +1,6 @@
+local mod1 = require("module1")
+local mod2 = require("module2")
+mod1 = require("module1")
+local mod3 = require("module3")
+mod1.test()
+mod2.test()

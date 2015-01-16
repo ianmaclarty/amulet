@@ -1,4 +1,4 @@
-#define AM_RESERVED_REFS_START 10
+#define AM_RESERVED_REFS_START 20
 
 typedef enum {
     AM_PARAM_NAME_STRING_TABLE = AM_RESERVED_REFS_START,
@@ -49,6 +49,7 @@ typedef enum {
     ENUM_am_texture_mag_filter,
     ENUM_am_texture_wrap,
     ENUM_am_depth_func,
+    ENUM_am_draw_mode,
 
     AM_TRACEBACK_FUNC,
 

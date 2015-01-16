@@ -26,7 +26,7 @@ static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
 
-static const char *filename = NULL;
+static const char *main_module = NULL;
 
 static bool init_glew();
 
@@ -167,16 +167,23 @@ bool am_set_relative_mouse_mode(bool enabled) {
     }
 }
 
-void *am_read_resource(const char *filename, int *len) {
+#define ERR_MSG_SZ 1024
+
+void *am_read_resource(const char *filename, int *len, char **errmsg) {
+    *errmsg = NULL;
+    char tmpbuf[ERR_MSG_SZ];
     char *path = (char*)malloc(strlen(am_conf_data_dir) + 1 + strlen(filename) + 1);
     sprintf(path, "%s%c%s", am_conf_data_dir, AM_PATH_SEP, filename);
     SDL_RWops *f = NULL;
     f = SDL_RWFromFile(path, "r");
-    free(path);
     if (f == NULL) {
-        am_log0("unable to open file '%s': %s", filename, SDL_GetError());
+        snprintf(tmpbuf, ERR_MSG_SZ, "couldn't read file %s", path);
+        free(path);
+        *errmsg = (char*)malloc(strlen(tmpbuf) + 1);
+        strcpy(*errmsg, tmpbuf);
         return NULL;
     }
+    free(path);
     size_t capacity = (size_t)SDL_RWsize(f);
     if (capacity < 0) capacity = 1024;
     char *buf = (char*)malloc(capacity);
@@ -240,7 +247,7 @@ int main( int argc, char *argv[] )
     frame_time = am_get_current_time();
 
     lua_pushcclosure(L, am_load_module, 0);
-    lua_pushstring(L, filename);
+    lua_pushstring(L, main_module);
     if (!am_call(L, 1, 0)) goto quit;
     if (windows.size() == 0) goto quit;
 
@@ -534,6 +541,7 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
 
 static bool process_args(int argc, char **argv) {
     bool in_osx_bundle = false;
+    char *filename = NULL;
 #ifdef AM_OSX
     NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
     in_osx_bundle = (bundleIdentifier != nil);
@@ -552,14 +560,21 @@ static bool process_args(int argc, char **argv) {
         }
     }
     if (filename == NULL) {
-        filename = "main.lua";
+        main_module = "main";
+    } else {
+        char *last_slash = strrchr((char*)filename, AM_PATH_SEP);
+        if (last_slash != NULL) {
+            am_conf_data_dir = filename;
+            *last_slash = '\0';
+            filename = last_slash+1;
+        }
+        char *lua_ext = strstr(filename, ".lua");
+        if (lua_ext != NULL && strlen(lua_ext) == 4) {
+            *lua_ext = '\0'; // strip extension
+        } 
+        main_module = filename;
     }
-    char *last_slash = strrchr((char*)filename, AM_PATH_SEP);
-    if (last_slash != NULL) {
-        am_conf_data_dir = filename;
-        *last_slash = '\0';
-        filename = last_slash+1;
-    }
+
     return true;
 }
 

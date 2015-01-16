@@ -38,6 +38,10 @@ end
 assert(total1 == total2)
 print(total2)
 
+view:set_nums({1, 2, 3})
+print(view[1])
+print(view[3])
+
 local view2 = buf:view("vec2", 0, 8)
 printvec(view2[1])
 printvec(view2[1000])
@@ -52,6 +56,22 @@ local view4 = buf:view("vec4", 0, 16)
 printvec(view4[1])
 printvec(view4[1000])
 printv_and_restore(view4, 10, math.vec4(-1, -2, -3, -4))
+
+view:set_nums({100, 200, 300})
+print(view[1])
+print(view[3])
+
+view2:set_nums({101, 201, 301, 401}, 2)
+printvec(view2[2])
+printvec(view2[3])
+
+view3:set_nums({102, 202, 302, 402, 502, 602}, 1)
+printvec(view3[1])
+printvec(view3[2])
+
+view4:set_nums({103, 203, 303, 403, 503, 603, 703, 803}, 3)
+printvec(view4[3])
+printvec(view4[4])
 
 local buf2 = amulet.buffer(10)
 local viewub = buf2:view("ubyte", 0, 1)
@@ -103,5 +123,14 @@ print(string.format("%0.2f", viewuintn[1]))
 local viewintn = buf2:view("int", 0, 4, 2, true)
 viewintn[1] = -0.25
 print(string.format("%0.2f", viewintn[1]))
+
+for _, vs in ipairs({{viewub, viewubn}, {viewushort, viewushortn}, {viewshort, viewshortn}, {viewuint, viewuintn}, {viewint, viewintn}}) do
+    vs[1]:set_nums{101, 102}
+    print(string.format("%0.2f", vs[1][1]))
+    print(string.format("%0.2f", vs[1][2]))
+    vs[2]:set_nums{0.25, 0.5}
+    print(string.format("%0.2f", vs[2][1]))
+    print(string.format("%0.2f", vs[2][2]))
+end
 
 print("ok")

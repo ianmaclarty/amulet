@@ -51,7 +51,7 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
     if (clear) am_clear_framebuffer(true, true, true);
 }
 
-void am_render_state::draw_arrays(int first, int draw_array_count) {
+void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_count) {
     if (active_program == NULL) return;
     update_state();
     if (validate_active_program()) {
@@ -63,7 +63,7 @@ void am_render_state::draw_arrays(int first, int draw_array_count) {
         int count = max_draw_array_size - first;
         if (count > draw_array_count) count = draw_array_count;
         if (count > 0) {
-            am_draw_arrays(draw_mode, first, count);
+            am_draw_arrays(mode, first, count);
         }
     }
 }
@@ -119,8 +119,6 @@ am_render_state::am_render_state() {
 
     max_draw_array_size = 0;
 
-    draw_mode = AM_DRAWMODE_TRIANGLES;
-
     bound_program_id = 0;
     active_program = NULL;
 
@@ -142,22 +140,27 @@ static void register_draw_arrays_node_mt(lua_State *L) {
 }
 
 void am_draw_arrays_node::render(am_render_state *rstate) {
-    rstate->draw_arrays(first, count);
+    rstate->draw_arrays(mode, first, count);
 }
 
 static int create_draw_arrays_node(lua_State *L) {
     int nargs = am_check_nargs(L, 0);
     int first = 0;
     int count = INT_MAX;
+    am_draw_mode mode = AM_DRAWMODE_TRIANGLES;
     if (nargs > 0) {
-        first = luaL_checkinteger(L, 1);
+        mode = am_get_enum(L, am_draw_mode, 1);
     }
     if (nargs > 1) {
+        first = luaL_checkinteger(L, 1);
+    }
+    if (nargs > 2) {
         count = luaL_checkinteger(L, 2);
     }
     am_draw_arrays_node *node = am_new_userdata(L, am_draw_arrays_node);
     node->first = first;
     node->count = count;
+    node->mode = mode;
     return 1;
 }
 
@@ -167,5 +170,18 @@ void am_open_renderer_module(lua_State *L) {
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+
+    am_enum_value draw_mode_enum[] = {
+        {"points",          AM_DRAWMODE_POINTS},
+        {"lines",           AM_DRAWMODE_LINES},
+        {"line_strip",      AM_DRAWMODE_LINE_STRIP},
+        {"line_loop",       AM_DRAWMODE_LINE_LOOP},
+        {"triangles",       AM_DRAWMODE_TRIANGLES},
+        {"triangle_strip",  AM_DRAWMODE_TRIANGLE_STRIP},
+        {"triangle_fan",    AM_DRAWMODE_TRIANGLE_FAN},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_draw_mode, draw_mode_enum);
+
     register_draw_arrays_node_mt(L);
 }

@@ -173,7 +173,7 @@ TIMEPROG = /usr/bin/time
 TIMEFORMAT = "[%es %Mk]"
 
 CPP_TESTS = $(patsubst tests/test_%.cpp,test_%,$(wildcard tests/*.cpp))
-LUA_TESTS = $(patsubst tests/test_%.lua,test_%,$(wildcard tests/*.lua))
+LUA_TESTS = $(patsubst tests/test_%.lua,test_%,$(wildcard tests/test_*.lua))
 
 .PHONY: test
 test: run_cpp_tests run_lua_tests

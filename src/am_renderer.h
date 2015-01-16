@@ -114,8 +114,6 @@ struct am_render_state {
 
     int                     max_draw_array_size;
 
-    am_draw_mode            draw_mode;
-
     am_program_id           bound_program_id;
     am_program              *active_program;
 
@@ -124,7 +122,7 @@ struct am_render_state {
     am_render_state();
     virtual ~am_render_state();
 
-    void draw_arrays(int first, int count);
+    void draw_arrays(am_draw_mode mode, int first, int count);
     bool validate_active_program();
     void bind_active_program();
     void bind_active_program_params();
@@ -136,6 +134,7 @@ struct am_render_state {
 struct am_draw_arrays_node : am_scene_node {
     int first;
     int count;
+    am_draw_mode mode;
 
     virtual void render(am_render_state *rstate);
 };

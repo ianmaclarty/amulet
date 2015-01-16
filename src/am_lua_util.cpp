@@ -187,24 +187,27 @@ void am_init_traceback_func(lua_State *L) {
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_TRACEBACK_FUNC);
 }
 
+#define TMP_BUF_SZ 512
+
 int am_load_module(lua_State *L) {
+    char tmpbuf[TMP_BUF_SZ];
     am_check_nargs(L, 1);
     const char *modname = lua_tostring(L, 1);
     if (modname == NULL) {
         return luaL_error(L, "require expects a string as its single argument");
     }
     int sz;
-    void *buf = am_read_resource(modname, &sz);
+    snprintf(tmpbuf, TMP_BUF_SZ, "%s.lua", modname);
+    char *errmsg;
+    void *buf = am_read_resource(tmpbuf, &sz, &errmsg);
     if (buf == NULL) {
-        return luaL_error(L, "unable to open module '%s'", modname);
+        return luaL_error(L, "unable to load module '%s': %s", modname, errmsg);
     }
-    char lname[128];
-    snprintf(lname, 128, "@%s", modname);
-    lname[127] = 0;
+    snprintf(tmpbuf, TMP_BUF_SZ, "@%s.lua", modname);
     char *str = (char*)malloc(sz+1);
     memcpy(str, buf, sz);
     str[sz] = 0;
-    int res = luaL_loadbuffer(L, (const char*)buf, sz, lname);
+    int res = luaL_loadbuffer(L, (const char*)buf, sz, tmpbuf);
     free(buf);
     if (res != 0) return lua_error(L);
     lua_call(L, 0, 1);
@@ -233,6 +236,16 @@ lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum) {
     if (lua_isnumber(L, idx)) {
         *isnum = 1;
         return lua_tointeger(L, idx);
+    } else {
+        *isnum = 0;
+        return 0;
+    }
+}
+
+lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum) {
+    if (lua_isnumber(L, idx)) {
+        *isnum = 1;
+        return lua_tonumber(L, idx);
     } else {
         *isnum = 0;
         return 0;

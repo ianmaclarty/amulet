@@ -1,11 +1,43 @@
 -- extra table functions
 
-function table.clone(t)
+function table.shallow_copy(t)
+    if type(t) ~= "table" then
+        error("table expected, but got a "..type(t), 2)
+    end
     local copy = {}
     for k, v in pairs(t) do
         copy[k] = v
     end
     return copy
+end
+
+local
+function deep_copy_2(t, seen)
+    local s = seen[t]
+    if s then
+        return s
+    else
+        s = {}
+        seen[t] = s
+        for k, v in pairs(t) do
+            if type(k) == "table" then
+                k = deep_copy_2(k, seen)
+            end
+            if type(v) == "table" then
+                v = deep_copy_2(v, seen)
+            end
+            s[k] = v
+        end
+        return s
+    end
+end
+
+function table.deep_copy(t)
+    if type(t) == "table" then
+        return deep_copy_2(t, {})
+    else
+        error("table expected, but got a "..type(t), 2)
+    end
 end
 
 function table.search(t, elem)

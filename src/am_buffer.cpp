@@ -135,8 +135,7 @@ static int buffer_view_index(lua_State *L) {
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
     int index = lua_tointeger(L, 2);
     if (index < 1 || index > view->size) {
-        lua_pushnil(L);
-        return 1;
+        return am_default_index_func(L);
     }
     switch (view->type) {
         case AM_BUF_ELEM_TYPE_FLOAT: {
@@ -281,6 +280,154 @@ static int buffer_view_newindex(lua_State *L) {
     return 0;
 }
 
+#define SET_ONE(T, GET)                                                         \
+    lua_rawgeti(L, 2, i++);                                                     \
+    switch (lua_type(L, -1)) {                                                  \
+        case LUA_TNUMBER:                                                       \
+            *((T*)ptr) = GET;                                                   \
+            break;                                                              \
+        case LUA_TNIL:                                                          \
+            more = false;                                                       \
+            break;                                                              \
+        default:                                                                \
+            return luaL_error(L, "expecting a table containing only numbers");  \
+    }                                                                           \
+    lua_pop(L, 1);
+
+static int buffer_view_set_num_table(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
+    if (!lua_istable(L, 2)) {
+        return luaL_error(L, "expecting a table in position 2");
+    }
+    int offset = 0;
+    if (nargs > 2) {
+        offset = luaL_checkinteger(L, 3) - 1;
+    }
+    if (offset < 0) {
+        return luaL_error(L, "offset must be positive (instead %d)", offset+1);
+    }
+    if (offset >= view->size) {
+        return luaL_error(L, "offset (%d) is past the end of the view (size %d)", offset+1, view->size);
+    }
+    int i = 1;
+    uint8_t *ptr = view->buffer->data + view->stride * offset;
+    bool more = true;
+    switch (view->type) {
+        case AM_BUF_ELEM_TYPE_FLOAT: {
+            while (more) {
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += view->stride;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_FLOAT2: {
+            while (more) {
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += 4;
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += view->stride - 4;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_FLOAT3: {
+            while (more) {
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += 4;
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += 4;
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += view->stride - 8;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_FLOAT4: {
+            while (more) {
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += 4;
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += 4;
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += 4;
+                SET_ONE(float, lua_tonumber(L, -1))
+                ptr += view->stride - 12;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UBYTE: {
+            if (view->normalized) {
+                while (more) {
+                    SET_ONE(uint8_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * 255.0);
+                    ptr += view->stride;
+                }
+            } else {
+                while (more) {
+                    SET_ONE(uint8_t, am_clamp(lua_tointeger(L, -1), 0, 255));
+                    ptr += view->stride;
+                }
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_USHORT: {
+            if (view->normalized) {
+                while (more) {
+                    SET_ONE(uint16_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * 65535.0);
+                    ptr += view->stride;
+                }
+            } else {
+                while (more) {
+                    SET_ONE(uint16_t, am_clamp(lua_tointeger(L, -1), 0, UINT16_MAX));
+                    ptr += view->stride;
+                }
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_SHORT: {
+            if (view->normalized) {
+                while (more) {
+                    SET_ONE(int16_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 32767.0);
+                    ptr += view->stride;
+                }
+            } else {
+                while (more) {
+                    SET_ONE(int16_t, am_clamp(lua_tointeger(L, -1), INT16_MIN, INT16_MAX));
+                    ptr += view->stride;
+                }
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UINT: {
+            if (view->normalized) {
+                while (more) {
+                    SET_ONE(uint32_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * (lua_Number)UINT32_MAX);
+                    ptr += view->stride;
+                }
+            } else {
+                while (more) {
+                    SET_ONE(uint32_t, am_clamp(lua_tonumber(L, -1), 0.0, (lua_Number)UINT32_MAX));
+                    ptr += view->stride;
+                }
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_INT: {
+            if (view->normalized) {
+                while (more) {
+                    SET_ONE(int32_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 2147483647.0);
+                    ptr += view->stride;
+                }
+            } else {
+                while (more) {
+                    SET_ONE(int32_t, am_clamp(lua_tointeger(L, -1), INT32_MIN, INT32_MAX));
+                    ptr += view->stride;
+                }
+            }
+            break;
+        }
+    }
+    return 0;
+}
+
 static void register_buffer_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -305,6 +452,9 @@ static void register_buffer_view_mt(lua_State *L) {
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, buffer_view_newindex, 0);
     lua_setfield(L, -2, "__newindex");
+
+    lua_pushcclosure(L, buffer_view_set_num_table, 0);
+    lua_setfield(L, -2, "set_nums");
 
     lua_pushstring(L, "buffer_view");
     lua_setfield(L, -2, "tname");
