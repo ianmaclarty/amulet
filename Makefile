@@ -235,14 +235,14 @@ unexport
 
 # Banner
 PRINT_BUILD_DONE_MSG = \
-  echo ======== Amulet build successful ======; \
+  echo -------- Amulet build successful ------; \
   echo TARGET_PLATFORM:    $(TARGET_PLATFORM); \
   echo HOST_PLATFORM:      $(HOST_PLATFORM); \
   echo GRADE:              $(GRADE); \
   echo CC:                 $(CC); \
   echo CPP:                $(CPP); \
   echo DEPS:               $(AM_DEPS); \
-  echo =======================================;
+  echo ---------------------------------------;
 
 # Tags
 .PHONY: tags

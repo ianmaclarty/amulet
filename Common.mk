@@ -93,6 +93,11 @@ ifeq ($(TARGET_PLATFORM),osx)
   CC = clang
   CPP = clang++
   LUA_TARGET = macosx
+  XCFLAGS += -ObjC++
+  XLDFLAGS = -lm -liconv -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
+  	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
+	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
+	     -pagezero_size 10000 -image_base 100000000
 endif
 ifeq ($(TARGET_PLATFORM),html)
   CC = emcc
