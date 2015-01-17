@@ -6,7 +6,9 @@
 #include "GL/glew.h"
 #include "SDL.h"
 
+#ifdef AM_OSX
 #import <AppKit/AppKit.h>
+#endif
 
 #define MIN_UPDATE_TIME (1.0/400.0)
 

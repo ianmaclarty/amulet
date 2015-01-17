@@ -228,10 +228,6 @@ void lua_getuservalue(lua_State *L, int idx) {
     lua_getfenv(L, idx);
 }
 
-int lua_rawlen(lua_State *L, int idx) {
-    return lua_objlen(L, idx);
-}
-
 lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum) {
     if (lua_isnumber(L, idx)) {
         *isnum = 1;

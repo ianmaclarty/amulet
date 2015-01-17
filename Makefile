@@ -162,7 +162,7 @@ clean:
 	rm -f $(EMBEDDED_DATA_CPP_FILE)
 
 clean-target:
-	rm -rf $(BUILD_BASE_DIR)
+	rm -rf builds/$(TARGET_PLATFORM)/$(GRADE)
 
 clean-all: clean-tests
 	rm -rf builds

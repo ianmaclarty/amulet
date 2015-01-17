@@ -30,7 +30,6 @@ int am_package_searcher(lua_State *L);
 #ifdef AM_LUAJIT
 void lua_setuservalue(lua_State *L, int idx);
 void lua_getuservalue(lua_State *L, int idx);
-int lua_rawlen(lua_State *L, int idx);
 lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum);
 lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum);
 #endif

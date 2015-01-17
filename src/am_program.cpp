@@ -521,13 +521,14 @@ void am_bind_mat##D##_node::render(am_render_state *rstate) {           \
     *param = old_val;                                                   \
 }                                                                       \
 int am_create_bind_mat##D##_node(lua_State *L) {                        \
-    am_check_nargs(L, 3);                                               \
+    int nargs = am_check_nargs(L, 2);                                   \
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2"); \
-    am_mat##D *m = am_get_userdata(L, am_mat##D, 3);                    \
     am_bind_mat##D##_node *node = am_new_userdata(L, am_bind_mat##D##_node); \
-    am_set_scene_node_child(L, node);                                                 \
+    am_set_scene_node_child(L, node);                                   \
     node->name = am_lookup_param_name(L, 2);                            \
-    node->m = m->m;                                                     \
+    if (nargs > 2) {                                                    \
+        node->m = am_get_userdata(L, am_mat##D, 3)->m;                  \
+    }                                                                   \
     return 1;                                                           \
 }                                                                       \
 static void register_bind_mat##D##_node_mt(lua_State *L) {              \

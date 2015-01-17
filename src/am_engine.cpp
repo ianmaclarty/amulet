@@ -88,11 +88,9 @@ static void init_package_searcher(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_package_searcher, 0);
     lua_rawseti(L, -2, 1);
-#ifdef AM_LUAJIT
-    lua_setfield(L, -2, "loaders");
-#else
-    lua_setfield(L, -2, "searchers");
-#endif
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -3, "loaders"); // for luajit2
+    lua_setfield(L, -2, "searchers"); // for lua5.2
     lua_pop(L, 1);
 }
 
@@ -122,9 +120,11 @@ static bool run_embedded_script(lua_State *L, const char *filename) {
 static bool run_embedded_scripts(lua_State *L, bool worker) {
     return
         run_embedded_script(L, "lua/traceback.lua") &&
+        run_embedded_script(L, "lua/type.lua") &&
         run_embedded_script(L, "lua/extra.lua") &&
         run_embedded_script(L, "lua/config.lua") &&
         run_embedded_script(L, "lua/time.lua") &&
+        run_embedded_script(L, "lua/shapes.lua") &&
         run_embedded_script(L, "lua/input.lua");
 }
 

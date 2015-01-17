@@ -284,7 +284,7 @@ static int buffer_view_newindex(lua_State *L) {
     lua_rawgeti(L, 2, i++);                                                     \
     switch (lua_type(L, -1)) {                                                  \
         case LUA_TNUMBER:                                                       \
-            *((T*)ptr) = GET;                                                   \
+            *((T*)ptr) = (T)(GET);                                              \
             break;                                                              \
         case LUA_TNIL:                                                          \
             more = false;                                                       \
@@ -302,7 +302,7 @@ static int buffer_view_set_num_table(lua_State *L) {
     }
     int offset = 0;
     if (nargs > 2) {
-        offset = luaL_checkinteger(L, 3) - 1;
+        offset = luaL_checkinteger(L, 3)-1;
     }
     if (offset < 0) {
         return luaL_error(L, "offset must be positive (instead %d)", offset+1);
@@ -310,8 +310,33 @@ static int buffer_view_set_num_table(lua_State *L) {
     if (offset >= view->size) {
         return luaL_error(L, "offset (%d) is past the end of the view (size %d)", offset+1, view->size);
     }
+    int max_slots = view->size - offset;
+    int max_nums = 0;
+    switch (view->type) {
+        case AM_BUF_ELEM_TYPE_FLOAT:
+        case AM_BUF_ELEM_TYPE_UBYTE:
+        case AM_BUF_ELEM_TYPE_USHORT:
+        case AM_BUF_ELEM_TYPE_SHORT:
+        case AM_BUF_ELEM_TYPE_UINT:
+        case AM_BUF_ELEM_TYPE_INT:
+            max_nums = max_slots;
+            break;
+        case AM_BUF_ELEM_TYPE_FLOAT2:
+            max_nums = max_slots * 2;
+            break;
+        case AM_BUF_ELEM_TYPE_FLOAT3:
+            max_nums = max_slots * 3;
+            break;
+        case AM_BUF_ELEM_TYPE_FLOAT4:
+            max_nums = max_slots * 4;
+            break;
+    }
+    if ((int)lua_objlen(L, 2) > max_nums) {
+        return luaL_error(L, "table contains too many values (%d, but view only has space for %d at index %d)",
+            lua_objlen(L, 2), max_nums, offset + 1);
+    }
     int i = 1;
-    uint8_t *ptr = view->buffer->data + view->stride * offset;
+    uint8_t *ptr = view->buffer->data + view->offset + view->stride * offset;
     bool more = true;
     switch (view->type) {
         case AM_BUF_ELEM_TYPE_FLOAT: {

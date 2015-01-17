@@ -81,8 +81,12 @@ AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
 LUA_TARGET = posix
-XCFLAGS = -Wall -Werror -ffast-math -pthread -fno-strict-aliasing
+XCFLAGS = -DLUA_COMPAT_ALL -Wall -Werror -ffast-math -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
+LUA_CFLAGS = -DLUA_COMPAT_ALL
+LUA_LDFLAGS = 
+LUAJIT_CFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT 
+LUAJIT_LDFLAGS = 
 
 EMSCRIPTEN_LIBS = src/library_sdl.js
 EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
@@ -128,15 +132,15 @@ ifeq ($(GRADE),debug)
   ifeq ($(TARGET_PLATFORM),html)
     GRADE_CFLAGS = -g -O0
     GRADE_LDFLAGS = -g -g4
-    LUA_CFLAGS = -DLUA_USE_APICHECK -g -O0
-    LUA_LDFLAGS = -g -g4
+    LUA_CFLAGS += -DLUA_USE_APICHECK -g -O0
+    LUA_LDFLAGS += -g -g4
   else
     GRADE_CFLAGS = -g -O0
     GRADE_LDFLAGS = -g 
-    LUA_CFLAGS = -DLUA_USE_APICHECK -g -O0
-    LUA_LDFLAGS = -g
-    LUAJIT_CFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT -DLUA_USE_APICHECK -g -O0
-    LUAJIT_LDFLAGS = -g
+    LUA_CFLAGS += -DLUA_USE_APICHECK -g -O0
+    LUA_LDFLAGS += -g
+    LUAJIT_CFLAGS += -DLUA_USE_APICHECK -g -O0
+    LUAJIT_LDFLAGS += -g
   endif
 else
   ifeq ($(TARGET_PLATFORM),html)
@@ -144,15 +148,13 @@ else
     #EM_PROFILING = --profiling
     GRADE_CFLAGS = -O3 $(EM_PROFILING) -DNDEBUG
     GRADE_LDFLAGS = -O3 $(EM_PROFILING) 
-    LUA_CFLAGS = -O3 $(EM_PROFILING)
-    LUA_LDFLAGS = -O3 $(EM_PROFILING)
+    LUA_CFLAGS += -O3 $(EM_PROFILING)
+    LUA_LDFLAGS += -O3 $(EM_PROFILING)
   else
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS = -s
-    LUA_CFLAGS = -O3
-    LUA_LDFLAGS = -O3
-    LUAJIT_CFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT
-    LUAJIT_LDFLAGS =
+    LUA_CFLAGS += -O3
+    LUA_LDFLAGS += -O3
   endif
 endif
 
