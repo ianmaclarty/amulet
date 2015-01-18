@@ -201,13 +201,15 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
         total += n;
         if (n == 0) {
             *len = (int)total;
-            return buf;
+            break;
         } else if (capacity - total == 0) {
             capacity *= 2;
             buf = (char*)realloc(buf, capacity);
             ptr = buf + total;
         }
     }
+    SDL_RWclose(f);
+    return buf;
 }
 
 static bool init_glew() {
