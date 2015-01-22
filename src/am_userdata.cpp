@@ -179,8 +179,8 @@ am_userdata *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
         actual_tname = lua_typename(L, argtype);
     }
     lua_pop(L, 2); // actual, expected metatables
-    luaL_error(L, "expecting a value of type '%s' at position %d (got '%s') [%p]",
-        expected_tname, idx, actual_tname, ud);
+    luaL_error(L, "expecting a value of type '%s' at position %d (got '%s')",
+        expected_tname, idx, actual_tname);
     return NULL;
 }
 

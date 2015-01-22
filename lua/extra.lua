@@ -22,9 +22,17 @@ function deep_copy_2(t, seen)
         for k, v in pairs(t) do
             if type(k) == "table" then
                 k = deep_copy_2(k, seen)
+            elseif type(k) == "userdata" then
+                error("cannot deep copy userdata values", 3)
             end
             if type(v) == "table" then
                 v = deep_copy_2(v, seen)
+            elseif type(v) == "userdata" then
+                if type(k) == "string" then
+                    error("cannot copy userdata value '"..k.."'", 3)
+                else
+                    error("cannot deep copy userdata values", 3)
+                end
             end
             s[k] = v
         end
