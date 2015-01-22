@@ -531,10 +531,23 @@ int am_create_bind_mat##D##_node(lua_State *L) {                        \
     }                                                                   \
     return 1;                                                           \
 }                                                                       \
+static void get_bind_mat##D##_node_value(lua_State *L, void *obj) {     \
+    am_bind_mat##D##_node *node = (am_bind_mat##D##_node*)obj;          \
+    am_mat##D *m = am_new_userdata(L, am_mat##D);                       \
+    m->m = node->m;                                                     \
+}                                                                       \
+static void set_bind_mat##D##_node_value(lua_State *L, void *obj) {     \
+    am_bind_mat##D##_node *node = (am_bind_mat##D##_node*)obj;          \
+    node->m = am_get_userdata(L, am_mat##D, 3)->m;                      \
+}                                                                       \
+static am_property bind_mat##D##_node_value_property =                  \
+    {get_bind_mat##D##_node_value, set_bind_mat##D##_node_value};       \
 static void register_bind_mat##D##_node_mt(lua_State *L) {              \
     lua_newtable(L);                                                    \
     lua_pushcclosure(L, am_scene_node_index, 0);                        \
     lua_setfield(L, -2, "__index");                                     \
+                                                                        \
+    am_register_property(L, "value", &bind_mat##D##_node_value_property); \
                                                                         \
     lua_pushstring(L, "bind_mat" #D);                                   \
     lua_setfield(L, -2, "tname");                                       \

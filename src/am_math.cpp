@@ -68,76 +68,6 @@ static int vec_refract(lua_State *L);
 
 static int perspective(lua_State *L);
 
-#define REGISTER_VEC_MT(T, MTID)                        \
-    lua_newtable(L);                                    \
-    lua_pushcclosure(L, T##_index, 0);                  \
-    lua_setfield(L, -2, "__index");                     \
-    lua_pushcclosure(L, T##_newindex, 0);               \
-    lua_setfield(L, -2, "__newindex");                  \
-    lua_pushcclosure(L, T##_add, 0);                    \
-    lua_setfield(L, -2, "__add");                       \
-    lua_pushcclosure(L, T##_sub, 0);                    \
-    lua_setfield(L, -2, "__sub");                       \
-    lua_pushcclosure(L, T##_mul, 0);                    \
-    lua_setfield(L, -2, "__mul");                       \
-    lua_pushcclosure(L, T##_div, 0);                    \
-    lua_setfield(L, -2, "__div");                       \
-    lua_pushcclosure(L, T##_unm, 0);                    \
-    lua_setfield(L, -2, "__unm");                       \
-    lua_pushstring(L, #T);                              \
-    lua_setfield(L, -2, "tname");                       \
-    am_register_metatable(L, MTID, 0);
-
-#define REGISTER_MAT_MT(T, MTID)                        \
-    lua_newtable(L);                                    \
-    lua_pushcclosure(L, T##_index, 0);                  \
-    lua_setfield(L, -2, "__index");                     \
-    lua_pushcclosure(L, T##_newindex, 0);               \
-    lua_setfield(L, -2, "__newindex");                  \
-    lua_pushcclosure(L, T##_add, 0);                    \
-    lua_setfield(L, -2, "__add");                       \
-    lua_pushcclosure(L, T##_sub, 0);                    \
-    lua_setfield(L, -2, "__sub");                       \
-    lua_pushcclosure(L, T##_mul, 0);                    \
-    lua_setfield(L, -2, "__mul");                       \
-    lua_pushcclosure(L, T##_div, 0);                    \
-    lua_setfield(L, -2, "__div");                       \
-    lua_pushcclosure(L, T##_unm, 0);                    \
-    lua_setfield(L, -2, "__unm");                       \
-    lua_pushcclosure(L, T##_set, 0);                    \
-    lua_setfield(L, -2, "set");                         \
-    lua_pushstring(L, #T);                              \
-    lua_setfield(L, -2, "tname");                       \
-    am_register_metatable(L, MTID, 0);
-
-void am_open_math_module(lua_State *L) {
-    luaL_Reg funcs[] = {
-        {"vec2",        vec2_new},
-        {"vec3",        vec3_new},
-        {"vec4",        vec4_new},
-        {"mat2",        mat2_new},
-        {"mat3",        mat3_new},
-        {"mat4",        mat4_new},
-        {"length",      vec_length},
-        {"distance",    vec_distance},
-        {"dot",         vec_dot},
-        {"cross",       vec_cross},
-        {"normalize",   vec_normalize},
-        {"faceforward", vec_faceforward},
-        {"reflect",     vec_reflect},
-        {"refract",     vec_refract},
-        {"perspective", perspective},
-        {NULL, NULL}
-    };
-    am_open_module(L, "math", funcs);
-    REGISTER_VEC_MT(vec2, MT_am_vec2)
-    REGISTER_VEC_MT(vec3, MT_am_vec3)
-    REGISTER_VEC_MT(vec4, MT_am_vec4)
-    REGISTER_MAT_MT(mat2, MT_am_mat2)
-    REGISTER_MAT_MT(mat3, MT_am_mat3)
-    REGISTER_MAT_MT(mat4, MT_am_mat4)
-}
-
 //-------------------------- vec* helper macros ------------------//
 
 #define VEC_OP_FUNC(D, OPNAME, OP)                                              \
@@ -1030,4 +960,108 @@ static int perspective(lua_State *L) {
     am_mat4 *m = am_new_userdata(L, am_mat4);
     m->m = glm::perspective(fovy, aspect, near, far);
     return 1;
+}
+
+static int lookat(lua_State *L) {
+    am_check_nargs(L, 3);
+    am_vec3 *eye = am_get_userdata(L, am_vec3, 1);
+    am_vec3 *center = am_get_userdata(L, am_vec3, 2);
+    am_vec3 *up = am_get_userdata(L, am_vec3, 3);
+    am_mat4 *result = am_new_userdata(L, am_mat4);
+    result->m = glm::lookAt(eye->v, center->v, up->v);
+    return 1;
+}
+
+static int euleryxz3(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_vec3 *angles = am_get_userdata(L, am_vec3, 1);
+    am_mat3 *result = am_new_userdata(L, am_mat3);
+    glm::mat4 m = glm::yawPitchRoll(angles->v.y, angles->v.x, angles->v.z);
+    result->m[0] = glm::vec3(m[0].x, m[0].y, m[0].z);
+    result->m[1] = glm::vec3(m[1].x, m[1].y, m[1].z);
+    result->m[2] = glm::vec3(m[2].x, m[2].y, m[2].z);
+    return 1;
+}
+
+static int euleryxz4(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_vec3 *angles = am_get_userdata(L, am_vec3, 1);
+    am_mat4 *result = am_new_userdata(L, am_mat4);
+    result->m = glm::yawPitchRoll(angles->v.y, angles->v.x, angles->v.z);
+    return 1;
+}
+
+//-------------------------------------------------//
+
+#define REGISTER_VEC_MT(T, MTID)                        \
+    lua_newtable(L);                                    \
+    lua_pushcclosure(L, T##_index, 0);                  \
+    lua_setfield(L, -2, "__index");                     \
+    lua_pushcclosure(L, T##_newindex, 0);               \
+    lua_setfield(L, -2, "__newindex");                  \
+    lua_pushcclosure(L, T##_add, 0);                    \
+    lua_setfield(L, -2, "__add");                       \
+    lua_pushcclosure(L, T##_sub, 0);                    \
+    lua_setfield(L, -2, "__sub");                       \
+    lua_pushcclosure(L, T##_mul, 0);                    \
+    lua_setfield(L, -2, "__mul");                       \
+    lua_pushcclosure(L, T##_div, 0);                    \
+    lua_setfield(L, -2, "__div");                       \
+    lua_pushcclosure(L, T##_unm, 0);                    \
+    lua_setfield(L, -2, "__unm");                       \
+    lua_pushstring(L, #T);                              \
+    lua_setfield(L, -2, "tname");                       \
+    am_register_metatable(L, MTID, 0);
+
+#define REGISTER_MAT_MT(T, MTID)                        \
+    lua_newtable(L);                                    \
+    lua_pushcclosure(L, T##_index, 0);                  \
+    lua_setfield(L, -2, "__index");                     \
+    lua_pushcclosure(L, T##_newindex, 0);               \
+    lua_setfield(L, -2, "__newindex");                  \
+    lua_pushcclosure(L, T##_add, 0);                    \
+    lua_setfield(L, -2, "__add");                       \
+    lua_pushcclosure(L, T##_sub, 0);                    \
+    lua_setfield(L, -2, "__sub");                       \
+    lua_pushcclosure(L, T##_mul, 0);                    \
+    lua_setfield(L, -2, "__mul");                       \
+    lua_pushcclosure(L, T##_div, 0);                    \
+    lua_setfield(L, -2, "__div");                       \
+    lua_pushcclosure(L, T##_unm, 0);                    \
+    lua_setfield(L, -2, "__unm");                       \
+    lua_pushcclosure(L, T##_set, 0);                    \
+    lua_setfield(L, -2, "set");                         \
+    lua_pushstring(L, #T);                              \
+    lua_setfield(L, -2, "tname");                       \
+    am_register_metatable(L, MTID, 0);
+
+void am_open_math_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"vec2",        vec2_new},
+        {"vec3",        vec3_new},
+        {"vec4",        vec4_new},
+        {"mat2",        mat2_new},
+        {"mat3",        mat3_new},
+        {"mat4",        mat4_new},
+        {"length",      vec_length},
+        {"distance",    vec_distance},
+        {"dot",         vec_dot},
+        {"cross",       vec_cross},
+        {"normalize",   vec_normalize},
+        {"faceforward", vec_faceforward},
+        {"reflect",     vec_reflect},
+        {"refract",     vec_refract},
+        {"perspective", perspective},
+        {"lookat",      lookat},
+        {"euleryxz3",   euleryxz3},
+        {"euleryxz4",   euleryxz4},
+        {NULL, NULL}
+    };
+    am_open_module(L, "math", funcs);
+    REGISTER_VEC_MT(vec2, MT_am_vec2)
+    REGISTER_VEC_MT(vec3, MT_am_vec3)
+    REGISTER_VEC_MT(vec4, MT_am_vec4)
+    REGISTER_MAT_MT(mat2, MT_am_mat2)
+    REGISTER_MAT_MT(mat3, MT_am_mat3)
+    REGISTER_MAT_MT(mat4, MT_am_mat4)
 }
