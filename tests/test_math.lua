@@ -131,3 +131,19 @@ printvec(math.refract(math.normalize(vec3(1, 2, 3)), math.normalize(vec3(4, 5, 6
 
 printvec(-vec2(1, 2))
 printmat(-mat2(1, 2, 3, 4))
+
+local i = 1
+for j = 1, 3 do
+    i = math.cycle(i, 3, 5)
+    print(i) -- 4, 2, 5
+end
+for j = 1, 3 do
+    i = math.cycle(i, -2, 5)
+    print(i) -- 3, 1, 4
+end
+print(math.cycle(i, 20, 5)) -- 4
+print(math.cycle(i, -20, 5)) -- 4
+
+print(math.clamp(-1)) -- 0
+print(math.clamp(4, 0)) -- 1
+print(math.clamp(-1, -3, -1)) -- -1

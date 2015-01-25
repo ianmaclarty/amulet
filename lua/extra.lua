@@ -99,6 +99,24 @@ end
 
 table.tostring = table_tostring
 
+-- extra math functions
+
+function math.cycle(i, by, len)
+    return (i + by - 1) % len + 1
+end
+
+function math.clamp(x, min, max)
+    min = min or 0
+    max = max or 1
+    if x < min then
+        return min
+    elseif x > max then
+        return max
+    else
+        return x
+    end
+end
+
 -- extra builtins
 
 function log(fmt, ...)
