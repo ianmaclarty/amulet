@@ -117,6 +117,48 @@ function math.clamp(x, min, max)
     end
 end
 
+function math.mix(x, y, a)
+    return x * (1 - a) + y * a
+end
+
+-- extra string functions
+
+function string.format_vec(v)
+    local str = "<"..string.format("%0.2f", v.x)..", "
+        ..string.format("%0.2f", v[2])
+    if v.z then
+        str = str..", "..string.format("%0.2f", v.b)
+    end
+    if v.w then
+        str = str..", "..string.format("%0.2f", v.q)
+    end
+    str = str..">"
+    return str
+end
+
+function string.format_mat(m)
+    local str = "["
+    for row = 1, 4 do
+        for col = 1, 4 do
+            local elem
+            if m[col] then
+                elem = m[col][row]
+            end
+            if elem then
+                str = str..string.format("%0.2f", elem)
+                if m[col+1] then
+                    str = str.."  "
+                end
+            end
+        end
+        if m[1][row+1] then
+            str = str.."\n "
+        end
+    end
+    str = str.."]"
+    return str
+end
+
 -- extra builtins
 
 function log(fmt, ...)

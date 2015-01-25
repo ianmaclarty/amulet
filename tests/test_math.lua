@@ -1,39 +1,11 @@
 local
 function printvec(v)
-    local str = "<"..string.format("%0.2f", v.x)..", "
-        ..string.format("%0.2f", v[2])
-    if v.z then
-        str = str..", "..string.format("%0.2f", v.b)
-    end
-    if v.w then
-        str = str..", "..string.format("%0.2f", v.q)
-    end
-    str = str..">"
-    print(str)
+    print(string.format_vec(v))
 end
 
 local
 function printmat(m)
-    local str = "["
-    for row = 1, 4 do
-        for col = 1, 4 do
-            local elem
-            if m[col] then
-                elem = m[col][row]
-            end
-            if elem then
-                str = str..string.format("%0.2f", elem)
-                if m[col+1] then
-                    str = str.."  "
-                end
-            end
-        end
-        if m[1][row+1] then
-            str = str.."\n "
-        end
-    end
-    str = str.."]"
-    print(str)
+    print(string.format_mat(m))
 end
 
 local v = vec3(1, 2, 3)
@@ -147,3 +119,7 @@ print(math.cycle(i, -20, 5)) -- 4
 print(math.clamp(-1)) -- 0
 print(math.clamp(4, 0)) -- 1
 print(math.clamp(-1, -3, -1)) -- -1
+
+printvec(math.mix(vec3(0, -1, 2), vec3(1, 1, -1), 0.5)) -- 0.5, 0, 0.5
+printvec(math.mix(vec2(0, 100), vec2(100, 0), vec2(0.25, 0.90))) -- 25, 10
+print(math.mix(100, 200, 0.1)) -- 110
