@@ -15,6 +15,7 @@ int am_conf_audio_buffer_size = 1024;
 
 int am_conf_audio_channels = 2;
 int am_conf_audio_sample_rate = 44100;
+int am_conf_audio_interpolate_samples = 128; // must be less than am_conf_audio_buffer_size
 
 const char *am_conf_data_dir = ".";
 

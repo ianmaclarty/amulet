@@ -116,7 +116,7 @@ void am_audio_node::render_children(am_audio_context *context, am_audio_bus *bus
 // Gain Node
 
 am_gain_node::am_gain_node() : gain(0) {
-    gain.pending_value = 1;
+    gain.pending_value = 1.0f;
 }
 
 void am_gain_node::sync_params() {
@@ -132,13 +132,10 @@ void am_gain_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     render_children(context, &tmp);
     int num_channels = bus->num_channels;
     int num_samples = bus->num_samples;
-    float gain_inc = linear_incf(gain, num_samples);
-    float gain_val = gain.current_value;
-    for (int i = 0; i < num_samples; i++) {
+    for (int s = 0; s < num_samples; s++) {
         for (int c = 0; c < num_channels; c++) {
-            bus->channel_data[c][i] += tmp.channel_data[c][i] * gain_val;
+            bus->channel_data[c][s] += tmp.channel_data[c][s] * gain.interpolate_linear(s);
         }
-        gain_val += gain_inc;
     }
 }
 
@@ -158,7 +155,6 @@ am_audio_track_node::am_audio_track_node()
 
 void am_audio_track_node::sync_params() {
     playback_speed.update_target();
-    playback_speed.update_current();
 }
 
 static inline bool resample_required(am_audio_track_node *node) {
@@ -230,7 +226,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                     float sample2 = buf_data[read_index2];
                     float interpolated_sample = (1.0 - interpolation_factor) * sample1 + interpolation_factor * sample2;
                     bus_data[write_index] = interpolated_sample;
-                    pos += playback_speed.current_value * sample_rate_ratio;
+                    pos += playback_speed.interpolate_linear(write_index) * sample_rate_ratio;
                     if (pos >= (float)buf_num_samples) {
                         if (loop) {
                             pos = fmodf(pos, (float)buf_num_samples);
@@ -250,6 +246,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
 }
 
 void am_audio_track_node::post_render(am_audio_context *context, int num_samples) {
+    playback_speed.update_current();
     current_position = next_position;
 }
 

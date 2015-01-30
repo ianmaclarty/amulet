@@ -69,7 +69,7 @@ for i = 1, n do
 end
 --local sound = am.oscillator(220)
 --local sound = am.oscillator(220):gain(1)
-local sound = am.track(audio_buf, true, 0.1)
+local sound = am.track(audio_buf, false, 0.2):gain(1)
 --sound:add(am.track(audio_buf, true, 1.1))
 --sound:add(am.track(audio_buf, true, 0.5))
 --sound:add(am.track(audio_buf, true, 3.8))
@@ -89,12 +89,17 @@ top:action(function()
     t = t + 1/60
     --sound.freq = sound.freq * 1.001
     --sound.gain = math.sin(t*10) * 0.5 + 0.5
-    --if math.floor(t) % 2 == 0 then
-    --    sound.playback_speed = 0.2
+    --if math.floor(t*1.3) % 2 == 0 then
+    --    sound:child(1).playback_speed = 0.7
     --else
-    --    sound.playback_speed = 5
+    --    sound:child(1).playback_speed = 2.3
     --end
-    sound.playback_speed = sound.playback_speed * 1.006
+    sound:child(1).playback_speed = sound:child(1).playback_speed * 1.006
+    --if math.floor(t * 1.2) % 2 == 0 then
+    --    sound.gain = 0.1
+    --else
+    --    sound.gain = 1
+    --end
     return 0
 end)
 

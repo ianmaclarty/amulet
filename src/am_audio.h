@@ -53,6 +53,14 @@ struct am_audio_param {
         target_value = val;
         current_value = val;
     }
+
+    T interpolate_linear(int sample) {
+        if (sample < am_conf_audio_interpolate_samples) {
+            return current_value + ((T)sample / (T)am_conf_audio_interpolate_samples) * (target_value - current_value);
+        } else {
+            return target_value;
+        }
+    }
 };
 
 struct am_audio_node : am_nonatomic_userdata {
