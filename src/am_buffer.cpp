@@ -65,11 +65,6 @@ static int create_buffer_view(lua_State *L) {
     int offset = luaL_checkinteger(L, 3);
     int stride = luaL_checkinteger(L, 4);
 
-    bool normalized = false;
-    if (nargs > 5) {
-        normalized = lua_toboolean(L, 6);
-    }
-
     int type_size = 0;
     switch (type) {
         case AM_BUF_ELEM_TYPE_FLOAT:
@@ -116,6 +111,11 @@ static int create_buffer_view(lua_State *L) {
         }
     } else {
         size = max_size;
+    }
+
+    bool normalized = false;
+    if (nargs > 5) {
+        normalized = lua_toboolean(L, 6);
     }
 
     am_buffer_view *view = am_new_userdata(L, am_buffer_view);

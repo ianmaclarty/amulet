@@ -527,6 +527,12 @@ static int create_audio_track_node(lua_State *L) {
     if (nargs > 2) {
         node->playback_speed.set_immediate(luaL_checknumber(L, 3));
     }
+    if (nargs > 3) {
+        node->num_channels = luaL_checkinteger(L, 4);
+        if (node->num_channels < 1) {
+            return luaL_error(L, "audio must have at least one channel");
+        }
+    }
     node->sample_rate_ratio = (float)node->sample_rate / (float)am_conf_audio_sample_rate;
     return 1;
 }
@@ -653,34 +659,6 @@ static void register_audio_node_mt(lua_State *L) {
 }
 
 //-------------------------------------------------------------------------
-// Module registration
-
-void am_open_audio_module(lua_State *L) {
-    luaL_Reg funcs[] = {
-        {"audio_node", create_audio_node},
-        {"oscillator", create_oscillator_node},
-        {"track", create_audio_track_node},
-        {"root_audio_node", get_root_audio_node},
-        {NULL, NULL}
-    };
-    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
-    register_audio_node_mt(L);
-    register_gain_node_mt(L);
-    register_audio_track_node_mt(L);
-    register_oscillator_node_mt(L);
-
-    audio_context.sample_rate = am_conf_audio_sample_rate;
-    audio_context.sync_id = 0;
-    audio_context.render_id = 0;
-
-    // Create root audio node
-    create_audio_node(L);
-    audio_context.root = am_get_userdata(L, am_audio_node, -1);
-    lua_rawseti(L, LUA_REGISTRYINDEX, AM_ROOT_AUDIO_NODE);
-}
-
-//-------------------------------------------------------------------------
-//-------------------------------------------------------------------------
 
 void am_destroy_audio() {
     audio_context.root = NULL;
@@ -743,4 +721,31 @@ void am_sync_audio_graph(lua_State *L) {
     if (audio_context.root == NULL) return;
     audio_context.sync_id++;
     sync_audio_graph(L, &audio_context, audio_context.root);
+}
+
+//-------------------------------------------------------------------------
+// Module registration
+
+void am_open_audio_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"audio_node", create_audio_node},
+        {"oscillator", create_oscillator_node},
+        {"track", create_audio_track_node},
+        {"root_audio_node", get_root_audio_node},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+    register_audio_node_mt(L);
+    register_gain_node_mt(L);
+    register_audio_track_node_mt(L);
+    register_oscillator_node_mt(L);
+
+    audio_context.sample_rate = am_conf_audio_sample_rate;
+    audio_context.sync_id = 0;
+    audio_context.render_id = 0;
+
+    // Create root audio node
+    create_audio_node(L);
+    audio_context.root = am_get_userdata(L, am_audio_node, -1);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_ROOT_AUDIO_NODE);
 }
