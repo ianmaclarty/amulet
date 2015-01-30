@@ -834,25 +834,42 @@ static int vec_cross(lua_State *L) {
     return 1;
 }
 
+#define IS_ZERO(x) ((x) == 0.0f)
+
 static int vec_normalize(lua_State *L) {
     am_check_nargs(L, 1);
     switch (am_get_type(L, 1)) {
         case MT_am_vec2: {
             am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
             am_vec2 *y = am_new_userdata(L, am_vec2);
-            y->v = glm::normalize(x->v);
+            y->v = glm::vec2(1.0f, 0.0f);
+            if (!(
+                IS_ZERO(x->v.x) &&
+                IS_ZERO(x->v.y)
+            )) y->v = glm::normalize(x->v);
             break;
         }
         case MT_am_vec3: {
             am_vec3 *x = (am_vec3*)lua_touserdata(L, 1);
             am_vec3 *y = am_new_userdata(L, am_vec3);
-            y->v = glm::normalize(x->v);
+            y->v = glm::vec3(1.0f, 0.0f, 0.0f);
+            if (!(
+                IS_ZERO(x->v.x) &&
+                IS_ZERO(x->v.y) &&
+                IS_ZERO(x->v.z)
+            )) y->v = glm::normalize(x->v);
             break;
         }
         case MT_am_vec4: {
             am_vec4 *x = (am_vec4*)lua_touserdata(L, 1);
             am_vec4 *y = am_new_userdata(L, am_vec4);
-            y->v = glm::normalize(x->v);
+            y->v = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+            if (!(
+                IS_ZERO(x->v.x) &&
+                IS_ZERO(x->v.y) &&
+                IS_ZERO(x->v.z) &&
+                IS_ZERO(x->v.w)
+            )) y->v = glm::normalize(x->v);
             break;
         }
     }

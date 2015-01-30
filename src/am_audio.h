@@ -94,7 +94,7 @@ struct am_audio_track_node : am_audio_node {
     int num_channels;
     int sample_rate;
     am_audio_param<float> playback_speed;
-    int position;
+    double position; // floating point for sub-sample accuracy
     bool loop;
 
     am_audio_track_node();

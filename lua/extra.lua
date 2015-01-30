@@ -121,6 +121,20 @@ function math.mix(x, y, a)
     return x * (1 - a) + y * a
 end
 
+-- override some maths functions to avoid nans
+
+local acos = math.acos
+local asin = math.asin
+local clamp = math.clamp
+
+function math.acos(x)
+    return acos(math.clamp(x, -1, 1))
+end
+
+function math.asin(x)
+    return asin(math.clamp(x, -1, 1))
+end
+
 -- extra string functions
 
 function string.format_vec(v)

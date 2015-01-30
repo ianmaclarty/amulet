@@ -466,7 +466,9 @@ function init_audio()
             left_channel[i+1] = sample 
             right_channel[i+1] = sample
         end
-        chimes[i] = am.track(audio_buf, true, 1):gain(0.1)
+        chimes[i] = am.track(audio_buf, true, 1)
+        chimes[i].playback_speed = 1
+        chimes[i] = chimes[i]:gain(0.1)
     end
     local primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73 }
     win.root:action(function()
