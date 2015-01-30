@@ -69,7 +69,7 @@ for i = 1, n do
 end
 --local sound = am.oscillator(220)
 --local sound = am.oscillator(220):gain(1)
-local sound = am.track(audio_buf, false, 0.2):gain(1)
+local sound = am.track(audio_buf, false, 0.7):gain(1)
 --sound:add(am.track(audio_buf, true, 1.1))
 --sound:add(am.track(audio_buf, true, 0.5))
 --sound:add(am.track(audio_buf, true, 3.8))
