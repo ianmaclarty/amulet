@@ -93,9 +93,12 @@ struct am_audio_track_node : am_audio_node {
     int buffer_ref;
     int num_channels;
     int sample_rate;
+    float sample_rate_ratio;
     am_audio_param<float> playback_speed;
-    double position; // floating point for sub-sample accuracy
     bool loop;
+
+    float current_position;
+    float next_position;
 
     am_audio_track_node();
     virtual void sync_params();

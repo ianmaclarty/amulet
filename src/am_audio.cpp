@@ -151,7 +151,8 @@ am_audio_track_node::am_audio_track_node()
     buffer_ref = LUA_NOREF;
     num_channels = 2;
     sample_rate = 44100;
-    position = 0.0;
+    current_position = 0.0f;
+    next_position = 0.0f;
     loop = false;
 }
 
@@ -162,6 +163,7 @@ void am_audio_track_node::sync_params() {
 
 static inline bool resample_required(am_audio_track_node *node) {
     return (node->sample_rate != am_conf_audio_sample_rate)
+        || (node->playback_speed.current_value != node->playback_speed.target_value)
         || (fabs(node->playback_speed.current_value - 1.0f) > 0.00001f);
 }
 
@@ -171,12 +173,11 @@ static inline bool is_paused(am_audio_track_node *node) {
 
 void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     if (is_paused(this)) return;
-    float speed = playback_speed.current_value;
     int buf_num_channels = num_channels;
     int buf_num_samples = buffer->size / (buf_num_channels * sizeof(float));
     int bus_num_samples = bus->num_samples;
     int bus_num_channels = bus->num_channels;
-    if (position >= buf_num_samples && !loop) {
+    if (!loop && current_position >= buf_num_samples) {
         return;
     }
     if (!resample_required(this)) {
@@ -185,7 +186,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
             float *bus_data = bus->channel_data[c];
             float *buf_data = ((float*)buffer->data) + c * buf_num_channels;
             if (c < buf_num_channels) {
-                int buf_pos = (int)position;
+                int buf_pos = (int)current_position;
                 assert(buf_pos < buf_num_samples);
                 for (int bus_pos = 0; bus_pos < bus_num_samples; bus_pos++) {
                     bus_data[bus_pos] += buf_data[buf_pos++];
@@ -203,15 +204,17 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                 memcpy(bus_data, bus->channel_data[c-1], bus_num_samples * sizeof(float));
             }
         }
+        next_position = current_position + (float)bus_num_samples;
+        if (loop && next_position >= (float)buf_num_samples) {
+            next_position = fmodf(next_position, (float)buf_num_samples);
+        }
     } else {
         // resample
-        double scaling =
-            speed * ((double)sample_rate / (double)am_conf_audio_sample_rate);
         for (int c = 0; c < bus_num_channels; c++) {
             float *bus_data = bus->channel_data[c];
             float *buf_data = ((float*)buffer->data) + c * buf_num_channels;
             if (c < buf_num_channels) {
-                double pos = position;
+                float pos = current_position;
                 for (int write_index = 0; write_index < bus_num_samples; write_index++) {
                     int read_index1 = (int)floor(pos);
                     int read_index2 = read_index1 + 1;
@@ -222,20 +225,21 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                             break;
                         }
                     }
-                    float interpolation_factor = (float)(pos - (double)read_index1);
+                    float interpolation_factor = (float)(pos - (float)read_index1);
                     float sample1 = buf_data[read_index1];
                     float sample2 = buf_data[read_index2];
                     float interpolated_sample = (1.0 - interpolation_factor) * sample1 + interpolation_factor * sample2;
                     bus_data[write_index] = interpolated_sample;
-                    pos += scaling;
-                    if (pos >= (double)buf_num_samples) {
+                    pos += playback_speed.current_value * sample_rate_ratio;
+                    if (pos >= (float)buf_num_samples) {
                         if (loop) {
-                            pos = fmod(pos, (double)buf_num_samples);
+                            pos = fmodf(pos, (float)buf_num_samples);
                         } else {
                             break;
                         }
                     }
                 }
+                next_position = pos;
             } else {
                 // less channels in buffer than bus, so duplicate previous channels
                 assert(c > 0);
@@ -246,21 +250,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
 }
 
 void am_audio_track_node::post_render(am_audio_context *context, int num_samples) {
-    if (is_paused(this)) return;
-    int buf_num_samples = buffer->size / (num_channels * sizeof(float));
-    double delta_position;
-    if (resample_required(this)) {
-        double scaling =
-            playback_speed.current_value
-            * ((double)sample_rate / (double)am_conf_audio_sample_rate);
-        delta_position = ((double)num_samples) * scaling;
-    } else {
-        delta_position = (double)num_samples;
-    }
-    position += delta_position;
-    if (loop && (position >= (double)buf_num_samples)) {
-        position = fmod(position, (double)buf_num_samples);
-    }
+    current_position = next_position;
 }
 
 // Oscillator Node
@@ -540,6 +530,7 @@ static int create_audio_track_node(lua_State *L) {
     if (nargs > 2) {
         node->playback_speed.set_immediate(luaL_checknumber(L, 3));
     }
+    node->sample_rate_ratio = (float)node->sample_rate / (float)am_conf_audio_sample_rate;
     return 1;
 }
 
