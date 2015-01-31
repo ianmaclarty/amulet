@@ -598,6 +598,50 @@ AM_BIND_VEC_NODE_IMPL(2)
 AM_BIND_VEC_NODE_IMPL(3)
 AM_BIND_VEC_NODE_IMPL(4)
 
+#define AM_READ_MAT_NODE_IMPL(D)                                        \
+void am_read_mat##D##_node::render(am_render_state *rstate) {           \
+    am_program_param_value *param = &am_param_name_map[name].value;     \
+    if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT##D) {           \
+        m = glm::make_mat##D(&param->value.m##D[0]);                    \
+    }                                                                   \
+    render_children(rstate);                                            \
+}                                                                       \
+int am_create_read_mat##D##_node(lua_State *L) {                        \
+    am_check_nargs(L, 2);                                               \
+    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2"); \
+    am_read_mat##D##_node *node = am_new_userdata(L, am_read_mat##D##_node); \
+    am_set_scene_node_child(L, node);                                   \
+    node->name = am_lookup_param_name(L, 2);                            \
+    return 1;                                                           \
+}                                                                       \
+static void get_read_mat##D##_node_value(lua_State *L, void *obj) {     \
+    am_read_mat##D##_node *node = (am_read_mat##D##_node*)obj;          \
+    am_mat##D *m = am_new_userdata(L, am_mat##D);                       \
+    m->m = node->m;                                                     \
+}                                                                       \
+static void set_read_mat##D##_node_value(lua_State *L, void *obj) {     \
+    am_read_mat##D##_node *node = (am_read_mat##D##_node*)obj;          \
+    node->m = am_get_userdata(L, am_mat##D, 3)->m;                      \
+}                                                                       \
+static am_property read_mat##D##_node_value_property =                  \
+    {get_read_mat##D##_node_value, set_read_mat##D##_node_value};       \
+static void register_read_mat##D##_node_mt(lua_State *L) {              \
+    lua_newtable(L);                                                    \
+    lua_pushcclosure(L, am_scene_node_index, 0);                        \
+    lua_setfield(L, -2, "__index");                                     \
+                                                                        \
+    am_register_property(L, "value", &read_mat##D##_node_value_property); \
+                                                                        \
+    lua_pushstring(L, "read_mat" #D);                                   \
+    lua_setfield(L, -2, "tname");                                       \
+                                                                        \
+    am_register_metatable(L, MT_am_read_mat##D##_node, MT_am_scene_node);\
+}
+
+AM_READ_MAT_NODE_IMPL(2)
+AM_READ_MAT_NODE_IMPL(3)
+AM_READ_MAT_NODE_IMPL(4)
+
 void am_bind_sampler2d_node::render(am_render_state *rstate) {
     am_program_param_value *param = &am_param_name_map[name].value;
     if (param->type != AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
@@ -639,25 +683,6 @@ static void register_bind_sampler2d_node_mt(lua_State *L) {
     lua_setfield(L, -2, "tname");
 
     am_register_metatable(L, MT_am_bind_sampler2d_node, MT_am_scene_node);
-}
-
-void am_open_program_module(lua_State *L) {
-    luaL_Reg funcs[] = {
-        {"program", create_program},
-        {NULL, NULL}
-    };
-    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
-    register_program_mt(L);
-    register_program_node_mt(L);
-    register_bind_float_node_mt(L);
-    register_bind_array_node_mt(L);
-    register_bind_sampler2d_node_mt(L);
-    register_bind_mat2_node_mt(L);
-    register_bind_mat3_node_mt(L);
-    register_bind_mat4_node_mt(L);
-    register_bind_vec2_node_mt(L);
-    register_bind_vec3_node_mt(L);
-    register_bind_vec4_node_mt(L);
 }
 
 const char *am_program_param_type_name(am_program_param_type t) {
@@ -705,4 +730,26 @@ const char *am_program_param_client_type_name(am_program_param_name_slot *slot) 
         case AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED: return "uninitialized parameter";
     }
     return NULL;
+}
+
+void am_open_program_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"program", create_program},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+    register_program_mt(L);
+    register_program_node_mt(L);
+    register_bind_float_node_mt(L);
+    register_bind_array_node_mt(L);
+    register_bind_sampler2d_node_mt(L);
+    register_bind_mat2_node_mt(L);
+    register_bind_mat3_node_mt(L);
+    register_bind_mat4_node_mt(L);
+    register_bind_vec2_node_mt(L);
+    register_bind_vec3_node_mt(L);
+    register_bind_vec4_node_mt(L);
+    register_read_mat2_node_mt(L);
+    register_read_mat3_node_mt(L);
+    register_read_mat4_node_mt(L);
 }

@@ -518,6 +518,13 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, create_wrap_node, 0);
     lua_setfield(L, -2, "wrap");
 
+    lua_pushcclosure(L, am_create_read_mat2_node, 0);
+    lua_setfield(L, -2, "read_mat2");
+    lua_pushcclosure(L, am_create_read_mat3_node, 0);
+    lua_setfield(L, -2, "read_mat3");
+    lua_pushcclosure(L, am_create_read_mat4_node, 0);
+    lua_setfield(L, -2, "read_mat4");
+
     lua_pushcclosure(L, am_create_translate_node, 0);
     lua_setfield(L, -2, "translate");
     lua_pushcclosure(L, am_create_scale_node, 0);

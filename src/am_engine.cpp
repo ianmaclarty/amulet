@@ -124,6 +124,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/extra.lua") &&
         run_embedded_script(L, "lua/config.lua") &&
         run_embedded_script(L, "lua/time.lua") &&
+        run_embedded_script(L, "lua/buffer.lua") &&
         run_embedded_script(L, "lua/shapes.lua") &&
         run_embedded_script(L, "lua/input.lua");
 }

@@ -126,6 +126,17 @@ AM_BIND_VEC_NODE_DECL(2)
 AM_BIND_VEC_NODE_DECL(3)
 AM_BIND_VEC_NODE_DECL(4)
 
+#define AM_READ_MAT_NODE_DECL(D)                                        \
+struct am_read_mat##D##_node : am_scene_node {                          \
+    am_param_name_id name;                                              \
+    glm::mat##D m;                                                      \
+    virtual void render(am_render_state *rstate);                       \
+};
+
+AM_READ_MAT_NODE_DECL(2)
+AM_READ_MAT_NODE_DECL(3)
+AM_READ_MAT_NODE_DECL(4)
+
 int am_create_program_node(lua_State *L);
 int am_create_bind_float_node(lua_State *L);
 int am_create_bind_array_node(lua_State *L);
@@ -136,6 +147,9 @@ int am_create_bind_vec4_node(lua_State *L);
 int am_create_bind_mat2_node(lua_State *L);
 int am_create_bind_mat3_node(lua_State *L);
 int am_create_bind_mat4_node(lua_State *L);
+int am_create_read_mat2_node(lua_State *L);
+int am_create_read_mat3_node(lua_State *L);
+int am_create_read_mat4_node(lua_State *L);
 
 void am_open_program_module(lua_State *L);
 

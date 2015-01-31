@@ -872,6 +872,8 @@ static int vec_normalize(lua_State *L) {
             )) y->v = glm::normalize(x->v);
             break;
         }
+        default:
+            return luaL_error(L, "expecting a vec argument");
     }
     return 1;
 }
@@ -903,6 +905,8 @@ static int vec_faceforward(lua_State *L) {
             r->v = glm::faceforward(N->v, I->v, Nref->v);
             break;
         }
+        default:
+            return luaL_error(L, "expecting a vec argument");
     }
     return 1;
 }
@@ -931,6 +935,8 @@ static int vec_reflect(lua_State *L) {
             z->v = glm::reflect(x->v, y->v);
             break;
         }
+        default:
+            return luaL_error(L, "expecting a vec argument");
     }
     return 1;
 }
@@ -962,6 +968,8 @@ static int vec_refract(lua_State *L) {
             r->v = glm::refract(I->v, N->v, eta);
             break;
         }
+        default:
+            return luaL_error(L, "expecting a vec argument");
     }
     return 1;
 }
@@ -1005,6 +1013,30 @@ static int euleryxz4(lua_State *L) {
     am_vec3 *angles = am_get_userdata(L, am_vec3, 1);
     am_mat4 *result = am_new_userdata(L, am_mat4);
     result->m = glm::yawPitchRoll(angles->v.y, angles->v.x, angles->v.z);
+    return 1;
+}
+
+static int inverse(lua_State *L) {
+    am_check_nargs(L, 1);
+    switch (am_get_type(L, 1)) {
+        case MT_am_mat2: {
+            am_mat2 *m = am_new_userdata(L, am_mat2);
+            m->m = glm::inverse(((am_mat2*)lua_touserdata(L, 1))->m);
+            break;
+        }
+        case MT_am_mat3: {
+            am_mat3 *m = am_new_userdata(L, am_mat3);
+            m->m = glm::inverse(((am_mat3*)lua_touserdata(L, 1))->m);
+            break;
+        }
+        case MT_am_mat4: {
+            am_mat4 *m = am_new_userdata(L, am_mat4);
+            m->m = glm::inverse(((am_mat4*)lua_touserdata(L, 1))->m);
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a mat argument");
+    }
     return 1;
 }
 
@@ -1072,6 +1104,7 @@ void am_open_math_module(lua_State *L) {
         {"lookat",      lookat},
         {"euleryxz3",   euleryxz3},
         {"euleryxz4",   euleryxz4},
+        {"inverse",     inverse},
         {NULL, NULL}
     };
     am_open_module(L, "math", funcs);
