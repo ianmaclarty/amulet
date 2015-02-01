@@ -4,11 +4,14 @@ local win = am.window{}
 
 local audio_data_view
 local audio_buffer
-local audio_node
+local track_node
+local filter_node
 local num_samples
 local shader_program
 local wave_editor_node
 local pitch_editor_node
+local low_pass_editor_node
+local high_pass_editor_node
 
 local
 function create_audio_buffer()
@@ -24,8 +27,9 @@ end
 
 local
 function create_audio_node()
-    audio_node = am.track(audio_buffer, true, 1, 1)
-    am.root_audio_node():add(audio_node)
+    track_node = am.track(audio_buffer, true, 1, 1)
+    filter_node = track_node:filter(1, 0)
+    am.root_audio_node():add(filter_node)
 end
 
 local
@@ -118,10 +122,9 @@ function create_wave_editor()
 end
 
 local
-function create_pitch_editor()
+function create_slider(onchange)
     local grip_w = 0.1
     local grip_h = 0.2
-    local max_pitch = 4
     local grip = am.draw_arrays("line_loop")
         :bind_array("x", am.float_array{-grip_w/2, grip_w/2, grip_w/2, -grip_w/2})
         :bind_array("y", am.float_array{-grip_h/2, -grip_h/2, grip_h/2, grip_h/2})
@@ -132,7 +135,7 @@ function create_pitch_editor()
         :bind_array("y", am.float_array{ 0, 0})
         :bind_vec3("color", vec3(0.5, 0.5, 0.5))
     local prev_pos
-    pitch_editor_node = am.group(line, grip)
+    return am.group(line, grip)
         :read_mat4("MVP")
         :action(function(node)
             if am.mouse_button_down.left then
@@ -140,7 +143,7 @@ function create_pitch_editor()
                 if prev_pos or math.abs(pos.y) <= grip_h and math.abs(pos.x) <= 1 then
                     local x = math.min(1, math.max(-1, pos.x))
                     grip.position.x = x
-                    audio_node.playback_speed = 2^(x * max_pitch)
+                    onchange(x)
                     prev_pos = pos
                 end
             else
@@ -151,6 +154,28 @@ function create_pitch_editor()
 end
 
 local
+function create_pitch_editor()
+    local max_pitch = 4
+    pitch_editor_node = create_slider(function(v)
+        track_node.playback_speed = 2^(v * max_pitch)
+    end)
+end
+
+local
+function create_low_pass_editor()
+    low_pass_editor_node = create_slider(function(v)
+        filter_node.low_freq = v * 0.5 + 0.5
+    end)
+end
+
+local
+function create_high_pass_editor()
+    high_pass_editor_node = create_slider(function(v)
+        filter_node.high_freq = v * 0.5 + 0.5
+    end)
+end
+
+local
 function assemble_ui()
     win.root = am.group(
             wave_editor_node
@@ -158,7 +183,13 @@ function assemble_ui()
                 :translate("MVP", 0.28, -0.48),
             pitch_editor_node
                 :scale("MVP", 0.7, 0.5)
-                :translate("MVP", 0.28, 0.2)
+                :translate("MVP", 0.28, 0.2),
+            low_pass_editor_node
+                :scale("MVP", 0.7, 0.5)
+                :translate("MVP", 0.28, 0.4),
+            high_pass_editor_node
+                :scale("MVP", 0.7, 0.5)
+                :translate("MVP", 0.28, 0.6)
         )
         :bind_mat4("MVP")
         :bind_program(shader_program)
@@ -169,4 +200,6 @@ create_audio_node()
 create_shader_program()
 create_wave_editor()
 create_pitch_editor()
+create_low_pass_editor()
+create_high_pass_editor()
 assemble_ui()

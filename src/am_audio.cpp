@@ -139,6 +139,41 @@ void am_gain_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     }
 }
 
+// Filter node
+
+am_filter_node::am_filter_node() : low_freq(0), high_freq(0) {
+    for (int i = 0; i < AM_MAX_CHANNELS; i++) {
+        low_state[i] = 0.0f;
+        high_state[i] = 0.0f;
+    }
+}
+
+void am_filter_node::sync_params() {
+    low_freq.update_target();
+    high_freq.update_target();
+}
+
+void am_filter_node::post_render(am_audio_context *context, int num_samples) {
+    low_freq.update_current();
+    high_freq.update_current();
+}
+
+void am_filter_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
+    am_audio_bus tmp(bus);
+    render_children(context, &tmp);
+    int num_channels = bus->num_channels;
+    int num_samples = bus->num_samples;
+    for (int s = 0; s < num_samples; s++) {
+        for (int c = 0; c < num_channels; c++) {
+            low_state[c] += low_freq.interpolate_linear(s) * (tmp.channel_data[c][s]-low_state[c]);
+            high_state[c] += high_freq.interpolate_linear(s) * (low_state[c]-high_state[c]);
+            bus->channel_data[c][s] = low_state[c] - high_state[c];
+            //am_debug("sample = %f, low_state[c] = %f, high_state[c] = %f",
+            //    bus->channel_data[c][s], low_state[c], high_state[c]);
+        }
+    }
+}
+
 // Audio track nodes
 
 am_audio_track_node::am_audio_track_node() 
@@ -506,12 +541,60 @@ static void register_gain_node_mt(lua_State *L) {
     lua_pushcclosure(L, am_audio_node_index, 0);
     lua_setfield(L, -2, "__index");
 
-    am_register_property(L, "gain", &gain_property);
+    am_register_property(L, "value", &gain_property);
 
     lua_pushstring(L, "gain");
     lua_setfield(L, -2, "tname");
 
     am_register_metatable(L, MT_am_gain_node, MT_am_audio_node);
+}
+
+// Filter node lua bindings
+
+static int create_filter_node(lua_State *L) {
+    am_check_nargs(L, 3);
+    am_filter_node *node = am_new_userdata(L, am_filter_node);
+    am_set_audio_node_child(L, node);
+    node->low_freq.pending_value = luaL_checknumber(L, 2);
+    node->high_freq.pending_value = luaL_checknumber(L, 3);
+    return 1;
+}
+
+static void get_low_freq(lua_State *L, void *obj) {
+    am_filter_node *node = (am_filter_node*)obj;
+    lua_pushnumber(L, node->low_freq.pending_value);
+}
+
+static void set_low_freq(lua_State *L, void *obj) {
+    am_filter_node *node = (am_filter_node*)obj;
+    node->low_freq.pending_value = luaL_checknumber(L, 3);
+}
+
+static void get_high_freq(lua_State *L, void *obj) {
+    am_filter_node *node = (am_filter_node*)obj;
+    lua_pushnumber(L, node->high_freq.pending_value);
+}
+
+static void set_high_freq(lua_State *L, void *obj) {
+    am_filter_node *node = (am_filter_node*)obj;
+    node->high_freq.pending_value = luaL_checknumber(L, 3);
+}
+
+static am_property low_freq_property = {get_low_freq, set_low_freq};
+static am_property high_freq_property = {get_high_freq, set_high_freq};
+
+static void register_filter_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
+
+    am_register_property(L, "low_freq", &low_freq_property);
+    am_register_property(L, "high_freq", &high_freq_property);
+
+    lua_pushstring(L, "filter");
+    lua_setfield(L, -2, "tname");
+
+    am_register_metatable(L, MT_am_filter_node, MT_am_audio_node);
 }
 
 // Audio track node lua bindings
@@ -651,6 +734,8 @@ static void register_audio_node_mt(lua_State *L) {
     
     lua_pushcclosure(L, create_gain_node, 0);
     lua_setfield(L, -2, "gain");
+    lua_pushcclosure(L, create_filter_node, 0);
+    lua_setfield(L, -2, "filter");
 
     lua_pushstring(L, "audio_node");
     lua_setfield(L, -2, "tname");
@@ -737,6 +822,7 @@ void am_open_audio_module(lua_State *L) {
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_audio_node_mt(L);
     register_gain_node_mt(L);
+    register_filter_node_mt(L);
     register_audio_track_node_mt(L);
     register_oscillator_node_mt(L);
 

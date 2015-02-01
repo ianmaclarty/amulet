@@ -54,7 +54,7 @@ struct am_audio_param {
         current_value = val;
     }
 
-    T interpolate_linear(int sample) {
+    inline T interpolate_linear(int sample) {
         if (sample < am_conf_audio_interpolate_samples) {
             return current_value + ((T)sample / (T)am_conf_audio_interpolate_samples) * (target_value - current_value);
         } else {
@@ -91,9 +91,16 @@ struct am_gain_node : am_audio_node {
     virtual void post_render(am_audio_context *context, int num_samples);
 };
 
-struct am_queued_buffer {
-    am_buffer *buffer;
-    int ref;
+struct am_filter_node : am_audio_node {
+    am_audio_param<float> lowpass_cutoff;
+    am_audio_param<float> highpass_cutoff;
+    float low_state[AM_MAX_CHANNELS];
+    float high_state[AM_MAX_CHANNELS];
+    
+    am_filter_node();
+    virtual void sync_params();
+    virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
+    virtual void post_render(am_audio_context *context, int num_samples);
 };
 
 struct am_audio_track_node : am_audio_node {

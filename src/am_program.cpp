@@ -619,12 +619,8 @@ static void get_read_mat##D##_node_value(lua_State *L, void *obj) {     \
     am_mat##D *m = am_new_userdata(L, am_mat##D);                       \
     m->m = node->m;                                                     \
 }                                                                       \
-static void set_read_mat##D##_node_value(lua_State *L, void *obj) {     \
-    am_read_mat##D##_node *node = (am_read_mat##D##_node*)obj;          \
-    node->m = am_get_userdata(L, am_mat##D, 3)->m;                      \
-}                                                                       \
 static am_property read_mat##D##_node_value_property =                  \
-    {get_read_mat##D##_node_value, set_read_mat##D##_node_value};       \
+    {get_read_mat##D##_node_value, NULL};                               \
 static void register_read_mat##D##_node_mt(lua_State *L) {              \
     lua_newtable(L);                                                    \
     lua_pushcclosure(L, am_scene_node_index, 0);                        \
