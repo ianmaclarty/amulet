@@ -5,13 +5,16 @@ local win = am.window{}
 local audio_data_view
 local audio_buffer
 local track_node
-local filter_node
+local lowpass_filter_node
+local highpass_filter_node
 local num_samples
 local shader_program
 local wave_editor_node
 local pitch_editor_node
-local low_pass_editor_node
-local high_pass_editor_node
+local lowpass_cutoff_editor_node
+local lowpass_resonance_editor_node
+local highpass_cutoff_editor_node
+local highpass_resonance_editor_node
 
 local
 function create_audio_buffer()
@@ -28,8 +31,9 @@ end
 local
 function create_audio_node()
     track_node = am.track(audio_buffer, true, 1, 1)
-    filter_node = track_node:filter(1, 0)
-    am.root_audio_node():add(filter_node)
+    lowpass_filter_node = track_node:lowpass_filter(2000, 0)
+    highpass_filter_node = lowpass_filter_node:highpass_filter(20, 0)
+    am.root_audio_node():add(highpass_filter_node)
 end
 
 local
@@ -122,30 +126,36 @@ function create_wave_editor()
 end
 
 local
-function create_slider(onchange)
+function create_slider(min, max, initial_value, onchange)
     local grip_w = 0.1
     local grip_h = 0.2
     local grip = am.draw_arrays("line_loop")
         :bind_array("x", am.float_array{-grip_w/2, grip_w/2, grip_w/2, -grip_w/2})
         :bind_array("y", am.float_array{-grip_h/2, -grip_h/2, grip_h/2, grip_h/2})
         :bind_vec3("color", vec3(0.8, 0.8, 0.2))
-        :translate("MVP", 0):alias("position")
+        :translate("MVP", ((initial_value-min)/(max-min))*2-1):alias("position")
     local line = am.draw_arrays("lines")
         :bind_array("x", am.float_array{-1, 1})
         :bind_array("y", am.float_array{ 0, 0})
         :bind_vec3("color", vec3(0.5, 0.5, 0.5))
     local prev_pos
+    local inv
     return am.group(line, grip)
         :read_mat4("MVP")
         :action(function(node)
-            if am.mouse_button_down.left then
-                local pos = math.inverse(node.value) * vec4(am.mouse_position, 0, 1)
-                if prev_pos or math.abs(pos.y) <= grip_h and math.abs(pos.x) <= 1 then
-                    local x = math.min(1, math.max(-1, pos.x))
-                    grip.position.x = x
-                    onchange(x)
+            if not prev_pos and am.mouse_button_pressed.left then
+                inv = math.inverse(node.value)
+                local pos = inv * vec4(am.mouse_position, 0, 1)
+                if math.abs(pos.x) <= 1 and math.abs(pos.y) < grip_h/2 then
                     prev_pos = pos
                 end
+            end
+            if prev_pos and am.mouse_button_down.left then
+                local pos = inv * vec4(am.mouse_position, 0, 1)
+                local x = math.min(1, math.max(-1, pos.x))
+                grip.position.x = x
+                onchange(min + (x * 0.5 + 0.5) * (max - min))
+                prev_pos = pos
             else
                 prev_pos = nil
             end
@@ -156,40 +166,62 @@ end
 local
 function create_pitch_editor()
     local max_pitch = 4
-    pitch_editor_node = create_slider(function(v)
+    pitch_editor_node = create_slider(-1, 1, 0, function(v)
         track_node.playback_speed = 2^(v * max_pitch)
     end)
 end
 
 local
-function create_low_pass_editor()
-    low_pass_editor_node = create_slider(function(v)
-        filter_node.low_freq = v * 0.5 + 0.5
+function create_lowpass_cutoff_editor()
+    lowpass_cutoff_editor_node = create_slider(20, 2000, 2000, function(v)
+        lowpass_filter_node.cutoff = v
     end)
 end
 
 local
-function create_high_pass_editor()
-    high_pass_editor_node = create_slider(function(v)
-        filter_node.high_freq = v * 0.5 + 0.5
+function create_lowpass_resonance_editor()
+    lowpass_resonance_editor_node = create_slider(0, 50, 0, function(v)
+        lowpass_filter_node.resonance = v
+    end)
+end
+
+local
+function create_highpass_cutoff_editor()
+    highpass_cutoff_editor_node = create_slider(20, 2000, 20, function(v)
+        highpass_filter_node.cutoff = v
+    end)
+end
+
+local
+function create_highpass_resonance_editor()
+    highpass_resonance_editor_node = create_slider(0, 50, 0, function(v)
+        highpass_filter_node.resonance = v
     end)
 end
 
 local
 function assemble_ui()
+    local dy = 0.15
+    local x = 0
     win.root = am.group(
             wave_editor_node
-                :scale("MVP", 0.7, 0.5)
-                :translate("MVP", 0.28, -0.48),
+                :scale("MVP", 0.8, 0.5)
+                :translate("MVP", x, -0.48),
             pitch_editor_node
-                :scale("MVP", 0.7, 0.5)
-                :translate("MVP", 0.28, 0.2),
-            low_pass_editor_node
-                :scale("MVP", 0.7, 0.5)
-                :translate("MVP", 0.28, 0.4),
-            high_pass_editor_node
-                :scale("MVP", 0.7, 0.5)
-                :translate("MVP", 0.28, 0.6)
+                :scale("MVP", 0.8, 0.5)
+                :translate("MVP", x, 0.2),
+            lowpass_cutoff_editor_node
+                :scale("MVP", 0.8, 0.5)
+                :translate("MVP", x, 0.2+dy),
+            lowpass_resonance_editor_node
+                :scale("MVP", 0.8, 0.5)
+                :translate("MVP", x, 0.2+2*dy),
+            highpass_cutoff_editor_node
+                :scale("MVP", 0.8, 0.5)
+                :translate("MVP", x, 0.2+3*dy),
+            highpass_resonance_editor_node
+                :scale("MVP", 0.8, 0.5)
+                :translate("MVP", x, 0.2+4*dy)
         )
         :bind_mat4("MVP")
         :bind_program(shader_program)
@@ -200,6 +232,8 @@ create_audio_node()
 create_shader_program()
 create_wave_editor()
 create_pitch_editor()
-create_low_pass_editor()
-create_high_pass_editor()
+create_lowpass_cutoff_editor()
+create_lowpass_resonance_editor()
+create_highpass_cutoff_editor()
+create_highpass_resonance_editor()
 assemble_ui()

@@ -92,8 +92,8 @@ struct am_gain_node : am_audio_node {
 };
 
 struct am_filter_node : am_audio_node {
-    am_audio_param<float> lowpass_cutoff;
-    am_audio_param<float> highpass_cutoff;
+    am_audio_param<float> low_freq;
+    am_audio_param<float> high_freq;
     float low_state[AM_MAX_CHANNELS];
     float high_state[AM_MAX_CHANNELS];
     
@@ -101,6 +101,52 @@ struct am_filter_node : am_audio_node {
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+};
+
+struct am_biquad_filter_coeffs {
+    double b0;
+    double b1;
+    double b2;
+    double a1;
+    double a2;
+};
+
+struct am_biquad_filter_state {
+    double x1;
+    double x2;
+    double y1;
+    double y2;
+};
+
+struct am_biquad_filter_node : am_audio_node {
+    am_biquad_filter_state current_state[AM_MAX_CHANNELS];
+    am_biquad_filter_state next_state[AM_MAX_CHANNELS];
+    am_biquad_filter_coeffs coeffs;
+
+    am_biquad_filter_node();
+
+    virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
+    virtual void post_render(am_audio_context *context, int num_samples);
+
+    void set_lowpass_params(double cutoff, double resonance);
+    void set_highpass_params(double cutoff, double resonance);
+    void set_normalized_coeffs(double b0, double b1, double b2, double a0, double a1, double a2);
+};
+
+struct am_lowpass_filter_node : am_biquad_filter_node {
+    am_audio_param<float> cutoff;
+    am_audio_param<float> resonance;
+    
+    am_lowpass_filter_node();
+    virtual void sync_params();
+};
+
+struct am_highpass_filter_node : am_biquad_filter_node {
+    am_audio_param<float> cutoff;
+    am_audio_param<float> resonance;
+    
+    am_highpass_filter_node();
+    virtual void sync_params();
 };
 
 struct am_audio_track_node : am_audio_node {
