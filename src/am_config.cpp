@@ -8,9 +8,9 @@ int am_conf_vsync = true;
 // am_conf_audio_buffer_size is number of samples for each channel
 #if defined(AM_BACKEND_EMSCRIPTEN)
 // More likely to get drop outs in browser, so use larger buffer
-int am_conf_audio_buffer_size = 2048;
-#else
 int am_conf_audio_buffer_size = 1024;
+#else
+int am_conf_audio_buffer_size = 512;
 #endif
 
 int am_conf_audio_channels = 2;

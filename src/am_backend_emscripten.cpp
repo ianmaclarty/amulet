@@ -73,7 +73,7 @@ static int oldh = 0;
 void am_get_native_window_size(am_native_window *window, int *w, int *h) {
     SDL_GetWindowSize(NULL /* unused */, w, h);
     if (oldw != *w || oldh != *h) {
-        am_debug("native window size changed to %dx%d", *w, *h);
+        //am_debug("native window size changed to %dx%d", *w, *h);
         oldw = *w; oldh = *h;
     }
 }
@@ -275,39 +275,23 @@ static bool handle_events() {
     return true;
 }
 
-static float *audio_buffer = NULL;
-
 static void audio_callback(void *ud, Uint8 *stream, int len) {
-    assert(audio_buffer != NULL);
-    if (len != (int)sizeof(int16_t) * am_conf_audio_buffer_size * am_conf_audio_channels) {
+    if (len != (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels) {
         am_debug("audio buffer size mismatch! (%d vs %d)",
             len, 
-            (int)sizeof(int16_t) * am_conf_audio_buffer_size * am_conf_audio_channels);
+            (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
         memset(stream, 0, len);
         return;
     }
     int num_channels = am_conf_audio_channels;
     int num_samples = am_conf_audio_buffer_size;
-    float *buffer = audio_buffer;
+    float *buffer = (float*)stream;
     memset(buffer, 0, sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
     am_audio_bus bus(num_channels, num_samples, buffer);
     am_fill_audio_bus(&bus);
-    // SDL expects channels to be interleaved
-    //am_debug("--------------------------------------------");
-    //am_debug("num_samples = %d", num_samples);
-    // XXX The emscripten SDL driver then converts
-    //     this back into non-interleaved format.
-    //     We should just pass this buffer directly to web audio.
-    for (int c = 0; c < num_channels; c++) {
-        for (int i = 0; i < num_samples; i++) {
-            ((int16_t*)stream)[i * num_channels + c] = (int16_t)(bus.channel_data[c][i] * 32767.0f);
-            //if (c == 0) am_debug("* %d", ((int16_t*)stream)[i * num_channels + c]);
-        }
-    }
 }
 
 static void init_audio() {
-    audio_buffer = (float*)malloc(sizeof(float) * am_conf_audio_channels * am_conf_audio_buffer_size);
     SDL_AudioSpec desired;
     desired.freq = am_conf_audio_sample_rate;
     desired.format = AUDIO_S16LSB;

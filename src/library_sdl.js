@@ -1107,24 +1107,17 @@ var LibrarySDL = {
     webAudioAvailable: function() { return !!SDL.audioContext; },
 
     fillWebAudioBufferFromHeap: function(heapPtr, sizeSamplesPerChannel, dstAudioBuffer) {
-      // The input audio data is interleaved across the channels, i.e. [L, R, L, R, L, R, ...] and is either 8-bit or 16-bit as
-      // supported by the SDL API. The output audio wave data for Web Audio API must be in planar buffers of [-1,1]-normalized Float32 data,
-      // so perform a buffer conversion for the data.
+      // We ignore the format and assume it'll be an array of non-interleaved floats
       var numChannels = SDL.audio.channels;
       for(var c = 0; c < numChannels; ++c) {
         var channelData = dstAudioBuffer['getChannelData'](c);
         if (channelData.length != sizeSamplesPerChannel) {
           throw 'Web Audio output buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + sizeSamplesPerChannel + ' samples!';
         }
-        if (SDL.audio.format == 0x8010 /*AUDIO_S16LSB*/) {
-          for(var j = 0; j < sizeSamplesPerChannel; ++j) {
-            channelData[j] = ({{{ makeGetValue('heapPtr', '(j*numChannels + c)*2', 'i16', 0, 0) }}}) / 0x8000;
-          }
-        } else if (SDL.audio.format == 0x0008 /*AUDIO_U8*/) {
-          for(var j = 0; j < sizeSamplesPerChannel; ++j) {
-            var v = ({{{ makeGetValue('heapPtr', 'j*numChannels + c', 'i8', 0, 0) }}});
-            channelData[j] = ((v >= 0) ? v-128 : v+128) /128;
-          }
+        var i = c*sizeSamplesPerChannel*4;
+        for(var j = 0; j < sizeSamplesPerChannel; ++j) {
+          channelData[j] = ({{{ makeGetValue('heapPtr', 'i', 'float') }}});
+          i += 4;
         }
       }
     },
@@ -2222,7 +2215,7 @@ var LibrarySDL = {
       }
       
       var totalSamples = SDL.audio.samples*SDL.audio.channels;
-      SDL.audio.bytesPerSample = (SDL.audio.format == 0x0008 /*AUDIO_U8*/ || SDL.audio.format == 0x8008 /*AUDIO_S8*/) ? 1 : 2;
+      SDL.audio.bytesPerSample = 4; //(SDL.audio.format == 0x0008 /*AUDIO_U8*/ || SDL.audio.format == 0x8008 /*AUDIO_S8*/) ? 1 : 2;
       SDL.audio.bufferSize = totalSamples*SDL.audio.bytesPerSample;
       SDL.audio.bufferDurationSecs = SDL.audio.bufferSize / SDL.audio.bytesPerSample / SDL.audio.channels / SDL.audio.freq; // Duration of a single queued buffer in seconds.
       SDL.audio.bufferingDelay = 50 / 1000; // Audio samples are played with a constant delay of this many seconds to account for browser and jitter.

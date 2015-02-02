@@ -19,12 +19,12 @@ local highpass_resonance_editor_node
 local
 function create_audio_buffer()
     local rate = 44100
-    local freq = 110
+    local freq = 440
     num_samples = math.floor(rate / freq)
     audio_buffer = am.buffer(num_samples * 4)
     audio_data_view = audio_buffer:view("float", 0, 4)
     for i = 1, num_samples do
-        audio_data_view[i] = math.sin(((i-1)/num_samples) * 2 * math.pi)
+        audio_data_view[i] = 0.5 * math.sin(((i-1)/num_samples) * 2 * math.pi)
     end
 end
 
@@ -137,7 +137,7 @@ function create_slider(min, max, initial_value, onchange)
     local line = am.draw_arrays("lines")
         :bind_array("x", am.float_array{-1, 1})
         :bind_array("y", am.float_array{ 0, 0})
-        :bind_vec3("color", vec3(0.5, 0.5, 0.5))
+        :bind_vec3("color", vec3(0.5, 0.5, 1))
     local prev_pos
     local inv
     return am.group(line, grip)
@@ -205,8 +205,8 @@ function assemble_ui()
     local x = 0
     win.root = am.group(
             wave_editor_node
-                :scale("MVP", 0.8, 0.5)
-                :translate("MVP", x, -0.48),
+                :scale("MVP", 0.8, 0.45)
+                :translate("MVP", x, -0.43),
             pitch_editor_node
                 :scale("MVP", 0.8, 0.5)
                 :translate("MVP", x, 0.2),
