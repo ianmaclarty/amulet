@@ -68,7 +68,7 @@ AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 AM_CFLAGS = $(AM_DEF_FLAGS) $(COMMON_CFLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS)
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
-DEFAULT_HTML_EDITOR_SCRIPT = samples/city.lua
+DEFAULT_HTML_EDITOR_SCRIPT = samples/synth.lua
 HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html)
 BUILD_HTML_EDITOR_FILES = $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 

@@ -462,6 +462,7 @@ am_shader_id am_create_shader(am_shader_type type) {
 }
 
 bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg, int *line_no, char **line_str) {
+    GLint compiled;
     *msg = NULL;
     *line_str = NULL;
     *line_no = -1;
@@ -469,9 +470,9 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
         const char *m = "gl not initialized";
         *msg = (char*)malloc(strlen(m) + 1);
         strcpy(*msg, m);
-        return false;
+        compiled = 0;
+        goto end;
     }
-    GLint compiled;
 #if defined(AM_USE_ANGLE)
     char *translate_objcode = NULL;
     char *translate_errmsg = NULL;

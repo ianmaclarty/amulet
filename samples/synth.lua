@@ -146,7 +146,7 @@ function create_slider(min, max, initial_value, onchange)
             if not prev_pos and am.mouse_button_pressed.left then
                 inv = math.inverse(node.value)
                 local pos = inv * vec4(am.mouse_position, 0, 1)
-                if math.abs(pos.x) <= 1 and math.abs(pos.y) < grip_h/2 then
+                if math.abs(pos.x) <= 1+grip_w/2 and math.abs(pos.y) < grip_h/2 then
                     prev_pos = pos
                 end
             end

@@ -398,7 +398,10 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
     return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
-void *am_read_resource(const char *filename, int *len) {
+void *am_read_resource(const char *filename, int *len, char **errmsg) {
+    const char *msg = "sorry, require() not yet supported in html backend";
+    *errmsg = (char*)malloc(strlen(msg)+1);
+    strcpy(*errmsg, msg);
     am_log0("%s", "sorry, require() not yet supported in html backend");
     return NULL;
 }
