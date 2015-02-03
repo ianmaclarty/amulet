@@ -32,6 +32,8 @@ extern "C" {
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
 
+#include "stb_vorbis.h"
+
 #define AM_PI 3.14159265358979323846
 
 #include "am_util.h"

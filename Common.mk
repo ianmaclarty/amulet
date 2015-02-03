@@ -14,6 +14,7 @@ GLM_DIR    = $(DEPS_DIR)/glm-0.9.5.3
 GLEW_DIR   = $(DEPS_DIR)/glew-1.10.0
 LIBPNG_DIR = $(DEPS_DIR)/libpng-1.4.3
 ZLIB_DIR   = $(DEPS_DIR)/zlib-1.2.5
+VORBIS_DIR = $(DEPS_DIR)/vorbis
 
 # Visual C commands
 

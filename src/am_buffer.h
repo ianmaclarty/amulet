@@ -21,6 +21,7 @@ struct am_buffer : am_nonatomic_userdata {
     int                 dirty_start;
     int                 dirty_end;
 
+    am_buffer();
     am_buffer(int sz);
     void destroy();
     void create_vbo();

@@ -30,13 +30,13 @@ endif
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = lua
+  AM_DEPS = lua vorbis
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else
   ifeq ($(TARGET_PLATFORM),win32)
-    AM_DEPS = $(LUAVM) sdl glew png z
+    AM_DEPS = $(LUAVM) sdl glew png z vorbis
   else
-    AM_DEPS = $(LUAVM) sdl glew png z angle
+    AM_DEPS = $(LUAVM) sdl glew png z angle vorbis
     AM_DEFS += AM_USE_ANGLE
   endif
 endif
@@ -51,6 +51,7 @@ LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
 LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 LIBPNG_ALIB = $(BUILD_LIB_DIR)/libpng$(ALIB_EXT)
 ZLIB_ALIB = $(BUILD_LIB_DIR)/libz$(ALIB_EXT)
+VORBIS_ALIB = $(BUILD_LIB_DIR)/libvorbis$(ALIB_EXT)
 
 EMBEDDED_LUA_FILES = $(wildcard lua/*.lua)
 EMBEDDED_FILES = $(EMBEDDED_LUA_FILES)
@@ -136,6 +137,11 @@ $(ZLIB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(ZLIB_DIR)/libz$(ALIB_EXT) $@
 	cp $(ZLIB_DIR)/zlib.h $(BUILD_INC_DIR)/
 	cp $(ZLIB_DIR)/zconf.h $(BUILD_INC_DIR)/
+
+$(VORBIS_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(VORBIS_DIR) && $(MAKE) clean all
+	cp $(VORBIS_DIR)/libvorbis$(ALIB_EXT) $@
+	cp $(VORBIS_DIR)/stb_vorbis.h $(BUILD_INC_DIR)/
 
 $(BUILD_DIRS): %:
 	mkdir -p $@

@@ -474,18 +474,20 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
         goto end;
     }
 #if defined(AM_USE_ANGLE)
-    char *translate_objcode = NULL;
-    char *translate_errmsg = NULL;
-    angle_translate_shader(type, src, &translate_objcode, &translate_errmsg);
-    if (translate_errmsg != NULL) {
-        *msg = translate_errmsg;
-        get_src_error_line(*msg, src, line_no, line_str);
-        compiled = 0;
-        goto end;
+    {
+        char *translate_objcode = NULL;
+        char *translate_errmsg = NULL;
+        angle_translate_shader(type, src, &translate_objcode, &translate_errmsg);
+        if (translate_errmsg != NULL) {
+            *msg = translate_errmsg;
+            get_src_error_line(*msg, src, line_no, line_str);
+            compiled = 0;
+            goto end;
+        }
+        assert(translate_objcode != NULL);
+        glShaderSource(shader, 1, (const char**)&translate_objcode, NULL);
+        free(translate_objcode);
     }
-    assert(translate_objcode != NULL);
-    glShaderSource(shader, 1, (const char**)&translate_objcode, NULL);
-    free(translate_objcode);
 #else
     glShaderSource(shader, 1, &src, NULL);
 #endif

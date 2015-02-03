@@ -1,5 +1,13 @@
 #include "amulet.h"
 
+am_buffer::am_buffer() {
+    vbo_id = 0;
+    texture2d = NULL;
+    texture2d_ref = LUA_NOREF;
+    dirty_start = INT_MAX;
+    dirty_end = 0;
+}
+
 am_buffer::am_buffer(int sz) {
     size = sz;
     data = (uint8_t*)malloc(sz);
@@ -46,6 +54,31 @@ static int create_buffer(lua_State *L) {
     int size = luaL_checkinteger(L, 1);
     if (size <= 0) return luaL_error(L, "size should be greater than 0");
     am_new_userdata(L, am_buffer, size);
+    return 1;
+}
+
+static int read_buffer(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *filename = luaL_checkstring(L, 1);
+    int len;
+    char *errmsg;
+    void *data = am_read_resource(filename, &len, &errmsg);
+    if (data == NULL) {
+        if (errmsg != NULL) {
+            return luaL_error(L, "error reading buffer '%s': %s", filename, errmsg);
+        } else {
+            return luaL_error(L, "unknown error reading buffer '%s'", filename);
+        }
+    }
+    am_buffer *buf = am_new_userdata(L, am_buffer);
+    buf->data = (uint8_t*)data;
+    buf->size = len;
+    return 1;
+}
+
+static int buffer_len(lua_State *L) {
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    lua_pushinteger(L, buf->size);
     return 1;
 }
 
@@ -458,6 +491,8 @@ static void register_buffer_mt(lua_State *L) {
 
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, buffer_len, 0);
+    lua_setfield(L, -2, "__len");
     lua_pushcclosure(L, buffer_gc, 0);
     lua_setfield(L, -2, "__gc");
 
@@ -490,6 +525,7 @@ static void register_buffer_view_mt(lua_State *L) {
 void am_open_buffer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"buffer", create_buffer},
+        {"read_buffer", read_buffer},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

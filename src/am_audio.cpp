@@ -930,6 +930,29 @@ static void register_audio_node_mt(lua_State *L) {
 
 //-------------------------------------------------------------------------
 
+static int decode_ogg(lua_State *L) {
+    am_buffer *source_buf = am_get_userdata(L, am_buffer, 1);
+    int num_channels;
+    unsigned int sample_rate;
+    short *data;
+    int num_samples = stb_vorbis_decode_memory((unsigned char*)source_buf->data,
+        source_buf->size, &num_channels, &sample_rate, &data);
+    if (num_samples <= 0) {
+        return luaL_error(L, "error decoding ogg buffer");
+    }
+    int sz = num_samples * num_channels * 4;
+    am_buffer *dest_buf = am_new_userdata(L, am_buffer, sz);
+    float *fdata = (float*)dest_buf->data;
+    for (int c = 0; c < num_channels; c++) {
+        for (int s = 0; s < num_samples; s++) {
+            fdata[c * num_samples + s] = (float)data[s * num_channels + c] / (float)INT16_MAX;
+        }
+    }
+    return 1;
+}
+
+//-------------------------------------------------------------------------
+
 void am_destroy_audio() {
     audio_context.root = NULL;
 }
@@ -1001,6 +1024,7 @@ void am_open_audio_module(lua_State *L) {
         {"audio_node", create_audio_node},
         {"oscillator", create_oscillator_node},
         {"track", create_audio_track_node},
+        {"decode_ogg", decode_ogg},
         {"root_audio_node", get_root_audio_node},
         {NULL, NULL}
     };
