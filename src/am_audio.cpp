@@ -948,6 +948,7 @@ static int decode_ogg(lua_State *L) {
             fdata[c * num_samples + s] = (float)data[s * num_channels + c] / (float)INT16_MAX;
         }
     }
+    free(data);
     return 1;
 }
 
