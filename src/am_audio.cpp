@@ -348,7 +348,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
         // optimise common case where no resampling is required
         for (int c = 0; c < bus_num_channels; c++) {
             float *bus_data = bus->channel_data[c];
-            float *buf_data = ((float*)buffer->data) + c * buf_num_channels;
+            float *buf_data = ((float*)buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
                 int buf_pos = (int)current_position;
                 assert(buf_pos < buf_num_samples);
@@ -376,11 +376,11 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
         // resample
         for (int c = 0; c < bus_num_channels; c++) {
             float *bus_data = bus->channel_data[c];
-            float *buf_data = ((float*)buffer->data) + c * buf_num_channels;
+            float *buf_data = ((float*)buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
                 float pos = current_position;
                 for (int write_index = 0; write_index < bus_num_samples; write_index++) {
-                    int read_index1 = (int)floor(pos);
+                    int read_index1 = (int)floorf(pos);
                     int read_index2 = read_index1 + 1;
                     if (read_index2 >= buf_num_samples) {
                         if (loop) {
@@ -392,8 +392,8 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                     float interpolation_factor = (float)(pos - (float)read_index1);
                     float sample1 = buf_data[read_index1];
                     float sample2 = buf_data[read_index2];
-                    float interpolated_sample = (1.0 - interpolation_factor) * sample1 + interpolation_factor * sample2;
-                    bus_data[write_index] = interpolated_sample;
+                    float interpolated_sample = (1.0f - interpolation_factor) * sample1 + interpolation_factor * sample2;
+                    bus_data[write_index] += interpolated_sample;
                     pos += playback_speed.interpolate_linear(write_index) * sample_rate_ratio;
                     if (pos >= (float)buf_num_samples) {
                         if (loop) {
@@ -934,21 +934,59 @@ static int decode_ogg(lua_State *L) {
     am_buffer *source_buf = am_get_userdata(L, am_buffer, 1);
     int num_channels;
     unsigned int sample_rate;
-    short *data;
+    short *tmp_data;
     int num_samples = stb_vorbis_decode_memory((unsigned char*)source_buf->data,
-        source_buf->size, &num_channels, &sample_rate, &data);
+        source_buf->size, &num_channels, &sample_rate, &tmp_data);
     if (num_samples <= 0) {
         return luaL_error(L, "error decoding ogg buffer");
     }
-    int sz = num_samples * num_channels * 4;
-    am_buffer *dest_buf = am_new_userdata(L, am_buffer, sz);
-    float *fdata = (float*)dest_buf->data;
-    for (int c = 0; c < num_channels; c++) {
-        for (int s = 0; s < num_samples; s++) {
-            fdata[c * num_samples + s] = (float)data[s * num_channels + c] / (float)INT16_MAX;
+    am_buffer *dest_buf;
+    float *dest_data;
+    int copy_channels = num_channels > am_conf_audio_channels ? am_conf_audio_channels : num_channels;
+    int dest_samples;
+    if ((int)sample_rate != am_conf_audio_sample_rate) {
+        // resample required
+        double sample_rate_ratio = (double)sample_rate / (double)am_conf_audio_sample_rate;
+        dest_samples = floor((double)num_samples / sample_rate_ratio);
+        dest_buf = am_new_userdata(L, am_buffer, dest_samples * am_conf_audio_channels * 4);
+        dest_data = (float*)dest_buf->data;
+        for (int c = 0; c < copy_channels; c++) {
+            double pos = 0.0f;
+            for (int write_index = 0; write_index < dest_samples; write_index++) {
+                int read_index1 = (int)floor(pos);
+                int read_index2 = read_index1 + 1;
+                if (read_index2 >= num_samples) {
+                    break;
+                }
+                float interpolation_factor = (float)(pos - (float)read_index1);
+                float sample1 = (float)tmp_data[read_index1 * num_channels + c] / (float)INT16_MAX;
+                float sample2 = (float)tmp_data[read_index2 * num_channels + c] / (float)INT16_MAX;
+                float interpolated_sample = (1.0f - interpolation_factor) * sample1 + interpolation_factor * sample2;
+                dest_data[c * dest_samples + write_index] = interpolated_sample;
+                pos += sample_rate_ratio;
+                if (pos >= (double)num_samples) {
+                    break;
+                }
+            }
+        }
+    } else {
+        // no resample required
+        dest_buf = am_new_userdata(L, am_buffer, num_samples * am_conf_audio_channels * 4);
+        dest_data = (float*)dest_buf->data;
+        dest_samples = num_samples;
+        for (int c = 0; c < copy_channels; c++) {
+            for (int s = 0; s < num_samples; s++) {
+                dest_data[c * num_samples + s] = (float)tmp_data[s * num_channels + c] / (float)INT16_MAX;
+            }
         }
     }
-    free(data);
+    free(tmp_data);
+    // if less than required channels in decoded stream, then duplicate channels.
+    if (copy_channels < am_conf_audio_channels) {
+        for (int c = copy_channels; c < am_conf_audio_channels; c++) {
+            memcpy(&dest_data[c * dest_samples], &dest_data[0], dest_samples * 4);
+        }
+    }
     return 1;
 }
 

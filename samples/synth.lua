@@ -20,9 +20,9 @@ local
 function create_audio_buffer()
     local rate = 44100
     local freq = 440
-    audio_buffer = am.decode_ogg(am.read_buffer("music.ogg"))
-    num_samples = #audio_buffer / 4
-    audio_data_view = audio_buffer:view("float", 0, 4)
+    audio_buffer = am.decode_ogg(am.read_buffer("tone.ogg"))
+    num_samples = #audio_buffer / 8
+    audio_data_view = audio_buffer:view("float", 0, 4, num_samples)
     --[[
     num_samples = math.floor(rate / freq)
     audio_buffer = am.buffer(num_samples * 4)
@@ -35,7 +35,7 @@ end
 
 local
 function create_audio_node()
-    track_node = am.track(audio_buffer, true, 1, 1)
+    track_node = am.track(audio_buffer, true)
     lowpass_filter_node = track_node:lowpass_filter(2000, 0)
     highpass_filter_node = lowpass_filter_node:highpass_filter(20, 0)
     am.root_audio_node():add(highpass_filter_node)
