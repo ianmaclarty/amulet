@@ -10,6 +10,8 @@ static void log_ignored_transform(am_param_name_id name, const char *transform) 
         slot->name);
 }
 
+/* Translate */
+
 void am_translate_node::render(am_render_state *rstate) {
     am_program_param_value *param = &am_param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
@@ -163,10 +165,65 @@ static void register_rotate_node_mt(lua_State *L) {
     am_register_metatable(L, MT_am_rotate_node, MT_am_scene_node);
 }
 
+/* Multiply */
+
+void am_mult_mat4_node::render(am_render_state *rstate) {
+    am_program_param_value *param = &am_param_name_map[name].value;
+    if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
+        glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
+        glm::mat4 old = *m;
+        *m = *m * mat;
+        render_children(rstate);
+        *m = old;
+    } else {
+        log_ignored_transform(name, "mult_mat4");
+        render_children(rstate);
+    }
+}
+
+int am_create_mult_mat4_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
+    am_mult_mat4_node *node = am_new_userdata(L, am_mult_mat4_node);
+    am_set_scene_node_child(L, node);
+    node->name = am_lookup_param_name(L, 2);
+    if (nargs > 2) {
+        node->mat = am_get_userdata(L, am_mat4, 3)->m;
+    }
+    return 1;
+}
+
+static void get_mult_mat4_mat4(lua_State *L, void *obj) {
+    am_mult_mat4_node *node = (am_mult_mat4_node*)obj;
+    am_mat4 *mat = am_new_userdata(L, am_mat4);
+    mat->m = node->mat;
+}
+
+static void set_mult_mat4_mat4(lua_State *L, void *obj) {
+    am_mult_mat4_node *node = (am_mult_mat4_node*)obj;
+    node->mat = am_get_userdata(L, am_mat4, 3)->m;
+}
+
+static am_property mult_mat4_mat4_property = {get_mult_mat4_mat4, set_mult_mat4_mat4};
+
+static void register_mult_mat4_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+
+    am_register_property(L, "mat4", &mult_mat4_mat4_property);
+
+    lua_pushstring(L, "mult_mat4");
+    lua_setfield(L, -2, "tname");
+
+    am_register_metatable(L, MT_am_mult_mat4_node, MT_am_scene_node);
+}
+
 /* Module init */
 
 void am_open_transforms_module(lua_State *L) {
     register_translate_node_mt(L);
     register_scale_node_mt(L);
     register_rotate_node_mt(L);
+    register_mult_mat4_node_mt(L);
 }

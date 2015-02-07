@@ -531,6 +531,8 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "scale");
     lua_pushcclosure(L, am_create_rotate_node, 0);
     lua_setfield(L, -2, "rotate");
+    lua_pushcclosure(L, am_create_mult_mat4_node, 0);
+    lua_setfield(L, -2, "mult_mat4");
 
     lua_pushcclosure(L, am_create_depth_pass_node, 0);
     lua_setfield(L, -2, "depth_pass");

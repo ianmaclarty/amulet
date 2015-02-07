@@ -28,6 +28,7 @@ typedef enum {
     MT_am_translate_node,
     MT_am_scale_node,
     MT_am_rotate_node,
+    MT_am_mult_mat4_node,
     MT_am_depth_pass_node,
     MT_am_draw_arrays_node,
 

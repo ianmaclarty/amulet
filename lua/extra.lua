@@ -105,6 +105,14 @@ function math.cycle(i, by, len)
     return (i + by - 1) % len + 1
 end
 
+function math.cycle_dist(a, b, len)
+    if b >= a then
+        return b - a
+    else
+        return (b + len) - a
+    end
+end
+
 function math.clamp(x, min, max)
     min = min or 0
     max = max or 1
