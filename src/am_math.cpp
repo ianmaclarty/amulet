@@ -1040,6 +1040,77 @@ static int inverse(lua_State *L) {
     return 1;
 }
 
+//----------------------- noise functions -------------------------//
+
+static int simplex(lua_State *L) {
+    am_check_nargs(L, 1);
+    switch (am_get_type(L, 1)) {
+        case MT_am_vec2: {
+            lua_pushnumber(L, glm::simplex(((am_vec2*)lua_touserdata(L, 1))->v));
+            break;
+        }
+        case MT_am_vec3: {
+            lua_pushnumber(L, glm::simplex(((am_vec3*)lua_touserdata(L, 1))->v));
+            break;
+        }
+        case MT_am_vec4: {
+            lua_pushnumber(L, glm::simplex(((am_vec4*)lua_touserdata(L, 1))->v));
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a vec argument");
+    }
+    return 1;
+}
+
+static int perlin(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    if (nargs == 1) {
+        switch (am_get_type(L, 1)) {
+            case MT_am_vec2: {
+                lua_pushnumber(L, glm::perlin(((am_vec2*)lua_touserdata(L, 1))->v));
+                break;
+            }
+            case MT_am_vec3: {
+                lua_pushnumber(L, glm::perlin(((am_vec3*)lua_touserdata(L, 1))->v));
+                break;
+            }
+            case MT_am_vec4: {
+                lua_pushnumber(L, glm::perlin(((am_vec4*)lua_touserdata(L, 1))->v));
+                break;
+            }
+            default:
+                return luaL_error(L, "expecting a vec argument");
+        }
+    } else if (nargs == 2) {
+        switch (am_get_type(L, 1)) {
+            case MT_am_vec2: {
+                lua_pushnumber(L,
+                    glm::perlin(((am_vec2*)lua_touserdata(L, 1))->v,
+                    am_get_userdata(L, am_vec2, 2)->v));
+                break;
+            }
+            case MT_am_vec3: {
+                lua_pushnumber(L,
+                    glm::perlin(((am_vec3*)lua_touserdata(L, 1))->v,
+                    am_get_userdata(L, am_vec3, 2)->v));
+                break;
+            }
+            case MT_am_vec4: {
+                lua_pushnumber(L,
+                    glm::perlin(((am_vec4*)lua_touserdata(L, 1))->v,
+                    am_get_userdata(L, am_vec4, 2)->v));
+                break;
+            }
+            default:
+                return luaL_error(L, "expecting a vec argument");
+        }
+    } else {
+        return luaL_error(L, "too many arguments (at most 2)");
+    }
+    return 1;
+}
+
 //-------------------------------------------------//
 
 #define REGISTER_VEC_MT(T, MTID)                        \
@@ -1105,6 +1176,8 @@ void am_open_math_module(lua_State *L) {
         {"euleryxz3",   euleryxz3},
         {"euleryxz4",   euleryxz4},
         {"inverse",     inverse},
+        {"simplex",     simplex},
+        {"perlin",      perlin},
         {NULL, NULL}
     };
     am_open_module(L, "math", funcs);
