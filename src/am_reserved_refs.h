@@ -31,6 +31,7 @@ typedef enum {
     MT_am_mult_mat4_node,
     MT_am_depth_pass_node,
     MT_am_draw_arrays_node,
+    MT_am_draw_elements_node,
 
     MT_am_audio_node,
     MT_am_gain_node,

@@ -107,11 +107,6 @@ struct am_render_state {
     am_viewport_state       viewport_state;
     am_depth_test_state     depth_test_state;
 
-    am_buffer_id            active_indices_id;
-    int                     active_indices_max_value;
-    int                     active_indices_max_size;
-    am_element_index_type   active_indices_type;
-
     int                     max_draw_array_size;
 
     am_program_id           bound_program_id;
@@ -123,10 +118,11 @@ struct am_render_state {
     virtual ~am_render_state();
 
     void draw_arrays(am_draw_mode mode, int first, int count);
+    void draw_elements(am_draw_mode mode, int first, int count,
+        am_buffer_id buf_id, am_element_index_type type, int num_elems, int max_elem);
     bool validate_active_program();
     void bind_active_program();
     void bind_active_program_params();
-    void bind_active_indices();
     void update_state();
     void setup(am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
 };
@@ -136,6 +132,21 @@ struct am_draw_arrays_node : am_scene_node {
     int count;
     am_draw_mode mode;
 
+    virtual void render(am_render_state *rstate);
+};
+
+struct am_draw_elements_node : am_scene_node {
+    int first;
+    int count;
+    am_draw_mode mode;
+    am_element_index_type type;
+    void *indices_buffer;
+    int buffer_size;
+    int num_elems;
+    int max_elem;
+    am_buffer_id elembuf_id;
+
+    am_draw_elements_node();
     virtual void render(am_render_state *rstate);
 };
 

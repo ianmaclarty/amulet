@@ -1,7 +1,7 @@
 #include "amulet.h"
 
 am_buffer::am_buffer() {
-    vbo_id = 0;
+    arraybuf_id = 0;
     texture2d = NULL;
     texture2d_ref = LUA_NOREF;
     dirty_start = INT_MAX;
@@ -12,7 +12,7 @@ am_buffer::am_buffer(int sz) {
     size = sz;
     data = (uint8_t*)malloc(sz);
     memset(data, 0, size);
-    vbo_id = 0;
+    arraybuf_id = 0;
     texture2d = NULL;
     texture2d_ref = LUA_NOREF;
     dirty_start = INT_MAX;
@@ -21,16 +21,16 @@ am_buffer::am_buffer(int sz) {
 
 void am_buffer::destroy() {
     free(data);
-    if (vbo_id != 0) {
-        am_delete_buffer(vbo_id);
-        vbo_id = 0;
+    if (arraybuf_id != 0) {
+        am_delete_buffer(arraybuf_id);
+        arraybuf_id = 0;
     }
 }
 
 void am_buffer::update_if_dirty() {
     if (dirty_start < dirty_end) {
-        if (vbo_id != 0) {
-            am_bind_buffer(AM_ARRAY_BUFFER, vbo_id);
+        if (arraybuf_id != 0) {
+            am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
             am_set_buffer_sub_data(AM_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
         } 
         if (texture2d != NULL) {
@@ -41,11 +41,11 @@ void am_buffer::update_if_dirty() {
     }
 }
 
-void am_buffer::create_vbo() {
-    assert(vbo_id == 0);
+void am_buffer::create_arraybuf() {
+    assert(arraybuf_id == 0);
     update_if_dirty();
-    vbo_id = am_create_buffer_object();
-    am_bind_buffer(AM_ARRAY_BUFFER, vbo_id);
+    arraybuf_id = am_create_buffer_object();
+    am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
     am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
 }
 
@@ -300,7 +300,7 @@ static int buffer_view_newindex(lua_State *L) {
         }
     }
     am_buffer *buf = view->buffer;
-    if (buf->vbo_id != 0 || buf->texture2d != NULL) {
+    if (buf->arraybuf_id != 0 || buf->texture2d != NULL) {
         int byte_start = view->offset + view->stride * (index-1);
         int byte_end = byte_start + view->type_size;
         if (byte_start < buf->dirty_start) {

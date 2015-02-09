@@ -15,7 +15,7 @@ struct am_texture2d;
 struct am_buffer : am_nonatomic_userdata {
     int                 size;  // in bytes
     uint8_t             *data;
-    am_buffer_id        vbo_id;
+    am_buffer_id        arraybuf_id;
     am_texture2d        *texture2d;
     int                 texture2d_ref;
     int                 dirty_start;
@@ -24,7 +24,7 @@ struct am_buffer : am_nonatomic_userdata {
     am_buffer();
     am_buffer(int sz);
     void destroy();
-    void create_vbo();
+    void create_arraybuf();
     void update_if_dirty();
 };
 

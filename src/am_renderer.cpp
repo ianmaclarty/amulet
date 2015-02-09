@@ -56,14 +56,41 @@ void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_c
     update_state();
     if (validate_active_program()) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
-            // no vertex arrays have been set and no size has been specified
-            // for the draw command, so do nothing.
+            am_log1("%s", "WARNING: ignoring draw_arrays, "
+                "because no attribute arrays have been bound"
+                "and no count has been specified");
             draw_array_count = 0;
         }
         int count = max_draw_array_size - first;
         if (count > draw_array_count) count = draw_array_count;
         if (count > 0) {
             am_draw_arrays(mode, first, count);
+        }
+    }
+}
+
+void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
+    am_buffer_id buf_id, am_element_index_type type, int num_elems, int max_elem)
+{
+    if (active_program == NULL) return;
+    update_state();
+    if (validate_active_program()) {
+        if (max_draw_array_size == INT_MAX) {
+            am_log1("%s", "WARNING: ignoring draw_elements, "
+                "because no attribute arrays have been bound");
+            count = 0;
+        } else if (max_elem > max_draw_array_size) {
+            am_log1("WARNING: ignoring draw_elements, "
+                "because one of its indices (%d) is out of bounds",
+                (max_elem + 1));
+            count = 0;
+        }
+        if (count > (num_elems - first)) {
+            count = (num_elems - first);
+        }
+        if (count > 0) {
+            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, buf_id);
+            am_draw_elements(mode, count, type, first);
         }
     }
 }
@@ -97,10 +124,6 @@ void am_render_state::bind_active_program_params() {
     }
 }
 
-void am_render_state::bind_active_indices() {
-    am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, active_indices_id);
-}
-
 am_render_state::am_render_state() {
     viewport_state.x = 0;
     viewport_state.y = 0;
@@ -111,11 +134,6 @@ am_render_state::am_render_state() {
     depth_test_state.enabled = false;
     depth_test_state.func = AM_DEPTH_FUNC_LESS;
     viewport_state.dirty = true;
-
-    active_indices_id = 0;
-    active_indices_max_value = 0;
-    active_indices_max_size = 0;
-    active_indices_type = AM_ELEMENT_TYPE_USHORT;
 
     max_draw_array_size = 0;
 
@@ -152,10 +170,16 @@ static int create_draw_arrays_node(lua_State *L) {
         mode = am_get_enum(L, am_draw_mode, 1);
     }
     if (nargs > 1) {
-        first = luaL_checkinteger(L, 1);
+        first = luaL_checkinteger(L, 2) - 1;
+        if (first < 0) {
+            return luaL_error(L, "argument 2 must be positive");
+        }
     }
     if (nargs > 2) {
-        count = luaL_checkinteger(L, 2);
+        count = luaL_checkinteger(L, 3);
+        if (count <= 0) {
+            return luaL_error(L, "argument 3 must be positive");
+        }
     }
     am_draw_arrays_node *node = am_new_userdata(L, am_draw_arrays_node);
     node->first = first;
@@ -164,9 +188,137 @@ static int create_draw_arrays_node(lua_State *L) {
     return 1;
 }
 
+am_draw_elements_node::am_draw_elements_node() {
+    first = 0;
+    count = INT_MAX;
+    mode = AM_DRAWMODE_TRIANGLES;
+    type = AM_ELEMENT_TYPE_USHORT;
+    indices_buffer = NULL;
+    num_elems = 0;
+    max_elem = 0;
+    elembuf_id = 0;
+}
+
+static int draw_elements_node_gc(lua_State *L) {
+    am_draw_elements_node *node = am_get_userdata(L, am_draw_elements_node, 1);
+    if (node->indices_buffer != NULL) {
+        free(node->indices_buffer);
+        node->indices_buffer = NULL;
+    }
+    if (node->elembuf_id != 0) {
+        am_delete_buffer(node->elembuf_id);
+        node->elembuf_id = 0;
+    }
+    return 0;
+}
+
+static void register_draw_elements_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcclosure(L, draw_elements_node_gc, 0);
+    lua_setfield(L, -2, "__gc");
+
+    lua_pushstring(L, "draw_elements");
+    lua_setfield(L, -2, "tname");
+
+    am_register_metatable(L, MT_am_draw_elements_node, MT_am_scene_node);
+}
+
+void am_draw_elements_node::render(am_render_state *rstate) {
+    if (elembuf_id == 0) {
+        elembuf_id = am_create_buffer_object();
+        am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
+        am_set_buffer_data(AM_ELEMENT_ARRAY_BUFFER, buffer_size,
+            indices_buffer, AM_BUFFER_USAGE_STATIC_DRAW);
+    }
+    rstate->draw_elements(mode, first, count, elembuf_id, type, num_elems, max_elem);
+}
+
+static int create_draw_elements_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    if (!lua_istable(L, 1)) {
+        return luaL_error(L, "expecting a table in position 1");
+    }
+    am_draw_elements_node *node = am_new_userdata(L, am_draw_elements_node);
+    //  work out how many elements there are and their maximum value
+    int i = 1;
+    node->max_elem = -1;
+    while (true) {
+        lua_rawgeti(L, 1, i);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            node->num_elems = i - 1;
+            break;
+        }
+        int val = lua_tointeger(L, -1) - 1;
+        lua_pop(L, 1);
+        if (val < 0) {
+            return luaL_error(L, "indices table should contain only positive integers");
+        }
+        if (val > node->max_elem) {
+            node->max_elem = val;
+        }
+        i++;
+    }
+    if (node->num_elems == 0) {
+        return luaL_error(L, "indices table is empty");
+    }
+    assert(node->max_elem >= 0);
+    // compute the indices buffer type
+    if (node->max_elem < (1<<8)) {
+        node->type = AM_ELEMENT_TYPE_UBYTE;
+        node->buffer_size = node->num_elems;
+    } else if (node->max_elem < (1<<16)) { 
+        node->type = AM_ELEMENT_TYPE_USHORT;
+        node->buffer_size = node->num_elems * 2;
+    } else {
+        return luaL_error(L, "indices may not be larger than %d", (1<<16));
+    }
+    // create the indices buffer
+    node->indices_buffer = malloc(node->buffer_size);
+    // fill it with data
+    switch (node->type) {
+        case AM_ELEMENT_TYPE_UBYTE:
+            for (i = 1; i <= node->num_elems; i++) {
+                lua_rawgeti(L, 1, i);
+                ((uint8_t*)node->indices_buffer)[i-1] = lua_tointeger(L, -1) - 1;
+                lua_pop(L, 1);
+            }
+            break;
+        case AM_ELEMENT_TYPE_USHORT:
+            for (int i = 1; i <= node->num_elems; i++) {
+                lua_rawgeti(L, 1, i);
+                ((uint16_t*)node->indices_buffer)[i-1] = lua_tointeger(L, -1) - 1;
+                lua_pop(L, 1);
+            }
+            break;
+    }
+    if (nargs > 1) {
+        node->mode = am_get_enum(L, am_draw_mode, 2);
+    }
+    if (nargs > 2) {
+        node->first = luaL_checkinteger(L, 3) - 1;
+        if (node->first < 0) {
+            return luaL_error(L, "argument 3 must be positive");
+        } else if (node->first >= node->num_elems) {
+            return luaL_error(L, "argument 3 is out of bounds");
+        }
+    }
+    if (nargs > 3) {
+        node->count = luaL_checkinteger(L, 4);
+        if (node->count <= 0) {
+            return luaL_error(L, "argument 4 must be positive");
+        }
+    }
+    return 1;
+}
+
 void am_open_renderer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"draw_arrays", create_draw_arrays_node},
+        {"draw_elements", create_draw_elements_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
@@ -184,4 +336,5 @@ void am_open_renderer_module(lua_State *L) {
     am_register_enum(L, ENUM_am_draw_mode, draw_mode_enum);
 
     register_draw_arrays_node_mt(L);
+    register_draw_elements_node_mt(L);
 }
