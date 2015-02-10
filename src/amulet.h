@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <math.h>
 
