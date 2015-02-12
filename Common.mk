@@ -93,6 +93,8 @@ EMSCRIPTEN_LIBS = src/library_sdl.js
 EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
 EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_resize']"
 
+TARGET_CFLAGS=
+
 # Adjust flags for target
 ifeq ($(TARGET_PLATFORM),osx)
   CC = clang
@@ -119,13 +121,15 @@ ifeq ($(TARGET_PLATFORM),win32)
   EXE_EXT = .exe
   ALIB_EXT = .lib
   OBJ_EXT = .obj
-  CC = CL
-  CPP = CL
+  CC = $(VC_CL)
+  CPP = $(VC_CL)
   LUA_TARGET = generic
   AR = $(VC_LIB)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
-  XCFLAGS = -fp:fast -Wall -WX
+  XCFLAGS = -fp:fast -WX 
+  TARGET_CFLAGS = -nologo
+  USE_CUSTOM_LUA_MAKEFILE = yes
 endif
 
 # Adjust flags for grade
@@ -135,6 +139,11 @@ ifeq ($(GRADE),debug)
     GRADE_LDFLAGS = -g -g4
     LUA_CFLAGS += -DLUA_USE_APICHECK -g -O0
     LUA_LDFLAGS += -g -g4
+  else ifeq($(TARGET_PLATFORM),win32)
+    GRADE_CFLAGS = -Zi
+    GRADE_LDFLAGS =
+    LUA_CFLAGS += -DLUA_USE_APICHECK -Zi
+    LUA_LDFLAGS +=
   else
     GRADE_CFLAGS = -g -O0
     GRADE_LDFLAGS = -g 
@@ -151,6 +160,11 @@ else
     GRADE_LDFLAGS = -O3 $(EM_PROFILING) 
     LUA_CFLAGS += -O3 $(EM_PROFILING)
     LUA_LDFLAGS += -O3 $(EM_PROFILING)
+  else ifeq ($(TARGET_PLATFORM),win32)
+    GRADE_CFLAGS = -Ox -DNDEBUG
+    GRADE_LDFLAGS =
+    LUA_CFLAGS += -Ox
+    LUA_LDFLAGS += -Ox
   else
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS = -s
@@ -159,4 +173,4 @@ else
   endif
 endif
 
-COMMON_CFLAGS = $(GRADE_CFLAGS) $(CFLAGS)
+COMMON_CFLAGS := $(TARGET_CFLAGS) $(GRADE_CFLAGS) $(CFLAGS)

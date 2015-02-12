@@ -103,7 +103,7 @@ $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
 	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
-	cp $(SDL_DIR)/build/.libs/libSDL2.a $@
+	cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@
 
 $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(ANGLE_DIR) && $(MAKE) clean all
@@ -111,20 +111,27 @@ $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp -r $(ANGLE_DIR)/include/GLSLANG $(BUILD_INC_DIR)/
 	cp -r $(ANGLE_DIR)/include/KHR $(BUILD_INC_DIR)/
 
+ifdef USE_CUSTOM_LUA_MAKEFILE
+$(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
+	cd $(LUA_DIR) && $(MAKE) -f Makefile.custom clean all
+	cp $(LUA_DIR)/src/*.h $(BUILD_LUA_INCLUDE_DIR)/
+	cp $(LUA_DIR)/src/liblua$(ALIB_EXT) $@
+else
 $(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
 	cd $(LUA_DIR) && $(MAKE) clean $(LUA_TARGET) CC=$(CC) MYCFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)"
 	cp $(LUA_DIR)/src/*.h $(BUILD_LUA_INCLUDE_DIR)/
-	cp $(LUA_DIR)/src/liblua.a $@
+	cp $(LUA_DIR)/src/liblua$(ALIB_EXT) $@
+endif
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
 	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"
 	cp $(LUAJIT_DIR)/src/*.h $(BUILD_LUAJIT_INCLUDE_DIR)/
-	cp $(LUAJIT_DIR)/src/libluajit.a $@
+	cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@
 
 $(GLEW_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(GLEW_DIR) && $(MAKE) clean all
 	cp -r $(GLEW_DIR)/include/* $(BUILD_INC_DIR)/
-	cp $(GLEW_DIR)/lib/libGLEW.a $@
+	cp $(GLEW_DIR)/lib/libGLEW$(ALIB_EXT) $@
 
 $(LIBPNG_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LIBPNG_DIR) && $(MAKE) clean all
