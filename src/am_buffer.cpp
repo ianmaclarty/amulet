@@ -1,6 +1,8 @@
 #include "amulet.h"
 
 am_buffer::am_buffer() {
+    origin = "unnamed buffer";
+    origin_ref = LUA_NOREF;
     arraybuf_id = 0;
     texture2d = NULL;
     texture2d_ref = LUA_NOREF;
@@ -12,6 +14,8 @@ am_buffer::am_buffer(int sz) {
     size = sz;
     data = (uint8_t*)malloc(sz);
     memset(data, 0, size);
+    origin = "unnamed buffer";
+    origin_ref = LUA_NOREF;
     arraybuf_id = 0;
     texture2d = NULL;
     texture2d_ref = LUA_NOREF;
@@ -73,6 +77,8 @@ static int read_buffer(lua_State *L) {
     am_buffer *buf = am_new_userdata(L, am_buffer);
     buf->data = (uint8_t*)data;
     buf->size = len;
+    buf->origin = filename;
+    buf->origin_ref = buf->ref(L, 1);
     return 1;
 }
 

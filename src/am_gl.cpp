@@ -71,7 +71,7 @@ static GLenum to_gl_attr_client_type(am_attribute_client_type t);
 static GLenum to_gl_texture_bind_target(am_texture_bind_target t);
 static GLenum to_gl_texture_copy_target(am_texture_copy_target t);
 static GLenum to_gl_texture_format(am_texture_format f);
-static GLenum to_gl_pixel_type(am_pixel_type t);
+static GLenum to_gl_texture_type(am_texture_type t);
 static GLenum to_gl_texture_min_filter(am_texture_min_filter f);
 static GLenum to_gl_texture_mag_filter(am_texture_mag_filter f);
 static GLenum to_gl_texture_wrap(am_texture_wrap w);
@@ -94,7 +94,7 @@ static const char *gl_shader_type_str(GLenum e);
 static const char *gl_type_str(GLenum e);
 static const char *gl_texture_target_str(GLenum e);
 static const char *gl_texture_format_str(GLenum e);
-static const char *gl_pixel_type_str(GLenum e);
+static const char *gl_texture_type_str(GLenum e);
 static const char *gl_texture_filter_str(GLenum e);
 static const char *gl_texture_wrap_str(GLenum e);
 static const char *gl_renderbuffer_format_str(GLenum e);
@@ -867,7 +867,7 @@ void am_generate_mipmap(am_texture_bind_target target) {
     check_for_errors
 }
 
-int am_compute_pixel_size(am_texture_format format, am_pixel_type type) {
+int am_compute_pixel_size(am_texture_format format, am_texture_type type) {
     switch (type) {
         case AM_PIXEL_TYPE_UBYTE:
             switch (format) {
@@ -890,32 +890,32 @@ int am_compute_pixel_size(am_texture_format format, am_pixel_type type) {
     return 0;
 }
 
-void am_set_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int w, int h, am_pixel_type type, void *data) {
+void am_set_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int w, int h, am_texture_type type, void *data) {
     check_initialized();
     GLenum gl_target = to_gl_texture_copy_target(target);
     GLenum gl_format = to_gl_texture_format(format);
-    GLenum gl_type = to_gl_pixel_type(type);
+    GLenum gl_type = to_gl_texture_type(type);
     glTexImage2D(gl_target, level, gl_format, w, h, 0, gl_format, gl_type, data);
     log_gl_call("glTexImage2D(%s, %d, %s, %d, %d, 0, %s, %s, %p)",
         gl_texture_target_str(gl_target), level,
         gl_texture_format_str(gl_format),
         w, h,
         gl_texture_format_str(gl_format),
-        gl_pixel_type_str(gl_type),
+        gl_texture_type_str(gl_type),
         data);
     check_for_errors
 }
 
-void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int w, int h, am_texture_format format, am_pixel_type type, void *data) {
+void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int w, int h, am_texture_format format, am_texture_type type, void *data) {
     check_initialized();
     GLenum gl_target = to_gl_texture_copy_target(target);
     GLenum gl_format = to_gl_texture_format(format);
-    GLenum gl_type = to_gl_pixel_type(type);
+    GLenum gl_type = to_gl_texture_type(type);
     glTexSubImage2D(gl_target, level, xoffset, yoffset, w, h, gl_format, gl_type, data);
     log_gl_call("glTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p)",
         gl_texture_target_str(gl_target), level, xoffset, yoffset, w, h,
         gl_texture_format_str(gl_format),
-        gl_pixel_type_str(gl_type),
+        gl_texture_type_str(gl_type),
         data);
     check_for_errors
 }
@@ -1254,7 +1254,7 @@ static GLenum to_gl_texture_format(am_texture_format f) {
     return 0;
 }
 
-static GLenum to_gl_pixel_type(am_pixel_type t) {
+static GLenum to_gl_texture_type(am_texture_type t) {
     switch (t) {
         case AM_PIXEL_TYPE_UBYTE: return GL_UNSIGNED_BYTE;
         case AM_PIXEL_TYPE_USHORT_5_6_5: return GL_UNSIGNED_SHORT_5_6_5;
@@ -1580,7 +1580,7 @@ static const char *gl_texture_format_str(GLenum e) {
     return "<UNKNOWN GL CONSTANT>";
 }
 
-static const char *gl_pixel_type_str(GLenum e) {
+static const char *gl_texture_type_str(GLenum e) {
     switch (e) {
         case GL_UNSIGNED_BYTE: return "GL_UNSIGNED_BYTE";
         case GL_UNSIGNED_SHORT_4_4_4_4: return "GL_UNSIGNED_SHORT_4_4_4_4";

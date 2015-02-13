@@ -938,7 +938,7 @@ static int decode_ogg(lua_State *L) {
     int num_samples = stb_vorbis_decode_memory((unsigned char*)source_buf->data,
         source_buf->size, &num_channels, &sample_rate, &tmp_data);
     if (num_samples <= 0) {
-        return luaL_error(L, "error decoding ogg buffer");
+        return luaL_error(L, "error decoding ogg '%s'", source_buf->origin);
     }
     am_buffer *dest_buf;
     float *dest_data;

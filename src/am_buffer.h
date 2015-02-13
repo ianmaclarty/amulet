@@ -15,6 +15,8 @@ struct am_texture2d;
 struct am_buffer : am_nonatomic_userdata {
     int                 size;  // in bytes
     uint8_t             *data;
+    const char          *origin;
+    int                 origin_ref;
     am_buffer_id        arraybuf_id;
     am_texture2d        *texture2d;
     int                 texture2d_ref;

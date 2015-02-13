@@ -9,6 +9,7 @@ typedef enum {
     MT_am_program,
     MT_am_texture2d,
     MT_am_framebuffer,
+    MT_am_image,
 
     MT_am_scene_node,
     MT_am_action,
@@ -51,7 +52,7 @@ typedef enum {
 
     ENUM_am_buffer_view_type,
     ENUM_am_texture_format,
-    ENUM_am_pixel_type,
+    ENUM_am_texture_type,
     ENUM_am_texture_min_filter,
     ENUM_am_texture_mag_filter,
     ENUM_am_texture_wrap,

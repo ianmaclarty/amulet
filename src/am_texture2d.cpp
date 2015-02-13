@@ -3,14 +3,14 @@
 static int create_texture2d(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
-    int width = -1;
-    int height = -1;
+    int width = 0;
+    int height = 0;
     am_texture_min_filter min_filter = AM_MIN_FILTER_NEAREST;
     am_texture_mag_filter mag_filter = AM_MAG_FILTER_NEAREST;
     am_texture_wrap s_wrap = AM_TEXTURE_WRAP_CLAMP_TO_EDGE;
     am_texture_wrap t_wrap = AM_TEXTURE_WRAP_CLAMP_TO_EDGE;
     am_texture_format format = AM_TEXTURE_FORMAT_RGBA;
-    am_pixel_type type = AM_PIXEL_TYPE_UBYTE;
+    am_texture_type type = AM_PIXEL_TYPE_UBYTE;
     am_buffer *buffer = NULL;
     lua_pushnil(L);
     while (lua_next(L, 1) != 0) {
@@ -32,13 +32,19 @@ static int create_texture2d(lua_State *L) {
         } else if (strcmp(key, "format") == 0) {
             format = am_get_enum(L, am_texture_format, -1);
         } else if (strcmp(key, "type") == 0) {
-            type = am_get_enum(L, am_pixel_type, -1);
+            type = am_get_enum(L, am_texture_type, -1);
         } else if (strcmp(key, "buffer") == 0) {
             buffer = am_get_userdata(L, am_buffer, -1);
         } else {
             return luaL_error(L, "unrecognised texture setting: '%s'", key);
         }
         lua_pop(L, 1); // pop value
+    }
+    if (width == 0) {
+        return luaL_error(L, "width missing");
+    }
+    if (height == 0) {
+        return luaL_error(L, "height missing");
     }
 
     int pixel_size = am_compute_pixel_size(format, type);
@@ -183,14 +189,14 @@ void am_open_texture2d_module(lua_State *L) {
     };
     am_register_enum(L, ENUM_am_texture_format, texture_format_enum);
 
-    am_enum_value pixel_type_enum[] = {
+    am_enum_value texture_type_enum[] = {
         {"8",               AM_PIXEL_TYPE_UBYTE},
         {"565",             AM_PIXEL_TYPE_USHORT_5_6_5},
         {"4444",            AM_PIXEL_TYPE_USHORT_4_4_4_4},
         {"5551",            AM_PIXEL_TYPE_USHORT_5_5_5_1},
         {NULL, 0}
     };
-    am_register_enum(L, ENUM_am_pixel_type, pixel_type_enum);
+    am_register_enum(L, ENUM_am_texture_type, texture_type_enum);
 
     am_enum_value min_filter_enum[] = {
         {"nearest",                 AM_MIN_FILTER_NEAREST},

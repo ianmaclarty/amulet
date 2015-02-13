@@ -13,3 +13,6 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #else
 #define AM_PATH_SEP '/'
 #endif
+
+#define am_min(x, y) ((x) < (y) ? (x) : (y))
+#define am_max(x, y) ((x) > (y) ? (x) : (y))

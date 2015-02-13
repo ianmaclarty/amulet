@@ -3,7 +3,7 @@ struct am_texture2d : am_nonatomic_userdata {
     int                     width;
     int                     height;
     am_texture_format       format;
-    am_pixel_type           type;
+    am_texture_type         type;
     int                     pixel_size;
     bool                    has_mipmap;
     am_buffer               *buffer;
