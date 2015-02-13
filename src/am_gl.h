@@ -419,6 +419,7 @@ enum am_draw_mode {
 enum am_element_index_type {
     AM_ELEMENT_TYPE_UBYTE,
     AM_ELEMENT_TYPE_USHORT,
+    AM_ELEMENT_TYPE_UINT,
 };
 
 void am_draw_arrays(am_draw_mode mode, int first, int count);

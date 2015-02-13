@@ -274,7 +274,8 @@ static int create_draw_elements_node(lua_State *L) {
         node->type = AM_ELEMENT_TYPE_USHORT;
         node->buffer_size = node->num_elems * 2;
     } else {
-        return luaL_error(L, "indices may not be larger than %d", (1<<16));
+        node->type = AM_ELEMENT_TYPE_UINT;
+        node->buffer_size = node->num_elems * 4;
     }
     // create the indices buffer
     node->indices_buffer = malloc(node->buffer_size);
@@ -291,6 +292,13 @@ static int create_draw_elements_node(lua_State *L) {
             for (int i = 1; i <= node->num_elems; i++) {
                 lua_rawgeti(L, 1, i);
                 ((uint16_t*)node->indices_buffer)[i-1] = lua_tointeger(L, -1) - 1;
+                lua_pop(L, 1);
+            }
+            break;
+        case AM_ELEMENT_TYPE_UINT:
+            for (int i = 1; i <= node->num_elems; i++) {
+                lua_rawgeti(L, 1, i);
+                ((uint32_t*)node->indices_buffer)[i-1] = lua_tointeger(L, -1) - 1;
                 lua_pop(L, 1);
             }
             break;
