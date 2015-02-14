@@ -105,6 +105,7 @@ static int create_buffer_view(lua_State *L) {
     int stride = luaL_checkinteger(L, 4);
 
     int type_size = 0;
+    bool normalized = false;
     switch (type) {
         case AM_BUF_ELEM_TYPE_FLOAT:
             type_size = 4;
@@ -122,13 +123,28 @@ static int create_buffer_view(lua_State *L) {
         case AM_BUF_ELEM_TYPE_BYTE:
             type_size = 1;
             break;
+        case AM_BUF_ELEM_TYPE_UBYTE_NORM:
+        case AM_BUF_ELEM_TYPE_BYTE_NORM:
+            type_size = 1;
+            normalized = true;
+            break;
         case AM_BUF_ELEM_TYPE_USHORT:
         case AM_BUF_ELEM_TYPE_SHORT:
             type_size = 2;
             break;
+        case AM_BUF_ELEM_TYPE_USHORT_NORM:
+        case AM_BUF_ELEM_TYPE_SHORT_NORM:
+            type_size = 2;
+            normalized = true;
+            break;
         case AM_BUF_ELEM_TYPE_UINT:
         case AM_BUF_ELEM_TYPE_INT:
             type_size = 4;
+            break;
+        case AM_BUF_ELEM_TYPE_UINT_NORM:
+        case AM_BUF_ELEM_TYPE_INT_NORM:
+            type_size = 4;
+            normalized = true;
             break;
     }
     assert(type_size > 0);
@@ -147,11 +163,6 @@ static int create_buffer_view(lua_State *L) {
         }
     } else {
         size = max_size;
-    }
-
-    bool normalized = false;
-    if (nargs > 5) {
-        normalized = lua_toboolean(L, 6);
     }
 
     am_buffer_view *view = am_new_userdata(L, am_buffer_view);
@@ -191,51 +202,51 @@ static int buffer_view_index(lua_State *L) {
             break;
         }
         case AM_BUF_ELEM_TYPE_UBYTE: {
-            if (view->normalized) {
-                lua_pushnumber(L, ((lua_Number)view->get_ubyte(index-1)) / 255.0);
-            } else {
-                lua_pushinteger(L, view->get_ubyte(index-1));
-            }
+            lua_pushinteger(L, view->get_ubyte(index-1));
             break;
         }
         case AM_BUF_ELEM_TYPE_BYTE: {
-            if (view->normalized) {
-                lua_pushnumber(L, ((lua_Number)view->get_byte(index-1)) / 127.0);
-            } else {
-                lua_pushinteger(L, view->get_byte(index-1));
-            }
+            lua_pushinteger(L, view->get_byte(index-1));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UBYTE_NORM: {
+            lua_pushnumber(L, ((lua_Number)view->get_ubyte(index-1)) / 255.0);
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_BYTE_NORM: {
+            lua_pushnumber(L, ((lua_Number)view->get_byte(index-1)) / 127.0);
             break;
         }
         case AM_BUF_ELEM_TYPE_USHORT: {
-            if (view->normalized) {
-                lua_pushnumber(L, ((lua_Number)view->get_ushort(index-1)) / 65535.0);
-            } else {
-                lua_pushinteger(L, view->get_ushort(index-1));
-            }
+            lua_pushinteger(L, view->get_ushort(index-1));
             break;
         }
         case AM_BUF_ELEM_TYPE_SHORT: {
-            if (view->normalized) {
-                lua_pushnumber(L, ((lua_Number)view->get_short(index-1)) / 32767.0);
-            } else {
-                lua_pushinteger(L, view->get_short(index-1));
-            }
+            lua_pushinteger(L, view->get_short(index-1));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_USHORT_NORM: {
+            lua_pushnumber(L, ((lua_Number)view->get_ushort(index-1)) / 65535.0);
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_SHORT_NORM: {
+            lua_pushnumber(L, ((lua_Number)view->get_short(index-1)) / 32767.0);
             break;
         }
         case AM_BUF_ELEM_TYPE_UINT: {
-            if (view->normalized) {
-                lua_pushnumber(L, ((lua_Number)view->get_int(index-1)) / (lua_Number)UINT32_MAX);
-            } else {
-                lua_pushnumber(L, view->get_uint(index-1));
-            }
+            lua_pushnumber(L, view->get_uint(index-1));
             break;
         }
         case AM_BUF_ELEM_TYPE_INT: {
-            if (view->normalized) {
-                lua_pushnumber(L, ((lua_Number)view->get_int(index-1)) / 2147483647.0);
-            } else {
-                lua_pushinteger(L, view->get_int(index-1));
-            }
+            lua_pushinteger(L, view->get_int(index-1));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UINT_NORM: {
+            lua_pushnumber(L, ((lua_Number)view->get_int(index-1)) / (lua_Number)UINT32_MAX);
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_INT_NORM: {
+            lua_pushnumber(L, ((lua_Number)view->get_int(index-1)) / 2147483647.0);
             break;
         }
     }
@@ -270,51 +281,51 @@ static int buffer_view_newindex(lua_State *L) {
             break;
         }
         case AM_BUF_ELEM_TYPE_UBYTE: {
-            if (view->normalized) {
-                view->set_ubyte(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 255.0);
-            } else {
-                view->set_ubyte(index-1, am_clamp(luaL_checkinteger(L, 3), 0, 255));
-            }
+            view->set_ubyte(index-1, am_clamp(luaL_checkinteger(L, 3), 0, 255));
             break;
         }
         case AM_BUF_ELEM_TYPE_BYTE: {
-            if (view->normalized) {
-                view->set_byte(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 127.0);
-            } else {
-                view->set_byte(index-1, am_clamp(luaL_checkinteger(L, 3), INT8_MIN, INT8_MAX));
-            }
+            view->set_byte(index-1, am_clamp(luaL_checkinteger(L, 3), INT8_MIN, INT8_MAX));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UBYTE_NORM: {
+            view->set_ubyte(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 255.0);
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_BYTE_NORM: {
+            view->set_byte(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 127.0);
             break;
         }
         case AM_BUF_ELEM_TYPE_USHORT: {
-            if (view->normalized) {
-                view->set_ushort(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 65535.0);
-            } else {
-                view->set_ushort(index-1, am_clamp(luaL_checkinteger(L, 3), 0, UINT16_MAX));
-            }
+            view->set_ushort(index-1, am_clamp(luaL_checkinteger(L, 3), 0, UINT16_MAX));
             break;
         }
         case AM_BUF_ELEM_TYPE_SHORT: {
-            if (view->normalized) {
-                view->set_short(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 32767.0);
-            } else {
-                view->set_short(index-1, am_clamp(luaL_checkinteger(L, 3), INT16_MIN, INT16_MAX));
-            }
+            view->set_short(index-1, am_clamp(luaL_checkinteger(L, 3), INT16_MIN, INT16_MAX));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_USHORT_NORM: {
+            view->set_ushort(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 65535.0);
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_SHORT_NORM: {
+            view->set_short(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 32767.0);
             break;
         }
         case AM_BUF_ELEM_TYPE_UINT: {
-            if (view->normalized) {
-                view->set_uint(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * (lua_Number)UINT32_MAX);
-            } else {
-                view->set_uint(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, (lua_Number)UINT32_MAX));
-            }
+            view->set_uint(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, (lua_Number)UINT32_MAX));
             break;
         }
         case AM_BUF_ELEM_TYPE_INT: {
-            if (view->normalized) {
-                view->set_int(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 2147483647.0);
-            } else {
-                view->set_int(index-1, am_clamp(luaL_checkinteger(L, 3), INT32_MIN, INT32_MAX));
-            }
+            view->set_int(index-1, am_clamp(luaL_checkinteger(L, 3), INT32_MIN, INT32_MAX));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UINT_NORM: {
+            view->set_uint(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * (lua_Number)UINT32_MAX);
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_INT_NORM: {
+            view->set_int(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 2147483647.0);
             break;
         }
     }
@@ -368,10 +379,16 @@ static int buffer_view_set_num_table(lua_State *L) {
         case AM_BUF_ELEM_TYPE_FLOAT:
         case AM_BUF_ELEM_TYPE_UBYTE:
         case AM_BUF_ELEM_TYPE_BYTE:
+        case AM_BUF_ELEM_TYPE_UBYTE_NORM:
+        case AM_BUF_ELEM_TYPE_BYTE_NORM:
         case AM_BUF_ELEM_TYPE_USHORT:
         case AM_BUF_ELEM_TYPE_SHORT:
+        case AM_BUF_ELEM_TYPE_USHORT_NORM:
+        case AM_BUF_ELEM_TYPE_SHORT_NORM:
         case AM_BUF_ELEM_TYPE_UINT:
         case AM_BUF_ELEM_TYPE_INT:
+        case AM_BUF_ELEM_TYPE_UINT_NORM:
+        case AM_BUF_ELEM_TYPE_INT_NORM:
             max_nums = max_slots;
             break;
         case AM_BUF_ELEM_TYPE_FLOAT2:
@@ -433,86 +450,86 @@ static int buffer_view_set_num_table(lua_State *L) {
             break;
         }
         case AM_BUF_ELEM_TYPE_UBYTE: {
-            if (view->normalized) {
-                while (more) {
-                    SET_ONE(uint8_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * 255.0);
-                    ptr += view->stride;
-                }
-            } else {
-                while (more) {
-                    SET_ONE(uint8_t, am_clamp(lua_tointeger(L, -1), 0, 255));
-                    ptr += view->stride;
-                }
+            while (more) {
+                SET_ONE(uint8_t, am_clamp(lua_tointeger(L, -1), 0, 255));
+                ptr += view->stride;
             }
             break;
         }
         case AM_BUF_ELEM_TYPE_BYTE: {
-            if (view->normalized) {
-                while (more) {
-                    SET_ONE(int8_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 127.0);
-                    ptr += view->stride;
-                }
-            } else {
-                while (more) {
-                    SET_ONE(int8_t, am_clamp(lua_tointeger(L, -1), INT8_MIN, INT8_MAX));
-                    ptr += view->stride;
-                }
+            while (more) {
+                SET_ONE(int8_t, am_clamp(lua_tointeger(L, -1), INT8_MIN, INT8_MAX));
+                ptr += view->stride;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UBYTE_NORM: {
+            while (more) {
+                SET_ONE(uint8_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * 255.0);
+                ptr += view->stride;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_BYTE_NORM: {
+            while (more) {
+                SET_ONE(int8_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 127.0);
+                ptr += view->stride;
             }
             break;
         }
         case AM_BUF_ELEM_TYPE_USHORT: {
-            if (view->normalized) {
-                while (more) {
-                    SET_ONE(uint16_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * 65535.0);
-                    ptr += view->stride;
-                }
-            } else {
-                while (more) {
-                    SET_ONE(uint16_t, am_clamp(lua_tointeger(L, -1), 0, UINT16_MAX));
-                    ptr += view->stride;
-                }
+            while (more) {
+                SET_ONE(uint16_t, am_clamp(lua_tointeger(L, -1), 0, UINT16_MAX));
+                ptr += view->stride;
             }
             break;
         }
         case AM_BUF_ELEM_TYPE_SHORT: {
-            if (view->normalized) {
-                while (more) {
-                    SET_ONE(int16_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 32767.0);
-                    ptr += view->stride;
-                }
-            } else {
-                while (more) {
-                    SET_ONE(int16_t, am_clamp(lua_tointeger(L, -1), INT16_MIN, INT16_MAX));
-                    ptr += view->stride;
-                }
+            while (more) {
+                SET_ONE(int16_t, am_clamp(lua_tointeger(L, -1), INT16_MIN, INT16_MAX));
+                ptr += view->stride;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_USHORT_NORM: {
+            while (more) {
+                SET_ONE(uint16_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * 65535.0);
+                ptr += view->stride;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_SHORT_NORM: {
+            while (more) {
+                SET_ONE(int16_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 32767.0);
+                ptr += view->stride;
             }
             break;
         }
         case AM_BUF_ELEM_TYPE_UINT: {
-            if (view->normalized) {
-                while (more) {
-                    SET_ONE(uint32_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * (lua_Number)UINT32_MAX);
-                    ptr += view->stride;
-                }
-            } else {
-                while (more) {
-                    SET_ONE(uint32_t, am_clamp(lua_tonumber(L, -1), 0.0, (lua_Number)UINT32_MAX));
-                    ptr += view->stride;
-                }
+            while (more) {
+                SET_ONE(uint32_t, am_clamp(lua_tonumber(L, -1), 0.0, (lua_Number)UINT32_MAX));
+                ptr += view->stride;
             }
             break;
         }
         case AM_BUF_ELEM_TYPE_INT: {
-            if (view->normalized) {
-                while (more) {
-                    SET_ONE(int32_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 2147483647.0);
-                    ptr += view->stride;
-                }
-            } else {
-                while (more) {
-                    SET_ONE(int32_t, am_clamp(lua_tointeger(L, -1), INT32_MIN, INT32_MAX));
-                    ptr += view->stride;
-                }
+            while (more) {
+                SET_ONE(int32_t, am_clamp(lua_tointeger(L, -1), INT32_MIN, INT32_MAX));
+                ptr += view->stride;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UINT_NORM: {
+            while (more) {
+                SET_ONE(uint32_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * (lua_Number)UINT32_MAX);
+                ptr += view->stride;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_INT_NORM: {
+            while (more) {
+                SET_ONE(int32_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 2147483647.0);
+                ptr += view->stride;
             }
             break;
         }
@@ -571,10 +588,16 @@ void am_open_buffer_module(lua_State *L) {
         {"vec4",            AM_BUF_ELEM_TYPE_FLOAT4},
         {"ubyte",           AM_BUF_ELEM_TYPE_UBYTE},
         {"byte",            AM_BUF_ELEM_TYPE_BYTE},
+        {"ubyte_norm",      AM_BUF_ELEM_TYPE_UBYTE_NORM},
+        {"byte_norm",       AM_BUF_ELEM_TYPE_BYTE_NORM},
         {"ushort",          AM_BUF_ELEM_TYPE_USHORT},
         {"short",           AM_BUF_ELEM_TYPE_SHORT},
+        {"ushort_norm",     AM_BUF_ELEM_TYPE_USHORT_NORM},
+        {"short_norm",      AM_BUF_ELEM_TYPE_SHORT_NORM},
         {"uint",            AM_BUF_ELEM_TYPE_UINT},
         {"int",             AM_BUF_ELEM_TYPE_INT},
+        {"uint_norm",       AM_BUF_ELEM_TYPE_UINT_NORM},
+        {"int_norm",        AM_BUF_ELEM_TYPE_INT_NORM},
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_buffer_view_type, view_type_enum);

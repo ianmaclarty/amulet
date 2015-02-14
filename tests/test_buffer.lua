@@ -85,50 +85,50 @@ print(viewub[2])
 viewub[3] = -20
 print(viewub[3])
 
-local viewubn = buf2:view("ubyte", 0, 1, 10, true)
+local viewubn = buf2:view("ubyte_norm", 0, 1, 10)
 print(viewubn[1] * 255)
 print(viewubn[10] * 255)
 viewubn[2] = 0.5
 print(viewubn[2] * 255)
 print(viewub[2])
 
-local viewbyte = buf2:view("byte", 0, 1, 1, false)
+local viewbyte = buf2:view("byte", 0, 1, 1)
 viewbyte[1] = -123
 print(viewbyte[1])
 
-local viewbyten = buf2:view("byte", 0, 1, 2, true)
+local viewbyten = buf2:view("byte_norm", 0, 1, 2)
 viewbyten[2] = -123/127
 print(math.floor(viewbyten[2]*127))
 
-local viewushort = buf2:view("ushort", 0, 2, 5, false)
+local viewushort = buf2:view("ushort", 0, 2, 5)
 viewushort[1] = 60000
 print(viewushort[1])
 
-local viewshort = buf2:view("short", 0, 2, 5, false)
+local viewshort = buf2:view("short", 0, 2, 5)
 viewshort[1] = -20000
 print(viewshort[1])
 
-local viewuint = buf2:view("uint", 0, 4, 2, false)
+local viewuint = buf2:view("uint", 0, 4, 2)
 viewuint[1] = 0xFFFFFFFF
 print(viewuint[1])
 
-local viewint = buf2:view("int", 0, 4, 2, false)
+local viewint = buf2:view("int", 0, 4, 2)
 viewint[1] = -9999999
 print(viewint[1])
 
-local viewushortn = buf2:view("ushort", 0, 2, 5, true)
+local viewushortn = buf2:view("ushort_norm", 0, 2, 5)
 viewushortn[1] = 0.5
 print(string.format("%0.2f", viewushortn[1]))
 
-local viewshortn = buf2:view("short", 0, 2, 5, true)
+local viewshortn = buf2:view("short_norm", 0, 2, 5)
 viewshortn[1] = -0.5
 print(string.format("%0.2f", viewshortn[1]))
 
-local viewuintn = buf2:view("uint", 0, 4, 2, true)
+local viewuintn = buf2:view("uint_norm", 0, 4, 2)
 viewuintn[1] = 0.25
 print(string.format("%0.2f", viewuintn[1]))
 
-local viewintn = buf2:view("int", 0, 4, 2, true)
+local viewintn = buf2:view("int_norm", 0, 4, 2)
 viewintn[1] = -0.25
 print(string.format("%0.2f", viewintn[1]))
 
