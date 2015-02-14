@@ -4,10 +4,13 @@ am_buffer::am_buffer() {
     origin = "unnamed buffer";
     origin_ref = LUA_NOREF;
     arraybuf_id = 0;
+    elembuf_id = 0;
     texture2d = NULL;
     texture2d_ref = LUA_NOREF;
     dirty_start = INT_MAX;
     dirty_end = 0;
+    track_dirty = false;
+    version = 1;
 }
 
 am_buffer::am_buffer(int sz) {
@@ -17,10 +20,13 @@ am_buffer::am_buffer(int sz) {
     origin = "unnamed buffer";
     origin_ref = LUA_NOREF;
     arraybuf_id = 0;
+    elembuf_id = 0;
     texture2d = NULL;
     texture2d_ref = LUA_NOREF;
     dirty_start = INT_MAX;
     dirty_end = 0;
+    track_dirty = false;
+    version = 1;
 }
 
 void am_buffer::destroy() {
@@ -28,6 +34,10 @@ void am_buffer::destroy() {
     if (arraybuf_id != 0) {
         am_delete_buffer(arraybuf_id);
         arraybuf_id = 0;
+    }
+    if (elembuf_id != 0) {
+        am_delete_buffer(elembuf_id);
+        elembuf_id = 0;
     }
 }
 
@@ -37,11 +47,16 @@ void am_buffer::update_if_dirty() {
             am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
             am_set_buffer_sub_data(AM_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
         } 
+        if (elembuf_id != 0) {
+            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
+            am_set_buffer_sub_data(AM_ELEMENT_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
+        } 
         if (texture2d != NULL) {
             texture2d->update_from_buffer();
         }
         dirty_start = INT_MAX;
         dirty_end = 0;
+        version++;
     }
 }
 
@@ -51,6 +66,48 @@ void am_buffer::create_arraybuf() {
     arraybuf_id = am_create_buffer_object();
     am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
     am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
+    track_dirty = true;
+}
+
+void am_buffer::create_elembuf() {
+    assert(elembuf_id == 0);
+    update_if_dirty();
+    elembuf_id = am_create_buffer_object();
+    am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
+    am_set_buffer_data(AM_ELEMENT_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
+    track_dirty = true;
+}
+
+void am_buffer_view::update_max_elem_if_required() {
+    if (last_max_elem_version < buffer->version) {
+        switch (type) {
+            case AM_BUF_ELEM_TYPE_USHORT_ELEM: {
+                uint8_t *ptr = buffer->data + offset;
+                uint16_t max = 0;
+                for (int i = 0; i < size; i++) {
+                    uint16_t val = *((uint16_t*)ptr);
+                    if (val > max) val = max;
+                    ptr += stride;
+                }
+                max_elem = max;
+                break;
+            }
+            case AM_BUF_ELEM_TYPE_UINT_ELEM: {
+                uint8_t *ptr = buffer->data + offset;
+                uint32_t max = 0;
+                for (int i = 0; i < size; i++) {
+                    uint32_t val = *((uint32_t*)ptr);
+                    if (val > max) val = max;
+                    ptr += stride;
+                }
+                max_elem = max;
+                break;
+            }
+            default:
+                break;
+        }
+        last_max_elem_version = buffer->version;
+    }
 }
 
 static int create_buffer(lua_State *L) {
@@ -176,6 +233,8 @@ static int create_buffer_view(lua_State *L) {
     view->type = type;
     view->type_size = type_size;
     view->normalized = normalized;
+    view->last_max_elem_version = 0;
+    view->max_elem = 0;
 
     return 1;
 }
@@ -348,7 +407,7 @@ static int buffer_view_newindex(lua_State *L) {
         }
     }
     am_buffer *buf = view->buffer;
-    if (buf->arraybuf_id != 0 || buf->texture2d != NULL) {
+    if (buf->track_dirty) {
         int byte_start = view->offset + view->stride * (index-1);
         int byte_end = byte_start + view->type_size;
         if (byte_start < buf->dirty_start) {

@@ -27,15 +27,19 @@ struct am_buffer : am_nonatomic_userdata {
     const char          *origin;
     int                 origin_ref;
     am_buffer_id        arraybuf_id;
+    am_buffer_id        elembuf_id;
     am_texture2d        *texture2d;
     int                 texture2d_ref;
     int                 dirty_start;
     int                 dirty_end;
+    bool                track_dirty;
+    uint32_t            version;
 
     am_buffer();
     am_buffer(int sz);
     void destroy();
     void create_arraybuf();
+    void create_elembuf();
     void update_if_dirty();
 };
 
@@ -48,6 +52,8 @@ struct am_buffer_view : am_nonatomic_userdata {
     am_buffer_view_type type;
     int                 type_size; // size of each element in bytes
     bool                normalized;
+    uint32_t            max_elem;
+    uint32_t            last_max_elem_version;
 
     inline uint8_t* view_index_ptr(am_buffer_view *view, int i) {
         return &view->buffer->data[view->offset + view->stride * i];
@@ -132,6 +138,8 @@ struct am_buffer_view : am_nonatomic_userdata {
     inline void set_int(int i, int32_t v) {
         *((int32_t*)view_index_ptr(this, i)) = v;
     }
+
+    void update_max_elem_if_required();
 };
 
 typedef am_buffer_view am_buffer_view_float;

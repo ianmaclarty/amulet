@@ -20,17 +20,12 @@ local
 function create_audio_buffer()
     local rate = 44100
     local freq = 440
-    audio_buffer = am.decode_ogg(am.read_buffer("tone.ogg"))
-    num_samples = #audio_buffer / 8
-    audio_data_view = audio_buffer:view("float", 0, 4, num_samples)
-    --[[
     num_samples = math.floor(rate / freq)
     audio_buffer = am.buffer(num_samples * 4)
     audio_data_view = audio_buffer:view("float", 0, 4)
     for i = 1, num_samples do
         audio_data_view[i] = 0.5 * math.sin(((i-1)/num_samples) * 2 * math.pi)
     end
-    ]]
 end
 
 local

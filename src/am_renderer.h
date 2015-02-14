@@ -140,11 +140,8 @@ struct am_draw_elements_node : am_scene_node {
     int count;
     am_draw_mode mode;
     am_element_index_type type;
-    void *indices_buffer;
-    int buffer_size;
-    int num_elems;
-    int max_elem;
-    am_buffer_id elembuf_id;
+    am_buffer_view *indices_view;
+    int view_ref;
 
     am_draw_elements_node();
     virtual void render(am_render_state *rstate);

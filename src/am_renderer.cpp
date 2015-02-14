@@ -193,32 +193,14 @@ am_draw_elements_node::am_draw_elements_node() {
     count = INT_MAX;
     mode = AM_DRAWMODE_TRIANGLES;
     type = AM_ELEMENT_TYPE_USHORT;
-    indices_buffer = NULL;
-    num_elems = 0;
-    max_elem = 0;
-    elembuf_id = 0;
-}
-
-static int draw_elements_node_gc(lua_State *L) {
-    am_draw_elements_node *node = am_get_userdata(L, am_draw_elements_node, 1);
-    if (node->indices_buffer != NULL) {
-        free(node->indices_buffer);
-        node->indices_buffer = NULL;
-    }
-    if (node->elembuf_id != 0) {
-        am_delete_buffer(node->elembuf_id);
-        node->elembuf_id = 0;
-    }
-    return 0;
+    indices_view = NULL;
+    view_ref = LUA_NOREF;
 }
 
 static void register_draw_elements_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
-
-    lua_pushcclosure(L, draw_elements_node_gc, 0);
-    lua_setfield(L, -2, "__gc");
 
     lua_pushstring(L, "draw_elements");
     lua_setfield(L, -2, "tname");
@@ -227,82 +209,37 @@ static void register_draw_elements_node_mt(lua_State *L) {
 }
 
 void am_draw_elements_node::render(am_render_state *rstate) {
-    if (elembuf_id == 0) {
-        elembuf_id = am_create_buffer_object();
-        am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
-        am_set_buffer_data(AM_ELEMENT_ARRAY_BUFFER, buffer_size,
-            indices_buffer, AM_BUFFER_USAGE_STATIC_DRAW);
+    if (indices_view->buffer->elembuf_id == 0) {
+        indices_view->buffer->create_elembuf();
     }
-    rstate->draw_elements(mode, first, count, elembuf_id, type, num_elems, max_elem);
+    indices_view->buffer->update_if_dirty();
+    indices_view->update_max_elem_if_required();
+    rstate->draw_elements(mode, first, count, indices_view->buffer->elembuf_id, type,
+        indices_view->size, indices_view->max_elem);
 }
 
 static int create_draw_elements_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
-    if (!lua_istable(L, 1)) {
-        return luaL_error(L, "expecting a table in position 1");
-    }
+    am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, 1);
     am_draw_elements_node *node = am_new_userdata(L, am_draw_elements_node);
-    //  work out how many elements there are and their maximum value
-    int i = 1;
-    node->max_elem = -1;
-    while (true) {
-        lua_rawgeti(L, 1, i);
-        if (lua_isnil(L, -1)) {
-            lua_pop(L, 1);
-            node->num_elems = i - 1;
-            break;
-        }
-        int val = lua_tointeger(L, -1) - 1;
-        lua_pop(L, 1);
-        if (val < 0) {
-            return luaL_error(L, "indices table should contain only positive integers");
-        }
-        if (val > node->max_elem) {
-            node->max_elem = val;
-        }
-        i++;
-    }
-    if (node->num_elems == 0) {
-        return luaL_error(L, "indices table is empty");
-    }
-    assert(node->max_elem >= 0);
-    // compute the indices buffer type
-    if (node->max_elem < (1<<8)) {
-        node->type = AM_ELEMENT_TYPE_UBYTE;
-        node->buffer_size = node->num_elems;
-    } else if (node->max_elem < (1<<16)) { 
-        node->type = AM_ELEMENT_TYPE_USHORT;
-        node->buffer_size = node->num_elems * 2;
-    } else {
-        node->type = AM_ELEMENT_TYPE_UINT;
-        node->buffer_size = node->num_elems * 4;
-    }
-    // create the indices buffer
-    node->indices_buffer = malloc(node->buffer_size);
-    // fill it with data
-    switch (node->type) {
-        case AM_ELEMENT_TYPE_UBYTE:
-            for (i = 1; i <= node->num_elems; i++) {
-                lua_rawgeti(L, 1, i);
-                ((uint8_t*)node->indices_buffer)[i-1] = lua_tointeger(L, -1) - 1;
-                lua_pop(L, 1);
+    switch (indices_view->type) {
+        case AM_BUF_ELEM_TYPE_USHORT_ELEM:
+            if (indices_view->stride != 2) {
+                return luaL_error(L, "ushort_elem array must have stride 2 when used with draw_elements");
             }
+            node->type = AM_ELEMENT_TYPE_USHORT;
             break;
-        case AM_ELEMENT_TYPE_USHORT:
-            for (int i = 1; i <= node->num_elems; i++) {
-                lua_rawgeti(L, 1, i);
-                ((uint16_t*)node->indices_buffer)[i-1] = lua_tointeger(L, -1) - 1;
-                lua_pop(L, 1);
+        case AM_BUF_ELEM_TYPE_UINT_ELEM:
+            if (indices_view->stride != 4) {
+                return luaL_error(L, "uint_elem array must have stride 4 when used with draw_elements");
             }
+            node->type = AM_ELEMENT_TYPE_UINT;
             break;
-        case AM_ELEMENT_TYPE_UINT:
-            for (int i = 1; i <= node->num_elems; i++) {
-                lua_rawgeti(L, 1, i);
-                ((uint32_t*)node->indices_buffer)[i-1] = lua_tointeger(L, -1) - 1;
-                lua_pop(L, 1);
-            }
-            break;
+        default:
+            return luaL_error(L, "only ushort_elem and uint_elem views can be used as element arrays");
     }
+    node->indices_view = indices_view;
+    node->view_ref = node->ref(L, 1);
     if (nargs > 1) {
         node->mode = am_get_enum(L, am_draw_mode, 2);
     }
@@ -310,7 +247,7 @@ static int create_draw_elements_node(lua_State *L) {
         node->first = luaL_checkinteger(L, 3) - 1;
         if (node->first < 0) {
             return luaL_error(L, "argument 3 must be positive");
-        } else if (node->first >= node->num_elems) {
+        } else if (node->first >= indices_view->size) {
             return luaL_error(L, "argument 3 is out of bounds");
         }
     }

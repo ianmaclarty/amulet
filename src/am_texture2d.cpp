@@ -113,6 +113,7 @@ static int create_texture2d(lua_State *L) {
         buffer->update_if_dirty();
         buffer->texture2d = texture;
         buffer->texture2d_ref = buffer->ref(L, -1);
+        buffer->track_dirty = true;
     } else {
         void *data = malloc(required_size);
         memset(data, 0, required_size);
