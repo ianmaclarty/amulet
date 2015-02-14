@@ -104,6 +104,12 @@ local viewushort = buf2:view("ushort", 0, 2, 5)
 viewushort[1] = 60000
 print(viewushort[1])
 
+local viewushort_elem = buf2:view("ushort_elem", 0, 2, 5)
+viewushort_elem[3] = 1
+viewushort_elem[4] = 2^16
+print(viewushort_elem[3])
+print(viewushort_elem[4])
+
 local viewshort = buf2:view("short", 0, 2, 5)
 viewshort[1] = -20000
 print(viewshort[1])
@@ -111,6 +117,12 @@ print(viewshort[1])
 local viewuint = buf2:view("uint", 0, 4, 2)
 viewuint[1] = 0xFFFFFFFF
 print(viewuint[1])
+
+local viewuint_elem = buf2:view("uint_elem", 0, 4, 2)
+viewuint_elem[1] = 1
+viewuint_elem[2] = 2^32
+print(viewuint_elem[1])
+print(viewuint_elem[2])
 
 local viewint = buf2:view("int", 0, 4, 2)
 viewint[1] = -9999999

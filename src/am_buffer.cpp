@@ -130,6 +130,7 @@ static int create_buffer_view(lua_State *L) {
             break;
         case AM_BUF_ELEM_TYPE_USHORT:
         case AM_BUF_ELEM_TYPE_SHORT:
+        case AM_BUF_ELEM_TYPE_USHORT_ELEM:
             type_size = 2;
             break;
         case AM_BUF_ELEM_TYPE_USHORT_NORM:
@@ -139,6 +140,7 @@ static int create_buffer_view(lua_State *L) {
             break;
         case AM_BUF_ELEM_TYPE_UINT:
         case AM_BUF_ELEM_TYPE_INT:
+        case AM_BUF_ELEM_TYPE_UINT_ELEM:
             type_size = 4;
             break;
         case AM_BUF_ELEM_TYPE_UINT_NORM:
@@ -225,6 +227,10 @@ static int buffer_view_index(lua_State *L) {
             lua_pushinteger(L, view->get_short(index-1));
             break;
         }
+        case AM_BUF_ELEM_TYPE_USHORT_ELEM: {
+            lua_pushinteger(L, view->get_ushort(index-1)+1);
+            break;
+        }
         case AM_BUF_ELEM_TYPE_USHORT_NORM: {
             lua_pushnumber(L, ((lua_Number)view->get_ushort(index-1)) / 65535.0);
             break;
@@ -239,6 +245,10 @@ static int buffer_view_index(lua_State *L) {
         }
         case AM_BUF_ELEM_TYPE_INT: {
             lua_pushinteger(L, view->get_int(index-1));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UINT_ELEM: {
+            lua_pushnumber(L, (lua_Number)view->get_uint(index-1)+1.0);
             break;
         }
         case AM_BUF_ELEM_TYPE_UINT_NORM: {
@@ -304,6 +314,10 @@ static int buffer_view_newindex(lua_State *L) {
             view->set_short(index-1, am_clamp(luaL_checkinteger(L, 3), INT16_MIN, INT16_MAX));
             break;
         }
+        case AM_BUF_ELEM_TYPE_USHORT_ELEM: {
+            view->set_ushort(index-1, am_clamp(luaL_checkinteger(L, 3)-1, 0, UINT16_MAX));
+            break;
+        }
         case AM_BUF_ELEM_TYPE_USHORT_NORM: {
             view->set_ushort(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 65535.0);
             break;
@@ -318,6 +332,10 @@ static int buffer_view_newindex(lua_State *L) {
         }
         case AM_BUF_ELEM_TYPE_INT: {
             view->set_int(index-1, am_clamp(luaL_checkinteger(L, 3), INT32_MIN, INT32_MAX));
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UINT_ELEM: {
+            view->set_uint(index-1, am_clamp(luaL_checknumber(L, 3)-1.0, 0.0, (lua_Number)UINT32_MAX));
             break;
         }
         case AM_BUF_ELEM_TYPE_UINT_NORM: {
@@ -383,10 +401,12 @@ static int buffer_view_set_num_table(lua_State *L) {
         case AM_BUF_ELEM_TYPE_BYTE_NORM:
         case AM_BUF_ELEM_TYPE_USHORT:
         case AM_BUF_ELEM_TYPE_SHORT:
+        case AM_BUF_ELEM_TYPE_USHORT_ELEM:
         case AM_BUF_ELEM_TYPE_USHORT_NORM:
         case AM_BUF_ELEM_TYPE_SHORT_NORM:
         case AM_BUF_ELEM_TYPE_UINT:
         case AM_BUF_ELEM_TYPE_INT:
+        case AM_BUF_ELEM_TYPE_UINT_ELEM:
         case AM_BUF_ELEM_TYPE_UINT_NORM:
         case AM_BUF_ELEM_TYPE_INT_NORM:
             max_nums = max_slots;
@@ -491,6 +511,13 @@ static int buffer_view_set_num_table(lua_State *L) {
             }
             break;
         }
+        case AM_BUF_ELEM_TYPE_USHORT_ELEM: {
+            while (more) {
+                SET_ONE(uint16_t, am_clamp(lua_tointeger(L, -1)-1, 0, UINT16_MAX));
+                ptr += view->stride;
+            }
+            break;
+        }
         case AM_BUF_ELEM_TYPE_USHORT_NORM: {
             while (more) {
                 SET_ONE(uint16_t, am_clamp(lua_tonumber(L, -1), 0.0, 1.0) * 65535.0);
@@ -515,6 +542,13 @@ static int buffer_view_set_num_table(lua_State *L) {
         case AM_BUF_ELEM_TYPE_INT: {
             while (more) {
                 SET_ONE(int32_t, am_clamp(lua_tointeger(L, -1), INT32_MIN, INT32_MAX));
+                ptr += view->stride;
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_UINT_ELEM: {
+            while (more) {
+                SET_ONE(uint32_t, am_clamp(lua_tonumber(L, -1)-1, 0.0, (lua_Number)UINT32_MAX));
                 ptr += view->stride;
             }
             break;
@@ -592,10 +626,12 @@ void am_open_buffer_module(lua_State *L) {
         {"byte_norm",       AM_BUF_ELEM_TYPE_BYTE_NORM},
         {"ushort",          AM_BUF_ELEM_TYPE_USHORT},
         {"short",           AM_BUF_ELEM_TYPE_SHORT},
+        {"ushort_elem",     AM_BUF_ELEM_TYPE_USHORT_ELEM},
         {"ushort_norm",     AM_BUF_ELEM_TYPE_USHORT_NORM},
         {"short_norm",      AM_BUF_ELEM_TYPE_SHORT_NORM},
         {"uint",            AM_BUF_ELEM_TYPE_UINT},
         {"int",             AM_BUF_ELEM_TYPE_INT},
+        {"uint_elem",       AM_BUF_ELEM_TYPE_UINT_ELEM},
         {"uint_norm",       AM_BUF_ELEM_TYPE_UINT_NORM},
         {"int_norm",        AM_BUF_ELEM_TYPE_INT_NORM},
         {NULL, 0}

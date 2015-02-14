@@ -720,10 +720,12 @@ const char *am_program_param_client_type_name(am_program_param_name_slot *slot) 
                 case AM_BUF_ELEM_TYPE_BYTE_NORM: return "array of normalized bytes";
                 case AM_BUF_ELEM_TYPE_USHORT: return "array of ushorts";
                 case AM_BUF_ELEM_TYPE_SHORT: return "array of shorts";
+                case AM_BUF_ELEM_TYPE_USHORT_ELEM: return "array of ushort indices";
                 case AM_BUF_ELEM_TYPE_USHORT_NORM: return "array of normalized ushorts";
                 case AM_BUF_ELEM_TYPE_SHORT_NORM: return "array of normalized shorts";
                 case AM_BUF_ELEM_TYPE_UINT: return "array of uints";
                 case AM_BUF_ELEM_TYPE_INT: return "array of ints";
+                case AM_BUF_ELEM_TYPE_UINT_ELEM: return "array of uint indices";
                 case AM_BUF_ELEM_TYPE_UINT_NORM: return "array of normalized uints";
                 case AM_BUF_ELEM_TYPE_INT_NORM: return "array of normalized ints";
             }
