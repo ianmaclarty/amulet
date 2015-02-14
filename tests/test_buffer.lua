@@ -92,6 +92,14 @@ viewubn[2] = 0.5
 print(viewubn[2] * 255)
 print(viewub[2])
 
+local viewbyte = buf2:view("byte", 0, 1, 1, false)
+viewbyte[1] = -123
+print(viewbyte[1])
+
+local viewbyten = buf2:view("byte", 0, 1, 2, true)
+viewbyten[2] = -123/127
+print(math.floor(viewbyten[2]*127))
+
 local viewushort = buf2:view("ushort", 0, 2, 5, false)
 viewushort[1] = 60000
 print(viewushort[1])

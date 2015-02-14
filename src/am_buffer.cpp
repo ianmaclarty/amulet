@@ -107,31 +107,28 @@ static int create_buffer_view(lua_State *L) {
     int type_size = 0;
     switch (type) {
         case AM_BUF_ELEM_TYPE_FLOAT:
-            type_size = sizeof(float);
+            type_size = 4;
             break;
         case AM_BUF_ELEM_TYPE_FLOAT2:
-            type_size = sizeof(float) * 2;
+            type_size = 8;
             break;
         case AM_BUF_ELEM_TYPE_FLOAT3:
-            type_size = sizeof(float) * 3;
+            type_size = 12;
             break;
         case AM_BUF_ELEM_TYPE_FLOAT4:
-            type_size = sizeof(float) * 4;
+            type_size = 16;
             break;
         case AM_BUF_ELEM_TYPE_UBYTE:
-            type_size = sizeof(uint8_t);
+        case AM_BUF_ELEM_TYPE_BYTE:
+            type_size = 1;
             break;
         case AM_BUF_ELEM_TYPE_USHORT:
-            type_size = sizeof(uint16_t);
-            break;
         case AM_BUF_ELEM_TYPE_SHORT:
-            type_size = sizeof(int16_t);
+            type_size = 2;
             break;
         case AM_BUF_ELEM_TYPE_UINT:
-            type_size = sizeof(int32_t);
-            break;
         case AM_BUF_ELEM_TYPE_INT:
-            type_size = sizeof(int32_t);
+            type_size = 4;
             break;
     }
     assert(type_size > 0);
@@ -198,6 +195,14 @@ static int buffer_view_index(lua_State *L) {
                 lua_pushnumber(L, ((lua_Number)view->get_ubyte(index-1)) / 255.0);
             } else {
                 lua_pushinteger(L, view->get_ubyte(index-1));
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_BYTE: {
+            if (view->normalized) {
+                lua_pushnumber(L, ((lua_Number)view->get_byte(index-1)) / 127.0);
+            } else {
+                lua_pushinteger(L, view->get_byte(index-1));
             }
             break;
         }
@@ -269,6 +274,14 @@ static int buffer_view_newindex(lua_State *L) {
                 view->set_ubyte(index-1, am_clamp(luaL_checknumber(L, 3), 0.0, 1.0) * 255.0);
             } else {
                 view->set_ubyte(index-1, am_clamp(luaL_checkinteger(L, 3), 0, 255));
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_BYTE: {
+            if (view->normalized) {
+                view->set_byte(index-1, am_clamp(luaL_checknumber(L, 3), -1.0, 1.0) * 127.0);
+            } else {
+                view->set_byte(index-1, am_clamp(luaL_checkinteger(L, 3), INT8_MIN, INT8_MAX));
             }
             break;
         }
@@ -354,6 +367,7 @@ static int buffer_view_set_num_table(lua_State *L) {
     switch (view->type) {
         case AM_BUF_ELEM_TYPE_FLOAT:
         case AM_BUF_ELEM_TYPE_UBYTE:
+        case AM_BUF_ELEM_TYPE_BYTE:
         case AM_BUF_ELEM_TYPE_USHORT:
         case AM_BUF_ELEM_TYPE_SHORT:
         case AM_BUF_ELEM_TYPE_UINT:
@@ -427,6 +441,20 @@ static int buffer_view_set_num_table(lua_State *L) {
             } else {
                 while (more) {
                     SET_ONE(uint8_t, am_clamp(lua_tointeger(L, -1), 0, 255));
+                    ptr += view->stride;
+                }
+            }
+            break;
+        }
+        case AM_BUF_ELEM_TYPE_BYTE: {
+            if (view->normalized) {
+                while (more) {
+                    SET_ONE(int8_t, am_clamp(lua_tonumber(L, -1), -1.0, 1.0) * 127.0);
+                    ptr += view->stride;
+                }
+            } else {
+                while (more) {
+                    SET_ONE(int8_t, am_clamp(lua_tointeger(L, -1), INT8_MIN, INT8_MAX));
                     ptr += view->stride;
                 }
             }
@@ -542,6 +570,7 @@ void am_open_buffer_module(lua_State *L) {
         {"vec3",            AM_BUF_ELEM_TYPE_FLOAT3},
         {"vec4",            AM_BUF_ELEM_TYPE_FLOAT4},
         {"ubyte",           AM_BUF_ELEM_TYPE_UBYTE},
+        {"byte",            AM_BUF_ELEM_TYPE_BYTE},
         {"ushort",          AM_BUF_ELEM_TYPE_USHORT},
         {"short",           AM_BUF_ELEM_TYPE_SHORT},
         {"uint",            AM_BUF_ELEM_TYPE_UINT},

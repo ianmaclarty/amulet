@@ -715,6 +715,7 @@ const char *am_program_param_client_type_name(am_program_param_name_slot *slot) 
                 case AM_BUF_ELEM_TYPE_FLOAT3: return "array of vec3s";
                 case AM_BUF_ELEM_TYPE_FLOAT4: return "array of vec4s";
                 case AM_BUF_ELEM_TYPE_UBYTE: return "array of ubytes";
+                case AM_BUF_ELEM_TYPE_BYTE: return "array of bytes";
                 case AM_BUF_ELEM_TYPE_USHORT: return "array of ushorts";
                 case AM_BUF_ELEM_TYPE_SHORT: return "array of shorts";
                 case AM_BUF_ELEM_TYPE_UINT: return "array of uints";
