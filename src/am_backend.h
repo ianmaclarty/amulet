@@ -29,4 +29,4 @@ double am_get_current_time();
 bool am_set_relative_mouse_mode(bool enabled);
 
 // returned pointer and errmsg should be freed with free()
-void *am_read_resource(const char *filename, int *len, char** errmsg);
+void *am_read_resource(const char *filename, int *len, bool append_null, char** errmsg);

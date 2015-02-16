@@ -86,7 +86,7 @@ void am_buffer_view::update_max_elem_if_required() {
                 uint16_t max = 0;
                 for (int i = 0; i < size; i++) {
                     uint16_t val = *((uint16_t*)ptr);
-                    if (val > max) val = max;
+                    if (val > max) max = val;
                     ptr += stride;
                 }
                 max_elem = max;
@@ -97,7 +97,7 @@ void am_buffer_view::update_max_elem_if_required() {
                 uint32_t max = 0;
                 for (int i = 0; i < size; i++) {
                     uint32_t val = *((uint32_t*)ptr);
-                    if (val > max) val = max;
+                    if (val > max) max = val;
                     ptr += stride;
                 }
                 max_elem = max;
@@ -123,7 +123,7 @@ static int read_buffer(lua_State *L) {
     const char *filename = luaL_checkstring(L, 1);
     int len;
     char *errmsg;
-    void *data = am_read_resource(filename, &len, &errmsg);
+    void *data = am_read_resource(filename, &len, false, &errmsg);
     if (data == NULL) {
         if (errmsg != NULL) {
             return luaL_error(L, "error reading buffer '%s': %s", filename, errmsg);

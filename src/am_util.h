@@ -16,3 +16,8 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 
 #define am_min(x, y) ((x) < (y) ? (x) : (y))
 #define am_max(x, y) ((x) > (y) ? (x) : (y))
+
+#define AM_PI 3.14159265358979323846
+
+// returned string should be freed with free()
+char *am_format(const char *fmt, ...);

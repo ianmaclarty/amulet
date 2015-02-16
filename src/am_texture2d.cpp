@@ -1,6 +1,9 @@
 #include "amulet.h"
 
 static int create_texture2d(lua_State *L) {
+    if (!am_gl_is_initialized()) {
+        return luaL_error(L, "you need to create a window before creating a texture");
+    }
     am_check_nargs(L, 1);
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
     int width = 0;

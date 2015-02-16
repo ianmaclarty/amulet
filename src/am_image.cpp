@@ -91,6 +91,7 @@ static uint8_t* read_png(uint8_t *data, int sz, int *width, int *height) {
 }
 
 static int decode_png(lua_State *L) {
+    am_check_nargs(L, 1);
     am_buffer *rawbuf = am_get_userdata(L, am_buffer, 1);
     int width, height;
     uint8_t *img_data = read_png(rawbuf->data, rawbuf->size, &width, &height);

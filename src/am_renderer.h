@@ -119,7 +119,7 @@ struct am_render_state {
 
     void draw_arrays(am_draw_mode mode, int first, int count);
     void draw_elements(am_draw_mode mode, int first, int count,
-        am_buffer_id buf_id, am_element_index_type type, int num_elems, int max_elem);
+        am_buffer_view *indices_view, am_element_index_type type);
     bool validate_active_program();
     void bind_active_program();
     void bind_active_program_params();

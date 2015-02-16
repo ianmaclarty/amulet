@@ -70,26 +70,31 @@ void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_c
 }
 
 void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
-    am_buffer_id buf_id, am_element_index_type type, int num_elems, int max_elem)
+    am_buffer_view *indices_view, am_element_index_type type)
 {
     if (active_program == NULL) return;
     update_state();
     if (validate_active_program()) {
+        if (indices_view->buffer->elembuf_id == 0) {
+            indices_view->buffer->create_elembuf();
+        }
+        indices_view->buffer->update_if_dirty();
+        indices_view->update_max_elem_if_required();
         if (max_draw_array_size == INT_MAX) {
             am_log1("%s", "WARNING: ignoring draw_elements, "
                 "because no attribute arrays have been bound");
             count = 0;
-        } else if (max_elem > max_draw_array_size) {
+        } else if ((int)indices_view->max_elem > max_draw_array_size) {
             am_log1("WARNING: ignoring draw_elements, "
                 "because one of its indices (%d) is out of bounds",
-                (max_elem + 1));
+                ((int)indices_view->max_elem + 1));
             count = 0;
         }
-        if (count > (num_elems - first)) {
-            count = (num_elems - first);
+        if (count > (indices_view->size - first)) {
+            count = (indices_view->size - first);
         }
         if (count > 0) {
-            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, buf_id);
+            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, indices_view->buffer->elembuf_id);
             am_draw_elements(mode, count, type, first);
         }
     }
@@ -209,13 +214,7 @@ static void register_draw_elements_node_mt(lua_State *L) {
 }
 
 void am_draw_elements_node::render(am_render_state *rstate) {
-    if (indices_view->buffer->elembuf_id == 0) {
-        indices_view->buffer->create_elembuf();
-    }
-    indices_view->buffer->update_if_dirty();
-    indices_view->update_max_elem_if_required();
-    rstate->draw_elements(mode, first, count, indices_view->buffer->elembuf_id, type,
-        indices_view->size, indices_view->max_elem);
+    rstate->draw_elements(mode, first, count, indices_view, type);
 }
 
 static int create_draw_elements_node(lua_State *L) {

@@ -173,7 +173,7 @@ bool am_set_relative_mouse_mode(bool enabled) {
 
 #define ERR_MSG_SZ 1024
 
-void *am_read_resource(const char *filename, int *len, char **errmsg) {
+void *am_read_resource(const char *filename, int *len, bool append_null, char **errmsg) {
     *errmsg = NULL;
     char tmpbuf[ERR_MSG_SZ];
     char *path = (char*)malloc(strlen(am_conf_data_dir) + 1 + strlen(filename) + 1);
@@ -190,7 +190,7 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
     free(path);
     Sint64 sz = (size_t)SDL_RWsize(f);
     size_t capacity = 1024;
-    if (sz >= 0) {
+    if (sz > 0) {
         capacity = (size_t)sz;
     }
     char *buf = (char*)malloc(capacity);
@@ -207,6 +207,15 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
             buf = (char*)realloc(buf, capacity);
             ptr = buf + total;
         }
+    }
+    assert(*len <= (int)capacity);
+    if (append_null) {
+        if (*len == (int)capacity) {
+            capacity = capacity + 1;
+            buf = (char*)realloc(buf, capacity);
+        }
+        buf[*len] = 0;
+        (*len)++;
     }
     SDL_RWclose(f);
     return buf;

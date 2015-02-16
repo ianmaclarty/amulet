@@ -24,6 +24,7 @@ lua_State *am_init_engine(bool worker) {
         am_open_texture2d_module(L);
         am_open_framebuffer_module(L);
         am_open_image_module(L);
+        am_open_model_module(L);
         am_open_depthbuffer_module(L);
         am_open_transforms_module(L);
         am_open_renderer_module(L);

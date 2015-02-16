@@ -40,8 +40,6 @@ extern "C" {
 #include "pngconf.h"
 }
 
-#define AM_PI 3.14159265358979323846
-
 #include "am_util.h"
 #include "am_backend.h"
 #include "am_time.h"
@@ -67,4 +65,5 @@ extern "C" {
 #include "am_transforms.h"
 #include "am_depthbuffer.h"
 #include "am_image.h"
+#include "am_model.h"
 #include "am_engine.h"
