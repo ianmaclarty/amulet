@@ -223,6 +223,19 @@ static void set_root_node(lua_State *L, void *obj) {
 
 static am_property root_property = {get_root_node, set_root_node};
 
+static void get_window_width(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->width);
+}
+
+static void get_window_height(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->height);
+}
+
+static am_property width_property = {get_window_width, NULL};
+static am_property height_property = {get_window_height, NULL};
+
 static void get_relative_mouse_mode(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     lua_pushboolean(L, window->relative_mouse_mode);
@@ -243,6 +256,8 @@ static void register_window_mt(lua_State *L) {
 
     am_register_property(L, "root", &root_property);
     am_register_property(L, "relative_mouse_mode", &relative_mouse_mode_property);
+    am_register_property(L, "width", &width_property);
+    am_register_property(L, "height", &height_property);
 
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");
