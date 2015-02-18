@@ -3,7 +3,9 @@
 
 #include "amulet.h"
 
-#if defined(AM_BACKEND_SDL)
+#if defined(AM_WIN32)
+    #include <GLES2/gl2.h>
+#elif defined(AM_BACKEND_SDL)
     #define GLEW_STATIC 1
     #include "GL/glew.h"
 #elif defined(AM_BACKEND_EMSCRIPTEN)
@@ -12,6 +14,10 @@
 
 #if defined(AM_USE_ANGLE)
 #include "GLSLANG/ShaderLang.h"
+#endif
+
+#ifdef AM_WIN32
+#define __func__ "unknown"
 #endif
 
 #define check_for_errors { if (am_conf_check_gl_errors) check_glerror(__FILE__, __LINE__, __func__); }

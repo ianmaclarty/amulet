@@ -10,7 +10,7 @@ OFILES := $(patsubst %.c,%$(OBJ_EXT),$(CFILES))
 CFLAGS := $(COMMON_CFLAGS) -I. -I../$(ZLIB)
 
 $(OFILES): %$(OBJ_EXT): %.c
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) $(NOLINK_OPT) $<
 
 $(MAIN_TARGET): $(OFILES)
 	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@ $^

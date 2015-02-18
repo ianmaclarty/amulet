@@ -16,6 +16,9 @@ LIBPNG_DIR = $(DEPS_DIR)/libpng-1.4.3
 ZLIB_DIR   = $(DEPS_DIR)/zlib-1.2.5
 VORBIS_DIR = $(DEPS_DIR)/vorbis
 
+SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-VC-prebuilt
+ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
+
 # Visual C commands
 
 VC_CL=cl.exe
@@ -69,6 +72,31 @@ ifndef LUAVM
   LUAVM=luajit
 endif
 
+SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
+SDL_WIN_PREBUILT = $(BUILD_LIB_DIR)/sdl-win-prebuilt.date
+ANGLE_ALIB = $(BUILD_LIB_DIR)/libangle$(ALIB_EXT)
+ANGLE_WIN_PREBUILT = $(BUILD_LIB_DIR)/angle-win-prebuilt.date
+GLEW_ALIB = $(BUILD_LIB_DIR)/libglew$(ALIB_EXT)
+LUA_ALIB = $(BUILD_LIB_DIR)/liblua$(ALIB_EXT)
+LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
+LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
+LIBPNG_ALIB = $(BUILD_LIB_DIR)/libpng$(ALIB_EXT)
+ZLIB_ALIB = $(BUILD_LIB_DIR)/libz$(ALIB_EXT)
+VORBIS_ALIB = $(BUILD_LIB_DIR)/libvorbis$(ALIB_EXT)
+
+SRC_DIR = src
+BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(GRADE)
+BUILD_BIN_DIR = $(BUILD_BASE_DIR)/bin
+BUILD_OBJ_DIR = $(BUILD_BASE_DIR)/obj
+BUILD_LIB_DIR = $(BUILD_BASE_DIR)/lib
+BUILD_INC_DIR = $(BUILD_BASE_DIR)/include
+
+BUILD_LUA_INCLUDE_DIR = $(BUILD_INC_DIR)/lua
+BUILD_LUAJIT_INCLUDE_DIR = $(BUILD_INC_DIR)/luajit
+
+BUILD_DIRS = $(BUILD_BIN_DIR) $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_OBJ_DIR) \
+	$(BUILD_LUAJIT_INCLUDE_DIR) $(BUILD_LUA_INCLUDE_DIR)
+
 EXE_EXT = 
 ALIB_EXT = .a
 OBJ_EXT = .o
@@ -88,6 +116,9 @@ LUA_CFLAGS = -DLUA_COMPAT_ALL
 LUA_LDFLAGS = 
 LUAJIT_CFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT 
 LUAJIT_LDFLAGS = 
+OBJ_OUT_OPT = -o
+EXE_OUT_OPT = -o
+NOLINK_OPT = -c
 
 EMSCRIPTEN_LIBS = src/library_sdl.js
 EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
@@ -105,8 +136,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
 	     -pagezero_size 10000 -image_base 100000000
-endif
-ifeq ($(TARGET_PLATFORM),html)
+else ifeq ($(TARGET_PLATFORM),html)
   CC = emcc
   CPP = em++
   AR = emar
@@ -116,20 +146,27 @@ ifeq ($(TARGET_PLATFORM),html)
   XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS_OPTS)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
-endif
-ifeq ($(TARGET_PLATFORM),win32)
+else ifeq ($(TARGET_PLATFORM),win32)
   EXE_EXT = .exe
   ALIB_EXT = .lib
   OBJ_EXT = .obj
+  OBJ_OUT_OPT = -Fo
+  EXE_OUT_OPT = -Fe
   CC = $(VC_CL)
   CPP = $(VC_CL)
+  LINK = $(VC_LINK)
   LUA_TARGET = generic
   AR = $(VC_LIB)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
-  XCFLAGS = -fp:fast -WX 
-  TARGET_CFLAGS = -nologo
-  USE_CUSTOM_LUA_MAKEFILE = yes
+  XCFLAGS = -DLUA_COMPAT_ALL -fp:fast -WX 
+  XLDFLAGS = /link/SUBSYSTEM:WINDOWS \
+	$(BUILD_LIB_DIR)/SDL2.lib \
+	$(BUILD_LIB_DIR)/SDL2main.lib  \
+	Shell32.lib \
+	$(BUILD_LIB_DIR)/libEGL.lib \
+	$(BUILD_LIB_DIR)/libGLESv2.lib
+  TARGET_CFLAGS = -nologo -EHsc
 endif
 
 # Adjust flags for grade

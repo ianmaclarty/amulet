@@ -4,20 +4,6 @@ MAIN_TARGET = $(AMULET)
 
 # Build settings
 
-SRC_DIR = src
-
-BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(GRADE)
-BUILD_BIN_DIR = $(BUILD_BASE_DIR)/bin
-BUILD_OBJ_DIR = $(BUILD_BASE_DIR)/obj
-BUILD_LIB_DIR = $(BUILD_BASE_DIR)/lib
-BUILD_INC_DIR = $(BUILD_BASE_DIR)/include
-
-BUILD_LUA_INCLUDE_DIR = $(BUILD_INC_DIR)/lua
-BUILD_LUAJIT_INCLUDE_DIR = $(BUILD_INC_DIR)/luajit
-
-BUILD_DIRS = $(BUILD_BIN_DIR) $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_OBJ_DIR) \
-	$(BUILD_LUAJIT_INCLUDE_DIR) $(BUILD_LUA_INCLUDE_DIR)
-
 AM_DEFS = AM_$(shell echo $(TARGET_PLATFORM) | tr a-z A-Z) AM_$(shell echo $(GRADE) | tr a-z A-Z)
 
 ifeq ($(LUAVM),luajit)
@@ -29,29 +15,21 @@ endif
 
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
+EXTRA_PREREQS = 
+
 ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = lua vorbis
   AMULET = $(BUILD_BIN_DIR)/amulet.html
+else ifeq ($(TARGET_PLATFORM),win32)
+  AM_DEPS = $(LUAVM) png z vorbis
+  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
+  AMULET = amulet$(EXE_EXT)
 else
-  ifeq ($(TARGET_PLATFORM),win32)
-    AM_DEPS = $(LUAVM) sdl glew png z vorbis
-  else
-    AM_DEPS = $(LUAVM) sdl glew png z angle vorbis
-    AM_DEFS += AM_USE_ANGLE
-  endif
+  AM_DEPS = $(LUAVM) sdl glew png z angle vorbis
+  AM_DEFS += AM_USE_ANGLE
 endif
 
 DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(AM_DEPS))
-
-SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
-ANGLE_ALIB = $(BUILD_LIB_DIR)/libangle$(ALIB_EXT)
-GLEW_ALIB = $(BUILD_LIB_DIR)/libglew$(ALIB_EXT)
-LUA_ALIB = $(BUILD_LIB_DIR)/liblua$(ALIB_EXT)
-LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
-LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
-LIBPNG_ALIB = $(BUILD_LIB_DIR)/libpng$(ALIB_EXT)
-ZLIB_ALIB = $(BUILD_LIB_DIR)/libz$(ALIB_EXT)
-VORBIS_ALIB = $(BUILD_LIB_DIR)/libvorbis$(ALIB_EXT)
 
 EMBEDDED_LUA_FILES = $(wildcard lua/*.lua)
 EMBEDDED_FILES = $(EMBEDDED_LUA_FILES)
@@ -85,25 +63,31 @@ all: $(AMULET)
 endif
 
 ifeq ($(TARGET_PLATFORM),html)
-$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(DEFAULT_HTML_EDITOR_SCRIPT) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR)
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(DEFAULT_HTML_EDITOR_SCRIPT) $(EMSCRIPTEN_LIBS) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR) 
 	cp $(DEFAULT_HTML_EDITOR_SCRIPT) main.lua
-	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
+	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	rm main.lua
 	@$(PRINT_BUILD_DONE_MSG)
 else
-$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) | $(BUILD_BIN_DIR)
-	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) -o $@
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
+	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	ln -fs $@ `basename $@`
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR)
-	$(CPP) $(AM_CFLAGS) -c $< -o $@
+	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
 	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
 	cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@
+
+$(SDL_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
+	cp -r $(SDL_WIN_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
+	cp $(SDL_WIN_PREBUILT_DIR)/lib/x86/*.lib $(BUILD_LIB_DIR)/
+	cp $(SDL_WIN_PREBUILT_DIR)/lib/x86/*.dll $(BUILD_BIN_DIR)/
+	touch $@
 
 $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(ANGLE_DIR) && $(MAKE) clean all
@@ -111,17 +95,16 @@ $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp -r $(ANGLE_DIR)/include/GLSLANG $(BUILD_INC_DIR)/
 	cp -r $(ANGLE_DIR)/include/KHR $(BUILD_INC_DIR)/
 
-ifdef USE_CUSTOM_LUA_MAKEFILE
+$(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
+	cp -r $(ANGLE_WIN_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
+	cp $(ANGLE_WIN_PREBUILT_DIR)/lib/*.lib $(BUILD_LIB_DIR)/
+	cp $(ANGLE_WIN_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
+	touch $@
+
 $(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
 	cd $(LUA_DIR) && $(MAKE) -f Makefile.custom clean all
 	cp $(LUA_DIR)/src/*.h $(BUILD_LUA_INCLUDE_DIR)/
 	cp $(LUA_DIR)/src/liblua$(ALIB_EXT) $@
-else
-$(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
-	cd $(LUA_DIR) && $(MAKE) clean $(LUA_TARGET) CC=$(CC) MYCFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)"
-	cp $(LUA_DIR)/src/*.h $(BUILD_LUA_INCLUDE_DIR)/
-	cp $(LUA_DIR)/src/liblua$(ALIB_EXT) $@
-endif
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
 	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"

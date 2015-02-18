@@ -94,8 +94,14 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
             count = (indices_view->size - first);
         }
         if (count > 0) {
+            int offset;
+            switch (type) {
+                case AM_ELEMENT_TYPE_UBYTE: offset = first; break;
+                case AM_ELEMENT_TYPE_USHORT: offset = first * 2; break;
+                case AM_ELEMENT_TYPE_UINT: offset = first * 4; break;
+            }
             am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, indices_view->buffer->elembuf_id);
-            am_draw_elements(mode, count, type, first);
+            am_draw_elements(mode, count, type, offset);
         }
     }
 }

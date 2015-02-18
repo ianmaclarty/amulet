@@ -21,7 +21,7 @@ OFILES := $(patsubst %.cpp,%$(OBJ_EXT),$(CPPFILES))
 CFLAGS := $(COMMON_CFLAGS) -Iinclude -Isrc
 
 $(OFILES): %$(OBJ_EXT): %.cpp
-	$(CPP) $(CFLAGS) -c $< -o $@
+	$(CPP) $(CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT) $@
 
 $(MAIN_TARGET): $(OFILES)
 	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@ $^

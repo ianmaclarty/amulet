@@ -2,8 +2,11 @@
 
 #ifdef AM_BACKEND_SDL
 
+#ifndef AM_WIN32
 #define GLEW_STATIC 1
 #include "GL/glew.h"
+#endif
+
 #include "SDL.h"
 
 #ifdef AM_OSX
@@ -32,7 +35,9 @@ static bool sdl_initialized = false;
 
 static const char *main_module = NULL;
 
+#ifndef AM_WIN32
 static bool init_glew();
+#endif
 
 static bool controller_present = false;
 static bool axis_button_down[NUM_AXIS_BUTTONS];
@@ -122,10 +127,12 @@ am_native_window *am_create_native_window(
     }
     SDL_GL_MakeCurrent(win, gl_context);
     if (!am_gl_is_initialized()) {
+#ifndef AM_WIN32
         if (!init_glew()) {
             SDL_DestroyWindow(win);
             return NULL;
         }
+#endif
         am_init_gl();
     }
     windows.push_back(win);
@@ -221,6 +228,7 @@ void *am_read_resource(const char *filename, int *len, bool append_null, char **
     return buf;
 }
 
+#ifndef AM_WIN32
 static bool init_glew() {
     GLenum err = glewInit();
     if (GLEW_OK != err) {
@@ -234,6 +242,7 @@ static bool init_glew() {
     }
     return true;
 }
+#endif
 
 int main( int argc, char *argv[] )
 {
@@ -294,7 +303,7 @@ int main( int argc, char *argv[] )
         if (!handle_events(L)) goto quit;
 
         frame_time = am_get_current_time();
-        delta_time = fmin(am_conf_min_delta_time, frame_time - t0); // fmin in case process was suspended, or last frame took very long
+        delta_time = am_min(am_conf_min_delta_time, frame_time - t0); // fmin in case process was suspended, or last frame took very long
         t_debt += delta_time;
 
         if (am_conf_fixed_delta_time > 0.0) {
@@ -315,7 +324,7 @@ int main( int argc, char *argv[] )
             }
         }
 
-        fps_max = fmax(fps_max, delta_time);
+        fps_max = am_max(fps_max, delta_time);
         t0 = frame_time;
 
         frame_count++;
@@ -386,10 +395,10 @@ static void init_audio() {
     desired.freq = am_conf_audio_sample_rate;
     desired.format = AUDIO_F32SYS;
     desired.channels = am_conf_audio_channels;
-#ifdef AM_OSX // XXX Needed for 2nd assert in audio_callback to pass. SDL2 bug?
-    desired.samples = am_conf_audio_buffer_size;
-#else
+#ifdef AM_LINUX // XXX Needed for 2nd assert in audio_callback to pass. SDL2 bug?
     desired.samples = am_conf_audio_channels * am_conf_audio_buffer_size;
+#else
+    desired.samples = am_conf_audio_buffer_size;
 #endif
     desired.callback = audio_callback;
     desired.userdata = NULL;

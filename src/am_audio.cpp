@@ -198,14 +198,14 @@ void am_biquad_filter_node::set_lowpass_params(double cutoff, double resonance) 
     // normalize cutoff 0->1
     double nyquist = (double)am_conf_audio_sample_rate * 0.5;
     cutoff = cutoff / nyquist;
-    cutoff = fmax(0, fminf(1, cutoff));
+    cutoff = am_max(0, am_min(1, cutoff));
     if (cutoff == 1) {
         // When cutoff is 1, the z-transform is 1.
         set_normalized_coeffs(1, 0, 0,
                               1, 0, 0);
     } else if (cutoff > 0) {
         // Compute biquad coefficients for lowpass filter
-        resonance = fmax(0.0, resonance); // can't go negative
+        resonance = am_max(0.0, resonance); // can't go negative
         double g = pow(10.0, 0.05 * resonance);
         double d = sqrt((4 - sqrt(16 - 16 / (g * g))) / 2);
 
@@ -234,14 +234,14 @@ void am_biquad_filter_node::set_highpass_params(double cutoff, double resonance)
     // normalize cutoff 0->1
     double nyquist = (double)am_conf_audio_sample_rate * 0.5;
     cutoff = cutoff / nyquist;
-    cutoff = fmax(0, fminf(1, cutoff));
+    cutoff = am_max(0, am_min(1, cutoff));
     if (cutoff == 1) {
         // The z-transform is 0.
         set_normalized_coeffs(0, 0, 0,
                               1, 0, 0);
     } else if (cutoff > 0) {
         // Compute biquad coefficients for highpass filter
-        resonance = fmax(0.0, resonance); // can't go negative
+        resonance = am_max(0.0, resonance); // can't go negative
         double g = pow(10.0, 0.05 * resonance);
         double d = sqrt((4 - sqrt(16 - 16 / (g * g))) / 2);
 

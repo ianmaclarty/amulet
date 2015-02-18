@@ -10,6 +10,10 @@
     #error unsupported target
 #endif
 
+#ifdef AM_WIN32
+#include <windows.h>
+#endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -22,6 +26,8 @@
 #include <new>
 #include <climits>
 #include <vector>
+
+#include "c99.h"
 
 extern "C" {
 #include "lua.h"
@@ -67,3 +73,6 @@ extern "C" {
 #include "am_image.h"
 #include "am_model.h"
 #include "am_engine.h"
+
+#undef near
+#undef far
