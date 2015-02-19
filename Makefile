@@ -23,7 +23,6 @@ ifeq ($(TARGET_PLATFORM),html)
 else ifeq ($(TARGET_PLATFORM),win32)
   AM_DEPS = $(LUAVM) png z vorbis
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
-  AMULET = amulet$(EXE_EXT)
 else
   AM_DEPS = $(LUAVM) sdl glew png z angle vorbis
   AM_DEFS += AM_USE_ANGLE
@@ -70,7 +69,7 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(DEFAULT_HTML_EDITOR_SCRIPT) $(EMSCRIPT
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
-	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	"$(LINK)" $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	ln -fs $@ `basename $@`
 	@$(PRINT_BUILD_DONE_MSG)
 endif

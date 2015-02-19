@@ -19,12 +19,6 @@ VORBIS_DIR = $(DEPS_DIR)/vorbis
 SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-VC-prebuilt
 ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
 
-# Visual C commands
-
-VC_CL=cl.exe
-VC_LINK=link.exe
-VC_LIB=lib.exe
-
 # Host settings (this is the *build* host, not the host we want to run on)
 
 PATH_SEP = :
@@ -147,11 +141,16 @@ else ifeq ($(TARGET_PLATFORM),html)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
 else ifeq ($(TARGET_PLATFORM),win32)
+  VC_CL = cl.exe
+  VC_CL_PATH = $(shell which $(VC_CL))
+  VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")
+  VC_LINK = $(VC_CL_DIR)/link.exe
+  VC_LIB = $(VC_CL_DIR)/lib.exe
   EXE_EXT = .exe
   ALIB_EXT = .lib
   OBJ_EXT = .obj
   OBJ_OUT_OPT = -Fo
-  EXE_OUT_OPT = -Fe
+  EXE_OUT_OPT = /OUT:
   CC = $(VC_CL)
   CPP = $(VC_CL)
   LINK = $(VC_LINK)
@@ -160,12 +159,13 @@ else ifeq ($(TARGET_PLATFORM),win32)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
   XCFLAGS = -DLUA_COMPAT_ALL -fp:fast -WX 
-  XLDFLAGS = /link/SUBSYSTEM:WINDOWS \
+  XLDFLAGS = /SUBSYSTEM:WINDOWS \
 	$(BUILD_LIB_DIR)/SDL2.lib \
 	$(BUILD_LIB_DIR)/SDL2main.lib  \
 	Shell32.lib \
 	$(BUILD_LIB_DIR)/libEGL.lib \
-	$(BUILD_LIB_DIR)/libGLESv2.lib
+	$(BUILD_LIB_DIR)/libGLESv2.lib \
+	/NODEFAULTLIB:msvcrt.lib
   TARGET_CFLAGS = -nologo -EHsc
 endif
 

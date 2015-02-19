@@ -4,7 +4,7 @@
 #include "amulet.h"
 
 #if defined(AM_WIN32)
-    #include <GLES2/gl2.h>
+    #include <SDL_opengles2.h>
 #elif defined(AM_BACKEND_SDL)
     #define GLEW_STATIC 1
     #include "GL/glew.h"

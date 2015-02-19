@@ -1,0 +1,20 @@
+include ../../Common.mk
+
+all: src/liblua$(ALIB_EXT)
+
+VPATH=src
+
+LUA_C_FILES:=$(shell find src -name "*.c" -exec basename \{\} \; | grep -v lua.c | grep -v luac.c)
+LUA_O_FILES:=$(patsubst %.c,%$(OBJ_EXT),$(LUA_C_FILES))
+
+CFLAGS = $(COMMON_CFLAGS) $(LUA_CFLAGS) $(LUA_LDFLAGS) -I.
+
+$(LUA_O_FILES): %$(OBJ_EXT): %.c
+	$(CC) $(CFLAGS) $(NOLINK_OPT) $<
+
+src/liblua$(ALIB_EXT): $(LUA_O_FILES)
+	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@ $^
+
+.PHONY: clean
+clean:
+	rm -f *.o *.a *.lib *.obj

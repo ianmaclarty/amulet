@@ -10,15 +10,15 @@ syntax: glob
 config.log
 config.status
 amulet
-builds/**/include/*
-builds/**/staging/*
-builds/**/lib/*.a
-builds/**/bin/*
+builds/*
 tags
 settings
 tmp/*
 *.orig
 log
+
+amulet.exe.manifest
+vc*.pdb
 
 src/am_embedded_data.cpp
 
@@ -35,6 +35,12 @@ deps/SDL2-*/include/SDL_revision.h
 
 deps/lua-*/src/lua
 deps/lua-*/src/luac
+deps/lua-*/src/*.lib
+deps/lua-*/src/*.a
+deps/lua-*/liblua
+
+deps/vorbis/*.lib
+deps/vorbis/*.a
 
 deps/LuaJIT-*/src/host/buildvm
 deps/LuaJIT-*/src/host/buildvm_arch.h
@@ -49,16 +55,22 @@ deps/LuaJIT-*/src/lj_libdef.h
 deps/LuaJIT-*/src/lj_recdef.h
 deps/LuaJIT-*/src/lj_vm.s
 deps/LuaJIT-*/src/luajit
+deps/LuaJIT-*/src/*.dll
+deps/LuaJIT-*/src/*.so
+deps/LuaJIT-*/src/*.a
 
 deps/glew-*/bin/glewinfo
 deps/glew-*/bin/visualinfo
 deps/glew-*/glew.pc
 deps/glew-*/glewmx.pc
 
-deps/**/*.a
-deps/**/*.dll
-deps/**/*.so
-deps/**/*.so.*
+deps/libpng-*/*.lib
+deps/libpng-*/*.a
+deps/libpng-*/*.pdb
+
+deps/zlib-*/*.lib
+deps/zlib-*/*.a
+deps/zlib-*/*.pdb
 
 tests/*.out
 tests/*.err
