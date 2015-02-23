@@ -37,9 +37,35 @@ void am_depth_test_state::update() {
     }
 }
 
+void am_cull_face_state::set(bool enabled, am_face_winding winding, am_cull_face_side side) {
+    am_cull_face_state::enabled = enabled;
+    am_cull_face_state::winding = winding;
+    am_cull_face_state::side = side;
+    dirty = true;
+}
+
+void am_cull_face_state::restore(am_cull_face_state *old) {
+    am_cull_face_state::enabled = old->enabled;
+    am_cull_face_state::winding = old->winding;
+    am_cull_face_state::side = old->side;
+    dirty = true;
+}
+
+void am_cull_face_state::update() {
+    if (dirty) {
+        am_set_cull_face_enabled(enabled);
+        if (enabled) {
+            am_set_front_face_winding(winding);
+            am_set_cull_face_side(side);
+        }
+        dirty = false;
+    }
+}
+
 void am_render_state::update_state() {
     viewport_state.update();
     depth_test_state.update();
+    cull_face_state.update();
     bind_active_program();
     bind_active_program_params();
 }

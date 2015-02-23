@@ -22,6 +22,17 @@ struct am_depth_test_state {
     void update();
 };
 
+struct am_cull_face_state {
+    bool                    dirty;
+    am_face_winding         winding;
+    bool                    enabled;
+    am_cull_face_side       side;
+
+    void set(bool enabled, am_face_winding winding, am_cull_face_side side);
+    void restore(am_cull_face_state *old);
+    void update();
+};
+
 struct am_blend_state {
     bool                    enabled;
     am_blend_equation       equation_rgb;
@@ -67,12 +78,6 @@ struct am_sample_coverage_state {
     bool                    sample_coverage_invert;
 };
 
-struct am_facecull_state {
-    am_face_winding         front_face_winding;
-    bool                    cull_face_enabled;
-    am_cull_face_side       cull_face_side;
-};
-
 struct am_polygon_offset_state {
     bool                    fill_enabled;
     float                   factor;
@@ -106,6 +111,7 @@ struct am_dither_state {
 struct am_render_state {
     am_viewport_state       viewport_state;
     am_depth_test_state     depth_test_state;
+    am_cull_face_state      cull_face_state;
 
     int                     max_draw_array_size;
 

@@ -536,6 +536,8 @@ static void register_scene_node_mt(lua_State *L) {
 
     lua_pushcclosure(L, am_create_depth_pass_node, 0);
     lua_setfield(L, -2, "depth_pass");
+    lua_pushcclosure(L, am_create_cull_face_node, 0);
+    lua_setfield(L, -2, "cull_face");
 
     lua_pushcclosure(L, create_action, 0);
     lua_setfield(L, -2, "action");

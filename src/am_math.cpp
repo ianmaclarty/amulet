@@ -1111,6 +1111,329 @@ static int perlin(lua_State *L) {
     return 1;
 }
 
+//----------------------- interpolation functions -------------------------//
+
+static int mix(lua_State *L) {
+    am_check_nargs(L, 1);
+    switch (am_get_type(L, 1)) {
+        case LUA_TNUMBER: {
+            lua_Number x = lua_tonumber(L, 1);
+            lua_Number y = luaL_checknumber(L, 2);
+            lua_Number a = luaL_checknumber(L, 3);
+            lua_pushnumber(L, glm::mix(x, y, a));
+            break;
+        }
+        case MT_am_vec2: {
+            am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
+            am_vec2 *y = am_get_userdata(L, am_vec2, 2);
+            am_vec2 *r = am_new_userdata(L, am_vec2);
+            switch (am_get_type(L, 3)) {
+                case LUA_TNUMBER: {
+                    float a = lua_tonumber(L, 3);
+                    r->v = glm::mix(x->v, y->v, a);
+                    break;
+                }
+                case MT_am_vec2: {
+                    am_vec2 *a = (am_vec2*)lua_touserdata(L, 3);
+                    r->v = glm::mix(x->v, y->v, a->v);
+                    break;
+                }
+                default:
+                    return luaL_error(L, "expecting a number or vec2 in position 3");
+            }
+            break;
+        }
+        case MT_am_vec3: {
+            am_vec3 *x = (am_vec3*)lua_touserdata(L, 1);
+            am_vec3 *y = am_get_userdata(L, am_vec3, 2);
+            am_vec3 *r = am_new_userdata(L, am_vec3);
+            switch (am_get_type(L, 3)) {
+                case LUA_TNUMBER: {
+                    float a = lua_tonumber(L, 3);
+                    r->v = glm::mix(x->v, y->v, a);
+                    break;
+                }
+                case MT_am_vec3: {
+                    am_vec3 *a = (am_vec3*)lua_touserdata(L, 3);
+                    r->v = glm::mix(x->v, y->v, a->v);
+                    break;
+                }
+                default:
+                    return luaL_error(L, "expecting a number or vec3 in position 3");
+            }
+            break;
+        }
+        case MT_am_vec4: {
+            am_vec4 *x = (am_vec4*)lua_touserdata(L, 1);
+            am_vec4 *y = am_get_userdata(L, am_vec4, 2);
+            am_vec4 *r = am_new_userdata(L, am_vec4);
+            switch (am_get_type(L, 3)) {
+                case LUA_TNUMBER: {
+                    float a = lua_tonumber(L, 3);
+                    r->v = glm::mix(x->v, y->v, a);
+                    break;
+                }
+                case MT_am_vec4: {
+                    am_vec4 *a = (am_vec4*)lua_touserdata(L, 3);
+                    r->v = glm::mix(x->v, y->v, a->v);
+                    break;
+                }
+                default:
+                    return luaL_error(L, "expecting a number or vec4 in position 3");
+            }
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a number or vec in position 1");
+    }
+    return 1;
+}
+
+static int smoothstep(lua_State *L) {
+    am_check_nargs(L, 1);
+    switch (am_get_type(L, 1)) {
+        case LUA_TNUMBER: {
+            float x = lua_tonumber(L, 1);
+            float y = luaL_checknumber(L, 2);
+            switch (am_get_type(L, 2)) {
+                case LUA_TNUMBER: {
+                    float a = luaL_checknumber(L, 3);
+                    lua_pushnumber(L, glm::smoothstep(x, y, a));
+                    break;
+                }
+                case MT_am_vec2: {
+                    am_vec2 *a = (am_vec2*)lua_touserdata(L, 3);
+                    am_new_userdata(L, am_vec2)->v = glm::smoothstep(x, y, a->v);
+                    break;
+                }
+                case MT_am_vec3: {
+                    am_vec3 *a = (am_vec3*)lua_touserdata(L, 3);
+                    am_new_userdata(L, am_vec3)->v = glm::smoothstep(x, y, a->v);
+                    break;
+                }
+                case MT_am_vec4: {
+                    am_vec4 *a = (am_vec4*)lua_touserdata(L, 3);
+                    am_new_userdata(L, am_vec4)->v = glm::smoothstep(x, y, a->v);
+                    break;
+                }
+                default:
+                    return luaL_error(L, "expecting a number or vec in position 3");
+            }
+            break;
+        }
+        case MT_am_vec2: {
+            am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
+            am_vec2 *y = am_get_userdata(L, am_vec2, 2);
+            am_vec2 *a = am_get_userdata(L, am_vec2, 3);
+            am_vec2 *r = am_new_userdata(L, am_vec2);
+            r->v = glm::smoothstep(x->v, y->v, a->v);
+            break;
+        }
+        case MT_am_vec3: {
+            am_vec3 *x = (am_vec3*)lua_touserdata(L, 1);
+            am_vec3 *y = am_get_userdata(L, am_vec3, 2);
+            am_vec3 *a = am_get_userdata(L, am_vec3, 3);
+            am_vec3 *r = am_new_userdata(L, am_vec3);
+            r->v = glm::smoothstep(x->v, y->v, a->v);
+            break;
+        }
+        case MT_am_vec4: {
+            am_vec4 *x = (am_vec4*)lua_touserdata(L, 1);
+            am_vec4 *y = am_get_userdata(L, am_vec4, 2);
+            am_vec4 *a = am_get_userdata(L, am_vec4, 3);
+            am_vec4 *r = am_new_userdata(L, am_vec4);
+            r->v = glm::smoothstep(x->v, y->v, a->v);
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a number or vec in position 1");
+    }
+    return 1;
+}
+
+static inline float smootherstep0(float edge0, float edge1, float x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
+    return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+}
+
+static inline glm::vec2 smootherstep0(float edge0, float edge1, glm::vec2 x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
+    return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+}
+
+static inline glm::vec3 smootherstep0(float edge0, float edge1, glm::vec3 x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
+    return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+}
+
+static inline glm::vec4 smootherstep0(float edge0, float edge1, glm::vec4 x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
+    return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+}
+
+static inline double smootherstep0(double edge0, double edge1, double x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
+    return x*x*x*(x*(x*6.0 - 15.0) + 10.0);
+}
+
+static inline glm::vec2 smootherstep0(glm::vec2 edge0, glm::vec2 edge1, glm::vec2 x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
+    return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+}
+
+static inline glm::vec3 smootherstep0(glm::vec3 edge0, glm::vec3 edge1, glm::vec3 x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
+    return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+}
+
+static inline glm::vec4 smootherstep0(glm::vec4 edge0, glm::vec4 edge1, glm::vec4 x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
+    return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+}
+
+static int smootherstep(lua_State *L) {
+    am_check_nargs(L, 1);
+    switch (am_get_type(L, 1)) {
+        case LUA_TNUMBER: {
+            float x = lua_tonumber(L, 1);
+            float y = luaL_checknumber(L, 2);
+            switch (am_get_type(L, 2)) {
+                case LUA_TNUMBER: {
+                    float a = luaL_checknumber(L, 3);
+                    lua_pushnumber(L, smootherstep0(x, y, a));
+                    break;
+                }
+                case MT_am_vec2: {
+                    am_vec2 *a = (am_vec2*)lua_touserdata(L, 3);
+                    am_new_userdata(L, am_vec2)->v = smootherstep0(x, y, a->v);
+                    break;
+                }
+                case MT_am_vec3: {
+                    am_vec3 *a = (am_vec3*)lua_touserdata(L, 3);
+                    am_new_userdata(L, am_vec3)->v = smootherstep0(x, y, a->v);
+                    break;
+                }
+                case MT_am_vec4: {
+                    am_vec4 *a = (am_vec4*)lua_touserdata(L, 3);
+                    am_new_userdata(L, am_vec4)->v = smootherstep0(x, y, a->v);
+                    break;
+                }
+                default:
+                    return luaL_error(L, "expecting a number or vec in position 3");
+            }
+            break;
+        }
+        case MT_am_vec2: {
+            am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
+            am_vec2 *y = am_get_userdata(L, am_vec2, 2);
+            am_vec2 *a = am_get_userdata(L, am_vec2, 3);
+            am_vec2 *r = am_new_userdata(L, am_vec2);
+            r->v = smootherstep0(x->v, y->v, a->v);
+            break;
+        }
+        case MT_am_vec3: {
+            am_vec3 *x = (am_vec3*)lua_touserdata(L, 1);
+            am_vec3 *y = am_get_userdata(L, am_vec3, 2);
+            am_vec3 *a = am_get_userdata(L, am_vec3, 3);
+            am_vec3 *r = am_new_userdata(L, am_vec3);
+            r->v = smootherstep0(x->v, y->v, a->v);
+            break;
+        }
+        case MT_am_vec4: {
+            am_vec4 *x = (am_vec4*)lua_touserdata(L, 1);
+            am_vec4 *y = am_get_userdata(L, am_vec4, 2);
+            am_vec4 *a = am_get_userdata(L, am_vec4, 3);
+            am_vec4 *r = am_new_userdata(L, am_vec4);
+            r->v = smootherstep0(x->v, y->v, a->v);
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a number or vec in position 1");
+    }
+    return 1;
+}
+
+//-------------------- clamping functions ------------------------//
+
+static int clamp(lua_State *L) {
+    am_check_nargs(L, 1);
+    switch (am_get_type(L, 1)) {
+        case LUA_TNUMBER: {
+            lua_Number x = lua_tonumber(L, 1);
+            lua_Number a = luaL_checknumber(L, 2);
+            lua_Number b = luaL_checknumber(L, 3);
+            lua_pushnumber(L, glm::clamp(x, a, b));
+            break;
+        }
+        case MT_am_vec2: {
+            am_vec2 *x = (am_vec2*)lua_touserdata(L, 1);
+            am_vec2 *r = am_new_userdata(L, am_vec2);
+            switch (am_get_type(L, 2)) {
+                case LUA_TNUMBER: {
+                    float a = lua_tonumber(L, 2);
+                    float b = lua_tonumber(L, 3);
+                    r->v = glm::clamp(x->v, a, b);
+                    break;
+                }
+                case MT_am_vec2: {
+                    am_vec2 *a = (am_vec2*)lua_touserdata(L, 2);
+                    am_vec2 *b = (am_vec2*)lua_touserdata(L, 3);
+                    r->v = glm::clamp(x->v, a->v, b->v);
+                    break;
+                }
+                default:
+                    return luaL_error(L, "expecting a number or vec2 in position 2");
+            }
+            break;
+        }
+        case MT_am_vec3: {
+            am_vec3 *x = (am_vec3*)lua_touserdata(L, 1);
+            am_vec3 *r = am_new_userdata(L, am_vec3);
+            switch (am_get_type(L, 2)) {
+                case LUA_TNUMBER: {
+                    float a = lua_tonumber(L, 2);
+                    float b = lua_tonumber(L, 3);
+                    r->v = glm::clamp(x->v, a, b);
+                    break;
+                }
+                case MT_am_vec3: {
+                    am_vec3 *a = (am_vec3*)lua_touserdata(L, 2);
+                    am_vec3 *b = (am_vec3*)lua_touserdata(L, 3);
+                    r->v = glm::clamp(x->v, a->v, b->v);
+                    break;
+                }
+                default:
+                    return luaL_error(L, "expecting a number or vec3 in position 2");
+            }
+            break;
+        }
+        case MT_am_vec4: {
+            am_vec4 *x = (am_vec4*)lua_touserdata(L, 1);
+            am_vec4 *r = am_new_userdata(L, am_vec4);
+            switch (am_get_type(L, 2)) {
+                case LUA_TNUMBER: {
+                    float a = lua_tonumber(L, 2);
+                    float b = lua_tonumber(L, 3);
+                    r->v = glm::clamp(x->v, a, b);
+                    break;
+                }
+                case MT_am_vec4: {
+                    am_vec4 *a = (am_vec4*)lua_touserdata(L, 2);
+                    am_vec4 *b = (am_vec4*)lua_touserdata(L, 3);
+                    r->v = glm::clamp(x->v, a->v, b->v);
+                    break;
+                }
+                default:
+                    return luaL_error(L, "expecting a number or vec4 in position 2");
+            }
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a number or vec in position 1");
+    }
+    return 1;
+}
+
 //-------------------------------------------------//
 
 #define REGISTER_VEC_MT(T, MTID)                        \
@@ -1178,6 +1501,10 @@ void am_open_math_module(lua_State *L) {
         {"inverse",     inverse},
         {"simplex",     simplex},
         {"perlin",      perlin},
+        {"mix",         mix},
+        {"clamp",       clamp},
+        {"smoothstep",  smoothstep},
+        {"smootherstep",smootherstep},
         {NULL, NULL}
     };
     am_open_module(L, "math", funcs);

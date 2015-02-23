@@ -63,6 +63,10 @@ deps/glew-*/bin/glewinfo
 deps/glew-*/bin/visualinfo
 deps/glew-*/glew.pc
 deps/glew-*/glewmx.pc
+deps/glew-*/lib/*.a
+deps/glew-*/lib/*.so*
+
+deps/angle-chrome*/*.a
 
 deps/libpng-*/*.lib
 deps/libpng-*/*.a

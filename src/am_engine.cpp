@@ -26,6 +26,7 @@ lua_State *am_init_engine(bool worker) {
         am_open_image_module(L);
         am_open_model_module(L);
         am_open_depthbuffer_module(L);
+        am_open_culling_module(L);
         am_open_transforms_module(L);
         am_open_renderer_module(L);
         am_open_audio_module(L);

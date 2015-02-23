@@ -25,4 +25,4 @@ bool am_conf_check_gl_errors = false;
 #endif
 
 bool am_conf_dump_translated_shaders = false;
-bool am_conf_log_gl_calls = false;
+bool am_conf_log_gl_calls = true;

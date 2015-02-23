@@ -384,7 +384,7 @@ void am_set_front_face_winding(am_face_winding mode) {
     check_initialized();
     GLenum gl_mode = to_gl_face_winding(mode);
     glFrontFace(gl_mode);
-    log_gl_call("glFrontFace(%s)", gl_face_winding_str(mode));
+    log_gl_call("glFrontFace(%s)", gl_face_winding_str(gl_mode));
     check_for_errors
 }
 

@@ -31,6 +31,7 @@ typedef enum {
     MT_am_rotate_node,
     MT_am_mult_mat4_node,
     MT_am_depth_pass_node,
+    MT_am_cull_face_node,
     MT_am_draw_arrays_node,
     MT_am_draw_elements_node,
 
@@ -57,6 +58,7 @@ typedef enum {
     ENUM_am_texture_mag_filter,
     ENUM_am_texture_wrap,
     ENUM_am_depth_func,
+    ENUM_am_cull_face_mode,
     ENUM_am_draw_mode,
 
     AM_TRACEBACK_FUNC,

@@ -155,12 +155,14 @@ clean:
 	rm -f $(BUILD_OBJ_DIR)/*
 	rm -f $(BUILD_BIN_DIR)/*
 	rm -f $(EMBEDDED_DATA_CPP_FILE)
+	rm -f amulet$(EXE_EXT)
 
 clean-target:
 	rm -rf builds/$(TARGET_PLATFORM)/$(GRADE)
 
 clean-all: clean-tests
 	rm -rf builds
+	rm -f amulet$(EXE_EXT)
 
 # Tests
 

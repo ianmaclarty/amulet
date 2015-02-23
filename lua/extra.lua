@@ -113,22 +113,6 @@ function math.cycle_dist(a, b, len)
     end
 end
 
-function math.clamp(x, min, max)
-    min = min or 0
-    max = max or 1
-    if x < min then
-        return min
-    elseif x > max then
-        return max
-    else
-        return x
-    end
-end
-
-function math.mix(x, y, a)
-    return x * (1 - a) + y * a
-end
-
 -- override some maths functions to avoid nans
 
 local acos = math.acos
@@ -184,11 +168,19 @@ end
 -- extra builtins
 
 function log(fmt, ...)
-    amulet.log(string.format(fmt, ...), false, 2)
+    if type(fmt) == "string" and ... then
+        amulet.log(string.format(fmt, ...), false, 2)
+    else
+        amulet.log(tostring(fmt), false, 2)
+    end
 end
 
 function log1(fmt, ...)
-    amulet.log(string.format(fmt, ...), true, 2)
+    if type(fmt) == "string" and ... then
+        amulet.log(string.format(fmt, ...), true, 2)
+    else
+        amulet.log(tostring(fmt), true, 2)
+    end
 end
 
 vec2 = math.vec2
