@@ -1251,9 +1251,9 @@ static int smoothstep(lua_State *L) {
     return 1;
 }
 
-static inline float smootherstep0(float edge0, float edge1, float x) {
-    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
-    return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+static inline lua_Number smootherstep0(lua_Number edge0, lua_Number edge1, lua_Number x) {
+    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
+    return x*x*x*(x*(x*6.0 - 15.0) + 10.0);
 }
 
 static inline glm::vec2 smootherstep0(float edge0, float edge1, glm::vec2 x) {
@@ -1269,11 +1269,6 @@ static inline glm::vec3 smootherstep0(float edge0, float edge1, glm::vec3 x) {
 static inline glm::vec4 smootherstep0(float edge0, float edge1, glm::vec4 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
-}
-
-static inline double smootherstep0(double edge0, double edge1, double x) {
-    x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
-    return x*x*x*(x*(x*6.0 - 15.0) + 10.0);
 }
 
 static inline glm::vec2 smootherstep0(glm::vec2 edge0, glm::vec2 edge1, glm::vec2 x) {
@@ -1295,11 +1290,11 @@ static int smootherstep(lua_State *L) {
     am_check_nargs(L, 1);
     switch (am_get_type(L, 1)) {
         case LUA_TNUMBER: {
-            float x = lua_tonumber(L, 1);
-            float y = luaL_checknumber(L, 2);
+            lua_Number x = lua_tonumber(L, 1);
+            lua_Number y = luaL_checknumber(L, 2);
             switch (am_get_type(L, 2)) {
                 case LUA_TNUMBER: {
-                    float a = luaL_checknumber(L, 3);
+                    lua_Number a = luaL_checknumber(L, 3);
                     lua_pushnumber(L, smootherstep0(x, y, a));
                     break;
                 }

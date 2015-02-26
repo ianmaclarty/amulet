@@ -6,8 +6,8 @@
 #if defined(AM_WIN32)
     #include <SDL_opengles2.h>
 #elif defined(AM_BACKEND_SDL)
-    #define GLEW_STATIC 1
-    #include "GL/glew.h"
+    #define GL_GLEXT_PROTOTYPES
+    #include <SDL_opengl.h>
 #elif defined(AM_BACKEND_EMSCRIPTEN)
     #include <GLES2/gl2.h>
 #endif
@@ -34,6 +34,10 @@ static void init_angle();
 static void destroy_angle();
 static void angle_translate_shader(am_shader_type type,
     const char *src, char **objcode, char **errmsg);
+#endif
+
+#ifdef AM_GLPROFILE_DESKTOP
+#define GL_RGB565 GL_UNSIGNED_SHORT_5_6_5
 #endif
 
 static bool am_gl_initialized = false;

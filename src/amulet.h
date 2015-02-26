@@ -9,6 +9,13 @@
 #else
     #error unsupported target
 #endif
+#if defined(AM_OSX) || defined(AM_LINUX)
+    #define AM_GLPROFILE_DESKTOP
+#elif defined(AM_WIN32) || defined(AM_ANDROID) || defined(AM_IOS)
+    #define AM_GLPROFILE_ES
+#else
+    #error unsupported target
+#endif
 
 #ifdef AM_WIN32
 #include <windows.h>

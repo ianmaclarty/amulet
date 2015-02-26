@@ -2,11 +2,6 @@
 
 #ifdef AM_BACKEND_SDL
 
-#ifndef AM_WIN32
-#define GLEW_STATIC 1
-#include "GL/glew.h"
-#endif
-
 #include "SDL.h"
 
 #ifdef AM_OSX
@@ -34,10 +29,6 @@ static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
 
 static const char *main_module = NULL;
-
-#ifndef AM_WIN32
-static bool init_glew();
-#endif
 
 static bool controller_present = false;
 static bool axis_button_down[NUM_AXIS_BUTTONS];
@@ -78,10 +69,16 @@ am_native_window *am_create_native_window(
         SDL_GL_MakeCurrent(windows[0], gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     }
-#ifdef AM_WIN32
+#if defined(AM_GLPROFILE_ES)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#elif defined(AM_GLPROFILE_DESKTOP)
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+#else
+#error unknown gl profile
 #endif
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -132,12 +129,6 @@ am_native_window *am_create_native_window(
     }
     SDL_GL_MakeCurrent(win, gl_context);
     if (!am_gl_is_initialized()) {
-#ifndef AM_WIN32
-        if (!init_glew()) {
-            SDL_DestroyWindow(win);
-            return NULL;
-        }
-#endif
         am_init_gl();
     }
     windows.push_back(win);
@@ -232,22 +223,6 @@ void *am_read_resource(const char *filename, int *len, bool append_null, char **
     SDL_RWclose(f);
     return buf;
 }
-
-#ifndef AM_WIN32
-static bool init_glew() {
-    GLenum err = glewInit();
-    if (GLEW_OK != err) {
-        am_abort("Error initializing OpenGL: %s", glewGetErrorString(err));
-        return false;
-    }
-
-    if (!GLEW_VERSION_2_1) {
-        am_abort("Sorry, OpenGL 2.1 is required.");
-        return false;
-    }
-    return true;
-}
-#endif
 
 int main( int argc, char *argv[] )
 {

@@ -24,7 +24,7 @@ else ifeq ($(TARGET_PLATFORM),win32)
   AM_DEPS = $(LUAVM) png z vorbis
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
 else
-  AM_DEPS = $(LUAVM) sdl glew png z angle vorbis
+  AM_DEPS = $(LUAVM) sdl png z angle vorbis
   AM_DEFS += AM_USE_ANGLE
 endif
 
@@ -109,11 +109,6 @@ $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
 	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"
 	cp $(LUAJIT_DIR)/src/*.h $(BUILD_LUAJIT_INCLUDE_DIR)/
 	cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@
-
-$(GLEW_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(GLEW_DIR) && $(MAKE) clean all
-	cp -r $(GLEW_DIR)/include/* $(BUILD_INC_DIR)/
-	cp $(GLEW_DIR)/lib/libGLEW$(ALIB_EXT) $@
 
 $(LIBPNG_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LIBPNG_DIR) && $(MAKE) clean all

@@ -99,41 +99,25 @@ void am_program_param::bind(am_render_state *rstate) {
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_1F) {
-                am_set_attribute_array_enabled(location, false);
-                am_set_attribute1f(location, slot->value.value.f);
-                bound = true;
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT) {
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.value.arr);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_2F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
-                am_set_attribute_array_enabled(location, false);
-                am_set_attribute2f(location, slot->value.value.v2);
-                bound = true;
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT2) {
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT2) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.value.arr);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_3F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
-                am_set_attribute_array_enabled(location, false);
-                am_set_attribute3f(location, slot->value.value.v3);
-                bound = true;
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT3) {
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT3) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.value.arr);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_4F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
-                am_set_attribute_array_enabled(location, false);
-                am_set_attribute4f(location, slot->value.value.v4);
-                bound = true;
-            } else if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT4) {
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_BUF_ELEM_TYPE_FLOAT4) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.value.arr);
                 bound = true;
             }
@@ -691,10 +675,10 @@ const char *am_program_param_type_name(am_program_param_type t) {
         case AM_PROGRAM_PARAM_UNIFORM_MAT3: return "mat3 uniform";
         case AM_PROGRAM_PARAM_UNIFORM_MAT4: return "mat4 uniform";
         case AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D: return "sampler2D uniform";
-        case AM_PROGRAM_PARAM_ATTRIBUTE_1F: return "float attribute";
-        case AM_PROGRAM_PARAM_ATTRIBUTE_2F: return "vec2 attribute";
-        case AM_PROGRAM_PARAM_ATTRIBUTE_3F: return "vec3 attribute";
-        case AM_PROGRAM_PARAM_ATTRIBUTE_4F: return "vec4 attribute";
+        case AM_PROGRAM_PARAM_ATTRIBUTE_1F: return "float attribute array";
+        case AM_PROGRAM_PARAM_ATTRIBUTE_2F: return "vec2 attribute array";
+        case AM_PROGRAM_PARAM_ATTRIBUTE_3F: return "vec3 attribute array";
+        case AM_PROGRAM_PARAM_ATTRIBUTE_4F: return "vec4 attribute array";
     }
     return NULL;
 }
