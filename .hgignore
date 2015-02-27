@@ -76,6 +76,10 @@ deps/zlib-*/*.lib
 deps/zlib-*/*.a
 deps/zlib-*/*.pdb
 
+deps/freetype-*/*.lib
+deps/freetype-*/*.a
+deps/freetype-*/*.pdb
+
 tests/*.out
 tests/*.err
 tests/*.res

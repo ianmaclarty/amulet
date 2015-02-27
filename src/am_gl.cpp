@@ -3,13 +3,19 @@
 
 #include "amulet.h"
 
-#if defined(AM_WIN32)
-    #include <SDL_opengles2.h>
-#elif defined(AM_BACKEND_SDL)
-    #define GL_GLEXT_PROTOTYPES
-    #include <SDL_opengl.h>
+#if defined(AM_BACKEND_SDL)
+    #if defined(AM_GLPROFILE_ES)
+        #include <SDL_opengles2.h>
+    #elif defined(AM_GLPROFILE_DESKTOP)
+        #define GL_GLEXT_PROTOTYPES
+        #include <SDL_opengl.h>
+    #else
+        #error unknown gl profile
+    #endif
 #elif defined(AM_BACKEND_EMSCRIPTEN)
     #include <GLES2/gl2.h>
+#else
+    #error unknown backend
 #endif
 
 #if defined(AM_USE_ANGLE)

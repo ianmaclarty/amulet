@@ -1,0 +1,35 @@
+include ../../Common.mk
+
+MAIN_TARGET = libft2$(ALIB_EXT)
+
+all: $(MAIN_TARGET)
+
+CFILES:=	\
+    src/autofit/autofit.c \
+    src/base/ftbbox.c \
+    src/base/ftdebug.c \
+    src/base/ftglyph.c \
+    src/base/ftinit.c \
+    src/base/ftstroke.c \
+    src/raster/raster.c \
+    src/smooth/smooth.c \
+    src/base/ftbase.c \
+    src/base/ftbitmap.c \
+    src/base/ftgasp.c \
+    src/base/ftgxval.c \
+    src/base/ftsystem.c \
+    src/truetype/truetype.c
+
+OFILES:=$(patsubst %.c,%.o,$(CFILES))
+
+CFLAGS := $(COMMON_CFLAGS) -Iinclude -DFT2_BUILD_LIBRARY
+
+$(OFILES): %$(OBJ_EXT): %.c
+	$(CC) $(CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
+
+$(MAIN_TARGET): $(OFILES)
+	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@ $^
+
+.PHONY: clean
+clean:
+	rm -f $(MAIN_TARGET) $(OFILES)

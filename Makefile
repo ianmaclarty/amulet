@@ -18,13 +18,13 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 EXTRA_PREREQS = 
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = lua vorbis
+  AM_DEPS = lua vorbis ft2
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifeq ($(TARGET_PLATFORM),win32)
-  AM_DEPS = $(LUAVM) png z vorbis
+  AM_DEPS = $(LUAVM) png z vorbis ft2
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
 else
-  AM_DEPS = $(LUAVM) sdl png z angle vorbis
+  AM_DEPS = $(LUAVM) sdl png z angle vorbis ft2
   AM_DEFS += AM_USE_ANGLE
 endif
 
@@ -126,6 +126,11 @@ $(VORBIS_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(VORBIS_DIR) && $(MAKE) clean all
 	cp $(VORBIS_DIR)/libvorbis$(ALIB_EXT) $@
 	cp $(VORBIS_DIR)/stb_vorbis.h $(BUILD_INC_DIR)/
+
+$(FT2_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom clean all
+	cp $(FT2_DIR)/libft2$(ALIB_EXT) $@
+	cp -r $(FT2_DIR)/include/* $(BUILD_INC_DIR)/
 
 $(BUILD_DIRS): %:
 	mkdir -p $@
