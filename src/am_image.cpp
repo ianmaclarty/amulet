@@ -90,6 +90,24 @@ static uint8_t* read_png(uint8_t *data, int sz, int *width, int *height) {
     return img_data;
 }
 
+static int create_image(lua_State *L) {
+    am_check_nargs(L, 2);
+    am_image *img = am_new_userdata(L, am_image);
+    img->width = luaL_checkinteger(L, 1);
+    if (img->width <= 0) {
+        return luaL_error(L, "expecting a positive integer in position 1");
+    }
+    img->height = luaL_checkinteger(L, 2);
+    if (img->height <= 0) {
+        return luaL_error(L, "expecting a position integer in position 2");
+    }
+    img->format = AM_PIXEL_FORMAT_RGBA8;
+    img->buffer = am_new_userdata(L, am_buffer, img->width * img->height * 4);
+    img->buffer_ref = img->ref(L, -1);
+    lua_pop(L, 1); // pop buffer;
+    return 1;
+}
+
 static int decode_png(lua_State *L) {
     am_check_nargs(L, 1);
     am_buffer *rawbuf = am_get_userdata(L, am_buffer, 1);
@@ -147,6 +165,7 @@ static void register_image_mt(lua_State *L) {
 
 void am_open_image_module(lua_State *L) {
     luaL_Reg funcs[] = {
+        {"create_image", create_image},
         {"decode_png", decode_png},
         {NULL, NULL}
     };

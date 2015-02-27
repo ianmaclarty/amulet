@@ -201,7 +201,9 @@ int am_load_module(lua_State *L) {
     char *errmsg;
     void *buf = am_read_resource(tmpbuf, &sz, false, &errmsg);
     if (buf == NULL) {
-        return luaL_error(L, "unable to load module '%s': %s", modname, errmsg);
+        lua_pushfstring(L, "unable to load module '%s': %s", modname, errmsg);
+        free(errmsg);
+        return lua_error(L);
     }
     snprintf(tmpbuf, TMP_BUF_SZ, "@%s.lua", modname);
     char *str = (char*)malloc(sz+1);

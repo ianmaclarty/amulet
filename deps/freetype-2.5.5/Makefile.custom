@@ -11,13 +11,17 @@ CFILES:=	\
     src/base/ftglyph.c \
     src/base/ftinit.c \
     src/base/ftstroke.c \
-    src/raster/raster.c \
-    src/smooth/smooth.c \
     src/base/ftbase.c \
     src/base/ftbitmap.c \
     src/base/ftgasp.c \
     src/base/ftgxval.c \
     src/base/ftsystem.c \
+    src/cff/cff.c \
+    src/pshinter/pshinter.c \
+    src/psnames/psnames.c \
+    src/raster/raster.c \
+    src/sfnt/sfnt.c \
+    src/smooth/smooth.c \
     src/truetype/truetype.c
 
 OFILES:=$(patsubst %.c,%.o,$(CFILES))

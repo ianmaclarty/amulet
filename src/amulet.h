@@ -42,6 +42,11 @@ extern "C" {
 #include "lualib.h"
 }
 
+extern "C" {
+#include "ft2build.h"
+#include FT_FREETYPE_H
+}
+
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
@@ -79,6 +84,7 @@ extern "C" {
 #include "am_depthbuffer.h"
 #include "am_culling.h"
 #include "am_image.h"
+#include "am_text.h"
 #include "am_model.h"
 #include "am_engine.h"
 

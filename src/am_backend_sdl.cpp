@@ -184,7 +184,7 @@ void *am_read_resource(const char *filename, int *len, bool append_null, char **
     SDL_RWops *f = NULL;
     f = SDL_RWFromFile(path, "r");
     if (f == NULL) {
-        snprintf(tmpbuf, ERR_MSG_SZ, "couldn't read file %s", path);
+        snprintf(tmpbuf, ERR_MSG_SZ, "unable to read file %s", path);
         free(path);
         *errmsg = (char*)malloc(strlen(tmpbuf) + 1);
         strcpy(*errmsg, tmpbuf);

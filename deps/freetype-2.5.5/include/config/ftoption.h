@@ -112,7 +112,7 @@ FT_BEGIN_HEADER
   /*         file `ftconfig.h' either statically or through the            */
   /*         `configure' script on supported platforms.                    */
   /*                                                                       */
-#undef FT_CONFIG_OPTION_FORCE_INT64
+#define FT_CONFIG_OPTION_FORCE_INT64
 
 
   /*************************************************************************/
@@ -148,7 +148,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*   Define this macro if you want to enable this `feature'.             */
   /*                                                                       */
-#define FT_CONFIG_OPTION_USE_LZW
+#undef FT_CONFIG_OPTION_USE_LZW
 
 
   /*************************************************************************/
@@ -163,7 +163,7 @@ FT_BEGIN_HEADER
   /*   Define this macro if you want to enable this `feature'.  See also   */
   /*   the macro FT_CONFIG_OPTION_SYSTEM_ZLIB below.                       */
   /*                                                                       */
-#define FT_CONFIG_OPTION_USE_ZLIB
+#undef FT_CONFIG_OPTION_USE_ZLIB
 
 
   /*************************************************************************/
@@ -211,7 +211,7 @@ FT_BEGIN_HEADER
   /* file stream support, in the cases where file stream support is not    */
   /* necessary such as memory loading of font files.                       */
   /*                                                                       */
-/* #define FT_CONFIG_OPTION_DISABLE_STREAM_SUPPORT */
+ #define FT_CONFIG_OPTION_DISABLE_STREAM_SUPPORT
 
 
   /*************************************************************************/
@@ -323,7 +323,7 @@ FT_BEGIN_HEADER
   /*   able to synthesize a Unicode charmap out of the glyphs found in the */
   /*   fonts.                                                              */
   /*                                                                       */
-#define FT_CONFIG_OPTION_ADOBE_GLYPH_LIST
+#undef FT_CONFIG_OPTION_ADOBE_GLYPH_LIST
 
 
   /*************************************************************************/
@@ -336,7 +336,7 @@ FT_BEGIN_HEADER
   /*                                                                       */
   /*   Note that the `FOND' resource isn't checked.                        */
   /*                                                                       */
-#define FT_CONFIG_OPTION_MAC_FONTS
+#undef FT_CONFIG_OPTION_MAC_FONTS
 
 
   /*************************************************************************/
@@ -370,7 +370,7 @@ FT_BEGIN_HEADER
   /* supply font data incrementally as the document is parsed, such        */
   /* as the Ghostscript interpreter for the PostScript language.           */
   /*                                                                       */
-#define FT_CONFIG_OPTION_INCREMENTAL
+#undef FT_CONFIG_OPTION_INCREMENTAL
 
 
   /*************************************************************************/
@@ -696,7 +696,7 @@ FT_BEGIN_HEADER
   /* and avar tables).  This has many similarities to Type 1 Multiple      */
   /* Masters support.                                                      */
   /*                                                                       */
-#define TT_CONFIG_OPTION_GX_VAR_SUPPORT
+#undef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 
 
   /*************************************************************************/
