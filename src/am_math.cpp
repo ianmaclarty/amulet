@@ -8,6 +8,7 @@ static int vec2_sub(lua_State *L);
 static int vec2_mul(lua_State *L);
 static int vec2_div(lua_State *L);
 static int vec2_unm(lua_State *L);
+static int vec2_len(lua_State *L);
 
 static int vec3_new(lua_State *L);
 static int vec3_index(lua_State *L);
@@ -17,6 +18,7 @@ static int vec3_sub(lua_State *L);
 static int vec3_mul(lua_State *L);
 static int vec3_div(lua_State *L);
 static int vec3_unm(lua_State *L);
+static int vec3_len(lua_State *L);
 
 static int vec4_new(lua_State *L);
 static int vec4_index(lua_State *L);
@@ -26,6 +28,7 @@ static int vec4_sub(lua_State *L);
 static int vec4_mul(lua_State *L);
 static int vec4_div(lua_State *L);
 static int vec4_unm(lua_State *L);
+static int vec4_len(lua_State *L);
 
 static int mat2_new(lua_State *L);
 static int mat2_index(lua_State *L);
@@ -36,6 +39,7 @@ static int mat2_mul(lua_State *L);
 static int mat2_div(lua_State *L);
 static int mat2_unm(lua_State *L);
 static int mat2_set(lua_State *L);
+static int mat2_len(lua_State *L);
 
 static int mat3_new(lua_State *L);
 static int mat3_index(lua_State *L);
@@ -46,6 +50,7 @@ static int mat3_mul(lua_State *L);
 static int mat3_div(lua_State *L);
 static int mat3_unm(lua_State *L);
 static int mat3_set(lua_State *L);
+static int mat3_len(lua_State *L);
 
 static int mat4_new(lua_State *L);
 static int mat4_index(lua_State *L);
@@ -56,6 +61,7 @@ static int mat4_mul(lua_State *L);
 static int mat4_div(lua_State *L);
 static int mat4_unm(lua_State *L);
 static int mat4_set(lua_State *L);
+static int mat4_len(lua_State *L);
 
 static int vec_length(lua_State *L);
 static int vec_distance(lua_State *L);
@@ -117,6 +123,12 @@ static int vec##D##_unm(lua_State *L) {                                     \
     am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
     am_vec##D *y = am_new_userdata(L, am_vec##D);                           \
     y->v = -x->v;                                                           \
+    return 1;                                                               \
+}
+
+#define VEC_LEN_FUNC(D)                                                     \
+static int vec##D##_len(lua_State *L) {                                     \
+    lua_pushinteger(L, D);                                                  \
     return 1;                                                               \
 }
 
@@ -551,6 +563,12 @@ static int mat##D##_unm(lua_State *L) {                                         
     return 1;                                                                           \
 }
 
+#define MAT_LEN_FUNC(D)                                                                 \
+static int mat##D##_len(lua_State *L) {                                                 \
+    lua_pushinteger(L, D);                                                              \
+    return 1;                                                                           \
+}
+
 #define MAT_NEW_FUNC(D)                                                                 \
 static int mat##D##_new(lua_State *L) {                                                 \
     int n = lua_gettop(L);                                                              \
@@ -682,6 +700,7 @@ VEC_OP_FUNC(2, sub, -)
 VEC_OP_FUNC(2, div, /)
 VEC_MUL_FUNC(2)
 VEC_UNM_FUNC(2)
+VEC_LEN_FUNC(2)
 AM_READ_VEC_FUNC(2)
 
 //-------------------------- vec3 --------------------------------//
@@ -696,6 +715,7 @@ VEC_OP_FUNC(3, sub, -)
 VEC_OP_FUNC(3, div, /)
 VEC_MUL_FUNC(3)
 VEC_UNM_FUNC(3)
+VEC_LEN_FUNC(3)
 AM_READ_VEC_FUNC(3)
 
 //-------------------------- vec4 --------------------------------//
@@ -710,6 +730,7 @@ VEC_OP_FUNC(4, sub, -)
 VEC_OP_FUNC(4, div, /)
 VEC_MUL_FUNC(4)
 VEC_UNM_FUNC(4)
+VEC_LEN_FUNC(4)
 AM_READ_VEC_FUNC(4)
 
 //-------------------------- mat2 --------------------------------//
@@ -722,6 +743,7 @@ MAT_OP_FUNC(2, sub, -)
 MAT_OP_FUNC(2, div, -)
 MAT_MUL_FUNC(2)
 MAT_UNM_FUNC(2)
+MAT_LEN_FUNC(2)
 
 //-------------------------- mat3 --------------------------------//
 
@@ -733,6 +755,7 @@ MAT_OP_FUNC(3, sub, -)
 MAT_OP_FUNC(3, div, -)
 MAT_MUL_FUNC(3)
 MAT_UNM_FUNC(3)
+MAT_LEN_FUNC(3)
 
 //-------------------------- mat4 --------------------------------//
 
@@ -744,6 +767,7 @@ MAT_OP_FUNC(4, sub, -)
 MAT_OP_FUNC(4, div, -)
 MAT_MUL_FUNC(4)
 MAT_UNM_FUNC(4)
+MAT_LEN_FUNC(4)
 
 //----------------------- vec functions -------------------------//
 
@@ -1447,6 +1471,8 @@ static int clamp(lua_State *L) {
     lua_setfield(L, -2, "__div");                       \
     lua_pushcclosure(L, T##_unm, 0);                    \
     lua_setfield(L, -2, "__unm");                       \
+    lua_pushcclosure(L, T##_len, 0);                    \
+    lua_setfield(L, -2, "__len");                       \
     lua_pushstring(L, #T);                              \
     lua_setfield(L, -2, "tname");                       \
     am_register_metatable(L, MTID, 0);
@@ -1467,6 +1493,8 @@ static int clamp(lua_State *L) {
     lua_setfield(L, -2, "__div");                       \
     lua_pushcclosure(L, T##_unm, 0);                    \
     lua_setfield(L, -2, "__unm");                       \
+    lua_pushcclosure(L, T##_len, 0);                    \
+    lua_setfield(L, -2, "__len");                       \
     lua_pushcclosure(L, T##_set, 0);                    \
     lua_setfield(L, -2, "set");                         \
     lua_pushstring(L, #T);                              \

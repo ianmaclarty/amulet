@@ -1,15 +1,6 @@
 local
 function printvec(v)
-    local str = "<"..string.format("%0.2f", v.x)..", "
-        ..string.format("%0.2f", v[2])
-    if v.z then
-        str = str..", "..string.format("%0.2f", v.b)
-    end
-    if v.w then
-        str = str..", "..string.format("%0.2f", v.q)
-    end
-    str = str..">"
-    print(str)
+    print(v)
 end
 
 local

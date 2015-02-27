@@ -127,43 +127,52 @@ function math.asin(x)
     return asin(math.clamp(x, -1, 1))
 end
 
--- extra string functions
+-- vector/matrix stuff
 
-function string.format_vec(v)
-    local str = "<"..string.format("%0.2f", v.x)..", "
-        ..string.format("%0.2f", v[2])
-    if v.z then
-        str = str..", "..string.format("%0.2f", v.b)
+vec2 = math.vec2
+vec3 = math.vec3
+vec4 = math.vec4
+mat2 = math.mat2
+mat3 = math.mat3
+mat4 = math.mat4
+
+local
+function format_vec(v)
+    local n = #v
+    local str = "vec"..n.."("
+    for i = 1, n do
+        str = str..v[i]
+        if i == n then
+            str = str..")"
+        else
+            str = str..", "
+        end
     end
-    if v.w then
-        str = str..", "..string.format("%0.2f", v.q)
-    end
-    str = str..">"
     return str
 end
 
-function string.format_mat(m)
-    local str = "["
-    for row = 1, 4 do
-        for col = 1, 4 do
-            local elem
-            if m[col] then
-                elem = m[col][row]
-            end
-            if elem then
-                str = str..string.format("%0.2f", elem)
-                if m[col+1] then
-                    str = str.."  "
-                end
-            end
-        end
-        if m[1][row+1] then
-            str = str.."\n "
+rawset(getmetatable(vec2(0)), "__tostring", format_vec)
+rawset(getmetatable(vec3(0)), "__tostring", format_vec)
+rawset(getmetatable(vec4(0)), "__tostring", format_vec)
+
+local
+function format_mat(m)
+    local n = #m
+    local str = "mat"..n.."(\n"
+    for col = 1, n do
+        str = str.."  "..format_vec(m[col])
+        if col == n then
+            str = str..")"
+        else
+            str = str..",\n"
         end
     end
-    str = str.."]"
     return str
 end
+
+rawset(getmetatable(mat2(0)), "__tostring", format_mat)
+rawset(getmetatable(mat3(0)), "__tostring", format_mat)
+rawset(getmetatable(mat4(0)), "__tostring", format_mat)
 
 -- extra builtins
 
@@ -182,10 +191,3 @@ function log1(fmt, ...)
         amulet.log(tostring(fmt), true, 2)
     end
 end
-
-vec2 = math.vec2
-vec3 = math.vec3
-vec4 = math.vec4
-mat2 = math.mat2
-mat3 = math.mat3
-mat4 = math.mat4

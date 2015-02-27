@@ -169,33 +169,10 @@ clean-all: clean-tests
 TIMEPROG = /usr/bin/time
 TIMEFORMAT = "[%es %Mk]"
 
-CPP_TESTS = $(patsubst tests/test_%.cpp,test_%,$(wildcard tests/*.cpp))
 LUA_TESTS = $(patsubst tests/test_%.lua,test_%,$(wildcard tests/test_*.lua))
 
 .PHONY: test
-test: run_cpp_tests run_lua_tests
-
-.PHONY: run_cpp_tests
-run_cpp_tests:
-	@echo Running C++ tests...
-	@for f in $(CPP_TESTS); do \
-	    fexe=tests/$$f$(EXE_EXT); \
-	    fexp=tests/$$f.exp; \
-	    fexp2=tests/$$f.exp2; \
-	    fout=tests/$$f.out; \
-	    fres=tests/$$f.res; \
-	    ftime=tests/$$f.time; \
-	    g++ -O0 -g tests/$$f.cpp -o $$fexe; \
-	    $(TIMEPROG) -f $"$(TIMEFORMAT)$" -o $$ftime $$fexe > $$fout 2>&1 ; \
-	    tdata=`cat $$ftime`; \
-	    if ( diff -u $$fexp $$fout > $$fres ) || ( [ -e $$fexp2 ] && ( diff -u $$fexp2 $$fout > $$fres ) ); then \
-		res=" passed "; \
-	    else \
-		res="*FAILED*"; \
-	    fi; \
-	    printf "%-30s%s       %s\n" "$$f" "$$res" "$$tdata"; \
-	done
-	@echo DONE
+test: run_lua_tests
 
 .PHONY: run_lua_tests
 run_lua_tests: $(AMULET)
@@ -207,14 +184,13 @@ run_lua_tests: $(AMULET)
 	    fout=tests/$$t.out; \
 	    fres=tests/$$t.res; \
 	    ftime=tests/$$t.time; \
-	    $(TIMEPROG) -f $"$(TIMEFORMAT)$" -o $$ftime $(AMULET) $$flua > $$fout 2>&1 ; \
-	    tdata=`cat $$ftime`; \
+	    $(AMULET) $$flua > $$fout 2>&1 ; \
 	    if ( diff -u $$fexp $$fout > $$fres ) || ( [ -e $$fexp2 ] && ( diff -u $$fexp2 $$fout > $$fres ) ); then \
 		res="  pass  "; \
 	    else \
 		res="**FAIL**"; \
 	    fi; \
-	    printf "%-30s%s       %s\n" "$$t" "$$res" "$$tdata"; \
+	    printf "%-30s%s       %s\n" "$$t" "$$res"; \
 	done
 	@echo DONE
 
