@@ -3,6 +3,7 @@ int am_conf_default_action_priority = 100;
 
 double am_conf_fixed_delta_time = -1.0;
 double am_conf_min_delta_time = 1.0/15.0;
+double am_conf_warn_delta_time = 1.0/30.0;
 int am_conf_vsync = true;
 
 // am_conf_audio_buffer_size is number of samples for each channel

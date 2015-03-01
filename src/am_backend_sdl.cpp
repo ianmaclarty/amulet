@@ -18,10 +18,6 @@ enum axis_button {
     NUM_AXIS_BUTTONS
 };
 
-static double fps = 1.0;
-static double frame_time = 0.0;
-static double delta_time = 1.0/60.0;
-
 static SDL_AudioDeviceID audio_device = 0;
 static std::vector<SDL_Window*> windows;
 static SDL_GLContext gl_context;
@@ -232,6 +228,11 @@ int main( int argc, char *argv[] )
     double fps_t0;
     double fps_max;
     long long frame_count;
+    double fps = 1.0;
+    double frame_time = 0.0;
+    double delta_time;
+    double real_delta_time;
+
     lua_State *L = NULL;
 
     int exit_status = EXIT_SUCCESS;
@@ -283,7 +284,12 @@ int main( int argc, char *argv[] )
         if (!handle_events(L)) goto quit;
 
         frame_time = am_get_current_time();
-        delta_time = am_min(am_conf_min_delta_time, frame_time - t0); // fmin in case process was suspended, or last frame took very long
+        
+        real_delta_time = frame_time - t0;
+        if (am_conf_warn_delta_time > 0.0 && real_delta_time > am_conf_warn_delta_time) {
+            am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);
+        }
+        delta_time = am_min(am_conf_min_delta_time, real_delta_time); // fmin in case process was suspended, or last frame took very long
         t_debt += delta_time;
 
         if (am_conf_fixed_delta_time > 0.0) {
