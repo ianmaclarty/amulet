@@ -1,3 +1,5 @@
+SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+
 TARGET_PLATFORMS = linux32 linux64 win32 osx ios android html
 
 DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
@@ -44,7 +46,7 @@ endif
 
 # Target settings (this is the target platform we want to run on)
 
--include settings
+-include $(SELF_DIR)settings
 
 ifdef TARGET
   ifneq (,$(findstring .debug,$(TARGET)))
@@ -58,7 +60,7 @@ ifdef TARGET
   endif
 else
   TARGET_PLATFORM = $(HOST_PLATFORM)
-  GRADE = debug
+  GRADE = release
   TARGET = $(TARGET_PLATFORM).$(GRADE)
 endif
 
@@ -202,6 +204,11 @@ else
     GRADE_LDFLAGS =
     LUA_CFLAGS += -Ox
     LUA_LDFLAGS += -Ox
+  else ifeq ($(TARGET_PLATFORM),osx)
+    GRADE_CFLAGS = -O3 -DNDEBUG
+    GRADE_LDFLAGS =
+    LUA_CFLAGS += -O3
+    LUA_LDFLAGS += -O2
   else
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS = -s
