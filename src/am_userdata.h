@@ -165,6 +165,7 @@ struct am_property {
 void am_register_metatable(lua_State *L, int metatable_id, int parent_mt_id);
 void am_push_metatable(lua_State *L, int metatable_id);
 int am_get_type(lua_State *L, int idx);
+const char* am_get_typename(lua_State *L, int metatable_id);
 am_userdata *am_check_metatable_id(lua_State *L, int metatable_id, int idx);
 am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id);
 

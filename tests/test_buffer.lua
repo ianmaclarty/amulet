@@ -29,7 +29,7 @@ end
 assert(total1 == total2)
 print(total2)
 
-view:set_nums({1, 2, 3})
+view:set({1, 2, 3})
 print(view[1])
 print(view[3])
 
@@ -48,19 +48,20 @@ printvec(view4[1])
 printvec(view4[1000])
 printv_and_restore(view4, 10, math.vec4(-1, -2, -3, -4))
 
-view:set_nums({100, 200, 300})
+view:set({100, 200, 300})
 print(view[1])
 print(view[3])
 
-view2:set_nums({101, 201, 301, 401}, 2)
+local sl = view2:slice(2)
+sl:set({101, 201, 301, 401})
 printvec(view2[2])
 printvec(view2[3])
 
-view3:set_nums({102, 202, 302, 402, 502, 602}, 1)
+view3:set({102, 202, 302, 402, 502, 602})
 printvec(view3[1])
 printvec(view3[2])
 
-view4:set_nums({103, 203, 303, 403, 503, 603, 703, 803}, 3)
+view4:slice(3):set({103, 203, 303, 403, 503, 603, 703, 803})
 printvec(view4[3])
 printvec(view4[4])
 
@@ -127,21 +128,15 @@ local viewshortn = buf2:view("short_norm", 0, 2, 5)
 viewshortn[1] = -0.5
 print(string.format("%0.2f", viewshortn[1]))
 
-local viewuintn = buf2:view("uint_norm", 0, 4, 2)
-viewuintn[1] = 0.25
-print(string.format("%0.2f", viewuintn[1]))
-
-local viewintn = buf2:view("int_norm", 0, 4, 2)
-viewintn[1] = -0.25
-print(string.format("%0.2f", viewintn[1]))
-
-for _, vs in ipairs({{viewub, viewubn}, {viewushort, viewushortn}, {viewshort, viewshortn}, {viewuint, viewuintn}, {viewint, viewintn}}) do
-    vs[1]:set_nums{101, 102}
+for _, vs in ipairs({{viewub, viewubn}, {viewushort, viewushortn}, {viewshort, viewshortn}, {viewuint}, {viewint}}) do
+    vs[1]:set{101, 102}
     print(string.format("%0.2f", vs[1][1]))
     print(string.format("%0.2f", vs[1][2]))
-    vs[2]:set_nums{0.25, 0.5}
-    print(string.format("%0.2f", vs[2][1]))
-    print(string.format("%0.2f", vs[2][2]))
+    if vs[2] then
+        vs[2]:set{0.25, 0.5}
+        print(string.format("%0.2f", vs[2][1]))
+        print(string.format("%0.2f", vs[2][2]))
+    end
 end
 
 print("ok")

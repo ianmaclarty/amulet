@@ -30,6 +30,8 @@ endif
 
 DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(AM_DEPS))
 
+VIEW_TEMPLATES = $(wildcard src/am*view_template.inc)
+
 EMBEDDED_LUA_FILES = $(wildcard lua/*.lua)
 EMBEDDED_FILES = $(EMBEDDED_LUA_FILES)
 EMBEDDED_DATA_CPP_FILE = $(SRC_DIR)/am_embedded_data.cpp
@@ -76,6 +78,8 @@ endif
 
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR)
 	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
+
+$(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): src/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
@@ -140,6 +144,14 @@ $(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: html/% | $(BUILD_BIN_DIR)
 
 $(BUILD_BIN_DIR)/example.lua: $(DEFAULT_HTML_EDITOR_SCRIPT)
 	cp $< $@
+
+# View templates
+
+tools/gen_view_defs$(EXE_EXT): tools/gen_view_defs.c
+	$(HOSTCC) -o $@ $<
+
+src/am_generated_view_defs.inc: tools/gen_view_defs$(EXE_EXT)
+	tools/gen_view_defs$(EXE_EXT) > $@
 
 # Embedded Lua code
 

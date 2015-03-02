@@ -1,22 +1,23 @@
+// grep for AM_NUM_VIEW_TYPES when updating the following enum
 enum am_buffer_view_type {
-    AM_BUF_ELEM_TYPE_FLOAT,
-    AM_BUF_ELEM_TYPE_FLOAT2,
-    AM_BUF_ELEM_TYPE_FLOAT3,
-    AM_BUF_ELEM_TYPE_FLOAT4,
-    AM_BUF_ELEM_TYPE_UBYTE,
-    AM_BUF_ELEM_TYPE_BYTE,
-    AM_BUF_ELEM_TYPE_UBYTE_NORM,
-    AM_BUF_ELEM_TYPE_BYTE_NORM,
-    AM_BUF_ELEM_TYPE_USHORT,
-    AM_BUF_ELEM_TYPE_SHORT,
-    AM_BUF_ELEM_TYPE_USHORT_ELEM,
-    AM_BUF_ELEM_TYPE_USHORT_NORM,
-    AM_BUF_ELEM_TYPE_SHORT_NORM,
-    AM_BUF_ELEM_TYPE_UINT,
-    AM_BUF_ELEM_TYPE_INT,
-    AM_BUF_ELEM_TYPE_UINT_ELEM,
-    AM_BUF_ELEM_TYPE_UINT_NORM,
-    AM_BUF_ELEM_TYPE_INT_NORM,
+    AM_VIEW_TYPE_FLOAT,
+    AM_VIEW_TYPE_FLOAT2,
+    AM_VIEW_TYPE_FLOAT3,
+    AM_VIEW_TYPE_FLOAT4,
+    AM_VIEW_TYPE_UBYTE,
+    AM_VIEW_TYPE_BYTE,
+    AM_VIEW_TYPE_UBYTE_NORM,
+    AM_VIEW_TYPE_BYTE_NORM,
+    AM_VIEW_TYPE_USHORT,
+    AM_VIEW_TYPE_SHORT,
+    AM_VIEW_TYPE_USHORT_ELEM,
+    AM_VIEW_TYPE_USHORT_NORM,
+    AM_VIEW_TYPE_SHORT_NORM,
+    AM_VIEW_TYPE_UINT,
+    AM_VIEW_TYPE_INT,
+    AM_VIEW_TYPE_UINT_ELEM,
+
+    AM_NUM_VIEW_TYPES,
 };
 
 struct am_texture2d;
@@ -41,6 +42,17 @@ struct am_buffer : am_nonatomic_userdata {
     void create_arraybuf();
     void create_elembuf();
     void update_if_dirty();
+
+    inline void mark_dirty(int byte_start, int byte_end) {
+        if (track_dirty) {
+            if (byte_start < dirty_start) {
+                dirty_start = byte_start;
+            } 
+            if (byte_end > dirty_end) {
+                dirty_end = byte_end;
+            }
+        }
+    }
 };
 
 struct am_buffer_view : am_nonatomic_userdata {

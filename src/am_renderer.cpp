@@ -248,13 +248,13 @@ static int create_draw_elements_node(lua_State *L) {
     am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, 1);
     am_draw_elements_node *node = am_new_userdata(L, am_draw_elements_node);
     switch (indices_view->type) {
-        case AM_BUF_ELEM_TYPE_USHORT_ELEM:
+        case AM_VIEW_TYPE_USHORT_ELEM:
             if (indices_view->stride != 2) {
                 return luaL_error(L, "ushort_elem array must have stride 2 when used with draw_elements");
             }
             node->type = AM_ELEMENT_TYPE_USHORT;
             break;
-        case AM_BUF_ELEM_TYPE_UINT_ELEM:
+        case AM_VIEW_TYPE_UINT_ELEM:
             if (indices_view->stride != 4) {
                 return luaL_error(L, "uint_elem array must have stride 4 when used with draw_elements");
             }

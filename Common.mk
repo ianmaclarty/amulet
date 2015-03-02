@@ -60,7 +60,7 @@ ifdef TARGET
   endif
 else
   TARGET_PLATFORM = $(HOST_PLATFORM)
-  GRADE = release
+  GRADE = debug
   TARGET = $(TARGET_PLATFORM).$(GRADE)
 endif
 
@@ -174,21 +174,21 @@ endif
 # Adjust flags for grade
 ifeq ($(GRADE),debug)
   ifeq ($(TARGET_PLATFORM),html)
-    GRADE_CFLAGS = -g -O0
-    GRADE_LDFLAGS = -g -g4
-    LUA_CFLAGS += -DLUA_USE_APICHECK -g -O0
-    LUA_LDFLAGS += -g -g4
-  else ifeq ($(TARGET_PLATFORM),win32)
-    GRADE_CFLAGS = -Zi
+    GRADE_CFLAGS = -O1
     GRADE_LDFLAGS =
-    LUA_CFLAGS += -DLUA_USE_APICHECK -Zi
+    LUA_CFLAGS += -DLUA_USE_APICHECK -O1
+    LUA_LDFLAGS +=
+  else ifeq ($(TARGET_PLATFORM),win32)
+    GRADE_CFLAGS =
+    GRADE_LDFLAGS =
+    LUA_CFLAGS += -DLUA_USE_APICHECK
     LUA_LDFLAGS +=
   else
-    GRADE_CFLAGS = -g -O0
+    GRADE_CFLAGS = -g -O1
     GRADE_LDFLAGS = -g 
-    LUA_CFLAGS += -DLUA_USE_APICHECK -g -O0
+    LUA_CFLAGS += -DLUA_USE_APICHECK -g -O1
     LUA_LDFLAGS += -g
-    LUAJIT_CFLAGS += -DLUA_USE_APICHECK -g -O0
+    LUAJIT_CFLAGS += -DLUA_USE_APICHECK -g -O1
     LUAJIT_LDFLAGS += -g
   endif
 else

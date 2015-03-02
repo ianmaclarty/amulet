@@ -21,8 +21,10 @@ amulet.exe.manifest
 vc*.pdb
 
 src/am_embedded_data.cpp
+src/am_generated_view_defs.inc
 
 tools/embed
+tools/gen_view_defs
 
 deps/SDL2-*/Makefile
 deps/SDL2-*/Makefile.rules

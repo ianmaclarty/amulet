@@ -134,6 +134,27 @@ int am_get_type(lua_State *L, int idx) {
     }
 }
 
+const char* am_get_typename(lua_State *L, int metatable_id) {
+    if (metatable_id <= LUA_TTHREAD) {
+        return lua_typename(L, metatable_id);
+    }
+    lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 1);
+        return "unregistered metatable";
+    }
+    lua_pushstring(L, "tname");
+    lua_rawget(L, -2);
+    if (lua_type(L, -1) == LUA_TSTRING) {
+        const char *tname = lua_tostring(L, -1);
+        lua_pop(L, 2);
+        return tname;
+    } else {
+        lua_pop(L, 2);
+        return "missing tname";
+    }
+}
+
 am_userdata *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
     int type = lua_type(L, idx);
     am_userdata *ud = NULL;
