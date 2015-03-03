@@ -83,8 +83,7 @@ void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_c
     if (validate_active_program()) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
             am_log1("%s", "WARNING: ignoring draw_arrays, "
-                "because no attribute arrays have been bound"
-                "and no count has been specified");
+                "because no attribute arrays have been bound");
             draw_array_count = 0;
         }
         int count = max_draw_array_size - first;

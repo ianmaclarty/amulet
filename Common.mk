@@ -60,7 +60,7 @@ ifdef TARGET
   endif
 else
   TARGET_PLATFORM = $(HOST_PLATFORM)
-  GRADE = debug
+  GRADE = release
   TARGET = $(TARGET_PLATFORM).$(GRADE)
 endif
 
