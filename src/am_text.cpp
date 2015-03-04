@@ -105,7 +105,7 @@ static int render_text(lua_State *L) {
     const char *text = luaL_checklstring(L, 4, &n);
     FT_Face face = font->face;
     FT_GlyphSlot slot = face->glyph;
-    for (int i = 0; i < n; i++) {
+    for (unsigned int i = 0; i < n; i++) {
         uint32_t c = text[i];
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
             am_log1("WARNING: error loading font character %u", c);

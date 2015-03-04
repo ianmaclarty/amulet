@@ -225,10 +225,6 @@ int main( int argc, char *argv[] )
     int vsync;
     double t0;
     double t_debt;
-    double fps_t0;
-    double fps_max;
-    long long frame_count;
-    double fps = 1.0;
     double frame_time = 0.0;
     double delta_time;
     double real_delta_time;
@@ -262,9 +258,6 @@ int main( int argc, char *argv[] )
     t0 = am_get_current_time();
     frame_time = t0;
     t_debt = 0.0;
-    fps_t0 = 0.0;
-    fps_max = 0.0;
-    frame_count = 0;
     vsync = -2;
 
     while (windows.size() > 0) {
@@ -310,19 +303,7 @@ int main( int argc, char *argv[] )
             }
         }
 
-        fps_max = am_max(fps_max, delta_time);
         t0 = frame_time;
-
-        frame_count++;
-
-        if (frame_time - fps_t0 >= 2.0) {
-            fps = (double)frame_count / (frame_time - fps_t0);
-            //am_debug("fps = %0.2f", fps);
-            fps_t0 = t0;
-            fps_max = 0.0;
-            frame_count = 0;
-        }
-
     }
 
 
