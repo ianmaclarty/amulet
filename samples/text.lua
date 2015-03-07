@@ -2,11 +2,11 @@ local am = amulet
 
 local win = am.window{width = 1000, height = 480}
 
-local vera_mono = am.load_font("VeraMono.ttf", 480)
+local vera_mono = am.load_font("VeraMono.ttf")
 
 local img = am.create_image(win.width, win.height)
 
-vera_mono:render_text(img, vec2(0, 0), "Hello $123.456 !@#$%^&*()_-+={} \"';:.,<>?/\\|~`")
+vera_mono:render_text(img, vec2(0, 100), "Hello $123.456 !@#$%^&*()_-+={} \"';:.,<>?/\\|~`", 32)
 
 local texture = am.texture2d{
     width = img.width,

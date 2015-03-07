@@ -109,10 +109,11 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
             am_log1("%s", "WARNING: ignoring draw_elements, "
                 "because no attribute arrays have been bound");
             count = 0;
-        } else if ((int)indices_view->max_elem > max_draw_array_size) {
+        } else if ((int)indices_view->max_elem >= max_draw_array_size) {
             am_log1("WARNING: ignoring draw_elements, "
-                "because one of its indices (%d) is out of bounds",
-                ((int)indices_view->max_elem + 1));
+                "because one of its indices (%d) is out of bounds "
+                "(max allowed = %d)",
+                ((int)indices_view->max_elem + 1), max_draw_array_size);
             count = 0;
         }
         if (count > (indices_view->size - first)) {

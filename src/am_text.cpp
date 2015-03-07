@@ -15,7 +15,7 @@ static void ensure_ft_init() {
 }
 
 static int load_font(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
+    am_check_nargs(L, 1);
     const char *name = luaL_checkstring(L, 1);
     int len;
     char *errmsg;
@@ -26,26 +26,10 @@ static int load_font(lua_State *L) {
         return lua_error(L);
     }
     am_font *font = am_new_userdata(L, am_font);
+    font->name = name;
+    font->ref(L, 1); // keep ref to name
     if (FT_New_Memory_Face(ft_library, (const FT_Byte*)data, len, 0, &font->face)) {
         return luaL_error(L, "error reading font '%s'", name);
-    }
-    int width = luaL_checkinteger(L, 2);
-    int height = 0;
-    if (width <= 0) {
-        return luaL_error(L, "expecting a positive integer in position 2 (in fact %d)", width);
-    }
-    if (nargs > 2) {
-        height = luaL_checkinteger(L, 3);
-        if (height <= 0) {
-            return luaL_error(L, "expecting a positive integer in position 3 (in fact %d)", height);
-        }
-    }
-    if (FT_Set_Pixel_Sizes(font->face, width, height)) {
-        if (nargs > 2) {
-            return luaL_error(L, "size %dx%d is not supported by font '%s'", width, height, name);
-        } else {
-            return luaL_error(L, "size %d is not supported by font '%s'", width, name);
-        }
     }
     return 1;
 }
@@ -97,12 +81,30 @@ static void draw_bitmap(FT_Bitmap *bitmap, float leftf, float topf, am_image *im
 }
 
 static int render_text(lua_State *L) {
-    am_check_nargs(L, 4);
+    int nargs = am_check_nargs(L, 5);
     am_font *font = am_get_userdata(L, am_font, 1);
     am_image *img = am_get_userdata(L, am_image, 2);
     glm::vec2 pen = am_get_userdata(L, am_vec2, 3)->v;
     size_t n;
     const char *text = luaL_checklstring(L, 4, &n);
+    int width = luaL_checkinteger(L, 5);
+    int height = 0;
+    if (width <= 0) {
+        return luaL_error(L, "expecting a positive integer in position 5 (in fact %d)", width);
+    }
+    if (nargs > 5) {
+        height = luaL_checkinteger(L, 6);
+        if (height <= 0) {
+            return luaL_error(L, "expecting a positive integer in position 6 (in fact %d)", height);
+        }
+    }
+    if (FT_Set_Pixel_Sizes(font->face, width, height)) {
+        if (nargs > 5) {
+            return luaL_error(L, "size %dx%d is not supported by font '%s'", width, height, font->name);
+        } else {
+            return luaL_error(L, "size %d is not supported by font '%s'", width, font->name);
+        }
+    }
     FT_Face face = font->face;
     FT_GlyphSlot slot = face->glyph;
     for (int i = 0; i < n; i++) {
