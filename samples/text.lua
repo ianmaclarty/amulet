@@ -6,13 +6,13 @@ local vera_mono = am.load_font("VeraMono.ttf")
 
 local img = am.create_image(win.width, win.height)
 
-vera_mono:render_text(img, vec2(0, 100), "Hello $123.456 !@#$%^&*()_-+={} \"';:.,<>?/\\|~`", 32)
-
 local texture = am.texture2d{
     width = img.width,
     height = img.height,
     buffer = img.buffer,
 }
+
+vera_mono:render_text(img, vec2(0, 0), "Hello $123.456 !@#$%^&*()_-+={} \"';:.,<>?/\\|~`", 32)
 
 local shader = am.program([[
 precision mediump float;
