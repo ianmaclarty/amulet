@@ -43,7 +43,7 @@ static int AM_CONCAT(TNAME,_view_newindex)(lua_State *L) {
     }
     if (am_get_type(L, 3) != LUA_TYPE) {
         return luaL_error(L, "expecting assigned value to be a %s (in fact a %s)",
-            am_get_typename(L, LUA_TYPE), lua_typename(L, lua_type(L, 3)));
+            am_get_typename(L, LUA_TYPE), am_get_typename(L, am_get_type(L, 3)));
     }
     am_buffer *buf = view->buffer;
     int offset = view->offset + view->stride * (index-1);
