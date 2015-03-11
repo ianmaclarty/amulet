@@ -96,7 +96,7 @@ am_native_window *am_create_native_window(
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     }
-    Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
+    Uint32 flags = SDL_WINDOW_OPENGL;// | SDL_WINDOW_ALLOW_HIGHDPI;
     switch (mode) {
         case AM_WINDOW_MODE_WINDOWED: break;
         case AM_WINDOW_MODE_FULLSCREEN: flags |= SDL_WINDOW_FULLSCREEN; break;
@@ -560,6 +560,9 @@ static bool process_args(int argc, char **argv) {
                 filename = argv[i];
             }
         }
+    } else {
+        // Use Resource dir of OS X bundle
+        am_conf_data_dir = SDL_GetBasePath();
     }
     if (filename == NULL) {
         main_module = "main";
