@@ -41,8 +41,8 @@ static int font_gc(lua_State *L) {
 }
 
 static void draw_bitmap(FT_Bitmap *bitmap, float leftf, float topf, am_image *img) {
-    int bleft = (int)roundf(leftf);
-    int btop = (int)roundf(topf);
+    int bleft = (int)floorf(leftf+0.5f);
+    int btop = (int)floorf(topf+0.5f);
     int bwidth = bitmap->width;
     int bheight = bitmap->rows;
     int bpitch = bitmap->pitch;

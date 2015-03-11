@@ -18,7 +18,7 @@ $(OFILES): %$(OBJ_EXT): %.c
 	$(CC) $(CFLAGS) $(NOLINK_OPT) $<
 
 $(MAIN_TARGET): $(OFILES)
-	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@ $^
+	"$(AR)" $(AR_OPTS) $(AR_OUT_OPT)$@ $^
 
 .PHONY: clean
 clean:

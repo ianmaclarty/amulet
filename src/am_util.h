@@ -25,8 +25,13 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #define AM_CONCAT3(a, b, c) AM_CONCAT3_(a, b, c)
 #define AM_STR(a) #a
 
+#ifndef AM_WIN32 
 #define ct_assert(e) enum { AM_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
 #define ct_check_array_size(arr, sz) ct_assert(sizeof(arr) == sz * sizeof(arr[0]))
+#else
+#define ct_assert(e)
+#define ct_check_array_size(arr, sz)
+#endif
 
 // returned string should be freed with free()
 char *am_format(const char *fmt, ...);

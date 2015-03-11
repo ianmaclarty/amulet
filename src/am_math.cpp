@@ -1213,6 +1213,7 @@ static int mix(lua_State *L) {
     return 1;
 }
 
+/*
 static int smoothstep(lua_State *L) {
     am_check_nargs(L, 1);
     switch (am_get_type(L, 1)) {
@@ -1274,6 +1275,7 @@ static int smoothstep(lua_State *L) {
     }
     return 1;
 }
+*/
 
 static inline lua_Number smootherstep0(lua_Number edge0, lua_Number edge1, lua_Number x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
@@ -1526,7 +1528,7 @@ void am_open_math_module(lua_State *L) {
         {"perlin",      perlin},
         {"mix",         mix},
         {"clamp",       clamp},
-        {"smoothstep",  smoothstep},
+        //{"smoothstep",  smoothstep},
         {"smootherstep",smootherstep},
         {NULL, NULL}
     };
