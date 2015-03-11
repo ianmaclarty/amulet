@@ -132,6 +132,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
 	     -pagezero_size 10000 -image_base 100000000
+  LUA_CFLAGS += -DLUA_USE_POSIX
 else ifeq ($(TARGET_PLATFORM),html)
   CC = emcc
   CPP = em++
@@ -169,6 +170,8 @@ else ifeq ($(TARGET_PLATFORM),win32)
 	$(BUILD_LIB_DIR)/libGLESv2.lib \
 	/NODEFAULTLIB:msvcrt.lib
   TARGET_CFLAGS = -nologo -EHsc
+else
+  LUA_CFLAGS += -DLUA_USE_POSIX
 endif
 
 # Adjust flags for grade

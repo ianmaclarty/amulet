@@ -62,7 +62,7 @@ static void draw_bitmap(FT_Bitmap *bitmap, float leftf, float topf, am_image *im
             int ioffset;
             for (int row = 0; row < bheight; row++) {
                 ioffset = (btop - row) * iwidth * 4 + bleft * 4;
-                if (ioffset >= isize || ioffset < 0) break;
+                if (ioffset >= isize || ioffset < 0) continue;
                 for (int i = 0; i < bwidth && bleft + i < iwidth; i++) {
                     unsigned char value = bptr[i];
                     ibuffer[ioffset++] = value;
@@ -72,9 +72,13 @@ static void draw_bitmap(FT_Bitmap *bitmap, float leftf, float topf, am_image *im
                 }
                 bptr += bpitch;
             }
-            int start_offset = am_clamp((btop - bheight + 1) * iwidth * 4 + bleft * 4, 0, isize);
-            int end_offset = am_clamp(btop * iwidth * 4 + (bleft + bwidth) * 4, 0, isize+1);
-            img->buffer->mark_dirty(start_offset, end_offset);
+            int start_offset = (btop - bheight + 1) * iwidth * 4 + bleft * 4;
+            int end_offset = btop * iwidth * 4 + (bleft + bwidth) * 4;
+            if (start_offset < isize && end_offset > 0) {
+                start_offset = am_clamp(start_offset, 0, isize-1);
+                end_offset = am_clamp(end_offset, 1, isize);
+                img->buffer->mark_dirty(start_offset, end_offset);
+            }
             break;
         }
     }
