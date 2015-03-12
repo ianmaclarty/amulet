@@ -12,7 +12,7 @@
 #if defined(AM_OSX) || defined(AM_LINUX)
     #define AM_GLPROFILE_DESKTOP
 #elif defined(AM_WIN32) || defined(AM_ANDROID) || defined(AM_IOS)
-    #define AM_GLPROFILE_ES
+    #define AM_GLPROFILE_ES 1
 #else
     #error unsupported target
 #endif
