@@ -68,6 +68,10 @@ void am_init_gl() {
 #if defined(AM_USE_ANGLE)
     init_angle();
 #endif
+#if defined(AM_GLPROFILE_DESKTOP)
+    glEnable(GL_POINT_SPRITE);
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+#endif
     am_gl_initialized = true;
 }
 
