@@ -133,6 +133,8 @@ ifeq ($(TARGET_PLATFORM),osx)
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
 	     -pagezero_size 10000 -image_base 100000000
   LUA_CFLAGS += -DLUA_USE_POSIX
+  MACOSX_DEPLOYMENT_TARGET=10.6
+  export MACOSX_DEPLOYMENT_TARGET
 else ifeq ($(TARGET_PLATFORM),html)
   CC = emcc
   CPP = em++

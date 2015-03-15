@@ -131,7 +131,8 @@ bool am_render_state::validate_active_program(am_draw_mode mode) {
         // The value of gl_PointSize is undefined if it's not set
         // and with some drivers (notably Angle) not setting gl_PointSize
         // will cause nothing to be drawn,
-        am_log1("WARNING: attempt to draw points with a shader program that did not set gl_PointSize (nothing will be drawn)");
+        am_log1("WARNING: %s", 
+            "attempt to draw points with a shader program that did not set gl_PointSize (nothing will be drawn)");
         return false;
     }
     if (am_conf_validate_shader_programs) {
