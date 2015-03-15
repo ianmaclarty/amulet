@@ -178,8 +178,8 @@ ifeq ($(GRADE),debug)
     LUA_CFLAGS += -DLUA_USE_APICHECK -O1
     LUA_LDFLAGS +=
   else ifeq ($(TARGET_PLATFORM),win32)
-    GRADE_CFLAGS =
-    GRADE_LDFLAGS =
+    GRADE_CFLAGS = -MTd -Zi
+    GRADE_LDFLAGS = -DEBUG
     LUA_CFLAGS += -DLUA_USE_APICHECK
     LUA_LDFLAGS +=
   else

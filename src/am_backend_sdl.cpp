@@ -32,6 +32,7 @@ enum axis_button {
 
 static SDL_AudioDeviceID audio_device = 0;
 static std::vector<SDL_Window*> windows;
+SDL_Window *main_window = NULL;
 static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
@@ -73,8 +74,8 @@ am_native_window *am_create_native_window(
     if (!sdl_initialized) {
         init_sdl();
     }
-    if (windows.size() > 0) {
-        SDL_GL_MakeCurrent(windows[0], gl_context);
+    if (main_window != NULL) {
+        SDL_GL_MakeCurrent(main_window, gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     }
 #if defined(AM_GLPROFILE_ES)
@@ -143,6 +144,9 @@ am_native_window *am_create_native_window(
     if (!am_gl_is_initialized()) {
         am_init_gl();
     }
+    if (main_window == NULL) {
+        main_window = win;
+    }
     windows.push_back(win);
     init_mouse_state(win);
     return (am_native_window*)win;
@@ -159,7 +163,9 @@ void am_get_native_window_size(am_native_window *window, int *w, int *h) {
 void am_destroy_native_window(am_native_window* window) {
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i] == (SDL_Window*)window) {
-            SDL_DestroyWindow((SDL_Window*)window);
+            if (windows[i] != main_window) {
+                SDL_DestroyWindow((SDL_Window*)window);
+            }
             windows.erase(windows.begin() + i);
             break;
         }
@@ -333,7 +339,16 @@ quit:
     }
     if (L != NULL) am_destroy_engine(L);
     for (unsigned int i = 0; i < windows.size(); i++) {
-        SDL_DestroyWindow(windows[i]);
+        if (windows[i] != main_window) {
+            SDL_DestroyWindow(windows[i]);
+        }
+    }
+    // We need to make sure we destroy the main window after
+    // destroying the lua state, so that the context is not
+    // destroyed before the __gc metamethods of objects like
+    // textures and buffers are called.
+    if (main_window != NULL) {
+        SDL_DestroyWindow(main_window);
     }
     if (sdl_initialized) {
         SDL_Quit();
