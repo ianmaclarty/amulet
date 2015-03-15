@@ -10,11 +10,15 @@
     #error unsupported target
 #endif
 #if defined(AM_OSX) || defined(AM_LINUX)
-    #define AM_GLPROFILE_DESKTOP
-#elif defined(AM_WIN32) || defined(AM_ANDROID) || defined(AM_IOS)
+    #define AM_GLPROFILE_DESKTOP 1
+#elif defined(AM_WIN32) || defined(AM_ANDROID) || defined(AM_IOS) || defined(AM_HTML)
     #define AM_GLPROFILE_ES 1
 #else
     #error unsupported target
+#endif
+
+#if defined(AM_GLPROFILE_ES) && defined(AM_WIN32)
+#define AM_NEED_GLES2_FUNC_PTRS
 #endif
 
 #ifdef AM_WIN32

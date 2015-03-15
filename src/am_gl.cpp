@@ -18,6 +18,18 @@
     #error unknown backend
 #endif
 
+#ifdef AM_NEED_GLES2_FUNC_PTRS
+#define AM_GLPROC(ret,func,params) ret (APIENTRY *func##_ptr) params = NULL;
+#include "am_gles2funcs.h"
+#undef AM_GLPROC
+#endif
+
+#ifdef AM_NEED_GLES2_FUNC_PTRS
+#define GLFUNC(func) func##_ptr
+#else
+#define GLFUNC(func) func
+#endif
+
 #if defined(AM_USE_ANGLE)
 #include "GLSLANG/ShaderLang.h"
 #endif
@@ -50,9 +62,9 @@ static bool am_gl_initialized = false;
 
 void am_init_gl() {
     assert(!am_gl_initialized);
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+    GLFUNC(glPixelStorei)(GL_PACK_ALIGNMENT, 1);
+    GLFUNC(glPixelStorei)(GL_UNPACK_ALIGNMENT, 1);
+    GLFUNC(glHint)(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 #if defined(AM_USE_ANGLE)
     init_angle();
 #endif
@@ -129,10 +141,10 @@ static void get_src_error_line(char *errmsg, const char *src, int *line_no, char
 void am_set_blend_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_BLEND);
+        GLFUNC(glEnable)(GL_BLEND);
         log_gl_call("glEnable(%s)", "GL_BLEND");
     } else {
-        glDisable(GL_BLEND);
+        GLFUNC(glDisable)(GL_BLEND);
         log_gl_call("glDisable(%s)", "GL_BLEND");
     }
     check_for_errors
@@ -140,7 +152,7 @@ void am_set_blend_enabled(bool enabled) {
 
 void am_set_blend_color(float r, float g, float b, float a) {
     check_initialized();
-    glBlendColor(r, g, b, a);
+    GLFUNC(glBlendColor)(r, g, b, a);
     log_gl_call("glBlendColor(%0.2f,%0.2f,%0.2f,%0.2f)", r, g, b, a);
     check_for_errors
 }
@@ -149,7 +161,7 @@ void am_set_blend_equation(am_blend_equation rgb, am_blend_equation alpha) {
     check_initialized();
     GLenum gl_rgb = to_gl_blend_equation(rgb);
     GLenum gl_alpha = to_gl_blend_equation(alpha);
-    glBlendEquationSeparate(gl_rgb, gl_alpha);
+    GLFUNC(glBlendEquationSeparate)(gl_rgb, gl_alpha);
     log_gl_call("glBlendEquationSeparate(%s, %s)", gl_blend_equation_str(gl_rgb), gl_blend_equation_str(gl_alpha));
     check_for_errors
 }
@@ -160,7 +172,7 @@ void am_set_blend_func(am_blend_sfactor src_rgb, am_blend_dfactor dst_rgb, am_bl
     GLenum gl_drgb = to_gl_blend_dfactor(dst_rgb);
     GLenum gl_salpha = to_gl_blend_sfactor(src_alpha);
     GLenum gl_dalpha = to_gl_blend_dfactor(dst_alpha);
-    glBlendFuncSeparate(gl_srgb, gl_drgb, gl_salpha, gl_dalpha);
+    GLFUNC(glBlendFuncSeparate)(gl_srgb, gl_drgb, gl_salpha, gl_dalpha);
     log_gl_call("glBlendFuncSeparate(%s, %s, %s, %s)",
         gl_blend_factor_str(gl_srgb), 
         gl_blend_factor_str(gl_drgb), 
@@ -172,10 +184,10 @@ void am_set_blend_func(am_blend_sfactor src_rgb, am_blend_dfactor dst_rgb, am_bl
 void am_set_depth_test_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_DEPTH_TEST);
+        GLFUNC(glEnable)(GL_DEPTH_TEST);
         log_gl_call("glEnable(%s)", "GL_DEPTH_TEST");
     } else {
-        glDisable(GL_DEPTH_TEST);
+        GLFUNC(glDisable)(GL_DEPTH_TEST);
         log_gl_call("glDisable(%s)", "GL_DEPTH_TEST");
     }
     check_for_errors
@@ -184,7 +196,7 @@ void am_set_depth_test_enabled(bool enabled) {
 void am_set_depth_func(am_depth_func func) {
     check_initialized();
     GLenum gl_f = to_gl_depth_func(func);
-    glDepthFunc(gl_f);
+    GLFUNC(glDepthFunc)(gl_f);
     log_gl_call("glDepthFunc(%s)", gl_depth_func_str(gl_f));
     check_for_errors
 }
@@ -192,10 +204,10 @@ void am_set_depth_func(am_depth_func func) {
 void am_set_stencil_test_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_STENCIL_TEST);
+        GLFUNC(glEnable)(GL_STENCIL_TEST);
         log_gl_call("glEnable(%s)", "GL_STENCIL_TEST");
     } else {
-        glDisable(GL_STENCIL_TEST);
+        GLFUNC(glDisable)(GL_STENCIL_TEST);
         log_gl_call("glDisable(%s)", "GL_STENCIL_TEST");
     }
     check_for_errors
@@ -205,7 +217,7 @@ void am_set_stencil_func(am_stencil_face_side face, am_stencil_func func, am_gli
     check_initialized();
     GLenum gl_face = to_gl_stencil_face_side(face);
     GLenum gl_func = to_gl_stencil_func(func);
-    glStencilFuncSeparate(gl_face, gl_func, ref, mask);
+    GLFUNC(glStencilFuncSeparate)(gl_face, gl_func, ref, mask);
     log_gl_call("glStencilFuncSeparate(%s, %s, %d, %u)",
         gl_face_side_str(gl_face), 
         gl_stencil_func_str(gl_func), ref, mask);
@@ -218,7 +230,7 @@ void am_set_stencil_op(am_stencil_face_side face, am_stencil_op fail, am_stencil
     GLenum gl_fail = to_gl_stencil_op(fail);
     GLenum gl_zfail = to_gl_stencil_op(zfail);
     GLenum gl_zpass = to_gl_stencil_op(zpass);
-    glStencilOpSeparate(gl_face, gl_fail, gl_zfail, gl_zpass);
+    GLFUNC(glStencilOpSeparate)(gl_face, gl_fail, gl_zfail, gl_zpass);
     log_gl_call("glStencilOpSeparate(%s, %s, %s, %s)",
         gl_face_side_str(gl_face), 
         gl_stencil_op_str(gl_fail),
@@ -230,10 +242,10 @@ void am_set_stencil_op(am_stencil_face_side face, am_stencil_op fail, am_stencil
 void am_set_sample_alpha_to_coverage_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+        GLFUNC(glEnable)(GL_SAMPLE_ALPHA_TO_COVERAGE);
         log_gl_call("glEnable(%s)", "GL_SAMPLE_ALPHA_TO_COVERAGE");
     } else {
-        glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+        GLFUNC(glDisable)(GL_SAMPLE_ALPHA_TO_COVERAGE);
         log_gl_call("glDisable(%s)", "GL_SAMPLE_ALPHA_TO_COVERAGE");
     }
     check_for_errors
@@ -242,10 +254,10 @@ void am_set_sample_alpha_to_coverage_enabled(bool enabled) {
 void am_set_sample_coverage_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_SAMPLE_COVERAGE);
+        GLFUNC(glEnable)(GL_SAMPLE_COVERAGE);
         log_gl_call("glEnable(%s)", "GL_SAMPLE_COVERAGE");
     } else {
-        glDisable(GL_SAMPLE_COVERAGE);
+        GLFUNC(glDisable)(GL_SAMPLE_COVERAGE);
         log_gl_call("glDisable(%s)", "GL_SAMPLE_COVERAGE");
     }
     check_for_errors
@@ -253,7 +265,7 @@ void am_set_sample_coverage_enabled(bool enabled) {
 
 void am_set_sample_coverage(float value, bool invert) {
     check_initialized();
-    glSampleCoverage(value, invert);
+    GLFUNC(glSampleCoverage)(value, invert);
     log_gl_call("glSampleCoverage(%f, %d)", value, (int)invert);
     check_for_errors
 }
@@ -262,42 +274,42 @@ void am_set_sample_coverage(float value, bool invert) {
 
 void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     check_initialized();
-    glClear((clear_color_buf ? GL_COLOR_BUFFER_BIT : 0) | (clear_depth_buf ? GL_DEPTH_BUFFER_BIT : 0) | (clear_stencil_buf ? GL_STENCIL_BUFFER_BIT : 0));
+    GLFUNC(glClear)((clear_color_buf ? GL_COLOR_BUFFER_BIT : 0) | (clear_depth_buf ? GL_DEPTH_BUFFER_BIT : 0) | (clear_stencil_buf ? GL_STENCIL_BUFFER_BIT : 0));
     log_gl_call("glClear(%d, %d, %d)", (int)clear_color_buf, (int)clear_depth_buf, (int)clear_stencil_buf);
     check_for_errors
 }
 
 void am_set_framebuffer_clear_color(float r, float g, float b, float a) {
     check_initialized();
-    glClearColor(r, g, b, a);
+    GLFUNC(glClearColor)(r, g, b, a);
     log_gl_call("glClearColor(%0.2f, %0.2f, %0.2f, %0.2f)", r, g, b, a);
     check_for_errors
 }
 
 void am_set_framebuffer_clear_depth(float depth) {
     check_initialized();
-    glClearDepthf(depth);
+    GLFUNC(glClearDepthf)(depth);
     log_gl_call("glClearDepthf(%f)", depth);
     check_for_errors
 }
 
 void am_set_framebuffer_clear_stencil_val(am_glint val) {
     check_initialized();
-    glClearStencil(val);
+    GLFUNC(glClearStencil)(val);
     log_gl_call("glClearStencil(%d)", val);
     check_for_errors
 }
 
 void am_set_framebuffer_color_mask(bool r, bool g, bool b, bool a) {
     check_initialized();
-    glColorMask(r, g, b, a);
+    GLFUNC(glColorMask)(r, g, b, a);
     log_gl_call("glColorMask(%d, %d, %d, %d)", (int)r, (int)g, (int)b, (int)a);
     check_for_errors
 }
 
 void am_set_framebuffer_depth_mask(bool flag) {
     check_initialized();
-    glDepthMask(flag);
+    GLFUNC(glDepthMask)(flag);
     log_gl_call("glDepthMask(%d)", (int)flag);
     check_for_errors
 }
@@ -305,7 +317,7 @@ void am_set_framebuffer_depth_mask(bool flag) {
 void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) {
     check_initialized();
     GLenum gl_face = to_gl_stencil_face_side(face);
-    glStencilMaskSeparate(gl_face, mask);
+    GLFUNC(glStencilMaskSeparate)(gl_face, mask);
     log_gl_call("glStencilMaskSeparate(%s, %u)", gl_face_side_str(gl_face), mask);
     check_for_errors
 }
@@ -315,7 +327,7 @@ void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) 
 am_buffer_id am_create_buffer_object() {
     check_initialized(0);
     GLuint b;
-    glGenBuffers(1, &b);
+    GLFUNC(glGenBuffers)(1, &b);
     log_gl_call("glGenBuffers() = %u", b);
     check_for_errors
     return b;
@@ -324,7 +336,7 @@ am_buffer_id am_create_buffer_object() {
 void am_bind_buffer(am_buffer_target target, am_buffer_id buffer) {
     check_initialized();
     GLenum gl_target = to_gl_buffer_target(target);
-    glBindBuffer(gl_target, buffer);
+    GLFUNC(glBindBuffer)(gl_target, buffer);
     log_gl_call("glBindBuffer(%s, %u)", gl_buffer_target_str(gl_target), buffer);
     check_for_errors
 }
@@ -333,7 +345,7 @@ void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer
     check_initialized();
     GLenum gl_target = to_gl_buffer_target(target);
     GLenum gl_usage = to_gl_buffer_usage(usage);
-    glBufferData(gl_target, size, data, gl_usage);
+    GLFUNC(glBufferData)(gl_target, size, data, gl_usage);
     log_gl_call("glBufferData(%s, %d, %p, %s)", gl_buffer_target_str(gl_target), size, data, gl_usage_str(gl_usage));
     check_for_errors
 }
@@ -341,14 +353,14 @@ void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer
 void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void *data) {
     check_initialized();
     GLenum gl_target = to_gl_buffer_target(target);
-    glBufferSubData(gl_target, offset, size, data);
-    log_gl_call("glBufferSubData(%s, %d, %d, %p)", gl_buffer_target_str(gl_target), offset, size, data);
+    GLFUNC(glBufferSubData)(gl_target, offset, size, data);
+    log_gl_call("(glBufferSubData(%s, %d, %d, %p)", gl_buffer_target_str(gl_target), offset, size, data);
     check_for_errors
 }
 
 void am_delete_buffer(am_buffer_id buffer) {
     check_initialized();
-    glDeleteBuffers(1, &buffer);
+    GLFUNC(glDeleteBuffers)(1, &buffer);
     log_gl_call("glDeleteBuffers(%u)", buffer);
     check_for_errors
 }
@@ -357,7 +369,7 @@ void am_delete_buffer(am_buffer_id buffer) {
 
 void am_set_depth_range(float near, float far) {
     check_initialized();
-    glDepthRangef(near, far);
+    GLFUNC(glDepthRangef)(near, far);
     log_gl_call("glDepthRangef(%f, %f)", near, far);
     check_for_errors
 }
@@ -365,10 +377,10 @@ void am_set_depth_range(float near, float far) {
 void am_set_scissor_test_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_SCISSOR_TEST);
+        GLFUNC(glEnable)(GL_SCISSOR_TEST);
         log_gl_call("glEnable(%s)", "GL_SCISSOR_TEST");
     } else {
-        glDisable(GL_SCISSOR_TEST);
+        GLFUNC(glDisable)(GL_SCISSOR_TEST);
         log_gl_call("glDisable(%s)", "GL_SCISSOR_TEST");
     }
     check_for_errors
@@ -376,14 +388,14 @@ void am_set_scissor_test_enabled(bool enabled) {
 
 void am_set_scissor(int x, int y, int w, int h) {
     check_initialized();
-    glScissor(x, y, w, h);
+    GLFUNC(glScissor)(x, y, w, h);
     log_gl_call("glScissor(%d, %d, %d, %d)", x, y, w, h);
     check_for_errors
 }
 
 void am_set_viewport(int x, int y, int w, int h) {
     check_initialized();
-    glViewport(x, y, w, h);
+    GLFUNC(glViewport)(x, y, w, h);
     log_gl_call("glViewport(%d, %d, %d, %d)", x, y, w, h);
     check_for_errors
 }
@@ -393,7 +405,7 @@ void am_set_viewport(int x, int y, int w, int h) {
 void am_set_front_face_winding(am_face_winding mode) {
     check_initialized();
     GLenum gl_mode = to_gl_face_winding(mode);
-    glFrontFace(gl_mode);
+    GLFUNC(glFrontFace)(gl_mode);
     log_gl_call("glFrontFace(%s)", gl_face_winding_str(gl_mode));
     check_for_errors
 }
@@ -401,10 +413,10 @@ void am_set_front_face_winding(am_face_winding mode) {
 void am_set_cull_face_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_CULL_FACE);
+        GLFUNC(glEnable)(GL_CULL_FACE);
         log_gl_call("glEnable(%s)", "GL_CULL_FACE");
     } else {
-        glDisable(GL_CULL_FACE);
+        GLFUNC(glDisable)(GL_CULL_FACE);
         log_gl_call("glDisable(%s)", "GL_CULL_FACE");
     }
     check_for_errors
@@ -413,14 +425,14 @@ void am_set_cull_face_enabled(bool enabled) {
 void am_set_cull_face_side(am_cull_face_side face) {
     check_initialized();
     GLenum gl_face = to_gl_cull_face_side(face);
-    glCullFace(gl_face);
+    GLFUNC(glCullFace)(gl_face);
     log_gl_call("glCullFace(%s)", gl_face_side_str(gl_face));
     check_for_errors
 }
 
 void am_set_line_width(float width) {
     check_initialized();
-    glLineWidth(width);
+    GLFUNC(glLineWidth)(width);
     log_gl_call("glLineWidth(%f)", width);
     check_for_errors
 }
@@ -428,10 +440,10 @@ void am_set_line_width(float width) {
 void am_set_polygon_offset_fill_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_POLYGON_OFFSET_FILL);
+        GLFUNC(glEnable)(GL_POLYGON_OFFSET_FILL);
         log_gl_call("glEnable(%s)", "GL_POLYGON_OFFSET_FILL");
     } else {
-        glDisable(GL_POLYGON_OFFSET_FILL);
+        GLFUNC(glDisable)(GL_POLYGON_OFFSET_FILL);
         log_gl_call("glDisable(%s)", "GL_POLYGON_OFFSET_FILL");
     }
     check_for_errors
@@ -439,7 +451,7 @@ void am_set_polygon_offset_fill_enabled(bool enabled) {
 
 void am_set_polygon_offset(float factor, float units) {
     check_initialized();
-    glPolygonOffset(factor, units);
+    GLFUNC(glPolygonOffset)(factor, units);
     log_gl_call("glPolygonOffset(%f, %f)", factor, units);
     check_for_errors
 }
@@ -449,10 +461,10 @@ void am_set_polygon_offset(float factor, float units) {
 void am_set_dither_enabled(bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnable(GL_DITHER);
+        GLFUNC(glEnable)(GL_DITHER);
         log_gl_call("glEnable(%s)", "GL_DITHER");
     } else {
-        glDisable(GL_DITHER);
+        GLFUNC(glDisable)(GL_DITHER);
         log_gl_call("glDisable(%s)", "GL_DITHER");
     }
     check_for_errors
@@ -462,7 +474,7 @@ void am_set_dither_enabled(bool enabled) {
 
 am_program_id am_create_program() {
     check_initialized(0);
-    GLuint p = glCreateProgram();
+    GLuint p = GLFUNC(glCreateProgram)();
     log_gl_call("glCreateProgram() = %u", p);
     check_for_errors
     return p;
@@ -471,7 +483,7 @@ am_program_id am_create_program() {
 am_shader_id am_create_shader(am_shader_type type) {
     check_initialized(0);
     GLenum gl_type = to_gl_shader_type(type);
-    GLuint s = glCreateShader(gl_type);
+    GLuint s = GLFUNC(glCreateShader)(gl_type);
     log_gl_call("glCreateShader(%s) = %u", gl_shader_type_str(gl_type), s);
     check_for_errors
     return s;
@@ -501,23 +513,23 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
             goto end;
         }
         assert(translate_objcode != NULL);
-        glShaderSource(shader, 1, (const char**)&translate_objcode, NULL);
+        GLFUNC(glShaderSource(shader, 1, )(const char**)&translate_objcode, NULL);
         free(translate_objcode);
     }
 #else
-    glShaderSource(shader, 1, &src, NULL);
+    GLFUNC(glShaderSource)(shader, 1, &src, NULL);
 #endif
     check_for_errors
 
-    glCompileShader(shader);
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    GLFUNC(glCompileShader)(shader);
+    GLFUNC(glGetShaderiv)(shader, GL_COMPILE_STATUS, &compiled);
     check_for_errors
     if (!compiled) {
         GLint len = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+        GLFUNC(glGetShaderiv)(shader, GL_INFO_LOG_LENGTH, &len);
         if (len > 1) {
             *msg = (char*)malloc(sizeof(char) * len);
-            glGetShaderInfoLog(shader, len, NULL, *msg);
+            GLFUNC(glGetShaderInfoLog)(shader, len, NULL, *msg);
             get_src_error_line(*msg, src, line_no, line_str);
         } else {
             const char *cmsg = "unknown error";
@@ -533,7 +545,7 @@ end:
 
 void am_attach_shader(am_program_id program, am_shader_id shader) {
     check_initialized();
-    glAttachShader(program, shader);
+    GLFUNC(glAttachShader)(program, shader);
     log_gl_call("glAttachShader(%u, %u)", program, shader);
     check_for_errors
 }
@@ -541,8 +553,8 @@ void am_attach_shader(am_program_id program, am_shader_id shader) {
 bool am_link_program(am_program_id program) {
     check_initialized(false);
     GLint linked;
-    glLinkProgram(program);
-    glGetProgramiv(program, GL_LINK_STATUS, &linked);
+    GLFUNC(glLinkProgram)(program);
+    GLFUNC(glGetProgramiv)(program, GL_LINK_STATUS, &linked);
     log_gl_call("glLinkProgram(%u) = %d", program, linked);
     check_for_errors
     return linked;
@@ -551,10 +563,10 @@ bool am_link_program(am_program_id program) {
 char *am_get_program_info_log(am_program_id program) {
     check_initialized(NULL);
     GLint len = 0;
-    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
+    GLFUNC(glGetProgramiv)(program, GL_INFO_LOG_LENGTH, &len);
     if (len > 1) {
         char* msg = (char*)malloc(sizeof(char) * len);
-        glGetProgramInfoLog(program, len, NULL, msg);
+        GLFUNC(glGetProgramInfoLog)(program, len, NULL, msg);
         return msg;
     } else {
         const char *cmsg = "unknown error";
@@ -567,7 +579,7 @@ char *am_get_program_info_log(am_program_id program) {
 int am_get_program_active_attributes(am_program_id program) {
     check_initialized(0);
     GLint val;
-    glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &val);
+    GLFUNC(glGetProgramiv)(program, GL_ACTIVE_ATTRIBUTES, &val);
     log_gl_call("glGetProgramiv(%u, GL_ACTIVE_ATTRIBUTES) = %d", program, val);
     check_for_errors
     return val;
@@ -576,7 +588,7 @@ int am_get_program_active_attributes(am_program_id program) {
 int am_get_program_active_uniforms(am_program_id program) {
     check_initialized(0);
     GLint val;
-    glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &val);
+    GLFUNC(glGetProgramiv)(program, GL_ACTIVE_UNIFORMS, &val);
     log_gl_call("glGetProgramiv(%u, GL_ACTIVE_UNIFORMS) = %d", program, val);
     check_for_errors
     return val;
@@ -584,37 +596,37 @@ int am_get_program_active_uniforms(am_program_id program) {
 
 bool am_validate_program(am_program_id program) {
     check_initialized(false);
-    glValidateProgram(program);
+    GLFUNC(glValidateProgram)(program);
     GLint valid;
-    glGetProgramiv(program, GL_VALIDATE_STATUS, &valid);
+    GLFUNC(glGetProgramiv)(program, GL_VALIDATE_STATUS, &valid);
     log_gl_call("glValidateProgram(%u) = %d", program, valid);
     return valid;
 }
 
 void am_use_program(am_program_id program) {
     check_initialized();
-    glUseProgram(program);
+    GLFUNC(glUseProgram)(program);
     log_gl_call("glUseProgram(%u)", program);
     check_for_errors
 }
 
 void am_detach_shader(am_program_id program, am_shader_id shader) {
     check_initialized();
-    glDetachShader(program, shader);
+    GLFUNC(glDetachShader)(program, shader);
     log_gl_call("glDetachShader(%u, %u)", program, shader);
     check_for_errors
 }
 
 void am_delete_shader(am_shader_id shader) {
     check_initialized();
-    glDeleteShader(shader);
+    GLFUNC(glDeleteShader)(shader);
     log_gl_call("glDeleteShader(%u)", shader);
     check_for_errors
 }
 
 void am_delete_program(am_program_id program) {
     check_initialized();
-    glDeleteProgram(program);
+    GLFUNC(glDeleteProgram)(program);
     log_gl_call("glDeleteProgram(%u)", program);
     check_for_errors
 }
@@ -635,10 +647,10 @@ int am_attribute_client_type_size(am_attribute_client_type t) {
 void am_set_attribute_array_enabled(am_gluint location, bool enabled) {
     check_initialized();
     if (enabled) {
-        glEnableVertexAttribArray(location);
+        GLFUNC(glEnableVertexAttribArray)(location);
         log_gl_call("glEnableVertexAttribArray(%u)", location);
     } else {
-        glDisableVertexAttribArray(location);
+        GLFUNC(glDisableVertexAttribArray)(location);
         log_gl_call("glDisableVertexAttribArray(%u)", location);
     }
     check_for_errors
@@ -646,7 +658,7 @@ void am_set_attribute_array_enabled(am_gluint location, bool enabled) {
 
 am_gluint am_get_attribute_location(am_program_id program, const char *name) {
     check_initialized(0);
-    am_gluint l = glGetAttribLocation(program, name);
+    am_gluint l = GLFUNC(glGetAttribLocation)(program, name);
     log_gl_call("glGetAttribLocation(%u, \"%s\") = %u", program, name, l);
     check_for_errors
     return l;
@@ -654,7 +666,7 @@ am_gluint am_get_attribute_location(am_program_id program, const char *name) {
 
 am_gluint am_get_uniform_location(am_program_id program, const char *name) {
     check_initialized(0);
-    am_gluint l = glGetUniformLocation(program, name);
+    am_gluint l = GLFUNC(glGetUniformLocation)(program, name);
     log_gl_call("glGetUniformLocation(%u, \"%s\") = %u", program, name, l);
     check_for_errors
     return l;
@@ -667,7 +679,7 @@ void am_get_active_attribute(am_program_id program, am_gluint index,
     GLchar gl_name[ATTR_NAME_SIZE];
     GLint gl_size;
     GLenum gl_type;
-    glGetActiveAttrib(program, index, ATTR_NAME_SIZE, NULL, &gl_size, &gl_type, gl_name);
+    GLFUNC(glGetActiveAttrib)(program, index, ATTR_NAME_SIZE, NULL, &gl_size, &gl_type, gl_name);
     log_gl_call("glGetActiveAttrib(%u, %u) = %d, %s, \"%s\"", program, index, gl_size, gl_type_str(gl_type), gl_name);
     check_for_errors
     *name = (char*)malloc(strlen(gl_name) + 1);
@@ -683,7 +695,7 @@ void am_get_active_uniform(am_program_id program, am_gluint index,
     GLchar gl_name[UNI_NAME_SIZE];
     GLint gl_size;
     GLenum gl_type;
-    glGetActiveUniform(program, index, UNI_NAME_SIZE, NULL, &gl_size, &gl_type, gl_name);
+    GLFUNC(glGetActiveUniform)(program, index, UNI_NAME_SIZE, NULL, &gl_size, &gl_type, gl_name);
     log_gl_call("glGetActiveUniform(%u, %u) = %d, %s, \"%s\"", program, index, gl_size, gl_type_str(gl_type), gl_name);
     check_for_errors
     *name = (char*)malloc(strlen(gl_name) + 1);
@@ -694,70 +706,70 @@ void am_get_active_uniform(am_program_id program, am_gluint index,
 
 void am_set_uniform1f(am_gluint location, float value) {
     check_initialized();
-    glUniform1fv(location, 1, &value);
+    GLFUNC(glUniform1fv)(location, 1, &value);
     log_gl_call("glUniform1fv(%u, 1, %f)", location, value);
     check_for_errors
 }
 
 void am_set_uniform2f(am_gluint location, const float *value) {
     check_initialized();
-    glUniform2fv(location, 1, value);
+    GLFUNC(glUniform2fv)(location, 1, value);
     log_gl_call("glUniform2fv(%u, 1, {%f, %f})", location, value[0], value[1]);
     check_for_errors
 }
 
 void am_set_uniform3f(am_gluint location, const float *value) {
     check_initialized();
-    glUniform3fv(location, 1, value);
+    GLFUNC(glUniform3fv)(location, 1, value);
     log_gl_call("glUniform3fv(%u, 1, {%f, %f, %f})", location, value[0], value[1], value[2]);
     check_for_errors
 }
 
 void am_set_uniform4f(am_gluint location, const float *value) {
     check_initialized();
-    glUniform4fv(location, 1, value);
+    GLFUNC(glUniform4fv)(location, 1, value);
     log_gl_call("glUniform4fv(%u, 1, {%f, %f, %f, %f})", location, value[0], value[1], value[2], value[3]);
     check_for_errors
 }
 
 void am_set_uniform1i(am_gluint location, am_glint value) {
     check_initialized();
-    glUniform1iv(location, 1, &value);
+    GLFUNC(glUniform1iv)(location, 1, &value);
     log_gl_call("glUniform1iv(%u, 1, %d)", location, value);
     check_for_errors
 }
 
 void am_set_uniform2i(am_gluint location, const am_glint *value) {
     check_initialized();
-    glUniform2iv(location, 1, value);
+    GLFUNC(glUniform2iv)(location, 1, value);
     log_gl_call("glUniform2iv(%u, 1, {%d, %d})", location, value[0], value[1]);
     check_for_errors
 }
 
 void am_set_uniform3i(am_gluint location, const am_glint *value) {
     check_initialized();
-    glUniform3iv(location, 1, value);
+    GLFUNC(glUniform3iv)(location, 1, value);
     log_gl_call("glUniform3iv(%u, 1, {%d, %d, %d})", location, value[0], value[1], value[2]);
     check_for_errors
 }
 
 void am_set_uniform4i(am_gluint location, const am_glint *value) {
     check_initialized();
-    glUniform4iv(location, 1, value);
+    GLFUNC(glUniform4iv)(location, 1, value);
     log_gl_call("glUniform4iv(%u, 1, {%d, %d, %d, %d})", location, value[0], value[1], value[2], value[3]);
     check_for_errors
 }
 
 void am_set_uniform_mat2(am_gluint location, const float *value) {
     check_initialized();
-    glUniformMatrix2fv(location, 1, GL_FALSE, value);
+    GLFUNC(glUniformMatrix2fv)(location, 1, GL_FALSE, value);
     log_gl_call("glUniformMatrix2fv(%u, 1, GL_FALSE, {\n%f, %f, \n%f, %f})", location, value[0], value[1], value[2], value[3]);
     check_for_errors
 }
 
 void am_set_uniform_mat3(am_gluint location, const float *value) {
     check_initialized();
-    glUniformMatrix3fv(location, 1, GL_FALSE, value);
+    GLFUNC(glUniformMatrix3fv)(location, 1, GL_FALSE, value);
     log_gl_call("glUniformMatrix3fv(%u, 1, GL_FALSE, {\n%f, %f, %f,\n%f, %f, %f,\n%f, %f, %f})", location,
         value[0], value[1], value[2],
         value[3], value[4], value[5],
@@ -767,7 +779,7 @@ void am_set_uniform_mat3(am_gluint location, const float *value) {
 
 void am_set_uniform_mat4(am_gluint location, const float *value) {
     check_initialized();
-    glUniformMatrix4fv(location, 1, GL_FALSE, value);
+    GLFUNC(glUniformMatrix4fv)(location, 1, GL_FALSE, value);
     log_gl_call("glUniformMatrix4fv(%u, 1, GL_FALSE, {\n%f, %f, %f, %f,\n%f, %f, %f, %f,\n%f, %f, %f, %f,\n%f, %f, %f, %f})",
         location,
         value[0], value[1], value[2], value[3],
@@ -779,28 +791,28 @@ void am_set_uniform_mat4(am_gluint location, const float *value) {
 
 void am_set_attribute1f(am_gluint location, const float value) {
     check_initialized();
-    glVertexAttrib1f(location, value);
+    GLFUNC(glVertexAttrib1f)(location, value);
     log_gl_call("glVertexAttrib1f(%u, %f)", location, value);
     check_for_errors
 }
 
 void am_set_attribute2f(am_gluint location, const float *value) {
     check_initialized();
-    glVertexAttrib2fv(location, value);
+    GLFUNC(glVertexAttrib2fv)(location, value);
     log_gl_call("glVertexAttrib2fv(%u, {%f, %f})", location, value[0], value[1]);
     check_for_errors
 }
 
 void am_set_attribute3f(am_gluint location, const float *value) {
     check_initialized();
-    glVertexAttrib3fv(location, value);
+    GLFUNC(glVertexAttrib3fv)(location, value);
     log_gl_call("glVertexAttrib3fv(%u, {%f, %f, %f})", location, value[0], value[1], value[2]);
     check_for_errors
 }
 
 void am_set_attribute4f(am_gluint location, const float *value) {
     check_initialized();
-    glVertexAttrib4fv(location, value);
+    GLFUNC(glVertexAttrib4fv)(location, value);
     log_gl_call("glVertexAttrib4fv(%u, {%f, %f, %f, %f})", location, value[0], value[1], value[2], value[3]);
     check_for_errors
 }
@@ -808,7 +820,7 @@ void am_set_attribute4f(am_gluint location, const float *value) {
 void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_type type, bool normalized, int stride, int offset) {
     check_initialized();
     GLenum gl_type = to_gl_attr_client_type(type);
-    glVertexAttribPointer(location, size, gl_type, normalized, stride, (void*)((uintptr_t)offset));
+    GLFUNC(glVertexAttribPointer)(location, size, gl_type, normalized, stride, (void*)((uintptr_t)offset));
     log_gl_call("glVertexAttribPointer(%u, %d, %s, %d, %d, %d)", location, size, gl_type_str(gl_type), (int)normalized, stride, offset);
     check_for_errors
 }
@@ -822,7 +834,7 @@ int am_get_max_texture_units() {
 void am_set_active_texture_unit(int texture_unit) {
     check_initialized();
     if (texture_unit < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
-        glActiveTexture(GL_TEXTURE0 + texture_unit);
+        GLFUNC(glActiveTexture)(GL_TEXTURE0 + texture_unit);
         log_gl_call("glActiveTexture(GL_TEXTURE%d)", texture_unit);
     } else {
         am_log1("WARNING: too many active texture units (max %d)", GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
@@ -833,7 +845,7 @@ void am_set_active_texture_unit(int texture_unit) {
 am_texture_id am_create_texture() {
     check_initialized(0);
     GLuint tex;
-    glGenTextures(1, &tex);
+    GLFUNC(glGenTextures)(1, &tex);
     log_gl_call("glGenTextures() = %u", tex);
     check_for_errors
     return tex;
@@ -841,7 +853,7 @@ am_texture_id am_create_texture() {
 
 void am_delete_texture(am_texture_id texture) {
     check_initialized();
-    glDeleteTextures(1, &texture);
+    GLFUNC(glDeleteTextures)(1, &texture);
     log_gl_call("glDeleteTextures(%u)", texture);
     check_for_errors
 }
@@ -849,7 +861,7 @@ void am_delete_texture(am_texture_id texture) {
 void am_bind_texture(am_texture_bind_target target, am_texture_id texture) {
     check_initialized();
     GLenum gl_target = to_gl_texture_bind_target(target);
-    glBindTexture(gl_target, texture);
+    GLFUNC(glBindTexture)(gl_target, texture);
     log_gl_call("glBindTexture(%s, %u)", gl_texture_target_str(gl_target), texture);
     check_for_errors
 }
@@ -858,7 +870,7 @@ void am_copy_texture_image_2d(am_texture_copy_target target, int level, am_textu
     check_initialized();
     GLenum gl_target = to_gl_texture_copy_target(target);
     GLenum gl_format = to_gl_texture_format(format);
-    glCopyTexImage2D(gl_target, level, gl_format, x, y, w, h, 0);
+    GLFUNC(glCopyTexImage2D)(gl_target, level, gl_format, x, y, w, h, 0);
     log_gl_call("glCopyTexImage2D(%s, %d, %s, %d, %d, %d, %d, 0)",
         gl_texture_target_str(gl_target), level, gl_texture_format_str(gl_format),
         x, y, w, h);
@@ -868,7 +880,7 @@ void am_copy_texture_image_2d(am_texture_copy_target target, int level, am_textu
 void am_copy_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int x, int y, int w, int h) {
     check_initialized();
     GLenum gl_target = to_gl_texture_copy_target(target);
-    glCopyTexSubImage2D(gl_target, level, xoffset, yoffset, x, y, w, h);
+    GLFUNC(glCopyTexSubImage2D)(gl_target, level, xoffset, yoffset, x, y, w, h);
     log_gl_call("glCopyTexSubImage2D(%s, %d, %d, %d, %d, %d, %d, %d)",
         gl_texture_target_str(gl_target), level,
         xoffset, yoffset, x, y, w, h);
@@ -878,7 +890,7 @@ void am_copy_texture_sub_image_2d(am_texture_copy_target target, int level, int 
 void am_generate_mipmap(am_texture_bind_target target) {
     check_initialized();
     GLenum gl_target = to_gl_texture_bind_target(target);
-    glGenerateMipmap(gl_target);
+    GLFUNC(glGenerateMipmap)(gl_target);
     log_gl_call("glGenerateMipmap(%s)", gl_texture_target_str(gl_target));
     check_for_errors
 }
@@ -911,7 +923,7 @@ void am_set_texture_image_2d(am_texture_copy_target target, int level, am_textur
     GLenum gl_target = to_gl_texture_copy_target(target);
     GLenum gl_format = to_gl_texture_format(format);
     GLenum gl_type = to_gl_texture_type(type);
-    glTexImage2D(gl_target, level, gl_format, w, h, 0, gl_format, gl_type, data);
+    GLFUNC(glTexImage2D)(gl_target, level, gl_format, w, h, 0, gl_format, gl_type, data);
     log_gl_call("glTexImage2D(%s, %d, %s, %d, %d, 0, %s, %s, %p)",
         gl_texture_target_str(gl_target), level,
         gl_texture_format_str(gl_format),
@@ -927,7 +939,7 @@ void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int x
     GLenum gl_target = to_gl_texture_copy_target(target);
     GLenum gl_format = to_gl_texture_format(format);
     GLenum gl_type = to_gl_texture_type(type);
-    glTexSubImage2D(gl_target, level, xoffset, yoffset, w, h, gl_format, gl_type, data);
+    GLFUNC(glTexSubImage2D)(gl_target, level, xoffset, yoffset, w, h, gl_format, gl_type, data);
     log_gl_call("glTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p)",
         gl_texture_target_str(gl_target), level, xoffset, yoffset, w, h,
         gl_texture_format_str(gl_format),
@@ -940,7 +952,7 @@ void am_set_texture_min_filter(am_texture_bind_target target, am_texture_min_fil
     check_initialized();
     GLenum gl_target = to_gl_texture_bind_target(target);
     GLenum gl_filter = to_gl_texture_min_filter(filter);
-    glTexParameteri(gl_target, GL_TEXTURE_MIN_FILTER, gl_filter);
+    GLFUNC(glTexParameteri)(gl_target, GL_TEXTURE_MIN_FILTER, gl_filter);
     log_gl_call("glTexParameteri(%s, GL_TEXTURE_MIN_FILTER, %s)",
         gl_texture_target_str(gl_target),
         gl_texture_filter_str(gl_filter));
@@ -951,7 +963,7 @@ void am_set_texture_mag_filter(am_texture_bind_target target, am_texture_mag_fil
     check_initialized();
     GLenum gl_target = to_gl_texture_bind_target(target);
     GLenum gl_filter = to_gl_texture_mag_filter(filter);
-    glTexParameteri(gl_target, GL_TEXTURE_MAG_FILTER, gl_filter);
+    GLFUNC(glTexParameteri)(gl_target, GL_TEXTURE_MAG_FILTER, gl_filter);
     log_gl_call("glTexParameteri(%s, GL_TEXTURE_MAG_FILTER, %s)",
         gl_texture_target_str(gl_target),
         gl_texture_filter_str(gl_filter));
@@ -963,12 +975,12 @@ void am_set_texture_wrap(am_texture_bind_target target, am_texture_wrap s_wrap, 
     GLenum gl_target = to_gl_texture_bind_target(target);
     GLenum gl_swrap = to_gl_texture_wrap(s_wrap);
     GLenum gl_twrap = to_gl_texture_wrap(t_wrap);
-    glTexParameteri(gl_target, GL_TEXTURE_WRAP_S, gl_swrap);
+    GLFUNC(glTexParameteri)(gl_target, GL_TEXTURE_WRAP_S, gl_swrap);
     log_gl_call("glTexParameteri(%s, GL_TEXTURE_WRAP_S, %s)",
         gl_texture_target_str(gl_target),
         gl_texture_wrap_str(gl_swrap));
     check_for_errors
-    glTexParameteri(gl_target, GL_TEXTURE_WRAP_T, gl_twrap);
+    GLFUNC(glTexParameteri)(gl_target, GL_TEXTURE_WRAP_T, gl_twrap);
     log_gl_call("glTexParameteri(%s, GL_TEXTURE_WRAP_T, %s)",
         gl_texture_target_str(gl_target),
         gl_texture_wrap_str(gl_twrap));
@@ -980,7 +992,7 @@ void am_set_texture_wrap(am_texture_bind_target target, am_texture_wrap s_wrap, 
 am_renderbuffer_id am_create_renderbuffer() {
     check_initialized(0);
     GLuint rb;
-    glGenRenderbuffers(1, &rb);
+    GLFUNC(glGenRenderbuffers)(1, &rb);
     log_gl_call("glGenRenderbuffers() = %u", rb);
     check_for_errors
     return rb;
@@ -988,14 +1000,14 @@ am_renderbuffer_id am_create_renderbuffer() {
 
 void am_delete_renderbuffer(am_renderbuffer_id rb) {
     check_initialized();
-    glDeleteRenderbuffers(1, &rb);
+    GLFUNC(glDeleteRenderbuffers)(1, &rb);
     log_gl_call("glDeleteRenderbuffers(%u)", rb);
     check_for_errors
 }
 
 void am_bind_renderbuffer(am_renderbuffer_id rb) {
     check_initialized();
-    glBindRenderbuffer(GL_RENDERBUFFER, rb);
+    GLFUNC(glBindRenderbuffer)(GL_RENDERBUFFER, rb);
     log_gl_call("glBindRenderbuffer(GL_RENDERBUFFER, %u)", rb);
     check_for_errors
 }
@@ -1003,7 +1015,7 @@ void am_bind_renderbuffer(am_renderbuffer_id rb) {
 void am_set_renderbuffer_storage(am_renderbuffer_format format, int w, int h) {
     check_initialized();
     GLenum gl_format = to_gl_renderbuffer_format(format);
-    glRenderbufferStorage(GL_RENDERBUFFER, gl_format, w, h);
+    GLFUNC(glRenderbufferStorage)(GL_RENDERBUFFER, gl_format, w, h);
     log_gl_call("glRenderbufferStorage(GL_RENDERBUFFER, %s, %d, %d)",
         gl_renderbuffer_format_str(gl_format), w, h);
     check_for_errors
@@ -1013,7 +1025,7 @@ void am_set_renderbuffer_storage(am_renderbuffer_format format, int w, int h) {
 
 void am_read_pixels(int x, int y, int w, int h, void *data) {
     check_initialized();
-    glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    GLFUNC(glReadPixels)(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
     log_gl_call("glReadPixels(%d, %d, %d, %d, GL_RGBA, GL_UNSIGNED_BYTE, %p)",
         x, y, w, h, data);
     check_for_errors
@@ -1024,7 +1036,7 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
 am_framebuffer_id am_create_framebuffer() {
     check_initialized(0);
     GLuint fb;
-    glGenFramebuffers(1, &fb);
+    GLFUNC(glGenFramebuffers)(1, &fb);
     log_gl_call("glGenFramebuffers() = %u", fb);
     check_for_errors
     return fb;
@@ -1032,21 +1044,21 @@ am_framebuffer_id am_create_framebuffer() {
 
 void am_delete_framebuffer(am_framebuffer_id fb) {
     check_initialized();
-    glDeleteFramebuffers(1, &fb);
+    GLFUNC(glDeleteFramebuffers)(1, &fb);
     log_gl_call("glDeleteFramebuffers(%u)", fb);
     check_for_errors
 }
 
 void am_bind_framebuffer(am_framebuffer_id fb) {
     check_initialized();
-    glBindFramebuffer(GL_FRAMEBUFFER, fb);
+    GLFUNC(glBindFramebuffer)(GL_FRAMEBUFFER, fb);
     log_gl_call("glBindFramebuffer(GL_FRAMEBUFFER, %u)", fb);
     check_for_errors
 }
 
 am_framebuffer_status am_check_framebuffer_status() {
     check_initialized(AM_FRAMEBUFFER_STATUS_UNKNOWN);
-    GLenum gl_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    GLenum gl_status = GLFUNC(glCheckFramebufferStatus)(GL_FRAMEBUFFER);
     log_gl_call("glCheckFramebufferStatus(GL_FRAMEBUFFER) = %s", gl_framebuffer_status_string(gl_status));
     return from_gl_framebuffer_status(gl_status);
 }
@@ -1054,7 +1066,7 @@ am_framebuffer_status am_check_framebuffer_status() {
 void am_set_framebuffer_renderbuffer(am_framebuffer_attachment attachment, am_renderbuffer_id rb) {
     check_initialized();
     GLenum gl_attachment = to_gl_framebuffer_attachment(attachment);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, gl_attachment, GL_RENDERBUFFER, rb);
+    GLFUNC(glFramebufferRenderbuffer)(GL_FRAMEBUFFER, gl_attachment, GL_RENDERBUFFER, rb);
     log_gl_call("glFramebufferRenderbuffer(GL_FRAMEBUFFER, %s, GL_RENDERBUFFER, %u)",
         gl_framebuffer_attachment_str(gl_attachment), rb);
     check_for_errors
@@ -1064,7 +1076,7 @@ void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_textu
     check_initialized();
     GLenum gl_attachment = to_gl_framebuffer_attachment(attachment);
     GLenum gl_target = to_gl_texture_copy_target(target);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, gl_target, texture, 0);
+    GLFUNC(glFramebufferTexture2D)(GL_FRAMEBUFFER, gl_attachment, gl_target, texture, 0);
     log_gl_call("glFramebufferTexture2D(GL_FRAMEBUFFER, %s, %s, %u, 0)",
         gl_framebuffer_attachment_str(gl_attachment), gl_texture_target_str(gl_target),
         texture);
@@ -1076,7 +1088,7 @@ void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_textu
 void am_draw_arrays(am_draw_mode mode, int first, int count) {
     check_initialized();
     GLenum gl_mode = to_gl_draw_mode(mode);
-    glDrawArrays(gl_mode, first, count);
+    GLFUNC(glDrawArrays)(gl_mode, first, count);
     log_gl_call("glDrawArrays(%s, %d, %d)",
         gl_draw_mode_str(gl_mode), first, count);
     check_for_errors
@@ -1086,7 +1098,7 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
     check_initialized();
     GLenum gl_mode = to_gl_draw_mode(mode);
     GLenum gl_type = to_gl_element_index_type(type);
-    glDrawElements(gl_mode, count, gl_type, (void*)((uintptr_t)offset));
+    GLFUNC(glDrawElements)(gl_mode, count, gl_type, (void*)((uintptr_t)offset));
     log_gl_call("glDrawElements(%s, %d, %s, %d)",
         gl_draw_mode_str(gl_mode), count, gl_type_str(gl_type), offset);
     check_for_errors
@@ -1414,7 +1426,7 @@ static am_framebuffer_status from_gl_framebuffer_status(GLenum gl_status) {
 
 static void check_glerror(const char *file, int line, const char *func) {
     {
-        GLenum err = glGetError();
+        GLenum err = GLFUNC(glGetError)();
         if (err != GL_NO_ERROR) {
             const char *str = "UNKNOWN";
             switch (err) {

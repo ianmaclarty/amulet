@@ -162,13 +162,9 @@ else ifeq ($(TARGET_PLATFORM),win32)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
   XCFLAGS = -DLUA_COMPAT_ALL -fp:fast -WX 
-  XLDFLAGS = /SUBSYSTEM:WINDOWS \
-	$(BUILD_LIB_DIR)/SDL2.lib \
-	$(BUILD_LIB_DIR)/SDL2main.lib  \
-	Shell32.lib \
-	$(BUILD_LIB_DIR)/libEGL.lib \
-	$(BUILD_LIB_DIR)/libGLESv2.lib \
-	/NODEFAULTLIB:msvcrt.lib
+  XLDFLAGS = -SUBSYSTEM:CONSOLE \
+	-NODEFAULTLIB:msvcrt.lib \
+	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc
 else
   LUA_CFLAGS += -DLUA_USE_POSIX

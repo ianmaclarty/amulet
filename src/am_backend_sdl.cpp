@@ -2,6 +2,7 @@
 
 #ifdef AM_BACKEND_SDL
 
+#define SDL_MAIN_HANDLED 1
 #include "SDL.h"
 
 #ifdef AM_OSX
@@ -9,6 +10,17 @@
 #endif
 
 #define MIN_UPDATE_TIME (1.0/400.0)
+
+// Create variables for OpenGL ES 2 functions
+#ifdef AM_NEED_GLES2_FUNC_PTRS
+#include <SDL_opengles2.h>
+#define AM_GLPROC(ret,func,params) \
+    typedef ret (APIENTRY *func##_ptr_t) params; \
+    extern ret (APIENTRY *func##_ptr) params;
+#include "am_gles2funcs.h"
+#undef AM_GLPROC
+static void init_gles2_func_ptrs();
+#endif
 
 enum axis_button {
     AXIS_BUTTON_LEFT,
@@ -117,10 +129,14 @@ am_native_window *am_create_native_window(
         flags
     );
     if (win == NULL) {
+        am_log0("%s", SDL_GetError());
         return NULL;
     }
     if (!gl_context_initialized) {
         gl_context = SDL_GL_CreateContext(win);
+#ifdef AM_NEED_GLES2_FUNC_PTRS
+        init_gles2_func_ptrs();
+#endif
         gl_context_initialized = true;
     }
     SDL_GL_MakeCurrent(win, gl_context);
@@ -337,6 +353,20 @@ static void init_sdl() {
     init_audio();
     sdl_initialized = true;
 }
+
+#ifdef AM_NEED_GLES2_FUNC_PTRS
+static void init_gles2_func_ptrs() {
+#define AM_GLPROC(ret,func,params) \
+    do { \
+        func##_ptr = (func##_ptr_t)SDL_GL_GetProcAddress(#func); \
+        if ( ! func##_ptr ) { \
+            am_abort("Couldn't load GLES2 function %s: %s", #func, SDL_GetError()); \
+        } \
+    } while ( 0 );
+#include "am_gles2funcs.h"
+#undef AM_GLPROC
+}
+#endif
 
 static float *audio_buffer = NULL;
 

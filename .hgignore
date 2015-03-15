@@ -69,6 +69,7 @@ deps/glew-*/lib/*.a
 deps/glew-*/lib/*.so*
 
 deps/angle-chrome*/*.a
+deps/angle-chrome*/*.lib
 
 deps/libpng-*/*.lib
 deps/libpng-*/*.a
