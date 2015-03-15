@@ -80,7 +80,7 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
 void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_count) {
     if (active_program == NULL) return;
     update_state();
-    if (validate_active_program()) {
+    if (validate_active_program(mode)) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
             am_log1("%s", "WARNING: ignoring draw_arrays, "
                 "because no attribute arrays have been bound");
@@ -99,7 +99,7 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
 {
     if (active_program == NULL) return;
     update_state();
-    if (validate_active_program()) {
+    if (validate_active_program(mode)) {
         if (indices_view->buffer->elembuf_id == 0) {
             indices_view->buffer->create_elembuf();
         }
@@ -126,7 +126,14 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
     }
 }
 
-bool am_render_state::validate_active_program() {
+bool am_render_state::validate_active_program(am_draw_mode mode) {
+    if (mode == AM_DRAWMODE_POINTS && !active_program->sets_point_size) {
+        // The value of gl_PointSize is undefined if it's not set
+        // and with some drivers (notably Angle) not setting gl_PointSize
+        // will cause nothing to be drawn,
+        am_log1("WARNING: attempt to draw points with a shader program that did not set gl_PointSize (nothing will be drawn)");
+        return false;
+    }
     if (am_conf_validate_shader_programs) {
         bool valid = am_validate_program(active_program->program_id);
         if (!valid) {

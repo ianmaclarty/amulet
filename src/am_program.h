@@ -69,6 +69,7 @@ struct am_program_param {
 struct am_program : am_userdata {
     am_program_id program_id;
     int num_params;
+    bool sets_point_size;
     am_program_param *params;
 };
 

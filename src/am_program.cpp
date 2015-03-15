@@ -364,6 +364,7 @@ static int create_program(lua_State *L) {
     am_program *prog = am_new_userdata(L, am_program);
     prog->program_id = program;
     prog->num_params = num_params;
+    prog->sets_point_size = (strstr(vertex_shader_src, "gl_PointSize") != NULL);
     prog->params = params;
 
     return 1;

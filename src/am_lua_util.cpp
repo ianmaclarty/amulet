@@ -125,7 +125,11 @@ int am_get_enum_raw(lua_State *L, int enum_id, int idx) {
 int am_check_nargs(lua_State *L, int n) {
     int nargs = lua_gettop(L);
     if (nargs < n) {
-        luaL_error(L, "expecting at least %d arguments", n);
+        if (n == 1) {
+            luaL_error(L, "expecting at least 1 argument");
+        } else {
+            luaL_error(L, "expecting at least %d arguments", n);
+        }
     }
     return nargs;
 }
