@@ -4,11 +4,13 @@ static void init_reserved_refs(lua_State *L);
 static void open_stdlualibs(lua_State *L);
 static void init_package_searcher(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
+static void set_arg_global(lua_State *L, int argc, char** argv);
 
-lua_State *am_init_engine(bool worker) {
+lua_State *am_init_engine(bool worker, int argc, char** argv) {
     lua_State *L = luaL_newstate();
     init_reserved_refs(L);
     open_stdlualibs(L);
+    set_arg_global(L, argc, argv);
     init_package_searcher(L);
     am_init_traceback_func(L);
     am_open_logging_module(L);
@@ -68,6 +70,16 @@ static void init_reserved_refs(lua_State *L) {
     }
 }
 
+static void set_arg_global(lua_State *L, int argc, char** argv) {
+    lua_createtable(L, argc, 0);
+    for (int i = 0; i < argc; i++) {
+        char *arg = argv[i];
+        lua_pushstring(L, arg);
+        lua_rawseti(L, -2, i+1);
+    }
+    lua_setglobal(L, "arg");
+}
+
 static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "base",      luaopen_base);
     am_requiref(L, "package",   luaopen_package);
@@ -79,6 +91,7 @@ static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "string",    luaopen_string);
     am_requiref(L, "table",     luaopen_table);
     am_requiref(L, "os",        luaopen_os);
+    am_requiref(L, "io",        luaopen_io);
     am_requiref(L, "debug",     luaopen_debug);
 
 #ifdef AM_LUAJIT

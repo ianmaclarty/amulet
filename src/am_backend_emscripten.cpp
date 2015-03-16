@@ -160,7 +160,7 @@ int main( int argc, char *argv[] )
 
     init_sdl();
 
-    L = am_init_engine(false);
+    L = am_init_engine(false, 0, NULL);
     if (L == NULL) return 1;
 
     frame_time = am_get_current_time();

@@ -58,7 +58,7 @@ static am_key convert_key(int key);
 static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state(SDL_Window *window);
 //static bool controller_to_keys = true;
-static bool process_args(int argc, char **argv);
+static bool process_args(int *argc, char ***argv);
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -259,12 +259,12 @@ int main( int argc, char *argv[] )
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 #endif
 
-    if (!process_args(argc, argv)) {
+    if (!process_args(&argc, &argv)) {
         exit_status = EXIT_FAILURE;
         goto quit;
     }
 
-    L = am_init_engine(false);
+    L = am_init_engine(false, argc, argv);
     if (L == NULL) {
         exit_status = EXIT_FAILURE;
         goto quit;
@@ -591,7 +591,9 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
     return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
-static bool process_args(int argc, char **argv) {
+static bool process_args(int *argc_ptr, char ***argv_ptr) {
+    int argc = *argc_ptr;
+    char **argv = *argv_ptr;
     bool in_osx_bundle = false;
     char *filename = NULL;
 #ifdef AM_OSX
@@ -601,13 +603,13 @@ static bool process_args(int argc, char **argv) {
     if (!in_osx_bundle) { // When invoked from an OSX bundle extra arguments may be set by the OS.
         for (int i = 1; i < argc; i++) {
             if (argv[i][0] == '-') {
-                am_log0("Unrecognised option: %s", argv[i]);
-                return false;
-            } else if (filename != NULL) {
-                am_log0("Unrecognised option: %s", argv[i]);
+                am_log0("unrecognised option: %s", argv[i]);
                 return false;
             } else {
                 filename = argv[i];
+                *argv_ptr = &argv[i+1];
+                *argc_ptr = argc-i-1;
+                break;
             }
         }
     } else {
