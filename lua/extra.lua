@@ -65,6 +65,44 @@ function table.append(arr1, arr2)
     end
 end
 
+function table.merge(t1, t2)
+    for k, v in pairs(t2) do
+        t1[k] = v
+    end
+end
+
+function table.keys(t)
+    local ks = {}
+    local i = 1
+    for k, _ in pairs(t) do
+        ks[i] = k
+        i = i + 1
+    end
+    return ks
+end
+
+function table.values(t)
+    local vs = {}
+    local i = 1
+    for _, v in pairs(t) do
+        vs[i] = v
+        i = i + 1
+    end
+    return vs
+end
+
+function table.filter(t, f)
+    local t2 = {}
+    local i = 1
+    for _, v in ipairs(t) do
+        if f(v) then
+            t2[i] = v
+            i = i + 1
+        end
+    end
+    return t2
+end
+
 function table.clear(t)
     for k, _ in pairs(t) do
         t[k] = nil

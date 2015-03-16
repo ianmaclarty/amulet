@@ -175,6 +175,12 @@ clean-all: clean-tests
 	rm -rf builds
 	rm -f amulet$(EXE_EXT)
 
+# Docs
+
+.PHONY: doc
+doc:
+	cd doc && $(MAKE)
+
 # Tests
 
 TIMEPROG = /usr/bin/time

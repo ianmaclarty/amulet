@@ -87,3 +87,5 @@ tests/*.out
 tests/*.err
 tests/*.res
 tests/*.time
+
+doc/api_ref.html
