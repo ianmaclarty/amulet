@@ -178,7 +178,7 @@ clean-all: clean-tests
 # Docs
 
 .PHONY: doc
-doc:
+doc: $(AMULET)
 	cd doc && $(MAKE)
 
 # Tests
