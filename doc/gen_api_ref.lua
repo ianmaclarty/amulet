@@ -1,5 +1,6 @@
 local sections = {
     {id = "basic",      module = "_G",           title = "Basic Functions"},
+    {id = "vecmat",     module = "_G",           title = "Vectors and Matrices"},
     {id = "buffer",     module = "amulet",       title = "Buffers and Views"},
     {id = "window",     module = "amulet",       title = "Creating a Window"},
     {id = "graphics",   module = "amulet",       title = "Graphics"},
@@ -22,6 +23,14 @@ local ignored_funcs = {
     "_G.load",
     "_G.loadfile",
     "_G.dofile",
+    "_G.unpack",
+    "math.vec2",
+    "math.vec3",
+    "math.vec4",
+    "math.mat2",
+    "math.mat3",
+    "math.mat4",
+    "math.log10",
 }
 
 local modules = {}
@@ -31,11 +40,16 @@ for _, section in ipairs(sections) do
     end
 end
 
+local
+function qname(func)
+    return func.module.."."..func.name
+end
+
 local lua_html_manual = arg[1]
 local am_func_list = require "functions"
 local am_funcs = {}
 for _, func in ipairs(am_func_list) do
-    am_funcs[func.module.."."..func.name] = func
+    am_funcs[qname(func)] = func
 end
 
 local
@@ -70,7 +84,7 @@ function extract_lua_builtins(file)
             end
             local qname = module.."."..name
             if table.search(ignored_funcs, qname) then
-                goto continue
+                goto cont
             end
             l = l + 1
             local description = ""
@@ -94,7 +108,7 @@ function extract_lua_builtins(file)
             }
             funcs[qname] = func
         end
-        ::continue::
+        ::cont::
         l = l + 1
     end
     return funcs
@@ -117,6 +131,17 @@ function check_amulet_funcs(lua_funcs, am_funcs)
                 elseif not func.section then
                     io.stderr:write("no section for "..qname.."\n")
                 end
+            end
+        end
+    end
+    for _, func in pairs(am_funcs) do
+        if not rawget(_G, func.module) then
+            io.stderr:write("module "..func.module.." does not exist\n")
+            am_funcs[qname(func)] = nil
+        else
+            if not _G[func.module][func.name] then
+                io.stderr:write(qname(func).." does not exist\n")
+                am_funcs[qname(func)] = nil
             end
         end
     end
@@ -143,7 +168,7 @@ local
 function gen_funcs_html(funcs)
     funcs = table.values(funcs)
     table.sort(funcs, function(f1, f2)
-        return f1.name < f2.name
+        return qname(f1) < qname(f2)
     end)
     for i, func in ipairs(funcs) do
         gen_func_html(func)
