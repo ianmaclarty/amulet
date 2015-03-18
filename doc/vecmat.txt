@@ -1,0 +1,246 @@
+## Vectors and Matrices
+
+Amulet supports 2, 3 and 4 dimensional vectors
+and 2x2, 3x3 and 4x4 matrices.
+
+It borrows a lot of conventions from the OpenGL Shader
+Language (GLSL) for vector and matrix creation and manipulation.
+
+To construct a vector use one of the functions 
+`vec2`, `vec3` or `vec4`.
+A vector may be constructed by passing its components
+as separate arguments to one of these functions, for example:
+
+~~~ {.lua-code test="yes"}
+local velocity = vec3(0, 0, -299792458)
+~~~
+
+Passing a single number to a vector constructor will
+set all components of the vector to that value.
+
+~~~ {.lua-code test="yes"}
+local origin = vec2(0)
+~~~
+
+It's also possible to construct a vector from a combination
+of other vectors and numbers.
+The new vector's components will be taken from the other
+vectors in the order they are passed in.
+
+~~~ {.lua-code test="yes"}
+local bottom_left = vec2(0)
+local top_right = vec2(10, 100)
+local rect = vec4(bottom_left, top_right)
+print(rect)
+~~~
+
+~~~ {.output}
+vec4(0, 0, 10, 100)
+~~~
+
+There are multiple ways to access the components of a
+vector. The first component can be accessed using any of the
+fields `x`, `r`, `s`; the second using any of the fields
+`y`, `g` or `t`; the third using any of the fields
+`z`, `b` or `p`; and the fourth using any of the fields
+`w`, `a` or `q`. These fields can be used to retrieve or
+set the vector's components.
+
+~~~ {.lua-code test="yes"}
+local color = vec4(0.1, 0.3, 0.7, 0.8)
+print(color.x) -- prints 0.1
+color.g = 1 -- sets second component to 1
+print(color.t) -- prints 1
+~~~
+
+~~~ {.output}
+0.1
+1
+~~~
+
+A vector's components can also be accessed as if it were a table
+and vectors support the Lua length operator `#`.
+
+~~~ {.lua-code test="yes"}
+local position = vec3(10, 20, 30)
+for i = 1, #position do
+    print(position[i])
+end
+~~~
+
+~~~ {.output}
+10
+20
+30
+~~~
+
+Another way to construct vectors is to recombine
+the components of an existing vector using *swizzle fields*,
+which are special fields whose characters are any of the
+component access field characters. A new vector
+containing the named components will be returned.
+
+~~~ {.lua-code test="yes"}
+local dir = vec3(1, 2, 3)
+print(dir.xy)
+print(dir.rggb)
+print(dir.zzys)
+~~~
+
+~~~ {.output}
+vec2(1, 2)
+vec4(1, 2, 2, 3)
+vec4(3, 3, 2, 1)
+~~~
+
+Swizzle fields can also be used to update multiple components
+of a vector using another vector or a single number.
+
+~~~ {.lua-code test="yes"}
+local hair_color = vec3(1, 0.8, 0.5)
+hair_color.rg = hair_color.gr
+print(hair_color)
+hair_color.gb = 0
+print(hair_color)
+~~~
+
+~~~ {.output}
+vec3(0.8, 1, 0.5)
+vec3(0.8, 0, 0)
+~~~
+
+You can do arithmetic on vectors using the standard operators `+`, `-`, `*` and `/`.
+If both operands are vectors then they should have the
+same dimensions and the operation is applied in a pair-wise fashion,
+yielding a new vector of the same dimension.
+If one operand is a number then the operation is applied to each component of
+the vector and the number, yielding a new vector of the same dimension as the
+vector operand.
+
+~~~ {.lua-code test="yes"}
+print(vec2(3, 4) + 1)
+print(vec3(30) / vec3(3, 10, 5))
+print(2 * vec4(1, 2, 3, 4))
+~~~
+
+~~~ {.output}
+vec2(4, 5)
+vec3(10, 3, 6)
+vec4(2, 4, 6, 8)
+~~~
+
+### vec2(...) {.func-def}
+
+Constructs a 2-dimensional vector.
+See [Vectors and Matrices] for more details.
+
+### vec3(...) {.func-def}
+
+Constructs a 3-dimensional vector.
+See [Vectors and Matrices] for more details.
+
+### vec4(...) {.func-def}
+
+Constructs a 4-dimensional vector.
+See [Vectors and Matrices] for more details.
+
+### mat2(...) {.func-def}
+
+Constructs a 2x2 matrix.
+See [Vectors and Matrices] for more details.
+
+### mat3(...) {.func-def}
+
+Constructs a 3x3 matrix.
+See [Vectors and Matrices] for more details.
+
+### mat4(...) {.func-def}
+
+Constructs a 4x4 matrix.
+See [Vectors and Matrices] for more details.
+
+### math.dot(vector1, vector2) {.func-def}
+
+Returns the dot product of two vectors. The
+vectors must have the same dimensions.
+
+### math.cross(vector1, vector2) {.func-def}
+
+Returns the cross product of two 3-dimensional vectors.
+
+### math.normalize(vector) {.func-def}
+
+Returns the normalized version of a vector (i.e.
+the vector that points in the same direction, but whose
+length is 1).
+If the given vector has zero length, then a vector
+of the same dimensions is returned whose first
+component is 1 and remaining components are 0.
+
+### math.length(vector) {.func-def}
+
+Returns the length of a vector.
+
+### math.distance(vector1, vector2) {.func-def}
+
+Returns the distance between two vectors.
+
+### math.inverse(matrix) {.func-def}
+
+Returns the inverse of a matrix.
+
+### math.lookat(eye, center, up) {.func-def}
+
+Creates a 4x4 view matrix at `eye`, looking in the
+direction of `center` with the y axis of the camera
+pointing in the direction same direction as `up`.
+
+### math.perspective(fovy, aspect, near, far) {.func-def}
+
+Creates a 4x4 matrix for a symetric perspective-view frustum.
+
+- `fovy` is the field of view in the y plain, in radians.
+- `aspect` is typically the window width divided by its height.
+- `near` and `far` are the distances of the near and
+  far clipping plains from the camera (these should be positive).
+
+### math.euleryxz3(vector) {.func-def}
+
+Creates a 3D 3x3 rotation matrix from the euler angles
+`vector.y` (pitch), `vector.x` (yaw) and `vector.z` (roll),
+applied in that order.
+All angles are in radians.
+
+### math.euleryxz4(vector) {.func-def}
+
+Creates a 3D 4x4 homogeneous rotation matrix from the euler angles
+`vector.y` (pitch), `vector.x` (yaw) and `vector.z` (roll),
+applied in that order.
+All angles are in radians.
+
+### math.reflect(I, N) {.func-def}
+
+For the incident vector `I` and surface orientation `N`,
+returns the reflection direction: `result = I - 2 * math.dot(N, I) * N`
+
+See the [GLSL manual page](http://www.opengl.org/sdk/docs/manglsl/xhtml/reflect.xml)
+for more details.
+
+### math.refract(I, N, eta) {.func-def}
+
+For the incident vector `I` and surface normal `N`
+and the ratio of indices of refraction `eta`
+return the refraction vector.
+
+See the [GLSL manual page](http://www.opengl.org/sdk/docs/manglsl/xhtml/refract.xml)
+for more details.
+
+### math.faceforward(N, I, Nref) {.func-def}
+
+If `math.dot(Nref, I) < 0.0` then `faceforward` returns `N`, otherwise it returns `-N`.
+
+See the [GLSL manual page](http://www.opengl.org/sdk/docs/manglsl/xhtml/faceforward.xml)
+for more details.
+
+
+[Vectors and Matrices]: #vectors-and-matrices

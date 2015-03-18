@@ -5,7 +5,7 @@ return {
     {name = "collectgarbage",
      module = "_G",
      section = "basic",
-     signature = "collectgarbage()",
+     params = "",
      description = [[
 <p>
 Perform a full garbage collection cycle.
@@ -15,7 +15,7 @@ Perform a full garbage collection cycle.
     {name = "require",
      module = "_G",
      section = "basic",
-     signature = "require(module)",
+     params = "module",
      description = [[
 <p>
 Loads a module. <code>module</code> should be the
@@ -33,7 +33,7 @@ value is returned by <code>require</code>.
     {name = "vec2",
      module = "_G",
      section = "vecmat",
-     signature = "vec2(&middot;&middot;&middot;)",
+     params = "&middot;&middot;&middot;",
      description = [[
 <p>
 Constructs a 2 dimensional vector.
@@ -45,7 +45,7 @@ for more details.
     {name = "vec3",
      module = "_G",
      section = "vecmat",
-     signature = "vec3(&middot;&middot;&middot;)",
+     params = "&middot;&middot;&middot;",
      description = [[
 <p>
 Constructs a 3 dimensional vector.
@@ -57,7 +57,7 @@ for more details.
     {name = "vec4",
      module = "_G",
      section = "vecmat",
-     signature = "vec4(&middot;&middot;&middot;)",
+     params = "&middot;&middot;&middot;",
      description = [[
 <p>
 Constructs a 4 dimensional vector.
@@ -69,7 +69,7 @@ for more details.
     {name = "mat2",
      module = "_G",
      section = "vecmat",
-     signature = "mat2(&middot;&middot;&middot;)",
+     params = "&middot;&middot;&middot;",
      description = [[
 <p>
 Constructs a 2x2 matrix.
@@ -81,7 +81,7 @@ for more details.
     {name = "mat3",
      module = "_G",
      section = "vecmat",
-     signature = "mat3(&middot;&middot;&middot;)",
+     params = "&middot;&middot;&middot;",
      description = [[
 <p>
 Constructs a 3x3 matrix.
@@ -93,7 +93,7 @@ for more details.
     {name = "mat4",
      module = "_G",
      section = "vecmat",
-     signature = "mat4(&middot;&middot;&middot;)",
+     params = "&middot;&middot;&middot;",
      description = [[
 <p>
 Constructs a 4x4 matrix.
@@ -105,7 +105,7 @@ for more details.
     {name = "dot",
      module = "math",
      section = "vecmat",
-     signature = "math.dot(vector1, vector2)",
+     params = "vector1, vector2",
      description = [[
 <p>
 Returns the dot product of two vectors. The
@@ -116,7 +116,7 @@ vectors must have the same dimensions.
     {name = "cross",
      module = "math",
      section = "vecmat",
-     signature = "math.cross(vector1, vector2)",
+     params = "vector1, vector2",
      description = [[
 <p>
 Returns the cross product of two 3 dimensional vectors.
@@ -126,7 +126,7 @@ Returns the cross product of two 3 dimensional vectors.
     {name = "normalize",
      module = "math",
      section = "vecmat",
-     signature = "math.normalize(vector)",
+     params = "vector",
      description = [[
 <p>
 Returns the normalized version of a vector (i.e.
@@ -141,7 +141,7 @@ component is 1 and remaining components are 0.
     {name = "reflect",
      module = "math",
      section = "vecmat",
-     signature = "math.reflect(I, N)",
+     params = "I, N",
      description = [[
 <p>
 For the incident vector <code>I</code> and surface orientation <code>N</code>, 
@@ -154,7 +154,7 @@ for more details.
     {name = "refract",
      module = "math",
      section = "vecmat",
-     signature = "math.refract(I, N, eta)",
+     params = "I, N, eta",
      description = [[
 <p>
 For the incident vector <code>I</code> and surface normal <code>N</code>, 
@@ -168,7 +168,7 @@ for more details.
     {name = "faceforward",
      module = "math",
      section = "vecmat",
-     signature = "math.faceforward(N, I, Nref)",
+     params = "N, I, Nref",
      description = [[
 <p>
 If <code>dot(Nref, I) < 0.0</code>, returns <code>N</code>, otherwise, returns <code>-N</code>.
@@ -180,7 +180,7 @@ for more details.
     {name = "length",
      module = "math",
      section = "vecmat",
-     signature = "math.length(vector)",
+     params = "vector",
      description = [[
 <p>
 Returns the length of a vector.
@@ -190,7 +190,7 @@ Returns the length of a vector.
     {name = "distance",
      module = "math",
      section = "vecmat",
-     signature = "math.distance(vector1, vector2)",
+     params = "vector1, vector2",
      description = [[
 <p>
 Returns the distance between two vectors.
@@ -200,7 +200,7 @@ Returns the distance between two vectors.
     {name = "inverse",
      module = "math",
      section = "vecmat",
-     signature = "math.inverse(matrix)",
+     params = "matrix",
      description = [[
 <p>
 Returns the inverse of a matrix.
@@ -210,7 +210,7 @@ Returns the inverse of a matrix.
     {name = "lookat",
      module = "math",
      section = "vecmat",
-     signature = "math.lookat(eye, center, up)",
+     params = "eye, center, up",
      description = [[
 <p>
 Creates a 4x4 &quot;look at&quot; view matrix.
@@ -226,7 +226,7 @@ This is typically <code>vec3(0, 1, 0)</code>.
     {name = "perspective",
      module = "math",
      section = "vecmat",
-     signature = "math.perspective(fovy, aspect, near, far)",
+     params = "fovy, aspect, near, far",
      description = [[
 <p>
 Creates a 4x4 matrix for a symetric perspective-view frustum.
@@ -241,7 +241,7 @@ far clipping plains from the camera.
     {name = "euleryxz3",
      module = "math",
      section = "vecmat",
-     signature = "math.euleryxz3(vector)",
+     params = "vector",
      description = [[
 <p>
 Creates a 3D 3x3 rotation matrix from euler angles
@@ -254,7 +254,7 @@ All angles are in radians.
     {name = "euleryxz4",
      module = "math",
      section = "vecmat",
-     signature = "math.euleryxz4(vector)",
+     params = "vector",
      description = [[
 <p>
 Creates a 3D 4x4 homogeneous rotation matrix from euler angles
@@ -269,7 +269,7 @@ All angles are in radians.
     {name = "draw_elements",
      module = "amulet",
      section = "graphics",
-     signature = "amulet.draw_elements(indices [, primitive])",
+     params = "indices [, primitive]",
      description = [[
 <p>
 Returns a node that renders the given primitives by looking up
@@ -290,7 +290,7 @@ or <code>ushort_elem</code> with a stride of 4 or 2 respectively.
     {name = "draw_arrays",
      module = "amulet",
      section = "graphics",
-     signature = "amulet.draw_elements([primitive])",
+     params = "[primitive]",
      description = [[
 <p>
 Returns a node that renders the given primitives using the

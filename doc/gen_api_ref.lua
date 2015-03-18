@@ -76,7 +76,7 @@ function extract_lua_builtins(file)
         if not line then
             break
         end
-        local name, sig = line:match('^<hr><h3><a name="pdf%-([a-zA-Z0-9%.]+)"><code>(.+)</code></a></h3>')
+        local name, params = line:match('^<hr><h3><a name="pdf%-([a-zA-Z0-9%.]+)"><code>[a-zA-Z0-9_]+%s*%(%s*(.+)%s*%)%s*</code></a></h3>')
         if name then
             local module = "_G"
             if name:match("%.") then
@@ -101,7 +101,7 @@ function extract_lua_builtins(file)
             local func = {
                 name = name,
                 module = module,
-                signature = sig,
+                params = params,
                 description = description,
                 section = module == "_G" and "basic" or module,
                 is_lua_builtin = true,
@@ -124,8 +124,8 @@ function check_amulet_funcs(lua_funcs, am_funcs)
                 local func = am_funcs[qname]
                 if not func then
                     io.stderr:write("no doc entry for "..qname.."\n")
-                elseif not func.signature then
-                    io.stderr:write("no signature for "..qname.."\n")
+                elseif not func.params then
+                    io.stderr:write("no params for "..qname.."\n")
                 elseif not func.description then
                     io.stderr:write("no description for "..qname.."\n")
                 elseif not func.section then
@@ -159,7 +159,8 @@ function gen_func_html(func)
     else
         qname = func.module.."."..func.name
     end
-    io.stdout:write('<div class="'..class..'"><h3><a name="pdf-'..qname..'"><code>'..func.signature..'</code></a></h3>\n')
+    io.stdout:write('<div class="'..class..'"><h3><a name="pdf-'..qname..'"><code>'..qname..
+        '<span class="params"> ('..func.params..')</span></code></a></h3>\n')
     io.stdout:write(func.description..'\n')
     io.stdout:write('</div>\n')
 end

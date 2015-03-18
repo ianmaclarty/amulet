@@ -1,0 +1,27 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    background-color: #4e4e4e;
+    color: #ddd;
+} 
+
+a, a:visited {
+    color: #ddd;
+}
+
+.func-entry {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.func-entry h3 a {
+    font-size: 16px;
+    color: #17f4f4;
+}
+
+.func-entry h3 .params {
+    color: #ddd;
+}
