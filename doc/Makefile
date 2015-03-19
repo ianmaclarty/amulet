@@ -1,11 +1,12 @@
 include ../Common.mk
 
-LUA_HTML_MANUAL=../$(LUA_DIR)/doc/manual.html
+LUA_HTML_MANUAL = ../$(LUA_DIR)/doc/manual.html
 
-manual.html: gen_api_ref.lua $(LUA_HTML_MANUAL) functions.lua
-	cat header.html > $@
-	../$(BUILD_BIN_DIR)/amulet$(EXE_EXT) gen_api_ref.lua $(LUA_HTML_MANUAL) >> $@
-	cat footer.html >> $@
+SECTIONS = lua_builtins.txt \
+	vecmat.txt
+
+manual.html: $(SECTIONS) writer.lua style.css template.html Makefile
+	cat $(SECTIONS) | pandoc -s --template template.html -c style.css -f markdown -t writer.lua -o $@
 
 clean:
 	rm manual.html

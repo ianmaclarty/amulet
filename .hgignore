@@ -88,4 +88,4 @@ tests/*.err
 tests/*.res
 tests/*.time
 
-doc/api_ref.html
+doc/manual.html

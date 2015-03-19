@@ -58,8 +58,8 @@ print(color.t) -- prints 1
 1
 ~~~
 
-A vector's components can also be accessed as if it were a table
-and vectors support the Lua length operator `#`.
+A vector's components can also be accessed with 1-based
+integer indices and they support the Lua length operator (`#`).
 
 ~~~ {.lua-code test="yes"}
 local position = vec3(10, 20, 30)
@@ -244,3 +244,4 @@ for more details.
 
 
 [Vectors and Matrices]: #vectors-and-matrices
+
