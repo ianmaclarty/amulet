@@ -22,13 +22,19 @@ a, a:visited {
     color: #ea81f1;
 }
 
-h2 {
+h2, h3 {
     color: #ffae22;
     font-weight: normal;
 }
 
 code {
     color: #90e2e1;
+}
+
+em {
+    font-weight: normal;
+    font-style: italic;
+    color: #ececec;
 }
 
 .lua-code {
@@ -52,6 +58,12 @@ code {
     font-family: monospace;
     color: #90e2e1;
     font-weight: normal;
+}
+
+.matrix {
+    display: block;
+    color: #ececec;
+    text-align: center;
 }
 
 p {

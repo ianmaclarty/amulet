@@ -3,11 +3,11 @@
 This sections covers a few of the more commonly used Lua builtin functions.
 For the full list please refer to the [Lua manual](lua_manual.html)
 
-### collectgarbage() {.func-def}
+#### collectgarbage() {.func-def}
 
 Perform a full garbage collection cycle.
 
-### require(module) {.func-def}
+#### require(module) {.func-def}
 
 Loads a module. `module` should be the name of a lua file in the same directory
 as the file calling `require`, without the ".lua" suffix. If the module has not

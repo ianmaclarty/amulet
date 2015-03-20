@@ -42,19 +42,16 @@ function create_shader_program()
         precision mediump float;
         attribute float x;
         attribute float y;
-        attribute vec3 color;
         uniform mat4 MVP;
-        varying vec3 _color;
         void main() {
-            _color = color;
             gl_Position = MVP * vec4(x, y, 0, 1);
         }
     ]]
     local fshader = [[
         precision mediump float;
-        varying vec3 _color;
+        uniform vec3 color;
         void main() {
-            gl_FragColor = vec4(_color, 1.0);
+            gl_FragColor = vec4(color, 1.0);
         }
     ]]
     shader_program = am.program(vshader, fshader)

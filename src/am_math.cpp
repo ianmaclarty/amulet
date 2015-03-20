@@ -118,6 +118,29 @@ static int vec##D##_mul(lua_State *L) {                                         
     return 1;                                                                   \
 }
 
+#define VEC_DIV_FUNC(D)                                                         \
+static int vec##D##_div(lua_State *L) {                                         \
+    am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
+    if (lua_isnumber(L, 1)) {                                                   \
+        float x = lua_tonumber(L, 1);                                           \
+        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
+        z->v = x / y->v;                                                        \
+    } else if (lua_isnumber(L, 2)) {                                            \
+        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
+        float y = lua_tonumber(L, 2);                                           \
+        z->v = x->v / y;                                                        \
+    } else if (am_get_type(L, 2) == MT_am_mat##D) {                             \
+        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
+        am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                        \
+        z->v = x->v * glm::inverse(y->m);                                       \
+    } else {                                                                    \
+        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
+        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
+        z->v = x->v / y->v;                                                     \
+    }                                                                           \
+    return 1;                                                                   \
+}
+
 #define VEC_UNM_FUNC(D)                                                     \
 static int vec##D##_unm(lua_State *L) {                                     \
     am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
@@ -684,7 +707,7 @@ static int mat##D##_newindex(lua_State *L) {                                    
         m->m[i-1] = v->v;                                                               \
         return 1;                                                                       \
     } else {                                                                            \
-        return luaL_error(L, "invalid mat" #D " index or value");                       \
+        return luaL_error(L, "invalid mat" #D " index: %s", lua_tostring(L, 2));        \
     }                                                                                   \
 }
 
@@ -697,8 +720,8 @@ AM_VEC_NEWINDEX_FUNC(2)
 VEC_NEWINDEX_FUNC(2)
 VEC_OP_FUNC(2, add, +)
 VEC_OP_FUNC(2, sub, -)
-VEC_OP_FUNC(2, div, /)
 VEC_MUL_FUNC(2)
+VEC_DIV_FUNC(2)
 VEC_UNM_FUNC(2)
 VEC_LEN_FUNC(2)
 AM_READ_VEC_FUNC(2)
@@ -712,8 +735,8 @@ AM_VEC_NEWINDEX_FUNC(3)
 VEC_NEWINDEX_FUNC(3)
 VEC_OP_FUNC(3, add, +)
 VEC_OP_FUNC(3, sub, -)
-VEC_OP_FUNC(3, div, /)
 VEC_MUL_FUNC(3)
+VEC_DIV_FUNC(3)
 VEC_UNM_FUNC(3)
 VEC_LEN_FUNC(3)
 AM_READ_VEC_FUNC(3)
@@ -727,8 +750,8 @@ AM_VEC_NEWINDEX_FUNC(4)
 VEC_NEWINDEX_FUNC(4)
 VEC_OP_FUNC(4, add, +)
 VEC_OP_FUNC(4, sub, -)
-VEC_OP_FUNC(4, div, /)
 VEC_MUL_FUNC(4)
+VEC_DIV_FUNC(4)
 VEC_UNM_FUNC(4)
 VEC_LEN_FUNC(4)
 AM_READ_VEC_FUNC(4)
@@ -740,7 +763,7 @@ MAT_INDEX_FUNC(2)
 MAT_NEWINDEX_FUNC(2)
 MAT_OP_FUNC(2, add, +)
 MAT_OP_FUNC(2, sub, -)
-MAT_OP_FUNC(2, div, -)
+MAT_OP_FUNC(2, div, /)
 MAT_MUL_FUNC(2)
 MAT_UNM_FUNC(2)
 MAT_LEN_FUNC(2)
@@ -752,7 +775,7 @@ MAT_INDEX_FUNC(3)
 MAT_NEWINDEX_FUNC(3)
 MAT_OP_FUNC(3, add, +)
 MAT_OP_FUNC(3, sub, -)
-MAT_OP_FUNC(3, div, -)
+MAT_OP_FUNC(3, div, /)
 MAT_MUL_FUNC(3)
 MAT_UNM_FUNC(3)
 MAT_LEN_FUNC(3)
@@ -764,7 +787,7 @@ MAT_INDEX_FUNC(4)
 MAT_NEWINDEX_FUNC(4)
 MAT_OP_FUNC(4, add, +)
 MAT_OP_FUNC(4, sub, -)
-MAT_OP_FUNC(4, div, -)
+MAT_OP_FUNC(4, div, /)
 MAT_MUL_FUNC(4)
 MAT_UNM_FUNC(4)
 MAT_LEN_FUNC(4)

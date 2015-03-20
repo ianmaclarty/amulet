@@ -196,13 +196,28 @@ rawset(getmetatable(vec4(0)), "__tostring", format_vec)
 local
 function format_mat(m)
     local n = #m
-    local str = "mat"..n.."(\n"
+    local rowwidth = {0, 0, 0, 0}
     for col = 1, n do
-        str = str.."  "..format_vec(m[col])
+        for row = 1, n do
+            local str = tostring(m[col][row])
+            if #str > rowwidth[row] then
+                rowwidth[row] = #str
+            end
+        end
+    end
+    local str = "mat"..n.."("
+    for col = 1, n do
+        for row = 1, n do
+            local fmt = "%"..rowwidth[row].."s"
+            str = str..string.format(fmt, tostring(m[col][row]))
+            if row ~= n then
+                str = str..", "
+            end
+        end
         if col == n then
             str = str..")"
         else
-            str = str..",\n"
+            str = str..",\n     "
         end
     end
     return str

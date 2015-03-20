@@ -6,6 +6,8 @@ and 2x2, 3x3 and 4x4 matrices.
 It borrows a lot of conventions from the OpenGL Shader
 Language (GLSL) for vector and matrix creation and manipulation.
 
+### Constructing vectors {#vec-cons}
+
 To construct a vector use one of the functions 
 `vec2`, `vec3` or `vec4`.
 A vector may be constructed by passing its components
@@ -38,9 +40,11 @@ print(rect)
 vec4(0, 0, 10, 100)
 ~~~
 
+### Accessing vector components
+
 There are multiple ways to access the components of a
 vector. The first component can be accessed using any of the
-fields `x`, `r`, `s`; the second using any of the fields
+fields `x`, `r` or `s`; the second using any of the fields
 `y`, `g` or `t`; the third using any of the fields
 `z`, `b` or `p`; and the fourth using any of the fields
 `w`, `a` or `q`. These fields can be used to retrieve or
@@ -48,18 +52,20 @@ set the vector's components.
 
 ~~~ {.lua-code test="yes"}
 local color = vec4(0.1, 0.3, 0.7, 0.8)
-print(color.x) -- prints 0.1
-color.g = 1 -- sets second component to 1
-print(color.t) -- prints 1
+print(color.r..", "..color.g..", "..color.b..", "..color.a)
+local point = vec2(0)
+point.x = 5
+point.y = 2
+print("x="..point.x..", y="..point.y)
 ~~~
 
 ~~~ {.output}
-0.1
-1
+0.1, 0.3, 0.7, 0.8
+x=5, y=2
 ~~~
 
 A vector's components can also be accessed with 1-based
-integer indices and they support the Lua length operator (`#`).
+integer indices and vectors support the Lua length operator (`#`).
 
 ~~~ {.lua-code test="yes"}
 local position = vec3(10, 20, 30)
@@ -74,10 +80,12 @@ end
 30
 ~~~
 
+### Swizzle fields
+
 Another way to construct vectors is to recombine
 the components of an existing vector using *swizzle fields*,
 which are special fields whose characters are any of the
-component access field characters. A new vector
+component field characters. A new vector
 containing the named components will be returned.
 
 ~~~ {.lua-code test="yes"}
@@ -97,11 +105,11 @@ Swizzle fields can also be used to update multiple components
 of a vector using another vector or a single number.
 
 ~~~ {.lua-code test="yes"}
-local hair_color = vec3(1, 0.8, 0.5)
-hair_color.rg = hair_color.gr
-print(hair_color)
-hair_color.gb = 0
-print(hair_color)
+local color = vec3(1, 0.8, 0.5)
+color.rg = color.gr
+print(color)
+color.gb = 0
+print(color)
 ~~~
 
 ~~~ {.output}
@@ -109,12 +117,14 @@ vec3(0.8, 1, 0.5)
 vec3(0.8, 0, 0)
 ~~~
 
+### Vector arithmetic
+
 You can do arithmetic on vectors using the standard operators `+`, `-`, `*` and `/`.
 If both operands are vectors then they should have the
-same dimensions and the operation is applied in a pair-wise fashion,
-yielding a new vector of the same dimension.
+same size and the operation is applied in a component-wise fashion,
+yielding a new vector of the same size.
 If one operand is a number then the operation is applied to each component of
-the vector and the number, yielding a new vector of the same dimension as the
+the vector and the number, yielding a new vector of the same size as the
 vector operand.
 
 ~~~ {.lua-code test="yes"}
@@ -129,73 +139,191 @@ vec3(10, 3, 6)
 vec4(2, 4, 6, 8)
 ~~~
 
-### vec2(...) {.func-def}
+### Constructing matrices {#mat-cons}
 
-Constructs a 2-dimensional vector.
-See [Vectors and Matrices] for more details.
+Use one of the functions `mat2`, `mat3` or `mat4` to contruct
+a 2x2, 3x3 or 4x4 matrix.
 
-### vec3(...) {.func-def}
+Passing a single number argument to one of the matrix constructors
+generates a matrix with all diagonal elements equal to the number
+and all other elements equal to zero. For example `mat3(1)` constructs
+the 3x3 identity matrix:
 
-Constructs a 3-dimensional vector.
-See [Vectors and Matrices] for more details.
+~~~ {.matrix}
+1  0  0
+0  1  0
+0  0  1
+~~~
 
-### vec4(...) {.func-def}
+You can also pass the individual elements of the matrix as arguments
+to one of the constructors. These can either be numbers or vectors
+or a mix of the two.
+The matrix elements are filled in column by column
+using the same convensions as GLSL. For example 
 
-Constructs a 4-dimensional vector.
-See [Vectors and Matrices] for more details.
+~~~ {.lua-code}
+mat3(1, 2, 3, 4, 5, 6, 7, 8, 9)
+~~~
 
-### mat2(...) {.func-def}
+produces the matrix:
+
+~~~ {.matrix}
+1  4  7
+2  5  8
+3  6  9
+~~~
+
+and 
+
+~~~ {.lua-code}
+mat4(vec3(1, 2, 3), 4,
+     vec4(5, 6, 7, 8),
+     vec2(9, 10), vec2(11, 12),
+     13, 14, 15, 16)
+~~~
+
+produces the matrix:
+
+~~~ {.matrix}
+1   5   9  13
+2   6  10  14
+3   7  11  15
+4   8  12  16
+~~~
+
+### Accessing matrix components
+
+The columns of a matrix can be accessed as vectors using 1-based integer indices
+and the Lua length operator returns the number of columns.
+
+~~~ {.lua-code}
+local matrix = mat2(1, 0, 0, 2)
+for i = 1, #matrix do
+    print(matrix[i])
+end
+~~~
+
+~~~ {.output}
+vec2(1, 0)
+vec2(0, 2)
+~~~
+
+When accessing a column it is returned as a new vector, so
+updating a returned column vector has no effect on the original
+matrix. This means that code such as the following has no effect:
+
+~~~ {.lua-code}
+local matrix = mat3(1)
+matrix[2][2] = 3 -- THIS DOESN'T WORK!
+print(matrix[2][2])
+~~~
+
+~~~ {.output}
+1
+~~~
+
+The value at row 2 and column 2 in the matrix will still be 1, because
+`matrix[2]` returns a new vector. Setting the 2nd component of this
+new vector to 3 has no effect on the original matrix.
+Instead if you want to update an individual element of a matrix,
+you need to update the entire column. Like so:
+
+~~~ {.lua-code}
+local matrix = mat3(1)
+matrix[2] = vec3(matrix[2][1], 3, matrix[2][3])
+print(matrix[2][2])
+~~~
+
+~~~ {.output}
+3
+~~~
+
+### Matrix arithmetic
+
+The operators `+` and `-` work with matrices in much the same way they work
+with vectors. If two matrices are added or subtracted the result will
+be a new matrix of the same size with element being the sum or difference
+of the corresponding components of the other matrices.
+
+~~~ {.lua-code}
+print(mat2(1, 2, 3, 4) + mat2(0.1, 0.2, 0.3, 0.4))
+~~~
+
+~~~ {.output}
+mat2(
+  vec2(1.1, 2.2),
+  vec2(3.3, 4.4))
+~~~
+
+### Vector and matrix function reference
+
+#### vec2(...) {.func-def}
+
+Constructs a 2 dimensional vector.
+See [Constructing vectors] for more details.
+
+#### vec3(...) {.func-def}
+
+Constructs a 3 dimensional vector.
+See [Constructing vectors] for more details.
+
+#### vec4(...) {.func-def}
+
+Constructs a 4 dimensional vector.
+See [Constructing vectors] for more details.
+
+#### mat2(...) {.func-def}
 
 Constructs a 2x2 matrix.
-See [Vectors and Matrices] for more details.
+See [Constructing matrices] for more details.
 
-### mat3(...) {.func-def}
+#### mat3(...) {.func-def}
 
 Constructs a 3x3 matrix.
-See [Vectors and Matrices] for more details.
+See [Constructing matrices] for more details.
 
-### mat4(...) {.func-def}
+#### mat4(...) {.func-def}
 
 Constructs a 4x4 matrix.
-See [Vectors and Matrices] for more details.
+See [Constructing matrices] for more details.
 
-### math.dot(vector1, vector2) {.func-def}
+#### math.dot(vector1, vector2) {.func-def}
 
 Returns the dot product of two vectors. The
-vectors must have the same dimensions.
+vectors must have the same size.
 
-### math.cross(vector1, vector2) {.func-def}
+#### math.cross(vector1, vector2) {.func-def}
 
-Returns the cross product of two 3-dimensional vectors.
+Returns the cross product of two 3 dimensional vectors.
 
-### math.normalize(vector) {.func-def}
+#### math.normalize(vector) {.func-def}
 
 Returns the normalized version of a vector (i.e.
 the vector that points in the same direction, but whose
 length is 1).
 If the given vector has zero length, then a vector
-of the same dimensions is returned whose first
-component is 1 and remaining components are 0.
+of the same size is returned whose first
+component is 1 and whose remaining components are 0.
 
-### math.length(vector) {.func-def}
+#### math.length(vector) {.func-def}
 
 Returns the length of a vector.
 
-### math.distance(vector1, vector2) {.func-def}
+#### math.distance(vector1, vector2) {.func-def}
 
 Returns the distance between two vectors.
 
-### math.inverse(matrix) {.func-def}
+#### math.inverse(matrix) {.func-def}
 
 Returns the inverse of a matrix.
 
-### math.lookat(eye, center, up) {.func-def}
+#### math.lookat(eye, center, up) {.func-def}
 
 Creates a 4x4 view matrix at `eye`, looking in the
 direction of `center` with the y axis of the camera
 pointing in the direction same direction as `up`.
 
-### math.perspective(fovy, aspect, near, far) {.func-def}
+#### math.perspective(fovy, aspect, near, far) {.func-def}
 
 Creates a 4x4 matrix for a symetric perspective-view frustum.
 
@@ -204,21 +332,21 @@ Creates a 4x4 matrix for a symetric perspective-view frustum.
 - `near` and `far` are the distances of the near and
   far clipping plains from the camera (these should be positive).
 
-### math.euleryxz3(vector) {.func-def}
+#### math.euleryxz3(vector) {.func-def}
 
 Creates a 3D 3x3 rotation matrix from the euler angles
 `vector.y` (pitch), `vector.x` (yaw) and `vector.z` (roll),
 applied in that order.
 All angles are in radians.
 
-### math.euleryxz4(vector) {.func-def}
+#### math.euleryxz4(vector) {.func-def}
 
 Creates a 3D 4x4 homogeneous rotation matrix from the euler angles
 `vector.y` (pitch), `vector.x` (yaw) and `vector.z` (roll),
 applied in that order.
 All angles are in radians.
 
-### math.reflect(I, N) {.func-def}
+#### math.reflect(I, N) {.func-def}
 
 For the incident vector `I` and surface orientation `N`,
 returns the reflection direction: `result = I - 2 * math.dot(N, I) * N`
@@ -226,7 +354,7 @@ returns the reflection direction: `result = I - 2 * math.dot(N, I) * N`
 See the [GLSL manual page](http://www.opengl.org/sdk/docs/manglsl/xhtml/reflect.xml)
 for more details.
 
-### math.refract(I, N, eta) {.func-def}
+#### math.refract(I, N, eta) {.func-def}
 
 For the incident vector `I` and surface normal `N`
 and the ratio of indices of refraction `eta`
@@ -235,7 +363,7 @@ return the refraction vector.
 See the [GLSL manual page](http://www.opengl.org/sdk/docs/manglsl/xhtml/refract.xml)
 for more details.
 
-### math.faceforward(N, I, Nref) {.func-def}
+#### math.faceforward(N, I, Nref) {.func-def}
 
 If `math.dot(Nref, I) < 0.0` then `faceforward` returns `N`, otherwise it returns `-N`.
 
@@ -243,5 +371,6 @@ See the [GLSL manual page](http://www.opengl.org/sdk/docs/manglsl/xhtml/faceforw
 for more details.
 
 
-[Vectors and Matrices]: #vectors-and-matrices
+[Constructing vectors]: #vec-cons
+[Constructing matrices]: #mat-cons
 
