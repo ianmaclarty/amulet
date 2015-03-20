@@ -119,7 +119,7 @@ vec3(0.8, 0, 0)
 
 ### Vector arithmetic
 
-You can do arithmetic on vectors using the standard operators `+`, `-`, `*` and `/`.
+We can do arithmetic on vectors using the standard operators `+`, `-`, `*` and `/`.
 If both operands are vectors then they should have the
 same size and the operation is applied in a component-wise fashion,
 yielding a new vector of the same size.
@@ -155,17 +155,20 @@ the 3x3 identity matrix:
 0  0  1
 ~~~
 
-You can also pass the individual elements of the matrix as arguments
+We can also pass the individual elements of the matrix as arguments
 to one of the constructors. These can either be numbers or vectors
 or a mix of the two.
-The matrix elements are filled in column by column
-using the same convensions as GLSL. For example 
+As the constructor arguments are consumed from left to right, the matrix
+is filled in column by column.
+This convention is also used in GLSL. For example:
 
 ~~~ {.lua-code}
-mat3(1, 2, 3, 4, 5, 6, 7, 8, 9)
+local m = mat3(1, 2, 3,
+               4, 5, 6,
+               7, 8, 9)
 ~~~
 
-produces the matrix:
+sets `m` to the matrix:
 
 ~~~ {.matrix}
 1  4  7
@@ -173,22 +176,45 @@ produces the matrix:
 3  6  9
 ~~~
 
-and 
+This is admittedly somewhat confusing, because when we write
+the matrix constructor in code the columns are layed out
+horizontally. This is however the convention used in GLSL.
+
+Here's another example:
 
 ~~~ {.lua-code}
-mat4(vec3(1, 2, 3), 4,
-     vec4(5, 6, 7, 8),
-     vec2(9, 10), vec2(11, 12),
-     13, 14, 15, 16)
+local n = mat4(vec3(1, 2, 3), 4,
+               vec4(5, 6, 7, 8),
+               vec2(9, 10), vec2(11, 12),
+               13, 14, 15, 16)
 ~~~
 
-produces the matrix:
+This sets `n` to the matrix:
 
 ~~~ {.matrix}
 1   5   9  13
 2   6  10  14
 3   7  11  15
 4   8  12  16
+~~~
+
+Finally a matrix may be constructed by passing a matrix
+of equal or smaller size to one of the matrix construction
+functions. The given matrix is used to fill in the top-left
+corner of the new matrix and the rest is filled in with
+elements from the identity matrix. For example:
+
+~~~ {.lua-code}
+local o = mat4(mat2(1, 2, 3, 4))
+~~~
+
+will set `o` to the matrix:
+
+~~~ {.matrix}
+1  3  0  0
+2  4  0  0
+0  0  1  0
+0  0  0  1
 ~~~
 
 ### Accessing matrix components
@@ -225,8 +251,8 @@ print(matrix[2][2])
 The value at row 2 and column 2 in the matrix will still be 1, because
 `matrix[2]` returns a new vector. Setting the 2nd component of this
 new vector to 3 has no effect on the original matrix.
-Instead if you want to update an individual element of a matrix,
-you need to update the entire column. Like so:
+Instead if we want to update an individual element of a matrix,
+we need to update the entire column. Like so:
 
 ~~~ {.lua-code}
 local matrix = mat3(1)
@@ -240,20 +266,61 @@ print(matrix[2][2])
 
 ### Matrix arithmetic
 
-The operators `+` and `-` work with matrices in much the same way they work
-with vectors. If two matrices are added or subtracted the result will
-be a new matrix of the same size with element being the sum or difference
-of the corresponding components of the other matrices.
+As with vectors the `+`, `-`, `*` and `/` operators work with
+matrices too. When one operand is a number, the result is a new
+matrix of the same size with the operation applied to each element
+of the matrix.
+
+~~~ {.lua-code}
+print(2 * mat2(1, 2, 3, 4))
+print(mat3(3) - 1)
+~~~
+
+~~~ {.output}
+mat2(2, 4,
+     6, 8)
+mat4(2, -1, -1,
+    -1,  2, -1,
+    -1, -1,  2)
+~~~
+
+When both operands are matrices, the `+` and `-` operators work in a similar
+way to vectors, with the operations applied component-wise.
 
 ~~~ {.lua-code}
 print(mat2(1, 2, 3, 4) + mat2(0.1, 0.2, 0.3, 0.4))
 ~~~
 
 ~~~ {.output}
-mat2(
-  vec2(1.1, 2.2),
-  vec2(3.3, 4.4))
+mat2(1.1, 2.2,
+     3.3, 4.4)
 ~~~
+
+However, the `*` operator, when both operands are matrices, computes the
+[matrix product](http://en.wikipedia.org/wiki/Matrix_multiplication).
+
+~~~ {.lua-code}
+print(mat2(1, 2, 3, 4) * mat2(10, 20, 30, 40))
+~~~
+
+~~~ {.output}
+mat2( 70, 100,
+     150, 220)
+~~~
+
+If the first operand is a vector and the second is a matrix,
+then the first operand is taken to be a row vector (a matrix with one row)
+and should have the same number of columns as the matrix. The result
+is the matrix product of the row vector and the matrix (another row vector).
+
+Similarly if the first argument is a matrix and the second a vector,
+the vector is taken to be a column vector (a matrix with one column)
+and the result is the matrix product of the matrix and column vector,
+which is another column vector.
+
+The `/` operator also works, although the second argument should be
+a square matrix (not a vector). Dividing by a matrix is the same as
+multiplying by the inverse of the matrix.
 
 ### Vector and matrix function reference
 
