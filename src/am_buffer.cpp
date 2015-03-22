@@ -164,7 +164,6 @@ static int create_buffer_view(lua_State *L) {
     int nargs = am_check_nargs(L, 4);
 
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
-
     am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 2);
 
     int offset = luaL_checkinteger(L, 3);
@@ -215,9 +214,8 @@ static int create_buffer_view(lua_State *L) {
     }
     assert(type_size > 0);
 
-    int available_bytes = buf->size - offset - type_size;
     int max_size = 0;
-    if (available_bytes > 0) {
+    if (buf->size - offset - type_size >= 0) {
         max_size = (buf->size - offset - type_size) / stride + 1;
     }
     int size;

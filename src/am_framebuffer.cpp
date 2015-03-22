@@ -73,6 +73,22 @@ static int clear_framebuffer(lua_State *L) {
     return 0;
 }
 
+static int read_back(lua_State *L) {
+    am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
+    am_texture2d *color_tex = fb->color_attachment0;
+    if (color_tex->format != AM_TEXTURE_FORMAT_RGBA || color_tex->type != AM_PIXEL_TYPE_UBYTE) {
+        return luaL_error(L, "sorry, read_back is only supported for textures with format/type rgba/8");
+    }
+    am_buffer *color_buffer = color_tex->buffer;
+    if (color_buffer == NULL) {
+        return luaL_error(L, "framebuffer texture has no buffer");
+    }
+    color_buffer->update_if_dirty();
+    am_bind_framebuffer(fb->framebuffer_id);
+    am_read_pixels(0, 0, color_tex->width, color_tex->height, (void*)color_buffer->data);
+    return 0;
+}
+
 static void register_framebuffer_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -87,6 +103,9 @@ static void register_framebuffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, clear_framebuffer, 0);
     lua_setfield(L, -2, "clear");
+
+    lua_pushcclosure(L, read_back, 0);
+    lua_setfield(L, -2, "read_back");
 
     lua_pushstring(L, "framebuffer");
     lua_setfield(L, -2, "tname");

@@ -160,6 +160,30 @@ static int texture2d_gc(lua_State *L) {
     return 0;
 }
 
+static void get_texture_width(lua_State *L, void *obj) {
+    am_texture2d *tex = (am_texture2d*)obj;
+    lua_pushinteger(L, tex->width);
+}
+
+static void get_texture_height(lua_State *L, void *obj) {
+    am_texture2d *tex = (am_texture2d*)obj;
+    lua_pushinteger(L, tex->height);
+}
+
+static void get_texture_buffer(lua_State *L, void *obj) {
+    am_texture2d *tex = (am_texture2d*)obj;
+    if (tex->buffer == NULL) {
+        lua_pushnil(L);
+    } else {
+        assert(tex->buffer_ref != LUA_NOREF);
+        tex->pushref(L, tex->buffer_ref);
+    }
+}
+
+static am_property texture_width_property = {get_texture_width, NULL};
+static am_property texture_height_property = {get_texture_height, NULL};
+static am_property texture_buffer_property = {get_texture_buffer, NULL};
+
 static void register_texture2d_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -168,6 +192,10 @@ static void register_texture2d_mt(lua_State *L) {
 
     lua_pushcclosure(L, texture2d_gc, 0);
     lua_setfield(L, -2, "__gc");
+
+    am_register_property(L, "width",  &texture_width_property);
+    am_register_property(L, "height", &texture_height_property);
+    am_register_property(L, "buffer", &texture_buffer_property);
 
     lua_pushstring(L, "texture2d");
     lua_setfield(L, -2, "tname");
