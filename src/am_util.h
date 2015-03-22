@@ -23,7 +23,8 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #define AM_CONCAT(a, b) AM_CONCAT_(a, b)
 #define AM_CONCAT3_(a, b, c) a##b##c
 #define AM_CONCAT3(a, b, c) AM_CONCAT3_(a, b, c)
-#define AM_STR(a) #a
+#define AM_STR_(a) #a
+#define AM_STR(a) AM_STR_(a)
 
 #ifndef AM_WIN32 
 #define ct_assert(e) enum { AM_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
