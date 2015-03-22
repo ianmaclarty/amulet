@@ -207,7 +207,8 @@ static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
             AM_CONCAT(TNAME,_view_set_from_view)(L, view, am_get_userdata(L, am_buffer_view, 2));
             break;
         default:
-            return luaL_error(L, "expecting a number, table or view in position 2");
+            return luaL_error(L, "expecting a number, table or view in position 2 (got %s[%d])",
+                am_get_typename(L, 2), am_get_type(L, 2));
     }
     lua_pushvalue(L, 1); // for chaining
     return 1;

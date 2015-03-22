@@ -154,10 +154,15 @@ static int buffer_gc(lua_State *L) {
 }
 
 static am_buffer_view* new_buffer_view(lua_State *L, int metatable_id) {
-    return (am_buffer_view*)
+    // Set the actual metatable based on the metatable type...
+    am_buffer_view *view = (am_buffer_view*)
         am_init_userdata(L,
             new (lua_newuserdata(L, sizeof(am_buffer_view))) am_buffer_view(),
             metatable_id);
+    // ... but set the metatable_id to the standard buffer view id, which
+    // makes type checking easier.
+    view->metatable_id = MT_am_buffer_view;
+    return view;
 }
 
 static int create_buffer_view(lua_State *L) {
