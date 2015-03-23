@@ -39,7 +39,9 @@ static void register_cull_face_node_mt(lua_State *L) {
 void am_open_culling_module(lua_State *L) {
     am_enum_value cull_face_enum[] = {
         {"front", AM_CULL_FACE_MODE_FRONT},
+        {"cw", AM_CULL_FACE_MODE_FRONT},
         {"back", AM_CULL_FACE_MODE_BACK},
+        {"ccw", AM_CULL_FACE_MODE_BACK},
         {"none", AM_CULL_FACE_MODE_NONE},
         {NULL, 0}
     };
