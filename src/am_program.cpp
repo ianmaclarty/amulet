@@ -655,10 +655,26 @@ int am_create_bind_sampler2d_node(lua_State *L) {
     return 1;
 }
 
+static void get_bind_sampler2d_node_texture(lua_State *L, void *obj) {
+    am_bind_sampler2d_node *node = (am_bind_sampler2d_node*)obj;
+    node->texture->push(L);
+}
+
+static void set_bind_sampler2d_node_texture(lua_State *L, void *obj) {
+    am_bind_sampler2d_node *node = (am_bind_sampler2d_node*)obj;
+    node->texture = am_get_userdata(L, am_texture2d, 3);
+    node->reref(L, node->texture_ref, 3);
+}
+
+static am_property bind_sampler2d_node_texture_property =
+    {get_bind_sampler2d_node_texture, set_bind_sampler2d_node_texture};
+
 static void register_bind_sampler2d_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+
+    am_register_property(L, "texture", &bind_sampler2d_node_texture_property);
 
     lua_pushstring(L, "bind_sampler2d");
     lua_setfield(L, -2, "tname");
