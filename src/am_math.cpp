@@ -1237,6 +1237,7 @@ static int mix(lua_State *L) {
 }
 
 /*
+ * XXX does not compile with msvc.
 static int smoothstep(lua_State *L) {
     am_check_nargs(L, 1);
     switch (am_get_type(L, 1)) {
@@ -1478,6 +1479,31 @@ static int clamp(lua_State *L) {
     return 1;
 }
 
+static int fract(lua_State *L) {
+    am_check_nargs(L, 1);
+    switch (am_get_type(L, 1)) {
+        case LUA_TNUMBER: {
+            lua_pushnumber(L, glm::fract(lua_tonumber(L, 1)));
+            break;
+        }
+        case MT_am_vec2: {
+            am_new_userdata(L, am_vec2)->v = glm::fract(am_get_userdata(L, am_vec2, 1)->v);
+            break;
+        }
+        case MT_am_vec3: {
+            am_new_userdata(L, am_vec3)->v = glm::fract(am_get_userdata(L, am_vec3, 1)->v);
+            break;
+        }
+        case MT_am_vec4: {
+            am_new_userdata(L, am_vec4)->v = glm::fract(am_get_userdata(L, am_vec4, 1)->v);
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a number or vec in position 1");
+    }
+    return 1;
+}
+
 //-------------------------------------------------//
 
 #define REGISTER_VEC_MT(T, MTID)                        \
@@ -1551,6 +1577,7 @@ void am_open_math_module(lua_State *L) {
         {"perlin",      perlin},
         {"mix",         mix},
         {"clamp",       clamp},
+        {"fract",       fract},
         //{"smoothstep",  smoothstep},
         {"smootherstep",smootherstep},
         {NULL, NULL}
