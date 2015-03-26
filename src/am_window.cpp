@@ -101,6 +101,8 @@ static int create_window(lua_State *L) {
     win->has_depth_buffer = depth_buffer;
     win->has_stencil_buffer = stencil_buffer;
 
+    win->relative_mouse_mode = false;
+
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
     lua_pushvalue(L, -2);
     win->window_ref = luaL_ref(L, -2);
@@ -243,7 +245,10 @@ static void get_relative_mouse_mode(lua_State *L, void *obj) {
 
 static void set_relative_mouse_mode(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    window->relative_mouse_mode = am_set_relative_mouse_mode(lua_toboolean(L, 3));
+    bool value = lua_toboolean(L, 3);
+    if (am_set_relative_mouse_mode(value)) {
+        window->relative_mouse_mode = value;
+    }
 }
 
 static am_property relative_mouse_mode_property = {get_relative_mouse_mode, set_relative_mouse_mode};
