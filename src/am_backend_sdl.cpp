@@ -153,11 +153,58 @@ am_native_window *am_create_native_window(
 }
 
 void am_get_native_window_size(am_native_window *window, int *w, int *h) {
+    *w = 0;
+    *h = 0;
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i] == (SDL_Window*)window) {
-            SDL_GL_GetDrawableSize(windows[i], w, h);
+            //SDL_GL_GetDrawableSize(windows[i], w, h);
+            SDL_GetWindowSize(windows[i], w, h);
+            return;
         }
     }
+}
+
+bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i] == (SDL_Window*)window) {
+            SDL_Window *sdl_win = (SDL_Window*)window;
+            switch (mode) {
+                case AM_WINDOW_MODE_FULLSCREEN: {
+                    int display = SDL_GetWindowDisplayIndex(sdl_win);
+                    if (display < 0) {
+                        am_log0("unable to get window display: %s", SDL_GetError());
+                        return false;
+                    }
+                    SDL_DisplayMode desired_mode;
+                    SDL_DisplayMode closest_mode;
+                    desired_mode.format = 0;
+                    desired_mode.w = w;
+                    desired_mode.h = h;
+                    desired_mode.refresh_rate = 0;
+                    desired_mode.driverdata = 0;
+                    if (SDL_GetClosestDisplayMode(display, &desired_mode, &closest_mode)) {
+                        SDL_SetWindowDisplayMode(sdl_win, &closest_mode);
+                    } else {
+                        am_log0("unable to query window display modes: %s", SDL_GetError());
+                        return false;
+                    }
+                    SDL_SetWindowFullscreen(sdl_win, SDL_WINDOW_FULLSCREEN);
+                    break;
+                }
+                case AM_WINDOW_MODE_FULLSCREEN_DESKTOP: {
+                    SDL_SetWindowFullscreen(sdl_win, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    break;
+                }
+                case AM_WINDOW_MODE_WINDOWED: {
+                    SDL_SetWindowFullscreen(sdl_win, 0);
+                    SDL_SetWindowSize(sdl_win, w, h);
+                    break;
+                }
+            }
+            return true;
+        }
+    }
+    return false;
 }
 
 void am_destroy_native_window(am_native_window* window) {

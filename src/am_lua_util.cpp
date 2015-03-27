@@ -96,11 +96,13 @@ void am_register_enum(lua_State *L, int enum_id, am_enum_value *values) {
         ptr++;
         count++;
     }
-    lua_createtable(L, count, 0);
+    lua_createtable(L, count, count);
     for (int i = 0; i < count; i++) {
         lua_pushstring(L, values[i].str);
         lua_pushinteger(L, values[i].val);
         lua_rawset(L, -3);
+        lua_pushstring(L, values[i].str);
+        lua_rawseti(L, -2, values[i].val+1);
     }
     lua_rawseti(L, LUA_REGISTRYINDEX, enum_id);
 }
@@ -108,6 +110,9 @@ void am_register_enum(lua_State *L, int enum_id, am_enum_value *values) {
 int am_get_enum_raw(lua_State *L, int enum_id, int idx) {
     idx = am_absindex(L, idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, enum_id);
+    if (!lua_istable(L, -1)) {
+        return luaL_error(L, "INTERNAL ERROR: enum %d not initialized");
+    }
     lua_pushvalue(L, idx);
     lua_rawget(L, -2);
     if (lua_isnil(L, -1)) {
@@ -120,6 +125,16 @@ int am_get_enum_raw(lua_State *L, int enum_id, int idx) {
     int val = lua_tointeger(L, -1);
     lua_pop(L, 2);
     return val;
+}
+
+void am_push_enum_raw(lua_State *L, int enum_id, int value) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, enum_id);
+    if (!lua_istable(L, -1)) {
+        luaL_error(L, "INTERNAL ERROR: enum %d not initialized");
+        return;
+    }
+    lua_rawgeti(L, -1, value+1);
+    lua_remove(L, -2);
 }
 
 int am_check_nargs(lua_State *L, int n) {

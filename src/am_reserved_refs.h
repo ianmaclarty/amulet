@@ -83,6 +83,7 @@ typedef enum {
     ENUM_am_depth_func,
     ENUM_am_cull_face_mode,
     ENUM_am_draw_mode,
+    ENUM_am_window_mode,
 
     AM_TRACEBACK_FUNC,
 

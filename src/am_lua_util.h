@@ -12,6 +12,8 @@ struct am_enum_value {
 void am_register_enum(lua_State *L, int enum_id, am_enum_value *values);
 int am_get_enum_raw(lua_State *L, int enum_id, int idx);
 #define am_get_enum(L, e, idx) ((e)am_get_enum_raw((L), ENUM_##e, (idx)))
+void am_push_enum_raw(lua_State *L, int enum_id, int value);
+#define am_push_enum(L, e, v) (am_push_enum_raw((L), ENUM_##e, (v)))
 
 int am_check_nargs(lua_State *L, int n);
 

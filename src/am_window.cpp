@@ -1,16 +1,23 @@
 #include "amulet.h"
 
+#define DEFAULT_WIN_WIDTH 640
+#define DEFAULT_WIN_HEIGHT 480
+
 struct am_window : am_nonatomic_userdata {
     bool                needs_closing;
     am_native_window   *native_win;
     am_scene_node      *root;
     int                 root_ref;
     int                 window_ref;
-    int                 width;  // pixels
-    int                 height; // pixels
+    int                 windowed_width;
+    int                 windowed_height;
+    int                 width;
+    int                 height;
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
     bool                relative_mouse_mode;
+    am_window_mode      mode;
+    bool                dirty;
 };
 
 static std::vector<am_window*> windows;
@@ -102,6 +109,11 @@ static int create_window(lua_State *L) {
     win->has_stencil_buffer = stencil_buffer;
 
     win->relative_mouse_mode = false;
+    win->mode = mode;
+    win->dirty = false;
+
+    win->windowed_width = DEFAULT_WIN_WIDTH;
+    win->windowed_height = DEFAULT_WIN_HEIGHT;
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
     lua_pushvalue(L, -2);
@@ -173,6 +185,24 @@ void am_destroy_windows(lua_State *L) {
     close_windows(L);
 }
 
+static void update_window_sizes() {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        am_window *win = windows[i];
+        if (win->dirty) {
+            int w, h;
+            if (win->mode == AM_WINDOW_MODE_WINDOWED && win->windowed_height > 0 && win->windowed_width > 0) {
+                w = win->windowed_width;
+                h = win->windowed_height;
+            } else {
+                w = win->width;
+                h = win->height;
+            }
+            am_set_native_window_size_and_mode(win->native_win, w, h, win->mode);
+            win->dirty = false;
+        }
+    }
+}
+
 static void draw_windows() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
@@ -190,6 +220,7 @@ static void draw_windows() {
 bool am_update_windows(lua_State *L) {
     static unsigned int frame = 0;
     close_windows(L);
+    update_window_sizes();
     draw_windows();
     frame++;
     if (am_conf_log_gl_calls) {
@@ -230,13 +261,31 @@ static void get_window_width(lua_State *L, void *obj) {
     lua_pushinteger(L, window->width);
 }
 
+static void set_window_width(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    int w = luaL_checkinteger(L, 3);
+    if (w > 0) {
+        window->width = w;
+        window->dirty = true;
+    }
+}
+
 static void get_window_height(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     lua_pushinteger(L, window->height);
 }
 
-static am_property width_property = {get_window_width, NULL};
-static am_property height_property = {get_window_height, NULL};
+static void set_window_height(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    int h = luaL_checkinteger(L, 3);
+    if (h > 0) {
+        window->height = h;
+        window->dirty = true;
+    }
+}
+
+static am_property width_property = {get_window_width, set_window_width};
+static am_property height_property = {get_window_height, set_window_height};
 
 static void get_relative_mouse_mode(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
@@ -253,6 +302,24 @@ static void set_relative_mouse_mode(lua_State *L, void *obj) {
 
 static am_property relative_mouse_mode_property = {get_relative_mouse_mode, set_relative_mouse_mode};
 
+static void get_window_mode(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    am_push_enum(L, am_window_mode, window->mode);
+}
+
+static void set_window_mode(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    am_window_mode old_mode = window->mode;
+    window->mode = am_get_enum(L, am_window_mode, 3);
+    if (old_mode == AM_WINDOW_MODE_WINDOWED && window->mode != old_mode) {
+        window->windowed_width = window->width;
+        window->windowed_height = window->height;
+    }
+    window->dirty = true;
+}
+
+static am_property window_mode_property = {get_window_mode, set_window_mode};
+
 static void register_window_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -263,6 +330,7 @@ static void register_window_mt(lua_State *L) {
     am_register_property(L, "relative_mouse_mode", &relative_mouse_mode_property);
     am_register_property(L, "width", &width_property);
     am_register_property(L, "height", &height_property);
+    am_register_property(L, "mode", &window_mode_property);
 
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");
@@ -280,6 +348,14 @@ void am_open_window_module(lua_State *L) {
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_window_mt(L);
+
+    am_enum_value window_mode_enum[] = {
+        {"windowed",        AM_WINDOW_MODE_WINDOWED},
+        {"fullscreen",      AM_WINDOW_MODE_FULLSCREEN},
+        {"desktop",         AM_WINDOW_MODE_FULLSCREEN_DESKTOP},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_window_mode, window_mode_enum);
 
     lua_newtable(L);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);

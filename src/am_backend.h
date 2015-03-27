@@ -19,6 +19,8 @@ am_native_window *am_create_native_window(
 
 void am_get_native_window_size(am_native_window *window, int *w, int *h);
 
+bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode);
+
 void am_destroy_native_window(am_native_window *window);
 
 void am_native_window_pre_render(am_native_window *window);
