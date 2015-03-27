@@ -30,8 +30,13 @@ enum axis_button {
     NUM_AXIS_BUTTONS
 };
 
+struct win_info {
+    SDL_Window *window;
+    bool lock_pointer;
+};
+
 static SDL_AudioDeviceID audio_device = 0;
-static std::vector<SDL_Window*> windows;
+static std::vector<win_info> windows;
 SDL_Window *main_window = NULL;
 static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
@@ -147,7 +152,10 @@ am_native_window *am_create_native_window(
     if (main_window == NULL) {
         main_window = win;
     }
-    windows.push_back(win);
+    win_info winfo;
+    winfo.window = win;
+    winfo.lock_pointer = false;
+    windows.push_back(winfo);
     init_mouse_state(win);
     return (am_native_window*)win;
 }
@@ -156,9 +164,9 @@ void am_get_native_window_size(am_native_window *window, int *w, int *h) {
     *w = 0;
     *h = 0;
     for (unsigned int i = 0; i < windows.size(); i++) {
-        if (windows[i] == (SDL_Window*)window) {
+        if (windows[i].window == (SDL_Window*)window) {
             //SDL_GL_GetDrawableSize(windows[i], w, h);
-            SDL_GetWindowSize(windows[i], w, h);
+            SDL_GetWindowSize(windows[i].window, w, h);
             return;
         }
     }
@@ -166,7 +174,7 @@ void am_get_native_window_size(am_native_window *window, int *w, int *h) {
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
     for (unsigned int i = 0; i < windows.size(); i++) {
-        if (windows[i] == (SDL_Window*)window) {
+        if (windows[i].window == (SDL_Window*)window) {
             SDL_Window *sdl_win = (SDL_Window*)window;
             switch (mode) {
                 case AM_WINDOW_MODE_FULLSCREEN: {
@@ -207,10 +215,23 @@ bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, 
     return false;
 }
 
+void am_set_native_window_lock_pointer(am_native_window *window, bool enabled) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i].window == (SDL_Window*)window) {
+            windows[i].lock_pointer = enabled;
+            SDL_Window *sdl_win = (SDL_Window*)window;
+            if (SDL_GetWindowFlags(sdl_win) & SDL_WINDOW_INPUT_FOCUS) {
+                SDL_SetRelativeMouseMode(enabled ? SDL_TRUE : SDL_FALSE);
+            }
+            return;
+        }
+    }
+}
+
 void am_destroy_native_window(am_native_window* window) {
     for (unsigned int i = 0; i < windows.size(); i++) {
-        if (windows[i] == (SDL_Window*)window) {
-            if (windows[i] != main_window) {
+        if (windows[i].window == (SDL_Window*)window) {
+            if (windows[i].window != main_window) {
                 SDL_DestroyWindow((SDL_Window*)window);
             }
             windows.erase(windows.begin() + i);
@@ -229,14 +250,6 @@ void am_native_window_post_render(am_native_window* window) {
 
 double am_get_current_time() {
     return ((double)SDL_GetTicks())/1000.0;
-}
-
-bool am_set_relative_mouse_mode(bool enabled) {
-    if (sdl_initialized) {
-        return SDL_SetRelativeMouseMode(enabled ? SDL_TRUE : SDL_FALSE) == 0;
-    } else {
-        return false;
-    }
 }
 
 #define ERR_MSG_SZ 1024
@@ -386,8 +399,8 @@ quit:
     }
     if (L != NULL) am_destroy_engine(L);
     for (unsigned int i = 0; i < windows.size(); i++) {
-        if (windows[i] != main_window) {
-            SDL_DestroyWindow(windows[i]);
+        if (windows[i].window != main_window) {
+            SDL_DestroyWindow(windows[i].window);
         }
     }
     // We need to make sure we destroy the main window after
@@ -489,7 +502,7 @@ static void init_mouse_state(SDL_Window *window) {
 static void update_mouse_state(lua_State *L) {
     if (windows.size() == 0) return;
     int w, h;
-    SDL_GetWindowSize(windows[0], &w, &h);
+    SDL_GetWindowSize(windows[0].window, &w, &h);
     float norm_x = ((float)mouse_x / (float)w) * 2.0f - 1.0f;
     float norm_y = (1.0f - (float)mouse_y / (float)h) * 2.0f - 1.0f;
     lua_pushnumber(L, norm_x);
@@ -507,8 +520,25 @@ static bool handle_events(lua_State *L) {
                 switch (event.window.event) {
                     case SDL_WINDOWEVENT_CLOSE:
                         for (unsigned int i = 0; i < windows.size(); i++) {
-                            if (SDL_GetWindowID(windows[i]) == event.window.windowID) {
-                                am_handle_window_close((am_native_window*)windows[i]);
+                            if (SDL_GetWindowID(windows[i].window) == event.window.windowID) {
+                                am_handle_window_close((am_native_window*)windows[i].window);
+                                break;
+                            }
+                        }
+                        break;
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        for (unsigned int i = 0; i < windows.size(); i++) {
+                            if (SDL_GetWindowID(windows[i].window) == event.window.windowID) {
+                                SDL_SetRelativeMouseMode(windows[i].lock_pointer ? SDL_TRUE : SDL_FALSE);
+                                break;
+                            }
+                        }
+                        break;
+                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                        for (unsigned int i = 0; i < windows.size(); i++) {
+                            if (SDL_GetWindowID(windows[i].window) == event.window.windowID) {
+                                SDL_SetRelativeMouseMode(SDL_FALSE);
+                                break;
                             }
                         }
                         break;
@@ -536,7 +566,7 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_MOUSEMOTION: {
                 for (unsigned int i = 0; i < windows.size(); i++) {
-                    if (SDL_GetWindowID(windows[i]) == event.motion.windowID) {
+                    if (SDL_GetWindowID(windows[i].window) == event.motion.windowID) {
                         mouse_x += event.motion.xrel;
                         mouse_y += event.motion.yrel;
                         break;

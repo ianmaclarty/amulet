@@ -16,7 +16,7 @@ struct am_window : am_nonatomic_userdata {
     int                 restore_windowed_height;
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
-    bool                relative_mouse_mode;
+    bool                lock_pointer;
     am_window_mode      mode;
     bool                dirty;
 };
@@ -36,22 +36,14 @@ static int create_window(lua_State *L) {
     bool borderless = false;
     bool depth_buffer = false;
     bool stencil_buffer = false;
+    bool lock_pointer = false;
     int msaa_samples = 0;
 
     lua_pushnil(L);
     while (lua_next(L, 1) != 0) {
         const char *key = luaL_checkstring(L, -2);
         if (strcmp(key, "mode") == 0) {
-            const char *value = luaL_checkstring(L, -1);
-            if (strcmp(value, "windowed") == 0) {
-                mode = AM_WINDOW_MODE_WINDOWED;
-            } else if (strcmp(value, "fullscreen") == 0) {
-                mode = AM_WINDOW_MODE_FULLSCREEN;
-            } else if (strcmp(value, "desktop") == 0) {
-                mode = AM_WINDOW_MODE_FULLSCREEN_DESKTOP;
-            } else {
-                return luaL_error(L, "unknown window mode: '%s'", value);
-            }
+            mode = am_get_enum(L, am_window_mode, -1);
         } else if (strcmp(key, "top") == 0) {
             top = luaL_checkinteger(L, -1);
         } else if (strcmp(key, "left") == 0) {
@@ -76,6 +68,8 @@ static int create_window(lua_State *L) {
             depth_buffer = lua_toboolean(L, -1);
         } else if (strcmp(key, "stencil_buffer") == 0) {
             stencil_buffer = lua_toboolean(L, -1);
+        } else if (strcmp(key, "lock_pointer") == 0) {
+            lock_pointer = lua_toboolean(L, -1);
         } else if (strcmp(key, "msaa_samples") == 0) {
             msaa_samples = luaL_checkinteger(L, -1);
             if (msaa_samples < 0) {
@@ -109,7 +103,8 @@ static int create_window(lua_State *L) {
     win->has_depth_buffer = depth_buffer;
     win->has_stencil_buffer = stencil_buffer;
 
-    win->relative_mouse_mode = false;
+    win->lock_pointer = lock_pointer;
+    am_set_native_window_lock_pointer(win->native_win, lock_pointer);
     win->mode = mode;
     win->dirty = false;
 
@@ -291,20 +286,19 @@ static void set_window_height(lua_State *L, void *obj) {
 static am_property width_property = {get_window_width, set_window_width};
 static am_property height_property = {get_window_height, set_window_height};
 
-static void get_relative_mouse_mode(lua_State *L, void *obj) {
+static void get_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    lua_pushboolean(L, window->relative_mouse_mode);
+    lua_pushboolean(L, window->lock_pointer);
 }
 
-static void set_relative_mouse_mode(lua_State *L, void *obj) {
+static void set_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     bool value = lua_toboolean(L, 3);
-    if (am_set_relative_mouse_mode(value)) {
-        window->relative_mouse_mode = value;
-    }
+    am_set_native_window_lock_pointer(window->native_win, value);
+    window->lock_pointer = value;
 }
 
-static am_property relative_mouse_mode_property = {get_relative_mouse_mode, set_relative_mouse_mode};
+static am_property lock_pointer_property = {get_lock_pointer, set_lock_pointer};
 
 static void get_window_mode(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
@@ -331,7 +325,7 @@ static void register_window_mt(lua_State *L) {
     am_set_default_newindex_func(L);
 
     am_register_property(L, "root", &root_property);
-    am_register_property(L, "relative_mouse_mode", &relative_mouse_mode_property);
+    am_register_property(L, "lock_pointer", &lock_pointer_property);
     am_register_property(L, "width", &width_property);
     am_register_property(L, "height", &height_property);
     am_register_property(L, "mode", &window_mode_property);
