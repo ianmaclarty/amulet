@@ -9,10 +9,11 @@ struct am_window : am_nonatomic_userdata {
     am_scene_node      *root;
     int                 root_ref;
     int                 window_ref;
-    int                 windowed_width;
-    int                 windowed_height;
     int                 width;
     int                 height;
+    // used when restoring windowed mode from fullscreen mode
+    int                 restore_windowed_width;
+    int                 restore_windowed_height;
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
     bool                relative_mouse_mode;
@@ -28,8 +29,8 @@ static int create_window(lua_State *L) {
     am_window_mode mode = AM_WINDOW_MODE_WINDOWED;
     int top = -1;
     int left = -1;
-    int width = 640;
-    int height = 480;
+    int width = DEFAULT_WIN_WIDTH;
+    int height = DEFAULT_WIN_HEIGHT;
     const char *title = "Untitled";
     bool resizable = true;
     bool borderless = false;
@@ -112,8 +113,8 @@ static int create_window(lua_State *L) {
     win->mode = mode;
     win->dirty = false;
 
-    win->windowed_width = DEFAULT_WIN_WIDTH;
-    win->windowed_height = DEFAULT_WIN_HEIGHT;
+    win->restore_windowed_width = -1;
+    win->restore_windowed_height = -1;
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
     lua_pushvalue(L, -2);
@@ -190,13 +191,16 @@ static void update_window_sizes() {
         am_window *win = windows[i];
         if (win->dirty) {
             int w, h;
-            if (win->mode == AM_WINDOW_MODE_WINDOWED && win->windowed_height > 0 && win->windowed_width > 0) {
-                w = win->windowed_width;
-                h = win->windowed_height;
+            if (win->mode == AM_WINDOW_MODE_WINDOWED && win->restore_windowed_height > 0 && win->restore_windowed_width > 0) {
+                w = win->restore_windowed_width;
+                h = win->restore_windowed_height;
+                win->restore_windowed_width = -1;
+                win->restore_windowed_height = -1;
             } else {
                 w = win->width;
                 h = win->height;
             }
+            //am_debug("resized window to %dx%d", w, h);
             am_set_native_window_size_and_mode(win->native_win, w, h, win->mode);
             win->dirty = false;
         }
@@ -312,8 +316,8 @@ static void set_window_mode(lua_State *L, void *obj) {
     am_window_mode old_mode = window->mode;
     window->mode = am_get_enum(L, am_window_mode, 3);
     if (old_mode == AM_WINDOW_MODE_WINDOWED && window->mode != old_mode) {
-        window->windowed_width = window->width;
-        window->windowed_height = window->height;
+        window->restore_windowed_width = window->width;
+        window->restore_windowed_height = window->height;
     }
     window->dirty = true;
 }
