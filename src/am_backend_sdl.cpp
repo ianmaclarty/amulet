@@ -653,6 +653,12 @@ static am_key convert_key(SDL_Keycode key) {
         case SDLK_DOWN: return AM_KEY_DOWN;
         case SDLK_RIGHT: return AM_KEY_RIGHT;
         case SDLK_LEFT: return AM_KEY_LEFT;
+        case SDLK_LALT: return AM_KEY_LALT;
+        case SDLK_RALT: return AM_KEY_RALT;
+        case SDLK_LCTRL: return AM_KEY_LCTRL;
+        case SDLK_RCTRL: return AM_KEY_RCTRL;
+        case SDLK_LSHIFT: return AM_KEY_LSHIFT;
+        case SDLK_RSHIFT: return AM_KEY_RSHIFT;
     }
     return AM_KEY_UNKNOWN;
 }
