@@ -16,6 +16,7 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 
 #define am_min(x, y) ((x) < (y) ? (x) : (y))
 #define am_max(x, y) ((x) > (y) ? (x) : (y))
+#define am_clamp(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
 
 #define AM_PI 3.14159265358979323846
 

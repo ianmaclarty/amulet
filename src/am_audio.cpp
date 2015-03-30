@@ -701,7 +701,7 @@ static void get_lowpass_cutoff(lua_State *L, void *obj) {
 
 static void set_lowpass_cutoff(lua_State *L, void *obj) {
     am_lowpass_filter_node *node = (am_lowpass_filter_node*)obj;
-    node->cutoff.pending_value = luaL_checknumber(L, 3);
+    node->cutoff.pending_value = am_clamp(luaL_checknumber(L, 3), 1.0, 22050.0);
 }
 
 static void get_lowpass_resonance(lua_State *L, void *obj) {
@@ -711,7 +711,7 @@ static void get_lowpass_resonance(lua_State *L, void *obj) {
 
 static void set_lowpass_resonance(lua_State *L, void *obj) {
     am_lowpass_filter_node *node = (am_lowpass_filter_node*)obj;
-    node->resonance.pending_value = luaL_checknumber(L, 3);
+    node->resonance.pending_value = am_clamp(luaL_checknumber(L, 3), 0.0, 1000.0);
 }
 
 static am_property lowpass_cutoff_property = {get_lowpass_cutoff, set_lowpass_cutoff};
@@ -750,7 +750,7 @@ static void get_highpass_cutoff(lua_State *L, void *obj) {
 
 static void set_highpass_cutoff(lua_State *L, void *obj) {
     am_highpass_filter_node *node = (am_highpass_filter_node*)obj;
-    node->cutoff.pending_value = luaL_checknumber(L, 3);
+    node->cutoff.pending_value = am_clamp(luaL_checknumber(L, 3), 1.0, 22050.0);
 }
 
 static void get_highpass_resonance(lua_State *L, void *obj) {
@@ -760,7 +760,7 @@ static void get_highpass_resonance(lua_State *L, void *obj) {
 
 static void set_highpass_resonance(lua_State *L, void *obj) {
     am_highpass_filter_node *node = (am_highpass_filter_node*)obj;
-    node->resonance.pending_value = luaL_checknumber(L, 3);
+    node->resonance.pending_value = am_clamp(luaL_checknumber(L, 3), 0.0, 1000.0);
 }
 
 static am_property highpass_cutoff_property = {get_highpass_cutoff, set_highpass_cutoff};
