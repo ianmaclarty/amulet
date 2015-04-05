@@ -78,7 +78,11 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
 }
 
 void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_count) {
-    if (active_program == NULL) return;
+    if (active_program == NULL) {
+        am_log1("%s", "WARNING: ignoring draw_arrays, "
+            "because no shader program has been bound");
+        return;
+    }
     update_state();
     if (validate_active_program(mode)) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
@@ -97,7 +101,11 @@ void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_c
 void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
     am_buffer_view *indices_view, am_element_index_type type)
 {
-    if (active_program == NULL) return;
+    if (active_program == NULL) {
+        am_log1("%s", "WARNING: ignoring draw_elements, "
+            "because no shader program has been bound");
+        return;
+    }
     update_state();
     if (validate_active_program(mode)) {
         if (indices_view->buffer->elembuf_id == 0) {
