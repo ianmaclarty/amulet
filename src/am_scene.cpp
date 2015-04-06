@@ -362,6 +362,16 @@ static int create_wrap_node(lua_State *L) {
     return 1;
 }
 
+static int create_hidden_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 0);
+    am_scene_node *node = am_new_userdata(L, am_scene_node);
+    node->recursion_limit = 0;
+    if (nargs > 0) {
+        am_set_scene_node_child(L, node);
+    }
+    return 1;
+}
+
 static int create_group_node(lua_State *L) {
     int nargs = am_check_nargs(L, 0);
     am_scene_node *node = am_new_userdata(L, am_scene_node);
@@ -517,6 +527,8 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "bind_program");
     lua_pushcclosure(L, create_wrap_node, 0);
     lua_setfield(L, -2, "wrap");
+    lua_pushcclosure(L, create_hidden_node, 0);
+    lua_setfield(L, -2, "hidden");
 
     lua_pushcclosure(L, am_create_read_mat2_node, 0);
     lua_setfield(L, -2, "read_mat2");

@@ -396,10 +396,25 @@ int am_create_program_node(lua_State *L) {
     return 1;
 }
 
+static void get_program(lua_State *L, void *obj) {
+    am_program_node *node = (am_program_node*)obj;
+    node->program->push(L);
+}
+
+static void set_program(lua_State *L, void *obj) {
+    am_program_node *node = (am_program_node*)obj;
+    node->program = am_get_userdata(L, am_program, 3);
+    node->reref(L, node->program_ref, 3);
+}
+
+static am_property program_property = {get_program, set_program};
+
 static void register_program_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+
+    am_register_property(L, "program", &program_property);
 
     lua_pushstring(L, "program_node");
     lua_setfield(L, -2, "tname");
