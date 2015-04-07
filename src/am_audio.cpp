@@ -22,15 +22,20 @@ static std::vector<void*> buffer_pool;
 static int current_pool_bufsize = 0;
 static unsigned int bufpool_top = 0;
 
+static void clear_buffer_pool() {
+    for (unsigned int i = 0; i < buffer_pool.size(); i++) {
+        free(buffer_pool[i]);
+    }
+    buffer_pool.clear();
+    bufpool_top = 0;
+    current_pool_bufsize = 0;
+}
+
 static void* push_buffer(int size) {
     if (size != current_pool_bufsize) {
         // size of audio buffer has changed, clear pool
-        for (unsigned int i = 0; i < buffer_pool.size(); i++) {
-            free(buffer_pool[i]);
-        }
-        buffer_pool.clear();
+        clear_buffer_pool();
         current_pool_bufsize = size;
-        bufpool_top = 0;
     }
     assert(bufpool_top <= buffer_pool.size());
     if (bufpool_top == buffer_pool.size()) {
@@ -980,6 +985,7 @@ static int decode_ogg(lua_State *L) {
 
 void am_destroy_audio() {
     audio_context.root = NULL;
+    clear_buffer_pool();
 }
 
 static void do_post_render(am_audio_context *context, int num_samples, am_audio_node *node) {

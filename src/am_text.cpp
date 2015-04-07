@@ -28,6 +28,7 @@ static int load_font(lua_State *L) {
     am_font *font = am_new_userdata(L, am_font);
     font->name = name;
     font->ref(L, 1); // keep ref to name
+    font->data = data;
     if (FT_New_Memory_Face(ft_library, (const FT_Byte*)data, len, 0, &font->face)) {
         return luaL_error(L, "error reading font '%s'", name);
     }
@@ -37,6 +38,8 @@ static int load_font(lua_State *L) {
 static int font_gc(lua_State *L) {
     am_font *font = am_get_userdata(L, am_font, 1);
     FT_Done_Face(font->face);
+    free(font->data);
+    font->data = NULL;
     return 0;
 }
 

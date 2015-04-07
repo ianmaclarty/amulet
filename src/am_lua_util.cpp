@@ -225,9 +225,6 @@ int am_load_module(lua_State *L) {
         return lua_error(L);
     }
     snprintf(tmpbuf, TMP_BUF_SZ, "@%s.lua", modname);
-    char *str = (char*)malloc(sz+1);
-    memcpy(str, buf, sz);
-    str[sz] = 0;
     int res = luaL_loadbuffer(L, (const char*)buf, sz, tmpbuf);
     free(buf);
     if (res != 0) return lua_error(L);

@@ -1,0 +1,128 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-331/libGL.so.331.113
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-331/libnvidia-glcore.so.331.113
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/nvidia-331/libnvidia-glcore.so.331.113
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   write(buf)
+   obj:/lib/x86_64-linux-gnu/libc-2.19.so
+   fun:_IO_file_write@@GLIBC_2.2.5
+   fun:_IO_do_write@@GLIBC_2.2.5
+   fun:_IO_file_xsputn@@GLIBC_2.2.5
+   fun:fwrite
+   obj:/usr/lib/nvidia-331/libnvidia-glcore.so.331.113
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   write(buf)
+   obj:/lib/x86_64-linux-gnu/libc-2.19.so
+   fun:_IO_file_write@@GLIBC_2.2.5
+   fun:_IO_do_write@@GLIBC_2.2.5
+   fun:_IO_file_sync@@GLIBC_2.2.5
+   fun:fflush
+   obj:/usr/lib/nvidia-331/libnvidia-glcore.so.331.113
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:vorbis_decode_packet_rest
+   fun:vorbis_decode_packet
+   fun:stb_vorbis_get_frame_float
+   fun:stb_vorbis_get_frame_short_interleaved
+   fun:stb_vorbis_decode_memory
+   fun:_ZL10decode_oggP9lua_State
+   fun:luaD_precall
+   fun:luaV_execute
+   fun:luaD_call
+   fun:lua_callk
+   fun:_Z14am_load_moduleP9lua_State
+   fun:luaD_precall
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XimSetICValueData
+   fun:_XimLocalCreateIC
+   fun:XCreateIC
+   fun:SetupWindowData
+   fun:X11_CreateWindow
+   fun:SDL_CreateWindow_REAL
+   fun:SDL_VideoInit_REAL
+   fun:SDL_Init_REAL
+   fun:_Z23am_create_native_window14am_window_modeiiiiPKcbbbbi
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XimSetICValueData
+   fun:_XimLocalCreateIC
+   fun:XCreateIC
+   fun:SetupWindowData
+   fun:X11_CreateWindow
+   fun:SDL_CreateWindow_REAL
+   fun:_Z23am_create_native_window14am_window_modeiiiiPKcbbbbi
+   fun:_ZL13create_windowP9lua_State
+   fun:luaD_precall
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:XGetWindowProperty
+   fun:X11_DispatchEvent
+   fun:X11_PumpEvents
+   fun:SDL_PollEvent_REAL
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib/nvidia-331/libGL.so.331.113
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/nvidia-331/libGL.so.331.113
+}
