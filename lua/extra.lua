@@ -189,9 +189,9 @@ function format_vec(v)
     return str
 end
 
-rawset(getmetatable(vec2(0)), "__tostring", format_vec)
-rawset(getmetatable(vec3(0)), "__tostring", format_vec)
-rawset(getmetatable(vec4(0)), "__tostring", format_vec)
+_metatable_registry.vec2.__tostring = format_vec
+_metatable_registry.vec3.__tostring = format_vec
+_metatable_registry.vec4.__tostring = format_vec
 
 local
 function format_mat(m)
@@ -223,9 +223,9 @@ function format_mat(m)
     return str
 end
 
-rawset(getmetatable(mat2(0)), "__tostring", format_mat)
-rawset(getmetatable(mat3(0)), "__tostring", format_mat)
-rawset(getmetatable(mat4(0)), "__tostring", format_mat)
+_metatable_registry.mat2.__tostring = format_mat
+_metatable_registry.mat3.__tostring = format_mat
+_metatable_registry.mat4.__tostring = format_mat
 
 -- extra builtins
 
