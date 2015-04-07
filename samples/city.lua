@@ -5,7 +5,7 @@ local win = am.window{
     height = 900,
     resizable = true,
 }
-win.relative_mouse_mode = true
+win.lock_pointer = true
 
 local create_building_shader
 local create_building

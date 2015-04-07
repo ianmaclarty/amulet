@@ -48,11 +48,10 @@ static void register_translate_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
-    lua_pushstring(L, "translate");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_translate_node, MT_am_scene_node);
+    am_register_metatable(L, "translate", MT_am_translate_node, MT_am_scene_node);
 }
 
 /* Scale */
@@ -94,11 +93,10 @@ static void register_scale_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
-    lua_pushstring(L, "scale");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_scale_node, MT_am_scene_node);
+    am_register_metatable(L, "scale", MT_am_scale_node, MT_am_scene_node);
 }
 
 /* Rotate */
@@ -156,13 +154,12 @@ static void register_rotate_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
     am_register_property(L, "angle", &rotate_angle_property);
 
-    lua_pushstring(L, "rotate");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_rotate_node, MT_am_scene_node);
+    am_register_metatable(L, "rotate", MT_am_rotate_node, MT_am_scene_node);
 }
 
 /* Multiply */
@@ -210,13 +207,12 @@ static void register_mult_mat4_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
     am_register_property(L, "mat4", &mult_mat4_mat4_property);
 
-    lua_pushstring(L, "mult_mat4");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_mult_mat4_node, MT_am_scene_node);
+    am_register_metatable(L, "mult_mat4", MT_am_mult_mat4_node, MT_am_scene_node);
 }
 
 /* Module init */

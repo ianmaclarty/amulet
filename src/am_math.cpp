@@ -1524,9 +1524,7 @@ static int fract(lua_State *L) {
     lua_setfield(L, -2, "__unm");                       \
     lua_pushcclosure(L, T##_len, 0);                    \
     lua_setfield(L, -2, "__len");                       \
-    lua_pushstring(L, #T);                              \
-    lua_setfield(L, -2, "tname");                       \
-    am_register_metatable(L, MTID, 0);
+    am_register_metatable(L, #T, MTID, 0);
 
 #define REGISTER_MAT_MT(T, MTID)                        \
     lua_newtable(L);                                    \
@@ -1548,9 +1546,7 @@ static int fract(lua_State *L) {
     lua_setfield(L, -2, "__len");                       \
     lua_pushcclosure(L, T##_set, 0);                    \
     lua_setfield(L, -2, "set");                         \
-    lua_pushstring(L, #T);                              \
-    lua_setfield(L, -2, "tname");                       \
-    am_register_metatable(L, MTID, 0);
+    am_register_metatable(L, #T, MTID, 0);
 
 void am_open_math_module(lua_State *L) {
     luaL_Reg funcs[] = {

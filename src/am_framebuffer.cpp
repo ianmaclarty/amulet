@@ -91,7 +91,6 @@ static int read_back(lua_State *L) {
 
 static void register_framebuffer_mt(lua_State *L) {
     lua_newtable(L);
-
     am_set_default_index_func(L);
     am_set_default_newindex_func(L);
 
@@ -107,10 +106,7 @@ static void register_framebuffer_mt(lua_State *L) {
     lua_pushcclosure(L, read_back, 0);
     lua_setfield(L, -2, "read_back");
 
-    lua_pushstring(L, "framebuffer");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_framebuffer, 0);
+    am_register_metatable(L, "framebuffer", MT_am_framebuffer, 0);
 }
 
 void am_open_framebuffer_module(lua_State *L) {

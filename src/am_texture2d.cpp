@@ -197,10 +197,7 @@ static void register_texture2d_mt(lua_State *L) {
     am_register_property(L, "height", &texture_height_property);
     am_register_property(L, "buffer", &texture_buffer_property);
 
-    lua_pushstring(L, "texture2d");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_texture2d, 0);
+    am_register_metatable(L, "texture2d", MT_am_texture2d, 0);
 }
 
 void am_open_texture2d_module(lua_State *L) {

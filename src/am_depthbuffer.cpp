@@ -19,11 +19,10 @@ static void register_depth_pass_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
-    lua_pushstring(L, "depth_pass");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_depth_pass_node, MT_am_scene_node);
+    am_register_metatable(L, "depth_pass", MT_am_depth_pass_node, MT_am_scene_node);
 }
 
 void am_open_depthbuffer_module(lua_State *L) {

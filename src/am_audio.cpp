@@ -673,13 +673,11 @@ static void register_gain_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
     lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
 
     am_register_property(L, "value", &gain_property);
 
-    lua_pushstring(L, "gain");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_gain_node, MT_am_audio_node);
+    am_register_metatable(L, "gain", MT_am_gain_node, MT_am_audio_node);
 }
 
 // Lowpass biquad filter node lua bindings
@@ -721,14 +719,12 @@ static void register_lowpass_filter_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
     lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
 
     am_register_property(L, "cutoff", &lowpass_cutoff_property);
     am_register_property(L, "resonance", &lowpass_resonance_property);
 
-    lua_pushstring(L, "lowpass_filter");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_lowpass_filter_node, MT_am_audio_node);
+    am_register_metatable(L, "lowpass_filter", MT_am_lowpass_filter_node, MT_am_audio_node);
 }
 
 // Highpass biquad filter node lua bindings
@@ -770,14 +766,12 @@ static void register_highpass_filter_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
     lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
 
     am_register_property(L, "cutoff", &highpass_cutoff_property);
     am_register_property(L, "resonance", &highpass_resonance_property);
 
-    lua_pushstring(L, "highpass_filter");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_highpass_filter_node, MT_am_audio_node);
+    am_register_metatable(L, "highpass_filter", MT_am_highpass_filter_node, MT_am_audio_node);
 }
 
 // Audio track node lua bindings
@@ -819,13 +813,11 @@ static void register_audio_track_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
     lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
 
     am_register_property(L, "playback_speed", &playback_speed_property);
 
-    lua_pushstring(L, "track");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_audio_track_node, MT_am_audio_node);
+    am_register_metatable(L, "track", MT_am_audio_track_node, MT_am_audio_node);
 }
 
 // Oscillator node lua bindings
@@ -868,14 +860,12 @@ static void register_oscillator_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
     lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
 
     am_register_property(L, "phase", &phase_property);
     am_register_property(L, "freq", &freq_property);
 
-    lua_pushstring(L, "oscillator");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_oscillator_node, MT_am_audio_node);
+    am_register_metatable(L, "oscillator", MT_am_oscillator_node, MT_am_audio_node);
 }
 
 // Audio node lua bindings
@@ -895,8 +885,7 @@ static void register_audio_node_mt(lua_State *L) {
 
     lua_pushcclosure(L, am_audio_node_index, 0);
     lua_setfield(L, -2, "__index");
-    lua_pushcclosure(L, am_default_newindex_func, 0);
-    lua_setfield(L, -2, "__newindex");
+    am_set_default_newindex_func(L);
 
     lua_pushcclosure(L, child_pairs, 0);
     lua_setfield(L, -2, "children");
@@ -922,10 +911,7 @@ static void register_audio_node_mt(lua_State *L) {
     lua_pushcclosure(L, create_highpass_filter_node, 0);
     lua_setfield(L, -2, "highpass_filter");
 
-    lua_pushstring(L, "audio_node");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_audio_node, 0);
+    am_register_metatable(L, "audio_node", MT_am_audio_node, 0);
 }
 
 //-------------------------------------------------------------------------

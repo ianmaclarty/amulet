@@ -228,6 +228,20 @@ bool am_update_windows(lua_State *L) {
     return windows.size() > 0;
 }
 
+bool am_execute_actions(lua_State *L, double dt) {
+    am_prepare_to_execute_actions(L, dt);
+    unsigned int n = windows.size();
+    for (unsigned int i = 0; i < n; i++) {
+        am_window *win = windows[i];
+        if (!win->needs_closing && win->root != NULL) {
+            if (!am_execute_node_actions(L, win->root)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 static void get_root_node(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     window->pushref(L, window->root_ref);
@@ -239,13 +253,10 @@ static void set_root_node(lua_State *L, void *obj) {
         if (window->root == NULL) return;
         window->unref(L, window->root_ref);
         window->root_ref = LUA_NOREF;
-        window->root->deactivate_root();
         window->root = NULL;
         return;
     }
-    if (window->root != NULL) window->root->deactivate_root();
     window->root = am_get_userdata(L, am_scene_node, 3);
-    window->root->activate_root(L);
     if (window->root_ref == LUA_NOREF) {
         window->root_ref = window->ref(L, 3);
     } else {
@@ -333,10 +344,7 @@ static void register_window_mt(lua_State *L) {
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");
 
-    lua_pushstring(L, "window");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_window, 0);
+    am_register_metatable(L, "window", MT_am_window, 0);
 }
 
 void am_open_window_module(lua_State *L) {

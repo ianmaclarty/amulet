@@ -1,150 +1,53 @@
 #include "amulet.h"
 
-static am_action *first = NULL;
-static am_action *last = NULL;
+static int num_actions = 0;
 
-static uint64_t action_seq = 0;
-
-am_action::am_action() {
-    gnext = NULL;
-    gprev = NULL;
-    nnext = NULL;
-    am_action::node = NULL;
-    tag_ref = LUA_NOREF;
-    func_ref = LUA_NOREF;
-    action_ref = LUA_NOREF;
-    priority = am_conf_default_action_priority;
-    seq = action_seq++;
-    paused = false;
-}
-
-void am_schedule_action(am_action *action) {
-    if (first == NULL) {
-        assert(last == NULL);
-        first = action;
-        last = action;
-    } else {
-        am_action *ptr = last;
-        while (ptr != NULL) {
-            if (action->priority > ptr->priority || ((action->priority == ptr->priority) && (action->seq > ptr->seq))) {
-                // action should go after ptr
-                action->gnext = ptr->gnext;
-                if (ptr->gnext != NULL) {
-                    ptr->gnext->gprev = action;
-                } else {
-                    assert(ptr == last);
-                    last = action;
-                }
-                action->gprev = ptr;
-                ptr->gnext = action;
-                return;
+static void add_actions(lua_State *L, am_scene_node *node, int actions_tbl) {
+    if (am_node_marked(node)) {
+        return;
+    }
+    am_mark_node(node);
+    if (node->actions_ref != LUA_NOREF) {
+        node->pushref(L, node->actions_ref);
+        assert(lua_istable(L, -1));
+        int i = 1;
+        while (true) {
+            lua_rawgeti(L, -1, i);
+            if (lua_isnil(L, -1)) {
+                lua_pop(L, 1);
+                break;
             }
-            ptr = ptr->gprev;
+            assert(lua_istable(L, -1));
+            num_actions++;
+            lua_rawseti(L, actions_tbl, num_actions);
+            i++;
         }
-        // action should go at the front
-        action->gnext = first;
-        assert(first->gprev == NULL);
-        first->gprev = action;
-        first = action;
+        lua_pop(L, 1); // action list
     }
+    for (int i = 0; i < node->children.size; i++) {
+        add_actions(L, node->children.arr[i].child, actions_tbl);
+    }
+    am_unmark_node(node);
 }
 
-void am_deschedule_action(am_action *action) {
-    if (action->gnext != NULL) {
-        action->gnext->gprev = action->gprev;
-    } else {
-        assert(action == last);
-        last = action->gprev;
-    }
-    if (action->gprev != NULL) {
-        action->gprev->gnext = action->gnext;
-    } else {
-        assert(action == first);
-        first = action->gnext;
-    }
-    action->gnext = NULL;
-    action->gprev = NULL;
-}
-
-static inline bool action_is_scheduled(am_action *action) {
-    if (action->gnext != NULL || action->gprev != NULL) return true;
-    if (first == action) {
-        assert(last == action);
-        return true;
-    }
-    return false;
-}
-
-bool am_execute_actions(lua_State *L, double dt) {
+void am_prepare_to_execute_actions(lua_State *L, double dt) {
     am_update_times(L, dt);
-    am_action *action = first;
-    while (action != NULL) {
-        assert(action_is_scheduled(action));
-        if (action->paused) {
-            action = action->gnext;
-            continue;
-        }
-        am_action *next = action->gnext;
-        am_scene_node *node = action->node;
-        node->pushref(L, action->action_ref);       // push action so not gc'd if descheduled when run
-        node->pushref(L, action->func_ref);         // push action function
-        node->push(L);
-        bool success = am_call(L, 1, 1);            // run action function (pops node, function)
-        if (!success) return false;
-        if (!lua_toboolean(L, -1)) {
-            // action finished, remove it.
-
-            lua_pop(L, 1); // pop nil/false
-
-            // remove action from schedule (if not already descheduled)
-            if (action_is_scheduled(action)) {
-                next = action->gnext; // update next in case new action inserted directly after this one
-                am_deschedule_action(action);
-            }
-
-            // remove action from node
-            if (node->action_list == action) {
-                node->action_list = action->nnext;
-            } else {
-                am_action *ptr = node->action_list;
-                while (ptr->nnext != action && ptr != NULL) ptr = ptr->nnext;
-                if (ptr != NULL) { 
-                    ptr->nnext = action->nnext;
-                    action->nnext = NULL;
-                } else {
-                    // action was cancelled
-                    assert(action->nnext == NULL);
-                    assert(action->action_ref == LUA_NOREF);
-                    assert(action->func_ref == LUA_NOREF);
-                    assert(action->tag_ref == LUA_NOREF);
-                    goto cancelled;
-                }
-            }
-            node->unref(L, action->action_ref);
-            action->action_ref = LUA_NOREF;
-            node->unref(L, action->func_ref);
-            action->func_ref = LUA_NOREF;
-            if (action->tag_ref != LUA_NOREF) {
-                node->unref(L, action->tag_ref);
-                action->tag_ref = LUA_NOREF;
-            }
-
-            cancelled:
-            lua_pop(L, 1); // pop action
-            action = next;
-            continue;
-        }
-        if (action_is_scheduled(action)) {
-            next = action->gnext; // update next in case new action inserted directly after this one
-        }
-        lua_pop(L, 2);                              // pop return value, action
-        action = next;
-    }
-    return true;
+    am_call_amulet(L, "_update_action_seq", 0, 0);
+    num_actions = 0;
 }
 
-void am_init_actions() {
-    first = NULL;
-    last = NULL;
-    action_seq = 0;
+bool am_execute_node_actions(lua_State *L, am_scene_node *node) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_ACTION_TABLE);
+    int actions_tbl = am_absindex(L, -1);
+    int from = num_actions + 1;
+    add_actions(L, node, actions_tbl);
+    int to = num_actions;
+    lua_pushinteger(L, from);
+    lua_pushinteger(L, to);
+    return am_call_amulet(L, "_execute_actions", 3, 0);
+}
+
+void am_init_actions(lua_State *L) {
+    lua_newtable(L);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_ACTION_TABLE);
 }

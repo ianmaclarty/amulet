@@ -1,24 +1,10 @@
 #include "amulet.h"
 
-#define AM_NODE_FLAG_LIVE        ((uint32_t)1)
-#define AM_NODE_FLAG_MARK        ((uint32_t)2)
-
-#define node_live(node)          (node->flags & AM_NODE_FLAG_LIVE)
-#define node_dead(node)          (!node_live(node))
-#define set_live(node)           node->flags |= AM_NODE_FLAG_LIVE
-#define set_dead(node)           node->flags &= ~AM_NODE_FLAG_LIVE
-
-#define node_marked(node)        (node->flags & AM_NODE_FLAG_MARK)
-#define mark_node(node)          node->flags |= AM_NODE_FLAG_MARK
-#define unmark_node(node)        node->flags &= ~AM_NODE_FLAG_MARK
-
 am_scene_node::am_scene_node() {
-    live_parents.owner = this;
     children.owner = this;
     recursion_limit = am_conf_default_recursion_limit;
     flags = 0;
-    root_count = 0;
-    action_list = NULL;
+    actions_ref = LUA_NOREF;
 }
 
 void am_scene_node::render_children(am_render_state *rstate) {
@@ -42,193 +28,8 @@ void am_scene_node::render(am_render_state *rstate) {
     render_children(rstate);
 }
 
-void am_scene_node::activate() {
-    am_action *action = action_list;
-    while (action != NULL) {
-        am_schedule_action(action);
-        action = action->nnext;
-    }
-}
-
-void am_scene_node::deactivate() {
-    am_action *action = action_list;
-    while (action != NULL) {
-        am_deschedule_action(action);
-        action = action->nnext;
-    }
-}
-
-// Check whether a node is reachable from a root node.
-// This function assumes that nodes that have been marked dead
-// are unreachable, but makes no assumption about nodes
-// that are marked live.
-// (we call this after removing a node, before liveness flags have been
-// updated).
-// Any nodes found to be dead will be marked as such.
-static bool check_liveness(am_scene_node *node) {
-    if (node_dead(node)) {
-        // node already marked dead
-        return false;
-    }
-    if (node->root_count > 0) {
-        return true; // root found
-    }
-    if (node_marked(node)) {
-        return false; // cycle detected
-    }
-    mark_node(node);
-    bool found_root = false;
-    for (int i = 0; i < node->live_parents.size; i++) {
-        am_scene_node *parent = node->live_parents.arr[i];
-        if (check_liveness(parent)) {
-            found_root = true;
-            break;
-        }
-    }
-    node->flags &= ~AM_NODE_FLAG_MARK;
-    if (!found_root) {
-        set_dead(node);
-        node->deactivate();
-    }
-    return found_root;
-}
-
-// Mark dead nodes that are reachable from the given node.
-// The given node should have already been marked dead.
-static void mark_dead_reachable(am_scene_node *node) {
-    assert(node_dead(node));
-    for (int i = 0; i < node->children.size; i++) {
-        am_scene_node *child = node->children.arr[i].child;
-        if (node_live(child) && !check_liveness(child)) {
-            // check_liveness would have marked child dead
-            mark_dead_reachable(child);
-        }
-    }
-}
-
-// Remove dead nodes from the node's parent list
-static void remove_dead_parents(am_scene_node *node) {
-    am_scene_node **arr = node->live_parents.arr;
-    int i = 0;
-    int j = 0;
-    int n = node->live_parents.size;
-    while (j < n) {
-        if (i < j) {
-            arr[i] = arr[j];
-        }
-        if (node_live(arr[i])) {
-            i++;
-        }
-        j++;
-    }
-    node->live_parents.size = i;
-}
-
-// Remove dead nodes from the parent list of this
-// node and any dead descendents.
-static void remove_dead_parents_reachable(am_scene_node *node) {
-    if (node_marked(node)) return; // cycle
-    mark_node(node);
-    remove_dead_parents(node);
-    if (node_dead(node)) {
-        for (int i = 0; i < node->children.size; i++) {
-            am_scene_node *child = node->children.arr[i].child;
-            remove_dead_parents_reachable(child);
-        }
-    }
-    unmark_node(node);
-}
-
-static void update_liveness_after_removal(am_scene_node *child, am_scene_node *parent) {
-    if (node_dead(child)) {
-        assert(parent == NULL || node_dead(parent));
-        assert(child->live_parents.size == 0);
-        // child already dead, removing it doesn't change anything
-        return;
-    }
-    // node is live, so parent should be live too (unless node is root)
-    if (parent != NULL) {
-        assert(node_live(parent));
-        // remove the child->live_parent link (it should exist)
-        bool found_parent = child->live_parents.remove_first(parent);
-        AM_UNUSED(found_parent);
-        assert(found_parent);
-    }
-    if (check_liveness(child)) {
-        // child is still live, nothing more to do
-        return;
-    }
-    // child became dead (check_liveness would have marked it dead)
-    mark_dead_reachable(child);
-    remove_dead_parents_reachable(child);
-}
-
-static void mark_live_reachable(lua_State *L, am_scene_node *node) {
-    if (node_dead(node)) {
-        set_live(node);
-        node->activate();
-        for (int i = 0; i < node->children.size; i++) {
-            am_scene_node *child = node->children.arr[i].child;
-            child->live_parents.push_back(L, node);
-            mark_live_reachable(L, child);
-        }
-    }
-}
-
-static void update_liveness_after_insertion(lua_State *L, am_scene_node *child, am_scene_node *parent) {
-    if (node_live(parent)) {
-        child->live_parents.push_back(L, parent);
-        mark_live_reachable(L, child);
-    }
-}
-
-void am_scene_node::activate_root(lua_State *L) {
-    root_count++;
-    mark_live_reachable(L, this);
-}
-
-void am_scene_node::deactivate_root() {
-    assert(root_count > 0);
-    assert(node_live(this));
-    root_count--;
-    if (root_count == 0) {
-        update_liveness_after_removal(this, NULL);
-    }
-}
-
-static int create_action(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
-    am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    if (!lua_isfunction(L, 2)) {
-        return luaL_error(L, "expecting a function at position 2");
-    }
-    am_action *action = new (lua_newuserdata(L, sizeof(am_action))) am_action();
-    action->node = node;
-    action->action_ref = node->ref(L, -1); // ref from node to action
-    action->func_ref = node->ref(L, 2); // ref from node to function
-    if (nargs > 2) {
-        if (!lua_isnil(L, 3)) {
-            action->tag_ref = node->ref(L, 3);
-        }
-    }
-    if (nargs > 3) {
-        action->priority = luaL_checkinteger(L, 4);
-    }
-    lua_pop(L, 1); // action
-
-    action->nnext = node->action_list;
-    node->action_list = action;
-
-    if (node_live(node)) {
-        am_schedule_action(action);
-    }
-
-    lua_pushvalue(L, 1); // for chaining
-    return 1;
-}
-
 static int search_uservalues(lua_State *L, am_scene_node *node) {
-    if (node_marked(node)) return 0; // cycle
+    if (am_node_marked(node)) return 0; // cycle
     node->pushuservalue(L); // push uservalue table of node
     lua_pushvalue(L, 2); // push field
     lua_rawget(L, -2); // lookup field in uservalue table
@@ -239,12 +40,12 @@ static int search_uservalues(lua_State *L, am_scene_node *node) {
     }
     lua_pop(L, 2); // pop nil, uservalue table
     if (node->children.size != 1) return 0;
-    mark_node(node);
+    am_mark_node(node);
     am_scene_node *child = node->children.arr[0].child;
     child->push(L);
     lua_replace(L, 1); // child is now at index 1
     int r = search_uservalues(L, child);
-    unmark_node(node);
+    am_unmark_node(node);
     return r;
 }
 
@@ -271,7 +72,6 @@ static int append_child(lua_State *L) {
     child_slot.child = child;
     child_slot.ref = parent->ref(L, 2); // ref from parent to child
     parent->children.push_back(L, child_slot);
-    update_liveness_after_insertion(L, child, parent);
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
@@ -284,7 +84,6 @@ static int prepend_child(lua_State *L) {
     child_slot.child = child;
     child_slot.ref = parent->ref(L, 2); // ref from parent to child
     parent->children.push_front(L, child_slot);
-    update_liveness_after_insertion(L, child, parent);
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
@@ -297,7 +96,6 @@ static int remove_child(lua_State *L) {
         if (parent->children.arr[i].child == child) {
             parent->unref(L, parent->children.arr[i].ref);
             parent->children.remove(i);
-            update_liveness_after_removal(child, parent);
             break;
         }
     }
@@ -314,12 +112,10 @@ static int replace_child(lua_State *L) {
         if (parent->children.arr[i].child == old_child) {
             parent->unref(L, parent->children.arr[i].ref);
             parent->children.remove(i);
-            update_liveness_after_removal(old_child, parent);
             am_node_child slot;
             slot.child = new_child;
             slot.ref = parent->ref(L, 3);
             parent->children.insert(L, i, slot);
-            update_liveness_after_insertion(L, new_child, parent);
             break;
         }
     }
@@ -331,10 +127,8 @@ static int remove_all_children(lua_State *L) {
     am_check_nargs(L, 1);
     am_scene_node *parent = am_get_userdata(L, am_scene_node, 1);
     for (int i = parent->children.size-1; i >= 0; i--) {
-        am_scene_node *child = parent->children.arr[i].child;
         parent->unref(L, parent->children.arr[i].ref);
         parent->children.remove(i);
-        update_liveness_after_removal(child, parent);
     }
     assert(parent->children.size == 0);
     lua_pushvalue(L, 1); // for chaining
@@ -350,7 +144,6 @@ void am_set_scene_node_child(lua_State *L, am_scene_node *parent) {
     child_slot.child = child;
     child_slot.ref = parent->ref(L, 1); // ref from parent to child
     parent->children.push_back(L, child_slot);
-    update_liveness_after_insertion(L, child, parent);
 }
 
 static int create_wrap_node(lua_State *L) {
@@ -365,7 +158,7 @@ static int create_wrap_node(lua_State *L) {
 static int create_hidden_node(lua_State *L) {
     int nargs = am_check_nargs(L, 0);
     am_scene_node *node = am_new_userdata(L, am_scene_node);
-    node->recursion_limit = 0;
+    node->recursion_limit = -1;
     if (nargs > 0) {
         am_set_scene_node_child(L, node);
     }
@@ -381,7 +174,6 @@ static int create_group_node(lua_State *L) {
         child_slot.child = child;
         child_slot.ref = node->ref(L, i+1); // ref from node to child
         node->children.push_back(L, child_slot);
-        update_liveness_after_insertion(L, child, node);
     }
     return 1;
 }
@@ -418,13 +210,6 @@ static int get_child(lua_State *L) {
         return 0;
     }
 }
-
-static void get_num_children(lua_State *L, void *obj) {
-    am_scene_node *node = (am_scene_node*)obj;
-    lua_pushinteger(L, node->children.size);
-}
-
-static am_property num_children_property = {get_num_children, NULL};
 
 static inline void check_alias(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
@@ -476,6 +261,33 @@ static int alias(lua_State *L) {
     return 1;
 }
 
+static void get_num_children(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    lua_pushinteger(L, node->children.size);
+}
+
+static am_property num_children_property = {get_num_children, NULL};
+
+static void get_actions(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    if (node->actions_ref == LUA_NOREF) {
+        lua_pushnil(L);
+    } else {
+        node->pushref(L, node->actions_ref);
+    }
+}
+
+static void set_actions(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    if (node->actions_ref == LUA_NOREF) {
+        node->actions_ref = node->ref(L, 3);
+    } else {
+        node->reref(L, node->actions_ref, 3);
+    }
+}
+
+static am_property actions_property = {get_actions, set_actions};
+
 static void register_scene_node_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -490,6 +302,7 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "child");
 
     am_register_property(L, "num_children", &num_children_property);
+    am_register_property(L, "_actions", &actions_property);
 
     lua_pushcclosure(L, alias, 0);
     lua_setfield(L, -2, "alias");
@@ -551,13 +364,7 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, am_create_cull_face_node, 0);
     lua_setfield(L, -2, "cull_face");
 
-    lua_pushcclosure(L, create_action, 0);
-    lua_setfield(L, -2, "action");
-
-    lua_pushstring(L, "scene_node");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_scene_node, 0);
+    am_register_metatable(L, "scene_node", MT_am_scene_node, 0);
 }
 
 void am_open_scene_module(lua_State *L) {

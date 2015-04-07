@@ -225,10 +225,7 @@ static void AM_CONCAT3(register_,TNAME,_view_mt)(lua_State *L) {
     lua_pushcclosure(L, AM_CONCAT(TNAME,_view_set), 0);
     lua_setfield(L, -2, "set");
 
-    lua_pushstring(L, AM_STR(TNAME) "_view");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, AM_CONCAT(MT_VIEW_TYPE_,TNAME), MT_am_buffer_view);
+    am_register_metatable(L, AM_STR(TNAME) "_view", AM_CONCAT(MT_VIEW_TYPE_,TNAME), MT_am_buffer_view);
 }
 
 #undef TNAME

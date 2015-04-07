@@ -150,17 +150,14 @@ static am_property image_buffer_property = {get_image_buffer, NULL};
 
 static void register_image_mt(lua_State *L) {
     lua_newtable(L);
-    lua_pushcclosure(L, am_default_index_func, 0);
-    lua_setfield(L, -2, "__index");
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
 
     am_register_property(L, "width", &image_width_property);
     am_register_property(L, "height", &image_height_property);
     am_register_property(L, "buffer", &image_buffer_property);
 
-    lua_pushstring(L, "image");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_image, 0);
+    am_register_metatable(L, "image", MT_am_image, 0);
 }
 
 void am_open_image_module(lua_State *L) {

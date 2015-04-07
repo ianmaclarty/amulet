@@ -162,7 +162,7 @@ struct am_property {
     void (*setter) (lua_State*, void*);
 };
 
-void am_register_metatable(lua_State *L, int metatable_id, int parent_mt_id);
+void am_register_metatable(lua_State *L, const char *tname, int metatable_id, int parent_mt_id);
 void am_push_metatable(lua_State *L, int metatable_id);
 int am_get_type(lua_State *L, int idx);
 const char* am_get_typename(lua_State *L, int metatable_id);

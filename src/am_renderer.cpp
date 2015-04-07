@@ -195,13 +195,12 @@ am_render_state::~am_render_state() {
 
 static void register_draw_arrays_node_mt(lua_State *L) {
     lua_newtable(L);
-    lua_pushvalue(L, -1);
+    lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
-    lua_pushstring(L, "draw_arrays");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_draw_arrays_node, MT_am_scene_node);
+    am_register_metatable(L, "draw_arrays", MT_am_draw_arrays_node, MT_am_scene_node);
 }
 
 void am_draw_arrays_node::render(am_render_state *rstate) {
@@ -246,13 +245,12 @@ am_draw_elements_node::am_draw_elements_node() {
 
 static void register_draw_elements_node_mt(lua_State *L) {
     lua_newtable(L);
-    lua_pushvalue(L, -1);
+    lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
-    lua_pushstring(L, "draw_elements");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_draw_elements_node, MT_am_scene_node);
+    am_register_metatable(L, "draw_elements", MT_am_draw_elements_node, MT_am_scene_node);
 }
 
 void am_draw_elements_node::render(am_render_state *rstate) {

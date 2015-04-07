@@ -80,42 +80,41 @@ am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id) {
     return ud;
 }
 
-static bool mt_parent_initialized = false;
 static int mt_parent[AM_RESERVED_REFS_END];
 
-void am_register_metatable(lua_State *L, int metatable_id, int parent_mt_id) {
+static void ensure_mt_parent_initialized() {
+    static bool mt_parent_initialized = false;
     if (!mt_parent_initialized) {
         for (int i = 0; i < AM_RESERVED_REFS_END; i++) {
             mt_parent[i] = 0;
         }
         mt_parent_initialized = true;
     }
+}
+
+void am_register_metatable(lua_State *L, const char *tname, int metatable_id, int parent_mt_id) {
+    ensure_mt_parent_initialized();
+
+    lua_pushstring(L, tname);
+    lua_setfield(L, -2, "tname");
+
     if (parent_mt_id > 0) {
         mt_parent[metatable_id] = parent_mt_id;
-        int mt_idx am_absindex(L, -1);
+        lua_newtable(L);
         am_push_metatable(L, parent_mt_id);
-        int prt_idx = am_absindex(L, -1);
-        if (!lua_istable(L, prt_idx)) {
-            am_abort("attempt to register metatable %d before parent %d", metatable_id, parent_mt_id);
+        if (!lua_istable(L, -1)) {
+            am_abort("attempt to register metatable %s before parent", tname);
         }
-        // add parent entries to this metatable
-        lua_pushnil(L);
-        while (lua_next(L, prt_idx)) {
-            int key_idx = am_absindex(L, -2);
-            int val_idx = am_absindex(L, -1);
-            // Check if field already exists
-            lua_pushvalue(L, key_idx);
-            lua_rawget(L, mt_idx);
-            if (lua_isnil(L, -1)) {
-                // copy entry from parent mt
-                lua_pushvalue(L, key_idx);
-                lua_pushvalue(L, val_idx);
-                lua_rawset(L, mt_idx);
-            }
-            lua_pop(L, 2); // pop existing entry, val
-        }
-        lua_pop(L, 1); // pop parent mt
+        lua_setfield(L, -2, "__index");
+        lua_setmetatable(L, -2);
     }
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_METATABLE_REGISTRY);
+    lua_pushstring(L, tname);
+    lua_pushvalue(L, -3);
+    lua_rawset(L, -3);
+    lua_pop(L, 1); // metatable registry
+
     lua_rawseti(L, LUA_REGISTRYINDEX, metatable_id);
 }
 
@@ -217,7 +216,7 @@ void am_register_property(lua_State *L, const char *field, const am_property *pr
 int am_default_index_func(lua_State *L) {
     lua_getmetatable(L, 1);
     lua_pushvalue(L, 2);
-    lua_rawget(L, -2);
+    lua_gettable(L, -2);
     if (lua_islightuserdata(L, -1)) {
         void *obj = lua_touserdata(L, 1);
         am_property *property = (am_property*)lua_touserdata(L, -1);
@@ -234,7 +233,7 @@ int am_default_index_func(lua_State *L) {
 int am_default_newindex_func(lua_State *L) {
     lua_getmetatable(L, 1);
     lua_pushvalue(L, 2);
-    lua_rawget(L, -2);
+    lua_gettable(L, -2);
     if (lua_islightuserdata(L, -1)) {
         void *obj = lua_touserdata(L, 1);
         am_property *property = (am_property*)lua_touserdata(L, -1);

@@ -128,20 +128,15 @@ static int render_text(lua_State *L) {
 static void register_font_mt(lua_State *L) {
     lua_newtable(L);
 
-    lua_pushcclosure(L, am_default_index_func, 0);
-    lua_setfield(L, -2, "__index");
-    lua_pushcclosure(L, am_default_newindex_func, 0);
-    lua_setfield(L, -2, "__newindex");
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
     lua_pushcclosure(L, font_gc, 0);
     lua_setfield(L, -2, "__gc");
 
     lua_pushcclosure(L, render_text, 0);
     lua_setfield(L, -2, "render_text");
 
-    lua_pushstring(L, "font");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_font, 0);
+    am_register_metatable(L, "font", MT_am_font, 0);
 }
 
 void am_open_text_module(lua_State *L) {

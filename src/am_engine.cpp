@@ -1,6 +1,7 @@
 #include "amulet.h"
 
 static void init_reserved_refs(lua_State *L);
+static void init_metatable_registry(lua_State *L);
 static void open_stdlualibs(lua_State *L);
 static void init_package_searcher(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
@@ -9,6 +10,7 @@ static void set_arg_global(lua_State *L, int argc, char** argv);
 lua_State *am_init_engine(bool worker, int argc, char** argv) {
     lua_State *L = luaL_newstate();
     init_reserved_refs(L);
+    init_metatable_registry(L);
     open_stdlualibs(L);
     set_arg_global(L, argc, argv);
     init_package_searcher(L);
@@ -19,7 +21,7 @@ lua_State *am_init_engine(bool worker, int argc, char** argv) {
     am_open_buffer_module(L);
     if (!worker) {
         am_init_param_name_map(L);
-        am_init_actions();
+        am_init_actions(L);
         am_open_window_module(L);
         am_open_scene_module(L);
         am_open_program_module(L);
@@ -68,6 +70,13 @@ static void init_reserved_refs(lua_State *L) {
         }
         j++;
     }
+}
+
+static void init_metatable_registry(lua_State *L) {
+    lua_newtable(L);
+    lua_pushvalue(L, -1);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_METATABLE_REGISTRY);
+    lua_setglobal(L, "_metatable_registry");
 }
 
 static void set_arg_global(lua_State *L, int argc, char** argv) {
@@ -143,6 +152,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/time.lua") &&
         run_embedded_script(L, "lua/buffer.lua") &&
         run_embedded_script(L, "lua/shapes.lua") &&
-        run_embedded_script(L, "lua/input.lua");
+        run_embedded_script(L, "lua/input.lua") &&
+        run_embedded_script(L, "lua/actions.lua");
 }
 

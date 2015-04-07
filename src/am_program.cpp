@@ -379,11 +379,11 @@ static int gc_program(lua_State *L) {
 
 static void register_program_mt(lua_State *L) {
     lua_newtable(L);
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
     lua_pushcclosure(L, gc_program, 0);
     lua_setfield(L, -2, "__gc");
-    lua_pushstring(L, "program");
-    lua_setfield(L, -2, "tname");
-    am_register_metatable(L, MT_am_program, 0);
+    am_register_metatable(L, "program", MT_am_program, 0);
 }
 
 int am_create_program_node(lua_State *L) {
@@ -413,13 +413,12 @@ static void register_program_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
     am_register_property(L, "program", &program_property);
 
-    lua_pushstring(L, "program_node");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_program_node, MT_am_scene_node);
+    am_register_metatable(L, "program_node", MT_am_program_node, MT_am_scene_node);
 }
 
 void am_program_node::render(am_render_state *rstate) {
@@ -468,13 +467,12 @@ static void register_bind_float_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
     am_register_property(L, "value", &bind_float_node_value_property);
 
-    lua_pushstring(L, "bind_float");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_bind_float_node, MT_am_scene_node);
+    am_register_metatable(L, "bind_float", MT_am_bind_float_node, MT_am_scene_node);
 }
 
 void am_bind_array_node::render(am_render_state *rstate) {
@@ -504,11 +502,10 @@ static void register_bind_array_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
-    lua_pushstring(L, "bind_array");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_bind_array_node, MT_am_scene_node);
+    am_register_metatable(L, "bind_array", MT_am_bind_array_node, MT_am_scene_node);
 }
 
 #define AM_BIND_MAT_NODE_IMPL(D)                                        \
@@ -546,13 +543,12 @@ static void register_bind_mat##D##_node_mt(lua_State *L) {              \
     lua_newtable(L);                                                    \
     lua_pushcclosure(L, am_scene_node_index, 0);                        \
     lua_setfield(L, -2, "__index");                                     \
+    lua_pushcclosure(L, am_scene_node_newindex, 0);                     \
+    lua_setfield(L, -2, "__newindex");                                  \
                                                                         \
     am_register_property(L, "value", &bind_mat##D##_node_value_property); \
                                                                         \
-    lua_pushstring(L, "bind_mat" #D);                                   \
-    lua_setfield(L, -2, "tname");                                       \
-                                                                        \
-    am_register_metatable(L, MT_am_bind_mat##D##_node, MT_am_scene_node);\
+    am_register_metatable(L, "bind_mat" #D, MT_am_bind_mat##D##_node, MT_am_scene_node);\
 }
 
 AM_BIND_MAT_NODE_IMPL(2)
@@ -587,11 +583,10 @@ static void register_bind_vec##D##_node_mt(lua_State *L) {              \
     lua_newtable(L);                                                    \
     lua_pushcclosure(L, am_scene_node_index, 0);                        \
     lua_setfield(L, -2, "__index");                                     \
+    lua_pushcclosure(L, am_scene_node_newindex, 0);                     \
+    lua_setfield(L, -2, "__newindex");                                  \
                                                                         \
-    lua_pushstring(L, "bind_vec" #D);                                   \
-    lua_setfield(L, -2, "tname");                                       \
-                                                                        \
-    am_register_metatable(L, MT_am_bind_vec##D##_node, MT_am_scene_node);\
+    am_register_metatable(L, "bind_vec" #D, MT_am_bind_vec##D##_node, MT_am_scene_node);\
 }
 
 AM_BIND_VEC_NODE_IMPL(2)
@@ -625,13 +620,12 @@ static void register_read_mat##D##_node_mt(lua_State *L) {              \
     lua_newtable(L);                                                    \
     lua_pushcclosure(L, am_scene_node_index, 0);                        \
     lua_setfield(L, -2, "__index");                                     \
+    lua_pushcclosure(L, am_scene_node_newindex, 0);                     \
+    lua_setfield(L, -2, "__newindex");                                  \
                                                                         \
     am_register_property(L, "value", &read_mat##D##_node_value_property); \
                                                                         \
-    lua_pushstring(L, "read_mat" #D);                                   \
-    lua_setfield(L, -2, "tname");                                       \
-                                                                        \
-    am_register_metatable(L, MT_am_read_mat##D##_node, MT_am_scene_node);\
+    am_register_metatable(L, "read_mat" #D, MT_am_read_mat##D##_node, MT_am_scene_node);\
 }
 
 AM_READ_MAT_NODE_IMPL(2)
@@ -688,13 +682,12 @@ static void register_bind_sampler2d_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
 
     am_register_property(L, "texture", &bind_sampler2d_node_texture_property);
 
-    lua_pushstring(L, "bind_sampler2d");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_bind_sampler2d_node, MT_am_scene_node);
+    am_register_metatable(L, "bind_sampler2d", MT_am_bind_sampler2d_node, MT_am_scene_node);
 }
 
 const char *am_program_param_type_name(am_program_param_type t) {

@@ -153,12 +153,14 @@ static int buffer_gc(lua_State *L) {
     return 0;
 }
 
-static am_buffer_view* new_buffer_view(lua_State *L, int metatable_id) {
+static am_buffer_view* new_buffer_view(lua_State *L, am_buffer_view_type type) {
+    int mtid = (int)MT_am_buffer_view + (int)type + 1;
+    assert(mtid < (int)MT_VIEW_TYPE_END_MARKER);
     // Set the actual metatable based on the metatable type...
     am_buffer_view *view = (am_buffer_view*)
         am_init_userdata(L,
             new (lua_newuserdata(L, sizeof(am_buffer_view))) am_buffer_view(),
-            metatable_id);
+            mtid);
     // ... but set the metatable_id to the standard buffer view id, which
     // makes type checking easier.
     view->metatable_id = MT_am_buffer_view;
@@ -235,9 +237,7 @@ static int create_buffer_view(lua_State *L) {
         size = max_size;
     }
 
-    int mtid = (int)MT_am_buffer_view + (int)type + 1;
-    assert(mtid < (int)MT_VIEW_TYPE_END_MARKER);
-    am_buffer_view *view = new_buffer_view(L, mtid);
+    am_buffer_view *view = new_buffer_view(L, type);
 
     view->buffer = buf;
     view->buffer_ref = view->ref(L, 1);
@@ -271,7 +271,7 @@ static int view_slice(lua_State *L) {
     } else {
         size = view->size - start + 1;
     }
-    am_buffer_view *slice = new_buffer_view(L, view->metatable_id);
+    am_buffer_view *slice = new_buffer_view(L, view->type);
     slice->buffer = view->buffer;
     view->pushref(L, view->buffer_ref);
     slice->buffer_ref = slice->ref(L, -1);
@@ -289,33 +289,29 @@ static int view_slice(lua_State *L) {
 
 static void register_buffer_mt(lua_State *L) {
     lua_newtable(L);
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
 
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, buffer_len, 0);
     lua_setfield(L, -2, "__len");
     lua_pushcclosure(L, buffer_gc, 0);
     lua_setfield(L, -2, "__gc");
 
-    lua_pushstring(L, "buffer");
-    lua_setfield(L, -2, "tname");
-
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
 
-    am_register_metatable(L, MT_am_buffer, 0);
+    am_register_metatable(L, "buffer", MT_am_buffer, 0);
 }
 
 static void register_view_mt(lua_State *L) {
     lua_newtable(L);
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
 
     lua_pushcclosure(L, view_slice, 0);
     lua_setfield(L, -2, "slice");
 
-    lua_pushstring(L, "view");
-    lua_setfield(L, -2, "tname");
-
-    am_register_metatable(L, MT_am_buffer_view, 0);
+    am_register_metatable(L, "view", MT_am_buffer_view, 0);
 }
 
 static lua_Number read_num_float(uint8_t *ptr) {
