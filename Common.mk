@@ -21,6 +21,7 @@ FT2_DIR          = $(DEPS_DIR)/freetype-2.5.5
 
 SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-VC-prebuilt
 ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
+LIBTURBOJPEG_WIN_PREBUILT_DIR = $(DEPS_DIR)/libjpeg-turbo-1.4.0-VC-prebuilt
 
 # Host settings (this is the *build* host, not the host we want to run on)
 
@@ -78,6 +79,7 @@ LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
 LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 LIBPNG_ALIB = $(BUILD_LIB_DIR)/libpng$(ALIB_EXT)
 LIBTURBOJPEG_ALIB = $(BUILD_LIB_DIR)/libturbojpeg$(ALIB_EXT)
+LIBTURBOJPEG_WIN_PREBUILT = $(BUILD_LIB_DIR)/libturbojpeg.date
 ZLIB_ALIB = $(BUILD_LIB_DIR)/libz$(ALIB_EXT)
 VORBIS_ALIB = $(BUILD_LIB_DIR)/libvorbis$(ALIB_EXT)
 FT2_ALIB = $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
@@ -169,6 +171,7 @@ else ifeq ($(TARGET_PLATFORM),win32)
   XCFLAGS = -DLUA_COMPAT_ALL -fp:fast -WX 
   XLDFLAGS = -SUBSYSTEM:CONSOLE \
 	-NODEFAULTLIB:msvcrt.lib \
+	$(BUILD_LIB_DIR)/libturbojpeg.lib \
 	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc
 else
