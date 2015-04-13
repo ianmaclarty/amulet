@@ -1,17 +1,20 @@
 #include "amulet.h"
 
-struct png_read_state {
-    uint8_t *data;
-    unsigned int bytes_left;
-    unsigned int size;
-};
-
 static int pixel_format_size(am_pixel_format fmt) {
     switch (fmt) {
         case AM_PIXEL_FORMAT_RGBA8: return 4;
     }
     return 0;
 }
+
+
+/******************************* PNG decoding ********************************/
+
+struct png_read_state {
+    uint8_t *data;
+    unsigned int bytes_left;
+    unsigned int size;
+};
 
 static void png_error_fn(png_structp png_ptr, png_const_charp error_msg) {
     png_read_state *state = (png_read_state*)png_get_io_ptr(png_ptr);
@@ -90,6 +93,32 @@ static uint8_t* read_png(uint8_t *data, int sz, int *width, int *height) {
     return img_data;
 }
 
+/******************************* JPEG decoding ********************************/
+
+static uint8_t* read_jpg(uint8_t *data, int sz, int *width, int *height) {
+    int subsamp;
+    int colorspace;
+    tjhandle tj = tjInitDecompress();
+    if (tjDecompressHeader3(tj, data, sz, width, height, &subsamp, &colorspace) < 0) {
+        tjDestroy(tj);
+        am_debug("failed to read header: %s", tjGetErrorStr());
+        return NULL;
+    }
+    int w = *width;
+    int h = *height;
+    uint8_t* img_data = (uint8_t*)malloc(w * h * 4);
+    if (tjDecompress2(tj, data, sz, img_data, w, w * 4, h, TJPF_RGBA, TJFLAG_BOTTOMUP) < 0) {
+        tjDestroy(tj);
+        free(img_data);
+        am_debug("failed to read body: %s", tjGetErrorStr());
+        return NULL;
+    }
+    tjDestroy(tj);
+    return img_data;
+}
+
+/******************************************************************************/
+
 static int create_image(lua_State *L) {
     am_check_nargs(L, 2);
     am_image *img = am_new_userdata(L, am_image);
@@ -115,6 +144,27 @@ static int decode_png(lua_State *L) {
     uint8_t *img_data = read_png(rawbuf->data, rawbuf->size, &width, &height);
     if (img_data == NULL) {
         return luaL_error(L, "error decoding png '%s'", rawbuf->origin);
+    }
+    am_image *img = am_new_userdata(L, am_image);
+    img->width = width;
+    img->height = height;
+    img->format = AM_PIXEL_FORMAT_RGBA8;
+    am_buffer *imgbuf = am_new_userdata(L, am_buffer);
+    imgbuf->data = img_data;
+    imgbuf->size = width * height * pixel_format_size(img->format);
+    img->buffer = imgbuf;
+    img->buffer_ref = img->ref(L, -1);
+    lua_pop(L, 1); // pop imgbuf
+    return 1;
+}
+
+static int decode_jpg(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer *rawbuf = am_get_userdata(L, am_buffer, 1);
+    int width, height;
+    uint8_t *img_data = read_jpg(rawbuf->data, rawbuf->size, &width, &height);
+    if (img_data == NULL) {
+        return luaL_error(L, "error decoding jpg '%s'", rawbuf->origin);
     }
     am_image *img = am_new_userdata(L, am_image);
     img->width = width;
@@ -164,6 +214,7 @@ void am_open_image_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"create_image", create_image},
         {"decode_png", decode_png},
+        {"decode_jpg", decode_jpg},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

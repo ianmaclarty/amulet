@@ -24,7 +24,7 @@ else ifeq ($(TARGET_PLATFORM),win32)
   AM_DEPS = $(LUAVM) png z vorbis ft2
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
 else
-  AM_DEPS = $(LUAVM) sdl png z angle vorbis ft2
+  AM_DEPS = $(LUAVM) sdl png turbojpeg z angle vorbis ft2
   AM_DEFS += AM_USE_ANGLE
 endif
 
@@ -118,6 +118,11 @@ $(LIBPNG_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(LIBPNG_DIR)/libpng$(ALIB_EXT) $@
 	cp $(LIBPNG_DIR)/png.h $(BUILD_INC_DIR)/
 	cp $(LIBPNG_DIR)/pngconf.h $(BUILD_INC_DIR)/
+
+$(LIBTURBOJPEG_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(LIBTURBOJPEG_DIR) && ./configure CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
+	cp -r $(LIBTURBOJPEG_DIR)/turbojpeg.h $(BUILD_INC_DIR)/
+	cp $(LIBTURBOJPEG_DIR)/.libs/libturbojpeg$(ALIB_EXT) $@
 
 $(ZLIB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(ZLIB_DIR) && $(MAKE) clean all
