@@ -130,6 +130,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   CPP = clang++
   LUA_TARGET = macosx
   XCFLAGS += -ObjC++
+  TARGET_CFLAGS += -m64 -arch x86_64
   XLDFLAGS = -lm -liconv -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \

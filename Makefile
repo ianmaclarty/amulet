@@ -82,7 +82,7 @@ $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | 
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): src/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
+	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" && $(MAKE) clean && $(MAKE)
 	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
 	cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@
 
@@ -120,7 +120,7 @@ $(LIBPNG_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(LIBPNG_DIR)/pngconf.h $(BUILD_INC_DIR)/
 
 $(LIBTURBOJPEG_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(LIBTURBOJPEG_DIR) && ./configure CC=$(CC) CXX=$(CPP) && $(MAKE) clean && $(MAKE)
+	cd $(LIBTURBOJPEG_DIR) && ./configure CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" CXXFLAGS="$(COMMON_CFLAGS)" --without-simd && $(MAKE) clean && $(MAKE)
 	cp -r $(LIBTURBOJPEG_DIR)/turbojpeg.h $(BUILD_INC_DIR)/
 	cp $(LIBTURBOJPEG_DIR)/.libs/libturbojpeg$(ALIB_EXT) $@
 
