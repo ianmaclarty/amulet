@@ -106,6 +106,8 @@ deps/libjpeg-turbo-*/tjbench
 deps/libjpeg-turbo-*/tjbenchtest
 deps/libjpeg-turbo-*/tjunittest
 deps/libjpeg-turbo-*/wrjpgcom
+deps/libjpeg-turbo-*/a.out.dSYM
+deps/libjpeg-turbo-*/autom4te.cache
 
 
 deps/zlib-*/*.lib

@@ -23,9 +23,17 @@ struct am_audio_bus {
     ~am_audio_bus();
 };
 
+enum am_audio_node_child_state {
+    AM_AUDIO_NODE_CHILD_STATE_NEW,
+    AM_AUDIO_NODE_CHILD_STATE_OLD,
+    AM_AUDIO_NODE_CHILD_STATE_REMOVED, // marked for removal
+    AM_AUDIO_NODE_CHILD_STATE_DONE, // can now remove
+};
+
 struct am_audio_node_child {
     int ref;
     am_audio_node *child;
+    am_audio_node_child_state state;
 };
 
 template<typename T>

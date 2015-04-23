@@ -109,11 +109,73 @@ void am_audio_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     render_children(context, bus);
 }
 
+static void mix_bus(am_audio_bus *dest, am_audio_bus *src) {
+    for (int c = 0; c < am_min(dest->num_channels, src->num_channels); c++) {
+        int n = am_min(dest->num_samples, src->num_samples);
+        float *dest_data = dest->channel_data[c];
+        float *src_data = src->channel_data[c];
+        for (int s = 0; s < n; s++) {
+            dest_data[s] += src_data[s];
+        }
+    }
+}
+
+static void apply_fadein(am_audio_bus *bus) {
+    int n = am_conf_audio_interpolate_samples;
+    float inc = 1.0f / (float)n;
+    for (int c = 0; c < bus->num_channels; c++) {
+        float *data = bus->channel_data[c];
+        float scale = 0.0f;
+        for (int s = 0; s < n; s++) {
+            data[s] *= scale;
+            scale += inc;
+        }
+    }
+}
+
+static void apply_fadeout(am_audio_bus *bus) {
+    int n = am_conf_audio_interpolate_samples;
+    int start = bus->num_samples - n;
+    int end = bus->num_samples;
+    float inc = -1.0f / (float)n;
+    for (int c = 0; c < bus->num_channels; c++) {
+        float *data = bus->channel_data[c];
+        float scale = 1.0f;
+        for (int s = start; s < end; s++) {
+            data[s] *= scale;
+            scale += inc;
+        }
+    }
+}
+
 void am_audio_node::render_children(am_audio_context *context, am_audio_bus *bus) {
     if (recursion_limit < 0) return;
     recursion_limit--;
     for (int i = 0; i < live_children.size; i++) {
-        live_children.arr[i].child->render_audio(context, bus);
+        am_audio_node_child *child = &live_children.arr[i];
+        switch (child->state) {
+            case AM_AUDIO_NODE_CHILD_STATE_NEW: {
+                am_audio_bus tmp(bus);
+                child->child->render_audio(context, &tmp);
+                apply_fadein(&tmp);
+                mix_bus(bus, &tmp);
+                break;
+            }
+            case AM_AUDIO_NODE_CHILD_STATE_OLD: {
+                child->child->render_audio(context, bus);
+                break;
+            }
+            case AM_AUDIO_NODE_CHILD_STATE_REMOVED: {
+                am_audio_bus tmp(bus);
+                child->child->render_audio(context, &tmp);
+                apply_fadeout(&tmp);
+                mix_bus(bus, &tmp);
+                break;
+            }
+            case AM_AUDIO_NODE_CHILD_STATE_DONE: {
+                break;
+            }
+        }
     }
     recursion_limit++;
 }
@@ -508,7 +570,16 @@ static int add_child(lua_State *L) {
     am_audio_node_child child_slot;
     child_slot.child = child;
     child_slot.ref = parent->ref(L, 2); // ref from parent to child
-    parent->pending_children.push_back(L, child_slot);
+
+    // keep list sorted (required for sync_children_list below)
+    int n = parent->pending_children.size;
+    for (int i = 0; i <= n; i++) {
+        if (i == n || child < parent->pending_children.arr[i].child) {
+            parent->pending_children.insert(L, i, child_slot);
+            break;
+        }
+    }
+
     set_children_dirty(parent);
     lua_pushvalue(L, 1); // for chaining
     return 1;
@@ -522,23 +593,6 @@ static int remove_child(lua_State *L) {
         if (parent->pending_children.arr[i].child == child) {
             parent->unref(L, parent->pending_children.arr[i].ref);
             parent->pending_children.remove(i);
-            set_children_dirty(parent);
-            break;
-        }
-    }
-    lua_pushvalue(L, 1); // for chaining
-    return 1;
-}
-
-static int replace_child(lua_State *L) {
-    am_check_nargs(L, 3);
-    am_audio_node *parent = am_get_userdata(L, am_audio_node, 1);
-    am_audio_node *old_child = am_get_userdata(L, am_audio_node, 2);
-    am_audio_node *new_child = am_get_userdata(L, am_audio_node, 3);
-    for (int i = 0; i < parent->pending_children.size; i++) {
-        if (parent->pending_children.arr[i].child == old_child) {
-            parent->reref(L, parent->pending_children.arr[i].ref, 3);
-            parent->pending_children.arr[i].child = new_child;
             set_children_dirty(parent);
             break;
         }
@@ -658,7 +712,7 @@ static int create_gain_node(lua_State *L) {
     am_check_nargs(L, 2);
     am_gain_node *node = am_new_userdata(L, am_gain_node);
     am_set_audio_node_child(L, node);
-    node->gain.pending_value = luaL_checknumber(L, 2);
+    node->gain.set_immediate(luaL_checknumber(L, 2));
     return 1;
 }
 
@@ -904,8 +958,6 @@ static void register_audio_node_mt(lua_State *L) {
     lua_setfield(L, -2, "add");
     lua_pushcclosure(L, remove_child, 0);
     lua_setfield(L, -2, "remove");
-    lua_pushcclosure(L, replace_child, 0);
-    lua_setfield(L, -2, "replace");
     lua_pushcclosure(L, remove_all_children, 0);
     lua_setfield(L, -2, "remove_all");
     
@@ -993,7 +1045,13 @@ static void do_post_render(am_audio_context *context, int num_samples, am_audio_
     node->last_render = context->render_id;
     node->post_render(context, num_samples);
     for (int i = 0; i < node->live_children.size; i++) {
-        do_post_render(context, num_samples, node->live_children.arr[i].child);
+        am_audio_node_child *child = &node->live_children.arr[i];
+        if (child->state == AM_AUDIO_NODE_CHILD_STATE_REMOVED) {
+            child->state = AM_AUDIO_NODE_CHILD_STATE_DONE;
+        } else if (child->state == AM_AUDIO_NODE_CHILD_STATE_NEW) {
+            child->state = AM_AUDIO_NODE_CHILD_STATE_OLD;
+        }
+        do_post_render(context, num_samples, child->child);
     }
 }
 
@@ -1005,28 +1063,61 @@ void am_fill_audio_bus(am_audio_bus *bus) {
 }
 
 static void sync_children_list(lua_State *L, am_audio_node *node) {
+    int p = 0;
+    int l = 0;
+
+    am_lua_array<am_audio_node_child> *parr = &node->pending_children;
+    am_lua_array<am_audio_node_child> *larr = &node->live_children;
+
+    // remove live children that need to be removed
+    for (l = larr->size-1; l >= 0; l--) {
+        if (larr->arr[l].state == AM_AUDIO_NODE_CHILD_STATE_DONE) {
+            node->unref(L, larr->arr[l].ref);
+            larr->remove(l);
+        }
+    }
+
     if (children_dirty(node)) {
-        // make sure live_children size <= pending_children size
-        for (int i = node->live_children.size-1; i >= node->pending_children.size; i--) {
-            node->unref(L, node->live_children.arr[i].ref);
-            node->live_children.remove(i);
+        // insert NEW children and mark REMOVED children
+        l = 0;
+        p = 0;
+        while (p < parr->size && l < larr->size) {
+            while (p < parr->size && parr->arr[p].child < larr->arr[l].child) {
+                parr->arr[p].state = AM_AUDIO_NODE_CHILD_STATE_NEW;
+                larr->insert(L, l, parr->arr[p]);
+                larr->arr[l].child->push(L);
+                larr->arr[l].ref = node->ref(L, -1);
+                lua_pop(L, 1);
+                p++;
+                l++;
+            }
+            while (p < parr->size && l < larr->size && parr->arr[p].child == larr->arr[l].child) {
+                p++;
+                l++;
+            }
+            while (p < parr->size && l < larr->size && parr->arr[p].child > larr->arr[l].child) {
+                if (larr->arr[l].state != AM_AUDIO_NODE_CHILD_STATE_DONE) {
+                    larr->arr[l].state = AM_AUDIO_NODE_CHILD_STATE_REMOVED;
+                }
+                l++;
+            }
         }
-        // replace live_chilren slots with pending_children slots
-        for (int i = 0; i < node->live_children.size; i++) {
-            node->live_children.arr[i].child = node->pending_children.arr[i].child;
-            node->pending_children.arr[i].child->push(L);
-            node->reref(L, node->live_children.arr[i].ref, -1);
+        while (p < parr->size) {
+            parr->arr[p].state = AM_AUDIO_NODE_CHILD_STATE_NEW;
+            larr->insert(L, l, parr->arr[p]);
+            larr->arr[l].child->push(L);
+            larr->arr[l].ref = node->ref(L, -1);
             lua_pop(L, 1);
+            p++;
+            l++;
         }
-        // append remaining pending_children to live_children
-        for (int i = node->live_children.size; i < node->pending_children.size; i++) {
-            am_audio_node_child slot;
-            slot.child = node->pending_children.arr[i].child;
-            slot.child->push(L);
-            slot.ref = node->ref(L, -1);
-            lua_pop(L, 1);
-            node->live_children.push_back(L, slot);
+        while (l < larr->size) {
+            if (larr->arr[l].state != AM_AUDIO_NODE_CHILD_STATE_DONE) {
+                larr->arr[l].state = AM_AUDIO_NODE_CHILD_STATE_REMOVED;
+            }
+            l++;
         }
+
         clear_children_dirty(node);
     }
 }

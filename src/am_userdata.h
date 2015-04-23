@@ -81,6 +81,7 @@ struct am_lua_array {
     }
 
     void insert(lua_State *L, int pos, T val) {
+        assert(pos >= 0);
         assert(pos <= size);
         ensure_capacity(L, size + 1);
         for (int i = size; i > pos; i--) {

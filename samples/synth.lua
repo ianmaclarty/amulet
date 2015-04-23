@@ -222,6 +222,12 @@ function assemble_ui()
         )
         :bind_mat4("MVP")
         :bind_program(shader_program)
+        :action(function()
+            if am.key_down.escape then
+                win:close()
+            end
+            return 0
+        end)
 end
 
 create_audio_buffer()
