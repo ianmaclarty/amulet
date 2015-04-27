@@ -223,8 +223,8 @@ static int create_draw_arrays_node(lua_State *L) {
     }
     if (nargs > 2) {
         count = luaL_checkinteger(L, 3);
-        if (count <= 0) {
-            return luaL_error(L, "argument 3 must be positive");
+        if (count < 0) {
+            return luaL_error(L, "argument 3 must be non-negative");
         }
     }
     am_draw_arrays_node *node = am_new_userdata(L, am_draw_arrays_node);
@@ -243,12 +243,47 @@ am_draw_elements_node::am_draw_elements_node() {
     view_ref = LUA_NOREF;
 }
 
+static void get_draw_elements_first(lua_State *L, void *obj) {
+    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+    lua_pushinteger(L, node->first + 1);
+}
+
+static void set_draw_elements_first(lua_State *L, void *obj) {
+    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+    int first = luaL_checkinteger(L, 3) - 1;
+    if (first < 0) {
+        luaL_error(L, "value must be positive (in fact %d)", first + 1);
+    }
+    node->first = first;
+}
+
+static am_property draw_elements_first_property = {get_draw_elements_first, set_draw_elements_first};
+
+static void get_draw_elements_count(lua_State *L, void *obj) {
+    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+    lua_pushinteger(L, node->count);
+}
+
+static void set_draw_elements_count(lua_State *L, void *obj) {
+    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+    int count = luaL_checkinteger(L, 3);
+    if (count < 0) {
+        luaL_error(L, "value must be non-negative (in fact %d)", count);
+    }
+    node->count = count;
+}
+
+static am_property draw_elements_count_property = {get_draw_elements_count, set_draw_elements_count};
+
 static void register_draw_elements_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
+
+    am_register_property(L, "first", &draw_elements_first_property);
+    am_register_property(L, "count", &draw_elements_count_property);
 
     am_register_metatable(L, "draw_elements", MT_am_draw_elements_node, MT_am_scene_node);
 }
@@ -259,6 +294,9 @@ void am_draw_elements_node::render(am_render_state *rstate) {
 
 static int create_draw_elements_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
+    int first = 0;
+    int count = INT_MAX;
+    am_draw_mode mode = AM_DRAWMODE_TRIANGLES;
     am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, 1);
     am_draw_elements_node *node = am_new_userdata(L, am_draw_elements_node);
     switch (indices_view->type) {
@@ -280,22 +318,23 @@ static int create_draw_elements_node(lua_State *L) {
     node->indices_view = indices_view;
     node->view_ref = node->ref(L, 1);
     if (nargs > 1) {
-        node->mode = am_get_enum(L, am_draw_mode, 2);
+        mode = am_get_enum(L, am_draw_mode, 2);
     }
     if (nargs > 2) {
-        node->first = luaL_checkinteger(L, 3) - 1;
-        if (node->first < 0) {
+        first = luaL_checkinteger(L, 3) - 1;
+        if (first < 0) {
             return luaL_error(L, "argument 3 must be positive");
-        } else if (node->first >= indices_view->size) {
-            return luaL_error(L, "argument 3 is out of bounds");
         }
     }
     if (nargs > 3) {
-        node->count = luaL_checkinteger(L, 4);
-        if (node->count <= 0) {
-            return luaL_error(L, "argument 4 must be positive");
+        count = luaL_checkinteger(L, 4);
+        if (count < 0) {
+            return luaL_error(L, "argument 4 must be non-negative");
         }
     }
+    node->first = first;
+    node->count = count;
+    node->mode = mode;
     return 1;
 }
 
