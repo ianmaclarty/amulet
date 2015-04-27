@@ -53,6 +53,12 @@ static int AM_CONCAT(TNAME,_view_newindex)(lua_State *L) {
     return 0;
 }
 
+static int AM_CONCAT(TNAME,_view_len)(lua_State *L) {
+    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
+    lua_pushinteger(L, view->size);
+    return 1;
+}
+
 #ifdef VEC_SZ
 static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buffer_view *view, int idx) {
     int size = view->size;
@@ -221,6 +227,8 @@ static void AM_CONCAT3(register_,TNAME,_view_mt)(lua_State *L) {
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, AM_CONCAT(TNAME,_view_newindex), 0);
     lua_setfield(L, -2, "__newindex");
+    lua_pushcclosure(L, AM_CONCAT(TNAME,_view_len), 0);
+    lua_setfield(L, -2, "__len");
 
     lua_pushcclosure(L, AM_CONCAT(TNAME,_view_set), 0);
     lua_setfield(L, -2, "set");
