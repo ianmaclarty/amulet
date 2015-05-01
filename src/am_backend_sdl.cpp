@@ -389,8 +389,10 @@ int main( int argc, char *argv[] )
         t0 = frame_time;
 
         if (!have_focus) {
-            // throttle framerate when in background
+            // throttle framerate when in background on osx
+#ifdef AM_OSX
             usleep(10 * 1000); // 10 milliseconds
+#endif
         }
     }
 
