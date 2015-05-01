@@ -13,7 +13,7 @@ int am_conf_audio_channels = 2;
 int am_conf_audio_sample_rate = 44100;
 int am_conf_audio_interpolate_samples = 128; // must be less than am_conf_audio_buffer_size
 
-const char *am_conf_data_dir = "./";
+const char *am_conf_data_dir = ".";
 
 // Note: enabling either of the following two options causes substantial
 // slowdowns on the html backend in some browsers
@@ -26,4 +26,4 @@ bool am_conf_check_gl_errors = false;
 #endif
 
 bool am_conf_dump_translated_shaders = false;
-bool am_conf_log_gl_calls = true;
+bool am_conf_log_gl_calls = false;
