@@ -1063,6 +1063,59 @@ static int euleryxz4(lua_State *L) {
     return 1;
 }
 
+inline static glm::vec4 plain_normalize(glm::vec4 plain) {
+    float l = glm::length(glm::vec3(plain.x, plain.y, plain.z));
+    return glm::vec4(plain.x/l, plain.y/l, plain.z/l, plain.w/l);
+}
+
+static int sphere_visible(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    glm::mat4 matrix = am_get_userdata(L, am_mat4, 1)->m;
+    glm::vec4 center = glm::vec4(am_get_userdata(L, am_vec3, 2)->v, 1.0f);
+    float radius = 0.0f;
+    if (nargs > 2) {
+        radius = luaL_checknumber(L, 3);
+    }
+    glm::vec4 left_plane = plain_normalize(glm::row(matrix, 0) + glm::row(matrix, 3));
+    float left_dist = glm::dot(left_plane, center);
+    if (left_dist + radius < 0.0f) {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    glm::vec4 right_plane = plain_normalize(glm::row(-matrix, 0) + glm::row(matrix, 3));
+    float right_dist = glm::dot(right_plane, center);
+    if (right_dist + radius < 0.0f) {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    glm::vec4 bottom_plane = plain_normalize(glm::row(matrix, 1) + glm::row(matrix, 3));
+    float bottom_dist = glm::dot(bottom_plane, center);
+    if (bottom_dist + radius < 0.0f) {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    glm::vec4 top_plane = plain_normalize(glm::row(-matrix, 1) + glm::row(matrix, 3));
+    float top_dist = glm::dot(top_plane, center);
+    if (top_dist + radius < 0.0f) {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    glm::vec4 near_plane = plain_normalize(glm::row(matrix, 2) + glm::row(matrix, 3));
+    float near_dist = glm::dot(near_plane, center);
+    if (near_dist + radius < 0.0f) {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    glm::vec4 far_plane = plain_normalize(glm::row(-matrix, 2) + glm::row(matrix, 3));
+    float far_dist = glm::dot(far_plane, center);
+    if (far_dist + radius < 0.0f) {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    lua_pushboolean(L, 1);
+    return 1;
+}
+
 static int inverse(lua_State *L) {
     am_check_nargs(L, 1);
     switch (am_get_type(L, 1)) {
@@ -1568,6 +1621,7 @@ void am_open_math_module(lua_State *L) {
         {"lookat",      lookat},
         {"euleryxz3",   euleryxz3},
         {"euleryxz4",   euleryxz4},
+        {"sphere_visible", sphere_visible},
         {"inverse",     inverse},
         {"simplex",     simplex},
         {"perlin",      perlin},
