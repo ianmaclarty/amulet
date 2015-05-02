@@ -246,8 +246,8 @@ static bool handle_events() {
                 break;
             }
             case SDL_MOUSEMOTION: {
-                mouse_x += event.motion.xrel;
-                mouse_y += event.motion.yrel;
+                mouse_x += event.motion.x;
+                mouse_y += event.motion.y;
                 break;
             }
             case SDL_MOUSEBUTTONDOWN: {
