@@ -1,6 +1,8 @@
 #include "amulet.h"
 
 am_buffer::am_buffer() {
+    size = 0;
+    data = NULL;
     origin = "unnamed buffer";
     origin_ref = LUA_NOREF;
     arraybuf_id = 0;
