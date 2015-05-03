@@ -63,6 +63,7 @@ extern "C" {
 #include "am_embedded.h"
 #include "am_userdata.h"
 #include "am_config.h"
+#include "am_options.h"
 #include "am_reserved_refs.h"
 #include "am_logging.h"
 #include "am_gl.h"

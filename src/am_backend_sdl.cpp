@@ -43,7 +43,6 @@ static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
 
-static const char *main_module = NULL;
 static am_package *package = NULL;
 
 static bool controller_present = false;
@@ -65,7 +64,7 @@ static am_key convert_key(int key);
 static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state(SDL_Window *window);
 //static bool controller_to_keys = true;
-static bool process_args(int *argc, char ***argv);
+static bool check_for_package();
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -264,8 +263,8 @@ static void *am_read_resource_package(const char *filename, int *len, char **err
 static void *am_read_resource_file(const char *filename, int *len, char **errmsg) {
     *errmsg = NULL;
     char tmpbuf[ERR_MSG_SZ];
-    char *path = (char*)malloc(strlen(am_conf_data_dir) + 1 + strlen(filename) + 1);
-    sprintf(path, "%s%c%s", am_conf_data_dir, AM_PATH_SEP, filename);
+    char *path = (char*)malloc(strlen(am_opt_data_dir) + 1 + strlen(filename) + 1);
+    sprintf(path, "%s%c%s", am_opt_data_dir, AM_PATH_SEP, filename);
     SDL_RWops *f = NULL;
     f = SDL_RWFromFile(path, "r");
     if (f == NULL) {
@@ -326,9 +325,12 @@ int main( int argc, char *argv[] )
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 #endif
 
-    if (!process_args(&argc, &argv)) {
-        exit_status = EXIT_FAILURE;
+    if (!am_process_args(&argc, &argv, &exit_status)) {
         goto quit;
+    }
+    check_for_package();
+    if (am_opt_main_module == NULL) {
+        am_opt_main_module = "main";
     }
 
     L = am_init_engine(false, argc, argv);
@@ -340,7 +342,7 @@ int main( int argc, char *argv[] )
     frame_time = am_get_current_time();
 
     lua_pushcclosure(L, am_load_module, 0);
-    lua_pushstring(L, main_module);
+    lua_pushstring(L, am_opt_main_module);
     if (!am_call(L, 1, 0)) goto quit;
     if (windows.size() == 0) goto quit;
 
@@ -693,36 +695,11 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
     return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
-static bool process_args(int *argc_ptr, char ***argv_ptr) {
-    int argc = *argc_ptr;
-    char **argv = *argv_ptr;
-    bool in_osx_bundle = false;
-    char *filename = NULL;
-#ifdef AM_OSX
-    NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
-    in_osx_bundle = (bundleIdentifier != nil);
-#endif
-    if (!in_osx_bundle) { // When invoked from an OSX bundle extra arguments may be set by the OS.
-        if (am_file_exists("data")) {
-            am_conf_data_dir = "./data";
-        }
-        for (int i = 1; i < argc; i++) {
-            if (argv[i][0] == '-') {
-                am_log0("unrecognised option: %s", argv[i]);
-                return false;
-            } else {
-                filename = argv[i];
-                *argv_ptr = &argv[i+1];
-                *argc_ptr = argc-i-1;
-                break;
-            }
-        }
-    } else {
-        // Use Resource dir of OS X bundle
-        am_conf_data_dir = SDL_GetBasePath();
+static bool check_for_package() {
+    if (am_opt_main_module != NULL) {
+        return true;
     }
-
-    char *package_filename = am_format("%s%c%s", am_conf_data_dir, AM_PATH_SEP, "data.pak");
+    char *package_filename = am_format("%s%c%s", am_opt_data_dir, AM_PATH_SEP, "data.pak");
     if (am_file_exists(package_filename)) {
         char *errmsg;
         package = am_open_package(package_filename, &errmsg);
@@ -734,23 +711,6 @@ static bool process_args(int *argc_ptr, char ***argv_ptr) {
         }
     }
     free(package_filename);
-
-    if (filename == NULL) {
-        main_module = "main";
-    } else {
-        char *last_slash = strrchr((char*)filename, AM_PATH_SEP);
-        if (last_slash != NULL) {
-            am_conf_data_dir = filename;
-            *last_slash = '\0';
-            filename = last_slash+1;
-        }
-        char *lua_ext = strstr(filename, ".lua");
-        if (lua_ext != NULL && strlen(lua_ext) == 4) {
-            *lua_ext = '\0'; // strip extension
-        } 
-        main_module = filename;
-    }
-
     return true;
 }
 
