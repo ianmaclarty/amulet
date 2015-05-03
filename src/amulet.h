@@ -41,15 +41,6 @@
 #include "c99.h"
 
 extern "C" {
-#include "png.h"
-#include "pngconf.h"
-}
-
-extern "C" {
-#include "turbojpeg.h"
-}
-
-extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
@@ -63,8 +54,6 @@ extern "C" {
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
-
-#include "stb_vorbis.h"
 
 #include "am_util.h"
 #include "am_backend.h"

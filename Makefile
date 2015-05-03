@@ -18,13 +18,13 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 EXTRA_PREREQS = 
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = lua vorbis ft2
+  AM_DEPS = lua ft2
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifeq ($(TARGET_PLATFORM),win32)
-  AM_DEPS = $(LUAVM) png z vorbis ft2
+  AM_DEPS = $(LUAVM) ft2
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(LIBTURBOJPEG_WIN_PREBUILT)
 else
-  AM_DEPS = $(LUAVM) sdl png turbojpeg z angle vorbis ft2
+  AM_DEPS = $(LUAVM) sdl angle ft2
   AM_DEFS += AM_USE_ANGLE
 endif
 
@@ -112,33 +112,6 @@ $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
 	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"
 	cp $(LUAJIT_DIR)/src/*.h $(BUILD_LUAJIT_INCLUDE_DIR)/
 	cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@
-
-$(LIBPNG_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(LIBPNG_DIR) && $(MAKE) clean all
-	cp $(LIBPNG_DIR)/libpng$(ALIB_EXT) $@
-	cp $(LIBPNG_DIR)/png.h $(BUILD_INC_DIR)/
-	cp $(LIBPNG_DIR)/pngconf.h $(BUILD_INC_DIR)/
-
-$(LIBTURBOJPEG_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(LIBTURBOJPEG_DIR) && ./configure CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" CXXFLAGS="$(COMMON_CFLAGS)" --without-simd && $(MAKE) clean && $(MAKE)
-	cp $(LIBTURBOJPEG_DIR)/turbojpeg.h $(BUILD_INC_DIR)/
-	cp $(LIBTURBOJPEG_DIR)/.libs/libturbojpeg$(ALIB_EXT) $@
-
-$(LIBTURBOJPEG_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cp $(LIBTURBOJPEG_DIR)/turbojpeg.h $(BUILD_INC_DIR)/
-	cp -r $(LIBTURBOJPEG_WIN_PREBUILT_DIR)/turbojpeg-static.lib $(BUILD_LIB_DIR)/libturbojpeg$(ALIB_EXT)
-	touch $@
-
-$(ZLIB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(ZLIB_DIR) && $(MAKE) clean all
-	cp $(ZLIB_DIR)/libz$(ALIB_EXT) $@
-	cp $(ZLIB_DIR)/zlib.h $(BUILD_INC_DIR)/
-	cp $(ZLIB_DIR)/zconf.h $(BUILD_INC_DIR)/
-
-$(VORBIS_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(VORBIS_DIR) && $(MAKE) clean all
-	cp $(VORBIS_DIR)/libvorbis$(ALIB_EXT) $@
-	cp $(VORBIS_DIR)/stb_vorbis.h $(BUILD_INC_DIR)/
 
 $(FT2_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom clean all

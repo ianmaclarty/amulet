@@ -1,5 +1,11 @@
 #include "amulet.h"
 
+extern "C" {
+#define STB_VORBIS_NO_STDIO 1
+#include "stb_vorbis.c"
+}
+#undef L
+
 #define AM_AUDIO_NODE_FLAG_MARK           ((uint32_t)1)
 #define AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY ((uint32_t)2)
 
@@ -976,7 +982,7 @@ static void register_audio_node_mt(lua_State *L) {
 static int decode_ogg(lua_State *L) {
     am_buffer *source_buf = am_get_userdata(L, am_buffer, 1);
     int num_channels;
-    unsigned int sample_rate;
+    int sample_rate;
     short *tmp_data;
     int num_samples = stb_vorbis_decode_memory((unsigned char*)source_buf->data,
         source_buf->size, &num_channels, &sample_rate, &tmp_data);
@@ -987,7 +993,7 @@ static int decode_ogg(lua_State *L) {
     float *dest_data;
     int copy_channels = num_channels > am_conf_audio_channels ? am_conf_audio_channels : num_channels;
     int dest_samples;
-    if ((int)sample_rate != am_conf_audio_sample_rate) {
+    if (sample_rate != am_conf_audio_sample_rate) {
         // resample required
         double sample_rate_ratio = (double)sample_rate / (double)am_conf_audio_sample_rate;
         dest_samples = floor((double)num_samples / sample_rate_ratio);

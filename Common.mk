@@ -13,10 +13,6 @@ LUA_DIR          = $(DEPS_DIR)/lua-5.2.3
 LUAJIT_DIR       = $(DEPS_DIR)/LuaJIT-2.0.3
 ANGLE_DIR        = $(DEPS_DIR)/angle-chrome_m34
 GLM_DIR          = $(DEPS_DIR)/glm-0.9.5.3
-LIBPNG_DIR       = $(DEPS_DIR)/libpng-1.4.3
-LIBTURBOJPEG_DIR = $(DEPS_DIR)/libjpeg-turbo-1.4.0
-ZLIB_DIR         = $(DEPS_DIR)/zlib-1.2.5
-VORBIS_DIR       = $(DEPS_DIR)/vorbis
 FT2_DIR          = $(DEPS_DIR)/freetype-2.5.5
 
 SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-VC-prebuilt
@@ -77,11 +73,6 @@ ANGLE_WIN_PREBUILT = $(BUILD_LIB_DIR)/angle-win-prebuilt.date
 LUA_ALIB = $(BUILD_LIB_DIR)/liblua$(ALIB_EXT)
 LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
 LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
-LIBPNG_ALIB = $(BUILD_LIB_DIR)/libpng$(ALIB_EXT)
-LIBTURBOJPEG_ALIB = $(BUILD_LIB_DIR)/libturbojpeg$(ALIB_EXT)
-LIBTURBOJPEG_WIN_PREBUILT = $(BUILD_LIB_DIR)/libturbojpeg.date
-ZLIB_ALIB = $(BUILD_LIB_DIR)/libz$(ALIB_EXT)
-VORBIS_ALIB = $(BUILD_LIB_DIR)/libvorbis$(ALIB_EXT)
 FT2_ALIB = $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
 
 SRC_DIR = src
