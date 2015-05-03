@@ -56,6 +56,7 @@ extern "C" {
 #include "glm/ext.hpp"
 
 #include "am_util.h"
+#include "am_package.h"
 #include "am_backend.h"
 #include "am_time.h"
 #include "am_input.h"

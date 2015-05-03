@@ -218,7 +218,7 @@ int am_load_module(lua_State *L) {
     int sz;
     snprintf(tmpbuf, TMP_BUF_SZ, "%s.lua", modname);
     char *errmsg;
-    void *buf = am_read_resource(tmpbuf, &sz, false, &errmsg);
+    void *buf = am_read_resource(tmpbuf, &sz, &errmsg);
     if (buf == NULL) {
         lua_pushfstring(L, "unable to load module '%s': %s", modname, errmsg);
         free(errmsg);

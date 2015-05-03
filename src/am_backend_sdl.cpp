@@ -44,6 +44,7 @@ static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
 
 static const char *main_module = NULL;
+static am_package *package = NULL;
 
 static bool controller_present = false;
 static bool axis_button_down[NUM_AXIS_BUTTONS];
@@ -255,7 +256,12 @@ double am_get_current_time() {
 
 #define ERR_MSG_SZ 1024
 
-void *am_read_resource(const char *filename, int *len, bool append_null, char **errmsg) {
+static void *am_read_resource_package(const char *filename, int *len, char **errmsg) {
+    *errmsg = NULL;
+    return am_read_package_resource(package, filename, len, errmsg);
+}
+
+static void *am_read_resource_file(const char *filename, int *len, char **errmsg) {
     *errmsg = NULL;
     char tmpbuf[ERR_MSG_SZ];
     char *path = (char*)malloc(strlen(am_conf_data_dir) + 1 + strlen(filename) + 1);
@@ -291,16 +297,16 @@ void *am_read_resource(const char *filename, int *len, bool append_null, char **
         }
     }
     assert(*len <= (int)capacity);
-    if (append_null) {
-        if (*len == (int)capacity) {
-            capacity = capacity + 1;
-            buf = (char*)realloc(buf, capacity);
-        }
-        buf[*len] = 0;
-        (*len)++;
-    }
     SDL_RWclose(f);
     return buf;
+}
+
+void *am_read_resource(const char *filename, int *len, char **errmsg) {
+    if (package != NULL) {
+        return am_read_resource_package(filename, len, errmsg);
+    } else {
+        return am_read_resource_file(filename, len, errmsg);
+    }
 }
 
 int main( int argc, char *argv[] )
@@ -423,6 +429,9 @@ quit:
     }
     if (am_gl_is_initialized()) {
         am_destroy_gl();
+    }
+    if (package != NULL) {
+        am_close_package(package);
     }
 #ifdef AM_OSX
     [pool release];
@@ -694,6 +703,9 @@ static bool process_args(int *argc_ptr, char ***argv_ptr) {
     in_osx_bundle = (bundleIdentifier != nil);
 #endif
     if (!in_osx_bundle) { // When invoked from an OSX bundle extra arguments may be set by the OS.
+        if (am_file_exists("data")) {
+            am_conf_data_dir = "./data";
+        }
         for (int i = 1; i < argc; i++) {
             if (argv[i][0] == '-') {
                 am_log0("unrecognised option: %s", argv[i]);
@@ -709,6 +721,20 @@ static bool process_args(int *argc_ptr, char ***argv_ptr) {
         // Use Resource dir of OS X bundle
         am_conf_data_dir = SDL_GetBasePath();
     }
+
+    char *package_filename = am_format("%s%c%s", am_conf_data_dir, AM_PATH_SEP, "data.pak");
+    if (am_file_exists(package_filename)) {
+        char *errmsg;
+        package = am_open_package(package_filename, &errmsg);
+        if (package == NULL) {
+            am_log0("%s", errmsg);
+            free(errmsg);
+            free(package_filename);
+            return false;
+        }
+    }
+    free(package_filename);
+
     if (filename == NULL) {
         main_module = "main";
     } else {

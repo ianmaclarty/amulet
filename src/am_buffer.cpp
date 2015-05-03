@@ -125,7 +125,7 @@ static int read_buffer(lua_State *L) {
     const char *filename = luaL_checkstring(L, 1);
     int len;
     char *errmsg;
-    void *data = am_read_resource(filename, &len, false, &errmsg);
+    void *data = am_read_resource(filename, &len, &errmsg);
     if (data == NULL) {
         if (errmsg != NULL) {
             lua_pushfstring(L, "error reading buffer '%s': %s", filename, errmsg);

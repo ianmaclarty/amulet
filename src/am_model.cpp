@@ -19,7 +19,7 @@ char *skip_line(char *str) {
     }
 }
 
-static float* read_obj(const char *filename, char *str,
+static float* read_obj(const char *filename, char *str, int len,
         int *size, int *stride, int *normals_offset, int *texture_coords_offset,
         char **errmsg) {
     *errmsg = NULL;
@@ -28,8 +28,10 @@ static float* read_obj(const char *filename, char *str,
     std::vector<glm::vec3> normals;
     std::vector<t_face> faces;
 
+    char *end = str + len;
+
     int line = 1;
-    while (*str != 0) {
+    while (str < end) {
         switch (*str) {
             case '#':
             case 's':
@@ -194,7 +196,7 @@ static int load_obj(lua_State *L) {
     char *errmsg = NULL;
 
     int len;
-    char *str = (char*)am_read_resource(filename, &len, true, &errmsg);
+    char *str = (char*)am_read_resource(filename, &len, &errmsg);
     if (str == NULL) {
         lua_pushstring(L, errmsg);
         free(errmsg);
@@ -205,7 +207,7 @@ static int load_obj(lua_State *L) {
     int stride;
     int normals_offset = -1;
     int texture_coords_offset = -1;
-    uint8_t *data = (uint8_t*)read_obj(filename, str, &size,
+    uint8_t *data = (uint8_t*)read_obj(filename, str, len, &size,
         &stride, &normals_offset, &texture_coords_offset, &errmsg);
     free(str);
     if (data == NULL) {

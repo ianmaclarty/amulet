@@ -37,3 +37,5 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 
 // returned string should be freed with free()
 char *am_format(const char *fmt, ...);
+
+bool am_file_exists(const char *filename);

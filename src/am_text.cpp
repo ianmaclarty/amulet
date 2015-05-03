@@ -19,7 +19,7 @@ static int load_font(lua_State *L) {
     const char *name = luaL_checkstring(L, 1);
     int len;
     char *errmsg;
-    void *data = am_read_resource(name, &len, false, &errmsg);
+    void *data = am_read_resource(name, &len, &errmsg);
     if (data == NULL) {
         lua_pushstring(L, errmsg);
         free(errmsg);
