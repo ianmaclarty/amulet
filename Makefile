@@ -20,6 +20,8 @@ EXTRA_PREREQS =
 ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = lua ft2
   AMULET = $(BUILD_BIN_DIR)/amulet.html
+else ifeq ($(TARGET_PLATFORM),ios)
+  AM_DEPS = lua ft2
 else ifeq ($(TARGET_PLATFORM),win32)
   AM_DEPS = $(LUAVM) ft2
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(LIBTURBOJPEG_WIN_PREBUILT)
@@ -68,6 +70,14 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(DEFAULT_HTML_EDITOR_SCRIPT) $(EMSCRIPT
 	cp $(DEFAULT_HTML_EDITOR_SCRIPT) main.lua
 	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	rm main.lua
+	@$(PRINT_BUILD_DONE_MSG)
+else ifeq ($(TARGET_PLATFORM),ios)
+# Just build the static library for iOS. Building the executable works,
+# but I don't know how to import that into Xcode.
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
+	rm -f $(AR_OUT_OPT)$@$(ALIB_EXT)
+	"$(AR)" $(AR_OPTS) $(AR_OUT_OPT)$@$(ALIB_EXT) $(AM_OBJ_FILES) 
+	touch $@
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)

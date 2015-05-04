@@ -1,0 +1,11 @@
+#!/bin/sh
+#set -x
+set -e
+output_file=`echo "$@ " | sed 's/^.*-o\([a-zA-Z0-9_\/\.]*\).*$/\1/'`
+armv7_args=`echo "$@ " | sed 's/-o\([a-zA-Z0-9_\/\.]*\)/-o\1-armv7/'`
+armv7s_args=`echo "$@ " | sed 's/-o\([a-zA-Z0-9_\/\.]*\)/-o\1-armv7s/'`
+arm64_args=`echo "$@ " | sed 's/-o\([a-zA-Z0-9_\/\.]*\)/-o\1-arm64/'`
+clang $AM_ARMV7_FLAGS $armv7_args
+#clang $AM_ARMV7S_FLAGS $armv7s_args
+clang $AM_ARM64_FLAGS $arm64_args
+lipo -create $output_file-armv7 $output_file-arm64 -output $output_file

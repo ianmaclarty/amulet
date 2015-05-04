@@ -121,6 +121,7 @@ TARGET_CFLAGS=
 ifeq ($(TARGET_PLATFORM),osx)
   CC = clang
   CPP = clang++
+  LINK = clang++
   LUA_TARGET = macosx
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -m64 -arch x86_64
@@ -131,6 +132,29 @@ ifeq ($(TARGET_PLATFORM),osx)
   LUA_CFLAGS += -DLUA_USE_POSIX
   MACOSX_DEPLOYMENT_TARGET=10.6
   export MACOSX_DEPLOYMENT_TARGET
+else ifeq ($(TARGET_PLATFORM),ios)
+  CC = $(SELF_DIR)tools/ioscc
+  CPP = $(SELF_DIR)tools/iosc++
+  LINK = $(CPP)
+  XCODE_PATH=$(shell xcode-select --print-path)
+  SDK_VERSION=$(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
+  SDK_PATH=$(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
+  AM_ARMV7_FLAGS=-arch armv7 -isysroot $(SDK_PATH)
+  export AM_ARMV7_FLAGS
+  AM_ARMV7S_FLAGS=-arch armv7s -isysroot $(SDK_PATH)
+  export AM_ARMV7S_FLAGS
+  AM_ARM64_FLAGS=-arch arm64 -isysroot $(SDK_PATH)
+  export AM_ARM64_FLAGS
+  LUA_TARGET = generic
+  XCFLAGS += -ObjC++
+  TARGET_CFLAGS += -miphoneos-version-min=4.3 
+  XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+	     -Wl,-framework,CoreAudio -Wl,-framework,UIKit \
+	     -Wl,-framework,QuartzCore -Wl,-framework,Foundation \
+	     $(TARGET_CFLAGS)
+  LUA_CFLAGS += -DLUA_USE_POSIX
+  IPHONEOS_DEPLOYMENT_TARGET=4.3
+  export IPHONEOS_DEPLOYMENT_TARGET
 else ifeq ($(TARGET_PLATFORM),html)
   CC = emcc
   CPP = em++

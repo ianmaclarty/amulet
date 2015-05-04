@@ -61,10 +61,10 @@ prepare_environment() {
     LDFLAGS="-L$SDK_PATH/usr/lib/ -isysroot $SDK_PATH \
              -miphoneos-version-min=$MIN_OS_VERSION -static-libgcc"
     export CXXFLAGS="$CFLAGS"
-    export CXXCPP="$DEV_PATH/usr/bin/llvm-cpp-4.2"
+    export CXXCPP="$DEV_PATH/usr/bin/clang++"
     export CPP="$CXXCPP"
-    export CXX="$DEV_PATH/usr/bin/llvm-g++-4.2"
-    export CC="$DEV_PATH/usr/bin/llvm-gcc-4.2"
+    export CXX="$DEV_PATH/usr/bin/clang++"
+    export CC="$DEV_PATH/usr/bin/clang"
     export LD="$DEV_PATH/usr/bin/ld"
     export AR="$DEV_PATH/usr/bin/ar"
     export AS="$DEV_PATH/usr/bin/ls"

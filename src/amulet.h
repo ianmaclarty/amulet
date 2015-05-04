@@ -1,8 +1,10 @@
 #if defined(AM_LINUX32) || defined(AM_LINUX64)
     #define AM_LINUX
 #endif
-#if defined(AM_WIN32) || defined(AM_OSX) || defined(AM_LINUX) || defined(AM_ANDROID) || defined(AM_IOS)
+#if defined(AM_WIN32) || defined(AM_OSX) || defined(AM_LINUX) || defined(AM_ANDROID)
     #define AM_BACKEND_SDL
+#elif defined(AM_IOS)
+    #define AM_BACKEND_IOS
 #elif defined(AM_HTML)
     #define AM_BACKEND_EMSCRIPTEN
     #include <emscripten.h>

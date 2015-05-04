@@ -14,6 +14,9 @@
     #endif
 #elif defined(AM_BACKEND_EMSCRIPTEN)
     #include <GLES2/gl2.h>
+#elif defined(AM_BACKEND_IOS)
+    #include <OpenGLES/ES2/gl.h>
+    #include <OpenGLES/ES2/glext.h>
 #else
     #error unknown backend
 #endif
