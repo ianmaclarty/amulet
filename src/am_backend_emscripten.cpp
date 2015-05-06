@@ -19,6 +19,7 @@ static int report_status(lua_State *L, int status);
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
+    am_display_orientation orientation,
     int top, int left,
     int width, int height,
     const char *title,

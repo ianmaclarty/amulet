@@ -5,6 +5,7 @@
 am_package* am_open_package(const char *filename, char **errmsg) {
     am_package *pkg = (am_package*)malloc(sizeof(am_package));
     pkg->handle = (mz_zip_archive*)malloc(sizeof(mz_zip_archive));
+    memset(pkg->handle, 0, sizeof(mz_zip_archive));
     if (!mz_zip_reader_init_file((mz_zip_archive*)pkg->handle, filename, MZ_ZIP_FLAG_CASE_SENSITIVE)) {
         free(pkg->handle);
         free(pkg);

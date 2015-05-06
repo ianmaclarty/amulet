@@ -6,8 +6,15 @@ enum am_window_mode {
     AM_WINDOW_MODE_FULLSCREEN_DESKTOP,
 };
 
+enum am_display_orientation {
+    AM_DISPLAY_ORIENTATION_PORTRAIT,
+    AM_DISPLAY_ORIENTATION_LANDSCAPE,
+    AM_DISPLAY_ORIENTATION_ANY,
+};
+
 am_native_window *am_create_native_window(
     am_window_mode mode,
+    am_display_orientation orientation,
     int top, int left,
     int width, int height,
     const char *title,

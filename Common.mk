@@ -149,8 +149,9 @@ else ifeq ($(TARGET_PLATFORM),ios)
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -miphoneos-version-min=4.3 
   XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
-	     -Wl,-framework,CoreAudio -Wl,-framework,UIKit \
-	     -Wl,-framework,QuartzCore -Wl,-framework,Foundation \
+	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
+	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
+	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
 	     $(TARGET_CFLAGS)
   LUA_CFLAGS += -DLUA_USE_POSIX
   IPHONEOS_DEPLOYMENT_TARGET=4.3

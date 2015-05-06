@@ -86,6 +86,7 @@ typedef enum {
     ENUM_am_cull_face_mode,
     ENUM_am_draw_mode,
     ENUM_am_window_mode,
+    ENUM_am_display_orientation,
 
     AM_TRACEBACK_FUNC,
 

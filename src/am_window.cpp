@@ -3,6 +3,8 @@
 #define DEFAULT_WIN_WIDTH 640
 #define DEFAULT_WIN_HEIGHT 480
 
+am_framebuffer_id am_default_framebuffer = 0;
+
 struct am_window : am_nonatomic_userdata {
     bool                needs_closing;
     am_native_window   *native_win;
@@ -27,6 +29,7 @@ static int create_window(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
     am_window_mode mode = AM_WINDOW_MODE_WINDOWED;
+    am_display_orientation orientation = AM_DISPLAY_ORIENTATION_ANY;
     int top = -1;
     int left = -1;
     int width = DEFAULT_WIN_WIDTH;
@@ -44,6 +47,8 @@ static int create_window(lua_State *L) {
         const char *key = luaL_checkstring(L, -2);
         if (strcmp(key, "mode") == 0) {
             mode = am_get_enum(L, am_window_mode, -1);
+        } else if (strcmp(key, "orientation") == 0) {
+            orientation = am_get_enum(L, am_display_orientation, -1);
         } else if (strcmp(key, "top") == 0) {
             top = luaL_checkinteger(L, -1);
         } else if (strcmp(key, "left") == 0) {
@@ -84,6 +89,7 @@ static int create_window(lua_State *L) {
     win->needs_closing = false;
     win->native_win = am_create_native_window(
         mode,
+        orientation,
         top, left,
         width, height,
         title,
@@ -209,7 +215,7 @@ static void draw_windows() {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
             am_get_native_window_size(win->native_win, &win->width, &win->height);
-            rstate->setup(0, true, win->width, win->height, win->has_depth_buffer);
+            rstate->setup(am_default_framebuffer, true, win->width, win->height, win->has_depth_buffer);
             win->root->render(rstate);
             am_native_window_post_render(win->native_win);
         }
@@ -362,6 +368,14 @@ void am_open_window_module(lua_State *L) {
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_window_mode, window_mode_enum);
+
+    am_enum_value orientation_enum[] = {
+        {"portrait",    AM_DISPLAY_ORIENTATION_PORTRAIT},
+        {"landscape",   AM_DISPLAY_ORIENTATION_LANDSCAPE},
+        {"any",         AM_DISPLAY_ORIENTATION_ANY},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_display_orientation, orientation_enum);
 
     lua_newtable(L);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);

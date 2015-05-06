@@ -68,6 +68,7 @@ static bool check_for_package();
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
+    am_display_orientation orientation,
     int top, int left,
     int width, int height,
     const char *title,
