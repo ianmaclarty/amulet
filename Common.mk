@@ -101,7 +101,7 @@ AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
 LUA_TARGET = posix
-XCFLAGS = -DLUA_COMPAT_ALL -Wall -Werror -ffast-math -pthread -fno-strict-aliasing
+XCFLAGS = -DLUA_COMPAT_ALL -Wall -Wno-unused -Werror -ffast-math -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
 LUA_LDFLAGS = 
@@ -147,14 +147,15 @@ else ifeq ($(TARGET_PLATFORM),ios)
   export AM_ARM64_FLAGS
   LUA_TARGET = generic
   XCFLAGS += -ObjC++
-  TARGET_CFLAGS += -miphoneos-version-min=4.3 
+  TARGET_CFLAGS += -miphoneos-version-min=5.0
   XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
+	     -Wl,-framework,GLKit \
 	     $(TARGET_CFLAGS)
   LUA_CFLAGS += -DLUA_USE_POSIX
-  IPHONEOS_DEPLOYMENT_TARGET=4.3
+  IPHONEOS_DEPLOYMENT_TARGET=5.0
   export IPHONEOS_DEPLOYMENT_TARGET
 else ifeq ($(TARGET_PLATFORM),html)
   CC = emcc

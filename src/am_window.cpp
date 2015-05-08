@@ -19,7 +19,6 @@ struct am_window : am_nonatomic_userdata {
     bool                lock_pointer;
     am_window_mode      mode;
     bool                dirty;
-    am_framebuffer_id   framebuffer;
 };
 
 static std::vector<am_window*> windows;
@@ -96,12 +95,11 @@ static int create_window(lua_State *L) {
         borderless,
         depth_buffer,
         stencil_buffer,
-        msaa_samples,
-        &win->framebuffer);
-    am_get_native_window_size(win->native_win, &win->width, &win->height);
+        msaa_samples);
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
+    am_get_native_window_size(win->native_win, &win->width, &win->height);
 
     win->root = NULL;
     win->root_ref = LUA_NOREF;
@@ -215,7 +213,7 @@ static void draw_windows() {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
             am_get_native_window_size(win->native_win, &win->width, &win->height);
-            rstate->setup(win->framebuffer, true, win->width, win->height, win->has_depth_buffer);
+            rstate->setup(0, true, win->width, win->height, win->has_depth_buffer);
             win->root->render(rstate);
             am_native_window_post_render(win->native_win);
         }

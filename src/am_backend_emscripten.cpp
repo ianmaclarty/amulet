@@ -27,8 +27,7 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples,
-    am_framebuffer_id *framebuffer)
+    int msaa_samples)
 {
     if (sdl_window != NULL) return NULL;
     *framebuffer = 0;
@@ -86,6 +85,7 @@ void am_destroy_native_window(am_native_window* win) {
 }
 
 void am_native_window_pre_render(am_native_window* win) {
+    am_bind_framebuffer(0);
 }
 
 void am_native_window_post_render(am_native_window* win) {

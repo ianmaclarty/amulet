@@ -71,7 +71,11 @@ void am_render_state::update_state() {
 }
 
 void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer) {
-    am_bind_framebuffer(fb);
+    if (fb != 0) {
+        // default framebuffer should be bound by backend-specific code
+        // in am_native_window_pre_render
+        am_bind_framebuffer(fb);
+    }
     viewport_state.set(0, 0, w, h);
     depth_test_state.set(has_depthbuffer, AM_DEPTH_FUNC_LESS);
     if (clear) am_clear_framebuffer(true, true, true);

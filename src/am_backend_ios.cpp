@@ -11,6 +11,7 @@
 #import <UIKit/UIKit.h>
 #import <AudioToolbox/AudioServices.h>
 #import <CoreMotion/CoreMotion.h>
+#import <GLKit/GLKit.h>
 
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
@@ -19,13 +20,13 @@
 
 static lua_State *ios_L = NULL;
 static am_package *package = NULL;
-static am_display_orientation ios_orientation = AM_DISPLAY_ORIENTATION_PORTRAIT;
+static am_display_orientation ios_orientation = AM_DISPLAY_ORIENTATION_ANY;
 static bool ios_window_created = false;
 static bool ios_running = false;
 //static bool init_run = false;
-static am_framebuffer_id ios_window_framebuffer_id = 0;
-static int screen_width = 0;
-static int screen_height = 0;
+
+static GLKView *ios_view = nil;
+static GLKViewController *ios_view_controller = nil;
 
 static double t0;
 static double t_debt;
@@ -127,11 +128,6 @@ static void ios_launch_url(const char *url) {
 // ---------------------------------------------------------------------------
 
 
-@class AMViewController;
-@class AMView;
-static AMViewController *am_view_controller = nil;
-static AMView *am_view = nil;
-
 static void set_audio_category() {
     UInt32 category = kAudioSessionCategory_AmbientSound;
     AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
@@ -190,11 +186,6 @@ static void ios_init() {
     t_debt = 0.0;
 }
 
-static void set_view_controller(AMViewController *view_c) {
-    am_view_controller = view_c;
-    [am_view_controller retain];
-}
-
 static void ios_teardown() {
     ios_running = false;
     if (ios_L != NULL) {
@@ -207,15 +198,6 @@ static void ios_teardown() {
     if (package != NULL) {
         am_close_package(package);
     }
-    if (am_view_controller != nil) {
-        [am_view_controller release];
-        am_view_controller = nil;
-    }
-}
-
-static void ios_resize(int width, int height) {
-    screen_width = width;
-    screen_height = height;
 }
 
 // This is used to decide whether rotations should
@@ -226,17 +208,21 @@ static void ios_resize(int width, int height) {
 // allow the initial rotation).
 static int frames_since_disable_animations = 0;
 
-static void ios_render() {
-    if (frames_since_disable_animations == 60) {
-        [UIView setAnimationsEnabled:YES];
-    }
-    frames_since_disable_animations++;
-
+static void ios_draw() {
     if (!ios_running) return;
     if (!am_update_windows(ios_L)) {
         ios_running = false;
         return;
     }
+    //am_debug("%s", "done drawing");
+}
+
+static void ios_update() {
+    if (frames_since_disable_animations == 60) {
+        [UIView setAnimationsEnabled:YES];
+    }
+    frames_since_disable_animations++;
+    if (!ios_running) return;
 
     frame_time = am_get_current_time();
     
@@ -244,7 +230,8 @@ static void ios_render() {
     if (am_conf_warn_delta_time > 0.0 && real_delta_time > am_conf_warn_delta_time) {
         am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);
     }
-    delta_time = am_min(am_conf_min_delta_time, real_delta_time); // fmin in case process was suspended, or last frame took very long
+    // take min in case app paused, or last frame took very long
+    delta_time = am_min(am_conf_min_delta_time, real_delta_time); 
     t_debt += delta_time;
 
     if (am_conf_fixed_delta_time > 0.0) {
@@ -337,247 +324,9 @@ static void ios_become_active() {
     frames_since_disable_animations = 0;
 }
 
-
-
-
-
-@interface AMView : UIView {    
-@private
-    EAGLContext *glContext;
-    
-    GLint backingWidth;
-    GLint backingHeight;
-    
-    GLuint defaultFramebuffer, colorRenderbuffer, depthRenderbuffer;
-
-    BOOL animating;
-    NSInteger animationFrameInterval;
-    id displayLink;
-}
-
-@property (readonly, nonatomic, getter=isAnimating) BOOL animating;
-@property (nonatomic) NSInteger animationFrameInterval;
-
-- (void) startAnimation;
-- (void) stopAnimation;
-- (void) drawView:(id)sender;
-
-@end
-
-@implementation AMView
-
-@synthesize animating;
-@dynamic animationFrameInterval;
-
-+ (Class) layerClass {
-    return [CAEAGLLayer class];
-}
-
-- (id)initWithFrame:(CGRect)frame {    
-    if ((self = [super initWithFrame:frame])) {
-        CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
-        
-        eaglLayer.opaque = TRUE;
-        eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
-                                        [NSNumber numberWithBool:FALSE], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
-        
-        depthRenderbuffer = 0;
-
-        glContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-            
-        if (!glContext || ![EAGLContext setCurrentContext:glContext]) {
-            am_log0("%s", "failed to create glContext");
-            return nil;
-        } else {
-            am_debug("%s", "successfully created glContext");
-        }
-
-        glGenFramebuffers(1, &defaultFramebuffer);
-        ios_window_framebuffer_id = defaultFramebuffer;
-        glGenRenderbuffers(1, &colorRenderbuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer);
-        glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderbuffer);
-        
-        ios_init();
-            
-        animating = FALSE;
-        animationFrameInterval = 1;
-        displayLink = nil;
-
-        // Needed for retina display.
-        if([[UIScreen mainScreen] respondsToSelector: NSSelectorFromString(@"scale")]) {
-            if([self respondsToSelector: NSSelectorFromString(@"contentScaleFactor")]) {
-                self.contentScaleFactor = [[UIScreen mainScreen] scale];
-            }
-        }
-        
-        [self setMultipleTouchEnabled:YES]; 
-    }
-    
-    return self;
-}
-
-- (void) drawView:(id)sender {
-    //fprintf(stderr, "render\n");
-    /*
-    if (!init_run) {
-        ios_init();
-        init_run = true;
-    }
-    */
-
-    ios_render();
-    
-    /*
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glMatrixMode(GL_PROJECTION); 
-    glLoadIdentity();
-    glViewport(0, 0, backingWidth, backingHeight);
-    glOrthof(0.0f, 6.0f, 0.0f, 9.0f, -1.0f, 1.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    GLfloat vertices[8];
-    GLfloat x1 = 1.0f;
-    GLfloat y1 = 1.0f;
-    GLfloat x2 = 3.0f;
-    GLfloat y2 = 3.0f;
-    vertices[0] = x1;
-    vertices[1] = y1;
-    vertices[2] = x2;
-    vertices[3] = y1;
-    vertices[4] = x2;
-    vertices[5] = y2;
-    vertices[6] = x1;
-    vertices[7] = y2;
-    glVertexPointer(2, GL_FLOAT, 0, vertices);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    */
-    
-    glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
-    [glContext presentRenderbuffer:GL_RENDERBUFFER];
-}
-
-- (void) layoutSubviews {
-    am_debug("%s", "layoutSubviews");
-    glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
-    [glContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
-    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &backingWidth);
-    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &backingHeight);
-    
-    if (depthRenderbuffer) {
-        glDeleteRenderbuffers(1, &depthRenderbuffer);
-    }
-    glGenRenderbuffers(1, &depthRenderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, backingWidth, backingHeight);
-    glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
-    
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        NSLog(@"Failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
-        return;
-    }
-    
-    ios_resize(backingWidth, backingHeight);
-    
-    [self drawView:nil];
-}
-
-- (NSInteger) animationFrameInterval {
-    return animationFrameInterval;
-}
-
-- (void) setAnimationFrameInterval:(NSInteger)frameInterval {
-    if (frameInterval >= 1) {
-        animationFrameInterval = frameInterval;
-        if (animating) {
-            [self stopAnimation];
-            [self startAnimation];
-        }
-    }
-}
-
-- (void) startAnimation {
-    if (!animating) {
-        displayLink = [NSClassFromString(@"CADisplayLink") displayLinkWithTarget:self selector:@selector(drawView:)];
-        [displayLink setFrameInterval:animationFrameInterval];
-        [displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-        
-        animating = TRUE;
-    }
-}
-
-- (void)stopAnimation {
-    if (animating) {
-        [displayLink invalidate];
-        displayLink = nil;
-        
-        animating = FALSE;
-    }
-}
-
-- (void) dealloc {
-    ios_teardown();
-    
-    // Tear down GL
-    if (depthRenderbuffer) {
-        glDeleteRenderbuffers(1, &depthRenderbuffer);
-        depthRenderbuffer = 0;
-    }
-    
-    if (defaultFramebuffer) {
-        glDeleteFramebuffers(1, &defaultFramebuffer);
-        defaultFramebuffer = 0;
-    }
-    
-    if (colorRenderbuffer) {
-        glDeleteRenderbuffers(1, &colorRenderbuffer);
-        colorRenderbuffer = 0;
-    }
-    
-    // Tear down context
-    if ([EAGLContext currentContext] == glContext) {
-        [EAGLContext setCurrentContext:nil];
-    }
-    
-    [glContext release];
-    glContext = nil;
-    
-    [super dealloc];
-}
-
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    ios_touch_began(touches);
-}
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{    
-    ios_touch_moved(touches);
-}
-
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{    
-    ios_touch_ended(touches);
-}
-
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    ios_touch_cancelled(touches);
-}
-
-@end
-
-
 static CMMotionManager *motionManager = nil;
 
-
-@interface AMViewController : UIViewController { }
+@interface AMViewController : GLKViewController { }
 @end
 
 static UIInterfaceOrientation last_orientation = UIInterfaceOrientationLandscapeLeft;
@@ -614,44 +363,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 @implementation AMViewController
 
-- (void)loadView {
-    [super loadView];
-    // Turn off orientation change animations initially
-    // to avoid an orientation change animation after loading.
-    [UIView setAnimationsEnabled:NO];
-
-    AudioSessionInitialize(NULL, NULL, audio_interrupt, NULL);
-    set_audio_category();
-    AudioSessionSetActive(true);
-
-
-
-    CGRect screen_bounds = [[UIScreen mainScreen] bounds];
-    CGFloat screen_w = screen_bounds.size.width;
-    CGFloat screen_h = screen_bounds.size.height;
-    switch (ios_orientation) {
-        case AM_DISPLAY_ORIENTATION_PORTRAIT:
-            if (screen_w > screen_h) {
-                CGFloat tmp = screen_w;
-                screen_w = screen_h;
-                screen_h = tmp;
-            }
-            break;
-        case AM_DISPLAY_ORIENTATION_LANDSCAPE:
-            if (screen_w < screen_h) {
-                CGFloat tmp = screen_w;
-                screen_w = screen_h;
-                screen_h = tmp;
-            }
-            break;
-        case AM_DISPLAY_ORIENTATION_ANY:
-            break;
-    }
-    CGRect frame = CGRectMake(0, 0, screen_w, screen_h);
-    am_view = [[[AMView alloc] initWithFrame:frame] autorelease];
-    [[self view] addSubview: am_view];
-}
-
 - (void)dealloc {
     [super dealloc];
 }
@@ -663,6 +374,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 - (void)viewDidLoad
 {
+    [super viewDidLoad];
 }
 
 - (void)viewDidUnload
@@ -672,20 +384,13 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)orientation
 {
-    am_debug("%s %d", "shouldAutorotateToInterfaceOrientation", ios_orientation);
+    //am_debug("%s", "shouldAutorotateToInterfaceOrientation");
     return handle_orientation(orientation);
-}
-
-- (BOOL)shouldAutorotate {
-    am_debug("%s %d", "shouldAutorotate", ios_orientation);
-    UIInterfaceOrientation orientation = [[UIDevice currentDevice] orientation];
-    return handle_orientation(orientation);
-    //return YES;
 }
 
 -(NSUInteger)supportedInterfaceOrientations
 {
-    am_debug("%s", "supportedInterfaceOrientations");
+    //am_debug("%s", "supportedInterfaceOrientations");
     switch (ios_orientation) {
         case AM_DISPLAY_ORIENTATION_PORTRAIT: 
             return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
@@ -697,33 +402,71 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     }
 }
 
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+{
+    //am_debug("%s", "preferredInterfaceOrientationForPresentation");
+    switch (ios_orientation) {
+        case AM_DISPLAY_ORIENTATION_PORTRAIT:
+            return UIInterfaceOrientationPortrait;
+        case AM_DISPLAY_ORIENTATION_LANDSCAPE:
+            return UIInterfaceOrientationLandscapeLeft;
+        case AM_DISPLAY_ORIENTATION_ANY:
+            return UIInterfaceOrientationPortrait;
+    }
+}
+
 -(BOOL)prefersStatusBarHidden
 {
-    // XXX
     return YES;
 }
 
 @end
 
 
-static UIWindow *window;
-static AMViewController *viewController;
+@interface AMAppDelegate : UIResponder <UIApplicationDelegate, GLKViewDelegate, GLKViewControllerDelegate>
 
-@interface AMAppDelegate : NSObject <UIApplicationDelegate> { }
+@property (strong, nonatomic) UIWindow *window;
+
 @end
 
 @implementation AMAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
-    [window retain];
-    viewController = [[[AMViewController alloc] init] autorelease];
-    [viewController retain];
-    [window addSubview:viewController.view];
-    window.rootViewController = viewController;
-    [window makeKeyAndVisible];
-    set_view_controller(viewController);
+    // Prevent rotate animation when application launches.
+    [UIView setAnimationsEnabled:NO];
+
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+ 
+    EAGLContext * context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    GLKView *view = [[GLKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    view.context = context;
+    view.delegate = self;
+    ios_view = view;
+
+    [EAGLContext setCurrentContext:context];
+
+    ios_init();
+ 
+    GLKViewController * viewController = [[AMViewController alloc] initWithNibName:nil bundle:nil];
+    viewController.view = view;
+    viewController.delegate = self;
+    viewController.preferredFramesPerSecond = 60; // XXX
+    self.window.rootViewController = viewController;
+    ios_view_controller = viewController;
+ 
+    //self.window.backgroundColor = [UIColor whiteColor];
+    [self.window makeKeyAndVisible];
     return YES;
+}
+
+- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect {
+    //am_debug("%s", "draw"); 
+    ios_draw();
+}
+
+- (void)glkViewControllerUpdate:(GLKViewController *)controller {
+    //am_debug("%s", "update"); 
+    ios_update();
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
@@ -738,17 +481,35 @@ static AMViewController *viewController;
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     ios_resign_active();
-    [am_view stopAnimation];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     ios_become_active();
-    [am_view startAnimation];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    ios_touch_began(touches);
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{    
+    ios_touch_moved(touches);
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{    
+    ios_touch_ended(touches);
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    ios_touch_cancelled(touches);
 }
 
 - (void)dealloc
@@ -814,8 +575,6 @@ int main(int argc, char *argv[]) {
     return retVal;
 }
 
-int native_window = 1;
-
 am_native_window *am_create_native_window(
     am_window_mode mode,
     am_display_orientation orientation,
@@ -826,24 +585,28 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples,
-    am_framebuffer_id *framebuffer)
+    int msaa_samples)
 {
     if (ios_window_created) {
+        am_log0("%s", "attempt to create two iOS windows");
         return NULL;
     }
+    ios_window_created = true;
     if (!am_gl_is_initialized()) {
         am_init_gl();
     }
-    ios_window_created = true;
-    //ios_orientation = orientation;
-    *framebuffer = ios_window_framebuffer_id;
-    return (am_native_window*)&native_window;
+    ios_orientation = orientation;
+    if (ios_view == nil) {
+        am_log0("%s", "ios_view not initialized!");
+        return NULL;
+    }
+    return (am_native_window*)ios_view;
 }
 
 void am_get_native_window_size(am_native_window *window, int *w, int *h) {
-    *w = screen_width;
-    *h = screen_height;
+    GLKView *view = (GLKView*)window;
+    *w = view.drawableWidth;
+    *h = view.drawableHeight;
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
@@ -857,6 +620,7 @@ void am_destroy_native_window(am_native_window *window) {
 }
 
 void am_native_window_pre_render(am_native_window *window) {
+    // default framebuffer will be bound automatically by GLKView
 }
 
 void am_native_window_post_render(am_native_window *window) {
