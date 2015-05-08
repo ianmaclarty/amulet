@@ -27,9 +27,11 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples)
+    int msaa_samples,
+    am_framebuffer_id *framebuffer)
 {
     if (sdl_window != NULL) return NULL;
+    *framebuffer = 0;
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);

@@ -76,7 +76,8 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples)
+    int msaa_samples,
+    am_framebuffer_id *framebuffer)
 {
     if (!sdl_initialized) {
         init_sdl();
@@ -85,6 +86,7 @@ am_native_window *am_create_native_window(
         SDL_GL_MakeCurrent(main_window, gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     }
+    *framebuffer = 0;
 #if defined(AM_GLPROFILE_ES)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);

@@ -59,6 +59,7 @@ extern "C" {
 
 #include "am_util.h"
 #include "am_package.h"
+#include "am_gl.h"
 #include "am_backend.h"
 #include "am_time.h"
 #include "am_input.h"
@@ -68,7 +69,6 @@ extern "C" {
 #include "am_options.h"
 #include "am_reserved_refs.h"
 #include "am_logging.h"
-#include "am_gl.h"
 #include "am_lua_util.h"
 #include "am_math.h"
 #include "am_window.h"

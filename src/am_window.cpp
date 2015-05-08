@@ -3,8 +3,6 @@
 #define DEFAULT_WIN_WIDTH 640
 #define DEFAULT_WIN_HEIGHT 480
 
-am_framebuffer_id am_default_framebuffer = 0;
-
 struct am_window : am_nonatomic_userdata {
     bool                needs_closing;
     am_native_window   *native_win;
@@ -21,6 +19,7 @@ struct am_window : am_nonatomic_userdata {
     bool                lock_pointer;
     am_window_mode      mode;
     bool                dirty;
+    am_framebuffer_id   framebuffer;
 };
 
 static std::vector<am_window*> windows;
@@ -97,7 +96,8 @@ static int create_window(lua_State *L) {
         borderless,
         depth_buffer,
         stencil_buffer,
-        msaa_samples);
+        msaa_samples,
+        &win->framebuffer);
     am_get_native_window_size(win->native_win, &win->width, &win->height);
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
@@ -215,7 +215,7 @@ static void draw_windows() {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
             am_get_native_window_size(win->native_win, &win->width, &win->height);
-            rstate->setup(am_default_framebuffer, true, win->width, win->height, win->has_depth_buffer);
+            rstate->setup(win->framebuffer, true, win->width, win->height, win->has_depth_buffer);
             win->root->render(rstate);
             am_native_window_post_render(win->native_win);
         }

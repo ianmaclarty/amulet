@@ -22,7 +22,8 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples);
+    int msaa_samples,
+    am_framebuffer_id *framebuffer);
 
 void am_get_native_window_size(am_native_window *window, int *w, int *h);
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode);

@@ -19,10 +19,11 @@
 
 static lua_State *ios_L = NULL;
 static am_package *package = NULL;
-static am_display_orientation ios_orientation = AM_DISPLAY_ORIENTATION_ANY;
+static am_display_orientation ios_orientation = AM_DISPLAY_ORIENTATION_PORTRAIT;
 static bool ios_window_created = false;
 static bool ios_running = false;
-static bool init_run = false;
+//static bool init_run = false;
+static am_framebuffer_id ios_window_framebuffer_id = 0;
 static int screen_width = 0;
 static int screen_height = 0;
 
@@ -390,14 +391,16 @@ static void ios_become_active() {
         } else {
             am_debug("%s", "successfully created glContext");
         }
-            
+
         glGenFramebuffers(1, &defaultFramebuffer);
-        am_default_framebuffer = defaultFramebuffer;
+        ios_window_framebuffer_id = defaultFramebuffer;
         glGenRenderbuffers(1, &colorRenderbuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer);
         glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderbuffer);
         
+        ios_init();
+            
         animating = FALSE;
         animationFrameInterval = 1;
         displayLink = nil;
@@ -417,10 +420,12 @@ static void ios_become_active() {
 
 - (void) drawView:(id)sender {
     //fprintf(stderr, "render\n");
+    /*
     if (!init_run) {
         ios_init();
         init_run = true;
     }
+    */
 
     ios_render();
     
@@ -575,7 +580,7 @@ static CMMotionManager *motionManager = nil;
 @interface AMViewController : UIViewController { }
 @end
 
-static UIInterfaceOrientation last_orientation = UIInterfaceOrientationPortrait;
+static UIInterfaceOrientation last_orientation = UIInterfaceOrientationLandscapeLeft;
 static bool has_rotated = false;
 
 static BOOL handle_orientation(UIInterfaceOrientation orientation) {
@@ -667,21 +672,29 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)orientation
 {
+    am_debug("%s %d", "shouldAutorotateToInterfaceOrientation", ios_orientation);
     return handle_orientation(orientation);
 }
 
 - (BOOL)shouldAutorotate {
-    /*
+    am_debug("%s %d", "shouldAutorotate", ios_orientation);
     UIInterfaceOrientation orientation = [[UIDevice currentDevice] orientation];
     return handle_orientation(orientation);
-    */
-    return YES;
+    //return YES;
 }
 
 -(NSUInteger)supportedInterfaceOrientations
 {
-    // XXX
-    return UIInterfaceOrientationMaskLandscapeRight | UIInterfaceOrientationMaskLandscapeLeft;
+    am_debug("%s", "supportedInterfaceOrientations");
+    switch (ios_orientation) {
+        case AM_DISPLAY_ORIENTATION_PORTRAIT: 
+            return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
+        case AM_DISPLAY_ORIENTATION_LANDSCAPE:
+            return UIInterfaceOrientationMaskLandscapeRight | UIInterfaceOrientationMaskLandscapeLeft;
+        case AM_DISPLAY_ORIENTATION_ANY:
+            return UIInterfaceOrientationMaskLandscapeRight | UIInterfaceOrientationMaskLandscapeLeft
+            | UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
+    }
 }
 
 -(BOOL)prefersStatusBarHidden
@@ -813,7 +826,8 @@ am_native_window *am_create_native_window(
     bool borderless,
     bool depth_buffer,
     bool stencil_buffer,
-    int msaa_samples)
+    int msaa_samples,
+    am_framebuffer_id *framebuffer)
 {
     if (ios_window_created) {
         return NULL;
@@ -822,7 +836,8 @@ am_native_window *am_create_native_window(
         am_init_gl();
     }
     ios_window_created = true;
-    ios_orientation = orientation;
+    //ios_orientation = orientation;
+    *framebuffer = ios_window_framebuffer_id;
     return (am_native_window*)&native_window;
 }
 
