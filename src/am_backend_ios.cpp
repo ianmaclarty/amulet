@@ -10,6 +10,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 #import <AudioToolbox/AudioServices.h>
+#import <AudioUnit/AudioUnit.h>
 #import <CoreMotion/CoreMotion.h>
 #import <GLKit/GLKit.h>
 
@@ -23,6 +24,14 @@ static am_package *package = NULL;
 static am_display_orientation ios_orientation = AM_DISPLAY_ORIENTATION_ANY;
 static bool ios_window_created = false;
 static bool ios_running = false;
+static bool ios_audio_initialized = false;
+static bool ios_audio_paused = false;
+static void *ios_audio_buffer = NULL;
+static void *ios_audio_buffer_interleaved = NULL;
+static int ios_audio_offset = 0;
+static int ios_audio_size = 0;
+static NSLock *ios_audio_mutex = [[NSLock alloc] init];
+static bool ios_done_first_draw = false;
 //static bool init_run = false;
 
 static GLKView *ios_view = nil;
@@ -134,9 +143,11 @@ static void set_audio_category() {
 }
 
 static void ios_audio_suspend() {
+    ios_audio_paused = true;
 }
 
 static void ios_audio_resume() {
+    ios_audio_paused = false;
 }
 
 static void audio_interrupt(void *ud, UInt32 state) {
@@ -166,7 +177,150 @@ static bool open_package() {
     return true;
 }
 
-static void ios_init() {
+static OSStatus
+ios_audio_callback(void *inRefCon,
+               AudioUnitRenderActionFlags * ioActionFlags,
+               const AudioTimeStamp * inTimeStamp,
+               UInt32 inBusNumber, UInt32 inNumberFrames,
+               AudioBufferList * ioData)
+{
+    if (!ios_audio_initialized || ios_audio_paused) {
+        for (int i = 0; i < ioData->mNumberBuffers; i++) {
+            AudioBuffer *abuf = &ioData->mBuffers[i];
+            // silence.
+            memset(abuf->mData, 0, abuf->mDataByteSize);
+        }
+        return noErr;
+    }
+
+    int num_channels = am_conf_audio_channels;
+    int num_samples = am_conf_audio_buffer_size;
+    for (int i = 0; i < ioData->mNumberBuffers; i++) {
+        AudioBuffer *abuf = &ioData->mBuffers[i];
+        int remaining = abuf->mDataByteSize;
+        void *ptr = abuf->mData;
+        while (remaining > 0) {
+            if (ios_audio_offset >= ios_audio_size) {
+                // Generate the data
+                memset(ios_audio_buffer, 0, ios_audio_size);
+                am_audio_bus bus(num_channels, num_samples, (float*)ios_audio_buffer);
+                [ios_audio_mutex lock];
+                am_fill_audio_bus(&bus);
+                [ios_audio_mutex unlock];
+                ios_audio_offset = 0;
+                // CoreAudio expects channels to be interleaved
+                for (int c = 0; c < num_channels; c++) {
+                    for (int j = 0; j < num_samples; j++) {
+                        ((float*)ios_audio_buffer_interleaved)[j * num_channels + c] = bus.channel_data[c][j];
+                    }
+                }
+            }
+
+            int len = ios_audio_size - ios_audio_offset;
+            if (len > remaining) {
+                len = remaining;
+            }
+            memcpy(ptr, (char *)ios_audio_buffer_interleaved + ios_audio_offset, len);
+            /*
+            for (int k = 0; k < len/4; k++) {
+                fprintf(stderr, "ptr[%d] = %f", k, ((float*)ptr)[k]);
+            }
+            */
+            ptr = (char *)ptr + len;
+            remaining -= len;
+            ios_audio_offset += len;
+        }
+    }
+
+    return noErr;
+}
+
+static void ios_init_audio() {
+    AURenderCallbackStruct callback;
+    AudioStreamBasicDescription strdesc;
+    AudioComponentDescription desc;
+    AudioComponent comp = NULL;
+    AudioComponentInstance instance;
+    const AudioUnitElement output_bus = 0;
+    const AudioUnitElement input_bus = 1;
+    const AudioUnitElement bus = output_bus;
+    const AudioUnitScope scope = kAudioUnitScope_Input;
+
+    AudioSessionInitialize(NULL, NULL, audio_interrupt, NULL);
+    set_audio_category();
+    AudioSessionSetActive(true);
+
+    memset(&desc, 0, sizeof(AudioComponentDescription));
+    desc.componentType = kAudioUnitType_Output;
+    desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+    desc.componentSubType = kAudioUnitSubType_RemoteIO;
+    comp = AudioComponentFindNext(NULL, &desc);
+    if (comp == NULL) {
+        am_log0("%s", "WARNING: unable to find suitable audio component");
+        return;
+    }
+
+    if (noErr != AudioComponentInstanceNew(comp, &instance)) {
+        am_log0("%s", "WARNING: failed to create audio instance");
+        return;
+    }
+
+    // set format
+    memset(&strdesc, 0, sizeof(AudioStreamBasicDescription));
+    strdesc.mFormatID = kAudioFormatLinearPCM;
+    strdesc.mFormatFlags = kLinearPCMFormatFlagIsPacked | kLinearPCMFormatFlagIsFloat;
+    strdesc.mChannelsPerFrame = am_conf_audio_channels;
+    strdesc.mSampleRate = am_conf_audio_sample_rate;
+    strdesc.mFramesPerPacket = 1;
+    strdesc.mBitsPerChannel = 8 * sizeof(float);
+    strdesc.mBytesPerFrame =
+        strdesc.mBitsPerChannel * strdesc.mChannelsPerFrame / 8;
+    strdesc.mBytesPerPacket =
+        strdesc.mBytesPerFrame * strdesc.mFramesPerPacket;
+
+    if (noErr != 
+        AudioUnitSetProperty(instance, kAudioUnitProperty_StreamFormat,
+            scope, bus, &strdesc, sizeof(AudioStreamBasicDescription)))
+    {
+        am_log0("%s", "WARNING: unable to set audio format");
+        return;
+    }
+
+    // set callback
+    memset(&callback, 0, sizeof(AURenderCallbackStruct));
+    callback.inputProc = ios_audio_callback;
+    callback.inputProcRefCon = NULL;
+    if (noErr != 
+        AudioUnitSetProperty(instance, kAudioUnitProperty_SetRenderCallback,
+            scope, bus, &callback, sizeof(AURenderCallbackStruct)))
+    {
+        am_log0("%s", "WARNING: unable to set audio callback");
+        return;
+    }
+
+    // create buffer
+    assert(ios_audio_buffer == NULL);
+    assert(ios_audio_buffer_interleaved == NULL);
+    ios_audio_size = sizeof(float) * am_conf_audio_channels * am_conf_audio_buffer_size;
+    ios_audio_buffer = malloc(ios_audio_size);
+    ios_audio_buffer_interleaved = malloc(ios_audio_size);
+    ios_audio_offset = 0;
+
+    // start
+    if (noErr != AudioUnitInitialize(instance)) {
+        am_log0("%s", "WARNING: unable to initialize audio unit");
+        return;
+    }
+
+    if (noErr != AudioOutputUnitStart(instance)) {
+        am_log0("%s", "WARNING: unable to start audio unit");
+        return;
+    }
+
+    ios_audio_initialized = true;
+}
+
+static void ios_init_engine() {
     ios_running = false;
 
     am_opt_data_dir = ios_bundle_path();
@@ -223,6 +377,10 @@ static void ios_update() {
     }
     frames_since_disable_animations++;
     if (!ios_running) return;
+
+    [ios_audio_mutex lock];
+    am_sync_audio_graph(ios_L);
+    [ios_audio_mutex unlock];
 
     frame_time = am_get_current_time();
     
@@ -445,7 +603,8 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
     [EAGLContext setCurrentContext:context];
 
-    ios_init();
+    ios_init_audio();
+    ios_init_engine();
  
     GLKViewController * viewController = [[AMViewController alloc] initWithNibName:nil bundle:nil];
     viewController.view = view;
@@ -462,11 +621,15 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect {
     //am_debug("%s", "draw"); 
     ios_draw();
+    ios_done_first_draw = true;
 }
 
 - (void)glkViewControllerUpdate:(GLKViewController *)controller {
     //am_debug("%s", "update"); 
-    ios_update();
+    if (ios_done_first_draw) {
+        // make sure we do a draw before our first update
+        ios_update();
+    }
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
@@ -514,6 +677,8 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 - (void)dealloc
 {
+    am_debug("%s", "teardown");
+    ios_teardown();
     [super dealloc];
     if (motionManager != nil) {
         [motionManager release];

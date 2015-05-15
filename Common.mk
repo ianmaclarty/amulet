@@ -139,12 +139,15 @@ else ifeq ($(TARGET_PLATFORM),ios)
   XCODE_PATH=$(shell xcode-select --print-path)
   SDK_VERSION=$(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
   SDK_PATH=$(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
+  SIM_SDK_PATH=$(XCODE_PATH)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDK_VERSION).sdk
   AM_ARMV7_FLAGS=-arch armv7 -isysroot $(SDK_PATH)
   export AM_ARMV7_FLAGS
   AM_ARMV7S_FLAGS=-arch armv7s -isysroot $(SDK_PATH)
   export AM_ARMV7S_FLAGS
   AM_ARM64_FLAGS=-arch arm64 -isysroot $(SDK_PATH)
   export AM_ARM64_FLAGS
+  AM_IOSSIM64_FLAGS=-arch x86_64 -isysroot $(SIM_SDK_PATH)
+  export AM_IOSSIM64_FLAGS
   LUA_TARGET = generic
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -miphoneos-version-min=5.0
