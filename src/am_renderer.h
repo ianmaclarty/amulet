@@ -14,10 +14,11 @@ struct am_viewport_state {
 
 struct am_depth_test_state {
     bool                    dirty;
-    bool                    enabled;
+    bool                    test_enabled;
+    bool                    mask_enabled;
     am_depth_func           func;
 
-    void set(bool enabled, am_depth_func func);
+    void set(bool test_enabled, bool mask_enabled, am_depth_func func);
     void restore(am_depth_test_state *old);
     void update();
 };

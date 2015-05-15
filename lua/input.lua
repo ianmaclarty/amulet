@@ -48,6 +48,66 @@ function clear_mouse()
     table.clear(amulet.mouse_button_released)    
 end
 
+-- touches
+
+local max_touches = 10
+local touches = {}
+
+for i = 1, max_touches do
+    touches[i] = {pos = vec2(0)}
+end
+
+function amulet._touch_begin(id, x, y)
+    local free_i = nil
+    for i, touch in ipairs(touches) do
+        if touch.id == id then
+            touch.pos.x = x
+            touch.pos.y = y
+            return
+        elseif not touch.id and not free_i then
+            free_i = i
+        end
+    end
+    if free_i then
+        local touch = touches[free_i]
+        touch.id = id
+        touch.pos.x = x
+        touch.pos.y = y
+    end
+end
+
+function amulet._touch_end(id, x, y)
+    for i, touch in ipairs(touches) do
+        if touch.id == id then
+            touch.id = nil
+            return
+        end
+    end
+end
+
+function amulet._touch_move(id, x, y)
+    for i, touch in ipairs(touches) do
+        if touch.id == id then
+            touch.pos.x = x
+            touch.pos.y = y
+            return
+        end
+    end
+end
+
+function amulet.touch_pos(i)
+    local touch = touches[i]
+    if not touch then
+        return nil
+    else
+        if touch.id then
+            return touch.pos
+        else
+            return nil
+        end
+    end
+end
+
 -- general
 
 function amulet._clear_input()

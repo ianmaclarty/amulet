@@ -17,21 +17,26 @@ void am_viewport_state::update() {
     }
 }
 
-void am_depth_test_state::set(bool enabled, am_depth_func func) {
-    am_depth_test_state::enabled = enabled;
+void am_depth_test_state::set(bool test_enabled, bool mask_enabled, am_depth_func func) {
+    am_depth_test_state::test_enabled = test_enabled;
+    am_depth_test_state::mask_enabled = mask_enabled;
     am_depth_test_state::func = func;
     dirty = true;
 }
 
 void am_depth_test_state::restore(am_depth_test_state *old) {
-    am_depth_test_state::enabled = old->enabled;
+    am_depth_test_state::test_enabled = old->test_enabled;
+    am_depth_test_state::mask_enabled = old->mask_enabled;
     am_depth_test_state::func = old->func;
     dirty = true;
 }
 
 void am_depth_test_state::update() {
     if (dirty) {
-        am_set_depth_test_enabled(enabled);
+        /* XXX broken
+         * am_set_framebuffer_depth_mask(mask_enabled);
+         */
+        am_set_depth_test_enabled(test_enabled);
         am_set_depth_func(func);
         dirty = false;
     }
@@ -77,7 +82,7 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
         am_bind_framebuffer(fb);
     }
     viewport_state.set(0, 0, w, h);
-    depth_test_state.set(has_depthbuffer, AM_DEPTH_FUNC_LESS);
+    depth_test_state.set(has_depthbuffer, has_depthbuffer, has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
     if (clear) am_clear_framebuffer(true, true, true);
 }
 
@@ -182,9 +187,10 @@ am_render_state::am_render_state() {
     viewport_state.h = 0;
     viewport_state.dirty = true;
 
-    depth_test_state.enabled = false;
+    depth_test_state.test_enabled = false;
+    depth_test_state.mask_enabled = false;
     depth_test_state.func = AM_DEPTH_FUNC_LESS;
-    viewport_state.dirty = true;
+    depth_test_state.dirty = true;
 
     max_draw_array_size = 0;
 

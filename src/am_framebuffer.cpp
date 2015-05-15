@@ -20,7 +20,7 @@ static int create_framebuffer(lua_State *L) {
     if (nargs > 1 && lua_toboolean(L, 2)) {
         fb->depth_renderbuffer_id = am_create_renderbuffer();
         am_bind_renderbuffer(fb->depth_renderbuffer_id);
-        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT16,
+        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24,
             fb->width, fb->height);
         am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_DEPTH_ATTACHMENT, fb->depth_renderbuffer_id);
         am_clear_framebuffer(false, true, false); // clear depth buffer

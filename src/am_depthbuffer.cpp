@@ -2,16 +2,20 @@
 
 void am_depth_pass_node::render(am_render_state *rstate) {
     am_depth_test_state old_state = rstate->depth_test_state;
-    rstate->depth_test_state.set(func != AM_DEPTH_FUNC_ALWAYS, func);
+    rstate->depth_test_state.set(func != AM_DEPTH_FUNC_ALWAYS, mask_enabled, func);
     render_children(rstate);
     rstate->depth_test_state.restore(&old_state);
 }
 
 int am_create_depth_pass_node(lua_State *L) {
-    am_check_nargs(L, 2);
+    int nargs = am_check_nargs(L, 2);
     am_depth_pass_node *node = am_new_userdata(L, am_depth_pass_node);
     am_set_scene_node_child(L, node);
     node->func = am_get_enum(L, am_depth_func, 2);
+    node->mask_enabled = true;
+    if (nargs > 2) {
+        node->mask_enabled = lua_toboolean(L, 3);
+    }
     return 1;
 }
 
