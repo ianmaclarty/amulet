@@ -1,10 +1,10 @@
 #include "amulet.h"
 
 void am_depth_pass_node::render(am_render_state *rstate) {
-    am_depth_test_state old_state = rstate->depth_test_state;
-    rstate->depth_test_state.set(func != AM_DEPTH_FUNC_ALWAYS, mask_enabled, func);
+    am_depth_test_state old_state = rstate->active_depth_test_state;
+    rstate->active_depth_test_state.set(func != AM_DEPTH_FUNC_ALWAYS, mask_enabled, func);
     render_children(rstate);
-    rstate->depth_test_state.restore(&old_state);
+    rstate->active_depth_test_state.restore(&old_state);
 }
 
 int am_create_depth_pass_node(lua_State *L) {

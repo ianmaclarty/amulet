@@ -7,25 +7,23 @@ am_viewport_state::am_viewport_state() {
     y = 0;
     w = 0;
     h = 0;
-    dirty = true;
 }
 
 void am_viewport_state::set(int x, int y, int w, int h) {
-    dirty = dirty ||
-        am_viewport_state::x != x ||
-        am_viewport_state::y != y ||
-        am_viewport_state::w != w ||
-        am_viewport_state::h != h;
     am_viewport_state::x = x;
     am_viewport_state::y = y;
     am_viewport_state::w = w;
     am_viewport_state::h = h;
 }
 
-void am_viewport_state::update() {
-    if (dirty) {
+void am_viewport_state::bind(am_render_state *rstate) {
+    if (x != rstate->bound_viewport_state.x ||
+        y != rstate->bound_viewport_state.y ||
+        w != rstate->bound_viewport_state.w ||
+        h != rstate->bound_viewport_state.h)
+    {
         am_set_viewport(x, y, w, h);
-        dirty = false;
+        rstate->bound_viewport_state = *this;
     }
 }
 
@@ -33,14 +31,9 @@ am_depth_test_state::am_depth_test_state() {
     test_enabled = false;
     mask_enabled = false;
     func = AM_DEPTH_FUNC_ALWAYS;
-    dirty = true;
 }
 
 void am_depth_test_state::set(bool test_enabled, bool mask_enabled, am_depth_func func) {
-    dirty = dirty ||
-        am_depth_test_state::test_enabled != test_enabled ||
-        am_depth_test_state::mask_enabled != mask_enabled ||
-        am_depth_test_state::func != func;
     am_depth_test_state::test_enabled = test_enabled;
     am_depth_test_state::mask_enabled = mask_enabled;
     am_depth_test_state::func = func;
@@ -50,14 +43,14 @@ void am_depth_test_state::restore(am_depth_test_state *old) {
     set(old->test_enabled, old->mask_enabled, old->func);
 }
 
-void am_depth_test_state::update() {
-    if (dirty) {
-        /* XXX broken
-         * am_set_framebuffer_depth_mask(mask_enabled);
-         */
+void am_depth_test_state::bind(am_render_state *rstate) {
+    if (test_enabled != rstate->bound_depth_test_state.test_enabled) {
         am_set_depth_test_enabled(test_enabled);
+        rstate->bound_depth_test_state.test_enabled = test_enabled;
+    }
+    if (func != rstate->bound_depth_test_state.func) {
         am_set_depth_func(func);
-        dirty = false;
+        rstate->bound_depth_test_state.func = func;
     }
 }
 
@@ -65,14 +58,9 @@ am_cull_face_state::am_cull_face_state() {
     enabled = false;
     winding = AM_FACE_WIND_CCW;
     side = AM_CULL_FACE_BACK;
-    dirty = true;
 }
 
 void am_cull_face_state::set(bool enabled, am_face_winding winding, am_cull_face_side side) {
-    dirty = dirty ||
-        am_cull_face_state::enabled != enabled ||
-        am_cull_face_state::winding != winding ||
-        am_cull_face_state::side != side;
     am_cull_face_state::enabled = enabled;
     am_cull_face_state::winding = winding;
     am_cull_face_state::side = side;
@@ -82,21 +70,21 @@ void am_cull_face_state::restore(am_cull_face_state *old) {
     set(old->enabled, old->winding, old->side);
 }
 
-void am_cull_face_state::update() {
-    if (dirty) {
+void am_cull_face_state::bind(am_render_state *rstate) {
+    if (enabled != rstate->bound_cull_face_state.enabled) {
         am_set_cull_face_enabled(enabled);
-        if (enabled) {
-            am_set_front_face_winding(winding);
-            am_set_cull_face_side(side);
-        }
-        dirty = false;
+        rstate->bound_cull_face_state.enabled = enabled;
+    }
+    if (side != rstate->bound_cull_face_state.side) {
+        am_set_cull_face_side(side);
+        rstate->bound_cull_face_state.side = side;
     }
 }
 
 void am_render_state::update_state() {
-    viewport_state.update();
-    depth_test_state.update();
-    cull_face_state.update();
+    active_viewport_state.bind(this);
+    active_depth_test_state.bind(this);
+    active_cull_face_state.bind(this);
     bind_active_program();
     bind_active_program_params();
 }
@@ -107,8 +95,9 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
         // in am_native_window_pre_render
         am_bind_framebuffer(fb);
     }
-    viewport_state.set(0, 0, w, h);
-    depth_test_state.set(has_depthbuffer, has_depthbuffer, has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
+    active_viewport_state.set(0, 0, w, h);
+    active_depth_test_state.set(has_depthbuffer, has_depthbuffer,
+        has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
     if (clear) am_clear_framebuffer(true, true, true);
 }
 

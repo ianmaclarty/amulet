@@ -2,7 +2,6 @@ struct am_program;
 struct am_program_param;
 
 struct am_viewport_state {
-    bool                    dirty;
     int                     x;
     int                     y;
     int                     w;
@@ -10,11 +9,11 @@ struct am_viewport_state {
 
     am_viewport_state();
     void set(int x, int y, int w, int h);
-    void update();
+    void restore(am_viewport_state *old);
+    void bind(am_render_state *rstate);
 };
 
 struct am_depth_test_state {
-    bool                    dirty;
     bool                    test_enabled;
     bool                    mask_enabled;
     am_depth_func           func;
@@ -22,11 +21,10 @@ struct am_depth_test_state {
     am_depth_test_state();
     void set(bool test_enabled, bool mask_enabled, am_depth_func func);
     void restore(am_depth_test_state *old);
-    void update();
+    void bind(am_render_state *rstate);
 };
 
 struct am_cull_face_state {
-    bool                    dirty;
     am_face_winding         winding;
     bool                    enabled;
     am_cull_face_side       side;
@@ -34,7 +32,7 @@ struct am_cull_face_state {
     am_cull_face_state();
     void set(bool enabled, am_face_winding winding, am_cull_face_side side);
     void restore(am_cull_face_state *old);
-    void update();
+    void bind(am_render_state *rstate);
 };
 
 struct am_blend_state {
@@ -113,9 +111,12 @@ struct am_dither_state {
 };
 
 struct am_render_state {
-    am_viewport_state       viewport_state;
-    am_depth_test_state     depth_test_state;
-    am_cull_face_state      cull_face_state;
+    am_viewport_state       bound_viewport_state;
+    am_viewport_state       active_viewport_state;
+    am_depth_test_state     bound_depth_test_state;
+    am_depth_test_state     active_depth_test_state;
+    am_cull_face_state      bound_cull_face_state;
+    am_cull_face_state      active_cull_face_state;
 
     int                     max_draw_array_size;
 

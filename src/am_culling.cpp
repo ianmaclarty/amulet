@@ -1,20 +1,20 @@
 #include "amulet.h"
 
 void am_cull_face_node::render(am_render_state *rstate) {
-    am_cull_face_state old_state = rstate->cull_face_state;
+    am_cull_face_state old_state = rstate->active_cull_face_state;
     switch (mode) {
         case AM_CULL_FACE_MODE_FRONT:
-            rstate->cull_face_state.set(true, AM_FACE_WIND_CCW, AM_CULL_FACE_FRONT);
+            rstate->active_cull_face_state.set(true, AM_FACE_WIND_CCW, AM_CULL_FACE_FRONT);
             break;
         case AM_CULL_FACE_MODE_BACK:
-            rstate->cull_face_state.set(true, AM_FACE_WIND_CCW, AM_CULL_FACE_BACK);
+            rstate->active_cull_face_state.set(true, AM_FACE_WIND_CCW, AM_CULL_FACE_BACK);
             break;
         case AM_CULL_FACE_MODE_NONE:
-            rstate->cull_face_state.set(false, AM_FACE_WIND_CCW, AM_CULL_FACE_BACK);
+            rstate->active_cull_face_state.set(false, AM_FACE_WIND_CCW, AM_CULL_FACE_BACK);
             break;
     }
     render_children(rstate);
-    rstate->cull_face_state.restore(&old_state);
+    rstate->active_cull_face_state.restore(&old_state);
 }
 
 int am_create_cull_face_node(lua_State *L) {
