@@ -8,6 +8,7 @@ struct am_viewport_state {
     int                     w;
     int                     h;
 
+    am_viewport_state();
     void set(int x, int y, int w, int h);
     void update();
 };
@@ -18,6 +19,7 @@ struct am_depth_test_state {
     bool                    mask_enabled;
     am_depth_func           func;
 
+    am_depth_test_state();
     void set(bool test_enabled, bool mask_enabled, am_depth_func func);
     void restore(am_depth_test_state *old);
     void update();
@@ -29,6 +31,7 @@ struct am_cull_face_state {
     bool                    enabled;
     am_cull_face_side       side;
 
+    am_cull_face_state();
     void set(bool enabled, am_face_winding winding, am_cull_face_side side);
     void restore(am_cull_face_state *old);
     void update();
