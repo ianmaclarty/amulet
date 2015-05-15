@@ -1145,6 +1145,27 @@ void am_sync_audio_graph(lua_State *L) {
 }
 
 //-------------------------------------------------------------------------
+// Backend utility function
+
+void am_interleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
+    int num_channels, int num_samples, int sample_offset, int count)
+{
+    int i, j;
+    int k = sample_offset + count;
+    assert(k <= num_samples);
+    for (int c = 0; c < num_channels; c++) {
+        i = k - count;
+        j = c;
+        while (i != k) {
+            dest[j] = src[i];
+            i++;
+            j += num_channels;
+        }
+        k += num_samples;
+    }
+}
+
+//-------------------------------------------------------------------------
 // Module registration
 
 void am_open_audio_module(lua_State *L) {

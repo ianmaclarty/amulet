@@ -35,6 +35,12 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #define ct_check_array_size(arr, sz)
 #endif
 
+#ifndef AM_WIN32
+#define AM_RESTRICT __restrict__
+#else
+#define AM_RESTRICT __restrict
+#endif
+
 // returned string should be freed with free()
 char *am_format(const char *fmt, ...);
 

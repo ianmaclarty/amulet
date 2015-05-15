@@ -199,3 +199,6 @@ void am_open_audio_module(lua_State *L);
 void am_destroy_audio();
 void am_fill_audio_bus(am_audio_bus *bus);
 void am_sync_audio_graph(lua_State *L);
+
+void am_interleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
+    int num_channels, int num_samples, int sample_offset, int count);

@@ -26,13 +26,10 @@ static bool ios_window_created = false;
 static bool ios_running = false;
 static bool ios_audio_initialized = false;
 static bool ios_audio_paused = false;
-static void *ios_audio_buffer = NULL;
-static void *ios_audio_buffer_interleaved = NULL;
+static float *ios_audio_buffer = NULL;
 static int ios_audio_offset = 0;
-static int ios_audio_size = 0;
 static NSLock *ios_audio_mutex = [[NSLock alloc] init];
 static bool ios_done_first_draw = false;
-//static bool init_run = false;
 
 static GLKView *ios_view = nil;
 static GLKViewController *ios_view_controller = nil;
@@ -197,36 +194,33 @@ ios_audio_callback(void *inRefCon,
     int num_samples = am_conf_audio_buffer_size;
     for (int i = 0; i < ioData->mNumberBuffers; i++) {
         AudioBuffer *abuf = &ioData->mBuffers[i];
-        int remaining = abuf->mDataByteSize;
-        void *ptr = abuf->mData;
+        int remaining = abuf->mDataByteSize / (sizeof(float) * num_channels);
+        float *ptr = (float*)abuf->mData;
         while (remaining > 0) {
-            if (ios_audio_offset >= ios_audio_size) {
+            if (ios_audio_offset >= num_samples) {
                 // Generate the data
-                memset(ios_audio_buffer, 0, ios_audio_size);
-                am_audio_bus bus(num_channels, num_samples, (float*)ios_audio_buffer);
+                memset(ios_audio_buffer, 0, num_samples * num_channels * sizeof(float));
                 [ios_audio_mutex lock];
+                am_audio_bus bus(num_channels, num_samples, ios_audio_buffer);
                 am_fill_audio_bus(&bus);
                 [ios_audio_mutex unlock];
                 ios_audio_offset = 0;
-                // CoreAudio expects channels to be interleaved
-                for (int c = 0; c < num_channels; c++) {
-                    for (int j = 0; j < num_samples; j++) {
-                        ((float*)ios_audio_buffer_interleaved)[j * num_channels + c] = bus.channel_data[c][j];
-                    }
-                }
             }
 
-            int len = ios_audio_size - ios_audio_offset;
+            int len = num_samples - ios_audio_offset;
             if (len > remaining) {
                 len = remaining;
             }
-            memcpy(ptr, (char *)ios_audio_buffer_interleaved + ios_audio_offset, len);
+            // CoreAudio expects channels to be interleaved
+            am_interleave_audio(ptr, ios_audio_buffer,
+                num_channels, num_samples, ios_audio_offset, len);
+            //memcpy(ptr, (char *)ios_audio_buffer_interleaved + ios_audio_offset, len);
             /*
             for (int k = 0; k < len/4; k++) {
                 fprintf(stderr, "ptr[%d] = %f", k, ((float*)ptr)[k]);
             }
             */
-            ptr = (char *)ptr + len;
+            ptr = ptr + len * num_channels;
             remaining -= len;
             ios_audio_offset += len;
         }
@@ -300,10 +294,7 @@ static void ios_init_audio() {
 
     // create buffer
     assert(ios_audio_buffer == NULL);
-    assert(ios_audio_buffer_interleaved == NULL);
-    ios_audio_size = sizeof(float) * am_conf_audio_channels * am_conf_audio_buffer_size;
-    ios_audio_buffer = malloc(ios_audio_size);
-    ios_audio_buffer_interleaved = malloc(ios_audio_size);
+    ios_audio_buffer = (float*)malloc(am_conf_audio_channels * am_conf_audio_buffer_size * sizeof(float));
     ios_audio_offset = 0;
 
     // start

@@ -480,11 +480,7 @@ static void audio_callback(void *ud, Uint8 *stream, int len) {
     am_audio_bus bus(num_channels, num_samples, audio_buffer);
     am_fill_audio_bus(&bus);
     // SDL expects channels to be interleaved
-    for (int c = 0; c < num_channels; c++) {
-        for (int i = 0; i < num_samples; i++) {
-            ((float*)stream)[i * num_channels + c] = bus.channel_data[c][i];
-        }
-    }
+    am_interleave_audio((float*)stream, bus.buffer, num_channels, num_samples, 0, num_samples);
 }
 
 static void init_audio() {
