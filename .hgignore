@@ -3,6 +3,7 @@ syntax: glob
 *~
 *.o
 *.o-arm*
+*.o-sim*
 *.obj
 *.d
 *.lo
