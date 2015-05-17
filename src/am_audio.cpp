@@ -975,6 +975,10 @@ static int create_audio_stream_node(lua_State *L) {
     }
     stb_vorbis_info info = stb_vorbis_get_info((stb_vorbis*)node->handle);
     node->sample_rate = info.sample_rate;
+    if (node->sample_rate != am_conf_audio_sample_rate) {
+        am_log0("WARNING: buffer '%s' has sample rate of %dHz, but will play at %dHz",
+            node->buffer->origin, node->sample_rate, am_conf_audio_sample_rate);
+    }
     node->num_channels = info.channels;
     node->sample_rate_ratio = (float)node->sample_rate / (float)am_conf_audio_sample_rate;
     return 1;
@@ -1124,6 +1128,8 @@ static int decode_ogg(lua_State *L) {
     int dest_samples;
     if (sample_rate != am_conf_audio_sample_rate) {
         // resample required
+        am_log0("WARNING: resampling buffer '%s' from %dHz to %dHz",
+            source_buf->origin, sample_rate, am_conf_audio_sample_rate);
         double sample_rate_ratio = (double)sample_rate / (double)am_conf_audio_sample_rate;
         dest_samples = floor((double)num_samples / sample_rate_ratio);
         dest_buf = am_new_userdata(L, am_buffer, dest_samples * am_conf_audio_channels * 4);
