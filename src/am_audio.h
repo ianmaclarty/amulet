@@ -175,6 +175,26 @@ struct am_audio_track_node : am_audio_node {
     virtual void post_render(am_audio_context *context, int num_samples);
 };
 
+struct am_audio_stream_node : am_audio_node {
+    am_buffer *buffer;
+    int buffer_ref;
+    void *handle;
+    int num_channels;
+    int sample_rate;
+    float sample_rate_ratio;
+    am_audio_param<float> playback_speed;
+    bool loop;
+    bool done;
+
+    float current_position;
+    float next_position;
+
+    am_audio_stream_node();
+    virtual void sync_params();
+    virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
+    virtual void post_render(am_audio_context *context, int num_samples);
+};
+
 enum am_waveform {
     AM_WAVEFORM_SINE,
     AM_WAVEFORM_SQUARE,

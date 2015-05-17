@@ -42,8 +42,9 @@ local base = am.draw_arrays()
 
 local group = am.group()
 
+local num_tris = 100
 local seeds = {}
-for i = 1, 100 do
+for i = 1, num_tris do
     table.insert(seeds, math.random())
 end
 
@@ -52,54 +53,29 @@ for i, seed in ipairs(seeds) do
         :scale("MVP"):alias("size")
         :translate("MVP"):alias("position")
         :bind_vec4("tint", math.random(), math.random(), math.random(), 1)
+        :action(function(node)
+            local t = am.frame_time
+            local r = math.cos(t * seed * 2)
+            local x = math.sin((t + seed * 6) * seed) * r 
+            local y = math.cos(t - i * seed) * r
+            node.position.x = x
+            node.position.y = y
+            node.size.xy = math.sin(t * seed * 4 + i) * 0.15 + 0.2
+            return 0
+        end)
     group:append(node)
 end
 
 local top = group:bind_mat4("MVP", MVP):bind_program(prog)
 
-local n = 44100
-local audio_buf = am.buffer(4 * 2 * n)
-local left_channel = audio_buf:view("float", 0, 4)
-local right_channel = audio_buf:view("float", n*4, 4)
-local freq = 220
-for i = 1, n do
-    local sample = math.sin(((i-1)/n) * 2 * math.pi * freq)
-    left_channel[i] = sample
-    right_channel[i] = sample
-end
---local sound = am.oscillator(220)
---local sound = am.oscillator(220):gain(1)
-local sound = am.track(audio_buf, false, 0.7):gain(1)
---sound:add(am.track(audio_buf, true, 1.1))
---sound:add(am.track(audio_buf, true, 0.5))
---sound:add(am.track(audio_buf, true, 3.8))
-am.root_audio_node():add(sound)
-
-local t = 0
 top:action(function()
-    for i, seed in ipairs(seeds) do
-        local node = group:child(i)
-        local r = math.cos(t * seed * 2)
-        local x = math.sin((t + seed * 6) * seed) * r 
-        local y = math.cos(t - i * seed) * r
-        node.position.x = x
-        node.position.y = y
-        node.size.xy = math.sin(t * seed * 4 + i) * 0.15 + 0.2
+    log(am.perf_stats().avg_fps)
+    return 1
+end)
+:action(function()
+    if am.key_pressed.escape then
+        win:close()
     end
-    t = t + 1/60
-    --sound.freq = sound.freq * 1.001
-    --sound.gain = math.sin(t*10) * 0.5 + 0.5
-    --if math.floor(t*1.3) % 2 == 0 then
-    --    sound:child(1).playback_speed = 0.7
-    --else
-    --    sound:child(1).playback_speed = 2.3
-    --end
-    sound:child(1).playback_speed = sound:child(1).playback_speed * 1.006
-    --if math.floor(t * 1.2) % 2 == 0 then
-    --    sound.gain = 0.1
-    --else
-    --    sound.gain = 1
-    --end
     return 0
 end)
 

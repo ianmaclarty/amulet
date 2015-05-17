@@ -21,18 +21,17 @@ function create_audio_buffer()
     local rate = 44100
     local freq = 440
     num_samples = math.floor(rate / freq)
-    audio_buffer = am.buffer(num_samples * 4 * 2)
+    audio_buffer = am.buffer(num_samples * 4)
     audio_data_view = audio_buffer:view("float", 0, 4)
     for i = 1, num_samples do
         local val = math.sin(((i-1)/num_samples) * 2 * math.pi)
         audio_data_view[i] = val
-        audio_data_view[i + num_samples] = val
     end
 end
 
 local
 function create_audio_node()
-    track_node = am.track(audio_buffer, true)
+    track_node = am.track(audio_buffer, true, 1, 1)
     lowpass_filter_node = track_node:lowpass_filter(2000, 0)
     highpass_filter_node = lowpass_filter_node:highpass_filter(20, 0)
     am.root_audio_node():add(highpass_filter_node)
@@ -101,11 +100,9 @@ function create_wave_editor()
                         for i = lo, hi do
                             local val = y1 + ((i-lo)/(hi-lo))*(y2-y1)
                             audio_data_view[i] = val
-                            audio_data_view[i + num_samples] = val
                         end
                     else
                         audio_data_view[index] = y1
-                        audio_data_view[index + num_samples] = y1
                     end
                     prev_index = index
                     prev_y = pos.y

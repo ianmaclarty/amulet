@@ -43,6 +43,7 @@ typedef enum {
     MT_am_lowpass_filter_node,
     MT_am_highpass_filter_node,
     MT_am_audio_track_node,
+    MT_am_audio_stream_node,
     MT_am_oscillator_node,
 
     MT_am_buffer,
