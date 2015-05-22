@@ -36,7 +36,7 @@ int am_translate_node::specialized_newindex(lua_State *L) {
 
 int am_create_translate_node(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
-    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
+    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_translate_node *node = am_new_userdata(L, am_translate_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
@@ -80,7 +80,7 @@ int am_scale_node::specialized_newindex(lua_State *L) {
 
 int am_create_scale_node(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
-    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
+    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_scale_node *node = am_new_userdata(L, am_scale_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
@@ -125,7 +125,7 @@ int am_rotate_node::specialized_newindex(lua_State *L) {
 
 int am_create_rotate_node(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
-    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
+    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_rotate_node *node = am_new_userdata(L, am_rotate_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
@@ -180,7 +180,7 @@ void am_mult_mat4_node::render(am_render_state *rstate) {
 
 int am_create_mult_mat4_node(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
-    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
+    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_mult_mat4_node *node = am_new_userdata(L, am_mult_mat4_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
@@ -215,6 +215,125 @@ static void register_mult_mat4_node_mt(lua_State *L) {
     am_register_metatable(L, "mult_mat4", MT_am_mult_mat4_node, MT_am_scene_node);
 }
 
+/* Lookat */
+
+void am_lookat_node::render(am_render_state *rstate) {
+    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value old_val = *param;
+    param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4;
+    memcpy(&param->value.m4[0], glm::value_ptr(glm::lookAt(eye, center, up)), 16 * sizeof(float));
+    render_children(rstate);
+    *param = old_val;
+}
+
+int am_create_lookat_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 5);
+    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
+    am_lookat_node *node = am_new_userdata(L, am_lookat_node);
+    am_set_scene_node_child(L, node);
+    node->name = am_lookup_param_name(L, 2);
+    node->eye = am_get_userdata(L, am_vec3, 3)->v;
+    node->center = am_get_userdata(L, am_vec3, 4)->v;
+    node->up = am_get_userdata(L, am_vec3, 5)->v;
+    return 1;
+}
+
+static void get_lookat_eye(lua_State *L, void *obj) {
+    am_lookat_node *node = (am_lookat_node*)obj;
+    am_vec3 *eye = am_new_userdata(L, am_vec3);
+    eye->v = node->eye;
+}
+
+static void set_lookat_eye(lua_State *L, void *obj) {
+    am_lookat_node *node = (am_lookat_node*)obj;
+    node->eye = am_get_userdata(L, am_vec3, 3)->v;
+}
+
+static am_property lookat_eye_property = {get_lookat_eye, set_lookat_eye};
+
+static void get_lookat_center(lua_State *L, void *obj) {
+    am_lookat_node *node = (am_lookat_node*)obj;
+    am_vec3 *center = am_new_userdata(L, am_vec3);
+    center->v = node->center;
+}
+
+static void set_lookat_center(lua_State *L, void *obj) {
+    am_lookat_node *node = (am_lookat_node*)obj;
+    node->center = am_get_userdata(L, am_vec3, 3)->v;
+}
+
+static am_property lookat_center_property = {get_lookat_center, set_lookat_center};
+
+static void get_lookat_up(lua_State *L, void *obj) {
+    am_lookat_node *node = (am_lookat_node*)obj;
+    am_vec3 *up = am_new_userdata(L, am_vec3);
+    up->v = node->up;
+}
+
+static void set_lookat_up(lua_State *L, void *obj) {
+    am_lookat_node *node = (am_lookat_node*)obj;
+    node->up = am_get_userdata(L, am_vec3, 3)->v;
+}
+
+static am_property lookat_up_property = {get_lookat_up, set_lookat_up};
+
+static void register_lookat_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
+
+    am_register_property(L, "eye", &lookat_eye_property);
+    am_register_property(L, "center", &lookat_center_property);
+    am_register_property(L, "up", &lookat_up_property);
+
+    am_register_metatable(L, "lookat", MT_am_lookat_node, MT_am_scene_node);
+}
+
+/* Billboard */
+
+void am_billboard_node::render(am_render_state *rstate) {
+    am_program_param_value *param = &am_param_name_map[name].value;
+    if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
+        glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
+        glm::mat4 old = *m;
+        (*m)[0][0] = 1.0f;
+        (*m)[0][1] = 0.0f;
+        (*m)[0][2] = 0.0f;
+        (*m)[1][0] = 0.0f;
+        (*m)[1][1] = 1.0f;
+        (*m)[1][2] = 0.0f;
+        (*m)[2][0] = 0.0f;
+        (*m)[2][1] = 0.0f;
+        (*m)[2][2] = 1.0f;
+        render_children(rstate);
+        *m = old;
+    } else {
+        log_ignored_transform(name, "billboard");
+        render_children(rstate);
+    }
+}
+
+int am_create_billboard_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
+    am_billboard_node *node = am_new_userdata(L, am_billboard_node);
+    am_set_scene_node_child(L, node);
+    node->name = am_lookup_param_name(L, 2);
+    return 1;
+}
+
+static void register_billboard_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
+
+    am_register_metatable(L, "billboard", MT_am_billboard_node, MT_am_scene_node);
+}
+
 /* Module init */
 
 void am_open_transforms_module(lua_State *L) {
@@ -222,4 +341,6 @@ void am_open_transforms_module(lua_State *L) {
     register_scale_node_mt(L);
     register_rotate_node_mt(L);
     register_mult_mat4_node_mt(L);
+    register_lookat_node_mt(L);
+    register_billboard_node_mt(L);
 }

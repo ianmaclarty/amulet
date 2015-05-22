@@ -22,7 +22,9 @@ end
 
 -- mouse
 
+local prev_mouse_position = vec2(0, 0)
 amulet.mouse_position = vec2(0, 0)
+amulet.mouse_delta = vec2(0, 0)
 amulet.mouse_button_down = {}
 amulet.mouse_button_pressed = {}
 amulet.mouse_button_released = {}
@@ -40,12 +42,16 @@ end
 function amulet._mouse_move(x, y)
     amulet.mouse_position.x = x
     amulet.mouse_position.y = y
+    amulet.mouse_delta.x = amulet.mouse_position.x - prev_mouse_position.x
+    amulet.mouse_delta.y = amulet.mouse_position.y - prev_mouse_position.y
 end
 
 local
 function clear_mouse()
     table.clear(amulet.mouse_button_pressed)    
     table.clear(amulet.mouse_button_released)    
+    prev_mouse_position.x = amulet.mouse_position.x
+    prev_mouse_position.y = amulet.mouse_position.y
 end
 
 -- touches

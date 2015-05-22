@@ -586,8 +586,13 @@ static bool handle_events(lua_State *L) {
             case SDL_MOUSEMOTION: {
                 for (unsigned int i = 0; i < windows.size(); i++) {
                     if (SDL_GetWindowID(windows[i].window) == event.motion.windowID) {
-                        mouse_x = event.motion.x;
-                        mouse_y = event.motion.y;
+                        if (windows[i].lock_pointer) {
+                            mouse_x += event.motion.xrel;
+                            mouse_y += event.motion.yrel;
+                        } else {
+                            mouse_x = event.motion.x;
+                            mouse_y = event.motion.y;
+                        }
                         break;
                     }
                 }
