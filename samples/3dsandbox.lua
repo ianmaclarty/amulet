@@ -39,6 +39,7 @@ function init()
             node.angle = am.frame_time
             return 0
         end)
+        :cull_sphere("P", "MV", 1.5)
         :translate("MV", 0, 0, -10))
     for i = 1, 3 do
         for j = 1, 3 do

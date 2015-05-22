@@ -367,6 +367,8 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "depth_pass");
     lua_pushcclosure(L, am_create_cull_face_node, 0);
     lua_setfield(L, -2, "cull_face");
+    lua_pushcclosure(L, am_create_cull_sphere_node, 0);
+    lua_setfield(L, -2, "cull_sphere");
 
     am_register_metatable(L, "scene_node", MT_am_scene_node, 0);
 }

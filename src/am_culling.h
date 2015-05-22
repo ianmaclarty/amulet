@@ -1,3 +1,5 @@
+#define AM_MAX_CULL_SPHERE_NAMES 8
+
 enum am_cull_face_mode {
     AM_CULL_FACE_MODE_FRONT,
     AM_CULL_FACE_MODE_BACK,
@@ -9,6 +11,15 @@ struct am_cull_face_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
+struct am_cull_sphere_node : am_scene_node {
+    am_param_name_id names[AM_MAX_CULL_SPHERE_NAMES];
+    int num_names;
+    glm::vec3 center;
+    float radius;
+    virtual void render(am_render_state *rstate);
+};
+
 int am_create_cull_face_node(lua_State *L);
+int am_create_cull_sphere_node(lua_State *L);
 
 void am_open_culling_module(lua_State *L);
