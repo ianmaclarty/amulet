@@ -47,6 +47,20 @@ struct am_blend_state {
     float                   color_g;
     float                   color_b;
     float                   color_a;
+
+    void set(bool enabled,
+        am_blend_equation equation_rgb,
+        am_blend_equation equation_alpha,
+        am_blend_sfactor  sfactor_rgb,
+        am_blend_dfactor  dfactor_rgb,
+        am_blend_sfactor  sfactor_alpha,
+        am_blend_dfactor  dfactor_alpha,
+        float             color_r,
+        float             color_g,
+        float             color_b,
+        float             color_a);
+    void restore(am_blend_state *old);
+    void bind(am_render_state *rstate);
 };
 
 struct am_stencil_test_state {
@@ -117,6 +131,8 @@ struct am_render_state {
     am_depth_test_state     active_depth_test_state;
     am_cull_face_state      bound_cull_face_state;
     am_cull_face_state      active_cull_face_state;
+    am_blend_state          bound_blend_state;
+    am_blend_state          active_blend_state;
 
     int                     max_draw_array_size;
 

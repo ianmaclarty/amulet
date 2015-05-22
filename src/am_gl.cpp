@@ -168,8 +168,13 @@ void am_set_blend_equation(am_blend_equation rgb, am_blend_equation alpha) {
     check_initialized();
     GLenum gl_rgb = to_gl_blend_equation(rgb);
     GLenum gl_alpha = to_gl_blend_equation(alpha);
-    GLFUNC(glBlendEquationSeparate)(gl_rgb, gl_alpha);
-    log_gl_call("glBlendEquationSeparate(%s, %s)", gl_blend_equation_str(gl_rgb), gl_blend_equation_str(gl_alpha));
+    if (gl_rgb == gl_alpha) {
+        GLFUNC(glBlendEquation)(gl_rgb);
+        log_gl_call("glBlendEquation(%s)", gl_blend_equation_str(gl_rgb));
+    } else {
+        GLFUNC(glBlendEquationSeparate)(gl_rgb, gl_alpha);
+        log_gl_call("glBlendEquationSeparate(%s, %s)", gl_blend_equation_str(gl_rgb), gl_blend_equation_str(gl_alpha));
+    }
     check_for_errors
 }
 
@@ -179,12 +184,19 @@ void am_set_blend_func(am_blend_sfactor src_rgb, am_blend_dfactor dst_rgb, am_bl
     GLenum gl_drgb = to_gl_blend_dfactor(dst_rgb);
     GLenum gl_salpha = to_gl_blend_sfactor(src_alpha);
     GLenum gl_dalpha = to_gl_blend_dfactor(dst_alpha);
-    GLFUNC(glBlendFuncSeparate)(gl_srgb, gl_drgb, gl_salpha, gl_dalpha);
-    log_gl_call("glBlendFuncSeparate(%s, %s, %s, %s)",
-        gl_blend_factor_str(gl_srgb), 
-        gl_blend_factor_str(gl_drgb), 
-        gl_blend_factor_str(gl_salpha), 
-        gl_blend_factor_str(gl_dalpha));
+    if (gl_srgb == gl_salpha && gl_drgb == gl_dalpha) {
+        GLFUNC(glBlendFunc)(gl_srgb, gl_drgb);
+        log_gl_call("glBlendFunc(%s, %s)",
+            gl_blend_factor_str(gl_srgb), 
+            gl_blend_factor_str(gl_drgb));
+    } else {
+        GLFUNC(glBlendFuncSeparate)(gl_srgb, gl_drgb, gl_salpha, gl_dalpha);
+        log_gl_call("glBlendFuncSeparate(%s, %s, %s, %s)",
+            gl_blend_factor_str(gl_srgb), 
+            gl_blend_factor_str(gl_drgb), 
+            gl_blend_factor_str(gl_salpha), 
+            gl_blend_factor_str(gl_dalpha));
+    }
     check_for_errors
 }
 

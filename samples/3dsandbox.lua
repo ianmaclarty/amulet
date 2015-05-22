@@ -43,7 +43,11 @@ function init()
         :translate("MV", 0, 0, -10))
     for i = 1, 3 do
         for j = 1, 3 do
-            objects:append(load_image("face.png"):scale("MV", 1, i*j):billboard("MV"):translate("MV", -i*6, -1, -j*6))
+            objects:append(load_image("face.png")
+                :scale("MV", 1, i*j)
+                :billboard("MV")
+                :translate("MV", -i*6, -1, -j*6)
+                :blend("add"))
         end
     end
 

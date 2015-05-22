@@ -35,6 +35,7 @@ typedef enum {
     MT_am_mult_mat4_node,
     MT_am_lookat_node,
     MT_am_billboard_node,
+    MT_am_blend_node,
     MT_am_depth_pass_node,
     MT_am_cull_face_node,
     MT_am_cull_sphere_node,
@@ -89,6 +90,7 @@ typedef enum {
     ENUM_am_depth_func,
     ENUM_am_cull_face_mode,
     ENUM_am_draw_mode,
+    ENUM_am_blend_mode,
     ENUM_am_window_mode,
     ENUM_am_display_orientation,
 

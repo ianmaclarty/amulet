@@ -81,10 +81,91 @@ void am_cull_face_state::bind(am_render_state *rstate) {
     }
 }
 
+void am_blend_state::set(
+    bool enabled,
+    am_blend_equation equation_rgb,
+    am_blend_equation equation_alpha,
+    am_blend_sfactor  sfactor_rgb,
+    am_blend_dfactor  dfactor_rgb,
+    am_blend_sfactor  sfactor_alpha,
+    am_blend_dfactor  dfactor_alpha,
+    float             color_r,
+    float             color_g,
+    float             color_b,
+    float             color_a)
+{
+    am_blend_state::enabled         = enabled       ;
+    am_blend_state::equation_rgb    = equation_rgb  ;
+    am_blend_state::equation_alpha  = equation_alpha;
+    am_blend_state::sfactor_rgb     = sfactor_rgb   ;
+    am_blend_state::dfactor_rgb     = dfactor_rgb   ;
+    am_blend_state::sfactor_alpha   = sfactor_alpha ;
+    am_blend_state::dfactor_alpha   = dfactor_alpha ;
+    am_blend_state::color_r         = color_r       ;
+    am_blend_state::color_g         = color_g       ;
+    am_blend_state::color_b         = color_b       ;
+    am_blend_state::color_a         = color_a       ;
+}
+
+void am_blend_state::restore(am_blend_state *old) {
+    set(
+        old->enabled       ,
+        old->equation_rgb  ,
+        old->equation_alpha,
+        old->sfactor_rgb   ,
+        old->dfactor_rgb   ,
+        old->sfactor_alpha ,
+        old->dfactor_alpha ,
+        old->color_r       ,
+        old->color_g       ,
+        old->color_b       ,
+        old->color_a
+    );
+}
+
+void am_blend_state::bind(am_render_state *rstate) {
+    am_blend_state *bound = &rstate->bound_blend_state;
+    if (enabled != bound->enabled) {
+        am_set_blend_enabled(enabled);
+        bound->enabled = enabled;
+    }
+    if (!enabled) return;
+    if (equation_rgb != bound->equation_rgb ||
+        equation_alpha != bound->equation_alpha)
+    {
+        am_set_blend_equation(equation_rgb, equation_alpha);
+        bound->equation_rgb = equation_rgb;
+        bound->equation_alpha = equation_alpha;
+    }
+    if (sfactor_rgb != bound->sfactor_rgb ||
+        dfactor_rgb != bound->dfactor_rgb ||
+        sfactor_alpha != bound->sfactor_alpha ||
+        dfactor_alpha != bound->dfactor_alpha)
+    {
+        am_set_blend_func(sfactor_rgb, dfactor_rgb, sfactor_alpha, dfactor_alpha);
+        bound->sfactor_rgb = sfactor_rgb;
+        bound->dfactor_rgb = dfactor_rgb;
+        bound->sfactor_alpha = sfactor_alpha;
+        bound->dfactor_alpha = dfactor_alpha;
+    }
+    if (color_r != bound->color_r ||
+        color_g != bound->color_g ||
+        color_b != bound->color_b ||
+        color_a != bound->color_a)
+    {
+        am_set_blend_color(color_r, color_g, color_b, color_a);
+        bound->color_r = color_r;
+        bound->color_g = color_g;
+        bound->color_b = color_b;
+        bound->color_a = color_a;
+    }
+}
+
 void am_render_state::update_state() {
     active_viewport_state.bind(this);
     active_depth_test_state.bind(this);
     active_cull_face_state.bind(this);
+    active_blend_state.bind(this);
     bind_active_program();
     bind_active_program_params();
 }
@@ -196,6 +277,9 @@ void am_render_state::bind_active_program_params() {
 }
 
 am_render_state::am_render_state() {
+    active_blend_state.enabled = false;
+    bound_blend_state.enabled = false;
+
     max_draw_array_size = 0;
 
     bound_program_id = 0;

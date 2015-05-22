@@ -84,6 +84,7 @@ extern "C" {
 #include "am_transforms.h"
 #include "am_depthbuffer.h"
 #include "am_culling.h"
+#include "am_blending.h"
 #include "am_image.h"
 #include "am_text.h"
 #include "am_model.h"
