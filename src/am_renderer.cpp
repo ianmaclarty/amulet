@@ -81,6 +81,61 @@ void am_cull_face_state::bind(am_render_state *rstate) {
     }
 }
 
+am_blend_state::am_blend_state() {
+    enabled         = false; 
+    equation_rgb    = AM_BLEND_EQUATION_ADD;
+    equation_alpha  = AM_BLEND_EQUATION_ADD;
+    sfactor_rgb     = AM_BLEND_SFACTOR_SRC_ALPHA;
+    dfactor_rgb     = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+    sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
+    dfactor_alpha   = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+    color_r         = 1.0f;
+    color_g         = 1.0f;
+    color_b         = 1.0f;
+    color_a         = 1.0f;
+}
+
+void am_blend_state::set_mode(am_blend_mode mode) {
+    switch (mode) {
+        case AM_BLEND_MODE_OFF:
+            enabled         = false; 
+            equation_rgb    = AM_BLEND_EQUATION_ADD;
+            equation_alpha  = AM_BLEND_EQUATION_ADD;
+            sfactor_rgb     = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_rgb     = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+            sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_alpha   = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+            color_r         = 1.0f;
+            color_g         = 1.0f;
+            color_b         = 1.0f;
+            color_a         = 1.0f;
+        case AM_BLEND_MODE_NORMAL:
+            enabled         = true; 
+            equation_rgb    = AM_BLEND_EQUATION_ADD;
+            equation_alpha  = AM_BLEND_EQUATION_ADD;
+            sfactor_rgb     = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_rgb     = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+            sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_alpha   = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+            color_r         = 1.0f;
+            color_g         = 1.0f;
+            color_b         = 1.0f;
+            color_a         = 1.0f;
+        case AM_BLEND_MODE_ADD:
+            enabled         = true; 
+            equation_rgb    = AM_BLEND_EQUATION_ADD;
+            equation_alpha  = AM_BLEND_EQUATION_ADD;
+            sfactor_rgb     = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_rgb     = AM_BLEND_DFACTOR_ONE;
+            sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_alpha   = AM_BLEND_DFACTOR_ONE;
+            color_r         = 1.0f;
+            color_g         = 1.0f;
+            color_b         = 1.0f;
+            color_a         = 1.0f;
+    }
+}
+
 void am_blend_state::set(
     bool enabled,
     am_blend_equation equation_rgb,
@@ -277,9 +332,6 @@ void am_render_state::bind_active_program_params() {
 }
 
 am_render_state::am_render_state() {
-    active_blend_state.enabled = false;
-    bound_blend_state.enabled = false;
-
     max_draw_array_size = 0;
 
     bound_program_id = 0;

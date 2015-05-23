@@ -65,17 +65,40 @@ static bool am_gl_initialized = false;
 
 void am_init_gl() {
     assert(!am_gl_initialized);
+    am_gl_initialized = true;
+
     GLFUNC(glPixelStorei)(GL_PACK_ALIGNMENT, 1);
     GLFUNC(glPixelStorei)(GL_UNPACK_ALIGNMENT, 1);
     GLFUNC(glHint)(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+
+    // initialize global gl state so it corresponds with the initial
+    // value of am_render_state.
+
+    am_set_depth_test_enabled(false);
+    am_set_depth_func(AM_DEPTH_FUNC_ALWAYS);
+
+    am_set_cull_face_enabled(false);
+    am_set_front_face_winding(AM_FACE_WIND_CCW);
+    am_set_cull_face_side(AM_CULL_FACE_BACK);
+
+    am_set_blend_enabled(false);
+    am_set_blend_equation(AM_BLEND_EQUATION_ADD, AM_BLEND_EQUATION_ADD);
+    am_set_blend_func(AM_BLEND_SFACTOR_SRC_ALPHA, AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA,
+        AM_BLEND_SFACTOR_SRC_ALPHA, AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA);
+    am_set_blend_color(1.0f, 1.0f, 1.0f, 1.0f);
+
+    // initialize angle if using
 #if defined(AM_USE_ANGLE)
     init_angle();
 #endif
+    
+    // need to explicitly enable point sprites on desktop gl
+    // (they are always enabled in opengle)
 #if defined(AM_GLPROFILE_DESKTOP)
     glEnable(GL_POINT_SPRITE);
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    //glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
 #endif
-    am_gl_initialized = true;
 }
 
 void am_destroy_gl() {

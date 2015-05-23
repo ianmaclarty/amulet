@@ -1,31 +1,8 @@
 #include "amulet.h"
 
-static am_blend_state blend_mode_map[] = {
-    // AM_BLEND_MODE_OFF:
-    {false,
-        AM_BLEND_EQUATION_ADD, AM_BLEND_EQUATION_ADD,
-        AM_BLEND_SFACTOR_ZERO, AM_BLEND_DFACTOR_ZERO,
-        AM_BLEND_SFACTOR_ZERO, AM_BLEND_DFACTOR_ZERO,
-        1.0f, 1.0f, 1.0f, 1.0f},
-    // AM_BLEND_MODE_NORMAL:
-    {true,
-        AM_BLEND_EQUATION_ADD, AM_BLEND_EQUATION_ADD,
-        AM_BLEND_SFACTOR_SRC_ALPHA, AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA,
-        AM_BLEND_SFACTOR_SRC_ALPHA, AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA,
-        1.0f, 1.0f, 1.0f, 1.0f},
-    // AM_BLEND_MODE_ADD:
-    {true,
-        AM_BLEND_EQUATION_ADD, AM_BLEND_EQUATION_ADD,
-        AM_BLEND_SFACTOR_ONE, AM_BLEND_DFACTOR_ONE,
-        AM_BLEND_SFACTOR_ONE, AM_BLEND_DFACTOR_ONE,
-        1.0f, 1.0f, 1.0f, 1.0f},
-};
-
-ct_check_array_size(blend_mode_map, AM_NUM_BLEND_MODES);
-
 void am_blend_node::render(am_render_state *rstate) {
     am_blend_state old = rstate->active_blend_state;    
-    rstate->active_blend_state = blend_mode_map[mode];
+    rstate->active_blend_state.set_mode(mode);
     render_children(rstate);
     rstate->active_blend_state = old;
 }

@@ -35,6 +35,12 @@ struct am_cull_face_state {
     void bind(am_render_state *rstate);
 };
 
+enum am_blend_mode {
+    AM_BLEND_MODE_OFF,
+    AM_BLEND_MODE_NORMAL,
+    AM_BLEND_MODE_ADD,
+};
+
 struct am_blend_state {
     bool                    enabled;
     am_blend_equation       equation_rgb;
@@ -48,6 +54,8 @@ struct am_blend_state {
     float                   color_b;
     float                   color_a;
 
+    am_blend_state();
+    void set_mode(am_blend_mode mode);
     void set(bool enabled,
         am_blend_equation equation_rgb,
         am_blend_equation equation_alpha,
