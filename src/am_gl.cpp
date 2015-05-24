@@ -97,7 +97,6 @@ void am_init_gl() {
 #if defined(AM_GLPROFILE_DESKTOP)
     glEnable(GL_POINT_SPRITE);
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    //glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
 #endif
 }
 
