@@ -34,6 +34,11 @@ struct am_audio_node_child {
     int ref;
     am_audio_node *child;
     am_audio_node_child_state state;
+    am_audio_node_child() {
+        ref = LUA_NOREF;
+        child = NULL;
+        state = AM_AUDIO_NODE_CHILD_STATE_NEW;
+    }
 };
 
 template<typename T>
