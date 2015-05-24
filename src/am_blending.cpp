@@ -8,7 +8,7 @@ void am_blend_node::render(am_render_state *rstate) {
 }
 
 int am_create_blend_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
+    am_check_nargs(L, 2);
     am_blend_node *node = am_new_userdata(L, am_blend_node);
     am_set_scene_node_child(L, node);
     node->mode = am_get_enum(L, am_blend_mode, 2);

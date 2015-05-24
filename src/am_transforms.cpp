@@ -227,7 +227,7 @@ void am_lookat_node::render(am_render_state *rstate) {
 }
 
 int am_create_lookat_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 5);
+    am_check_nargs(L, 5);
     if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_lookat_node *node = am_new_userdata(L, am_lookat_node);
     am_set_scene_node_child(L, node);
@@ -316,7 +316,7 @@ void am_billboard_node::render(am_render_state *rstate) {
 }
 
 int am_create_billboard_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
+    am_check_nargs(L, 2);
     if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_billboard_node *node = am_new_userdata(L, am_billboard_node);
     am_set_scene_node_child(L, node);

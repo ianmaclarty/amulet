@@ -39,14 +39,6 @@ static void register_cull_face_node_mt(lua_State *L) {
 
 // Cull sphere
 
-static void log_ignored_transform(am_param_name_id name, const char *transform) {
-    am_program_param_name_slot *slot = &am_param_name_map[name];
-    am_log1("WARNING: ignoring %s on %s '%s' (expecting a mat4)",
-        transform,
-        am_program_param_client_type_name(slot),
-        slot->name);
-}
-
 void am_cull_sphere_node::render(am_render_state *rstate) {
     glm::mat4 matrix = glm::mat4(1.0f);
     for (int i = 0; i < num_names; i++) {

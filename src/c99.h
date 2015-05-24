@@ -2,7 +2,7 @@
 
 #define snprintf c99_snprintf
 
-inline int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
+static inline int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
 {
     int count = -1;
 
@@ -14,7 +14,7 @@ inline int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
     return count;
 }
 
-inline int c99_snprintf(char* str, size_t size, const char* format, ...)
+static inline int c99_snprintf(char* str, size_t size, const char* format, ...)
 {
     int count;
     va_list ap;

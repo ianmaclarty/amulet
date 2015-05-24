@@ -1,8 +1,5 @@
 #include "amulet.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 static int pixel_format_size(am_pixel_format fmt) {
     switch (fmt) {
         case AM_PIXEL_FORMAT_RGBA8: return 4;

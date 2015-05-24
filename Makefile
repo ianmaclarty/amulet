@@ -18,15 +18,15 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 EXTRA_PREREQS = 
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = lua ft2
+  AM_DEPS = lua ft2 stb
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifeq ($(TARGET_PLATFORM),ios)
-  AM_DEPS = lua ft2
+  AM_DEPS = lua ft2 stb
 else ifeq ($(TARGET_PLATFORM),win32)
-  AM_DEPS = $(LUAVM) ft2
+  AM_DEPS = $(LUAVM) ft2 stb
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(LIBTURBOJPEG_WIN_PREBUILT)
 else
-  AM_DEPS = $(LUAVM) sdl angle ft2
+  AM_DEPS = $(LUAVM) sdl angle ft2 stb
   AM_DEFS += AM_USE_ANGLE
 endif
 
@@ -126,6 +126,12 @@ $(FT2_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom clean all
 	cp $(FT2_DIR)/libft2$(ALIB_EXT) $@
 	cp -r $(FT2_DIR)/include/* $(BUILD_INC_DIR)/
+
+$(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(STB_DIR) && $(MAKE) clean all
+	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
+	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
+	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
 
 $(BUILD_DIRS): %:
 	mkdir -p $@

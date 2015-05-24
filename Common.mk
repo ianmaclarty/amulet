@@ -14,10 +14,10 @@ LUAJIT_DIR       = $(DEPS_DIR)/LuaJIT-2.0.3
 ANGLE_DIR        = $(DEPS_DIR)/angle-chrome_m34
 GLM_DIR          = $(DEPS_DIR)/glm-0.9.5.3
 FT2_DIR          = $(DEPS_DIR)/freetype-2.5.5
+STB_DIR		 = $(DEPS_DIR)/stb
 
 SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-VC-prebuilt
 ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
-LIBTURBOJPEG_WIN_PREBUILT_DIR = $(DEPS_DIR)/libjpeg-turbo-1.4.0-VC-prebuilt
 
 # Host settings (this is the *build* host, not the host we want to run on)
 
@@ -74,6 +74,7 @@ LUA_ALIB = $(BUILD_LIB_DIR)/liblua$(ALIB_EXT)
 LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
 LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 FT2_ALIB = $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
+STB_ALIB = $(BUILD_LIB_DIR)/libstb$(ALIB_EXT)
 
 SRC_DIR = src
 BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(GRADE)

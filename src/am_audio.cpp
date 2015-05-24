@@ -1,11 +1,5 @@
 #include "amulet.h"
 
-extern "C" {
-#define STB_VORBIS_NO_STDIO 1
-#include "stb_vorbis.c"
-}
-#undef L
-
 #define AM_AUDIO_NODE_FLAG_MARK           ((uint32_t)1)
 #define AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY ((uint32_t)2)
 
@@ -516,7 +510,6 @@ void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus 
     if (!loop && done) {
         return;
     }
-    int stream_num_channels = num_channels;
     int bus_num_samples = bus->num_samples;
     int bus_num_channels = bus->num_channels;
     stb_vorbis *f = (stb_vorbis*)handle;

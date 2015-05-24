@@ -53,6 +53,13 @@ extern "C" {
 #include FT_FREETYPE_H
 }
 
+extern "C" {
+#define STB_VORBIS_NO_STDIO 1
+#include "stb_image.h"
+#include "stb_vorbis.h"
+#include "miniz.h"
+}
+
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
