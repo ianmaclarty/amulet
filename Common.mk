@@ -204,7 +204,7 @@ ifeq ($(GRADE),debug)
   ifeq ($(TARGET_PLATFORM),html)
     GRADE_CFLAGS = -O1
     GRADE_LDFLAGS =
-    LUA_CFLAGS += -DLUA_USE_APICHECK -O1
+    LUA_CFLAGS += -DLUA_USE_APICHECK
     LUA_LDFLAGS +=
   else ifeq ($(TARGET_PLATFORM),win32)
     GRADE_CFLAGS = -MTd -Zi
@@ -214,9 +214,9 @@ ifeq ($(GRADE),debug)
   else
     GRADE_CFLAGS = -g -O1
     GRADE_LDFLAGS = -g 
-    LUA_CFLAGS += -DLUA_USE_APICHECK -g -O1
+    LUA_CFLAGS += -DLUA_USE_APICHECK
     LUA_LDFLAGS += -g
-    LUAJIT_CFLAGS += -DLUA_USE_APICHECK -g -O1
+    LUAJIT_CFLAGS += -DLUA_USE_APICHECK
     LUAJIT_LDFLAGS += -g
   endif
 else
