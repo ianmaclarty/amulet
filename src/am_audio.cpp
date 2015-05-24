@@ -638,6 +638,7 @@ static int add_child(lua_State *L) {
     am_audio_node_child child_slot;
     child_slot.child = child;
     child_slot.ref = parent->ref(L, 2); // ref from parent to child
+    child_slot.state = AM_AUDIO_NODE_CHILD_STATE_NEW; // just to avoid gcc warning.
 
     // keep list sorted (required for sync_children_list below)
     int n = parent->pending_children.size;
@@ -689,6 +690,7 @@ void am_set_audio_node_child(lua_State *L, am_audio_node *parent) {
     am_audio_node_child child_slot;
     child_slot.child = child;
     child_slot.ref = parent->ref(L, 1); // ref from parent to child
+    child_slot.state = AM_AUDIO_NODE_CHILD_STATE_NEW; // just to avoid gcc warning.
     parent->pending_children.push_back(L, child_slot);
     set_children_dirty(parent);
 }
