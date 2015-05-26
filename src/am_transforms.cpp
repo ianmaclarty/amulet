@@ -298,15 +298,19 @@ void am_billboard_node::render(am_render_state *rstate) {
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
         glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
         glm::mat4 old = *m;
-        (*m)[0][0] = 1.0f;
+        float s = 1.0f;
+        if (preserve_uniform_scaling) {
+            s = glm::length(glm::vec3((*m)[0][0], (*m)[1][0], (*m)[2][0]));
+        }
+        (*m)[0][0] = s;
         (*m)[0][1] = 0.0f;
         (*m)[0][2] = 0.0f;
         (*m)[1][0] = 0.0f;
-        (*m)[1][1] = 1.0f;
+        (*m)[1][1] = s;
         (*m)[1][2] = 0.0f;
         (*m)[2][0] = 0.0f;
         (*m)[2][1] = 0.0f;
-        (*m)[2][2] = 1.0f;
+        (*m)[2][2] = s;
         render_children(rstate);
         *m = old;
     } else {
@@ -316,11 +320,15 @@ void am_billboard_node::render(am_render_state *rstate) {
 }
 
 int am_create_billboard_node(lua_State *L) {
-    am_check_nargs(L, 2);
+    int nargs = am_check_nargs(L, 2);
     if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_billboard_node *node = am_new_userdata(L, am_billboard_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
+    node->preserve_uniform_scaling = false;
+    if (nargs > 2) {
+        node->preserve_uniform_scaling = lua_toboolean(L, 3);
+    }
     return 1;
 }
 

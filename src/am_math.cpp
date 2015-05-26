@@ -1068,7 +1068,7 @@ inline static glm::vec4 plane_normalize(glm::vec4 plane) {
     return glm::vec4(plane.x/l, plane.y/l, plane.z/l, plane.w/l);
 }
 
-bool am_sphere_visible(glm::mat4 matrix, glm::vec3 center3, float radius) {
+bool am_sphere_visible(glm::mat4 &matrix, glm::vec3 &center3, float radius) {
     glm::vec4 center = glm::vec4(center3, 1.0f);
     glm::vec4 left_plane = plane_normalize(glm::row(matrix, 0) + glm::row(matrix, 3));
     float left_dist = glm::dot(left_plane, center);

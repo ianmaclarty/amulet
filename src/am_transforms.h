@@ -39,6 +39,7 @@ struct am_lookat_node : am_scene_node {
 
 struct am_billboard_node : am_scene_node {
     am_param_name_id name;
+    bool preserve_uniform_scaling;
     virtual void render(am_render_state *rstate);
 };
 
