@@ -4,27 +4,15 @@ am_scene_node::am_scene_node() {
     children.owner = this;
     recursion_limit = am_conf_default_recursion_limit;
     flags = 0;
-    mask = 0xFFFFFFFF;
     actions_ref = LUA_NOREF;
 }
 
 void am_scene_node::render_children(am_render_state *rstate) {
     if (recursion_limit < 0) return;
     recursion_limit--;
-    uint32_t pass = rstate->pass;
     for (int i = 0; i < children.size; i++) {
         am_scene_node *child = children.arr[i].child;
-        if (child->mask & pass) {
-            child->render(rstate);
-        } else {
-            uint32_t next = pass << 1;
-            while (next && !(next & child->mask)) {
-                next <<= 1;
-            }
-            if (next && next > pass && (rstate->next_pass == pass || next < rstate->next_pass)) {
-                rstate->next_pass = next;
-            }
-        }
+        child->render(rstate);
     }
     recursion_limit++;
 }
@@ -301,18 +289,6 @@ static void set_actions(lua_State *L, void *obj) {
 
 static am_property actions_property = {get_actions, set_actions};
 
-static void get_mask(lua_State *L, void *obj) {
-    am_scene_node *node = (am_scene_node*)obj;
-    lua_pushinteger(L, node->mask);
-}
-
-static void set_mask(lua_State *L, void *obj) {
-    am_scene_node *node = (am_scene_node*)obj;
-    node->mask = luaL_checkinteger(L, 3);
-}
-
-static am_property mask_property = {get_mask, set_mask};
-
 static void register_scene_node_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -328,7 +304,6 @@ static void register_scene_node_mt(lua_State *L) {
 
     am_register_property(L, "num_children", &num_children_property);
     am_register_property(L, "_actions", &actions_property);
-    am_register_property(L, "mask", &mask_property);
 
     lua_pushcclosure(L, alias, 0);
     lua_setfield(L, -2, "alias");
@@ -398,6 +373,9 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "cull_face");
     lua_pushcclosure(L, am_create_cull_sphere_node, 0);
     lua_setfield(L, -2, "cull_sphere");
+
+    lua_pushcclosure(L, am_create_pass_filter_node, 0);
+    lua_setfield(L, -2, "pass");
 
     am_register_metatable(L, "scene_node", MT_am_scene_node, 0);
 }

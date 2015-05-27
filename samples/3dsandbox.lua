@@ -41,14 +41,15 @@ function init()
         end)
         :cull_sphere("P", "MV", 1.5)
         :translate("MV", 0, 0, -10))
-    for i = 1, 1 do
-        for j = 1, 1 do
-            local face = load_image("face.png")
+    for i = 1, 3 do
+        for j = 1, 3 do
+            local tree = load_image("tree.png")
                 :billboard("MV", true)
                 :scale("MV", vec3(i*j))
                 :translate("MV", -i*6, -1, -j*6)
-            face.mask = 4
-            objects:append(face)
+                :blend("add")
+                :pass(2)
+            objects:prepend(tree)
         end
     end
 

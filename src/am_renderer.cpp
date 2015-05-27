@@ -109,6 +109,7 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             color_g         = 1.0f;
             color_b         = 1.0f;
             color_a         = 1.0f;
+            break;
         case AM_BLEND_MODE_NORMAL:
             enabled         = true; 
             equation_rgb    = AM_BLEND_EQUATION_ADD;
@@ -121,6 +122,7 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             color_g         = 1.0f;
             color_b         = 1.0f;
             color_a         = 1.0f;
+            break;
         case AM_BLEND_MODE_ADD:
             enabled         = true; 
             equation_rgb    = AM_BLEND_EQUATION_ADD;
@@ -133,6 +135,7 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             color_g         = 1.0f;
             color_b         = 1.0f;
             color_a         = 1.0f;
+            break;
     }
 }
 
@@ -238,15 +241,21 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
 }
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer) {
-    next_pass = 1;
     setup(fb, clear, w, h, has_depthbuffer);
+    next_pass = 1;
     do {
         pass = next_pass;
+        pass_mask = 1;
         root->render(this);
     } while (next_pass > pass);
 }
 
+static inline bool check_pass(am_render_state *rstate) {
+    return (rstate->pass & rstate->pass_mask);
+}
+
 void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_count) {
+    if (!check_pass(this)) { return; }
     if (active_program == NULL) {
         am_log1("%s", "WARNING: ignoring draw_arrays, "
             "because no shader program has been bound");
@@ -270,6 +279,7 @@ void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_c
 void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
     am_buffer_view *indices_view, am_element_index_type type)
 {
+    if (!check_pass(this)) return;
     if (active_program == NULL) {
         am_log1("%s", "WARNING: ignoring draw_elements, "
             "because no shader program has been bound");
@@ -343,6 +353,7 @@ void am_render_state::bind_active_program_params() {
 am_render_state::am_render_state() {
     pass = 1;
     next_pass = 1;
+    pass_mask = 1;
 
     max_draw_array_size = 0;
 
@@ -500,6 +511,43 @@ static int create_draw_elements_node(lua_State *L) {
     return 1;
 }
 
+void am_pass_filter_node::render(am_render_state *rstate) {
+    if (rstate->pass & mask) {
+        uint32_t old = rstate->pass_mask;
+        rstate->pass_mask = rstate->pass;
+        render_children(rstate);
+        rstate->pass_mask = old;
+    }
+    uint32_t next = rstate->pass << 1;
+    while (next && !(next & mask)) {
+        next <<= 1;
+    }
+    if (next && (rstate->next_pass == rstate->pass || next < rstate->next_pass)) {
+        rstate->next_pass = next;
+    }
+}
+
+int am_create_pass_filter_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    am_pass_filter_node *node = am_new_userdata(L, am_pass_filter_node);
+    am_set_scene_node_child(L, node);
+    node->mask = 1 << (luaL_checkinteger(L, 2) - 1);
+    for (int i = 3; i <= nargs; i++) {
+        node->mask |= 1 << (luaL_checkinteger(L, i) - 1);
+    }
+    return 1;
+}
+
+static void register_pass_filter_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
+
+    am_register_metatable(L, "pass_filter", MT_am_pass_filter_node, MT_am_scene_node);
+}
+
 void am_open_renderer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"draw_arrays", create_draw_arrays_node},
@@ -522,4 +570,5 @@ void am_open_renderer_module(lua_State *L) {
 
     register_draw_arrays_node_mt(L);
     register_draw_elements_node_mt(L);
+    register_pass_filter_node_mt(L);
 }

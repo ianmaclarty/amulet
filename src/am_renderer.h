@@ -135,6 +135,7 @@ struct am_dither_state {
 struct am_render_state {
     uint32_t                pass;
     uint32_t                next_pass;
+    uint32_t                pass_mask;
 
     am_viewport_state       bound_viewport_state;
     am_viewport_state       active_viewport_state;
@@ -186,6 +187,13 @@ struct am_draw_elements_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
+struct am_pass_filter_node : am_scene_node {
+    uint32_t mask;
+    virtual void render(am_render_state *rstate);
+};
+
 extern am_render_state am_global_render_state;
+
+int am_create_pass_filter_node(lua_State *L);
 
 void am_open_renderer_module(lua_State *L);
