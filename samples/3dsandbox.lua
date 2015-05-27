@@ -50,7 +50,7 @@ function init()
         end)
         :scale("MV", vec3(0.5))
         :cull_sphere("P", "MV", 1.5)
-    for i = 1, 100000 do
+    for i = 1, 20000 do
         objects:append(torus
             :rotate("MV", math.random() * math.pi * 2, math.normalize(vec3(math.random(), math.random(), math.random())))
             :translate("MV", (math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
