@@ -18,6 +18,7 @@ struct am_scene_node : am_nonatomic_userdata {
     int actions_ref;
     int recursion_limit;
     uint32_t flags;
+    uint32_t mask;
 
     am_scene_node();
     virtual void render(am_render_state *rstate);

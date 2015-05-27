@@ -133,6 +133,9 @@ struct am_dither_state {
 };
 
 struct am_render_state {
+    uint32_t                pass;
+    uint32_t                next_pass;
+
     am_viewport_state       bound_viewport_state;
     am_viewport_state       active_viewport_state;
     am_depth_test_state     bound_depth_test_state;
@@ -160,6 +163,7 @@ struct am_render_state {
     void bind_active_program_params();
     void update_state();
     void setup(am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
+    void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
 };
 
 struct am_draw_arrays_node : am_scene_node {

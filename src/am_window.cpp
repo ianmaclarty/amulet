@@ -213,8 +213,7 @@ static void draw_windows() {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
             am_get_native_window_size(win->native_win, &win->width, &win->height);
-            rstate->setup(0, true, win->width, win->height, win->has_depth_buffer);
-            win->root->render(rstate);
+            rstate->do_render(win->root, 0, true, win->width, win->height, win->has_depth_buffer);
             am_native_window_post_render(win->native_win);
         }
     }

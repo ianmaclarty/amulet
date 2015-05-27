@@ -237,6 +237,15 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
     if (clear) am_clear_framebuffer(true, true, true);
 }
 
+void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer) {
+    next_pass = 1;
+    setup(fb, clear, w, h, has_depthbuffer);
+    do {
+        pass = next_pass;
+        root->render(this);
+    } while (next_pass > pass);
+}
+
 void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_count) {
     if (active_program == NULL) {
         am_log1("%s", "WARNING: ignoring draw_arrays, "
@@ -332,6 +341,9 @@ void am_render_state::bind_active_program_params() {
 }
 
 am_render_state::am_render_state() {
+    pass = 1;
+    next_pass = 1;
+
     max_draw_array_size = 0;
 
     bound_program_id = 0;
