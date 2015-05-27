@@ -5,6 +5,7 @@ am_scene_node::am_scene_node() {
     recursion_limit = am_conf_default_recursion_limit;
     flags = 0;
     actions_ref = LUA_NOREF;
+    action_seq = 0;
 }
 
 void am_scene_node::render_children(am_render_state *rstate) {

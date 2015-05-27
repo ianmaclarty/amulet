@@ -1,10 +1,10 @@
 local am = amulet
 local win = am.window{
     title = "3D Scene",
-    width = 800,
-    height = 600,
+    width = 1200,
+    height = 800,
     resizable = true,
-    lock_pointer = true,
+    --lock_pointer = true,
     depth_buffer = true,
 }
 
@@ -21,6 +21,7 @@ local camera
 local shader
 
 local main_action
+local log_action
 local init_shader
 local create_floor
 local load_model
@@ -34,24 +35,39 @@ function init()
 
     objects = am.group()
     objects:append(create_floor())
-    objects:append(load_model("torus.obj")
+    local torus = load_model("torus.obj")
         :rotate("MV", 0, 0, 1, 0):action(function(node)
             node.angle = am.frame_time
             return 0
         end)
+        :rotate("MV", 0, 1, 0, 0):action(function(node)
+            node.angle = am.frame_time * 0.3
+            return 0
+        end)
+        :rotate("MV", 0, 0, 0, 1):action(function(node)
+            node.angle = am.frame_time * 0.7
+            return 0
+        end)
+        :scale("MV", vec3(0.5))
         :cull_sphere("P", "MV", 1.5)
-        :translate("MV", 0, 0, -10))
+    for i = 1, 100000 do
+        objects:append(torus
+            :rotate("MV", math.random() * math.pi * 2, math.normalize(vec3(math.random(), math.random(), math.random())))
+            :translate("MV", (math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
+    end
+    --[[
     for i = 1, 3 do
         for j = 1, 3 do
             local tree = load_image("tree.png")
                 :billboard("MV", true)
                 :scale("MV", vec3(i*j))
                 :translate("MV", -i*6, -1, -j*6)
-                :blend("add")
-                :pass(2)
+                --:blend("add")
+                --:pass(2)
             objects:prepend(tree)
         end
     end
+    ]]
 
     camera = objects
         :lookat("MV", vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0))
@@ -62,6 +78,7 @@ function init()
         :cull_face("ccw")
 
     win.root:action(main_action)
+    win.root:action(log_action)
 end
 
 local pitch = 0
@@ -72,7 +89,7 @@ function update_camera()
     pitch = math.clamp(pitch + am.mouse_delta.y*2, -math.pi/2+0.001, math.pi/2-0.001)
     local dir = math.euleryxz3(vec3(pitch, yaw, 0)) * vec3(0, 0, -1)
     local pos = camera.eye
-    if am.key_down.w then
+    if am.key_down.w or am.mouse_button_down.left then
         pos = pos + dir * walk_speed * am.delta_time
     elseif am.key_down.s then
         pos = pos - dir * walk_speed * am.delta_time
@@ -95,9 +112,16 @@ function main_action()
     if am.key_pressed.escape then
         win:close()
         return
+    elseif am.key_pressed.lalt then
+        win.lock_pointer = not win.lock_pointer
     end
     update_camera()
     return 0
+end
+
+function log_action()
+    log(am.perf_stats().avg_fps.." FPS")
+    return 1
 end
 
 local
@@ -183,7 +207,7 @@ function load_model(name)
         :bind_array("pos", verts)
         :bind_array("uv", uvs)
         :bind_array("color", colors)
-        :bind_sampler2d("tex", load_texture("face.png"))
+        :bind_sampler2d("tex", load_texture("gradient.png"))
 end
 
 function load_image(name)
@@ -203,7 +227,7 @@ function load_image(name)
             1, 1, 1,
             1, 1, 1,
             1, 1, 1})
-        :bind_sampler2d("tex", load_texture(name))
+        :bind_sampler2d("tex", load_texture(name, "mirrored_repeat", "mirrored_repeat"))
 end
 
 

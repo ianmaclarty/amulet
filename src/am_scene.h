@@ -15,9 +15,10 @@ struct am_render_state;
 
 struct am_scene_node : am_nonatomic_userdata {
     am_lua_array<am_node_child> children;
-    int actions_ref;
     int recursion_limit;
     uint32_t flags;
+    int actions_ref;
+    uint32_t action_seq;
 
     am_scene_node();
     virtual void render(am_render_state *rstate);

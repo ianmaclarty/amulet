@@ -9,7 +9,7 @@ function amulet._execute_actions(actions, from, to)
     for i = from, to do
         local action = actions[i]
         actions[i] = false
-        if action.next_t <= t and action.seq ~= seq then
+        if action.seq ~= seq and action.next_t <= t then
             action.seq = seq
             local res = action.func(action.node, t - action.last_t)
             if res then

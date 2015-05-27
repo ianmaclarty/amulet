@@ -63,7 +63,7 @@ else
 endif
 
 ifndef LUAVM
-  LUAVM=luajit
+  LUAVM=lua
 endif
 
 SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
