@@ -114,6 +114,10 @@ static void draw_bitmap(FT_Bitmap *bitmap, float leftf, float topf, am_image *im
             }
             break;
         }
+        case AM_PIXEL_FORMAT_LUM8: {
+            // XXX NYI
+            break;
+        }
     }
 }
 

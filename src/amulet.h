@@ -58,6 +58,8 @@ extern "C" {
 #define STB_VORBIS_NO_STDIO 1
 #include "stb_image.h"
 #include "stb_vorbis.h"
+#include "stb_rect_pack.h"
+#include "stb_truetype.h"
 #include "miniz.h"
 }
 

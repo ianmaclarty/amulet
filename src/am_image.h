@@ -1,5 +1,6 @@
 enum am_pixel_format {
     AM_PIXEL_FORMAT_RGBA8,
+    AM_PIXEL_FORMAT_LUM8,
 };
 
 struct am_image : am_nonatomic_userdata {
