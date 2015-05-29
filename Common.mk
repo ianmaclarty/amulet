@@ -9,7 +9,7 @@ RELEASE_TARGETS = $(patsubst %,%.release,$(TARGET_PLATFORMS))
 
 DEPS_DIR         = deps
 SDL_DIR          = $(DEPS_DIR)/SDL2-2.0.3
-LUA_DIR          = $(DEPS_DIR)/lua-5.2.3
+LUA_DIR          = $(DEPS_DIR)/lua-5.2.4
 LUAJIT_DIR       = $(DEPS_DIR)/LuaJIT-2.0.3
 ANGLE_DIR        = $(DEPS_DIR)/angle-chrome_m34
 GLM_DIR          = $(DEPS_DIR)/glm-0.9.5.3
