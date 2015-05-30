@@ -170,6 +170,7 @@ struct am_audio_track_node : am_audio_node {
     float sample_rate_ratio;
     am_audio_param<float> playback_speed;
     bool loop;
+    bool needs_reset;
 
     float current_position;
     float next_position;

@@ -386,10 +386,16 @@ am_audio_track_node::am_audio_track_node()
     current_position = 0.0f;
     next_position = 0.0f;
     loop = false;
+    needs_reset = false;
 }
 
 void am_audio_track_node::sync_params() {
     playback_speed.update_target();
+    if (needs_reset) {
+        current_position = 0.0f;
+        next_position = 0.0f;
+        needs_reset = false;
+    }
 }
 
 static inline bool track_resample_required(am_audio_track_node *node) {
@@ -924,6 +930,13 @@ static int create_audio_track_node(lua_State *L) {
     return 1;
 }
 
+static int reset_track(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_audio_track_node *node = am_get_userdata(L, am_audio_track_node, 1);
+    node->needs_reset = true;
+    return 0;
+}
+
 static void get_track_playback_speed(lua_State *L, void *obj) {
     am_audio_track_node *node = (am_audio_track_node*)obj;
     lua_pushnumber(L, node->playback_speed.pending_value);
@@ -941,6 +954,9 @@ static void register_audio_track_node_mt(lua_State *L) {
     lua_pushcclosure(L, am_audio_node_index, 0);
     lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
+
+    lua_pushcclosure(L, reset_track, 0);
+    lua_setfield(L, -2, "reset");
 
     am_register_property(L, "playback_speed", &track_playback_speed_property);
 
