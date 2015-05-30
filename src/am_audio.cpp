@@ -387,6 +387,7 @@ am_audio_track_node::am_audio_track_node()
     next_position = 0.0f;
     loop = false;
     needs_reset = false;
+    done_client = false;
 }
 
 void am_audio_track_node::sync_params() {
@@ -396,6 +397,8 @@ void am_audio_track_node::sync_params() {
         next_position = 0.0f;
         needs_reset = false;
     }
+    int buf_num_samples = buffer->size / (num_channels * sizeof(float));
+    done_client = !loop && current_position >= buf_num_samples;
 }
 
 static inline bool track_resample_required(am_audio_track_node *node) {
@@ -503,17 +506,19 @@ am_audio_stream_node::am_audio_stream_node()
     sample_rate = 44100;
     sample_rate_ratio = 1.0f;
     loop = false;
-    done = false;
+    done_server = false;
+    done_client = false;
     current_position = 0.0f;
     next_position = 0.0f;
 }
 
 void am_audio_stream_node::sync_params() {
     playback_speed.update_target();
+    done_client = done_server;
 }
 
 void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
-    if (!loop && done) {
+    if (!loop && done_server) {
         return;
     }
     int bus_num_samples = bus->num_samples;
@@ -525,13 +530,13 @@ void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus 
     for (int i = 0; i < bus_num_channels; i++) {
         channel_data[i] = tmp.channel_data[i];
     }
-    while (n < bus_num_samples && !done) {
+    while (n < bus_num_samples && !done_server) {
         int m = stb_vorbis_get_samples_float(f, bus_num_channels, channel_data, bus_num_samples - n);
         if (m == 0) {
             if (loop) {
                 stb_vorbis_seek_start(f);
             } else {
-                done = true;
+                done_server = true;
             }
         } else {
             n += m;
@@ -949,6 +954,13 @@ static void set_track_playback_speed(lua_State *L, void *obj) {
 
 static am_property track_playback_speed_property = {get_track_playback_speed, set_track_playback_speed};
 
+static void get_track_done(lua_State *L, void *obj) {
+    am_audio_track_node *node = (am_audio_track_node*)obj;
+    lua_pushboolean(L, node->done_client);
+}
+
+static am_property track_done_property = {get_track_done, NULL};
+
 static void register_audio_track_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
@@ -959,6 +971,7 @@ static void register_audio_track_node_mt(lua_State *L) {
     lua_setfield(L, -2, "reset");
 
     am_register_property(L, "playback_speed", &track_playback_speed_property);
+    am_register_property(L, "done", &track_done_property);
 
     am_register_metatable(L, "track", MT_am_audio_track_node, MT_am_audio_node);
 }
@@ -1014,6 +1027,13 @@ static void set_stream_playback_speed(lua_State *L, void *obj) {
 
 static am_property stream_playback_speed_property = {get_stream_playback_speed, set_stream_playback_speed};
 
+static void get_stream_done(lua_State *L, void *obj) {
+    am_audio_stream_node *node = (am_audio_stream_node*)obj;
+    lua_pushboolean(L, node->done_client);
+}
+
+static am_property stream_done_property = {get_stream_done, NULL};
+
 static void register_audio_stream_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
@@ -1023,6 +1043,7 @@ static void register_audio_stream_node_mt(lua_State *L) {
     lua_setfield(L, -2, "__gc");
 
     am_register_property(L, "playback_speed", &stream_playback_speed_property);
+    am_register_property(L, "done", &stream_done_property);
 
     am_register_metatable(L, "audio_stream", MT_am_audio_stream_node, MT_am_audio_node);
 }
