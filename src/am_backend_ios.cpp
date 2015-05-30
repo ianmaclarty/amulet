@@ -236,7 +236,6 @@ static void ios_init_audio() {
     AudioComponent comp = NULL;
     AudioComponentInstance instance;
     const AudioUnitElement output_bus = 0;
-    const AudioUnitElement input_bus = 1;
     const AudioUnitElement bus = output_bus;
     const AudioUnitScope scope = kAudioUnitScope_Input;
 
