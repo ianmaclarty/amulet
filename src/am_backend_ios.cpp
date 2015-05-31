@@ -190,6 +190,8 @@ ios_audio_callback(void *inRefCon,
         return noErr;
     }
 
+    [ios_audio_mutex lock];
+
     int num_channels = am_conf_audio_channels;
     int num_samples = am_conf_audio_buffer_size;
     for (int i = 0; i < ioData->mNumberBuffers; i++) {
@@ -200,10 +202,8 @@ ios_audio_callback(void *inRefCon,
             if (ios_audio_offset >= num_samples) {
                 // Generate the data
                 memset(ios_audio_buffer, 0, num_samples * num_channels * sizeof(float));
-                [ios_audio_mutex lock];
                 am_audio_bus bus(num_channels, num_samples, ios_audio_buffer);
                 am_fill_audio_bus(&bus);
-                [ios_audio_mutex unlock];
                 ios_audio_offset = 0;
             }
 
@@ -225,6 +225,8 @@ ios_audio_callback(void *inRefCon,
             ios_audio_offset += len;
         }
     }
+
+    [ios_audio_mutex unlock];
 
     return noErr;
 }
