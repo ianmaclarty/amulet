@@ -139,6 +139,7 @@ static void set_audio_category() {
     AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
 }
 
+/*
 static void ios_audio_suspend() {
     ios_audio_paused = true;
 }
@@ -157,6 +158,7 @@ static void audio_interrupt(void *ud, UInt32 state) {
         ios_audio_resume();
     }
 }
+*/
 
 static bool open_package() {
     char *package_filename = am_format("%s/%s", am_opt_data_dir, "data.pak");
@@ -190,8 +192,6 @@ ios_audio_callback(void *inRefCon,
         return noErr;
     }
 
-    [ios_audio_mutex lock];
-
     int num_channels = am_conf_audio_channels;
     int num_samples = am_conf_audio_buffer_size;
     for (int i = 0; i < ioData->mNumberBuffers; i++) {
@@ -203,7 +203,9 @@ ios_audio_callback(void *inRefCon,
                 // Generate the data
                 memset(ios_audio_buffer, 0, num_samples * num_channels * sizeof(float));
                 am_audio_bus bus(num_channels, num_samples, ios_audio_buffer);
+                [ios_audio_mutex lock];
                 am_fill_audio_bus(&bus);
+                [ios_audio_mutex unlock];
                 ios_audio_offset = 0;
             }
 
@@ -226,8 +228,6 @@ ios_audio_callback(void *inRefCon,
         }
     }
 
-    [ios_audio_mutex unlock];
-
     return noErr;
 }
 
@@ -241,7 +241,7 @@ static void ios_init_audio() {
     const AudioUnitElement bus = output_bus;
     const AudioUnitScope scope = kAudioUnitScope_Input;
 
-    AudioSessionInitialize(NULL, NULL, audio_interrupt, NULL);
+    AudioSessionInitialize(NULL, NULL, NULL, nil);
     set_audio_category();
     AudioSessionSetActive(true);
 

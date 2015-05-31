@@ -398,7 +398,7 @@ void am_audio_track_node::sync_params() {
         needs_reset = false;
     }
     int buf_num_samples = buffer->size / (num_channels * sizeof(float));
-    done_client = !loop && current_position >= buf_num_samples;
+    done_client = !loop && current_position >= (float)buf_num_samples;
 }
 
 static inline bool track_resample_required(am_audio_track_node *node) {
