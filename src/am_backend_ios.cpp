@@ -296,7 +296,9 @@ static void ios_init_audio() {
     // create buffer
     assert(ios_audio_buffer == NULL);
     ios_audio_buffer = (float*)malloc(am_conf_audio_channels * am_conf_audio_buffer_size * sizeof(float));
-    ios_audio_offset = 0;
+    ios_audio_offset = am_conf_audio_buffer_size; // so it gets filled straight away
+
+    ios_audio_initialized = true;
 
     // start
     if (noErr != AudioUnitInitialize(instance)) {
@@ -308,8 +310,6 @@ static void ios_init_audio() {
         am_log0("%s", "WARNING: unable to start audio unit");
         return;
     }
-
-    ios_audio_initialized = true;
 }
 
 static void ios_init_engine() {
@@ -595,8 +595,8 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
     [EAGLContext setCurrentContext:context];
 
-    ios_init_audio();
     ios_init_engine();
+    ios_init_audio();
  
     GLKViewController * viewController = [[AMViewController alloc] initWithNibName:nil bundle:nil];
     viewController.view = view;
