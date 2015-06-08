@@ -54,7 +54,7 @@ function clear_mouse()
     prev_mouse_position.y = amulet.mouse_position.y
 end
 
--- touches
+-- touch
 
 local max_touches = 10
 local touches = {}
@@ -131,10 +131,9 @@ function clear_touch()
     table.clear(touch_ended)
 end
 
-
 -- general
 
-function amulet._clear_input()
+function amulet._clear_events()
     clear_keys()
     clear_mouse()
     clear_touch()
