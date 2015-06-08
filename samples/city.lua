@@ -130,32 +130,32 @@ function main_action()
     local turn_speed = 2
     local walk_speed = 0.3
     local strafe_speed = 0.2
-    if am.key_down.w or am.mouse_button_down.left then
+    if win:key_down("w") or win:mouse_button_down("left") then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
         position_node.xz = position_node.xz + dir * walk_speed * am.delta_time
-    elseif am.key_down.s then
+    elseif win:key_down("s") then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
         position_node.xz = position_node.xz - dir * walk_speed * am.delta_time
     end
-    if am.key_down.a then
+    if win:key_down("a") then
         local dir = vec2(math.cos(facing+math.pi), math.sin(facing+math.pi))
         position_node.xz = position_node.xz - dir * strafe_speed * am.delta_time
-    elseif am.key_down.d then
+    elseif win:key_down("d") then
         local dir = vec2(math.cos(facing+math.pi), math.sin(facing+math.pi))
         position_node.xz = position_node.xz + dir * strafe_speed * am.delta_time
     end
-    if am.key_pressed.escape then
+    if win:key_pressed("escape") then
         win:close()
     end
-    if am.key_down.w or am.key_down.s or am.mouse_button_down.left then
+    if win:key_down("w") or win:key_down("s") or win:mouse_button_down("left") then
         walk_t = walk_t + am.delta_time
         position_node.y = -0.1 + math.sin(walk_t*10) * 0.005
     end
 
     update_kaleidoscope_node()
 
-    facing_node.angle = am.mouse_position.x * math.pi
-    pitch_node.angle = am.mouse_position.y * math.pi - 1
+    facing_node.angle = win:mouse_position().x * math.pi
+    pitch_node.angle = win:mouse_position().y * math.pi - 1
 
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)
@@ -483,7 +483,7 @@ function init_audio()
     end
     local primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73 }
     win.root:action(function()
-        local pos = am.mouse_position
+        local pos = win:mouse_position()
         for i = 1, num_active_chimes do
             local z = math.cos(pos.x * pos.y + i) * 0.4 + 0.6
             chimes[i].value = (math.sin(am.frame_time * primes[i]) * 0.4 + 0.6) * math.min(0.4, 1/num_active_chimes)

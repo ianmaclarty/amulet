@@ -72,8 +72,8 @@ function create_wave_editor()
         :bind_vec3("color", vec3(0, 1, 0.6))
         :read_mat4("MVP")
         :action(function(node)
-            if am.mouse_button_down.left then
-                local pos = math.inverse(node.value) * vec4(am.mouse_position, 0, 1)
+            if win:mouse_button_down("left") then
+                local pos = math.inverse(node.value) * vec4(win:mouse_position(), 0, 1)
                 local index = math.floor(pos.x * num_samples * 0.5 + num_samples * 0.5) + 1
                 if math.abs(pos.y) <= 1 and (prev_index or index > 0 and index <= num_samples) then
                     index = math.max(1, math.min(num_samples, index))
@@ -142,15 +142,15 @@ function create_slider(min, max, initial_value, onchange)
     return am.group(line, grip)
         :read_mat4("MVP")
         :action(function(node)
-            if not prev_pos and am.mouse_button_pressed.left then
+            if not prev_pos and win:mouse_button_pressed("left") then
                 inv = math.inverse(node.value)
-                local pos = inv * vec4(am.mouse_position, 0, 1)
+                local pos = inv * vec4(win:mouse_position(), 0, 1)
                 if math.abs(pos.x) <= 1+grip_w/2 and math.abs(pos.y) < grip_h/2 then
                     prev_pos = pos
                 end
             end
-            if prev_pos and am.mouse_button_down.left then
-                local pos = inv * vec4(am.mouse_position, 0, 1)
+            if prev_pos and win:mouse_button_down("left") then
+                local pos = inv * vec4(win:mouse_position(), 0, 1)
                 local x = math.min(1, math.max(-1, pos.x))
                 grip.x = x
                 onchange(min + (x * 0.5 + 0.5) * (max - min))
@@ -225,7 +225,7 @@ function assemble_ui()
         :bind_mat4("MVP")
         :bind_program(shader_program)
         :action(function()
-            if am.key_down.escape then
+            if win:key_down("escape") then
                 win:close()
             end
             return 0

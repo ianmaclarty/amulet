@@ -19,11 +19,14 @@
 #define am_get_userdata_or_nil(L, T, idx) \
     (lua_isnil(L, idx) ? NULL : ((T*)am_check_metatable_id(L, MT_##T, idx)))
 
+#define AM_METATABLE_ID_MASK 0x0000FFFF
+#define AM_NONATOMIC_MASK    0x00010000
+
 template<typename T>
 struct am_lua_array;
 
 struct am_userdata {
-    int metatable_id;
+    uint32_t ud_flags;
 
     am_userdata();
 
@@ -176,3 +179,5 @@ int am_default_index_func(lua_State *L);
 int am_default_newindex_func(lua_State *L);
 void am_set_default_index_func(lua_State *L);
 void am_set_default_newindex_func(lua_State *L);
+
+void am_open_userdata_module(lua_State *L);

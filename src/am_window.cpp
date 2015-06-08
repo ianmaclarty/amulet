@@ -3,24 +3,6 @@
 #define DEFAULT_WIN_WIDTH 640
 #define DEFAULT_WIN_HEIGHT 480
 
-struct am_window : am_nonatomic_userdata {
-    bool                needs_closing;
-    am_native_window   *native_win;
-    am_scene_node      *root;
-    int                 root_ref;
-    int                 window_ref;
-    int                 width;
-    int                 height;
-    // used when restoring windowed mode from fullscreen mode
-    int                 restore_windowed_width;
-    int                 restore_windowed_height;
-    bool                has_depth_buffer;
-    bool                has_stencil_buffer;
-    bool                lock_pointer;
-    am_window_mode      mode;
-    bool                dirty;
-};
-
 static std::vector<am_window*> windows;
 
 static int create_window(lua_State *L) {
@@ -122,10 +104,13 @@ static int create_window(lua_State *L) {
 
     windows.push_back(win);
 
+    lua_pushvalue(L, -1);
+    am_call_amulet(L, "_init_window_event_data", 1, 0);
+
     return 1;
 }
 
-static am_window* find_window(am_native_window *nwin) {
+am_window* am_find_window(am_native_window *nwin) {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
         if (win->native_win == nwin) {
@@ -136,7 +121,7 @@ static am_window* find_window(am_native_window *nwin) {
 }
 
 void am_handle_window_close(am_native_window *nwin) {
-    am_window *win = find_window(nwin);
+    am_window *win = am_find_window(nwin);
     if (win != NULL) {
         win->needs_closing = true;
     }
@@ -242,6 +227,8 @@ bool am_execute_actions(lua_State *L, double dt) {
                 res = false;
                 break;
             }
+            win->push(L);
+            am_call_amulet(L, "_clear_events", 1, 0);
         }
     }
     am_post_execute_actions(L);

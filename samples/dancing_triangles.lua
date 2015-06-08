@@ -73,7 +73,7 @@ top:action(function()
     return 1
 end)
 :action(function()
-    if am.key_pressed.escape then
+    if win:key_pressed("escape") then
         win:close()
     end
     return 0

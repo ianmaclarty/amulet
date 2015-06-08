@@ -244,3 +244,7 @@ function log1(fmt, ...)
         amulet.log(tostring(fmt), true, 2)
     end
 end
+
+-- userdata functions
+
+getusertable = amulet._getusertable

@@ -1,7 +1,7 @@
 #include "amulet.h"
 
 am_userdata::am_userdata() {
-    metatable_id = 0;
+    ud_flags = 0;
 }
 
 void am_userdata::push(lua_State *L) {
@@ -11,6 +11,7 @@ void am_userdata::push(lua_State *L) {
 am_nonatomic_userdata::am_nonatomic_userdata() {
     num_refs = -1;
     freelist = 0;
+    ud_flags = AM_NONATOMIC_MASK;
 }
 
 int am_nonatomic_userdata::ref(lua_State *L, int idx) {
@@ -59,7 +60,7 @@ void am_nonatomic_userdata::pushref(lua_State *L, int ref) {
 }
 
 void am_nonatomic_userdata::pushuservalue(lua_State *L) {
-    push(L);
+    push(L); // push userdata
     if (num_refs == -1) {
         // create uservalue table
         lua_newtable(L);
@@ -69,11 +70,11 @@ void am_nonatomic_userdata::pushuservalue(lua_State *L) {
     } else {
         lua_getuservalue(L, -1);
     }
-    lua_remove(L, -2); // userdata
+    lua_remove(L, -2); // remove userdata
 }
 
 am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id) {
-    ud->metatable_id = metatable_id;
+    ud->ud_flags |= metatable_id;
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
     assert(lua_istable(L, -1));
     lua_setmetatable(L, -2);
@@ -126,8 +127,9 @@ int am_get_type(lua_State *L, int idx) {
     int t = lua_type(L, idx);
     if (t == LUA_TUSERDATA) {
         am_userdata *ud = (am_userdata*)lua_touserdata(L, idx);
-        assert(ud->metatable_id < AM_RESERVED_REFS_END && ud->metatable_id > AM_RESERVED_REFS_START);
-        return ud->metatable_id;
+        uint32_t mtid = ud->ud_flags & AM_METATABLE_ID_MASK;
+        assert(mtid < AM_RESERVED_REFS_END && mtid > AM_RESERVED_REFS_START);
+        return mtid;
     } else {
         return t;
     }
@@ -160,7 +162,7 @@ am_userdata *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
     if (type == LUA_TUSERDATA) {
         ud = (am_userdata*)lua_touserdata(L, idx);
         if (ud != NULL) {
-            int mt = ud->metatable_id;
+            int mt = ud->ud_flags & AM_METATABLE_ID_MASK;
             while (mt > 0 && mt < AM_RESERVED_REFS_END) {
                 if (mt == metatable_id) return ud;
                 mt = mt_parent[mt];
@@ -260,4 +262,27 @@ void am_set_default_index_func(lua_State *L) {
 void am_set_default_newindex_func(lua_State *L) {
     lua_pushcclosure(L, am_default_newindex_func, 0);
     lua_setfield(L, -2, "__newindex");
+}
+
+static int getusertable(lua_State *L) {
+    am_check_nargs(L, 1);
+    if (lua_type(L, 1) != LUA_TUSERDATA) {
+        return luaL_error(L, "expecting a userdata argument (in fact a %s)", lua_typename(L, lua_type(L, 1)));
+    }
+    am_userdata *ud = (am_userdata*)lua_touserdata(L, 1);
+    if (!(ud->ud_flags & AM_NONATOMIC_MASK)) {
+        lua_pushnil(L);
+        return 1;
+    }
+    am_nonatomic_userdata *naud = (am_nonatomic_userdata*)ud;
+    naud->pushuservalue(L);
+    return 1;
+}
+
+void am_open_userdata_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"_getusertable",    getusertable},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
 }

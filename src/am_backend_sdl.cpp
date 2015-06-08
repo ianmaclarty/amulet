@@ -33,6 +33,8 @@ enum axis_button {
 struct win_info {
     SDL_Window *window;
     bool lock_pointer;
+    int mouse_x;
+    int mouse_y;
 };
 
 static bool have_focus = true;
@@ -62,9 +64,9 @@ static bool handle_events(lua_State *L);
 //static void resize_handler(SDL_Window *win, int w, int h);
 static am_key convert_key(int key);
 static am_mouse_button convert_mouse_button(Uint8 button);
-static void init_mouse_state(SDL_Window *window);
 //static bool controller_to_keys = true;
 static bool check_for_package();
+static win_info *win_from_id(UInt32 winid);
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -157,8 +159,8 @@ am_native_window *am_create_native_window(
     win_info winfo;
     winfo.window = win;
     winfo.lock_pointer = false;
+    SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
     windows.push_back(winfo);
-    init_mouse_state(win);
     return (am_native_window*)win;
 }
 
@@ -509,22 +511,15 @@ static void init_audio() {
     SDL_PauseAudioDevice(audio_device, 0);
 }
 
-static int mouse_x = 0;
-static int mouse_y = 0;
-
-static void init_mouse_state(SDL_Window *window) {
-    SDL_GetMouseState(&mouse_x, &mouse_y);
-}
-
-static void update_mouse_state(lua_State *L) {
-    if (windows.size() == 0) return;
+static void update_mouse_state(lua_State *L, win_info *info) {
     int w, h;
-    SDL_GetWindowSize(windows[0].window, &w, &h);
-    float norm_x = ((float)mouse_x / (float)w) * 2.0f - 1.0f;
-    float norm_y = (1.0f - (float)mouse_y / (float)h) * 2.0f - 1.0f;
+    SDL_GetWindowSize(info->window, &w, &h);
+    float norm_x = ((float)info->mouse_x / (float)w) * 2.0f - 1.0f;
+    float norm_y = (1.0f - (float)info->mouse_y / (float)h) * 2.0f - 1.0f;
+    am_find_window((am_native_window*)info->window)->push(L);
     lua_pushnumber(L, norm_x);
     lua_pushnumber(L, norm_y);
-    am_call_amulet(L, "_mouse_move", 2, 0);
+    am_call_amulet(L, "_mouse_move", 3, 0);
 }
 
 static bool handle_events(lua_State *L) {
@@ -568,52 +563,68 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_KEYDOWN: {
                 if (!event.key.repeat) {
-                    am_key key = convert_key(event.key.keysym.sym);
-                    lua_pushstring(L, am_key_name(key));
-                    am_call_amulet(L, "_key_down", 1, 0);
+                    win_info *info = win_from_id(event.key.windowID);
+                    if (info) {
+                        am_find_window((am_native_window*)info->window)->push(L);
+                        am_key key = convert_key(event.key.keysym.sym);
+                        lua_pushstring(L, am_key_name(key));
+                        am_call_amulet(L, "_key_down", 2, 0);
+                    }
                 }
                 break;
             }
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
-                    am_key key = convert_key(event.key.keysym.sym);
-                    lua_pushstring(L, am_key_name(key));
-                    am_call_amulet(L, "_key_up", 1, 0);
+                    win_info *info = win_from_id(event.key.windowID);
+                    if (info) {
+                        am_find_window((am_native_window*)info->window)->push(L);
+                        am_key key = convert_key(event.key.keysym.sym);
+                        lua_pushstring(L, am_key_name(key));
+                        am_call_amulet(L, "_key_up", 2, 0);
+                    }
                 }
                 break;
             }
             case SDL_MOUSEMOTION: {
-                for (unsigned int i = 0; i < windows.size(); i++) {
-                    if (SDL_GetWindowID(windows[i].window) == event.motion.windowID) {
-                        if (windows[i].lock_pointer) {
-                            mouse_x += event.motion.xrel;
-                            mouse_y += event.motion.yrel;
-                        } else {
-                            mouse_x = event.motion.x;
-                            mouse_y = event.motion.y;
-                        }
-                        break;
+                win_info *info = win_from_id(event.motion.windowID);
+                if (info) {
+                    if (info->lock_pointer) {
+                        info->mouse_x += event.motion.xrel;
+                        info->mouse_y += event.motion.yrel;
+                    } else {
+                        info->mouse_x = event.motion.x;
+                        info->mouse_y = event.motion.y;
                     }
                 }
                 break;
             }
             case SDL_MOUSEBUTTONDOWN: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    am_call_amulet(L, "_mouse_down", 1, 0);
+                    win_info *info = win_from_id(event.button.windowID);
+                    if (info) {
+                        am_find_window((am_native_window*)info->window)->push(L);
+                        lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
+                        am_call_amulet(L, "_mouse_down", 2, 0);
+                    }
                 }
                 break;
             }
             case SDL_MOUSEBUTTONUP: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    am_call_amulet(L, "_mouse_up", 1, 0);
+                    win_info *info = win_from_id(event.button.windowID);
+                    if (info) {
+                        am_find_window((am_native_window*)info->window)->push(L);
+                        lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
+                        am_call_amulet(L, "_mouse_up", 2, 0);
+                    }
                 }
                 break;
             }
         }
     }
-    update_mouse_state(L);
+    for (unsigned i = 0; i < windows.size(); i++) {
+        update_mouse_state(L, &windows[i]);
+    }
     return true;
 }
 
@@ -714,6 +725,15 @@ static bool check_for_package() {
     }
     free(package_filename);
     return true;
+}
+
+static win_info *win_from_id(UInt32 winid) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (SDL_GetWindowID(windows[i].window) == winid) {
+            return &windows[i];
+        }
+    }
+    return NULL;
 }
 
 /*

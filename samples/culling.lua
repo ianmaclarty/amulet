@@ -74,9 +74,9 @@ local scene = scene_group
     :bind_mat4("P", projection_matrix)
     :bind_program(shader)
     :action(function()
-        translated_cube.xy = am.mouse_position.xy * 10
+        translated_cube.xy = win:mouse_position().xy * 10
         log(math.sphere_visible(projection_matrix * modelview_matrix, vec3(0), math.sqrt(3)))
-        if am.key_pressed.escape then
+        if win:key_pressed("escape") then
             win:close()
         end
         return 0

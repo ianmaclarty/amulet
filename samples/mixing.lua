@@ -39,11 +39,11 @@ select_tracks()
 
 win.root = am.group()
 win.root:action(function()
-    if am.key_pressed.enter then
+    if win:key_pressed("enter") then
         play_pause()
-    elseif am.key_pressed.r then
+    elseif win:key_pressed("r") then
         select_tracks()
-    elseif am.key_pressed.escape then
+    elseif win:key_pressed("escape") then
         win:close()
     end
     return 0

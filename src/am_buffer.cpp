@@ -165,7 +165,8 @@ static am_buffer_view* new_buffer_view(lua_State *L, am_buffer_view_type type) {
             mtid);
     // ... but set the metatable_id to the standard buffer view id, which
     // makes type checking easier.
-    view->metatable_id = MT_am_buffer_view;
+    view->ud_flags &= ~AM_METATABLE_ID_MASK;
+    view->ud_flags |= MT_am_buffer_view;
     return view;
 }
 

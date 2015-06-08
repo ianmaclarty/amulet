@@ -38,7 +38,6 @@ void am_pre_execute_actions(lua_State *L, double dt) {
 }
 
 void am_post_execute_actions(lua_State *L) {
-    am_call_amulet(L, "_clear_events", 0, 0);
 }
 
 bool am_execute_node_actions(lua_State *L, am_scene_node *node) {
