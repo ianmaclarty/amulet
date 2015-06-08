@@ -29,6 +29,7 @@ static int create_framebuffer(lua_State *L) {
     if (status != AM_FRAMEBUFFER_STATUS_COMPLETE) {
         return luaL_error(L, "framebuffer incomplete");
     }
+    fb->clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     return 1;
 }
 
@@ -55,11 +56,13 @@ static int framebuffer_gc(lua_State *L) {
 static int clear_framebuffer(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
+    am_bind_framebuffer(fb->framebuffer_id);
     bool clear_color = true;
     bool clear_depth = true;
     bool clear_stencil = true;
     if (nargs > 1) {
         clear_color = lua_toboolean(L, 2);
+        am_set_framebuffer_clear_color(fb->clear_color.r, fb->clear_color.g, fb->clear_color.b, fb->clear_color.a);
     }
     if (nargs > 2) {
         clear_depth = lua_toboolean(L, 3);
@@ -67,7 +70,6 @@ static int clear_framebuffer(lua_State *L) {
     if (nargs > 3) {
         clear_stencil = lua_toboolean(L, 4);
     }
-    am_bind_framebuffer(fb->framebuffer_id);
     am_clear_framebuffer(clear_color, clear_depth, clear_stencil);
     return 0;
 }
@@ -88,6 +90,17 @@ static int read_back(lua_State *L) {
     return 0;
 }
 
+static void get_clear_color(lua_State *L, void *obj) {
+    am_framebuffer *fb = (am_framebuffer*)obj;
+    am_new_userdata(L, am_vec4)->v = fb->clear_color;
+}
+static void set_clear_color(lua_State *L, void *obj) {
+    am_framebuffer *fb = (am_framebuffer*)obj;
+    fb->clear_color = am_get_userdata(L, am_vec4, 3)->v;
+}
+
+static am_property clear_color_property = {get_clear_color, set_clear_color};
+
 static void register_framebuffer_mt(lua_State *L) {
     lua_newtable(L);
     am_set_default_index_func(L);
@@ -95,6 +108,8 @@ static void register_framebuffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, framebuffer_gc, 0);
     lua_setfield(L, -2, "__gc");
+
+    am_register_property(L, "clear_color", &clear_color_property);
 
     lua_pushcclosure(L, render_node_to_framebuffer, 0);
     lua_setfield(L, -2, "render");

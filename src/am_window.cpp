@@ -232,17 +232,20 @@ bool am_update_windows(lua_State *L) {
 }
 
 bool am_execute_actions(lua_State *L, double dt) {
-    am_prepare_to_execute_actions(L, dt);
+    am_pre_execute_actions(L, dt);
     unsigned int n = windows.size();
+    bool res = true;
     for (unsigned int i = 0; i < n; i++) {
         am_window *win = windows[i];
         if (!win->needs_closing && win->root != NULL) {
             if (!am_execute_node_actions(L, win->root)) {
-                return false;
+                res = false;
+                break;
             }
         }
     }
-    return true;
+    am_post_execute_actions(L);
+    return res;
 }
 
 static void get_root_node(lua_State *L, void *obj) {

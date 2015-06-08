@@ -11,6 +11,7 @@ struct am_action {
     am_action();
 };
 
-void am_prepare_to_execute_actions(lua_State *L, double dt);
+void am_pre_execute_actions(lua_State *L, double dt);
+void am_post_execute_actions(lua_State *L);
 bool am_execute_node_actions(lua_State *L, am_scene_node *node);
 void am_init_actions(lua_State *L);

@@ -58,6 +58,8 @@ end
 
 local max_touches = 10
 local touches = {}
+local touch_began = {}
+local touch_ended = {}
 
 for i = 1, max_touches do
     touches[i] = {pos = vec2(0)}
@@ -67,9 +69,8 @@ function amulet._touch_begin(id, x, y)
     local free_i = nil
     for i, touch in ipairs(touches) do
         if touch.id == id then
-            touch.pos.x = x
-            touch.pos.y = y
-            return
+            free_i = i
+            break
         elseif not touch.id and not free_i then
             free_i = i
         end
@@ -79,6 +80,7 @@ function amulet._touch_begin(id, x, y)
         touch.id = id
         touch.pos.x = x
         touch.pos.y = y
+        touch_began[free_i] = (touch_began[free_i] or 0) + 1
     end
 end
 
@@ -86,6 +88,7 @@ function amulet._touch_end(id, x, y)
     for i, touch in ipairs(touches) do
         if touch.id == id then
             touch.id = nil
+            touch_ended[i] = (touch_ended[i] or 0) + 1
             return
         end
     end
@@ -114,9 +117,25 @@ function amulet.touch_pos(i)
     end
 end
 
+function amulet.touch_began(i)
+    return touch_began[i]
+end
+
+function amulet.touch_ended(i)
+    return touch_ended[i]
+end
+
+local
+function clear_touch()
+    table.clear(touch_began)
+    table.clear(touch_ended)
+end
+
+
 -- general
 
 function amulet._clear_input()
     clear_keys()
     clear_mouse()
+    clear_touch()
 end

@@ -213,56 +213,6 @@ static int get_child(lua_State *L) {
     }
 }
 
-static inline void check_alias(lua_State *L) {
-    am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
-    if (node->specialized_index(L)) goto error;
-    am_default_index_func(L);
-    if (!lua_isnil(L, -1)) goto error;
-    lua_pop(L, 1);
-    return;
-    error:
-    luaL_error(L,
-        "alias '%s' is already used for something else",
-        lua_tostring(L, 2));
-}
-
-static int alias(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
-    am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    node->pushuservalue(L);
-    int userval_idx = am_absindex(L, -1);
-    if (lua_istable(L, 2)) {
-        // create multiple aliases - one for each key/value pair
-        lua_pushvalue(L, 2); // push table, as we need position 2 for check_alias
-        int tbl_idx = am_absindex(L, -1);
-        lua_pushnil(L);
-        while (lua_next(L, tbl_idx)) {
-            lua_pushvalue(L, -2); // key
-            lua_replace(L, 2); // check_alias expects key in position 2
-            check_alias(L);
-            lua_pushvalue(L, -2); // key
-            lua_pushvalue(L, -2); // value
-            lua_rawset(L, userval_idx); // uservalue[key] = value
-            lua_pop(L, 1); // value
-        }
-        lua_pop(L, 1); // table
-    } else if (lua_isstring(L, 2)) {
-        check_alias(L);
-        lua_pushvalue(L, 2);
-        if (nargs > 2) {
-            lua_pushvalue(L, 3);
-        } else {
-            lua_pushvalue(L, 1);
-        }
-        lua_rawset(L, userval_idx);
-    } else {
-        return luaL_error(L, "expecting a string or table at position 2");
-    }
-    lua_pop(L, 1); // uservalue
-    lua_pushvalue(L, 1);
-    return 1;
-}
-
 static void get_num_children(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
     lua_pushinteger(L, node->children.size);
@@ -305,9 +255,6 @@ static void register_scene_node_mt(lua_State *L) {
 
     am_register_property(L, "num_children", &num_children_property);
     am_register_property(L, "_actions", &actions_property);
-
-    lua_pushcclosure(L, alias, 0);
-    lua_setfield(L, -2, "alias");
 
     lua_pushcclosure(L, append_child, 0);
     lua_setfield(L, -2, "append");

@@ -132,7 +132,7 @@ function create_slider(min, max, initial_value, onchange)
         :bind_array("x", am.float_array{-grip_w/2, grip_w/2, grip_w/2, -grip_w/2})
         :bind_array("y", am.float_array{-grip_h/2, -grip_h/2, grip_h/2, grip_h/2})
         :bind_vec3("color", vec3(0.8, 0.8, 0.2))
-        :translate("MVP", ((initial_value-min)/(max-min))*2-1):alias("position")
+        :translate("MVP", ((initial_value-min)/(max-min))*2-1)
     local line = am.draw_arrays("lines")
         :bind_array("x", am.float_array{-1, 1})
         :bind_array("y", am.float_array{ 0, 0})
@@ -152,7 +152,7 @@ function create_slider(min, max, initial_value, onchange)
             if prev_pos and am.mouse_button_down.left then
                 local pos = inv * vec4(am.mouse_position, 0, 1)
                 local x = math.min(1, math.max(-1, pos.x))
-                grip.position.x = x
+                grip.x = x
                 onchange(min + (x * 0.5 + 0.5) * (max - min))
                 prev_pos = pos
             else

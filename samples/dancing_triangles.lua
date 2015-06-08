@@ -49,18 +49,18 @@ for i = 1, num_tris do
 end
 
 for i, seed in ipairs(seeds) do
-    local node = base
-        :scale("MVP"):alias("size")
-        :translate("MVP"):alias("position")
+    local size_node = base:scale("MVP")
+    local position_node = size_node:translate("MVP")
+    local node = position_node
         :bind_vec4("tint", math.random(), math.random(), math.random(), 1)
         :action(function(node)
             local t = am.frame_time
             local r = math.cos(t * seed * 2)
             local x = math.sin((t + seed * 6) * seed) * r 
             local y = math.cos(t - i * seed) * r
-            node.position.x = x
-            node.position.y = y
-            node.size.xy = math.sin(t * seed * 4 + i) * 0.15 + 0.2
+            position_node.x = x
+            position_node.y = y
+            size_node.xy = math.sin(t * seed * 4 + i) * 0.15 + 0.2
             return 0
         end)
     group:append(node)
