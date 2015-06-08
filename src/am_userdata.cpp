@@ -267,7 +267,7 @@ void am_set_default_newindex_func(lua_State *L) {
 static int getusertable(lua_State *L) {
     am_check_nargs(L, 1);
     if (lua_type(L, 1) != LUA_TUSERDATA) {
-        return luaL_error(L, "expecting a userdata argument (in fact a %s)", lua_typename(L, lua_type(L, 1)));
+        return luaL_error(L, "expecting a full userdata argument (in fact a %s)", lua_typename(L, lua_type(L, 1)));
     }
     am_userdata *ud = (am_userdata*)lua_touserdata(L, 1);
     if (!(ud->ud_flags & AM_NONATOMIC_MASK)) {

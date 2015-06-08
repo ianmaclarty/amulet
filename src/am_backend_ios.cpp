@@ -417,10 +417,11 @@ static void ios_touch_began(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
+        am_find_window((am_native_window*)ios_view)->push(ios_L);
         lua_pushlightuserdata(ios_L, touch);
         lua_pushnumber(ios_L, pos.x);
         lua_pushnumber(ios_L, pos.y);
-        am_call_amulet(ios_L, "_touch_begin", 3, 0);
+        am_call_amulet(ios_L, "_touch_begin", 4, 0);
     }
 }
 
@@ -430,10 +431,11 @@ static void ios_touch_moved(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
+        am_find_window((am_native_window*)ios_view)->push(ios_L);
         lua_pushlightuserdata(ios_L, touch);
         lua_pushnumber(ios_L, pos.x);
         lua_pushnumber(ios_L, pos.y);
-        am_call_amulet(ios_L, "_touch_move", 3, 0);
+        am_call_amulet(ios_L, "_touch_move", 4, 0);
     }
 }
 
@@ -443,10 +445,11 @@ static void ios_touch_ended(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
+        am_find_window((am_native_window*)ios_view)->push(ios_L);
         lua_pushlightuserdata(ios_L, touch);
         lua_pushnumber(ios_L, pos.x);
         lua_pushnumber(ios_L, pos.y);
-        am_call_amulet(ios_L, "_touch_end", 3, 0);
+        am_call_amulet(ios_L, "_touch_end", 4, 0);
     }
 }
 
@@ -762,8 +765,10 @@ am_native_window *am_create_native_window(
 
 void am_get_native_window_size(am_native_window *window, int *w, int *h) {
     GLKView *view = (GLKView*)window;
-    *w = view.drawableWidth;
-    *h = view.drawableHeight;
+    CGRect bounds = view.bounds;
+    float scale = view.contentScaleFactor;
+    *w = bounds.size.width * scale;
+    *h = bounds.size.height * scale;
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
