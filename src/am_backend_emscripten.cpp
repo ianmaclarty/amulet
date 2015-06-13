@@ -279,7 +279,7 @@ static bool handle_events() {
 
 static void audio_callback(void *ud, Uint8 *stream, int len) {
     if (len != (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels) {
-        am_debug("audio buffer size mismatch! (%d vs %d)",
+        am_log0("audio buffer size mismatch! (%d vs %d)",
             len, 
             (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
         memset(stream, 0, len);

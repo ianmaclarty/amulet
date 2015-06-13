@@ -3,7 +3,7 @@
 am_scene_node::am_scene_node() {
     children.owner = this;
     recursion_limit = am_conf_default_recursion_limit;
-    flags = AM_NODE_FLAG_VISIBLE;
+    flags = 0;
     actions_ref = LUA_NOREF;
     action_seq = 0;
 }
@@ -13,7 +13,7 @@ void am_scene_node::render_children(am_render_state *rstate) {
     recursion_limit--;
     for (int i = 0; i < children.size; i++) {
         am_scene_node *child = children.arr[i].child;
-        if (am_node_visible(child)) {
+        if (!am_node_hidden(child)) {
             child->render(rstate);
         }
     }
@@ -135,16 +135,6 @@ static int create_wrap_node(lua_State *L) {
     return 1;
 }
 
-static int create_hidden_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 0);
-    am_scene_node *node = am_new_userdata(L, am_scene_node);
-    node->recursion_limit = -1;
-    if (nargs > 0) {
-        am_set_scene_node_child(L, node);
-    }
-    return 1;
-}
-
 static int create_group_node(lua_State *L) {
     int nargs = am_check_nargs(L, 0);
     am_scene_node *node = am_new_userdata(L, am_scene_node);
@@ -191,17 +181,17 @@ static int get_child(lua_State *L) {
     }
 }
 
-static void get_visible(lua_State *L, void *obj) {
+static void get_hidden(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
-    lua_pushboolean(L, am_node_visible(node));
+    lua_pushboolean(L, am_node_hidden(node));
 }
 
-static void set_visible(lua_State *L, void *obj) {
+static void set_hidden(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
-    am_set_node_visible(node, lua_toboolean(L, 3));
+    am_set_node_hidden(node, lua_toboolean(L, 3));
 }
 
-static am_property visible_property = {get_visible, set_visible};
+static am_property hidden_property = {get_hidden, set_hidden};
 
 static void get_num_children(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
@@ -243,7 +233,7 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, get_child, 0);
     lua_setfield(L, -2, "child");
 
-    am_register_property(L, "visible", &visible_property);
+    am_register_property(L, "hidden", &hidden_property);
     am_register_property(L, "num_children", &num_children_property);
     am_register_property(L, "_actions", &actions_property);
 
@@ -280,8 +270,6 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "bind_program");
     lua_pushcclosure(L, create_wrap_node, 0);
     lua_setfield(L, -2, "wrap");
-    lua_pushcclosure(L, create_hidden_node, 0);
-    lua_setfield(L, -2, "hidden");
 
     lua_pushcclosure(L, am_create_read_mat2_node, 0);
     lua_setfield(L, -2, "read_mat2");

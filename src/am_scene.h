@@ -1,12 +1,12 @@
 #define AM_NODE_FLAG_MARK        ((uint32_t)1)
-#define AM_NODE_FLAG_VISIBLE     ((uint32_t)2)
+#define AM_NODE_FLAG_HIDDEN      ((uint32_t)2)
 
 #define am_node_marked(node)        (node->flags & AM_NODE_FLAG_MARK)
 #define am_mark_node(node)          node->flags |= AM_NODE_FLAG_MARK
 #define am_unmark_node(node)        node->flags &= ~AM_NODE_FLAG_MARK
-#define am_node_visible(node)       (node->flags & AM_NODE_FLAG_VISIBLE)
-#define am_set_node_visible(node, visible) \
-    {if (visible) (node)->flags |= AM_NODE_FLAG_VISIBLE; else (node)->flags &= ~AM_NODE_FLAG_VISIBLE; }
+#define am_node_hidden(node)       (node->flags & AM_NODE_FLAG_HIDDEN)
+#define am_set_node_hidden(node, hidden) \
+    {if (hidden) (node)->flags |= AM_NODE_FLAG_HIDDEN; else (node)->flags &= ~AM_NODE_FLAG_HIDDEN; }
 
 struct am_scene_node;
 
