@@ -3,7 +3,7 @@
 am_scene_node::am_scene_node() {
     children.owner = this;
     recursion_limit = am_conf_default_recursion_limit;
-    flags = 0;
+    flags = AM_NODE_FLAG_VISIBLE;
     actions_ref = LUA_NOREF;
     action_seq = 0;
 }
@@ -13,7 +13,9 @@ void am_scene_node::render_children(am_render_state *rstate) {
     recursion_limit--;
     for (int i = 0; i < children.size; i++) {
         am_scene_node *child = children.arr[i].child;
-        child->render(rstate);
+        if (am_node_visible(child)) {
+            child->render(rstate);
+        }
     }
     recursion_limit++;
 }
@@ -189,6 +191,18 @@ static int get_child(lua_State *L) {
     }
 }
 
+static void get_visible(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    lua_pushboolean(L, am_node_visible(node));
+}
+
+static void set_visible(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    am_set_node_visible(node, lua_toboolean(L, 3));
+}
+
+static am_property visible_property = {get_visible, set_visible};
+
 static void get_num_children(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
     lua_pushinteger(L, node->children.size);
@@ -229,6 +243,7 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, get_child, 0);
     lua_setfield(L, -2, "child");
 
+    am_register_property(L, "visible", &visible_property);
     am_register_property(L, "num_children", &num_children_property);
     am_register_property(L, "_actions", &actions_property);
 

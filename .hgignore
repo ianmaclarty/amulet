@@ -18,6 +18,7 @@ settings
 tmp/*
 *.orig
 log
+D.*
 
 amulet.exe.manifest
 vc*.pdb
@@ -27,6 +28,8 @@ src/am_generated_view_defs.inc
 
 tools/embed
 tools/gen_view_defs
+
+xcode/*
 
 deps/SDL2-2.0.3/Makefile
 deps/SDL2-2.0.3/Makefile.rules
