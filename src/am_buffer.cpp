@@ -306,10 +306,19 @@ static void register_buffer_mt(lua_State *L) {
     am_register_metatable(L, "buffer", MT_am_buffer, 0);
 }
 
+static void get_view_buffer(lua_State *L, void *obj) {
+    am_buffer_view *view = (am_buffer_view*)obj;
+    view->pushref(L, view->buffer_ref);
+}
+
+static am_property view_buffer_property = {get_view_buffer, NULL};
+
 static void register_view_mt(lua_State *L) {
     lua_newtable(L);
     am_set_default_index_func(L);
     am_set_default_newindex_func(L);
+
+    am_register_property(L, "buffer", &view_buffer_property);
 
     lua_pushcclosure(L, view_slice, 0);
     lua_setfield(L, -2, "slice");
