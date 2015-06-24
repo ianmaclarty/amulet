@@ -136,7 +136,7 @@ function amulet._touch_move(win, id, x, y)
     end
 end
 
-function window_mt.touch_pos(win, i)
+function window_mt.touch_position(win, i)
     local u = getusertable(win)
     local touch = u._touches[i]
     if not touch then

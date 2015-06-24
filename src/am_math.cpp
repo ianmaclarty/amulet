@@ -1044,6 +1044,24 @@ static int lookat(lua_State *L) {
     return 1;
 }
 
+static int rotate3(lua_State *L) {
+    am_check_nargs(L, 2);
+    float angle = luaL_checknumber(L, 1);
+    am_vec3 *about = am_get_userdata(L, am_vec3, 2);
+    am_mat3 *result = am_new_userdata(L, am_mat3);
+    result->m = glm::mat3(glm::rotate(angle, about->v));
+    return 1;
+}
+
+static int rotate4(lua_State *L) {
+    am_check_nargs(L, 2);
+    float angle = luaL_checknumber(L, 1);
+    am_vec3 *about = am_get_userdata(L, am_vec3, 2);
+    am_mat4 *result = am_new_userdata(L, am_mat4);
+    result->m = glm::rotate(angle, about->v);
+    return 1;
+}
+
 static int euleryxz3(lua_State *L) {
     am_check_nargs(L, 1);
     am_vec3 *angles = am_get_userdata(L, am_vec3, 1);
@@ -1618,6 +1636,8 @@ void am_open_math_module(lua_State *L) {
         {"refract",     vec_refract},
         {"perspective", perspective},
         {"lookat",      lookat},
+        {"rotate3",     rotate3},
+        {"rotate4",     rotate4},
         {"euleryxz3",   euleryxz3},
         {"euleryxz4",   euleryxz4},
         {"sphere_visible", sphere_visible},
