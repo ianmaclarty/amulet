@@ -48,6 +48,10 @@ void am_depth_test_state::bind(am_render_state *rstate) {
         am_set_depth_test_enabled(test_enabled);
         rstate->bound_depth_test_state.test_enabled = test_enabled;
     }
+    if (mask_enabled != rstate->bound_depth_test_state.mask_enabled) {
+        am_set_framebuffer_depth_mask(mask_enabled);
+        rstate->bound_depth_test_state.mask_enabled = mask_enabled;
+    }
     if (func != rstate->bound_depth_test_state.func) {
         am_set_depth_func(func);
         rstate->bound_depth_test_state.func = func;
@@ -237,6 +241,8 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
     active_viewport_state.set(0, 0, w, h);
     active_depth_test_state.set(has_depthbuffer, has_depthbuffer,
         has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
+    am_set_framebuffer_depth_mask(has_depthbuffer);
+    bound_depth_test_state.mask_enabled = has_depthbuffer;
     if (clear) am_clear_framebuffer(true, true, true);
 }
 

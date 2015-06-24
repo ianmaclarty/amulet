@@ -36,7 +36,7 @@ typedef enum {
     MT_am_lookat_node,
     MT_am_billboard_node,
     MT_am_blend_node,
-    MT_am_depth_pass_node,
+    MT_am_depth_test_node,
     MT_am_cull_face_node,
     MT_am_cull_sphere_node,
     MT_am_draw_arrays_node,
