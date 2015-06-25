@@ -595,6 +595,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     view.context = context;
     view.delegate = self;
     ios_view = view;
+    [view setMultipleTouchEnabled:YES]; 
 
     [EAGLContext setCurrentContext:context];
 
