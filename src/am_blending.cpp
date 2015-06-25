@@ -46,6 +46,7 @@ void am_open_blending_module(lua_State *L) {
         {"off", AM_BLEND_MODE_OFF},
         {"normal", AM_BLEND_MODE_NORMAL},
         {"add", AM_BLEND_MODE_ADD},
+        {"subtract", AM_BLEND_MODE_SUBTRACT},
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_blend_mode, blend_mode_enum);

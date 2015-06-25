@@ -39,6 +39,7 @@ enum am_blend_mode {
     AM_BLEND_MODE_OFF,
     AM_BLEND_MODE_NORMAL,
     AM_BLEND_MODE_ADD,
+    AM_BLEND_MODE_SUBTRACT,
 };
 
 struct am_blend_state {

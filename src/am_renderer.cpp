@@ -140,6 +140,19 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             color_b         = 1.0f;
             color_a         = 1.0f;
             break;
+        case AM_BLEND_MODE_SUBTRACT:
+            enabled         = true; 
+            equation_rgb    = AM_BLEND_EQUATION_REVERSE_SUBTRACT;
+            equation_alpha  = AM_BLEND_EQUATION_REVERSE_SUBTRACT;
+            sfactor_rgb     = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_rgb     = AM_BLEND_DFACTOR_ONE;
+            sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_alpha   = AM_BLEND_DFACTOR_ONE;
+            color_r         = 1.0f;
+            color_g         = 1.0f;
+            color_b         = 1.0f;
+            color_a         = 1.0f;
+            break;
     }
 }
 
