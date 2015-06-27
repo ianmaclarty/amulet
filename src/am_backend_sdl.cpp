@@ -66,7 +66,7 @@ static am_key convert_key(int key);
 static am_mouse_button convert_mouse_button(Uint8 button);
 //static bool controller_to_keys = true;
 static bool check_for_package();
-static win_info *win_from_id(UInt32 winid);
+static win_info *win_from_id(Uint32 winid);
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -727,7 +727,7 @@ static bool check_for_package() {
     return true;
 }
 
-static win_info *win_from_id(UInt32 winid) {
+static win_info *win_from_id(Uint32 winid) {
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (SDL_GetWindowID(windows[i].window) == winid) {
             return &windows[i];
