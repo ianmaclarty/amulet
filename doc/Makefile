@@ -6,7 +6,7 @@ SECTIONS = lua_builtins.txt \
 	vecmat.txt
 
 manual.html: $(SECTIONS) writer.lua style.css template.html Makefile
-	cat $(SECTIONS) | pandoc -s --template template.html -c style.css -f markdown -t writer.lua -o $@
+	cat $(SECTIONS) | pandoc -s --template template.html -c style.css --toc -f markdown -o $@
 
 clean:
 	rm manual.html

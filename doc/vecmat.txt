@@ -1,5 +1,7 @@
 ## Vectors and Matrices
 
+![](img1.jpg)
+
 Amulet supports 2, 3 and 4 dimensional vectors
 and 2x2, 3x3 and 4x4 matrices.
 
@@ -13,14 +15,14 @@ To construct a vector use one of the functions
 A vector may be constructed by passing its components
 as separate arguments to one of these functions, for example:
 
-~~~ {.lua-code test="yes"}
-local velocity = vec3(0, 0, -299792458)
+~~~ {.lua test="yes"}
+local velocity = vec3(1, 2, 3)
 ~~~
 
 Passing a single number to a vector constructor will
 set all components of the vector to that value.
 
-~~~ {.lua-code test="yes"}
+~~~ {.lua test="yes"}
 local origin = vec2(0)
 ~~~
 
@@ -29,7 +31,7 @@ of other vectors and numbers.
 The new vector's components will be taken from the other
 vectors in the order they are passed in.
 
-~~~ {.lua-code test="yes"}
+~~~ {.lua test="yes"}
 local bottom_left = vec2(0)
 local top_right = vec2(10, 100)
 local rect = vec4(bottom_left, top_right)
@@ -50,7 +52,7 @@ fields `x`, `r` or `s`; the second using any of the fields
 `w`, `a` or `q`. These fields can be used to retrieve or
 set the vector's components.
 
-~~~ {.lua-code test="yes"}
+~~~ {.lua test="yes"}
 local color = vec4(0.1, 0.3, 0.7, 0.8)
 print(color.r..", "..color.g..", "..color.b..", "..color.a)
 local point = vec2(0)
@@ -65,9 +67,10 @@ x=5, y=2
 ~~~
 
 A vector's components can also be accessed with 1-based
-integer indices and vectors support the Lua length operator (`#`).
+integer indices and vectors support the Lua length operator (`#`)
+(this returns the number of components of the vector, not its magnitude).
 
-~~~ {.lua-code test="yes"}
+~~~ {.lua test="yes"}
 local position = vec3(10, 20, 30)
 for i = 1, #position do
     print(position[i])
@@ -88,7 +91,7 @@ which are special fields whose characters are any of the
 component field characters. A new vector
 containing the named components will be returned.
 
-~~~ {.lua-code test="yes"}
+~~~ {.lua test="yes"}
 local dir = vec3(1, 2, 3)
 print(dir.xy)
 print(dir.rggb)
@@ -104,7 +107,7 @@ vec4(3, 3, 2, 1)
 Swizzle fields can also be used to update multiple components
 of a vector using another vector or a single number.
 
-~~~ {.lua-code test="yes"}
+~~~ {.lua test="yes"}
 local color = vec3(1, 0.8, 0.5)
 color.rg = color.gr
 print(color)
@@ -127,7 +130,7 @@ If one operand is a number then the operation is applied to each component of
 the vector and the number, yielding a new vector of the same size as the
 vector operand.
 
-~~~ {.lua-code test="yes"}
+~~~ {.lua test="yes"}
 print(vec2(3, 4) + 1)
 print(vec3(30) / vec3(3, 10, 5))
 print(2 * vec4(1, 2, 3, 4))
@@ -162,7 +165,7 @@ As the constructor arguments are consumed from left to right, the matrix
 is filled in column by column.
 This convention is also used in GLSL. For example:
 
-~~~ {.lua-code}
+~~~ {.lua}
 local m = mat3(1, 2, 3,
                4, 5, 6,
                7, 8, 9)
@@ -182,7 +185,7 @@ horizontally. This is however the convention used in GLSL.
 
 Here's another example:
 
-~~~ {.lua-code}
+~~~ {.lua}
 local n = mat4(vec3(1, 2, 3), 4,
                vec4(5, 6, 7, 8),
                vec2(9, 10), vec2(11, 12),
@@ -204,7 +207,7 @@ functions. The given matrix is used to fill in the top-left
 corner of the new matrix and the rest is filled in with
 elements from the identity matrix. For example:
 
-~~~ {.lua-code}
+~~~ {.lua}
 local o = mat4(mat2(1, 2, 3, 4))
 ~~~
 
@@ -222,7 +225,7 @@ will set `o` to the matrix:
 The columns of a matrix can be accessed as vectors using 1-based integer indices
 and the Lua length operator returns the number of columns.
 
-~~~ {.lua-code}
+~~~ {.lua}
 local matrix = mat2(1, 0, 0, 2)
 for i = 1, #matrix do
     print(matrix[i])
@@ -238,7 +241,7 @@ When accessing a column it is returned as a new vector, so
 updating a returned column vector has no effect on the original
 matrix. This means that code such as the following has no effect:
 
-~~~ {.lua-code}
+~~~ {.lua}
 local matrix = mat3(1)
 matrix[2][2] = 3 -- THIS DOESN'T WORK!
 print(matrix[2][2])
@@ -254,7 +257,7 @@ new vector to 3 has no effect on the original matrix.
 Instead if we want to update an individual element of a matrix,
 we need to update the entire column. Like so:
 
-~~~ {.lua-code}
+~~~ {.lua}
 local matrix = mat3(1)
 matrix[2] = vec3(matrix[2][1], 3, matrix[2][3])
 print(matrix[2][2])
@@ -271,7 +274,7 @@ matrices too. When one operand is a number, the result is a new
 matrix of the same size with the operation applied to each element
 of the matrix.
 
-~~~ {.lua-code}
+~~~ {.lua}
 print(2 * mat2(1, 2, 3, 4))
 print(mat3(3) - 1)
 ~~~
@@ -287,7 +290,7 @@ mat4(2, -1, -1,
 When both operands are matrices, the `+` and `-` operators work in a similar
 way to vectors, with the operations applied component-wise.
 
-~~~ {.lua-code}
+~~~ {.lua}
 print(mat2(1, 2, 3, 4) + mat2(0.1, 0.2, 0.3, 0.4))
 ~~~
 
@@ -299,7 +302,7 @@ mat2(1.1, 2.2,
 However, the `*` operator, when both operands are matrices, computes the
 [matrix product](http://en.wikipedia.org/wiki/Matrix_multiplication).
 
-~~~ {.lua-code}
+~~~ {.lua}
 print(mat2(1, 2, 3, 4) * mat2(10, 20, 30, 40))
 ~~~
 
@@ -321,6 +324,8 @@ which is another column vector.
 The `/` operator also works, although the second argument should be
 a square matrix (not a vector). Dividing by a matrix is the same as
 multiplying by the inverse of the matrix.
+
+![](img2.jpg)
 
 ### Vector and matrix function reference
 

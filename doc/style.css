@@ -4,7 +4,7 @@ html, body {
     padding: 0;
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: 15px;
-    background-color: #555;
+    background-color: #eee;
 } 
 
 #content {
@@ -13,59 +13,143 @@ html, body {
     margin-right: auto;
     margin-top: 0;
     margin-bottom: 0;
-    padding: 10px 10px 10px 10px;
-    background-color: #454545;
-    color: #ddd;
+    padding: 0;
+    background-color: #fff;
+    color: #333;
+    font-size: 16px;
 }
 
 a, a:visited {
-    color: #ea81f1;
+    color: #ff4cfc;
 }
 
-h2, h3 {
-    color: #ffae22;
+h2 {
     font-weight: normal;
+    font-size: 36px;
+    padding: 2px 2px 2px 5px;
+    width: 713px;
+    margin-top: 0;
+    padding-top: 20px;
+}
+
+h3 {
+    font-weight: normal;
+    font-size: 24px;
+    padding: 2px 2px 2px 5px;
+    width: 713px;
 }
 
 code {
-    color: #90e2e1;
+    /*color: #01c0c7;*/
 }
 
 em {
-    font-weight: normal;
+    font-weight: bold;
     font-style: italic;
-    color: #ececec;
 }
 
-.lua-code {
+code.lua {
     display: block;
-    background-color: #000;
+    background-color: #e7e7e7;
     width: 600px;
     margin: 0 auto 0 auto;
     padding: 5px;
+    color: #333;
+    border: 1px solid #e0e0e0;
 }
 
-.output {
+/*
+pre.lua:before {
+    content: "Example code:";
+    font-size: 12px;
+    margin-left: 55px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+*/
+
+code.lua span.ot,
+code.lua span.kw {
+    color: #ff4cfc;
+}
+
+code.lua span.dv {
+    color: #35cadc;
+}
+
+code.lua span.fu {
+    color: #333;
+}
+
+code.lua span.st {
+    color: #e08e00;
+}
+
+code.lua span.co {
+    color: #333;
+}
+
+
+.output code {
     display: block;
-    background-color: #000;
-    color: #90e298;
+    background-color: #e7e7e7;
+    color: #333;
     width: 600px;
     margin: 0 auto 0 auto;
     padding: 5px;
+    border: 1px solid #e0e0e0;
 }
+
+pre.output {
+    margin-top: 0;
+}
+
+/*
+pre.output:before {
+    content: "Output:";
+    font-size: 12px;
+    margin-left: 55px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+*/
 
 .func-def {
     font-family: monospace;
-    color: #90e2e1;
-    font-weight: normal;
+    font-weight: bold;
+    font-size: 18px;
+    margin-left: 5px;
+    margin-top: 30px;
+    margin-bottom: 10px;
 }
 
 .matrix {
     display: block;
-    color: #ececec;
     text-align: center;
 }
 
 p {
     margin-left: 12px;
 }
+
+.figure {
+    width: 100%;
+    text-align: center;
+}
+
+#TOC {
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    margin: 0;
+    padding: 0;
+}
+
+#TOC ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+#TOC li li {
+    margin-left: 20px;
+}
+
