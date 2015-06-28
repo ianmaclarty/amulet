@@ -299,7 +299,7 @@ mat2(1.1, 2.2,
      3.3, 4.4)
 ~~~
 
-However, the `*` operator, when both operands are matrices, computes the
+However, when both operands are matrices, the `*` operator computes the
 [matrix product](http://en.wikipedia.org/wiki/Matrix_multiplication).
 
 ~~~ {.lua}
