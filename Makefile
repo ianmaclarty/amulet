@@ -158,6 +158,11 @@ tools/embed$(EXE_EXT): tools/embed.c
 $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 	tools/embed$(EXE_EXT) $(EMBEDDED_FILES) > $@
 
+# Font generation tool
+
+tools/am_gen_font$(EXE_EXT): tools/am_gen_font.c
+	$(CC) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT)$@ $< $(BUILD_LIB_DIR)/libstb$(ALIB_EXT) $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
+
 # Cleanup
 
 clean:
