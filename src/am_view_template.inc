@@ -80,7 +80,7 @@ static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buff
                     goto done;
                 } else {
                     luaL_error(L, "table length should be divisible by %d (in fact %d)",
-                        VEC_SZ, j);
+                        VEC_SZ, j-1);
                     return;
                 }
             } else if (t != LUA_TNUMBER) {
@@ -96,7 +96,9 @@ static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buff
         ptr += stride;
     }
     done:
-    buf->mark_dirty(start_offset, start_offset + (j-2) * stride + sizeof(CTYPE));
+    assert((j - 1) % VEC_SZ == 0);
+    int len = (j-1)/VEC_SZ;
+    buf->mark_dirty(start_offset, start_offset + (len-1) * stride + sizeof(CTYPE));
 }
 #endif
 

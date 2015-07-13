@@ -12,7 +12,8 @@
 
 static FT_Library ft_library;
 static FT_Face ft_face;
-static char *png_filename = NULL;
+static char *png_filename;
+static char *lua_filename;
 static int font_sizes[MAX_SIZES];
 static int *font_size_codepoints[MAX_SIZES];
 static char *font_filenames[MAX_SIZES];
@@ -167,7 +168,7 @@ static void write_data() {
                 x2 = tx + tw;
                 y2 = ty;
                 printf("        [%d] = { "
-                    "tex_coords = {%g, %g, 0, %g, %g, 0, %g, %g, 0, %g, %g, 0}, "
+                    "tex_coords = {%g, %g, %g, %g, %g, %g, %g, %g}, "
                     "advance = %g },\n",
                     cp, 
                     x1, y2, x1, y1, x2, y1, x2, y2,
@@ -212,23 +213,61 @@ static void load_font(int s) {
     font_loaded = 1;
 }
 
-static void process_args(int argc, char *argv[]) {
-    /* myfont font.ttf/1@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E */
+static void parse_spec(char *arg, int s) {
     int i;
-    png_filename = "tmp/font.png";
-    num_fonts = 2;
-    font_filenames[0] = "tmp/VeraMono.ttf";
-    font_filenames[1] = "tmp/VeraMono.ttf";
-    font_faces[0] = 0;
-    font_faces[1] = 0;
-    font_sizes[0] = 48;
-    font_sizes[1] = 24;
-    font_size_codepoints[0] = (int*)malloc(sizeof(int) * 27);
-    font_size_codepoints[1] = (int*)malloc(sizeof(int) * 27);
-    for (i = 0; i < 26; i++) {
-        font_size_codepoints[0][i] = 'A' + i;
-        font_size_codepoints[1][i] = 'A' + i;
+    font_filenames[s] = arg;
+    printf("parsing spec '%s'", arg);
+    while (*arg != '\0' && *arg != '@' && *arg != '#') arg++;
+check_size:
+    switch (*arg) {
+        case '\0':
+            fprintf(stderr, "no size specified for font '%s'\n", font_filenames[s]);
+            exit(EXIT_FAILURE);
+            return;
+        case '#':
+            *arg = '\0';
+            font_faces[s] = strtol(arg + 1, &arg, 10) - 1;
+            if (font_faces[s] < 0) {
+                fprintf(stderr, "font face must be positive\n");
+                exit(EXIT_FAILURE);
+            }
+            goto check_size;
+        case '@':
+            *arg = '\0';
+            font_sizes[s] = strtol(arg + 1, &arg, 10);
+            break;
+        default:
+            fprintf(stderr, "unexpected character: '%c'\n", *arg);
+            exit(EXIT_FAILURE);
+            return;
     }
-    font_size_codepoints[0][26] = 0;
-    font_size_codepoints[1][26] = 0;
+    if (*arg == '\0') {
+        font_size_codepoints[s] = malloc(sizeof(int) * (0x7E - 0x20 + 2));
+        for (i = 0; i <= (0x7E - 0x20); i++) {
+            font_size_codepoints[s][i] = i + 0x20;
+        }
+        font_size_codepoints[s][0x7E - 0x20 + 1] = 0;
+        return;
+    }
+    if (*arg != ':') {
+        fprintf(stderr, "unexpected character: '%c' (expecting ':')\n", *arg);
+        exit(EXIT_FAILURE);
+    }
+}
+
+static void process_args(int argc, char *argv[]) {
+    /* myfont.png myfont.lua font.ttf#1@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E */
+
+    int i;
+    if (argc < 4) {
+        fprintf(stderr, "expecting at least 3 arguments\n");
+        exit(EXIT_FAILURE);
+    }
+
+    png_filename = argv[1];
+    lua_filename = argv[2];
+    num_fonts = argc-3;
+    for (i = 0; i < num_fonts; i++) {
+        parse_spec(argv[i+3], i);
+    }
 }
