@@ -3,8 +3,9 @@
 #include "ft2build.h"
 #include FT_FREETYPE_H
 
+#define STB_RECT_PACK_IMPLEMENTATION
 #include "stb_rect_pack.h"
-#include "miniz.h"
+#include "miniz.c"
 
 #define MAX_SIZES 100
 #define MAX_TEX_SIZE 2048
@@ -22,8 +23,10 @@ static int num_fonts = 0;
 static stbrp_rect *rects = NULL;
 static int num_rects = 0;
 static int bitmap_width = 128;
-static int bitmap_height = 128;
+static int bitmap_height = 64;
 static unsigned char *bitmap_data = NULL;
+//static FT_Bitmap char_bitmap;
+#define char_bitmap ft_face->glyph->bitmap
 
 static void process_args(int argc, char *argv[]);
 static void gen_rects();
@@ -31,12 +34,14 @@ static int try_pack();
 static void write_data();
 static void write_png();
 static void load_font(int s);
+static void load_char(int c);
 
 int main(int argc, char *argv[]) {
     if (FT_Init_FreeType(&ft_library)) {
         fprintf(stderr, "error initializing freetype library\n");
         return EXIT_FAILURE;
     }
+    //FT_Bitmap_New(&char_bitmap);
     process_args(argc, argv);
     gen_rects();
     while (!try_pack()) {
@@ -57,6 +62,7 @@ int main(int argc, char *argv[]) {
     write_png();
     free(rects);
     free(bitmap_data);
+    //FT_Bitmap_Done(ft_library, &char_bitmap);
     FT_Done_Face(ft_face);
     return EXIT_SUCCESS;
 }
@@ -80,13 +86,10 @@ static void gen_rects() {
         load_font(s);
         c = 0;
         while (font_size_codepoints[s][c]) {
-            if (FT_Load_Char(ft_face, font_size_codepoints[s][c], FT_LOAD_RENDER)) {
-                fprintf(stderr, "unable to load codepoint %d\n", font_size_codepoints[s][c]);
-                exit(EXIT_FAILURE);
-            }
+            load_char(font_size_codepoints[s][c]);
             rects[r].id = 0;
-            rects[r].w = ft_face->glyph->bitmap.width + 1;
-            rects[r].h = ft_face->glyph->bitmap.rows + 1;
+            rects[r].w = char_bitmap.width + 1;
+            rects[r].h = char_bitmap.rows + 1;
             r++;
             c++;
         }
@@ -127,17 +130,14 @@ static void write_data() {
         c = 0;
         while (font_size_codepoints[s][c]) {
             int cp = font_size_codepoints[s][c];
-            if (FT_Load_Char(ft_face, cp, FT_LOAD_RENDER)) {
-                fprintf(stderr, "unable to load codepoint 0x%x\n", cp);
-                exit(EXIT_FAILURE);
-            }
-            rows = ft_face->glyph->bitmap.rows;
-            width = ft_face->glyph->bitmap.width;
-            pitch = ft_face->glyph->bitmap.pitch;
-            src_ptr = ft_face->glyph->bitmap.buffer;
+            load_char(cp);
+            rows = char_bitmap.rows;
+            width = char_bitmap.width;
+            pitch = char_bitmap.pitch;
+            src_ptr = char_bitmap.buffer;
             dest_ptr = bitmap_data + (rects[r].x+1) * 4 +
                 (rects[r].y+1) * bitmap_width * 4;
-            if (ft_face->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY) {
+            if (char_bitmap.pixel_mode == FT_PIXEL_MODE_GRAY) {
                 for (i = 0; i < rows; i++) {
                     for (j = 0; j < width; j++) {
                         dest_ptr[j*4+0] = 0xFF;
@@ -154,30 +154,52 @@ static void write_data() {
                     src_ptr += pitch;
                     dest_ptr += bitmap_width * 4;
                 }
-                /* 
-                 * 1-4
-                 * |\|
-                 * 2-3
-                 */
-                tx = ((double)rects[r].x + 0.5) / (double)bitmap_width;
-                ty = 1.0 - (((double)rects[r].y) + 0.5) / (double)bitmap_height;
-                tw = ((double)rects[r].w - 1.0) / (double)bitmap_width;
-                th = ((double)rects[r].h - 1.0) / (double)bitmap_height;
-                x1 = tx;
-                y1 = ty - th;
-                x2 = tx + tw;
-                y2 = ty;
-                printf("        [%d] = { "
-                    "tex_coords = {%g, %g, %g, %g, %g, %g, %g, %g}, "
-                    "advance = %g },\n",
-                    cp, 
-                    x1, y2, x1, y1, x2, y1, x2, y2,
-                    (double)ft_face->glyph->advance.x * ADVANCE_SCALE);
+            } else if (char_bitmap.pixel_mode == FT_PIXEL_MODE_MONO) {
+                for (i = 0; i < rows; i++) {
+                    for (j = 0; j < width; j++) {
+                        dest_ptr[j*4+0] = 0xFF;
+                        dest_ptr[j*4+1] = 0xFF;
+                        dest_ptr[j*4+2] = 0xFF;
+                        if (src_ptr[j>>3] & (128 >> (j&7))) {
+                            dest_ptr[j*4+3] = 0xFF;
+                        } else {
+                            dest_ptr[j*4+3] = 0x00;
+                        }
+                        /*
+                        dest_ptr[j*4+0] = src_ptr[j];
+                        dest_ptr[j*4+1] = src_ptr[j];
+                        dest_ptr[j*4+2] = src_ptr[j];
+                        dest_ptr[j*4+3] = 0xFF;
+                        */
+                    }
+                    src_ptr += pitch;
+                    dest_ptr += bitmap_width * 4;
+                }
             } else {
-                fprintf(stderr,
-                    "WARNING: ignored codepoint 0x%x with unsupported pixel mode\n",
-                    font_size_codepoints[s][c]);
+                fprintf(stderr, "unsupported pixel mode for codepoint %d: %d\n",
+                    cp, char_bitmap.pixel_mode);
+                exit(EXIT_FAILURE);
             }
+
+            /* 
+             * 1-4
+             * |\|
+             * 2-3
+             */
+            tx = ((double)rects[r].x + 0.5) / (double)bitmap_width;
+            ty = 1.0 - (((double)rects[r].y) + 0.5) / (double)bitmap_height;
+            tw = ((double)rects[r].w - 1.0) / (double)bitmap_width;
+            th = ((double)rects[r].h - 1.0) / (double)bitmap_height;
+            x1 = tx;
+            y1 = ty - th;
+            x2 = tx + tw;
+            y2 = ty;
+            printf("        [%d] = { "
+                "tex_coords = {%g, %g, %g, %g, %g, %g, %g, %g}, "
+                "advance = %g },\n",
+                cp, 
+                x1, y2, x1, y1, x2, y1, x2, y2,
+                (double)ft_face->glyph->advance.x * ADVANCE_SCALE);
             r++;
             c++;
         }
@@ -213,10 +235,30 @@ static void load_font(int s) {
     font_loaded = 1;
 }
 
+static void load_char(int c) {
+    if (FT_Load_Char(ft_face, c, FT_LOAD_TARGET_MONO)) {
+        fprintf(stderr, "unable to load codepoint %d\n", c);
+        exit(EXIT_FAILURE);
+    }
+    if (FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_MONO)) {
+        fprintf(stderr, "unable to render codepoint %d\n", c);
+        exit(EXIT_FAILURE);
+    }
+    /*
+    if (FT_Bitmap_Convert(ft_library, &ft_face->glyph->bitmap, &char_bitmap, 1)) {
+        fprintf(stderr, "error converting bitmap for codepoint %d\n", c);
+        exit(EXIT_FAILURE);
+    }
+    */
+}
+
+#define start 0x20
+#define end 0x7E
+
 static void parse_spec(char *arg, int s) {
+    // font.ttf#1@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E
     int i;
     font_filenames[s] = arg;
-    printf("parsing spec '%s'", arg);
     while (*arg != '\0' && *arg != '@' && *arg != '#') arg++;
 check_size:
     switch (*arg) {
@@ -242,11 +284,11 @@ check_size:
             return;
     }
     if (*arg == '\0') {
-        font_size_codepoints[s] = malloc(sizeof(int) * (0x7E - 0x20 + 2));
-        for (i = 0; i <= (0x7E - 0x20); i++) {
-            font_size_codepoints[s][i] = i + 0x20;
+        font_size_codepoints[s] = malloc(sizeof(int) * (end - start + 2));
+        for (i = 0; i <= (end - start); i++) {
+            font_size_codepoints[s][i] = i + start;
         }
-        font_size_codepoints[s][0x7E - 0x20 + 1] = 0;
+        font_size_codepoints[s][end - start + 1] = 0;
         return;
     }
     if (*arg != ':') {

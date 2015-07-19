@@ -151,7 +151,7 @@ static int render_text(lua_State *L) {
     const char *ptr = text;
     const char *end = text + n;
     while (ptr < end) {
-        int c;
+        int c = 0;
         ptr = utf8_decode(ptr, &c);
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
             am_log1("WARNING: error loading font codepoint %u", c);

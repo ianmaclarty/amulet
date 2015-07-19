@@ -251,7 +251,7 @@ int am_default_newindex_func(lua_State *L) {
     }
     const char *field = lua_tostring(L, 2);
     if (field == NULL) field = "<unknown>";
-    return luaL_error(L, "no such field: '%s'", field);
+    return luaL_error(L, "cannot set field '%s' to value of type %s", field, am_get_typename(L, am_get_type(L, 3)));
 }
 
 void am_set_default_index_func(lua_State *L) {
