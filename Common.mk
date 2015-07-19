@@ -192,7 +192,6 @@ else ifeq ($(TARGET_PLATFORM),win32)
   XCFLAGS = -DLUA_COMPAT_ALL -fp:fast -WX 
   XLDFLAGS = -SUBSYSTEM:CONSOLE \
 	-NODEFAULTLIB:msvcrt.lib \
-	$(BUILD_LIB_DIR)/libturbojpeg.lib \
 	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc
 else
