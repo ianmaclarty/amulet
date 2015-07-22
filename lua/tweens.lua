@@ -1,8 +1,6 @@
 function amulet.tween(tween_info)
     local time = 0
-    local delay = 0
-    local easing = amulet.easings.linear
-    local action = nil
+    local easing = amulet.easing.linear
     local target = nil
     local final_values = {}
     for field, value in pairs(tween_info) do
@@ -12,16 +10,12 @@ function amulet.tween(tween_info)
             time = value
         elseif field == "easing" then
             easing = value
-        elseif field == "action" then
-            action = value
-        elseif field == "delay" then
-            delay = value
         else
             final_values[field] = value
         end
     end
     local init_values
-    local t0
+    local elapsed = 0
     return function(node)
         if not init_values then
             if not target then
@@ -33,40 +27,33 @@ function amulet.tween(tween_info)
             for field, value in pairs(final_values) do
                 init_values[field] = target[field]
             end
-            t0 = amulet.frame_time
         end
-        local elapsed = amulet.frame_time - t0
-        if elapsed >= delay then
-            elapsed = elapsed - delay
-            if elapsed >= time then
-                -- done
-                for field, value in pairs(final_values) do
-                    target[field] = value
-                end
-                if action then
-                    action()
-                end
-                return
+        elapsed = elapsed + amulet.delta_time
+        if elapsed >= time then
+            -- done
+            for field, value in pairs(final_values) do
+                target[field] = value
             end
-            local t = elapsed / time
-            for field, val0 in pairs(init_values) do
-                local val = final_values[field]
-                target[field] = val0 + easing(t) * (val - val0)
-            end
+            return
+        end
+        local t = elapsed / time
+        for field, val0 in pairs(init_values) do
+            local val = final_values[field]
+            target[field] = val0 + easing(t) * (val - val0)
         end
         return 0
     end
 end
 
-amulet.easings = {}
+amulet.easing = {}
 
-function amulet.easings.reverse(f)
+function amulet.easing.reverse(f)
     return function(t)
         return 1 - f(1 - t)
     end
 end
 
-function amulet.easings.onetwo(f, g)
+function amulet.easing.onetwo(f, g)
     return function(t)
         t = t * 2
         if t < 1 then
@@ -77,33 +64,33 @@ function amulet.easings.onetwo(f, g)
     end
 end
 
-function amulet.easings.linear(t)
+function amulet.easing.linear(t)
     return t
 end
 
-function amulet.easings.quadratic(t)
+function amulet.easing.quadratic(t)
     return t * t
 end
 
-function amulet.easings.cubic(t)
+function amulet.easing.cubic(t)
     return t * t * t
 end
 
-function amulet.easings.hyperbola(t)
+function amulet.easing.hyperbola(t)
     local s = 0.05
     return (1 / (1 + s - t) - 1) * s
 end
 
-function amulet.easings.sine(t)
+function amulet.easing.sine(t)
     return (math.sin(math.pi * (t - 0.5)) + 1) * 0.5
 end
 
-function amulet.easings.windup(t)
+function amulet.easing.windup(t)
     local s = 1.70158
     return t * t * ((s + 1) * t - s)
 end
 
-function amulet.easings.elastic(t)
+function amulet.easing.elastic(t)
     if t == 0 or t == 1 then
         return t
     end
@@ -112,7 +99,7 @@ function amulet.easings.elastic(t)
     return math.pow(2, -10 * t) * math.sin((t - s) * (2 * math.pi) / p) + 1
 end
 
-function amulet.easings.bounce(t)
+function amulet.easing.bounce(t)
     local s = 7.5625
     local p = 2.75
     local l
