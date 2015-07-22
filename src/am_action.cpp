@@ -24,7 +24,8 @@ static void add_actions(lua_State *L, am_scene_node *node, int actions_tbl) {
         }
         lua_pop(L, 1); // action list
     }
-    for (int i = 0; i < node->children.size; i++) {
+    int n = node->children.size;
+    for (int i = 0; i < n; i++) {
         add_actions(L, node->children.arr[i].child, actions_tbl);
     }
     am_unmark_node(node);
