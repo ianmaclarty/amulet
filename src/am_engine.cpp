@@ -38,11 +38,11 @@ lua_State *am_init_engine(bool worker, int argc, char** argv) {
         am_open_renderer_module(L);
         am_open_audio_module(L);
     }
+    am_set_globals_metatable(L);
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
         return NULL;
     }
-    am_set_globals_metatable(L);
     return L;
 }
 
@@ -155,6 +155,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/buffer.lua") &&
         run_embedded_script(L, "lua/shapes.lua") &&
         run_embedded_script(L, "lua/events.lua") &&
-        run_embedded_script(L, "lua/actions.lua");
+        run_embedded_script(L, "lua/actions.lua") &&
+        run_embedded_script(L, "lua/tweens.lua");
 }
 

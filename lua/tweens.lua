@@ -20,24 +20,27 @@ function amulet.tween(tween_info)
             final_values[field] = value
         end
     end
-    if not target then
-        error("no tween target given", 2)
-    end
-    local init_values = {}
-    for field, value in pairs(final_values) do
-        init_values[field] = target[field]
-        if not init_values[field] then
-            error("tween target has no field called '"..field.."'", 2)
+    local init_values
+    local t0
+    return function(node)
+        if not init_values then
+            if not target then
+                target = node
+            elseif type(target) == "string" then
+                target = node[target]
+            end
+            init_values = {}
+            for field, value in pairs(final_values) do
+                init_values[field] = target[field]
+            end
+            t0 = amulet.frame_time
         end
-    end
-    local t0 = am.frame_time
-    return function()
-        local elapsed = am.frame_time - t0
+        local elapsed = amulet.frame_time - t0
         if elapsed >= delay then
             elapsed = elapsed - delay
             if elapsed >= time then
-                -- finished
-                for field, value in ipairs(final_values) do
+                -- done
+                for field, value in pairs(final_values) do
                     target[field] = value
                 end
                 if action then
@@ -46,7 +49,7 @@ function amulet.tween(tween_info)
                 return
             end
             local t = elapsed / time
-            for field, val0 in ipairs(init_vals) do
+            for field, val0 in pairs(init_values) do
                 local val = final_values[field]
                 target[field] = val0 + easing(t) * (val - val0)
             end
@@ -57,19 +60,19 @@ end
 
 amulet.easings = {}
 
-function amulet.easings.neg(f)
+function amulet.easings.reverse(f)
     return function(t)
         return 1 - f(1 - t)
     end
 end
 
-function amulet.easings.seq(f, g)
+function amulet.easings.onetwo(f, g)
     return function(t)
         t = t * 2
         if t < 1 then
-            return f(t)
+            return f(t) * 0.5
         else
-            return g(t - 1)
+            return g(t - 1) * 0.5 + 0.5
         end
     end
 end
@@ -86,16 +89,16 @@ function amulet.easings.cubic(t)
     return t * t * t
 end
 
-function amulet.easings.hyperbolic(t)
+function amulet.easings.hyperbola(t)
     local s = 0.05
     return (1 / (1 + s - t) - 1) * s
 end
 
-function amulet.easings.sin(t)
+function amulet.easings.sine(t)
     return (math.sin(math.pi * (t - 0.5)) + 1) * 0.5
 end
 
-function amulet.easings.overshoot(t)
+function amulet.easings.windup(t)
     local s = 1.70158
     return t * t * ((s + 1) * t - s)
 end

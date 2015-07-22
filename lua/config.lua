@@ -1,6 +1,6 @@
 local devmode = amulet.devmode
 
-conf = {} -- global configuration settings
+local conf = {} -- global configuration settings
 
 local watched = {}
 local watched_objs_mt = {__mode = "k"}
