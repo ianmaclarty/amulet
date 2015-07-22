@@ -753,13 +753,22 @@ am_native_window *am_create_native_window(
         return NULL;
     }
     ios_window_created = true;
-    if (!am_gl_is_initialized()) {
-        am_init_gl();
-    }
     ios_orientation = orientation;
     if (ios_view == nil) {
         am_log0("%s", "ios_view not initialized!");
         return NULL;
+    }
+    if (!am_gl_is_initialized()) {
+        am_init_gl();
+    }
+    if (depth_buffer) {
+        ios_view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+    }
+    if (stencil_buffer) {
+        ios_view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
+    }
+    if (msaa_samples >= 4) {
+        ios_view.drawableMultisample = GLKViewDrawableMultisample4X;
     }
     return (am_native_window*)ios_view;
 }
