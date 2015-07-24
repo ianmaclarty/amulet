@@ -83,13 +83,13 @@ end
 for i, easing in ipairs(easings) do
     local y = #easings == 1 and 0 or - (i - 1) / (#easings - 1) * 1.6 + 0.8
     local node = base:scale("MVP"):translate("MVP", -0.5, y)
-        :action(coroutine.wrap(function(node)
+        :action(coroutine.create(function(node)
             local target_x = 0.5
-            while true do
+            ::start::
                 wait(am.tween{target = node, x = target_x, time = 1, ease = easings[i]})
                 wait(0.3)
                 target_x = target_x > 0 and -0.5 or 0.5
-            end
+            goto start
         end))
         :bind_vec4("tint", 1, 1, 1, 1)
     group:append(node)

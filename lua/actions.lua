@@ -4,6 +4,24 @@ function amulet._update_action_seq()
     seq = seq + 1
 end
 
+local
+function do_action(f, node)
+    if type(f) == "thread" then
+        if coroutine.status(f) == "dead" then
+            return
+        else
+            local ok, res = coroutine.resume(f, node)
+            if ok then
+                return res
+            else
+                error(res)
+            end
+        end
+    else
+        return f(node)
+    end
+end
+
 function amulet._execute_actions(actions, from, to)
     local t = amulet.frame_time
     for i = from, to do
@@ -11,7 +29,7 @@ function amulet._execute_actions(actions, from, to)
         actions[i] = false
         if action.seq ~= seq and action.next_t <= t then
             action.seq = seq
-            local res = action.func(action.node, t - action.last_t)
+            local res = do_action(action.func, action.node)
             if res then
                 action.last_t = t
                 if type(res) == "number" then
@@ -40,8 +58,9 @@ end
 local
 function add_action(node, id, func)
     func = func or id
-    if type(func) ~= "function" then
-        error("action must be a function", 2)
+    local tp = type(func)
+    if tp ~= "function" and tp ~= "thread" then
+        error("action must be a function or coroutine (instead a "..tp..")", 2)
     end
     local action = {
         id = id,
