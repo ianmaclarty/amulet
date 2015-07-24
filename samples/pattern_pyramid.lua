@@ -49,7 +49,6 @@ local node = am.draw_arrays()
 
 node:action(function()
     tview[math.random(n^2)] = math.random() * 255
-    return 0
 end)
 
 win.root = node

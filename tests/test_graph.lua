@@ -42,9 +42,8 @@ local child2 = am.group():action(function()
             print("*child1 action*")
             win:close()
         end)
-        return
+        return true
     end
-    return 0
 end)
 names[child2] = "child2"
 local child3 = am.group()

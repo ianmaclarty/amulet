@@ -147,5 +147,4 @@ win.root:action(function()
     rotation_node.angle = amulet.frame_time
     t_node.value = amulet.frame_time
     ppfb:render(node1)
-    return 0
 end)

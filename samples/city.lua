@@ -163,7 +163,6 @@ function main_action()
 
     --local stats = am.perf_stats()
     --log("FPS: %0.2f [%0.2f]", stats.avg_fps, stats.min_fps)
-    return 0
 end
 
 function create_building(height, highlight, width, depth, position)
@@ -489,7 +488,6 @@ function init_audio()
             chimes[i].value = (math.sin(am.frame_time * primes[i]) * 0.4 + 0.6) * math.min(0.4, 1/num_active_chimes)
                 * z
         end
-        return 0
     end)
 end
 

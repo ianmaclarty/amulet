@@ -43,23 +43,19 @@ local rotating_cube = cube
     :action(function(node)
         modelview_matrix = node.value
         --log(modelview_matrix)
-        return 0
     end)
     --[[
     :rotate("M", 0, 0, 0, -1)
     :action(function(node)
         node.angle = 1 * am.frame_time
-        return 0
     end)
     :rotate("M", 0, 0, 1, 0)
     :action(function(node)
         node.angle = 1.7 * am.frame_time
-        return 0
     end)
     :rotate("M", 0, 1, 0, 0)
     :action(function(node)
         node.angle = 3.2 * am.frame_time
-        return 0
     end)]]
 local scene_group = am.group()
 
@@ -79,7 +75,6 @@ local scene = scene_group
         if win:key_pressed("escape") then
             win:close()
         end
-        return 0
     end)
 
 win.root = scene

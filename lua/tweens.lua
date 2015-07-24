@@ -34,14 +34,13 @@ function amulet.tween(tween_info)
             for field, value in pairs(final_values) do
                 target[field] = value
             end
-            return
+            return true
         end
         local t = elapsed / time
         for field, val0 in pairs(init_values) do
             local val = final_values[field]
             target[field] = val0 + ease(t) * (val - val0)
         end
-        return 0
     end
 end
 

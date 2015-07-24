@@ -111,7 +111,6 @@ function create_wave_editor()
                 prev_index = nil
                 prev_y = nil
             end 
-            return 0
         end)
     local line = am.draw_arrays("lines")
         :bind_array("x", am.float_array{-1, 1})
@@ -158,7 +157,6 @@ function create_slider(min, max, initial_value, onchange)
             else
                 prev_pos = nil
             end
-            return 0
         end)
 end
 
@@ -228,7 +226,6 @@ function assemble_ui()
             if win:key_down("escape") then
                 win:close()
             end
-            return 0
         end)
 end
 

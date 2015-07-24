@@ -61,7 +61,6 @@ for i, seed in ipairs(seeds) do
             position_node.x = x
             position_node.y = y
             size_node.xy = math.sin(t * seed * 4 + i) * 0.15 + 0.2
-            return 0
         end)
     group:append(node)
 end
@@ -69,14 +68,9 @@ end
 local top = group:bind_mat4("MVP", MVP):bind_program(prog)
 
 top:action(function()
-    log(am.perf_stats().avg_fps)
-    return 1
-end)
-:action(function()
     if win:key_pressed("escape") then
         win:close()
     end
-    return 0
 end)
 
 win.root = top

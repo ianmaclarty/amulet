@@ -8,13 +8,14 @@ local
 function do_action(f, node)
     if type(f) == "thread" then
         if coroutine.status(f) == "dead" then
-            return
+            return true
         else
             local ok, res = coroutine.resume(f, node)
             if ok then
-                return res
+                return
             else
-                error(res)
+                res = amulet._traceback(res, f)
+                error("__coroutine__"..res)
             end
         end
     else
@@ -27,17 +28,9 @@ function amulet._execute_actions(actions, from, to)
     for i = from, to do
         local action = actions[i]
         actions[i] = false
-        if action.seq ~= seq and action.next_t <= t then
+        if action.seq ~= seq then
             action.seq = seq
-            local res = do_action(action.func, action.node)
-            if res then
-                action.last_t = t
-                if type(res) == "number" then
-                    action.next_t = t + res
-                else
-                    action.next_t = t
-                end
-            else
+            if do_action(action.func, action.node) then
                 -- remove action
                 local node_actions = action.node._actions
                 local prev = nil
@@ -66,8 +59,6 @@ function add_action(node, id, func)
         id = id,
         func = func,
         node = node,
-        last_t = amulet.frame_time,
-        next_t = amulet.frame_time,
         seq = seq, -- only execute on next frame
     }
     local actions = node._actions
@@ -104,51 +95,65 @@ _metatable_registry.scene_node.cancel = cancel_action
 
 amulet.actions = {}
 
-function amulet.actions.delay(time)
-    local done = false
+function amulet.delay(time)
+    local t = 0
     return function()
-        if done then
-            return
-        else
-            done = true
-            return time
+        t = t + amulet.delta_time
+        if t >= time then
+            return true
         end
     end
 end
 
-function amulet.actions.seq(seq)
-    for i, val in ipairs(seq) do
-        if type(val) ~= "function" then
-            error("expecting a function at index "..i.." in action sequence", 2)
+function amulet.series(funcs)
+    for i, val in ipairs(funcs) do
+        if type(val) ~= "function" and type(val) ~= "thread" then
+            error("expecting a function or coroutine at index "..i, 2)
         end
     end
     local i = 1
-    return function(node, dt)
+    return function(node)
         while true do
-            local f = seq[i]
+            local f = funcs[i]
             if f then
-                local r = f(node, dt)
-                if r then
-                    return r
-                else
+                if do_action(f, node) then
                     i = i + 1
+                else
+                    return
                 end
             else
-                return
+                return true
             end
         end
     end
 end
 
-function amulet.actions.loop(f)
-    local curr = f()
-    return function(node, dt)
-        local r = curr(node, dt)
-        if r then
-            return r
-        else
-            curr = f()
-            return curr(node, dt)
+function amulet.parallel(funcs)
+    for i, val in ipairs(funcs) do
+        if type(val) ~= "function" and type(val) ~= "thread" then
+            error("expecting a function or coroutine at index "..i, 2)
         end
     end
+    funcs = table.shallow_copy(funcs)
+    return function(node)
+        for i = #funcs, 1, -1 do
+            if do_action(funcs[i], node) then
+                table.remove(funcs, i)
+            end
+        end
+        if #funcs == 0 then
+            return true
+        end
+    end
+end
+
+function amulet.run(func, node)
+    local _, main = coroutine.running()
+    if main then
+        error("run may only be called from within a coroutine", 2)
+    end
+    while not do_action(func, node) do
+        coroutine.yield()
+    end
+    return true
 end

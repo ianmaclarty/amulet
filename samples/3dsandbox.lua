@@ -21,7 +21,6 @@ local camera
 local shader
 
 local main_action
-local log_action
 local init_shader
 local create_floor
 local load_model
@@ -38,15 +37,12 @@ function init()
     local torus = load_model("torus.obj")
         :rotate("MV", 0, 0, 1, 0):action(function(node)
             node.angle = am.frame_time
-            return 0
         end)
         :rotate("MV", 0, 1, 0, 0):action(function(node)
             node.angle = am.frame_time * 0.3
-            return 0
         end)
         :rotate("MV", 0, 0, 0, 1):action(function(node)
             node.angle = am.frame_time * 0.7
-            return 0
         end)
         :scale("MV", vec3(0.5))
         :cull_sphere("P", "MV", 1.5)
@@ -78,7 +74,6 @@ function init()
         :cull_face("ccw")
 
     win.root:action(main_action)
-    win.root:action(log_action)
 end
 
 local pitch = 0
@@ -116,12 +111,6 @@ function main_action()
         win.lock_pointer = not win.lock_pointer
     end
     update_camera()
-    return 0
-end
-
-function log_action()
-    log(am.perf_stats().avg_fps.." FPS")
-    return 1
 end
 
 local

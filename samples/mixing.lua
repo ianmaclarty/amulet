@@ -46,5 +46,4 @@ win.root:action(function()
     elseif win:key_pressed("escape") then
         win:close()
     end
-    return 0
 end)
