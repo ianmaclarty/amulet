@@ -44,32 +44,52 @@ for i = 1, num_tris do
     table.insert(seeds, math.random())
 end
 
-local e = am.easings
+local e = am.ease
 
 local easings = {
     e.linear,
     e.quadratic,
-    e.reverse(e.quadratic),
+    e.out(e.quadratic),
     e.cubic,
-    e.reverse(e.cubic),
-    e.onetwo(e.cubic, e.reverse(e.cubic)),
-    e.onetwo(e.hyperbola, e.reverse(e.hyperbola)),
+    e.out(e.cubic),
+    e.inout(e.cubic, e.quadratic),
+    e.inout(e.cubic),
+    e.hyperbola,
+    e.inout(e.hyperbola),
     e.sine,
-    e.reverse(e.windup),
+    e.windup,
+    e.out(e.windup),
     e.bounce,
-    e.onetwo(e.reverse(e.elastic), e.elastic)
+    e.elastic,
+    e.cubic_bezier(vec2(0.1, 0.4), vec2(0.6, 0.9)),
 }
 local group = am.group()
+local
+function wait(f)
+    local t = type(f)
+    if t == "function" then
+        local r = f()
+        while r do
+            coroutine.yield(r)
+            r = f()
+        end
+    elseif t == "number" then
+        coroutine.yield(f)
+    else
+        error("unexpected wait function argument: "..tostring(f), 2)
+    end
+end
+
 for i, easing in ipairs(easings) do
     local y = #easings == 1 and 0 or - (i - 1) / (#easings - 1) * 1.6 + 0.8
     local node = base:scale("MVP"):translate("MVP", -0.5, y)
-        :action(am.actions.loop(function() 
-            return am.actions.seq{
-                am.tween{x = 0.5, time = 1, easing = easings[i]},
-                am.tween{x = -0.5, time = 1, easing = e.reverse(easings[i])},
-                am.tween{y = -0.5, time = 1, easing = e.reverse(easings[i])},
-                am.tween{y = y, time = 1, easing = easings[i]},
-            }
+        :action(coroutine.wrap(function(node)
+            local target_x = 0.5
+            while true do
+                wait(am.tween{target = node, x = target_x, time = 1, ease = easings[i]})
+                wait(0.3)
+                target_x = target_x > 0 and -0.5 or 0.5
+            end
         end))
         :bind_vec4("tint", 1, 1, 1, 1)
     group:append(node)

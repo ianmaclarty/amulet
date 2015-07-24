@@ -1,6 +1,6 @@
 function amulet.tween(tween_info)
     local time = 0
-    local easing = amulet.easing.linear
+    local ease = amulet.ease.linear
     local target = nil
     local final_values = {}
     for field, value in pairs(tween_info) do
@@ -8,8 +8,8 @@ function amulet.tween(tween_info)
             target = value
         elseif field == "time" then
             time = value
-        elseif field == "easing" then
-            easing = value
+        elseif field == "ease" then
+            ease = value
         else
             final_values[field] = value
         end
@@ -39,58 +39,59 @@ function amulet.tween(tween_info)
         local t = elapsed / time
         for field, val0 in pairs(init_values) do
             local val = final_values[field]
-            target[field] = val0 + easing(t) * (val - val0)
+            target[field] = val0 + ease(t) * (val - val0)
         end
         return 0
     end
 end
 
-amulet.easing = {}
+amulet.ease = {}
 
-function amulet.easing.reverse(f)
+function amulet.ease.out(f)
     return function(t)
         return 1 - f(1 - t)
     end
 end
 
-function amulet.easing.onetwo(f, g)
+function amulet.ease.inout(f, g)
+    g = g or f
     return function(t)
         t = t * 2
         if t < 1 then
             return f(t) * 0.5
         else
-            return g(t - 1) * 0.5 + 0.5
+            return 1 - 0.5 * g(2 - t)
         end
     end
 end
 
-function amulet.easing.linear(t)
+function amulet.ease.linear(t)
     return t
 end
 
-function amulet.easing.quadratic(t)
+function amulet.ease.quadratic(t)
     return t * t
 end
 
-function amulet.easing.cubic(t)
+function amulet.ease.cubic(t)
     return t * t * t
 end
 
-function amulet.easing.hyperbola(t)
+function amulet.ease.hyperbola(t)
     local s = 0.05
     return (1 / (1 + s - t) - 1) * s
 end
 
-function amulet.easing.sine(t)
+function amulet.ease.sine(t)
     return (math.sin(math.pi * (t - 0.5)) + 1) * 0.5
 end
 
-function amulet.easing.windup(t)
+function amulet.ease.windup(t)
     local s = 1.70158
     return t * t * ((s + 1) * t - s)
 end
 
-function amulet.easing.elastic(t)
+function amulet.ease.elastic(t)
     if t == 0 or t == 1 then
         return t
     end
@@ -99,7 +100,7 @@ function amulet.easing.elastic(t)
     return math.pow(2, -10 * t) * math.sin((t - s) * (2 * math.pi) / p) + 1
 end
 
-function amulet.easing.bounce(t)
+function amulet.ease.bounce(t)
     local s = 7.5625
     local p = 2.75
     local l
@@ -120,4 +121,57 @@ function amulet.easing.bounce(t)
         end
     end
     return l
+end
+
+function amulet.ease.cubic_bezier(p1, p2)
+    local cx = 3 * p1.x
+    local bx = 3 * (p2.x - p1.x) - cx
+    local ax = 1 - cx - bx
+    local cy = 3 * p1.y
+    local by = 3 * (p2.y - p1.y) - cy
+    local ay = 1 - cy - by
+    local function sampleCurveX(t)
+        return ((ax * t + bx) * t + cx) * t
+    end
+    local function solveCurveX(x, epsilon)
+        local t0, t1, t2, x2, d2, i
+        t2 = x
+        for i = 0, 7 do
+            x2 = sampleCurveX(t2) - x
+            if math.abs(x2) < epsilon then
+                return t2
+            end
+            d2 = (3 * ax * t2 + 2 * bx) * t2 + cx
+            if math.abs(d2) < 1e-6 then
+                break
+            end
+            t2 = t2 - x2 / d2
+        end
+        t0 = 0
+        t1 = 1
+        t2 = x
+        if t2 < t0 then
+            return t0
+        end
+        if t2 > t1 then
+            return t1
+        end
+        while t0 < t1 do
+            x2 = sampleCurveX(t2)
+            if math.abs(x2 - x) < epsilon then
+                return t2
+            end
+            if x > x2 then
+                t0 = t2
+            else
+                t1 = t2
+            end
+            t2 = (t1 - t0) / 2 + t0
+        end
+        return t2
+    end
+    return function(t)
+        local t2 = solveCurveX(t, 0.001)
+        return ((ay * t2 + by) * t2 + cy) * t2
+    end
 end
