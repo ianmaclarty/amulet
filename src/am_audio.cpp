@@ -613,6 +613,35 @@ void am_oscillator_node::render_audio(am_audio_context *context, am_audio_bus *b
 //-------------------------------------------------------------------------
 // Lua bindings.
 
+static int search_uservalues(lua_State *L, am_audio_node *node) {
+    if (node_marked(node)) return 0; // cycle
+    node->pushuservalue(L); // push uservalue table of node
+    lua_pushvalue(L, 2); // push field
+    lua_rawget(L, -2); // lookup field in uservalue table
+    if (!lua_isnil(L, -1)) {
+        // found it
+        lua_remove(L, -2); // remove uservalue table
+        return 1;
+    }
+    lua_pop(L, 2); // pop nil, uservalue table
+    if (node->pending_children.size != 1) return 0;
+    mark_node(node);
+    am_audio_node *child = node->pending_children.arr[0].child;
+    child->push(L);
+    lua_replace(L, 1); // child is now at index 1
+    int r = search_uservalues(L, child);
+    unmark_node(node);
+    return r;
+}
+
+int am_audio_node_index(lua_State *L) {
+    am_audio_node *node = (am_audio_node*)lua_touserdata(L, 1);
+    am_default_index_func(L); // check metatable
+    if (!lua_isnil(L, -1)) return 1;
+    lua_pop(L, 1); // pop nil
+    return search_uservalues(L, node);
+}
+
 static int add_child(lua_State *L) {
     am_check_nargs(L, 2);
     am_audio_node *parent = am_get_userdata(L, am_audio_node, 1);
@@ -708,6 +737,54 @@ static int get_child(lua_State *L) {
     }
 }
 
+static inline void check_alias(lua_State *L) {
+    am_default_index_func(L);
+    if (!lua_isnil(L, -1)) goto error;
+    lua_pop(L, 1);
+    return;
+    error:
+    luaL_error(L,
+        "alias '%s' is already used for something else",
+        lua_tostring(L, 2));
+}
+
+static int alias(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    am_audio_node *node = am_get_userdata(L, am_audio_node, 1);
+    node->pushuservalue(L);
+    int userval_idx = am_absindex(L, -1);
+    if (lua_istable(L, 2)) {
+        // create multiple aliases - one for each key/value pair
+        lua_pushvalue(L, 2); // push table, as we need position 2 for check_alias
+        int tbl_idx = am_absindex(L, -1);
+        lua_pushnil(L);
+        while (lua_next(L, tbl_idx)) {
+            lua_pushvalue(L, -2); // key
+            lua_replace(L, 2); // check_alias expects key in position 2
+            check_alias(L);
+            lua_pushvalue(L, -2); // key
+            lua_pushvalue(L, -2); // value
+            lua_rawset(L, userval_idx); // uservalue[key] = value
+            lua_pop(L, 1); // value
+        }
+        lua_pop(L, 1); // table
+    } else if (lua_isstring(L, 2)) {
+        check_alias(L);
+        lua_pushvalue(L, 2);
+        if (nargs > 2) {
+            lua_pushvalue(L, 3);
+        } else {
+            lua_pushvalue(L, 1);
+        }
+        lua_rawset(L, userval_idx);
+    } else {
+        return luaL_error(L, "expecting a string or table at position 2");
+    }
+    lua_pop(L, 1); // uservalue
+    lua_pushvalue(L, 1);
+    return 1;
+}
+
 // Gain node lua bindings
 
 static int create_gain_node(lua_State *L) {
@@ -732,7 +809,8 @@ static am_property gain_property = {get_gain, set_gain};
 
 static void register_gain_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     am_register_property(L, "value", &gain_property);
@@ -777,7 +855,8 @@ static am_property lowpass_resonance_property = {get_lowpass_resonance, set_lowp
 
 static void register_lowpass_filter_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     am_register_property(L, "cutoff", &lowpass_cutoff_property);
@@ -823,7 +902,8 @@ static am_property highpass_resonance_property = {get_highpass_resonance, set_hi
 
 static void register_highpass_filter_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     am_register_property(L, "cutoff", &highpass_cutoff_property);
@@ -883,7 +963,8 @@ static am_property track_done_property = {get_track_done, NULL};
 
 static void register_audio_track_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     lua_pushcclosure(L, reset_track, 0);
@@ -955,7 +1036,8 @@ static am_property stream_done_property = {get_stream_done, NULL};
 
 static void register_audio_stream_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
     lua_pushcclosure(L, audio_stream_gc, 0);
     lua_setfield(L, -2, "__gc");
@@ -1004,7 +1086,8 @@ static am_property freq_property = {get_freq, set_freq};
 
 static void register_oscillator_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     am_register_property(L, "phase", &phase_property);
@@ -1028,13 +1111,17 @@ static int get_root_audio_node(lua_State *L) {
 static void register_audio_node_mt(lua_State *L) {
     lua_newtable(L);
 
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     lua_pushcclosure(L, child_pairs, 0);
     lua_setfield(L, -2, "children");
     lua_pushcclosure(L, get_child, 0);
     lua_setfield(L, -2, "child");
+
+    lua_pushcclosure(L, alias, 0);
+    lua_setfield(L, -2, "alias");
 
     lua_pushcclosure(L, add_child, 0);
     lua_setfield(L, -2, "add");

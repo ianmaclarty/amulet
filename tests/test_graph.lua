@@ -1,14 +1,12 @@
 local am = amulet
 
-local names = {}
-
 local test = 1
 local
 function print_graph2(node, visited, indent)
     if visited[node] then
-        print(indent..names[node].." [cycle]")
+        print(indent..node.name.." [cycle]")
     else
-        print(indent..names[node])
+        print(indent..node.name)
         visited[node] = true
         for i = 1, node.num_children do
             local child = node:child(i)
@@ -29,10 +27,10 @@ local win = am.window({title = "test", width = 100, height = 100})
 local cycles
 
 local root = am.group()
-names[root] = "root"
+root:alias("name", "root")
 local child1 = am.group():bind_vec2("test", math.vec2(0))
 child1:remove_all()
-names[child1] = "child1"
+child1:alias("name", "child1")
 local frame = 0
 local child2 = am.group():action(function()
     frame = frame + 1
@@ -45,9 +43,9 @@ local child2 = am.group():action(function()
         return true
     end
 end)
-names[child2] = "child2"
+child2:alias("name", "child2")
 local child3 = am.group()
-names[child3] = "child3"
+child3:alias{name = "child3"}
 
 local
 function do_test()
