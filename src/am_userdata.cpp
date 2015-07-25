@@ -95,19 +95,36 @@ static void ensure_mt_parent_initialized() {
 
 void am_register_metatable(lua_State *L, const char *tname, int metatable_id, int parent_mt_id) {
     ensure_mt_parent_initialized();
+    assert(mt_parent[metatable_id] == 0);
+    int mt_idx = am_absindex(L, -1);
 
     lua_pushstring(L, tname);
     lua_setfield(L, -2, "tname");
 
     if (parent_mt_id > 0) {
         mt_parent[metatable_id] = parent_mt_id;
-        lua_newtable(L);
         am_push_metatable(L, parent_mt_id);
         if (!lua_istable(L, -1)) {
             am_abort("attempt to register metatable %s before parent", tname);
         }
-        lua_setfield(L, -2, "__index");
-        lua_setmetatable(L, -2);
+        int parent_idx = am_absindex(L, -1);
+        lua_pushstring(L, "_parent_mt");
+        lua_pushvalue(L, parent_idx);
+        lua_rawset(L, mt_idx);
+        lua_pushnil(L);
+        while (lua_next(L, parent_idx)) {
+            int key_idx = am_absindex(L, -2);
+            int val_idx = am_absindex(L, -1);
+            lua_pushvalue(L, key_idx);
+            lua_rawget(L, mt_idx);
+            if (lua_isnil(L, -1)) {
+                lua_pushvalue(L, key_idx);
+                lua_pushvalue(L, val_idx);
+                lua_rawset(L, mt_idx);
+            }
+            lua_pop(L, 2);
+        }
+        lua_pop(L, 1); // parent
     }
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_METATABLE_REGISTRY);
@@ -218,7 +235,7 @@ void am_register_property(lua_State *L, const char *field, const am_property *pr
 int am_default_index_func(lua_State *L) {
     lua_getmetatable(L, 1);
     lua_pushvalue(L, 2);
-    lua_gettable(L, -2);
+    lua_rawget(L, -2);
     if (lua_islightuserdata(L, -1)) {
         void *obj = lua_touserdata(L, 1);
         am_property *property = (am_property*)lua_touserdata(L, -1);
@@ -235,7 +252,7 @@ int am_default_index_func(lua_State *L) {
 int am_default_newindex_func(lua_State *L) {
     lua_getmetatable(L, 1);
     lua_pushvalue(L, 2);
-    lua_gettable(L, -2);
+    lua_rawget(L, -2);
     if (lua_islightuserdata(L, -1)) {
         void *obj = lua_touserdata(L, 1);
         am_property *property = (am_property*)lua_touserdata(L, -1);
