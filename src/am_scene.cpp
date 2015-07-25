@@ -32,10 +32,34 @@ void am_scene_node::render(am_render_state *rstate) {
     render_children(rstate);
 }
 
+static int search_uservalues(lua_State *L, am_scene_node *node) {
+    if (am_node_marked(node)) return 0; // cycle
+    node->pushuservalue(L); // push uservalue table of node
+    lua_pushvalue(L, 2); // push field
+    lua_rawget(L, -2); // lookup field in uservalue table
+    if (!lua_isnil(L, -1)) {
+        // found it
+        lua_remove(L, -2); // remove uservalue table
+        return 1;
+    }
+    lua_pop(L, 2); // pop nil, uservalue table
+    if (node->children.size != 1) return 0;
+    am_mark_node(node);
+    am_scene_node *child = node->children.arr[0].child;
+    child->push(L);
+    lua_replace(L, 1); // child is now at index 1
+    int r = search_uservalues(L, child);
+    am_unmark_node(node);
+    return r;
+}
+
 int am_scene_node_index(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
     if (node->specialized_index(L)) return 1;
-    return am_default_index_func(L);
+    am_default_index_func(L); // check metatable
+    if (!lua_isnil(L, -1)) return 1;
+    lua_pop(L, 1); // pop nil
+    return search_uservalues(L, (am_scene_node*)lua_touserdata(L, 1));
 }
 
 int am_scene_node_newindex(lua_State *L) {
