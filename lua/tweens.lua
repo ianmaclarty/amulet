@@ -122,12 +122,12 @@ function amulet.ease.bounce(t)
     return l
 end
 
-function amulet.ease.cubic_bezier(p1, p2)
-    local cx = 3 * p1.x
-    local bx = 3 * (p2.x - p1.x) - cx
+function amulet.ease.cubic_bezier(x1, y1, x2, y2)
+    local cx = 3 * x1
+    local bx = 3 * (x2 - x1) - cx
     local ax = 1 - cx - bx
-    local cy = 3 * p1.y
-    local by = 3 * (p2.y - p1.y) - cy
+    local cy = 3 * y1
+    local by = 3 * (y2 - y1) - cy
     local ay = 1 - cy - by
     local function sampleCurveX(t)
         return ((ax * t + bx) * t + cx) * t

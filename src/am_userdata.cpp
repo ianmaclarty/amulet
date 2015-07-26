@@ -82,9 +82,9 @@ am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id) {
 }
 
 static int mt_parent[AM_RESERVED_REFS_END];
+static bool mt_parent_initialized = false;
 
 static void ensure_mt_parent_initialized() {
-    static bool mt_parent_initialized = false;
     if (!mt_parent_initialized) {
         for (int i = 0; i < AM_RESERVED_REFS_END; i++) {
             mt_parent[i] = 0;
@@ -95,7 +95,10 @@ static void ensure_mt_parent_initialized() {
 
 void am_register_metatable(lua_State *L, const char *tname, int metatable_id, int parent_mt_id) {
     ensure_mt_parent_initialized();
-    assert(mt_parent[metatable_id] == 0);
+    if (mt_parent[metatable_id] != 0) {
+        // already initialized (could be a worker thread)
+        return;
+    }
     int mt_idx = am_absindex(L, -1);
 
     lua_pushstring(L, tname);
@@ -237,11 +240,26 @@ int am_default_index_func(lua_State *L) {
     lua_pushvalue(L, 2);
     lua_rawget(L, -2);
     if (lua_islightuserdata(L, -1)) {
-        void *obj = lua_touserdata(L, 1);
         am_property *property = (am_property*)lua_touserdata(L, -1);
-        lua_pop(L, 2); // property, metatable
-        assert(property->getter != NULL);
-        property->getter(L, obj);
+        if (property != NULL) {
+            void *obj = lua_touserdata(L, 1);
+            lua_pop(L, 2); // property, metatable
+            assert(property->getter != NULL);
+            property->getter(L, obj);
+        } else {
+            // custom lua getter
+            lua_pop(L, 1); // property (NULL)
+            lua_pushlightuserdata(L, (void*)lua_tostring(L, 2));
+            lua_rawget(L, -2);
+            lua_remove(L, -2); // remove metatable
+            if (lua_isfunction(L, -1)) {
+                lua_pushvalue(L, 1);
+                lua_call(L, 1, 1);
+                return 1;
+            } else {
+                return 1;
+            }
+        }
         return 1;
     } else {
         lua_remove(L, -2); // remove metatable
@@ -254,16 +272,34 @@ int am_default_newindex_func(lua_State *L) {
     lua_pushvalue(L, 2);
     lua_rawget(L, -2);
     if (lua_islightuserdata(L, -1)) {
-        void *obj = lua_touserdata(L, 1);
         am_property *property = (am_property*)lua_touserdata(L, -1);
-        lua_pop(L, 2); // property, metatable
-        if (property->setter != NULL) {
-            property->setter(L, obj);
-            return 0;
+        if (property != NULL) {
+            void *obj = lua_touserdata(L, 1);
+            lua_pop(L, 2); // property, metatable
+            if (property->setter != NULL) {
+                property->setter(L, obj);
+                return 0;
+            } else {
+                const char *field = lua_tostring(L, 2);
+                if (field == NULL) field = "<unknown>";
+                return luaL_error(L, "field '%s' is readonly");
+            }
         } else {
-            const char *field = lua_tostring(L, 2);
-            if (field == NULL) field = "<unknown>";
-            return luaL_error(L, "field '%s' is readonly");
+            // custom lua setter
+            lua_pop(L, 1); // property (NULL)
+            lua_pushlightuserdata(L, (void*)(lua_tostring(L, 2) + 1));
+            lua_rawget(L, -2);
+            lua_remove(L, -2); // remove metatable
+            if (lua_isfunction(L, -1)) {
+                lua_pushvalue(L, 1);
+                lua_pushvalue(L, 3);
+                lua_call(L, 2, 0);
+                return 0;
+            } else {
+                const char *field = lua_tostring(L, 2);
+                if (field == NULL) field = "<unknown>";
+                return luaL_error(L, "field '%s' is readonly");
+            }
         }
     }
     const char *field = lua_tostring(L, 2);
@@ -296,9 +332,37 @@ static int getusertable(lua_State *L) {
     return 1;
 }
 
+static int getter_key(lua_State *L) {
+    am_check_nargs(L, 1);
+    lua_pushlightuserdata(L, (void*)lua_tostring(L, 1));
+    return 1;
+}
+
+static int setter_key(lua_State *L) {
+    am_check_nargs(L, 1);
+    lua_pushlightuserdata(L, (void*)(lua_tostring(L, 1) + 1));
+    return 1;
+}
+
+static int custom_property_marker(lua_State *L) {
+    lua_pushlightuserdata(L, NULL);
+    return 1;
+}
+
+static int setmetatable(lua_State *L) {
+    am_check_nargs(L, 2);
+    lua_pushvalue(L, 2);
+    lua_setmetatable(L, 1);
+    return 0;
+}
+
 void am_open_userdata_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"_getusertable",    getusertable},
+        {"_getusertable",           getusertable},
+        {"_getter_key",             getter_key},
+        {"_setter_key",             setter_key},
+        {"_custom_property_marker", custom_property_marker},
+        {"_setmetatable",           setmetatable},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
