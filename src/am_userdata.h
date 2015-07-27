@@ -179,5 +179,6 @@ int am_default_index_func(lua_State *L);
 int am_default_newindex_func(lua_State *L);
 void am_set_default_index_func(lua_State *L);
 void am_set_default_newindex_func(lua_State *L);
+bool am_try_default_newindex(lua_State *L);
 
 void am_open_userdata_module(lua_State *L);

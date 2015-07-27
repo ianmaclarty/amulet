@@ -235,10 +235,7 @@ void am_register_property(lua_State *L, const char *field, const am_property *pr
     lua_setfield(L, -2, field);
 }
 
-int am_default_index_func(lua_State *L) {
-    lua_getmetatable(L, 1);
-    lua_pushvalue(L, 2);
-    lua_rawget(L, -2);
+static bool try_getter(lua_State *L) {
     if (lua_islightuserdata(L, -1)) {
         am_property *property = (am_property*)lua_touserdata(L, -1);
         if (property != NULL) {
@@ -255,22 +252,37 @@ int am_default_index_func(lua_State *L) {
             if (lua_isfunction(L, -1)) {
                 lua_pushvalue(L, 1);
                 lua_call(L, 1, 1);
-                return 1;
-            } else {
-                return 1;
             }
         }
+        return true;
+    } 
+    return false;
+}
+
+int am_default_index_func(lua_State *L) {
+    lua_getmetatable(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (try_getter(L)) {
         return 1;
+    } else if (lua_isnil(L, -1)) {
+        lua_pop(L, 2); // nil, metatable
+        lua_getuservalue(L, 1);
+        lua_pushvalue(L, 2);
+        lua_rawget(L, -2);
+        if (try_getter(L)) {
+            return 1;
+        } else {
+            lua_remove(L, -2); // uservalue table
+            return 1;
+        }
     } else {
         lua_remove(L, -2); // remove metatable
         return 1;
     }
 }
 
-int am_default_newindex_func(lua_State *L) {
-    lua_getmetatable(L, 1);
-    lua_pushvalue(L, 2);
-    lua_rawget(L, -2);
+static bool try_setter(lua_State *L) {
     if (lua_islightuserdata(L, -1)) {
         am_property *property = (am_property*)lua_touserdata(L, -1);
         if (property != NULL) {
@@ -278,11 +290,12 @@ int am_default_newindex_func(lua_State *L) {
             lua_pop(L, 2); // property, metatable
             if (property->setter != NULL) {
                 property->setter(L, obj);
-                return 0;
+                return true;
             } else {
                 const char *field = lua_tostring(L, 2);
                 if (field == NULL) field = "<unknown>";
-                return luaL_error(L, "field '%s' is readonly");
+                luaL_error(L, "field '%s' is readonly");
+                return false;
             }
         } else {
             // custom lua setter
@@ -294,17 +307,47 @@ int am_default_newindex_func(lua_State *L) {
                 lua_pushvalue(L, 1);
                 lua_pushvalue(L, 3);
                 lua_call(L, 2, 0);
-                return 0;
+                return true;
             } else {
                 const char *field = lua_tostring(L, 2);
                 if (field == NULL) field = "<unknown>";
-                return luaL_error(L, "field '%s' is readonly");
+                luaL_error(L, "field '%s' is readonly");
+                return false;
             }
         }
     }
+    return false;
+}
+
+bool am_try_default_newindex(lua_State *L) {
+    lua_getmetatable(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (try_setter(L)) {
+        return true;
+    } else if (lua_isnil(L, -1)) {
+        lua_pop(L, 2); // nil, metatable
+        lua_getuservalue(L, 1);
+        lua_pushvalue(L, 2);
+        lua_rawget(L, -2);
+        if (try_setter(L)) {
+            return true;
+        } else if (!lua_isnil(L, -1)) {
+            lua_pushvalue(L, 3);
+            lua_rawset(L, -3);
+            lua_pop(L, 1); // uservalue table
+            return true;
+        }
+    }
+    lua_pop(L, 2);
+    return false;
+}
+
+int am_default_newindex_func(lua_State *L) {
+    if (am_try_default_newindex(L)) return 0;
     const char *field = lua_tostring(L, 2);
     if (field == NULL) field = "<unknown>";
-    return luaL_error(L, "cannot set field '%s' to value of type %s", field, am_get_typename(L, am_get_type(L, 3)));
+    return luaL_error(L, "attempt set field '%s' to value of type %s", field, am_get_typename(L, am_get_type(L, 3)));
 }
 
 void am_set_default_index_func(lua_State *L) {

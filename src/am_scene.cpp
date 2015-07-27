@@ -32,40 +32,40 @@ void am_scene_node::render(am_render_state *rstate) {
     render_children(rstate);
 }
 
-static int search_uservalues(lua_State *L, am_scene_node *node) {
-    if (am_node_marked(node)) return 0; // cycle
-    node->pushuservalue(L); // push uservalue table of node
-    lua_pushvalue(L, 2); // push field
-    lua_rawget(L, -2); // lookup field in uservalue table
-    if (!lua_isnil(L, -1)) {
-        // found it
-        lua_remove(L, -2); // remove uservalue table
-        return 1;
-    }
-    lua_pop(L, 2); // pop nil, uservalue table
-    if (node->children.size != 1) return 0;
-    am_mark_node(node);
-    am_scene_node *child = node->children.arr[0].child;
-    child->push(L);
-    lua_replace(L, 1); // child is now at index 1
-    int r = search_uservalues(L, child);
-    am_unmark_node(node);
-    return r;
-}
-
 int am_scene_node_index(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
+    if (am_node_marked(node)) return 0; // cycle
     if (node->specialized_index(L)) return 1;
-    am_default_index_func(L); // check metatable
-    if (!lua_isnil(L, -1)) return 1;
-    lua_pop(L, 1); // pop nil
-    return search_uservalues(L, (am_scene_node*)lua_touserdata(L, 1));
+    am_default_index_func(L);
+    if (lua_isnil(L, -1) && node->children.size == 1) {
+        am_mark_node(node);
+        node->children.arr[0].child->push(L);
+        lua_replace(L, 1);
+        int r = am_scene_node_index(L);
+        am_unmark_node(node);
+        return r;
+    } else {
+        return 1;
+    }
 }
 
 int am_scene_node_newindex(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
+    if (am_node_marked(node)) {
+        // cycle
+        return luaL_error(L, "field %s not found", lua_tostring(L, 2));
+    }
     if (node->specialized_newindex(L) != -1) return 0;
-    return am_default_newindex_func(L);
+    if (am_try_default_newindex(L)) return 0;
+    if (node->children.size == 1) {
+        am_mark_node(node);
+        node->children.arr[0].child->push(L);
+        lua_replace(L, 1);
+        int r = am_scene_node_newindex(L);
+        am_unmark_node(node);
+        return r;
+    }
+    return luaL_error(L, "field %s not found", lua_tostring(L, 2));
 }
 
 static int append_child(lua_State *L) {
@@ -226,7 +226,7 @@ static inline void check_alias(lua_State *L) {
     return;
     error:
     luaL_error(L,
-        "alias '%s' is already used for something else",
+        "alias '%s' is already used",
         lua_tostring(L, 2));
 }
 

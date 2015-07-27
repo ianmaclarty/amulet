@@ -2,7 +2,7 @@ local am = amulet
 
 local win = am.window{}
 
-local rect = am.rect(-0.5, -0.5, 0.5, 0.5, vec4(0.6, 0.9, 0.1, 1))
+local rect = am.rect(-0.5, -0.5, 0.5, 0.5, vec4(0.6, 0.9, 0.1, 1)):blend("add")
 
 local
 function rand_color()

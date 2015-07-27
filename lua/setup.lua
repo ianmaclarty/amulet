@@ -44,52 +44,31 @@ function define_property(mt, field, getter, setter)
     end
 end
 
-local extensions = {}
-local max_extensions = 1000
-
 local
-function create_extension(obj, methods)
-    local obj_mt = getmetatable(obj)
-    local ext_mt = table.shallow_copy(obj_mt)
-    table.insert(obj_mt._children, ext_mt)
-    rawset(ext_mt, "_children", {})
-    setmetatable(ext_mt, mtmt)
-    rawset(ext_mt, "_target_tname", obj.tname)
-    for field, func in pairs(methods) do
+function create_extension(fields)
+    local extension = table.shallow_copy(fields)
+    for field, value in pairs(fields) do
         if type(field) ~= "string" then
-            error("method names must be strings", 3)
-        elseif type(func) ~= "function" then
-            error("method "..field.." is not a function", 3)
+            error("only string fields allowed for extensions", 3)
         end
-        ext_mt[field] = func
+        extension[field] = value
         local propname = field:match("^get_([A-Za-z0-9_]+)$")
-        if propname then
-            local getter = func
-            local setter = methods["set_"..propname]
+        if propname and not fields[propname] then
+            local getter = value
+            local setter = fields["set_"..propname]
             if type(setter) ~= "function" then
                 setter = nil
             end
-            define_property(ext_mt, propname, getter, setter)
+            define_property(extension, propname, getter, setter)
         end
     end
-    return ext_mt
+    return extension
 end
 
 local
-function extend(obj, methods)
-    local ext = extensions[methods]
-    if not ext then
-        if #extensions > max_extensions then
-            error("attempt to define more than "..max_extensions.." extensions", 2)
-        end
-        ext = create_extension(obj, methods)
-        extensions[methods] = ext
-    elseif ext._target_tname ~= obj.tname then
-        error("attempt to use 1 extension table with 2 object types (first "
-            ..ext._target_tname.." and now "..obj.tname..")", 2)
-    end
-    am._setmetatable(obj, ext)
-    return obj
+function extend(node, fields)
+    node:alias(create_extension(fields))
+    return node
 end
 
 _metatable_registry.scene_node.extend = extend
