@@ -20,6 +20,7 @@ lua_State *am_init_engine(bool worker, int argc, char** argv) {
     am_open_math_module(L);
     am_open_time_module(L);
     am_open_buffer_module(L);
+    am_open_utf8_module(L);
     if (!worker) {
         am_init_param_name_map(L);
         am_init_actions(L);
@@ -156,6 +157,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/buffer.lua") &&
         run_embedded_script(L, "lua/shaders.lua") &&
         run_embedded_script(L, "lua/shapes.lua") &&
+        run_embedded_script(L, "lua/text.lua") &&
         run_embedded_script(L, "lua/events.lua") &&
         run_embedded_script(L, "lua/actions.lua") &&
         run_embedded_script(L, "lua/tweens.lua");

@@ -68,6 +68,7 @@ extern "C" {
 #include "glm/ext.hpp"
 
 #include "am_util.h"
+#include "am_utf8.h"
 #include "am_package.h"
 #include "am_gl.h"
 #include "am_backend.h"

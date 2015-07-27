@@ -484,6 +484,21 @@ void am_bind_array_node::render(am_render_state *rstate) {
     *param = old_val;
 }
 
+static void get_bind_array_node_value(lua_State *L, void *obj) {
+    am_bind_array_node *node = (am_bind_array_node*)obj;
+    node->pushref(L, node->arr_ref);
+}
+
+static void set_bind_array_node_value(lua_State *L, void *obj) {
+    am_bind_array_node *node = (am_bind_array_node*)obj;
+    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 3);
+    node->arr = view;
+    node->reref(L, node->arr_ref, 3);
+}
+
+static am_property bind_array_node_value_property =
+    {get_bind_array_node_value, set_bind_array_node_value};
+
 int am_create_bind_array_node(lua_State *L) {
     am_check_nargs(L, 3);
     if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
@@ -494,6 +509,13 @@ int am_create_bind_array_node(lua_State *L) {
     node->name = am_lookup_param_name(L, 2);
     node->arr = view;
     node->arr_ref = node->ref(L, 3); // ref from node to view
+
+    // allow using attribute name to set the array
+    node->pushuservalue(L);
+    lua_pushvalue(L, 2); // attribute name
+    lua_pushlightuserdata(L, (void*)&bind_array_node_value_property);
+    lua_rawset(L, -3);
+    lua_pop(L, 1); // uservalue table
 
     return 1;
 }

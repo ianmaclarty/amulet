@@ -467,6 +467,44 @@ static void set_draw_elements_count(lua_State *L, void *obj) {
 
 static am_property draw_elements_count_property = {get_draw_elements_count, set_draw_elements_count};
 
+static void set_indices(lua_State *L, am_draw_elements_node *node, int idx) {
+    am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, idx);
+    switch (indices_view->type) {
+        case AM_VIEW_TYPE_USHORT_ELEM:
+            if (indices_view->stride != 2) {
+                luaL_error(L, "ushort_elem array must have stride 2 when used with draw_elements");
+            }
+            node->type = AM_ELEMENT_TYPE_USHORT;
+            break;
+        case AM_VIEW_TYPE_UINT_ELEM:
+            if (indices_view->stride != 4) {
+                luaL_error(L, "uint_elem array must have stride 4 when used with draw_elements");
+            }
+            node->type = AM_ELEMENT_TYPE_UINT;
+            break;
+        default:
+            luaL_error(L, "only ushort_elem and uint_elem views can be used as element arrays");
+    }
+    node->indices_view = indices_view;
+    if (node->view_ref == LUA_NOREF) {
+        node->view_ref = node->ref(L, idx);
+    } else {
+        node->reref(L, node->view_ref, idx);
+    }
+}
+
+static void get_draw_elements_elements(lua_State *L, void *obj) {
+    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+    node->pushref(L, node->view_ref);
+}
+
+static void set_draw_elements_elements(lua_State *L, void *obj) {
+    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+    set_indices(L, node, 3);
+}
+
+static am_property draw_elements_elements_property = {get_draw_elements_elements, set_draw_elements_elements};
+
 static void register_draw_elements_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
@@ -476,6 +514,7 @@ static void register_draw_elements_node_mt(lua_State *L) {
 
     am_register_property(L, "first", &draw_elements_first_property);
     am_register_property(L, "count", &draw_elements_count_property);
+    am_register_property(L, "elements", &draw_elements_elements_property);
 
     am_register_metatable(L, "draw_elements", MT_am_draw_elements_node, MT_am_scene_node);
 }
@@ -489,26 +528,8 @@ static int create_draw_elements_node(lua_State *L) {
     int first = 0;
     int count = INT_MAX;
     am_draw_mode mode = AM_DRAWMODE_TRIANGLES;
-    am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, 1);
     am_draw_elements_node *node = am_new_userdata(L, am_draw_elements_node);
-    switch (indices_view->type) {
-        case AM_VIEW_TYPE_USHORT_ELEM:
-            if (indices_view->stride != 2) {
-                return luaL_error(L, "ushort_elem array must have stride 2 when used with draw_elements");
-            }
-            node->type = AM_ELEMENT_TYPE_USHORT;
-            break;
-        case AM_VIEW_TYPE_UINT_ELEM:
-            if (indices_view->stride != 4) {
-                return luaL_error(L, "uint_elem array must have stride 4 when used with draw_elements");
-            }
-            node->type = AM_ELEMENT_TYPE_UINT;
-            break;
-        default:
-            return luaL_error(L, "only ushort_elem and uint_elem views can be used as element arrays");
-    }
-    node->indices_view = indices_view;
-    node->view_ref = node->ref(L, 1);
+    set_indices(L, node, 1);
     if (nargs > 1) {
         mode = am_get_enum(L, am_draw_mode, 2);
     }
