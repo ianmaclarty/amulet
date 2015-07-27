@@ -10,10 +10,10 @@ function rand_color()
 end
 rect:action(coroutine.create(function(node)
     while true do
-        am.run(am.tween{target = node, x1 = -math.random(), color = rand_color(), time = 0.3, ease = am.ease.sine})
-        am.run(am.tween{target = node, y1 = -math.random(), color = rand_color(), time = 0.3, ease = am.ease.sine})
-        am.run(am.tween{target = node, x2 = math.random(), color = rand_color(), time = 0.3, ease = am.ease.sine})
-        am.run(am.tween{target = node, y2 = math.random(), color = rand_color(), time = 0.3, ease = am.ease.sine})
+        am.wait(am.tween{target = node, x1 = -math.random(), color = rand_color(), time = 0.3, ease = am.ease.sine})
+        am.wait(am.tween{target = node, y1 = -math.random(), color = rand_color(), time = 0.3, ease = am.ease.sine})
+        am.wait(am.tween{target = node, x2 = math.random(), color = rand_color(), time = 0.3, ease = am.ease.sine})
+        am.wait(am.tween{target = node, y2 = math.random(), color = rand_color(), time = 0.3, ease = am.ease.sine})
     end
 end))
 

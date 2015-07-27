@@ -40,6 +40,9 @@ function make_indices(num_verts)
     return view
 end
 
+local newline = string.byte("\n")
+local space = string.byte(" ")
+
 local
 function set_text_verts(font, str, verts_view, uvs_view)
     local x = 0
@@ -48,10 +51,20 @@ function set_text_verts(font, str, verts_view, uvs_view)
     local uvs = {}
     local v = 1
     local u = 1
+    local chars = font.chars
     for p, c in utf8.codes(str) do
-        local char_data = font[c]
-        local tex_coords = char_data.tex_coords
-        local x1, y1, x2, y2 = char_data.x1, char_data.y1, char_data.x2, char_data.y2
+        local char_data, x1, y1, x2, y2, advance
+        if c == newline then
+            y = y - font.line_height
+            x = 0
+            x1, y1, x2, y2 = 0, 0, 0, 0
+            char_data = chars[space]
+            advance = 0
+        else
+            char_data = chars[c] or chars[0]
+            x1, y1, x2, y2 = char_data.x1, char_data.y1, char_data.x2, char_data.y2
+            advance = char_data.advance
+        end
         verts[v]     = x + x1
         verts[v + 1] = y + y2
         verts[v + 2] = 0
@@ -65,16 +78,17 @@ function set_text_verts(font, str, verts_view, uvs_view)
         verts[v + 10] = y + y2
         verts[v + 11] = 0
         v = v + 12
-        uvs[u]     = tex_coords[1]
-        uvs[u + 1] = tex_coords[2]
-        uvs[u + 2] = tex_coords[3]
-        uvs[u + 3] = tex_coords[4]
-        uvs[u + 4] = tex_coords[5]
-        uvs[u + 5] = tex_coords[6]
-        uvs[u + 6] = tex_coords[7]
-        uvs[u + 7] = tex_coords[8]
+        local s1, t1, s2, t2 = char_data.s1, char_data.t1, char_data.s2, char_data.t2
+        uvs[u]     = s1
+        uvs[u + 1] = t2
+        uvs[u + 2] = s1
+        uvs[u + 3] = t1
+        uvs[u + 4] = s2
+        uvs[u + 5] = t1
+        uvs[u + 6] = s2
+        uvs[u + 7] = t2
         u = u + 8
-        x = x + char_data.advance
+        x = x + advance
     end
     verts_view:set(verts)
     uvs_view:set(uvs)
@@ -133,4 +147,31 @@ function am.text(font, str)
                 node.count = utf8.len(str) * 6
             end,
         }
+end
+
+function am._init_fonts(data, imgfile)
+    local fonts = {}
+    for _, entry in ipairs(data) do
+        local name = entry.filename:match("([^/%.:\\]+)%.([^/%.:\\]+)$")
+        if not name then
+            error("invalid font filename: "..entry.filename, 3)
+        end
+        name = name..entry.size
+        data[name] = entry
+        entry.line_height = entry.size
+    end
+    setmetatable(fonts, {__index = function(fonts, name)
+        local entry = data[name]
+        if not entry then
+            error("no such font: "..name, 2)
+        end
+        if not data.texture then
+            local img = am.decode_png(am.read_buffer("vera.png"))
+            data.texture = am.texture2d{buffer = img.buffer, width = img.width, height = img.height,
+                minfilter = "linear", magfilter = "linear"}
+        end
+        entry.texture = data.texture
+        return entry
+    end})
+    return fonts
 end

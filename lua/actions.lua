@@ -147,13 +147,13 @@ function amulet.parallel(funcs)
     end
 end
 
-function amulet.run(func, node)
+function amulet.wait(func, node)
     local _, main = coroutine.running()
     if main then
         error("run may only be called from within a coroutine", 2)
     end
-    while not do_action(func, node) do
+    repeat 
         coroutine.yield()
-    end
+    until do_action(func, node)
     return true
 end

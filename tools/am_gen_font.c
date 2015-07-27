@@ -27,6 +27,7 @@ static int bitmap_height = 64;
 static unsigned char *bitmap_data = NULL;
 //static FT_Bitmap char_bitmap;
 #define char_bitmap ft_face->glyph->bitmap
+static int is_mono = 0;
 
 static void process_args(int argc, char *argv[]);
 static void gen_rects();
@@ -74,7 +75,7 @@ static void gen_rects() {
     num_rects = 0;
     for (s = 0; s < num_fonts; s++) {
         c = 0;
-        while (font_size_codepoints[s][c]) {
+        while (font_size_codepoints[s][c] >= 0) {
             num_rects++;
             c++;
         }
@@ -85,7 +86,7 @@ static void gen_rects() {
         int sz = font_sizes[s];
         load_font(s);
         c = 0;
-        while (font_size_codepoints[s][c]) {
+        while (font_size_codepoints[s][c] >= 0) {
             load_char(font_size_codepoints[s][c]);
             rects[r].id = 0;
             rects[r].w = char_bitmap.width + 1;
@@ -121,14 +122,26 @@ static void write_data() {
     int pitch;
     unsigned char *src_ptr;
     unsigned char *dest_ptr;
-    double tx, ty, tw, th, x1, y1, x2, y2;
-    printf("local font_data = {\n");
+    double s1, t1, s2, t2, x1, y1, x2, y2, w, h, adv;
+    FILE *f = fopen(lua_filename, "w");
+    fprintf(f, "local font_data = {\n");
     for (s = 0; s < num_fonts; s++) {
         int sz = font_sizes[s];
         load_font(s);
-        printf("    [%d] = {\n", sz);
+        fprintf(f, "    {\n");
+        fprintf(f, "        size = %d,\n", sz);
+        fprintf(f, "        mono = ");
+        if (is_mono) {
+            fprintf(f, "true");
+        } else {
+            fprintf(f, "false");
+        }
+        fprintf(f, ",\n");
+        fprintf(f, "        filename = \"%s\",\n", font_filenames[s]);
+        fprintf(f, "        face = %d,\n", font_faces[s]);
+        fprintf(f, "        chars = {\n");
         c = 0;
-        while (font_size_codepoints[s][c]) {
+        while (font_size_codepoints[s][c] >= 0) {
             int cp = font_size_codepoints[s][c];
             load_char(cp);
             rows = char_bitmap.rows;
@@ -181,32 +194,38 @@ static void write_data() {
                 exit(EXIT_FAILURE);
             }
 
-            /* 
-             * 1-4
-             * |\|
-             * 2-3
-             */
-            tx = ((double)rects[r].x + 0.5) / (double)bitmap_width;
-            ty = 1.0 - (((double)rects[r].y) + 0.5) / (double)bitmap_height;
-            tw = ((double)rects[r].w - 1.0) / (double)bitmap_width;
-            th = ((double)rects[r].h - 1.0) / (double)bitmap_height;
-            x1 = tx;
-            y1 = ty - th;
-            x2 = tx + tw;
-            y2 = ty;
-            printf("        [%d] = { "
-                "tex_coords = {%g, %g, %g, %g, %g, %g, %g, %g}, "
-                "advance = %g },\n",
+            s1 = ((double)rects[r].x + 0.5) / (double)bitmap_width;
+            t2 = 1.0 - (((double)rects[r].y) + 0.5) / (double)bitmap_height;
+            w = ((double)rects[r].w) / (double)bitmap_width;
+            h = ((double)rects[r].h) / (double)bitmap_height;
+            t1 = t2 - h;
+            s2 = s1 + w;
+            x1 = (double)ft_face->glyph->bitmap_left + 0.5;
+            y2 = (double)ft_face->glyph->bitmap_top - 0.5;
+            w = (double)char_bitmap.width;
+            h = (double)char_bitmap.rows;
+            x2 = x1 + w;
+            y1 = y2 - h;
+            adv = (double)ft_face->glyph->advance.x * ADVANCE_SCALE;
+            fprintf(f, 
+                   "            [%d] = {\n"
+                   "                x1 = %g, y1 = %g, x2 = %g, y2 = %g,\n"
+                   "                s1 = %g, t1 = %g, s2 = %g, t2 = %g,\n"
+                   "                advance = %g,\n"
+                   "            },\n",
                 cp, 
-                x1, y2, x1, y1, x2, y1, x2, y2,
-                (double)ft_face->glyph->advance.x * ADVANCE_SCALE);
+                x1, y1, x2, y2,
+                s1, t1, s2, t2,
+                adv);
             r++;
             c++;
         }
-        printf("    },\n");
+        fprintf(f, "        }\n");
+        fprintf(f, "    },\n");
     }
-    printf("}\n\n");
-    printf("return font_data\n");
+    fprintf(f, "}\n\n");
+    fprintf(f, "return amulet._init_fonts(font_data, \"%s\")", png_filename);
+    fclose(f);
 }
 
 static void write_png() {
@@ -236,20 +255,21 @@ static void load_font(int s) {
 }
 
 static void load_char(int c) {
-    if (FT_Load_Char(ft_face, c, FT_LOAD_TARGET_MONO)) {
-        fprintf(stderr, "unable to load codepoint %d\n", c);
-        exit(EXIT_FAILURE);
+    if (is_mono) {
+        if (FT_Load_Char(ft_face, c, FT_LOAD_TARGET_MONO)) {
+            fprintf(stderr, "unable to load codepoint %d\n", c);
+            exit(EXIT_FAILURE);
+        }
+        if (FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_MONO)) {
+            fprintf(stderr, "unable to render codepoint %d\n", c);
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        if (FT_Load_Char(ft_face, c, FT_LOAD_RENDER)) {
+            fprintf(stderr, "unable to load codepoint %d\n", c);
+            exit(EXIT_FAILURE);
+        }
     }
-    if (FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_MONO)) {
-        fprintf(stderr, "unable to render codepoint %d\n", c);
-        exit(EXIT_FAILURE);
-    }
-    /*
-    if (FT_Bitmap_Convert(ft_library, &ft_face->glyph->bitmap, &char_bitmap, 1)) {
-        fprintf(stderr, "error converting bitmap for codepoint %d\n", c);
-        exit(EXIT_FAILURE);
-    }
-    */
 }
 
 #define start 0x20
@@ -259,6 +279,7 @@ static void parse_spec(char *arg, int s) {
     // font.ttf#1@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E
     int i;
     font_filenames[s] = arg;
+    font_faces[s] = 0;
     while (*arg != '\0' && *arg != '@' && *arg != '#') arg++;
 check_size:
     switch (*arg) {
@@ -284,11 +305,12 @@ check_size:
             return;
     }
     if (*arg == '\0') {
-        font_size_codepoints[s] = malloc(sizeof(int) * (end - start + 2));
+        font_size_codepoints[s] = malloc(sizeof(int) * (end - start + 3));
         for (i = 0; i <= (end - start); i++) {
             font_size_codepoints[s][i] = i + start;
         }
         font_size_codepoints[s][end - start + 1] = 0;
+        font_size_codepoints[s][end - start + 2] = -1;
         return;
     }
     if (*arg != ':') {
@@ -298,7 +320,7 @@ check_size:
 }
 
 static void process_args(int argc, char *argv[]) {
-    /* myfont.png myfont.lua font.ttf#1@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E */
+    /* myfont.png myfont.lua font.ttf@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E */
 
     int i;
     if (argc < 4) {

@@ -61,7 +61,7 @@ local easings = {
     e.out(e.windup),
     e.bounce,
     e.elastic,
-    e.cubic_bezier(vec2(0.1, 0.4), vec2(0.6, 0.9)),
+    e.cubic_bezier(0.1, 0.4, 0.6, 0.9),
 }
 local group = am.group()
 
@@ -78,13 +78,13 @@ group:action(coroutine.create(function()
     while true do
         for i, node in ipairs(nodes) do
             anis[i] = coroutine.create(function() 
-                am.run(am.tween{target = node, x = 0.5, time = math.random(), ease = easings[i]})
-                am.run(am.delay(math.random()*0.3))
-                am.run(am.tween{target = node, x = -0.5, time = math.random(), ease = easings[i]})
-                am.run(am.delay(0.5))
+                am.wait(am.tween{target = node, x = 0.5, time = math.random(), ease = easings[i]})
+                am.wait(am.delay(math.random()*0.3))
+                am.wait(am.tween{target = node, x = -0.5, time = math.random(), ease = easings[i]})
+                am.wait(am.delay(0.5))
             end)
         end
-        am.run(am.parallel(anis))
+        am.wait(am.parallel(anis))
     end
 end))
         
