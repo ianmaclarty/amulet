@@ -1081,7 +1081,7 @@ static int euleryxz4(lua_State *L) {
     return 1;
 }
 
-inline static glm::vec4 plane_normalize(glm::vec4 plane) {
+static glm::vec4 plane_normalize(glm::vec4 plane) {
     float l = glm::length(glm::vec3(plane.x, plane.y, plane.z));
     return glm::vec4(plane.x/l, plane.y/l, plane.z/l, plane.w/l);
 }
@@ -1371,37 +1371,37 @@ static int smoothstep(lua_State *L) {
 }
 */
 
-static inline lua_Number smootherstep0(lua_Number edge0, lua_Number edge1, lua_Number x) {
+static lua_Number smootherstep0(lua_Number edge0, lua_Number edge1, lua_Number x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
     return x*x*x*(x*(x*6.0 - 15.0) + 10.0);
 }
 
-static inline glm::vec2 smootherstep0(float edge0, float edge1, glm::vec2 x) {
+static glm::vec2 smootherstep0(float edge0, float edge1, glm::vec2 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec3 smootherstep0(float edge0, float edge1, glm::vec3 x) {
+static glm::vec3 smootherstep0(float edge0, float edge1, glm::vec3 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec4 smootherstep0(float edge0, float edge1, glm::vec4 x) {
+static glm::vec4 smootherstep0(float edge0, float edge1, glm::vec4 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec2 smootherstep0(glm::vec2 edge0, glm::vec2 edge1, glm::vec2 x) {
+static glm::vec2 smootherstep0(glm::vec2 edge0, glm::vec2 edge1, glm::vec2 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec3 smootherstep0(glm::vec3 edge0, glm::vec3 edge1, glm::vec3 x) {
+static glm::vec3 smootherstep0(glm::vec3 edge0, glm::vec3 edge1, glm::vec3 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec4 smootherstep0(glm::vec4 edge0, glm::vec4 edge1, glm::vec4 x) {
+static glm::vec4 smootherstep0(glm::vec4 edge0, glm::vec4 edge1, glm::vec4 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }

@@ -83,7 +83,7 @@ am_audio_bus::~am_audio_bus() {
 
 // Audio Param
 
-inline static float linear_incf(am_audio_param<float> param, int samples) {
+static float linear_incf(am_audio_param<float> param, int samples) {
     return (param.target_value - param.current_value) / (float)samples;
 }
 
@@ -401,13 +401,13 @@ void am_audio_track_node::sync_params() {
     done_client = !loop && current_position >= (float)buf_num_samples;
 }
 
-static inline bool track_resample_required(am_audio_track_node *node) {
+static bool track_resample_required(am_audio_track_node *node) {
     return (node->sample_rate != am_conf_audio_sample_rate)
         || (node->playback_speed.current_value != node->playback_speed.target_value)
         || (fabs(node->playback_speed.current_value - 1.0f) > 0.00001f);
 }
 
-static inline bool is_paused(float playback_speed) {
+static bool is_paused(float playback_speed) {
     return playback_speed < 0.00001f;
 }
 
@@ -737,7 +737,7 @@ static int get_child(lua_State *L) {
     }
 }
 
-static inline void check_alias(lua_State *L) {
+static void check_alias(lua_State *L) {
     am_default_index_func(L);
     if (!lua_isnil(L, -1)) goto error;
     lua_pop(L, 1);

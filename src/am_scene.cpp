@@ -217,7 +217,7 @@ static void set_hidden(lua_State *L, void *obj) {
 
 static am_property hidden_property = {get_hidden, set_hidden};
 
-static inline void check_alias(lua_State *L) {
+static void check_alias(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
     if (node->specialized_index(L)) goto error;
     am_default_index_func(L);

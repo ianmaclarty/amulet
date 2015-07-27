@@ -269,7 +269,7 @@ void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb, bool 
     } while (next_pass > pass);
 }
 
-static inline bool check_pass(am_render_state *rstate) {
+static bool check_pass(am_render_state *rstate) {
     return (rstate->pass & rstate->pass_mask);
 }
 
