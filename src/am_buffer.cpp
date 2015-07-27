@@ -155,6 +155,15 @@ static int buffer_gc(lua_State *L) {
     return 0;
 }
 
+static int release_vbo(lua_State *L) {
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    if (buf->arraybuf_id != 0) {
+        am_delete_buffer(buf->arraybuf_id);
+        buf->arraybuf_id = 0;
+    }
+    return 0;
+}
+
 static am_buffer_view* new_buffer_view(lua_State *L, am_buffer_view_type type) {
     int mtid = (int)MT_am_buffer_view + (int)type + 1;
     assert(mtid < (int)MT_VIEW_TYPE_END_MARKER);
@@ -302,6 +311,8 @@ static void register_buffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
+    lua_pushcclosure(L, release_vbo, 0);
+    lua_setfield(L, -2, "release_vbo");
 
     am_register_metatable(L, "buffer", MT_am_buffer, 0);
 }
