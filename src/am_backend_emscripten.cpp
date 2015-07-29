@@ -15,12 +15,11 @@ static bool handle_events();
 static am_key convert_key(SDL_Keycode key);
 static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state();
-static int report_status(lua_State *L, int status);
 static void open_package();
 static void load_package();
-static void on_load_package_complete(void *arg, const char *filename);
-static void on_load_package_error(void *arg, int http_status);
-static void on_load_package_progress(void *arg, int perc);
+static void on_load_package_complete(unsigned int x, void *arg, const char *filename);
+static void on_load_package_error(unsigned int x, void *arg, int http_status);
+static void on_load_package_progress(unsigned int x, void *arg, int perc);
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -171,20 +170,17 @@ int main( int argc, char *argv[] )
 }
 
 static void start() {
-    int status;
-
     init_sdl();
 
     L = am_init_engine(false, 0, NULL);
-    if (L == NULL) return 1;
+    if (L == NULL) return;
 
     frame_time = am_get_current_time();
 
     lua_pushcclosure(L, am_load_module, 0);
     lua_pushstring(L, "main");
-    if (!am_call(L, 1, 0)) return 1;
-    if (report_status(L, status)) return 1;
-    if (sdl_window == NULL) return 1;
+    if (!am_call(L, 1, 0)) return;
+    if (sdl_window == NULL) return;
 
     t0 = am_get_current_time();
     frame_time = t0;
@@ -194,17 +190,6 @@ static void start() {
     frame_count = 0;
 
     emscripten_set_main_loop(main_loop, 0, 0);
-    return 0;
-}
-
-static int report_status(lua_State *L, int status) {
-    if (status && !lua_isnil(L, -1)) {
-        const char *msg = lua_tostring(L, -1);
-        if (msg == NULL) msg = "(error object is not a string)";
-        am_log0("%s", msg);
-        lua_pop(L, 1);
-    }
-    return status;
 }
 
 static int mouse_x = 0;
@@ -265,8 +250,8 @@ static bool handle_events() {
                 break;
             }
             case SDL_MOUSEMOTION: {
-                mouse_x += event.motion.x;
-                mouse_y += event.motion.y;
+                mouse_x += event.motion.xrel;
+                mouse_y += event.motion.yrel;
                 break;
             }
             case SDL_MOUSEBUTTONDOWN: {
@@ -402,7 +387,7 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
     return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
-static void on_load_package_complete(void *arg, const char *filename) {
+static void on_load_package_complete(unsigned int x, void *arg, const char *filename) {
     open_package();
     EM_ASM(
         window.amulet.start();
@@ -410,24 +395,24 @@ static void on_load_package_complete(void *arg, const char *filename) {
     start();
 }
 
-static void on_load_package_error(void *arg, int http_status) {
-    am_log("error loading data (HTTP status: %d)", http_status);
+static void on_load_package_error(unsigned int x, void *arg, int http_status) {
+    am_log0("error loading data (HTTP status: %d)", http_status);
 }
 
-static void on_load_package_progress(void *arg, int perc) {
+static void on_load_package_progress(unsigned int x, void *arg, int perc) {
     EM_ASM_INT({
         window.amulet.load_progress = $0;
     }, perc);
 }
 
 static void load_package() {
-    int req = emscripten_async_wget2("data.pak", "data.pak", "GET", "", NULL,
-        on_load_package_complete, on_load_package_error, on_load_package_progress); 
+    emscripten_async_wget2("data.pak", "data.pak", "GET", "", NULL,
+        &on_load_package_complete, &on_load_package_error, &on_load_package_progress); 
 }
 
 static void open_package() {
     char *errmsg;
-    package = am_open_package(package_filename, &errmsg);
+    package = am_open_package("data.pak", &errmsg);
     if (package == NULL) {
         am_log0("%s", errmsg);
         free(errmsg);

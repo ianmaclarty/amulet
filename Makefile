@@ -50,7 +50,6 @@ AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 AM_CFLAGS = $(AM_DEF_FLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS) $(COMMON_CFLAGS) 
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
-DEFAULT_HTML_EDITOR_SCRIPT = samples/video2.lua
 HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html)
 BUILD_HTML_EDITOR_FILES = $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 
@@ -60,16 +59,14 @@ default: all
 
 .PHONY: all
 ifeq ($(TARGET_PLATFORM),html)
-all: $(BUILD_HTML_EDITOR_FILES) $(BUILD_BIN_DIR)/example.lua $(AMULET) 
+all: $(BUILD_HTML_EDITOR_FILES) $(AMULET) 
 else
 all: $(AMULET)
 endif
 
 ifeq ($(TARGET_PLATFORM),html)
-$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(DEFAULT_HTML_EDITOR_SCRIPT) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR) 
-	cp $(DEFAULT_HTML_EDITOR_SCRIPT) main.lua
-	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT) $@
-	rm main.lua
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR) 
+	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT) $@
 	@$(PRINT_BUILD_DONE_MSG)
 else ifeq ($(TARGET_PLATFORM),ios)
 # Just build the static library for iOS. Building the executable works,
@@ -137,9 +134,6 @@ $(BUILD_DIRS): %:
 	mkdir -p $@
 
 $(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: html/% | $(BUILD_BIN_DIR)
-	cp $< $@
-
-$(BUILD_BIN_DIR)/example.lua: $(DEFAULT_HTML_EDITOR_SCRIPT)
 	cp $< $@
 
 # View templates
