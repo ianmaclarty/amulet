@@ -812,7 +812,7 @@ void *am_read_resource(const char *filename, int *len, char** errmsg) {
     return am_read_package_resource(package, filename, len, errmsg);
 }
 
-
-
+void am_copy_video_frame_to_texture() {
+}
 
 #endif // AM_BACKEND_IOS

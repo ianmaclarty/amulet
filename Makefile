@@ -50,7 +50,7 @@ AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 AM_CFLAGS = $(AM_DEF_FLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS) $(COMMON_CFLAGS) 
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
-DEFAULT_HTML_EDITOR_SCRIPT = samples/synth.lua
+DEFAULT_HTML_EDITOR_SCRIPT = samples/video2.lua
 HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html)
 BUILD_HTML_EDITOR_FILES = $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 
@@ -68,7 +68,7 @@ endif
 ifeq ($(TARGET_PLATFORM),html)
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(DEFAULT_HTML_EDITOR_SCRIPT) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR) 
 	cp $(DEFAULT_HTML_EDITOR_SCRIPT) main.lua
-	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT) $@
 	rm main.lua
 	@$(PRINT_BUILD_DONE_MSG)
 else ifeq ($(TARGET_PLATFORM),ios)
@@ -80,13 +80,13 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
-	"$(LINK)" $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	"$(LINK)" $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT) $@
 	ln -fs $@ `basename $@`
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
-	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
+	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT) $@
 
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): src/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
@@ -161,7 +161,7 @@ $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 # Font generation tool
 
 tools/am_gen_font$(EXE_EXT): tools/am_gen_font.c
-	$(CC) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT)$@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
+	$(CC) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT) $@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
 
 # Cleanup
 

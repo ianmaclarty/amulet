@@ -312,6 +312,9 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
     }
 }
 
+void am_copy_video_frame_to_texture() {
+}
+
 int main( int argc, char *argv[] )
 {
     int vsync;
