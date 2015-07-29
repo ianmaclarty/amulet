@@ -7,7 +7,7 @@
 
 static SDL_Surface* sdl_window;
 
-static const char *filename = "main.lua";
+static am_package *package = NULL;
 
 static void init_sdl();
 static void init_audio();
@@ -16,6 +16,11 @@ static am_key convert_key(SDL_Keycode key);
 static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state();
 static int report_status(lua_State *L, int status);
+static void open_package();
+static void load_package();
+static void on_load_package_complete(void *arg, const char *filename);
+static void on_load_package_error(void *arg, int http_status);
+static void on_load_package_progress(void *arg, int perc);
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -159,6 +164,10 @@ static void main_loop() {
 
 int main( int argc, char *argv[] )
 {
+    load_package();
+}
+
+static void start() {
     int status;
 
     init_sdl();
@@ -168,7 +177,9 @@ int main( int argc, char *argv[] )
 
     frame_time = am_get_current_time();
 
-    status = luaL_dofile(L, filename);
+    lua_pushcclosure(L, am_load_module, 0);
+    lua_pushstring(L, "main");
+    if (!am_call(L, 1, 0)) return 1;
     if (report_status(L, status)) return 1;
     if (sdl_window == NULL) return 1;
 
@@ -384,12 +395,40 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
     return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
+static void on_load_package_complete(void *arg, const char *filename) {
+    open_package();
+    EM_ASM(
+        window.amulet.start();
+    );
+    start();
+}
+
+static void on_load_package_error(void *arg, int http_status) {
+    am_log("error loading data (HTTP status: %d)", http_status);
+}
+
+static void on_load_package_progress(void *arg, int perc) {
+    EM_ASM_INT({
+        window.amulet.load_progress = $0;
+    }, perc);
+}
+
+static void load_package() {
+    int req = emscripten_async_wget2("data.pak", "data.pak", "GET", "", NULL,
+        on_load_package_complete, on_load_package_error, on_load_package_progress); 
+}
+
+static void open_package() {
+    char *errmsg;
+    package = am_open_package(package_filename, &errmsg);
+    if (package == NULL) {
+        am_log0("%s", errmsg);
+        free(errmsg);
+    }
+}
+
 void *am_read_resource(const char *filename, int *len, char **errmsg) {
-    const char *msg = "sorry, require() not yet supported in html backend";
-    *errmsg = (char*)malloc(strlen(msg)+1);
-    strcpy(*errmsg, msg);
-    am_log0("%s", "sorry, require() not yet supported in html backend");
-    return NULL;
+    return am_read_package_resource(package, filename, len, errmsg);
 }
 
 extern "C" {
