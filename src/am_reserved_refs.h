@@ -81,6 +81,7 @@ typedef enum {
     MT_am_mat2,
     MT_am_mat3,
     MT_am_mat4,
+    MT_am_quat,
 
     ENUM_am_buffer_view_type,
     ENUM_am_texture_format,

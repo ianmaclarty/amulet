@@ -20,5 +20,3 @@
 
 - Look at integrating luasocket for networking support (what about html
   backend?).
-
-- Quaternions
