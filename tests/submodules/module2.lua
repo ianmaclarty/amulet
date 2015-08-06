@@ -1,5 +1,5 @@
 local mod1 = require("module1")
-local mod3 = require("module3")
+local mod3 = require("submodules.module3")
 print("loading module 2")
 
 return {
