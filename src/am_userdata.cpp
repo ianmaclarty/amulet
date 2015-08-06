@@ -268,6 +268,11 @@ int am_default_index_func(lua_State *L) {
     } else if (lua_isnil(L, -1)) {
         lua_pop(L, 2); // nil, metatable
         lua_getuservalue(L, 1);
+        if (!lua_istable(L, -1)) { // lua5.2 initializes uservalues to nil
+            lua_pop(L, 1); // uservalue
+            lua_pushnil(L);
+            return 1;
+        }
         lua_pushvalue(L, 2);
         lua_rawget(L, -2);
         if (try_getter(L)) {
@@ -328,15 +333,17 @@ bool am_try_default_newindex(lua_State *L) {
     } else if (lua_isnil(L, -1)) {
         lua_pop(L, 2); // nil, metatable
         lua_getuservalue(L, 1);
+        if (!lua_istable(L, -1)) {
+            lua_pop(L, 1); // uservalue
+            return false;
+        }
         lua_pushvalue(L, 2);
         lua_rawget(L, -2);
         if (try_setter(L)) {
             return true;
-        } else if (!lua_isnil(L, -1)) {
-            lua_pushvalue(L, 3);
-            lua_rawset(L, -3);
-            lua_pop(L, 1); // uservalue table
-            return true;
+        } else {
+            lua_pop(L, 2); // uservalue, field val
+            return false;
         }
     }
     lua_pop(L, 2);
