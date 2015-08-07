@@ -74,10 +74,7 @@ static int vec_refract(lua_State *L);
 
 static int quat_new(lua_State *L);
 static int quat_index(lua_State *L);
-//static int quat_newindex(lua_State *L);
 static int quat_mul(lua_State *L);
-//static int quat_div(lua_State *L);
-//static int quat_unm(lua_State *L);
 
 static int perspective(lua_State *L);
 
@@ -1470,6 +1467,14 @@ static int mix(lua_State *L) {
                 default:
                     return luaL_error(L, "expecting a number or vec4 in position 3");
             }
+            break;
+        }
+        case MT_am_quat: {
+            am_quat *x = (am_quat*)lua_touserdata(L, 1);
+            am_quat *y = am_get_userdata(L, am_quat, 2);
+            am_quat *r = am_new_userdata(L, am_quat);
+            float a = lua_tonumber(L, 3);
+            r->q = glm::slerp(x->q, y->q, a);
             break;
         }
         default:

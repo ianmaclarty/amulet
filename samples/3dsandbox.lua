@@ -35,20 +35,21 @@ function init()
     objects = am.group()
     objects:append(create_floor())
     local torus = load_model("torus.obj")
-        :rotate("MV", 0, 0, 1, 0):action(function(node)
-            node.angle = am.frame_time
+        :rotate("MV", quat(0, vec3(0, 1, 0))):action(function(node)
+            node.rotation = quat(am.frame_time, vec3(0, 1, 0))
         end)
-        :rotate("MV", 0, 1, 0, 0):action(function(node)
-            node.angle = am.frame_time * 0.3
+        :rotate("MV", quat(0, vec3(1, 0, 0))):action(function(node)
+            node.rotation = quat(am.frame_time * 0.3, vec3(1, 0, 0))
         end)
-        :rotate("MV", 0, 0, 0, 1):action(function(node)
-            node.angle = am.frame_time * 0.7
+        :rotate("MV", quat(0, vec3(0, 0, 1))):action(function(node)
+            node.rotation = quat(am.frame_time * 0.7, vec3(0, 0, 1))
         end)
         :scale("MV", vec3(0.5))
         :cull_sphere("P", "MV", 1.5)
     for i = 1, 20000 do
         objects:append(torus
-            :rotate("MV", math.random() * math.pi * 2, math.normalize(vec3(math.random(), math.random(), math.random())))
+            :rotate("MV", quat(
+                math.random() * math.pi * 2, math.normalize(vec3(math.random(), math.random(), math.random()))))
             :translate("MV", (math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
     end
     --[[

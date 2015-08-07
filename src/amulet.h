@@ -66,6 +66,7 @@ extern "C" {
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
+#include "glm/gtc/quaternion.hpp"
 
 #include "am_util.h"
 #include "am_utf8.h"

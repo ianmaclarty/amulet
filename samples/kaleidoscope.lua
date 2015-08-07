@@ -101,7 +101,7 @@ local t_node = amulet.draw_arrays()
     :bind_array("uv", uvs)
     :bind_sampler2d("tex", pattern_texture)
     :bind_float("t", 0)
-local rotation_node = t_node:rotate("MVP")
+local rotation_node = t_node:rotate("MVP", quat(0))
 local node1 = rotation_node
     :bind_mat4("MVP", mat4(1))
     :bind_program(prog1)
@@ -144,7 +144,7 @@ win.root = node2
 -- blur shader (since it's the root).
 win.root:action(function()
     pattern_tex_view[math.random(pattern_tex_size^2)] = math.random(2^16)
-    rotation_node.angle = amulet.frame_time
+    rotation_node.rotation = quat(amulet.frame_time)
     t_node.value = amulet.frame_time
     ppfb:render(node1)
 end)

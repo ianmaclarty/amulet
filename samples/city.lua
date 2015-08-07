@@ -57,9 +57,9 @@ function init()
     position_node = buildings_group
         :translate("MV", 0, -0.1, 0)
     facing_node = position_node
-        :rotate("MV", 0, 0, 1, 0)
+        :rotate("MV", quat(0, vec3(0, 1, 0)))
     pitch_node = facing_node
-        :rotate("MV", 0, -1, 0, 0)
+        :rotate("MV", quat(0, vec3(-1, 0, 0)))
     limit1_node = pitch_node
         :bind_mat4("MV", mat4(1))
         :bind_mat4("P", math.perspective(math.rad(85), 1, 0.01, 100))
@@ -125,8 +125,8 @@ end
 
 local walk_t = 0
 
+local facing = 0
 function main_action()
-    local facing = facing_node.angle
     local turn_speed = 2
     local walk_speed = 0.3
     local strafe_speed = 0.2
@@ -154,8 +154,9 @@ function main_action()
 
     update_kaleidoscope_node()
 
-    facing_node.angle = win:mouse_position().x * math.pi
-    pitch_node.angle = win:mouse_position().y * math.pi - 1
+    facing = win:mouse_position().x * math.pi
+    facing_node.rotation = quat(facing, vec3(0, 1, 0))
+    pitch_node.rotation = quat(win:mouse_position().y * math.pi - 1, vec3(-1, 0, 0))
 
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)
@@ -323,7 +324,7 @@ function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
         :bind_array("vert", verts)
         :bind_array("uv", uvs)
         :bind_sampler2d("tex", texture)
-        :rotate("MVP")
+        :rotate("MVP", quat(0))
     local node = rotation_node
         :bind_mat4("MVP", mat4(1))
         :bind_program(kaleidoscope_shader)

@@ -150,7 +150,7 @@ end
 function amulet.wait(func, node)
     local _, main = coroutine.running()
     if main then
-        error("run may only be called from within a coroutine", 2)
+        error("wait may only be called from within a coroutine", 2)
     end
     repeat 
         coroutine.yield()

@@ -44,19 +44,6 @@ local rotating_cube = cube
         modelview_matrix = node.value
         --log(modelview_matrix)
     end)
-    --[[
-    :rotate("M", 0, 0, 0, -1)
-    :action(function(node)
-        node.angle = 1 * am.frame_time
-    end)
-    :rotate("M", 0, 0, 1, 0)
-    :action(function(node)
-        node.angle = 1.7 * am.frame_time
-    end)
-    :rotate("M", 0, 1, 0, 0)
-    :action(function(node)
-        node.angle = 3.2 * am.frame_time
-    end)]]
 local scene_group = am.group()
 
 local translated_cube = rotating_cube:translate("M", 0, 0, -7)
