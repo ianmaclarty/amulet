@@ -23,7 +23,7 @@ lua_State *am_init_engine(bool worker, int argc, char** argv) {
     am_open_utf8_module(L);
     if (!worker) {
         am_init_param_name_map(L);
-        am_init_actions(L);
+        am_open_actions_module(L);
         am_open_window_module(L);
         am_open_scene_module(L);
         am_open_program_module(L);

@@ -119,8 +119,6 @@ struct am_bind_vec##D##_node : am_scene_node {                          \
     am_param_name_id name;                                              \
     glm::vec##D v;                                                      \
     virtual void render(am_render_state *rstate);                       \
-    virtual int specialized_index(lua_State *L);                        \
-    virtual int specialized_newindex(lua_State *L);                     \
 };
 
 AM_BIND_VEC_NODE_DECL(2)
