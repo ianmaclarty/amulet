@@ -858,13 +858,24 @@ static int quat_new(lua_State *L) {
     glm::quat quat;
     switch (nargs) {
         case 1: {
-            if (lua_isnumber(L, 1)) {
-                float angle = lua_tonumber(L, 1);
-                glm::vec3 axis(0.0f, 0.0f, 1.0f);
-                quat = glm::angleAxis(angle, axis);
-            } else {
-                glm::vec3 pitchYawRoll = am_get_userdata(L, am_vec3, 1)->v;
-                quat = glm::quat(pitchYawRoll);
+            switch (am_get_type(L, 1)) {
+                case LUA_TNUMBER: {
+                    float angle = lua_tonumber(L, 1);
+                    glm::vec3 axis(0.0f, 0.0f, 1.0f);
+                    quat = glm::angleAxis(angle, axis);
+                    break;
+                }
+                case MT_am_vec3:
+                    quat = glm::quat(am_get_userdata(L, am_vec3, 1)->v);
+                    break;
+                case MT_am_mat3:
+                    quat = glm::quat(am_get_userdata(L, am_mat3, 1)->m);
+                    break;
+                case MT_am_mat4:
+                    quat = glm::quat(am_get_userdata(L, am_mat4, 1)->m);
+                    break;
+                default:
+                    return luaL_error(L, "unexpected argument type: %s", am_get_typename(L, am_get_type(L, 1)));
             }
             break;
         }
