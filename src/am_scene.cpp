@@ -312,6 +312,8 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, remove_all_children, 0);
     lua_setfield(L, -2, "remove_all");
     
+    lua_pushcclosure(L, am_create_bind_node, 0);
+    lua_setfield(L, -2, "bind");
     lua_pushcclosure(L, am_create_bind_float_node, 0);
     lua_setfield(L, -2, "bind_float");
     lua_pushcclosure(L, am_create_bind_mat2_node, 0);

@@ -33,8 +33,8 @@ yview[3] = -0.05
 
 local MVP = math.mat4(1)
 local base = am.draw_arrays()
-    :bind_array("x", xview)
-    :bind_array("y", yview)
+    :bind("x", xview)
+    :bind("y", yview)
 
 local group = am.group()
 
@@ -88,7 +88,7 @@ group:action(coroutine.create(function()
     end
 end))
         
-local top = group:bind_vec4("tint", 1, 1, 1, 1):bind_mat4("MVP", MVP):bind_program(prog)
+local top = group:bind("tint", vec4(1)):bind("MVP", MVP):bind_program(prog)
 
 win.root = top
 top:action(function()

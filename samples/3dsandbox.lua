@@ -57,7 +57,7 @@ function init()
         :lookat("MV", vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0))
 
     win.root = camera
-        :bind_mat4("P", math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip))
+        :bind("P", math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip))
         :bind_program(shader)
         :cull_face("ccw")
 
@@ -129,22 +129,22 @@ function create_floor()
     local s = 100
     local y = floor_y
     return am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
-        :bind_array("pos", am.vec3_array{
+        :bind("pos", am.vec3_array{
             -r, y, r,
             r, y, r,
             -r, y, -r,
             r, y, -r})
-        :bind_array("uv", am.vec2_array{
+        :bind("uv", am.vec2_array{
             0, 0,
             s, 0,
             0, s,
             s, s})
-        :bind_array("color", am.vec3_array{
+        :bind("color", am.vec3_array{
             1, 1, 1,
             1, 1, 1,
             1, 1, 1,
             1, 1, 1})
-        :bind_sampler2d("tex", load_texture("floor_tile.png"))
+        :bind("tex", load_texture("floor_tile.png"))
 end
 
 function init_shader() 
@@ -181,30 +181,30 @@ function load_model(name)
     local uvs = buf:view("vec2", 0, stride)
     local colors = buf:view("vec3", normals_offset, stride)
     return am.draw_arrays("triangles")
-        :bind_array("pos", verts)
-        :bind_array("uv", uvs)
-        :bind_array("color", colors)
-        :bind_sampler2d("tex", load_texture("gradient.png"))
+        :bind("pos", verts)
+        :bind("uv", uvs)
+        :bind("color", colors)
+        :bind("tex", load_texture("gradient.png"))
 end
 
 function load_image(name)
     return am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
-        :bind_array("pos", am.vec3_array{
+        :bind("pos", am.vec3_array{
             -1, 0, 0,
             1, 0, 0,
             -1, 2, 0,
             1, 2, 0})
-        :bind_array("uv", am.vec2_array{
+        :bind("uv", am.vec2_array{
             0, 0,
             1, 0,
             0, 1,
             1, 1})
-        :bind_array("color", am.vec3_array{
+        :bind("color", am.vec3_array{
             1, 1, 1,
             1, 1, 1,
             1, 1, 1,
             1, 1, 1})
-        :bind_sampler2d("tex", load_texture(name, "mirrored_repeat", "mirrored_repeat"))
+        :bind("tex", load_texture(name, "mirrored_repeat", "mirrored_repeat"))
 end
 
 

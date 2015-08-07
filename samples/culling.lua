@@ -30,8 +30,8 @@ function load_model(name)
     local verts = buf:view("vec3", 0, stride)
     local normals = buf:view("vec3", normals_offset, stride)
     return am.draw_arrays("triangles")
-        :bind_array("pos", verts)
-        :bind_array("normal", normals)
+        :bind("pos", verts)
+        :bind("normal", normals)
 end
 
 local cube = load_model("cube.obj")
@@ -53,8 +53,8 @@ local projection_matrix = math.perspective(math.rad(85), 1, 0.1, 10)
 scene_group:append(translated_cube)
 
 local scene = scene_group
-    :bind_mat4("M", mat4(1))
-    :bind_mat4("P", projection_matrix)
+    :bind("M", mat4(1))
+    :bind("P", projection_matrix)
     :bind_program(shader)
     :action(function()
         translated_cube.position = vec3(win:mouse_position().xy * 10, translated_cube.position.z)

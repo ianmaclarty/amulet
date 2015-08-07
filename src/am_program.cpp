@@ -428,6 +428,193 @@ void am_program_node::render(am_render_state *rstate) {
     rstate->active_program = old_program;
 }
 
+void am_bind_node::render(am_render_state *rstate) {
+    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value old_val = *param;
+    *param = value;
+    // assign texture unit if binding a sampler2D
+    // XXX should this be moved into renderer.cpp?
+    if (value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
+        if (old_val.type != AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
+            param->value.sampler2d.texture_unit = rstate->next_free_texture_unit++;
+            render_children(rstate);
+            rstate->next_free_texture_unit--;
+        } else {
+            // reuse texture unit
+            render_children(rstate);
+        }
+    } else {
+        render_children(rstate);
+    }
+    *param = old_val;
+}
+
+static void get_bind_node_value(lua_State *L, void *obj) {
+    am_bind_node *node = (am_bind_node*)obj;
+    am_program_param_value *param = &node->value;
+    switch (param->type) {
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_1F:
+            lua_pushnumber(L, param->value.f);
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_2F:
+            memcpy(&am_new_userdata(L, am_vec2)->v, &param->value.v2, 2 * sizeof(float));
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_3F:
+            memcpy(&am_new_userdata(L, am_vec3)->v, &param->value.v3, 3 * sizeof(float));
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_4F:
+            memcpy(&am_new_userdata(L, am_vec4)->v, &param->value.v4, 4 * sizeof(float));
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2:
+            memcpy(&am_new_userdata(L, am_mat2)->m, &param->value.m2, 4 * sizeof(float));
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3:
+            memcpy(&am_new_userdata(L, am_mat3)->m, &param->value.m3, 9 * sizeof(float));
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4:
+            memcpy(&am_new_userdata(L, am_mat4)->m, &param->value.m4, 16 * sizeof(float));
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY:
+            node->pushref(L, node->lua_ref);
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D:
+            node->pushref(L, node->lua_ref);
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED:
+            lua_pushnil(L);
+            break;
+    }
+}
+
+static void set_bind_node_value(lua_State *L, void *obj) {
+    am_bind_node *node = (am_bind_node*)obj;
+    am_program_param_value *param = &node->value;
+    if (node->lua_ref != LUA_NOREF) {
+        node->unref(L, node->lua_ref);
+        node->lua_ref = LUA_NOREF;
+    }
+    switch (am_get_type(L, 3)) {
+        case LUA_TNUMBER:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_1F;
+            param->value.f = lua_tonumber(L, 3);
+            break;
+        case MT_am_vec2:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_2F;
+            memcpy(&param->value.v2[0], glm::value_ptr(am_get_userdata(L, am_vec2, 3)->v), 2 * sizeof(float));
+            break;
+        case MT_am_vec3:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_3F;
+            memcpy(&param->value.v3[0], glm::value_ptr(am_get_userdata(L, am_vec3, 3)->v), 3 * sizeof(float));
+            break;
+        case MT_am_vec4:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_4F;
+            memcpy(&param->value.v4[0], glm::value_ptr(am_get_userdata(L, am_vec4, 3)->v), 4 * sizeof(float));
+            break;
+        case MT_am_mat2:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2;
+            memcpy(&param->value.m2[0], glm::value_ptr(am_get_userdata(L, am_mat2, 3)->m), 4 * sizeof(float));
+            break;
+        case MT_am_mat3:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3;
+            memcpy(&param->value.m3[0], glm::value_ptr(am_get_userdata(L, am_mat3, 3)->m), 9 * sizeof(float));
+            break;
+        case MT_am_mat4:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4;
+            memcpy(&param->value.m4[0], glm::value_ptr(am_get_userdata(L, am_mat4, 3)->m), 16 * sizeof(float));
+            break;
+        case MT_am_buffer_view:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY;
+            param->value.arr = am_get_userdata(L, am_buffer_view, 3);
+            node->lua_ref = node->ref(L, 3);
+            break;
+        case MT_am_texture2d:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D;
+            param->value.sampler2d.texture = am_get_userdata(L, am_texture2d, 3);
+            param->value.sampler2d.texture_unit = 0; // assigned in render method
+            node->lua_ref = node->ref(L, 3);
+            break;
+        default:
+            luaL_error(L, "invalid bind value of type %s", am_get_typename(L, am_get_type(L, 3)));
+    }
+}
+
+static am_property bind_node_value_property =
+    {get_bind_node_value, set_bind_node_value};
+
+int am_create_bind_node(lua_State *L) {
+    am_check_nargs(L, 3);
+    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2");
+    am_bind_node *node = am_new_userdata(L, am_bind_node);
+    node->name = am_lookup_param_name(L, 2);
+    node->lua_ref = LUA_NOREF;
+    am_program_param_value *param = &node->value;
+    switch (am_get_type(L, 3)) {
+        case LUA_TNUMBER:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_1F;
+            param->value.f = lua_tonumber(L, 3);
+            break;
+        case MT_am_vec2:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_2F;
+            memcpy(&param->value.v2[0], glm::value_ptr(am_get_userdata(L, am_vec2, 3)->v), 2 * sizeof(float));
+            break;
+        case MT_am_vec3:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_3F;
+            memcpy(&param->value.v3[0], glm::value_ptr(am_get_userdata(L, am_vec3, 3)->v), 3 * sizeof(float));
+            break;
+        case MT_am_vec4:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_4F;
+            memcpy(&param->value.v4[0], glm::value_ptr(am_get_userdata(L, am_vec4, 3)->v), 4 * sizeof(float));
+            break;
+        case MT_am_mat2:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2;
+            memcpy(&param->value.m2[0], glm::value_ptr(am_get_userdata(L, am_mat2, 3)->m), 4 * sizeof(float));
+            break;
+        case MT_am_mat3:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3;
+            memcpy(&param->value.m3[0], glm::value_ptr(am_get_userdata(L, am_mat3, 3)->m), 9 * sizeof(float));
+            break;
+        case MT_am_mat4:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4;
+            memcpy(&param->value.m4[0], glm::value_ptr(am_get_userdata(L, am_mat4, 3)->m), 16 * sizeof(float));
+            break;
+        case MT_am_buffer_view:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY;
+            param->value.arr = am_get_userdata(L, am_buffer_view, 3);
+            node->lua_ref = node->ref(L, 3);
+            break;
+        case MT_am_texture2d:
+            param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D;
+            param->value.sampler2d.texture = am_get_userdata(L, am_texture2d, 3);
+            param->value.sampler2d.texture_unit = 0; // assigned in render method
+            node->lua_ref = node->ref(L, 3);
+            break;
+        default:
+            return luaL_error(L, "invalid bind value of type %s", am_get_typename(L, am_get_type(L, 3)));
+    }
+
+    am_set_scene_node_child(L, node);
+
+    // allow using param name to set value
+    node->pushuservalue(L);
+    lua_pushvalue(L, 2); // param name
+    lua_pushlightuserdata(L, (void*)&bind_node_value_property);
+    lua_rawset(L, -3);
+    lua_pop(L, 1); // uservalue table
+
+    return 1;
+}
+
+static void register_bind_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
+
+    am_register_metatable(L, "bind", MT_am_bind_node, MT_am_scene_node);
+}
+
+
 void am_bind_float_node::render(am_render_state *rstate) {
     am_program_param_value *param = &am_param_name_map[name].value;
     am_program_param_value old_val = *param;
@@ -769,6 +956,7 @@ void am_open_program_module(lua_State *L) {
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_program_mt(L);
     register_program_node_mt(L);
+    register_bind_node_mt(L);
     register_bind_float_node_mt(L);
     register_bind_array_node_mt(L);
     register_bind_sampler2d_node_mt(L);

@@ -61,9 +61,9 @@ function init()
     pitch_node = facing_node
         :rotate("MV", quat(0, vec3(-1, 0, 0)))
     limit1_node = pitch_node
-        :bind_mat4("MV", mat4(1))
-        :bind_mat4("P", math.perspective(math.rad(85), 1, 0.01, 100))
-        :bind_float("limit1", 20)
+        :bind("MV", mat4(1))
+        :bind("P", math.perspective(math.rad(85), 1, 0.01, 100))
+        :bind("limit1", 20)
         
     buildings_node = limit1_node
         :bind_program(building_shader)
@@ -119,7 +119,7 @@ function update_kaleidoscope_node()
         current_zone = zn
         local zone = zones[zn]
         kaleidoscope_node = create_kaleidoscope_node(kaleidoscope_tex, zone.num_segments, zone.x_repeat, zone.y_repeat)
-        limit1_node.value = zone.limit1
+        limit1_node.limit1 = zone.limit1
         play_chime(zn)
     end
 end
@@ -233,8 +233,8 @@ function create_building(height, highlight, width, depth, position)
     end
 
     return am.draw_arrays()
-        :bind_array("vert", vert_view)
-        :bind_array("color", color_view)
+        :bind("vert", vert_view)
+        :bind("color", color_view)
 end
 
 function create_floor(height)
@@ -262,8 +262,8 @@ function create_floor(height)
     end
 
     return am.draw_arrays()
-        :bind_array("vert", vert_view)
-        :bind_array("color", color_view)
+        :bind("vert", vert_view)
+        :bind("color", color_view)
 end
 
 function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
@@ -325,12 +325,12 @@ function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
     end
 
     local rotation_node = am.draw_arrays()
-        :bind_array("vert", verts)
-        :bind_array("uv", uvs)
-        :bind_sampler2d("tex", texture)
+        :bind("vert", verts)
+        :bind("uv", uvs)
+        :bind("tex", texture)
         :rotate("MVP", quat(0))
     local node = rotation_node
-        :bind_mat4("MVP", mat4(1))
+        :bind("MVP", mat4(1))
         :bind_program(kaleidoscope_shader)
 
     return {
@@ -361,9 +361,9 @@ function create_blur_node()
     uvs2[5] = vec2(1, 1)
     uvs2[6] = vec2(1, 0)
     local node2 = amulet.draw_arrays()
-        :bind_array("vert", verts2)
-        :bind_array("uv", uvs2)
-        :bind_sampler2d("tex", pptexture)
+        :bind("vert", verts2)
+        :bind("uv", uvs2)
+        :bind("tex", pptexture)
         :bind_program(create_blur_shader())
     return node2, ppfb, pptexture
 end

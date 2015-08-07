@@ -37,8 +37,8 @@ yview[3] = -0.4
 
 local MVP = math.mat4(1)
 local base = am.draw_arrays()
-    :bind_array("x", xview)
-    :bind_array("y", yview)
+    :bind("x", xview)
+    :bind("y", yview)
 
 local group = am.group()
 
@@ -52,7 +52,7 @@ for i, seed in ipairs(seeds) do
     local size_node = base:scale("MVP", vec3(1))
     local position_node = size_node:translate("MVP", vec3(0))
     local node = position_node
-        :bind_vec4("tint", math.random(), math.random(), math.random(), 1)
+        :bind("tint", vec4(math.random(), math.random(), math.random(), 1))
         :action(function(node)
             local t = am.frame_time
             local r = math.cos(t * seed * 2)
@@ -65,7 +65,7 @@ for i, seed in ipairs(seeds) do
     group:append(node)
 end
 
-local top = group:bind_mat4("MVP", MVP):bind_program(prog)
+local top = group:bind("MVP", MVP):bind_program(prog)
 
 top:action(function()
     if win:key_pressed("escape") then

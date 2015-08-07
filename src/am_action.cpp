@@ -5,6 +5,8 @@ static int num_actions = 0;
 static void add_actions(lua_State *L, am_scene_node *node, int actions_tbl) {
     if (am_node_marked(node)) return;
     am_mark_node(node);
+    // XXX avoid adding the same action multiple times
+    // (it will only be run once, but adding actions is expensive)
     if (node->actions_ref != LUA_NOREF) {
         node->pushref(L, node->actions_ref);
         assert(lua_istable(L, -1));

@@ -43,8 +43,8 @@ local texture = am.texture2d{
 }
 
 local node = am.draw_arrays()
-    :bind_array("vert", verts)
-    :bind_sampler2d("tex1", texture)
+    :bind("vert", verts)
+    :bind("tex1", texture)
     :bind_program(prog)
 
 node:action(function()

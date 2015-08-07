@@ -18,4 +18,4 @@ rect:action(coroutine.create(function(node)
 end))
 
 win.root = rect
-    :bind_mat4("MV", mat4(1)):bind_mat4("P", mat4(1))
+    :bind("MV", mat4(1)):bind("P", mat4(1))

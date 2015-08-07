@@ -55,11 +55,11 @@ bview[2] = 0
 bview[3] = 1
 
 local node = am.draw_arrays()
-    :bind_array("x", xview)
-    :bind_array("y", yview)
-    :bind_array("r", rview)
-    :bind_array("g", gview)
-    :bind_array("b", bview)
+    :bind("x", xview)
+    :bind("y", yview)
+    :bind("r", rview)
+    :bind("g", gview)
+    :bind("b", bview)
     :bind_program(prog)
 
 win.root = node

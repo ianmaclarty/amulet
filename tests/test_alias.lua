@@ -3,9 +3,9 @@ local am = amulet
 local
 function print_graph2(node, visited, indent)
     if visited[node] then
-        print(indent..node.name.."("..node.tname..") [cycle]")
+        print(indent..node.name.." [cycle]")
     else
-        print(indent..node.name.."("..node.tname..")")
+        print(indent..node.name)
         visited[node] = true
         for i, child in node:child_pairs() do
             assert(child == node:child(i))
@@ -21,14 +21,14 @@ function print_graph(root)
 end
 
 local node = am.group():alias("base"):alias("name", "base")
-    :bind_vec2("A", math.vec2(2)):alias("nodeA"):alias{name = "A", fa = "AA"}
-    :bind_vec3("B", math.vec3(3)):alias("nodeB"):alias("name", "B"):alias("fb", "BB")
-    :bind_vec4("C", math.vec2(4), 4, 4):alias("nodeC"):alias("name", "C"):alias("fc", "CC")
+    :bind("A", vec2(2)):alias("nodeA"):alias{name = "A", fa = "AA"}
+    :bind("B", vec3(3)):alias("nodeB"):alias("name", "B"):alias("fb", "BB")
+    :bind("C", vec4(4)):alias("nodeC"):alias("name", "C"):alias("fc", "CC")
 
-print(node.nodeA.name..":"..node.nodeA.tname)
-print(node.nodeB.name..":"..node.nodeB.tname)
-print(node.nodeC.name..":"..node.nodeC.tname)
-print(node.base.tname)
+print(node.nodeA.name..":"..node.nodeA.name)
+print(node.nodeB.name..":"..node.nodeB.name)
+print(node.nodeC.name..":"..node.nodeC.name)
+print(node.base.name)
 
 print(node.fa)
 print(node.fb)
@@ -47,33 +47,33 @@ print("")
 print_graph(node)
 
 print("")
-print(node.nodeA.x)
-print(node.nodeB.rgb.rg.r)
-print(node.nodeC.pq[2])
+print(node.nodeA.A.x)
+print(node.nodeB.B.rgb.rg.r)
+print(node.nodeC.C.pq[2])
 
-local cycle = am.group():alias("A"):alias("name", "A"):alias("f1", {f = 1})
-    :bind_vec2("B", 2, 2):alias("B"):alias("name", "B"):alias("f2", {f = 2})
-    :bind_vec3("C", math.vec3(3)):alias("C"):alias("name", "C"):alias("f3", {f = 3})
+local cycle = am.group():alias("nodeA"):alias("name", "A"):alias("f1", {f = 1})
+    :bind("B", vec2(2, 2)):alias("nodeB"):alias("name", "B"):alias("f2", {f = 2})
+    :bind("C", vec3(3)):alias("nodeC"):alias("name", "C"):alias("f3", {f = 3})
 
-cycle.A:append(cycle)
+cycle.nodeA:append(cycle)
 
 print("---")
 print_graph(cycle)
 print("")
-print_graph(cycle.A)
+print_graph(cycle.nodeA)
 print("")
-print_graph(cycle.B)
+print_graph(cycle.nodeB)
 print("")
-print_graph(cycle.C)
+print_graph(cycle.nodeC)
 
 print("")
 print(cycle.f1.f)
 print(cycle.f2.f)
 print(cycle.f3.f)
-print(cycle.B.f1.f)
-print(cycle.B.f2.f)
-print(cycle.B.f3.f)
+print(cycle.nodeB.f1.f)
+print(cycle.nodeB.f2.f)
+print(cycle.nodeB.f3.f)
 
 print("")
-print(cycle.A.B.xy.t)
+print(cycle.nodeA.B.xy.t)
 print(cycle.C.rrr.y)
