@@ -50,21 +50,8 @@ function init()
         objects:append(torus
             :rotate("MV", quat(
                 math.random() * math.pi * 2, math.normalize(vec3(math.random(), math.random(), math.random()))))
-            :translate("MV", (math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
+            :translate("MV", vec3((math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100)))
     end
-    --[[
-    for i = 1, 3 do
-        for j = 1, 3 do
-            local tree = load_image("tree.png")
-                :billboard("MV", true)
-                :scale("MV", vec3(i*j))
-                :translate("MV", -i*6, -1, -j*6)
-                --:blend("add")
-                --:pass(2)
-            objects:prepend(tree)
-        end
-    end
-    ]]
 
     camera = objects
         :lookat("MV", vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0))

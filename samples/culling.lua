@@ -46,7 +46,7 @@ local rotating_cube = cube
     end)
 local scene_group = am.group()
 
-local translated_cube = rotating_cube:translate("M", 0, 0, -7)
+local translated_cube = rotating_cube:translate("M", vec3(0, 0, -7))
 
 local projection_matrix = math.perspective(math.rad(85), 1, 0.1, 10)
 
@@ -57,7 +57,7 @@ local scene = scene_group
     :bind_mat4("P", projection_matrix)
     :bind_program(shader)
     :action(function()
-        translated_cube.xy = win:mouse_position().xy * 10
+        translated_cube.position = vec3(win:mouse_position().xy * 10, translated_cube.position.z)
         log(math.sphere_visible(projection_matrix * modelview_matrix, vec3(0), math.sqrt(3)))
         if win:key_pressed("escape") then
             win:close()

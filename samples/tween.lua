@@ -68,7 +68,7 @@ local group = am.group()
 local nodes = {}
 for i, easing in ipairs(easings) do
     local y = #easings == 1 and 0 or - (i - 1) / (#easings - 1) * 1.6 + 0.8
-    local node = base:scale("MVP"):translate("MVP", -0.5, y)
+    local node = base:translate("MVP", vec3(-0.5, y, 0))
     group:append(node)
     table.insert(nodes, node)
 end
@@ -78,9 +78,9 @@ group:action(coroutine.create(function()
     while true do
         for i, node in ipairs(nodes) do
             anis[i] = coroutine.create(function() 
-                am.wait(am.tween{target = node, x = 0.5, time = math.random(), ease = easings[i]})
+                am.wait(am.tween{target = node, position = vec3(0.5, node.position.y, 0), time = math.random(), ease = easings[i]})
                 am.wait(am.delay(math.random()*0.3))
-                am.wait(am.tween{target = node, x = -0.5, time = math.random(), ease = easings[i]})
+                am.wait(am.tween{target = node, position = vec3(-0.5, node.position.y, 0), time = math.random(), ease = easings[i]})
                 am.wait(am.delay(0.5))
             end)
         end

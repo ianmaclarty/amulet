@@ -55,7 +55,7 @@ function init()
     blur_node, blur_fb = create_blur_node()
 
     position_node = buildings_group
-        :translate("MV", 0, -0.1, 0)
+        :translate("MV", vec3(0, -0.1, 0))
     facing_node = position_node
         :rotate("MV", quat(0, vec3(0, 1, 0)))
     pitch_node = facing_node
@@ -107,7 +107,8 @@ local current_zone = 1
 local
 function update_kaleidoscope_node()
     local zn = #zones
-    local d = math.max(math.abs(position_node.x), math.abs(position_node.z))
+    local position = position_node.position
+    local d = math.max(math.abs(position.x), math.abs(position.z))
     for i, zone in ipairs(zones) do
         if d < zone.distance then
             zn = i - 1
@@ -130,27 +131,30 @@ function main_action()
     local turn_speed = 2
     local walk_speed = 0.3
     local strafe_speed = 0.2
+    local pos_xz = position_node.position.xz
+    local pos_y = position_node.position.y
     if win:key_down("w") or win:mouse_button_down("left") then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
-        position_node.xz = position_node.xz + dir * walk_speed * am.delta_time
+        pos_xz = pos_xz + dir * walk_speed * am.delta_time
     elseif win:key_down("s") then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
-        position_node.xz = position_node.xz - dir * walk_speed * am.delta_time
+        pos_xz = pos_xz - dir * walk_speed * am.delta_time
     end
     if win:key_down("a") then
         local dir = vec2(math.cos(facing+math.pi), math.sin(facing+math.pi))
-        position_node.xz = position_node.xz - dir * strafe_speed * am.delta_time
+        pos_xz = pos_xz - dir * strafe_speed * am.delta_time
     elseif win:key_down("d") then
         local dir = vec2(math.cos(facing+math.pi), math.sin(facing+math.pi))
-        position_node.xz = position_node.xz + dir * strafe_speed * am.delta_time
+        pos_xz = pos_xz + dir * strafe_speed * am.delta_time
     end
     if win:key_pressed("escape") then
         win:close()
     end
     if win:key_down("w") or win:key_down("s") or win:mouse_button_down("left") then
         walk_t = walk_t + am.delta_time
-        position_node.y = -0.1 + math.sin(walk_t*10) * 0.005
+        pos_y = -0.1 + math.sin(walk_t*10) * 0.005
     end
+    position_node.position = vec3(pos_xz.x, pos_y, pos_xz.y)
 
     update_kaleidoscope_node()
 
