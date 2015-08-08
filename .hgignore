@@ -28,6 +28,7 @@ src/am_generated_view_defs.inc
 
 tools/embed
 tools/gen_view_defs
+tools/am_gen_font
 
 xcode/*
 
