@@ -154,7 +154,7 @@ $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 
 # Font generation tool
 
-tools/am_gen_font$(EXE_EXT): tools/am_gen_font.c
+tools/amfont$(EXE_EXT): tools/amfont.c
 	$(CC) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT) $@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
 
 # Cleanup
