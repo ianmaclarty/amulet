@@ -28,16 +28,25 @@ static int create_image(lua_State *L) {
     return 1;
 }
 
-static int decode_image(lua_State *L) {
+static int load_image(lua_State *L) {
     am_check_nargs(L, 1);
-    am_buffer *rawbuf = am_get_userdata(L, am_buffer, 1);
+    char *errmsg;
+    int len;
+    const char *filename = luaL_checkstring(L, 1);
+    void *data = am_read_resource(filename, &len, &errmsg);
+    if (data == NULL) {
+        lua_pushstring(L, errmsg);
+        free(errmsg);
+        return lua_error(L);
+    }
     int width, height;
     int components = 4;
     stbi_set_flip_vertically_on_load(1);
     stbi_uc *img_data =
-        stbi_load_from_memory((stbi_uc const *)rawbuf->data, rawbuf->size, &width, &height, &components, 4);
+        stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+    free(data);
     if (img_data == NULL) {
-        return luaL_error(L, "error decoding image %s: %s", rawbuf->origin, stbi_failure_reason());
+        return luaL_error(L, "error loading image %s: %s", filename, stbi_failure_reason());
     }
     am_image *img = am_new_userdata(L, am_image);
     img->width = width;
@@ -87,8 +96,7 @@ static void register_image_mt(lua_State *L) {
 void am_open_image_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"create_image", create_image},
-        {"decode_png", decode_image},
-        {"decode_jpg", decode_image},
+        {"load_image", load_image},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
