@@ -97,13 +97,15 @@ local pattern_texture = amulet.texture2d{
 -- create node that will render the kaleidoscope vertices using
 -- the program and texture we created earlier
 local t_node = amulet.draw_arrays()
-    :bind("vert", verts)
-    :bind("uv", uvs)
-    :bind("tex", pattern_texture)
-    :bind("t", 0)
+    :bind{
+        vert = verts,
+        uv = uvs,
+        tex = pattern_texture,
+        t = 0,
+    }
 local rotation_node = t_node:rotate("MVP", quat(0))
 local node1 = rotation_node
-    :bind("MVP", mat4(1))
+    :bind{MVP = mat4(1)}
     :bind_program(prog1)
 
 -- create texture for post-processing (applying blur)
@@ -129,10 +131,12 @@ uvs2[4] = vec2(0, 0)
 uvs2[5] = vec2(1, 1)
 uvs2[6] = vec2(1, 0)
 local node2 = amulet.draw_arrays()
-    :bind("vert", verts2)
-    :bind("uv", uvs2)
-    :bind("tex", pptexture)
-    :bind("MVP", mat4(1))
+    :bind{
+        vert = verts2,
+        uv = uvs2,
+        tex = pptexture,
+        MVP = mat4(1),
+    }
     :bind_program(prog2)
 
 -- set the post processing node as the root
@@ -147,4 +151,7 @@ win.root:action(function()
     rotation_node.rotation = quat(amulet.frame_time)
     t_node.t = amulet.frame_time
     ppfb:render(node1)
+    if win:key_pressed("escape") then
+        win:close()
+    end
 end)

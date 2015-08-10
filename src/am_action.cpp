@@ -1,13 +1,15 @@
 #include "amulet.h"
 
 static int num_actions = 0;
+static unsigned int g_action_seq = 1;
 
-static void add_actions(lua_State *L, am_scene_node *node, int actions_tbl) {
+static void add_actions_2(lua_State *L, am_scene_node *node, int actions_tbl) {
     if (am_node_marked(node)) return;
     am_mark_node(node);
     // XXX avoid adding the same action multiple times
     // (it will only be run once, but adding actions is expensive)
-    if (node->actions_ref != LUA_NOREF) {
+    if (node->action_seq != g_action_seq && node->actions_ref != LUA_NOREF) {
+        node->action_seq = g_action_seq;
         node->pushref(L, node->actions_ref);
         assert(lua_istable(L, -1));
         int i = 1;
@@ -26,9 +28,14 @@ static void add_actions(lua_State *L, am_scene_node *node, int actions_tbl) {
     }
     int n = node->children.size;
     for (int i = 0; i < n; i++) {
-        add_actions(L, node->children.arr[i].child, actions_tbl);
+        add_actions_2(L, node->children.arr[i].child, actions_tbl);
     }
     am_unmark_node(node);
+}
+
+static void add_actions(lua_State *L, am_scene_node *node, int actions_tbl) {
+    add_actions_2(L, node, actions_tbl);
+    g_action_seq++;
 }
 
 void am_pre_execute_actions(lua_State *L, double dt) {

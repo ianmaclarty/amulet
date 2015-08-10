@@ -81,9 +81,10 @@ struct am_program_node : am_scene_node {
 };
 
 struct am_bind_node : am_scene_node {
-    am_param_name_id name;
-    am_program_param_value value;
-    int lua_ref; // ref for array or texture
+    int num_params;
+    am_param_name_id *names;
+    am_program_param_value *values;
+    int *refs; // refs for array or texture params
 
     virtual void render(am_render_state *rstate);
 };

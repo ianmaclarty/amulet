@@ -28,7 +28,7 @@ src/am_generated_view_defs.inc
 
 tools/embed
 tools/gen_view_defs
-tools/amfont
+tools/ampack
 
 xcode/*
 

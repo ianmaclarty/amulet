@@ -57,7 +57,7 @@ function init()
         :lookat("MV", vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0))
 
     win.root = camera
-        :bind("P", math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip))
+        :bind{P = math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip)}
         :bind_program(shader)
         :cull_face("ccw")
 
@@ -99,6 +99,7 @@ function main_action()
         win.lock_pointer = not win.lock_pointer
     end
     update_camera()
+    log(am.perf_stats().avg_fps)
 end
 
 local
@@ -110,7 +111,7 @@ function load_texture(name, swrap, twrap, minfilter, magfilter)
     twrap = twrap or "repeat"
     minfilter = minfilter or "linear_mipmap_linear"
     magfilter = magfilter or "linear"
-    local img = am.decode_png(am.read_buffer(name))
+    local img = am.load_image(name)
     local texture = am.texture2d{
         buffer = img.buffer,
         width = img.width,
@@ -129,22 +130,24 @@ function create_floor()
     local s = 100
     local y = floor_y
     return am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
-        :bind("pos", am.vec3_array{
-            -r, y, r,
-            r, y, r,
-            -r, y, -r,
-            r, y, -r})
-        :bind("uv", am.vec2_array{
-            0, 0,
-            s, 0,
-            0, s,
-            s, s})
-        :bind("color", am.vec3_array{
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1})
-        :bind("tex", load_texture("floor_tile.png"))
+        :bind{
+            pos = am.vec3_array{
+                -r, y, r,
+                r, y, r,
+                -r, y, -r,
+                r, y, -r},
+            uv = am.vec2_array{
+                0, 0,
+                s, 0,
+                0, s,
+                s, s},
+            color = am.vec3_array{
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1},
+            tex = load_texture("floor_tile.png"),
+        }
 end
 
 function init_shader() 
@@ -181,30 +184,34 @@ function load_model(name)
     local uvs = buf:view("vec2", 0, stride)
     local colors = buf:view("vec3", normals_offset, stride)
     return am.draw_arrays("triangles")
-        :bind("pos", verts)
-        :bind("uv", uvs)
-        :bind("color", colors)
-        :bind("tex", load_texture("gradient.png"))
+        :bind{
+            pos = verts,
+            uv = uvs,
+            color = colors,
+            tex = load_texture("gradient.png"),
+        }
 end
 
 function load_image(name)
     return am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
-        :bind("pos", am.vec3_array{
-            -1, 0, 0,
-            1, 0, 0,
-            -1, 2, 0,
-            1, 2, 0})
-        :bind("uv", am.vec2_array{
-            0, 0,
-            1, 0,
-            0, 1,
-            1, 1})
-        :bind("color", am.vec3_array{
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1})
-        :bind("tex", load_texture(name, "mirrored_repeat", "mirrored_repeat"))
+        :bind{
+            pos = am.vec3_array{
+                -1, 0, 0,
+                1, 0, 0,
+                -1, 2, 0,
+                1, 2, 0},
+            uv = am.vec2_array{
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1},
+            color = am.vec3_array{
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1},
+            tex = load_texture(name, "mirrored_repeat", "mirrored_repeat"),
+        }
 end
 
 
