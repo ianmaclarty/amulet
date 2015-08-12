@@ -55,15 +55,15 @@ function init()
     blur_node, blur_fb = create_blur_node()
 
     position_node = buildings_group
-        :translate("MV", 0, -0.1, 0)
+        :translate("MV", vec3(0, -0.1, 0))
     facing_node = position_node
-        :rotate("MV", 0, 0, 1, 0)
+        :rotate("MV", quat(0, vec3(0, 1, 0)))
     pitch_node = facing_node
-        :rotate("MV", 0, -1, 0, 0)
+        :rotate("MV", quat(0, vec3(-1, 0, 0)))
     limit1_node = pitch_node
-        :bind_mat4("MV", mat4(1))
-        :bind_mat4("P", math.perspective(math.rad(85), 1, 0.01, 100))
-        :bind_float("limit1", 20)
+        :bind("MV", mat4(1))
+        :bind("P", math.perspective(math.rad(85), 1, 0.01, 100))
+        :bind("limit1", 20)
         
     buildings_node = limit1_node
         :bind_program(building_shader)
@@ -107,7 +107,8 @@ local current_zone = 1
 local
 function update_kaleidoscope_node()
     local zn = #zones
-    local d = math.max(math.abs(position_node.x), math.abs(position_node.z))
+    local position = position_node.position
+    local d = math.max(math.abs(position.x), math.abs(position.z))
     for i, zone in ipairs(zones) do
         if d < zone.distance then
             zn = i - 1
@@ -118,44 +119,48 @@ function update_kaleidoscope_node()
         current_zone = zn
         local zone = zones[zn]
         kaleidoscope_node = create_kaleidoscope_node(kaleidoscope_tex, zone.num_segments, zone.x_repeat, zone.y_repeat)
-        limit1_node.value = zone.limit1
+        limit1_node.limit1 = zone.limit1
         play_chime(zn)
     end
 end
 
 local walk_t = 0
 
+local facing = 0
 function main_action()
-    local facing = facing_node.angle
     local turn_speed = 2
     local walk_speed = 0.3
     local strafe_speed = 0.2
+    local pos_xz = position_node.position.xz
+    local pos_y = position_node.position.y
     if win:key_down("w") or win:mouse_button_down("left") then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
-        position_node.xz = position_node.xz + dir * walk_speed * am.delta_time
+        pos_xz = pos_xz + dir * walk_speed * am.delta_time
     elseif win:key_down("s") then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
-        position_node.xz = position_node.xz - dir * walk_speed * am.delta_time
+        pos_xz = pos_xz - dir * walk_speed * am.delta_time
     end
     if win:key_down("a") then
         local dir = vec2(math.cos(facing+math.pi), math.sin(facing+math.pi))
-        position_node.xz = position_node.xz - dir * strafe_speed * am.delta_time
+        pos_xz = pos_xz - dir * strafe_speed * am.delta_time
     elseif win:key_down("d") then
         local dir = vec2(math.cos(facing+math.pi), math.sin(facing+math.pi))
-        position_node.xz = position_node.xz + dir * strafe_speed * am.delta_time
+        pos_xz = pos_xz + dir * strafe_speed * am.delta_time
     end
     if win:key_pressed("escape") then
         win:close()
     end
     if win:key_down("w") or win:key_down("s") or win:mouse_button_down("left") then
         walk_t = walk_t + am.delta_time
-        position_node.y = -0.1 + math.sin(walk_t*10) * 0.005
+        pos_y = -0.1 + math.sin(walk_t*10) * 0.005
     end
+    position_node.position = vec3(pos_xz.x, pos_y, pos_xz.y)
 
     update_kaleidoscope_node()
 
-    facing_node.angle = win:mouse_position().x * math.pi
-    pitch_node.angle = win:mouse_position().y * math.pi - 1
+    facing = win:mouse_position().x * math.pi
+    facing_node.rotation = quat(facing, vec3(0, 1, 0))
+    pitch_node.rotation = quat(win:mouse_position().y * math.pi - 1, vec3(-1, 0, 0))
 
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)
@@ -228,8 +233,8 @@ function create_building(height, highlight, width, depth, position)
     end
 
     return am.draw_arrays()
-        :bind_array("vert", vert_view)
-        :bind_array("color", color_view)
+        :bind("vert", vert_view)
+        :bind("color", color_view)
 end
 
 function create_floor(height)
@@ -257,8 +262,8 @@ function create_floor(height)
     end
 
     return am.draw_arrays()
-        :bind_array("vert", vert_view)
-        :bind_array("color", color_view)
+        :bind("vert", vert_view)
+        :bind("color", color_view)
 end
 
 function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
@@ -320,12 +325,12 @@ function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
     end
 
     local rotation_node = am.draw_arrays()
-        :bind_array("vert", verts)
-        :bind_array("uv", uvs)
-        :bind_sampler2d("tex", texture)
-        :rotate("MVP")
+        :bind("vert", verts)
+        :bind("uv", uvs)
+        :bind("tex", texture)
+        :rotate("MVP", quat(0))
     local node = rotation_node
-        :bind_mat4("MVP", mat4(1))
+        :bind("MVP", mat4(1))
         :bind_program(kaleidoscope_shader)
 
     return {
@@ -356,9 +361,9 @@ function create_blur_node()
     uvs2[5] = vec2(1, 1)
     uvs2[6] = vec2(1, 0)
     local node2 = amulet.draw_arrays()
-        :bind_array("vert", verts2)
-        :bind_array("uv", uvs2)
-        :bind_sampler2d("tex", pptexture)
+        :bind("vert", verts2)
+        :bind("uv", uvs2)
+        :bind("tex", pptexture)
         :bind_program(create_blur_shader())
     return node2, ppfb, pptexture
 end

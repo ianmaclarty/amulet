@@ -2,25 +2,18 @@ struct am_translate_node : am_scene_node {
     am_param_name_id name;
     glm::vec3 v;
     virtual void render(am_render_state *rstate);
-    virtual int specialized_index(lua_State *l);
-    virtual int specialized_newindex(lua_State *l);
 };
 
 struct am_scale_node : am_scene_node {
     am_param_name_id name;
     glm::vec3 v;
     virtual void render(am_render_state *rstate);
-    virtual int specialized_index(lua_State *l);
-    virtual int specialized_newindex(lua_State *l);
 };
 
 struct am_rotate_node : am_scene_node {
     am_param_name_id name;
-    float angle;
-    glm::vec3 about;
+    glm::quat rotation;
     virtual void render(am_render_state *rstate);
-    virtual int specialized_index(lua_State *l);
-    virtual int specialized_newindex(lua_State *l);
 };
 
 struct am_mult_mat4_node : am_scene_node {

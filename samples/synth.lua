@@ -67,9 +67,9 @@ function create_wave_editor()
     local prev_index
     local prev_y
     local graph = am.draw_arrays("line_strip")
-        :bind_array("x", xs)
-        :bind_array("y", audio_data_view)
-        :bind_vec3("color", vec3(0, 1, 0.6))
+        :bind("x", xs)
+        :bind("y", audio_data_view)
+        :bind("color", vec3(0, 1, 0.6))
         :read_mat4("MVP")
         :action(function(node)
             if win:mouse_button_down("left") then
@@ -113,13 +113,13 @@ function create_wave_editor()
             end 
         end)
     local line = am.draw_arrays("lines")
-        :bind_array("x", am.float_array{-1, 1})
-        :bind_array("y", am.float_array{ 0, 0})
-        :bind_vec3("color", vec3(0.5, 0.5, 0.5))
+        :bind("x", am.float_array{-1, 1})
+        :bind("y", am.float_array{ 0, 0})
+        :bind("color", vec3(0.5, 0.5, 0.5))
     local border = am.draw_arrays("line_loop")
-        :bind_array("x", am.float_array{-1, -1,  1,  1})
-        :bind_array("y", am.float_array{-1,  1,  1, -1})
-        :bind_vec3("color", vec3(1, 0.5, 0.5))
+        :bind("x", am.float_array{-1, -1,  1,  1})
+        :bind("y", am.float_array{-1,  1,  1, -1})
+        :bind("color", vec3(1, 0.5, 0.5))
     wave_editor_node = am.group(line, graph, border)
 end
 
@@ -128,14 +128,14 @@ function create_slider(min, max, initial_value, onchange)
     local grip_w = 0.1
     local grip_h = 0.2
     local grip = am.draw_arrays("line_loop")
-        :bind_array("x", am.float_array{-grip_w/2, grip_w/2, grip_w/2, -grip_w/2})
-        :bind_array("y", am.float_array{-grip_h/2, -grip_h/2, grip_h/2, grip_h/2})
-        :bind_vec3("color", vec3(0.8, 0.8, 0.2))
-        :translate("MVP", ((initial_value-min)/(max-min))*2-1)
+        :bind("x", am.float_array{-grip_w/2, grip_w/2, grip_w/2, -grip_w/2})
+        :bind("y", am.float_array{-grip_h/2, -grip_h/2, grip_h/2, grip_h/2})
+        :bind("color", vec3(0.8, 0.8, 0.2))
+        :translate("MVP", vec3(((initial_value-min)/(max-min))*2-1, 0, 0))
     local line = am.draw_arrays("lines")
-        :bind_array("x", am.float_array{-1, 1})
-        :bind_array("y", am.float_array{ 0, 0})
-        :bind_vec3("color", vec3(0.5, 0.5, 1))
+        :bind("x", am.float_array{-1, 1})
+        :bind("y", am.float_array{ 0, 0})
+        :bind("color", vec3(0.5, 0.5, 1))
     local prev_pos
     local inv
     return am.group(line, grip)
@@ -151,7 +151,7 @@ function create_slider(min, max, initial_value, onchange)
             if prev_pos and win:mouse_button_down("left") then
                 local pos = inv * vec4(win:mouse_position(), 0, 1)
                 local x = math.min(1, math.max(-1, pos.x))
-                grip.x = x
+                grip.position = vec3(x, 0, 0)
                 onchange(min + (x * 0.5 + 0.5) * (max - min))
                 prev_pos = pos
             else
@@ -202,25 +202,25 @@ function assemble_ui()
     local x = 0
     win.root = am.group(
             wave_editor_node
-                :scale("MVP", 0.8, 0.45)
-                :translate("MVP", x, -0.43),
+                :scale("MVP", vec3(0.8, 0.45, 1))
+                :translate("MVP", vec3(x, -0.43, 0)),
             pitch_editor_node
-                :scale("MVP", 0.8, 0.5)
-                :translate("MVP", x, 0.2),
+                :scale("MVP", vec3(0.8, 0.5, 1))
+                :translate("MVP", vec3(x, 0.2, 0)),
             lowpass_cutoff_editor_node
-                :scale("MVP", 0.8, 0.5)
-                :translate("MVP", x, 0.2+dy),
+                :scale("MVP", vec3(0.8, 0.5, 1))
+                :translate("MVP", vec3(x, 0.2+dy, 0)),
             lowpass_resonance_editor_node
-                :scale("MVP", 0.8, 0.5)
-                :translate("MVP", x, 0.2+2*dy),
+                :scale("MVP", vec3(0.8, 0.5, 1))
+                :translate("MVP", vec3(x, 0.2+2*dy, 0)),
             highpass_cutoff_editor_node
-                :scale("MVP", 0.8, 0.5)
-                :translate("MVP", x, 0.2+3*dy),
+                :scale("MVP", vec3(0.8, 0.5, 1))
+                :translate("MVP", vec3(x, 0.2+3*dy, 0)),
             highpass_resonance_editor_node
-                :scale("MVP", 0.8, 0.5)
-                :translate("MVP", x, 0.2+4*dy)
+                :scale("MVP", vec3(0.8, 0.5, 1))
+                :translate("MVP", vec3(x, 0.2+4*dy, 0))
         )
-        :bind_mat4("MVP")
+        :bind("MVP", mat4(1))
         :bind_program(shader_program)
         :action(function()
             if win:key_down("escape") then

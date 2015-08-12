@@ -95,6 +95,14 @@ function set_text_verts(font, str, verts_view, uvs_view)
 end
 
 local
+function set_sprite_verts(img, verts_view, uvs_view)
+    local x1, y1, x2, y2 = img.x1, img.y1, img.x2, img.y2
+    local s1, t1, s2, t2 = img.s1, img.t1, img.s2, img.t2
+    verts_view:set{x1, y2, 0, x1, y1, 0, x2, y1, 0, x2, y2, 0}
+    uvs_view:set{s1, t2, s1, t1, s2, t1, s2, t2}
+end
+
+local
 function set_text(node, str)
     local len = utf8.len(str)
     local verts, uvs
@@ -114,6 +122,9 @@ function set_text(node, str)
 end
 
 function am.text(font, str)
+    if not font.is_font then
+        error("expecting a font in position 1", 2)
+    end
     str = type(str) == "string" and str or tostring(str)
     local len = utf8.len(str)
     local num_verts = len * 4
@@ -149,24 +160,43 @@ function am.text(font, str)
         }
 end
 
+function am.sprite(image)
+    local num_verts = 4
+    local buffer, verts, uvs = make_buffer(num_verts)
+    local indices = make_indices(num_verts)
+    set_sprite_verts(image, verts, uvs)
+    return am.draw_elements(indices)
+        :bind_array("pos", verts)
+        :bind_array("uv", uvs)
+        :bind_sampler2d("tex", image.texture)
+        :bind_program(am.shaders.texture)
+        :blend("normal")
+end
+
 function am._init_fonts(data, imgfile)
     local fonts = {}
     for _, entry in ipairs(data) do
         local name = entry.filename:match("([^/%.:\\]+)%.([^/%.:\\]+)$")
-        if not name then
-            error("invalid font filename: "..entry.filename, 3)
+        if entry.is_font then
+            if not name then
+                error("invalid font filename: "..entry.filename, 3)
+            end
+            entry.line_height = entry.size
+            name = name..entry.size
+        else
+            if not name then
+                error("invalid image filename: "..entry.filename, 3)
+            end
         end
-        name = name..entry.size
         data[name] = entry
-        entry.line_height = entry.size
     end
     setmetatable(fonts, {__index = function(fonts, name)
         local entry = data[name]
         if not entry then
-            error("no such font: "..name, 2)
+            return nil
         end
         if not data.texture then
-            local img = am.decode_png(am.read_buffer("vera.png"))
+            local img = am.load_image(imgfile);
             data.texture = am.texture2d{buffer = img.buffer, width = img.width, height = img.height,
                 minfilter = "linear", magfilter = "linear"}
         end

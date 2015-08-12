@@ -46,6 +46,11 @@ struct am_mat4 : am_userdata {
     }
 };
 
+struct am_quat : am_userdata {
+    glm::quat q;
+    am_quat() {}
+};
+
 int am_vec2_index(lua_State *L, glm::vec2 *v);
 int am_vec3_index(lua_State *L, glm::vec3 *v);
 int am_vec4_index(lua_State *L, glm::vec4 *v);

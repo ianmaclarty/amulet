@@ -20,14 +20,6 @@ void am_scene_node::render_children(am_render_state *rstate) {
     recursion_limit++;
 }
 
-int am_scene_node::specialized_index(lua_State *L) {
-    return 0;
-}
-
-int am_scene_node::specialized_newindex(lua_State *L) {
-    return -1;
-}
-
 void am_scene_node::render(am_render_state *rstate) {
     render_children(rstate);
 }
@@ -35,7 +27,6 @@ void am_scene_node::render(am_render_state *rstate) {
 int am_scene_node_index(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
     if (am_node_marked(node)) return 0; // cycle
-    if (node->specialized_index(L)) return 1;
     am_default_index_func(L);
     if (lua_isnil(L, -1) && node->children.size == 1) {
         am_mark_node(node);
@@ -55,7 +46,6 @@ int am_scene_node_newindex(lua_State *L) {
         // cycle
         return luaL_error(L, "field %s not found", lua_tostring(L, 2));
     }
-    if (node->specialized_newindex(L) != -1) return 0;
     if (am_try_default_newindex(L)) return 0;
     if (node->children.size == 1) {
         am_mark_node(node);
@@ -218,8 +208,6 @@ static void set_hidden(lua_State *L, void *obj) {
 static am_property hidden_property = {get_hidden, set_hidden};
 
 static void check_alias(lua_State *L) {
-    am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
-    if (node->specialized_index(L)) goto error;
     am_default_index_func(L);
     if (!lua_isnil(L, -1)) goto error;
     lua_pop(L, 1);
@@ -325,6 +313,8 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, remove_all_children, 0);
     lua_setfield(L, -2, "remove_all");
     
+    lua_pushcclosure(L, am_create_bind_node, 0);
+    lua_setfield(L, -2, "bind");
     lua_pushcclosure(L, am_create_bind_float_node, 0);
     lua_setfield(L, -2, "bind_float");
     lua_pushcclosure(L, am_create_bind_mat2_node, 0);

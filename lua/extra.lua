@@ -159,6 +159,7 @@ rawset(_G, "vec4", math.vec4)
 rawset(_G, "mat2", math.mat2)
 rawset(_G, "mat3", math.mat3)
 rawset(_G, "mat4", math.mat4)
+rawset(_G, "quat", math.quat)
 
 local
 function format_vec(v)
@@ -212,6 +213,13 @@ end
 _metatable_registry.mat2.__tostring = format_mat
 _metatable_registry.mat3.__tostring = format_mat
 _metatable_registry.mat4.__tostring = format_mat
+
+local
+function format_quat(q)
+    return "quat("..q.angle..", "..tostring(q.axis)..")";
+end
+
+_metatable_registry.quat.__tostring = format_quat
 
 -- extra builtins
 

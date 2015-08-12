@@ -209,23 +209,30 @@ void am_init_traceback_func(lua_State *L) {
 #define TMP_BUF_SZ 512
 
 int am_load_module(lua_State *L) {
-    char tmpbuf[TMP_BUF_SZ];
+    char tmpbuf1[TMP_BUF_SZ];
+    char tmpbuf2[TMP_BUF_SZ];
     am_check_nargs(L, 1);
-    const char *modname = lua_tostring(L, 1);
+    size_t len;
+    const char *modname = lua_tolstring(L, 1, &len);
     if (modname == NULL) {
         return luaL_error(L, "require expects a string as its single argument");
     }
+    if (len > TMP_BUF_SZ - 10) {
+        return luaL_error(L, "module name '%s' too long", modname);
+    }
     int sz;
-    snprintf(tmpbuf, TMP_BUF_SZ, "%s.lua", modname);
+    strncpy(tmpbuf1, modname, TMP_BUF_SZ);
+    am_replchr(tmpbuf1, '.', AM_PATH_SEP);
+    snprintf(tmpbuf2, TMP_BUF_SZ, "%s.lua", tmpbuf1);
     char *errmsg;
-    void *buf = am_read_resource(tmpbuf, &sz, &errmsg);
+    void *buf = am_read_resource(tmpbuf2, &sz, &errmsg);
     if (buf == NULL) {
         lua_pushfstring(L, "unable to load module '%s': %s", modname, errmsg);
         free(errmsg);
         return lua_error(L);
     }
-    snprintf(tmpbuf, TMP_BUF_SZ, "@%s.lua", modname);
-    int res = luaL_loadbuffer(L, (const char*)buf, sz, tmpbuf);
+    snprintf(tmpbuf2, TMP_BUF_SZ, "@%s.lua", tmpbuf1);
+    int res = luaL_loadbuffer(L, (const char*)buf, sz, tmpbuf2);
     free(buf);
     if (res != 0) return lua_error(L);
     lua_call(L, 0, 1);

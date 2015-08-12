@@ -1,3 +1,5 @@
+local mix = math.mix
+
 function amulet.tween(tween_info)
     local time = 0
     local ease = amulet.ease.linear
@@ -39,7 +41,7 @@ function amulet.tween(tween_info)
         local t = elapsed / time
         for field, val0 in pairs(init_values) do
             local val = final_values[field]
-            target[field] = val0 + ease(t) * (val - val0)
+            target[field] = mix(val0, val, ease(t))
         end
     end
 end

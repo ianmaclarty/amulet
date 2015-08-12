@@ -1,6 +1,8 @@
+local am = amulet
+
 local seq = 1
 
-function amulet._update_action_seq()
+function am._update_action_seq()
     seq = seq + 1
 end
 
@@ -14,7 +16,7 @@ function do_action(f, node)
             if ok then
                 return
             else
-                res = amulet._traceback(res, f)
+                res = am._traceback(res, f)
                 error("__coroutine__"..res)
             end
         end
@@ -23,8 +25,8 @@ function do_action(f, node)
     end
 end
 
-function amulet._execute_actions(actions, from, to)
-    local t = amulet.frame_time
+function am._execute_actions(actions, from, to)
+    local t = am.frame_time
     for i = from, to do
         local action = actions[i]
         actions[i] = false
@@ -90,22 +92,28 @@ function cancel_action(node, id)
     end
 end
 
+local
+function update(node)
+    am._execute_actions(am._node_add_actions(node))
+end
+
 _metatable_registry.scene_node.action = add_action
 _metatable_registry.scene_node.cancel = cancel_action
+_metatable_registry.scene_node.update = update
 
-amulet.actions = {}
+am.actions = {}
 
-function amulet.delay(time)
+function am.delay(time)
     local t = 0
     return function()
-        t = t + amulet.delta_time
+        t = t + am.delta_time
         if t >= time then
             return true
         end
     end
 end
 
-function amulet.series(funcs)
+function am.series(funcs)
     for i, val in ipairs(funcs) do
         if type(val) ~= "function" and type(val) ~= "thread" then
             error("expecting a function or coroutine at index "..i, 2)
@@ -128,7 +136,7 @@ function amulet.series(funcs)
     end
 end
 
-function amulet.parallel(funcs)
+function am.parallel(funcs)
     for i, val in ipairs(funcs) do
         if type(val) ~= "function" and type(val) ~= "thread" then
             error("expecting a function or coroutine at index "..i, 2)
@@ -147,10 +155,10 @@ function amulet.parallel(funcs)
     end
 end
 
-function amulet.wait(func, node)
+function am.wait(func, node)
     local _, main = coroutine.running()
     if main then
-        error("run may only be called from within a coroutine", 2)
+        error("wait may only be called from within a coroutine", 2)
     end
     repeat 
         coroutine.yield()

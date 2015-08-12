@@ -33,7 +33,7 @@ void main() {
 ]])
 
 win.root = am.draw_elements(am.ushort_elem_array{1, 2, 3, 3, 2, 4})
-    :bind_array("pos", am.vec2_array{-1, -1, 1, -1, -1, 1, 1, 1})
-    :bind_array("uv", am.vec2_array{0, 0, 1, 0, 0, 1, 1, 1})
-    :bind_sampler2d("tex", texture)
+    :bind("pos", am.vec2_array{-1, -1, 1, -1, -1, 1, 1, 1})
+    :bind("uv", am.vec2_array{0, 0, 1, 0, 0, 1, 1, 1})
+    :bind("tex", texture)
     :bind_program(shader)

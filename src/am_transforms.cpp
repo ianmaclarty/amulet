@@ -26,23 +26,27 @@ void am_translate_node::render(am_render_state *rstate) {
     }
 }
 
-int am_translate_node::specialized_index(lua_State *L) {
-    return am_vec3_index(L, &v);
-}
-
-int am_translate_node::specialized_newindex(lua_State *L) {
-    return am_vec3_newindex(L, &v);
-}
-
 int am_create_translate_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
+    am_check_nargs(L, 3);
     if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_translate_node *node = am_new_userdata(L, am_translate_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
-    am_read_vec3(L, &node->v, 3, nargs);
+    node->v = am_get_userdata(L, am_vec3, 3)->v;
     return 1;
 }
+
+static void get_translation(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    am_new_userdata(L, am_vec3)->v = node->v;
+}
+
+static void set_translation(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    node->v = am_get_userdata(L, am_vec3, 3)->v;
+}
+
+static am_property translation_property = {get_translation, set_translation};
 
 static void register_translate_node_mt(lua_State *L) {
     lua_newtable(L);
@@ -50,6 +54,8 @@ static void register_translate_node_mt(lua_State *L) {
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
+
+    am_register_property(L, "position", &translation_property);
 
     am_register_metatable(L, "translate", MT_am_translate_node, MT_am_scene_node);
 }
@@ -70,24 +76,27 @@ void am_scale_node::render(am_render_state *rstate) {
     }
 }
 
-int am_scale_node::specialized_index(lua_State *L) {
-    return am_vec3_index(L, &v);
-}
-
-int am_scale_node::specialized_newindex(lua_State *L) {
-    return am_vec3_newindex(L, &v);
-}
-
 int am_create_scale_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
+    am_check_nargs(L, 3);
     if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_scale_node *node = am_new_userdata(L, am_scale_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
-    node->v = glm::vec3(1.0f);
-    am_read_vec3(L, &node->v, 3, nargs);
+    node->v = am_get_userdata(L, am_vec3, 3)->v;
     return 1;
 }
+
+static void get_scaling(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    am_new_userdata(L, am_vec3)->v = node->v;
+}
+
+static void set_scaling(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    node->v = am_get_userdata(L, am_vec3, 3)->v;
+}
+
+static am_property scaling_property = {get_scaling, set_scaling};
 
 static void register_scale_node_mt(lua_State *L) {
     lua_newtable(L);
@@ -95,6 +104,8 @@ static void register_scale_node_mt(lua_State *L) {
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
+
+    am_register_property(L, "scaling", &scaling_property);
 
     am_register_metatable(L, "scale", MT_am_scale_node, MT_am_scene_node);
 }
@@ -106,7 +117,7 @@ void am_rotate_node::render(am_render_state *rstate) {
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
         glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
         glm::mat4 old = *m;
-        *m = glm::rotate(*m, angle, about);
+        *m *= glm::mat4_cast(rotation);
         render_children(rstate);
         *m = old;
     } else {
@@ -115,40 +126,27 @@ void am_rotate_node::render(am_render_state *rstate) {
     }
 }
 
-int am_rotate_node::specialized_index(lua_State *L) {
-    return am_vec3_index(L, &about);
-}
-
-int am_rotate_node::specialized_newindex(lua_State *L) {
-    return am_vec3_newindex(L, &about);
-}
-
 int am_create_rotate_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
+    am_check_nargs(L, 3);
     if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
     am_rotate_node *node = am_new_userdata(L, am_rotate_node);
     am_set_scene_node_child(L, node);
     node->name = am_lookup_param_name(L, 2);
-    node->angle = 0.0;
-    node->about = glm::vec3(0.0f, 0.0f, 1.0f);
-    if (nargs > 2) {
-        node->angle = luaL_checknumber(L, 3);
-        am_read_vec3(L, &node->about, 4, nargs);
-    }
+    node->rotation = am_get_userdata(L, am_quat, 3)->q;
     return 1;
 }
 
-static void get_rotate_angle(lua_State *L, void *obj) {
+static void get_rotation(lua_State *L, void *obj) {
     am_rotate_node *node = (am_rotate_node*)obj;
-    lua_pushnumber(L, node->angle);
+    am_new_userdata(L, am_quat)->q = node->rotation;
 }
 
-static void set_rotate_angle(lua_State *L, void *obj) {
+static void set_rotation(lua_State *L, void *obj) {
     am_rotate_node *node = (am_rotate_node*)obj;
-    node->angle = luaL_checknumber(L, 3);
+    node->rotation = am_get_userdata(L, am_quat, 3)->q;
 }
 
-static am_property rotate_angle_property = {get_rotate_angle, set_rotate_angle};
+static am_property rotation_property = {get_rotation, set_rotation};
 
 static void register_rotate_node_mt(lua_State *L) {
     lua_newtable(L);
@@ -157,7 +155,7 @@ static void register_rotate_node_mt(lua_State *L) {
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
 
-    am_register_property(L, "angle", &rotate_angle_property);
+    am_register_property(L, "rotation", &rotation_property);
 
     am_register_metatable(L, "rotate", MT_am_rotate_node, MT_am_scene_node);
 }

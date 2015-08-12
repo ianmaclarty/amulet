@@ -45,3 +45,5 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 char *am_format(const char *fmt, ...);
 
 bool am_file_exists(const char *filename);
+
+void am_replchr(char *str, char c0, char c);
