@@ -434,12 +434,14 @@ static int *read_ranges(char *str) {
     int from, to;
     int count = 0;
     int i, j;
+    int has_space = 0;
     while (1) {
         ptr = read_range_spec(ptr, &from, &to);
         if (to < from) {
             fprintf(stderr, "invalid range spec: %x-%x\n", from, to);
             exit(EXIT_FAILURE);
         }
+        has_space = has_space || (from <= ' ' && ' ' <= to);
         count += to - from + 1;
         if (*ptr == '\0') {
             break;
@@ -451,7 +453,13 @@ static int *read_ranges(char *str) {
             exit(EXIT_FAILURE);
         }
     }
-    int *ranges = (int*)malloc(count * sizeof(int));
+    int *ranges = (int*)malloc((count + 1 + (has_space ? 0 : 1)) * sizeof(int));
+    if (has_space) {
+        ranges[count] = -1;
+    } else {
+        ranges[count] = ' ';
+        ranges[count + 1] = -1;
+    }
     ptr = str;
     i = 0;
     while (1) {
@@ -527,8 +535,8 @@ check_size:
         fprintf(stderr, "unexpected character: '%c' (expecting ':')\n", *arg);
         exit(EXIT_FAILURE);
     }
-    //arg++;
-    //items[s].codepoints = read_ranges(arg);
+    arg++;
+    items[s].codepoints = read_ranges(arg);
 }
 
 static void process_args(int argc, char *argv[]) {
