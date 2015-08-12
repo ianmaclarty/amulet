@@ -305,8 +305,9 @@ static void load_font(int s) {
     if (font_loaded) {
         FT_Done_Face(ft_face);
     }
-    if (FT_New_Face(ft_library, items[s].filename, items[s].face, &ft_face)) {
-        fprintf(stderr, "error loading font '%s'\n", items[s].filename);
+    FT_Error err = FT_New_Face(ft_library, items[s].filename, items[s].face, &ft_face);
+    if (err) {
+        fprintf(stderr, "error loading font '%s': %d\n", items[s].filename, err);
         exit(EXIT_FAILURE);
     }
     if (FT_Set_Pixel_Sizes(ft_face, items[s].size, 0)) {
@@ -395,6 +396,74 @@ static void compute_bbox() {
 #define DEFAULT_START 0x20
 #define DEFAULT_END 0x7E
 
+static int read_char_spec(char **ptr) {
+    int c;
+    char *str = *ptr;
+    int len = strlen(str);
+    if (len > 2 && str[0] == '0' && str[1] == 'x') {
+        c = strtol(str + 2, &str, 16);
+    } else {
+        c = str[0];
+        str++;
+    }
+    *ptr = str;
+    return c;
+}
+
+static char *read_range_spec(char *str, int *range_from, int *range_to) {
+    int from, to;
+    from = read_char_spec(&str);
+    if (*str != '-') {
+        fprintf(stderr, "invalid char range spec\n");
+        exit(EXIT_FAILURE);
+    }
+    str++;
+    if (*str == '\0') {
+        fprintf(stderr, "invalid char range spec\n");
+        exit(EXIT_FAILURE);
+    }
+    to = read_char_spec(&str);
+    *range_from = from;
+    *range_to = to;
+    return str;
+}
+
+static int *read_ranges(char *str) {
+    char *ptr = str;
+    int from, to;
+    int count = 0;
+    int i, j;
+    while (1) {
+        ptr = read_range_spec(ptr, &from, &to);
+        if (to < from) {
+            fprintf(stderr, "invalid range spec: %x-%x\n", from, to);
+            exit(EXIT_FAILURE);
+        }
+        count += to - from + 1;
+        if (*ptr == '\0') {
+            break;
+        }
+        if (*ptr == ',') {
+            ptr++;
+        } else {
+            fprintf(stderr, "unexpected range separator: %c\n", *ptr);
+            exit(EXIT_FAILURE);
+        }
+    }
+    int *ranges = (int*)malloc(count * sizeof(int));
+    ptr = str;
+    i = 0;
+    while (1) {
+        ptr = read_range_spec(ptr, &from, &to);
+        for (j = from; j <= to; j++) {
+            ranges[i++] = j;
+        }
+        if (*ptr == '\0') break;
+        ptr++;
+    }
+    return ranges;
+}
+
 static void parse_spec(char *arg, int s) {
     // font.ttf#1@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E
     // or
@@ -446,18 +515,19 @@ check_size:
             return;
     }
     if (*arg == '\0') {
-        items[s].codepoints = malloc(sizeof(int) * (DEFAULT_END - DEFAULT_START + 3));
+        items[s].codepoints = malloc(sizeof(int) * (DEFAULT_END - DEFAULT_START + 2));
         for (i = 0; i <= (DEFAULT_END - DEFAULT_START); i++) {
             items[s].codepoints[i] = i + DEFAULT_START;
         }
-        items[s].codepoints[DEFAULT_END - DEFAULT_START + 1] = 0;
-        items[s].codepoints[DEFAULT_END - DEFAULT_START + 2] = -1;
+        items[s].codepoints[DEFAULT_END - DEFAULT_START + 1] = -1;
         return;
     }
     if (*arg != ':') {
         fprintf(stderr, "unexpected character: '%c' (expecting ':')\n", *arg);
         exit(EXIT_FAILURE);
     }
+    //arg++;
+    //items[s].codepoints = read_ranges(arg);
 }
 
 static void process_args(int argc, char *argv[]) {

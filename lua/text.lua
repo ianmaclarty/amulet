@@ -42,6 +42,9 @@ end
 
 local newline = string.byte("\n")
 local space = string.byte(" ")
+local asterix = string.byte("*")
+local dash = string.byte("-")
+local underscore = string.byte("_")
 
 local
 function set_text_verts(font, str, verts_view, uvs_view)
@@ -61,7 +64,7 @@ function set_text_verts(font, str, verts_view, uvs_view)
             char_data = chars[space]
             advance = 0
         else
-            char_data = chars[c] or chars[0]
+            char_data = chars[c] or chars[0] or chars[space]
             x1, y1, x2, y2 = char_data.x1, char_data.y1, char_data.x2, char_data.y2
             advance = char_data.advance
         end
