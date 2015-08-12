@@ -95,7 +95,7 @@ function init_canvas() {
         alert('WebGL context lost. You will need to reload the page or, failing that, restart your browser).');
         e.preventDefault();
     }, false);
-    if (false && havePointerLock) {
+    if (havePointerLock) {
         $(canvas).click(function() {
             canvas.requestPointerLock =
                 canvas.requestPointerLock ||

@@ -388,6 +388,9 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
 }
 
 static void on_load_package_complete(unsigned int x, void *arg, const char *filename) {
+    EM_ASM(
+        window.amulet.load_progress = 100;
+    );
     open_package();
     EM_ASM(
         window.amulet.start();
