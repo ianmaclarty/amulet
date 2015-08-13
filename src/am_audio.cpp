@@ -610,6 +610,107 @@ void am_oscillator_node::render_audio(am_audio_context *context, am_audio_bus *b
     }
 }
 
+// Spectrum node
+
+am_spectrum_node::am_spectrum_node() : smoothing(0.9f) {
+    for (int i = 0; i < AM_MAX_FFT_BINS; i++) {
+        bin_data[i] = 0.0f;
+    }
+    fftsize = 1024;
+    num_bins = fftsize / 2 + 1;
+    cfg = NULL;
+    arr = NULL;
+    arr_ref = LUA_NOREF;
+}
+
+void am_spectrum_node::sync_params() {
+    if (arr->size < num_bins - 1) return;
+    if (arr->type != AM_VIEW_TYPE_FLOAT) return;
+    for (int i = 1; i < num_bins; i++) {
+        float data = bin_data[i];
+        float decibels = data == 0.0f ? -1000.0f : 20.0f * log10f(data);
+        arr->set_float(i-1, decibels);
+    }
+    smoothing.update_target();
+    smoothing.update_current();
+    done = false;
+}
+
+void am_spectrum_node::post_render(am_audio_context *context, int num_samples) {
+}
+
+static void apply_fft_window(float *p, size_t n) {
+    // Blackman window, copied from http://www.chromium.org/blink
+    double alpha = 0.16;
+    double a0 = 0.5 * (1 - alpha);
+    double a1 = 0.5;
+    double a2 = 0.5 * alpha;
+
+    for (unsigned i = 0; i < n; ++i) {
+        double x = static_cast<double>(i) / static_cast<double>(n);
+        double window = a0 - a1 * cos(AM_2PI * x) + a2 * cos(AM_2PI * 2.0 * x);
+        p[i] *= float(window);
+    }
+}
+
+void am_spectrum_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
+    am_audio_bus tmp(bus);
+    render_children(context, &tmp);
+    mix_bus(bus, &tmp);
+    if (done) return;
+
+    int num_channels = tmp.num_channels;
+    int num_samples = tmp.num_samples;
+
+    if (fftsize > num_samples) {
+        am_log1("%s", "WARNING: fft size > audio buffer size, ignoring");
+        return;
+    }
+    if (num_samples % fftsize != 0) {
+        am_log1("%s", "WARNING: audio buffer size not divisible by fft size, ignoring");
+        return;
+    }
+    if (!am_is_power_of_two(fftsize)) {
+        am_log1("%s", "WARNING: fft size is not a power of 2, ignoring");
+        return;
+    }
+
+    float *input = tmp.channel_data[0];
+
+    // combine channels
+    for (int c = 1; c < num_channels; c++) {
+        float *channeln = tmp.channel_data[c];
+        for (int s = 0; s < num_samples; s++) {
+            input[s] += channeln[s];
+        }
+    }
+    
+    for (int i = 0; i < num_samples / fftsize; i++) {
+        apply_fft_window(input, fftsize);
+        kiss_fft_cpx output[AM_MAX_FFT_BINS];
+        kiss_fftr(cfg, input, output);
+
+        // Adapted from http://www.chromium.org/blink (I don't understand this)
+        // Normalize so that an input sine wave at 0dBfs registers as 0dBfs (undo FFT scaling factor).
+        const float magnitudeScale = 1.0f / (float)fftsize;
+
+        // A value of 0 does no averaging with the previous result.  Larger values produce slower, but smoother changes.
+        float k = smoothing.current_value;
+
+        // Convert the analysis data from complex to magnitude and average with the previous result.
+        for (int j = 0; j < num_bins; j++) {
+            float im = output[j].i;
+            float re = output[j].r;
+            double scalarMagnitude = sqrtf(re * re + im * im) * magnitudeScale;
+            bin_data[j] = k * bin_data[j] + (1.0f - k) * scalarMagnitude;
+        }
+
+        input += fftsize;
+    }
+
+    done = true;
+}
+
 //-------------------------------------------------------------------------
 // Lua bindings.
 
@@ -1096,6 +1197,74 @@ static void register_oscillator_node_mt(lua_State *L) {
     am_register_metatable(L, "oscillator", MT_am_oscillator_node, MT_am_audio_node);
 }
 
+// Spectrum node lua bindings
+
+static am_spectrum_node *new_spectrum_node(lua_State *L, int fftsize) {
+    size_t cfg_sz = 0;
+    kiss_fftr_alloc(fftsize, 0, NULL, &cfg_sz);
+    am_spectrum_node *node = (am_spectrum_node*)am_init_userdata(L,
+        new (lua_newuserdata(L, 
+            sizeof(am_spectrum_node) + cfg_sz))
+        am_spectrum_node(), MT_am_spectrum_node);
+    node->cfg = kiss_fftr_alloc(fftsize, 0, (void*)(node + 1), &cfg_sz);
+    assert(node->cfg);
+    node->fftsize = fftsize;
+    node->num_bins = fftsize / 2 + 1;
+    return node;
+}
+
+static int create_spectrum_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 3);
+    int freq_bins = luaL_checkinteger(L, 2);
+    int fftsize = freq_bins * 2;
+    if (fftsize < AM_MIN_FFT_SIZE) {
+        return luaL_error(L, "number of frequency bins must be at least %d", AM_MIN_FFT_SIZE / 2);
+    }
+    if (fftsize > am_min(am_conf_audio_buffer_size, AM_MAX_FFT_SIZE)) {
+        return luaL_error(L, "too many frequency bins (max %d)", am_min(am_conf_audio_buffer_size, AM_MAX_FFT_SIZE) / 2);
+    }
+    if (!am_is_power_of_two(fftsize)) {
+        return luaL_error(L, "frequency bins must be a power of 2", freq_bins);
+    }
+    am_spectrum_node *node = new_spectrum_node(L, fftsize);
+    am_set_audio_node_child(L, node);
+    node->arr = am_get_userdata(L, am_buffer_view, 3);
+    node->arr_ref = node->ref(L, 3);
+    if (node->arr->size < freq_bins) {
+        return luaL_error(L, "array must have at least %d elements", freq_bins);
+    }
+    if (node->arr->type != AM_VIEW_TYPE_FLOAT) {
+        return luaL_error(L, "array must have of type float");
+    }
+    if (nargs > 3) {
+        node->smoothing.set_immediate(luaL_checknumber(L, 4));
+    }
+    return 1;
+}
+
+static void get_smoothing(lua_State *L, void *obj) {
+    am_spectrum_node *node = (am_spectrum_node*)obj;
+    lua_pushnumber(L, node->smoothing.pending_value);
+}
+
+static void set_smoothing(lua_State *L, void *obj) {
+    am_spectrum_node *node = (am_spectrum_node*)obj;
+    node->smoothing.pending_value = am_clamp(luaL_checknumber(L, 3), 0.0, 1.0);
+}
+
+static am_property smoothing_property = {get_smoothing, set_smoothing};
+
+static void register_spectrum_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
+
+    am_register_property(L, "smoothing", &smoothing_property);
+
+    am_register_metatable(L, "spectrum", MT_am_spectrum_node, MT_am_audio_node);
+}
+
 // Audio node lua bindings
 
 static int create_audio_node(lua_State *L) {
@@ -1136,6 +1305,9 @@ static void register_audio_node_mt(lua_State *L) {
     lua_setfield(L, -2, "lowpass_filter");
     lua_pushcclosure(L, create_highpass_filter_node, 0);
     lua_setfield(L, -2, "highpass_filter");
+
+    lua_pushcclosure(L, create_spectrum_node, 0);
+    lua_setfield(L, -2, "spectrum");
 
     am_register_metatable(L, "audio_node", MT_am_audio_node, 0);
 }
@@ -1351,6 +1523,7 @@ void am_open_audio_module(lua_State *L) {
     register_audio_track_node_mt(L);
     register_audio_stream_node_mt(L);
     register_oscillator_node_mt(L);
+    register_spectrum_node_mt(L);
 
     audio_context.sample_rate = am_conf_audio_sample_rate;
     audio_context.sync_id = 0;

@@ -18,15 +18,15 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 EXTRA_PREREQS = 
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = lua ft2 stb
+  AM_DEPS = lua ft2 stb kissfft
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifeq ($(TARGET_PLATFORM),ios)
-  AM_DEPS = lua ft2 stb
+  AM_DEPS = $(LUAVM) ft2 stb kissfft
 else ifeq ($(TARGET_PLATFORM),win32)
-  AM_DEPS = $(LUAVM) ft2 stb
+  AM_DEPS = $(LUAVM) ft2 stb kissfft
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(LIBTURBOJPEG_WIN_PREBUILT)
 else
-  AM_DEPS = $(LUAVM) sdl angle ft2 stb
+  AM_DEPS = $(LUAVM) sdl angle ft2 stb kissfft
   AM_DEFS += AM_USE_ANGLE
 endif
 
@@ -129,6 +129,12 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
 	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
+
+$(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom clean all
+	cp $(KISSFFT_DIR)/libkissfft$(ALIB_EXT) $@
+	cp $(KISSFFT_DIR)/kiss_fft.h $(BUILD_INC_DIR)/
+	cp $(KISSFFT_DIR)/kiss_fftr.h $(BUILD_INC_DIR)/
 
 $(BUILD_DIRS): %:
 	mkdir -p $@

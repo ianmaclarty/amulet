@@ -1,4 +1,7 @@
 #define AM_MAX_CHANNELS 2
+#define AM_MIN_FFT_SIZE 64
+#define AM_MAX_FFT_SIZE 2048
+#define AM_MAX_FFT_BINS (AM_MAX_FFT_SIZE / 2 + 1)
 
 struct am_audio_node;
 
@@ -217,6 +220,22 @@ struct am_oscillator_node : am_audio_node {
     int offset;
 
     am_oscillator_node();
+    virtual void sync_params();
+    virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
+    virtual void post_render(am_audio_context *context, int num_samples);
+};
+
+struct am_spectrum_node : am_audio_node {
+    int fftsize;
+    int num_bins;
+    float bin_data[AM_MAX_FFT_BINS];
+    kiss_fftr_cfg cfg;
+    am_audio_param<float> smoothing;
+    am_buffer_view *arr;
+    int arr_ref;
+    bool done;
+    
+    am_spectrum_node();
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);

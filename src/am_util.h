@@ -19,6 +19,7 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #define am_clamp(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
 
 #define AM_PI 3.14159265358979323846
+#define AM_2PI (2.0 * 3.14159265358979323846)
 
 #define AM_CONCAT_(a, b) a##b
 #define AM_CONCAT(a, b) AM_CONCAT_(a, b)

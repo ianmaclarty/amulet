@@ -61,6 +61,8 @@ extern "C" {
 #include "miniz.h"
 }
 
+#include "kiss_fftr.h"
+
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"

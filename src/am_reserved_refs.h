@@ -51,6 +51,7 @@ typedef enum {
     MT_am_audio_track_node,
     MT_am_audio_stream_node,
     MT_am_oscillator_node,
+    MT_am_spectrum_node,
 
     MT_am_buffer,
 
