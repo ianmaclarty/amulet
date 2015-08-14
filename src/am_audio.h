@@ -241,6 +241,13 @@ struct am_spectrum_node : am_audio_node {
     virtual void post_render(am_audio_context *context, int num_samples);
 };
 
+struct am_capture_node : am_audio_node {
+    am_capture_node();
+    virtual void sync_params();
+    virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
+    virtual void post_render(am_audio_context *context, int num_samples);
+};
+
 void am_open_audio_module(lua_State *L);
 
 void am_destroy_audio();
@@ -249,3 +256,5 @@ void am_sync_audio_graph(lua_State *L);
 
 void am_interleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
     int num_channels, int num_samples, int sample_offset, int count);
+void am_uninterleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
+    int num_channels, int num_samples);

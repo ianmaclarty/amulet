@@ -39,6 +39,14 @@ struct win_info {
 
 static bool have_focus = true;
 static SDL_AudioDeviceID audio_device = 0;
+static SDL_AudioDeviceID capture_device = 0;
+static float *audio_buffer = NULL;
+static float *capture_buffer = NULL;
+static int capture_write_offset = 0;
+static int capture_read_offset = 0;
+static int capture_ring_size;
+static bool capture_initialized = false;
+static bool should_init_capture = false;
 static std::vector<win_info> windows;
 SDL_Window *main_window = NULL;
 static SDL_GLContext gl_context;
@@ -56,6 +64,7 @@ static void init_gamepad();
 
 static void init_sdl();
 static void init_audio();
+static void init_audio_capture();
 static bool handle_events(lua_State *L);
 //static void key_handler(SDL_Window *win, int key, int scancode, int state, int mods);
 //static void gen_controller_key_events();
@@ -368,9 +377,14 @@ int main( int argc, char *argv[] )
             goto quit;
         }
 
-        SDL_LockAudio();
+        SDL_LockAudioDevice(audio_device);
         am_sync_audio_graph(L);
-        SDL_UnlockAudio();
+        if (should_init_capture) {
+            init_audio_capture();
+            should_init_capture = false;
+            capture_initialized = true;
+        }
+        SDL_UnlockAudioDevice(audio_device);
 
         if (!handle_events(L)) goto quit;
 
@@ -413,12 +427,13 @@ int main( int argc, char *argv[] )
 
 
 quit:
-    if (audio_device != 0) {
-        SDL_PauseAudioDevice(audio_device, 1);
-        // Make sure last audio callback completes
-        // (not sure this is necessary, but it doesn't hurt)
-        SDL_LockAudio();
-        SDL_UnlockAudio();
+    if (audio_device != 0 || capture_device != 0) {
+        if (audio_device != 0) {
+            SDL_CloseAudioDevice(audio_device);
+        }
+        if (capture_device != 0) {
+            SDL_CloseAudioDevice(capture_device);
+        }
     }
     if (L != NULL) am_destroy_engine(L);
     for (unsigned int i = 0; i < windows.size(); i++) {
@@ -441,6 +456,14 @@ quit:
     }
     if (package != NULL) {
         am_close_package(package);
+    }
+    if (audio_buffer != NULL) {
+        free(audio_buffer);
+        audio_buffer = NULL;
+    }
+    if (capture_buffer != NULL) {
+        free(capture_buffer);
+        capture_buffer = NULL;
     }
 #ifdef AM_OSX
     [pool release];
@@ -474,9 +497,8 @@ static void init_gles2_func_ptrs() {
 }
 #endif
 
-static float *audio_buffer = NULL;
-
 static void audio_callback(void *ud, Uint8 *stream, int len) {
+    //if (capture_device != 0) SDL_LockAudioDevice(capture_device);
     assert(audio_buffer != NULL);
     assert(len == (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
     int num_channels = am_conf_audio_channels;
@@ -486,6 +508,51 @@ static void audio_callback(void *ud, Uint8 *stream, int len) {
     am_fill_audio_bus(&bus);
     // SDL expects channels to be interleaved
     am_interleave_audio((float*)stream, bus.buffer, num_channels, num_samples, 0, num_samples);
+
+    int new_offset = capture_read_offset + am_conf_audio_buffer_size * am_conf_audio_channels;
+    if (new_offset >= capture_ring_size * am_conf_audio_channels) {
+        capture_read_offset = 0;
+    } else {
+        capture_read_offset = new_offset;
+    }
+    //am_debug("read_offset = %d", capture_read_offset);
+    //if (capture_device != 0) SDL_UnlockAudioDevice(capture_device);
+}
+
+static void capture_callback(void *ud, Uint8 *stream, int len) {
+    SDL_LockAudioDevice(audio_device);
+
+    assert(capture_buffer != NULL);
+    assert(len == (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
+    assert(capture_ring_size * am_conf_audio_channels - capture_write_offset >= am_conf_audio_buffer_size * am_conf_audio_channels);
+    memcpy(capture_buffer + capture_write_offset, stream, len);
+    capture_write_offset += am_conf_audio_buffer_size * am_conf_audio_channels;
+    if (capture_write_offset >= capture_ring_size * am_conf_audio_channels) {
+        capture_write_offset = 0;
+    }
+    /*
+    float *data = (float*)stream;
+    float sum = 0.0f;
+    for (int i = 0; i < am_conf_audio_buffer_size * am_conf_audio_channels; i++) {
+        sum += fabsf(data[i]);
+    }
+    am_debug("sum = %f", sum);
+    am_debug("write_offset = %d", capture_write_offset);
+    */
+    SDL_UnlockAudioDevice(audio_device);
+}
+
+void am_capture_audio(am_audio_bus *bus) {
+    // this is called from the audio thread, so don't initialize the
+    // capture device here. Instead set a flag to initialize it in the main loop.
+    if (!capture_initialized && !should_init_capture) {
+        should_init_capture = true;
+    }
+    if (capture_initialized) {
+        int samples = am_min(bus->num_samples, am_conf_audio_buffer_size);
+        int channels = am_min(bus->num_channels, am_conf_audio_channels);
+        am_uninterleave_audio(bus->buffer, capture_buffer + capture_read_offset, channels, samples);
+    }
 }
 
 static void init_audio() {
@@ -508,10 +575,42 @@ static void init_audio() {
     //am_debug("obtained: freq = %d, channels = %d, samples = %d, format = %d",
     //    obtained.freq, obtained.channels, obtained.samples, obtained.format);
     if (audio_device == 0) {
-        am_log0("Failed to open audio: %s", SDL_GetError());
+        am_log0("Failed to open audio device: %s", SDL_GetError());
         return;
     }
     SDL_PauseAudioDevice(audio_device, 0);
+}
+
+static void init_audio_capture() {
+    capture_ring_size = am_conf_audio_buffer_size;
+    capture_write_offset = 0;
+    capture_read_offset = 0;
+    int sz = sizeof(float) * am_conf_audio_channels * capture_ring_size;
+    assert(capture_buffer == NULL);
+    capture_buffer = (float*)malloc(sz);
+    memset(capture_buffer, 0, sz);
+    SDL_AudioSpec desired;
+    desired.freq = am_conf_audio_sample_rate;
+    desired.format = AUDIO_F32SYS;
+    desired.channels = am_conf_audio_channels;
+#ifdef AM_LINUX // SDL2 bug?
+    desired.samples = am_conf_audio_channels * am_conf_audio_buffer_size;
+#else
+    desired.samples = am_conf_audio_buffer_size;
+#endif
+    desired.callback = capture_callback;
+    desired.userdata = NULL;
+    SDL_AudioSpec obtained;
+    //am_debug("desired: freq = %d, channels = %d, samples = %d, format = %d",
+    //    desired.freq, desired.channels, desired.samples, desired.format);
+    capture_device = SDL_OpenAudioDevice(NULL, 1, &desired, &obtained, 0);
+    //am_debug("obtained: freq = %d, channels = %d, samples = %d, format = %d",
+    //    obtained.freq, obtained.channels, obtained.samples, obtained.format);
+    if (capture_device == 0) {
+        am_log0("Failed to open audio capture device: %s", SDL_GetError());
+        return;
+    }
+    SDL_PauseAudioDevice(capture_device, 0);
 }
 
 static void update_mouse_state(lua_State *L, win_info *info) {

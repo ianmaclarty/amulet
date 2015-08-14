@@ -711,6 +711,23 @@ void am_spectrum_node::render_audio(am_audio_context *context, am_audio_bus *bus
     done = true;
 }
 
+// Capture Node
+
+am_capture_node::am_capture_node() {
+}
+
+void am_capture_node::sync_params() {
+}
+
+void am_capture_node::post_render(am_audio_context *context, int num_samples) {
+}
+
+void am_capture_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
+    am_audio_bus tmp(bus);
+    am_capture_audio(&tmp);
+    mix_bus(bus, &tmp);
+}
+
 //-------------------------------------------------------------------------
 // Lua bindings.
 
@@ -1265,6 +1282,22 @@ static void register_spectrum_node_mt(lua_State *L) {
     am_register_metatable(L, "spectrum", MT_am_spectrum_node, MT_am_audio_node);
 }
 
+// Capture node lua bindings
+
+static int create_capture_node(lua_State *L) {
+    am_new_userdata(L, am_capture_node);
+    return 1;
+}
+
+static void register_capture_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
+
+    am_register_metatable(L, "capture", MT_am_capture_node, MT_am_audio_node);
+}
+
 // Audio node lua bindings
 
 static int create_audio_node(lua_State *L) {
@@ -1502,6 +1535,21 @@ void am_interleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
     }
 }
 
+void am_uninterleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
+    int num_channels, int num_samples)
+{
+    int i = 0;
+    int j;
+    for (int c = 0; c < num_channels; c++) {
+        j = c;
+        for (int k = 0; k < num_samples; k++) {
+            dest[i] = src[j];
+            i++;
+            j += num_channels;
+        }
+    }
+}
+
 //-------------------------------------------------------------------------
 // Module registration
 
@@ -1509,6 +1557,7 @@ void am_open_audio_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"audio_node", create_audio_node},
         {"oscillator", create_oscillator_node},
+        {"capture_audio", create_capture_node},
         {"track", create_audio_track_node},
         {"stream", create_audio_stream_node},
         {"decode_ogg", decode_ogg},
@@ -1523,6 +1572,7 @@ void am_open_audio_module(lua_State *L) {
     register_audio_track_node_mt(L);
     register_audio_stream_node_mt(L);
     register_oscillator_node_mt(L);
+    register_capture_node_mt(L);
     register_spectrum_node_mt(L);
 
     audio_context.sample_rate = am_conf_audio_sample_rate;

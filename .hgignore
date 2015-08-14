@@ -52,6 +52,11 @@ deps/stb/*.a
 deps/stb/*.obj
 deps/stb/*.o-*
 
+deps/kiss_fft*/*.lib
+deps/kiss_fft*/*.a
+deps/kiss_fft*/*.obj
+deps/kiss_fft*/*.o-*
+
 deps/LuaJIT-*/src/host/buildvm
 deps/LuaJIT-*/src/host/buildvm_arch.h
 deps/LuaJIT-*/src/host/minilua
