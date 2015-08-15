@@ -131,6 +131,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   XLDFLAGS = -lm -liconv -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
+	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia \
 	     -pagezero_size 10000 -image_base 100000000
   LUA_CFLAGS += -DLUA_USE_POSIX
   MACOSX_DEPLOYMENT_TARGET=10.6

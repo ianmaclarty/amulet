@@ -2,15 +2,14 @@ local am = amulet
 
 local win = am.window{}
 
-local track = am.stream(am.read_buffer("track5.ogg"), true)
+local track = am.stream(am.read_buffer("handstand.ogg"), true)
 
-local n = 512
-local show = 100
+local n = 64
+local show = 64
 local spec_arr = am.buffer(n * 4):view("float", 0, 4)
 local spectrum = track:spectrum(n, spec_arr, 0.5)
 
 am.root_audio_node():add(spectrum)
-
 local scene = am.group()
 local rects = {}
 local x = -0.8

@@ -321,8 +321,10 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
     }
 }
 
+#if !defined (AM_OSX) // see am_videocapture_osx.cpp for OSX definition
 void am_copy_video_frame_to_texture() {
 }
+#endif
 
 int main( int argc, char *argv[] )
 {
