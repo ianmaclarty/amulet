@@ -87,7 +87,6 @@ extern "C" {
 #include "am_framebuffer.h"
 #include "am_audio.h"
 #include "am_backend.h"
-#include "am_trail.h"
 #include "am_action.h"
 #include "am_scene.h"
 #include "am_window.h"
