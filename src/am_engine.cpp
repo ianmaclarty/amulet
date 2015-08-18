@@ -7,8 +7,17 @@ static void init_package_searcher(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
 static void set_arg_global(lua_State *L, int argc, char** argv);
 
-lua_State *am_init_engine(bool worker, int argc, char** argv) {
-    lua_State *L = luaL_newstate();
+am_engine *am_init_engine(bool worker, int argc, char** argv) {
+    am_allocator *allocator = am_new_allocator();
+    lua_State *L = lua_newstate(&am_alloc, allocator);
+    if (L == NULL) {
+        am_destroy_allocator(allocator);
+        return NULL;
+    }
+    am_engine *eng = new am_engine();
+    eng->allocator = allocator;
+    eng->L = L;
+    eng->worker = worker;
     init_reserved_refs(L);
     init_metatable_registry(L);
     open_stdlualibs(L);
@@ -44,16 +53,20 @@ lua_State *am_init_engine(bool worker, int argc, char** argv) {
         lua_close(L);
         return NULL;
     }
-    return L;
+    return eng;
 }
 
-void am_destroy_engine(lua_State *L) {
-    // Audio must be destroyed before closing the lua state, because
-    // closing the lua state will destroy the root audio node.
-    am_destroy_audio();
-    am_destroy_windows(L);
-    lua_close(L);
-    am_reset_log_cache();
+void am_destroy_engine(am_engine *eng) {
+    if (!eng->worker) {
+        // Audio must be destroyed before closing the lua state, because
+        // closing the lua state will destroy the root audio node.
+        am_destroy_audio();
+        am_destroy_windows(eng->L);
+    }
+    lua_close(eng->L);
+    am_destroy_allocator(eng->allocator);
+    delete eng;
+    am_reset_log_cache(); // XXX what about other running engines?
 }
 
 static void init_reserved_refs(lua_State *L) {

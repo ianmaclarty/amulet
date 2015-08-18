@@ -68,6 +68,7 @@ extern "C" {
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
 
+#include "am_alloc.h"
 #include "am_util.h"
 #include "am_utf8.h"
 #include "am_package.h"

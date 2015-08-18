@@ -335,6 +335,7 @@ int main( int argc, char *argv[] )
     double delta_time;
     double real_delta_time;
 
+    am_engine *eng = NULL;
     lua_State *L = NULL;
 
     int exit_status = EXIT_SUCCESS;
@@ -351,11 +352,12 @@ int main( int argc, char *argv[] )
         am_opt_main_module = "main";
     }
 
-    L = am_init_engine(false, argc, argv);
-    if (L == NULL) {
+    eng = am_init_engine(false, argc, argv);
+    if (eng == NULL) {
         exit_status = EXIT_FAILURE;
         goto quit;
     }
+    L = eng->L;
 
     frame_time = am_get_current_time();
 
@@ -437,7 +439,7 @@ quit:
             SDL_CloseAudioDevice(capture_device);
         }
     }
-    if (L != NULL) am_destroy_engine(L);
+    if (eng != NULL) am_destroy_engine(eng);
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window != main_window) {
             SDL_DestroyWindow(windows[i].window);
