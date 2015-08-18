@@ -1,7 +1,7 @@
 #include "amulet.h"
 
-//#define AM_PRINT_ALLOC_INFO 1
-#define AM_MALLOC_ONLY 1
+//#define AM_PRINT_ALLOC_STATS 1
+//#define AM_MALLOC_ONLY 1
 
 #ifdef AM_LUAJIT
 
@@ -21,9 +21,11 @@
 
 #endif // AM_LUAJIT
 
+// XXX Tweak these for 32/64 bit + lua/luajit:
+
 #define TINY_CELL_SZ 32
-#define SMALL_CELL_SZ (UD_SZ + sizeof(am_vec4))
-#define MEDIUM_CELL_SZ (UD_SZ + 120)
+#define SMALL_CELL_SZ 80
+#define MEDIUM_CELL_SZ 160
 
 #define TINY_BLOCK_SZ (TINY_CELL_SZ * 1024)
 #define SMALL_BLOCK_SZ (SMALL_CELL_SZ * 1024)
@@ -35,29 +37,31 @@ struct am_pool {
     int num_blocks;
     size_t cellsize;
     size_t blocksize;
+#ifdef AM_PRINT_ALLOC_STATS
+    uint64_t nallocs;
+    uint64_t nfrees;
+    uint64_t hwm;
+#endif
 };
 
 struct am_allocator {
     am_pool tiny_pool;
     am_pool small_pool;
     am_pool medium_pool;
+#ifdef AM_PRINT_ALLOC_STATS
+    uint64_t nlarge_allocs;
+    uint64_t nlarge_frees;
+    uint64_t large_hwm;
+#endif
 };
 
 am_allocator *am_new_allocator() {
     am_allocator *allocator = new am_allocator();
-    allocator->tiny_pool.freelist = NULL;
-    allocator->tiny_pool.blocks = NULL;
-    allocator->tiny_pool.num_blocks = 0;
+    memset(allocator, 0, sizeof(am_allocator));
     allocator->tiny_pool.cellsize = TINY_CELL_SZ;
     allocator->tiny_pool.blocksize = TINY_BLOCK_SZ;
-    allocator->small_pool.freelist = NULL;
-    allocator->small_pool.blocks = NULL;
-    allocator->small_pool.num_blocks = 0;
     allocator->small_pool.cellsize = SMALL_CELL_SZ;
     allocator->small_pool.blocksize = SMALL_BLOCK_SZ;
-    allocator->medium_pool.freelist = NULL;
-    allocator->medium_pool.blocks = NULL;
-    allocator->medium_pool.num_blocks = 0;
     allocator->medium_pool.cellsize = MEDIUM_CELL_SZ;
     allocator->medium_pool.blocksize = MEDIUM_BLOCK_SZ;
     return allocator;
@@ -79,6 +83,9 @@ static void free_pool_cell(am_pool *pool, void *ptr) {
     void **cell = (void**)ptr;
     *cell = (void*)pool->freelist;
     pool->freelist = cell;
+#ifdef AM_PRINT_ALLOC_STATS
+    pool->nfrees++;
+#endif
 }
 
 static void do_free(am_allocator *allocator, void *ptr, size_t sz) {
@@ -95,11 +102,14 @@ static void do_free(am_allocator *allocator, void *ptr, size_t sz) {
         return;
     }
     free(ptr);
+#ifdef AM_PRINT_ALLOC_STATS
+    allocator->nlarge_frees++;
+#endif
 }
 
 static void init_block(void *block, size_t cellsize, size_t blocksize) {
     void **cell = (void**)block;
-    size_t num_cells = blocksize / cellsize;
+    int num_cells = blocksize / cellsize;
     for (int i = 0; i < num_cells - 1; i++) {
         void **next = (void**)(((char*)cell) + cellsize);
         *cell = (void*)next;
@@ -109,6 +119,13 @@ static void init_block(void *block, size_t cellsize, size_t blocksize) {
 }
 
 static void *alloc_pool_cell(am_pool *pool) {
+#ifdef AM_PRINT_ALLOC_STATS
+    pool->nallocs++;
+    uint64_t curr = pool->nallocs - pool->nfrees;
+    if (curr > pool->hwm) {
+        pool->hwm = curr;
+    }
+#endif
     if (pool->freelist != NULL) {
         void *ptr = (void*)pool->freelist;
         pool->freelist = (void**)(*(pool->freelist));
@@ -122,9 +139,20 @@ static void *alloc_pool_cell(am_pool *pool) {
         init_block(block, pool->cellsize, pool->blocksize);
         void **first = (void**)block;
         pool->freelist = (void**)(*first);
-        return first;
+        return (void*)first;
     }
 }
+
+/*
+static void *am_alloc_2(void *ud, void *ptr, size_t osize, size_t nsize);
+
+static void *dumb_realloc(am_allocator *allocator, void *ptr, size_t osize, size_t nsize) {
+    void *new_ptr = am_alloc_2(allocator, NULL, 0, nsize);
+    memcpy(new_ptr, ptr, am_min(osize, nsize));
+    do_free(allocator, ptr, osize);
+    return new_ptr;
+}
+*/
 
 void *am_alloc(void *ud, void *ptr, size_t osize, size_t nsize) {
     //am_debug("am_alloc(%p, %p, %d, %d)", ud, ptr, (int)osize, (int)nsize);
@@ -145,6 +173,13 @@ void *am_alloc(void *ud, void *ptr, size_t osize, size_t nsize) {
             if (nsize <= MEDIUM_CELL_SZ) {
                 return alloc_pool_cell(&allocator->medium_pool);
             }
+#ifdef AM_PRINT_ALLOC_STATS
+            allocator->nlarge_allocs++;
+            uint64_t curr = allocator->nlarge_allocs - allocator->nlarge_frees;
+            if (curr > allocator->large_hwm) {
+                allocator->large_hwm = curr;
+            }
+#endif
             return malloc(nsize);
         } else {
             // resize existing object
@@ -190,24 +225,51 @@ void *am_alloc(void *ud, void *ptr, size_t osize, size_t nsize) {
                     return ptr;
                 }
                 // move from heap to medium pool 
-                void *new_ptr = alloc_pool_cell(&allocator->small_pool);
+                void *new_ptr = alloc_pool_cell(&allocator->medium_pool);
                 memcpy(new_ptr, ptr, nsize);
                 free(ptr);
+#ifdef AM_PRINT_ALLOC_STATS
+                allocator->nlarge_frees++;
+#endif
                 return new_ptr;
             }
             // new object goes on heap
             if (osize <= MEDIUM_CELL_SZ) {
                 // move from pool to heap
                 void *new_ptr = malloc(nsize);
+#ifdef AM_PRINT_ALLOC_STATS
+                allocator->nlarge_allocs++;
+                uint64_t curr = allocator->nlarge_allocs - allocator->nlarge_frees;
+                if (curr > allocator->large_hwm) {
+                    allocator->large_hwm = curr;
+                }
+#endif
                 memcpy(new_ptr, ptr, osize);
                 do_free(allocator, ptr, osize);
                 return new_ptr;
             }
             // ptr was already on heap
+#ifdef AM_PRINT_ALLOC_STATS
+            allocator->nlarge_allocs++;
+            allocator->nlarge_frees++;
+#endif
             return realloc(ptr, nsize);
         }
     }
 }
+
+/*
+void *am_alloc(void *ud, void *ptr, size_t osize, size_t nsize) {
+    void *r = am_alloc_2(ud, ptr, osize, nsize);
+    if (nsize > 0) {
+        void *buf = malloc(nsize);
+        memcpy(buf, r, nsize);
+        memcpy(r, buf, nsize);
+        free(buf);
+    }
+    return r;
+}
+*/
 
 #endif
 
@@ -221,10 +283,34 @@ static void free_pool_blocks(am_pool *pool) {
 }
 
 void am_destroy_allocator(am_allocator *allocator) {
-#ifdef AM_PRINT_ALLOC_INFO
-    am_log0("tiny cell size:    %4d", (int)TINY_CELL_SZ);
-    am_log0("small cell size:   %4d", (int)SMALL_CELL_SZ);
-    am_log0("medium cell size:  %4d", (int)MEDIUM_CELL_SZ);
+#ifdef AM_PRINT_ALLOC_STATS
+    am_log0("%s", "Allocation stats:");
+    am_log0("%s", "            allocs      frees        hwm     blocks     cellsz    blocksz");
+    am_log0(      "tiny:   %10lu %10lu %10lu %10d %10lu %10lu",
+        allocator->tiny_pool.nallocs,
+        allocator->tiny_pool.nfrees,
+        allocator->tiny_pool.hwm,
+        allocator->tiny_pool.num_blocks,
+        allocator->tiny_pool.cellsize,
+        allocator->tiny_pool.blocksize);
+    am_log0(      "small:  %10lu %10lu %10lu %10d %10lu %10lu",
+        allocator->small_pool.nallocs,
+        allocator->small_pool.nfrees,
+        allocator->small_pool.hwm,
+        allocator->small_pool.num_blocks,
+        allocator->small_pool.cellsize,
+        allocator->small_pool.blocksize);
+    am_log0(      "medium: %10lu %10lu %10lu %10d %10lu %10lu",
+        allocator->medium_pool.nallocs,
+        allocator->medium_pool.nfrees,
+        allocator->medium_pool.hwm,
+        allocator->medium_pool.num_blocks,
+        allocator->medium_pool.cellsize,
+        allocator->medium_pool.blocksize);
+    am_log0(      "large:  %10lu %10lu %10lu",
+        allocator->nlarge_allocs,
+        allocator->nlarge_frees,
+        allocator->large_hwm);
 #endif 
     free_pool_blocks(&allocator->tiny_pool);
     free_pool_blocks(&allocator->small_pool);
