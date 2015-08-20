@@ -1,21 +1,23 @@
-amulet.delta_time = 0
-amulet.frame_time = 0
+local am = amulet
+
+am.delta_time = 0
+am.frame_time = 0
 
 local fps_window_size = 60
 local fps_window_pos = 1
 local fps_window = {}
 local fps_prev_time = 0
 
-function amulet._update_times(dt, curr_time)
-    amulet.delta_time = dt
-    amulet.frame_time = amulet.frame_time + dt
+am._register_pre_frame_func(function(dt, curr_time)
+    am.delta_time = dt
+    am.frame_time = am.frame_time + dt
 
     fps_window[fps_window_pos] = curr_time - fps_prev_time
     fps_prev_time = curr_time
     fps_window_pos = fps_window_pos % fps_window_size + 1
-end
+end)
 
-function amulet.perf_stats()
+function am.perf_stats()
     local stats = {}
     local total_time = 0.0000001
     local max_dt = 0.0000001

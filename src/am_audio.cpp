@@ -109,6 +109,14 @@ void am_audio_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     render_children(context, bus);
 }
 
+bool am_audio_node::finished() {
+    for (int i = 0; i < pending_children.size; i++) {
+        am_audio_node_child *child = &pending_children.arr[i];
+        if (!child->child->finished()) return false;
+    }
+    return true;
+}
+
 static void mix_bus(am_audio_bus * AM_RESTRICT dest, am_audio_bus * AM_RESTRICT src) {
     for (int c = 0; c < am_min(dest->num_channels, src->num_channels); c++) {
         int n = am_min(dest->num_samples, src->num_samples);
@@ -383,22 +391,23 @@ am_audio_track_node::am_audio_track_node()
     buffer_ref = LUA_NOREF;
     num_channels = 2;
     sample_rate = 44100;
-    current_position = 0.0f;
-    next_position = 0.0f;
+    current_position = 0.0;
+    next_position = 0.0;
     loop = false;
     needs_reset = false;
+    done_server = false;
     done_client = false;
 }
 
 void am_audio_track_node::sync_params() {
     playback_speed.update_target();
     if (needs_reset) {
-        current_position = 0.0f;
-        next_position = 0.0f;
+        current_position = 0.0;
+        next_position = 0.0;
         needs_reset = false;
+        done_server = false;
     }
-    int buf_num_samples = buffer->size / (num_channels * sizeof(float));
-    done_client = !loop && current_position >= (float)buf_num_samples;
+    done_client = done_server;
 }
 
 static bool track_resample_required(am_audio_track_node *node) {
@@ -412,21 +421,19 @@ static bool is_paused(float playback_speed) {
 }
 
 void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
+    if (done_server) return;
     if (is_paused(playback_speed.current_value)) return;
     int buf_num_channels = num_channels;
     int buf_num_samples = buffer->size / (buf_num_channels * sizeof(float));
     int bus_num_samples = bus->num_samples;
     int bus_num_channels = bus->num_channels;
-    if (!loop && current_position >= buf_num_samples) {
-        return;
-    }
     if (!track_resample_required(this)) {
         // optimise common case where no resampling is required
         for (int c = 0; c < bus_num_channels; c++) {
             float *bus_data = bus->channel_data[c];
             float *buf_data = ((float*)buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
-                int buf_pos = (int)current_position;
+                int buf_pos = (int)floor(current_position);
                 assert(buf_pos < buf_num_samples);
                 for (int bus_pos = 0; bus_pos < bus_num_samples; bus_pos++) {
                     bus_data[bus_pos] += buf_data[buf_pos++];
@@ -434,6 +441,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                         if (loop) {
                             buf_pos = 0;
                         } else {
+                            done_server = true;
                             break;
                         }
                     }
@@ -444,9 +452,9 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                 memcpy(bus_data, bus->channel_data[c-1], bus_num_samples * sizeof(float));
             }
         }
-        next_position = current_position + (float)bus_num_samples;
-        if (loop && next_position >= (float)buf_num_samples) {
-            next_position = fmodf(next_position, (float)buf_num_samples);
+        next_position = current_position + (double)bus_num_samples;
+        if (next_position >= (double)buf_num_samples) {
+            next_position = fmod(next_position, (double)buf_num_samples);
         }
     } else {
         // resample
@@ -454,27 +462,29 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
             float *bus_data = bus->channel_data[c];
             float *buf_data = ((float*)buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
-                float pos = current_position;
+                double pos = current_position;
                 for (int write_index = 0; write_index < bus_num_samples; write_index++) {
-                    int read_index1 = (int)floorf(pos);
+                    int read_index1 = (int)floor(pos);
                     int read_index2 = read_index1 + 1;
                     if (read_index2 >= buf_num_samples) {
                         if (loop) {
                             read_index2 = 0;
                         } else {
+                            done_server = true;
                             break;
                         }
                     }
-                    float interpolation_factor = (float)(pos - (float)read_index1);
+                    double interpolation_factor = pos - (double)read_index1;
                     float sample1 = buf_data[read_index1];
                     float sample2 = buf_data[read_index2];
-                    float interpolated_sample = (1.0f - interpolation_factor) * sample1 + interpolation_factor * sample2;
+                    float interpolated_sample = (1.0 - interpolation_factor) * sample1 + interpolation_factor * sample2;
                     bus_data[write_index] += interpolated_sample;
                     pos += playback_speed.interpolate_linear(write_index) * sample_rate_ratio;
-                    if (pos >= (float)buf_num_samples) {
+                    if (pos >= (double)buf_num_samples) {
                         if (loop) {
-                            pos = fmodf(pos, (float)buf_num_samples);
+                            pos = fmod(pos, (double)buf_num_samples);
                         } else {
+                            done_server = true;
                             break;
                         }
                     }
@@ -494,6 +504,10 @@ void am_audio_track_node::post_render(am_audio_context *context, int num_samples
     current_position = next_position;
 }
 
+bool am_audio_track_node::finished() {
+    return done_client;
+}
+
 // Audio stream node
 
 am_audio_stream_node::am_audio_stream_node()
@@ -508,8 +522,8 @@ am_audio_stream_node::am_audio_stream_node()
     loop = false;
     done_server = false;
     done_client = false;
-    current_position = 0.0f;
-    next_position = 0.0f;
+    current_position = 0.0;
+    next_position = 0.0;
 }
 
 void am_audio_stream_node::sync_params() {
@@ -518,9 +532,7 @@ void am_audio_stream_node::sync_params() {
 }
 
 void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
-    if (!loop && done_server) {
-        return;
-    }
+    if (done_server) return;
     int bus_num_samples = bus->num_samples;
     int bus_num_channels = bus->num_channels;
     stb_vorbis *f = (stb_vorbis*)handle;
@@ -530,13 +542,14 @@ void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus 
     for (int i = 0; i < bus_num_channels; i++) {
         channel_data[i] = tmp.channel_data[i];
     }
-    while (n < bus_num_samples && !done_server) {
+    while (n < bus_num_samples) {
         int m = stb_vorbis_get_samples_float(f, bus_num_channels, channel_data, bus_num_samples - n);
         if (m == 0) {
             if (loop) {
                 stb_vorbis_seek_start(f);
             } else {
                 done_server = true;
+                break;
             }
         } else {
             n += m;
@@ -551,17 +564,15 @@ void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus 
         memcpy(tmp.channel_data[c], tmp.channel_data[c-1], bus_num_samples * sizeof(float));
     }
     mix_bus(bus, &tmp);
-    /*
-    next_position = current_position + (float)bus_num_samples;
-    if (loop && next_position >= (float)buf_num_samples) {
-        next_position = fmodf(next_position, (float)buf_num_samples);
-    }
-    */
 }
 
 void am_audio_stream_node::post_render(am_audio_context *context, int num_samples) {
     playback_speed.update_current();
     current_position = next_position;
+}
+
+bool am_audio_stream_node::finished() {
+    return done_client;
 }
 
 // Oscillator Node
@@ -608,6 +619,10 @@ void am_oscillator_node::render_audio(am_audio_context *context, am_audio_bus *b
         }
         default: {}
     }
+}
+
+bool am_oscillator_node::finished() {
+    return false;
 }
 
 // Spectrum node
@@ -726,6 +741,10 @@ void am_capture_node::render_audio(am_audio_context *context, am_audio_bus *bus)
     am_audio_bus tmp(bus);
     am_capture_audio(&tmp);
     mix_bus(bus, &tmp);
+}
+
+bool am_capture_node::finished() {
+    return false;
 }
 
 //-------------------------------------------------------------------------
@@ -1072,13 +1091,6 @@ static void set_track_playback_speed(lua_State *L, void *obj) {
 
 static am_property track_playback_speed_property = {get_track_playback_speed, set_track_playback_speed};
 
-static void get_track_done(lua_State *L, void *obj) {
-    am_audio_track_node *node = (am_audio_track_node*)obj;
-    lua_pushboolean(L, node->done_client);
-}
-
-static am_property track_done_property = {get_track_done, NULL};
-
 static void register_audio_track_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
@@ -1089,7 +1101,6 @@ static void register_audio_track_node_mt(lua_State *L) {
     lua_setfield(L, -2, "reset");
 
     am_register_property(L, "playback_speed", &track_playback_speed_property);
-    am_register_property(L, "done", &track_done_property);
 
     am_register_metatable(L, "track", MT_am_audio_track_node, MT_am_audio_node);
 }
@@ -1145,13 +1156,6 @@ static void set_stream_playback_speed(lua_State *L, void *obj) {
 
 static am_property stream_playback_speed_property = {get_stream_playback_speed, set_stream_playback_speed};
 
-static void get_stream_done(lua_State *L, void *obj) {
-    am_audio_stream_node *node = (am_audio_stream_node*)obj;
-    lua_pushboolean(L, node->done_client);
-}
-
-static am_property stream_done_property = {get_stream_done, NULL};
-
 static void register_audio_stream_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
@@ -1161,7 +1165,6 @@ static void register_audio_stream_node_mt(lua_State *L) {
     lua_setfield(L, -2, "__gc");
 
     am_register_property(L, "playback_speed", &stream_playback_speed_property);
-    am_register_property(L, "done", &stream_done_property);
 
     am_register_metatable(L, "audio_stream", MT_am_audio_stream_node, MT_am_audio_node);
 }
@@ -1310,6 +1313,20 @@ static int get_root_audio_node(lua_State *L) {
     return 1;
 }
 
+static void get_finished(lua_State *L, void *obj) {
+    am_audio_node *node = (am_audio_node*)obj;
+    lua_pushboolean(L, node->finished());
+}
+
+static am_property finished_property = {get_finished, NULL};
+
+static void get_num_children(lua_State *L, void *obj) {
+    am_audio_node *node = (am_audio_node*)obj;
+    lua_pushinteger(L, node->pending_children.size);
+}
+
+static am_property num_children_property = {get_num_children, NULL};
+
 static void register_audio_node_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -1341,6 +1358,9 @@ static void register_audio_node_mt(lua_State *L) {
 
     lua_pushcclosure(L, create_spectrum_node, 0);
     lua_setfield(L, -2, "spectrum");
+
+    am_register_property(L, "finished", &finished_property);
+    am_register_property(L, "num_children", &num_children_property);
 
     am_register_metatable(L, "audio_node", MT_am_audio_node, 0);
 }

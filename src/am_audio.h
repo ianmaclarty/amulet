@@ -96,6 +96,7 @@ struct am_audio_node : am_nonatomic_userdata {
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 struct am_gain_node : am_audio_node {
@@ -174,15 +175,17 @@ struct am_audio_track_node : am_audio_node {
     am_audio_param<float> playback_speed;
     bool loop;
     bool needs_reset;
+    bool done_server;
     bool done_client;
 
-    float current_position;
-    float next_position;
+    double current_position;
+    double next_position;
 
     am_audio_track_node();
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 struct am_audio_stream_node : am_audio_node {
@@ -197,13 +200,14 @@ struct am_audio_stream_node : am_audio_node {
     bool done_server;
     bool done_client;
 
-    float current_position;
-    float next_position;
+    double current_position;
+    double next_position;
 
     am_audio_stream_node();
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 enum am_waveform {
@@ -223,6 +227,7 @@ struct am_oscillator_node : am_audio_node {
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 struct am_spectrum_node : am_audio_node {
@@ -246,6 +251,7 @@ struct am_capture_node : am_audio_node {
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 void am_open_audio_module(lua_State *L);

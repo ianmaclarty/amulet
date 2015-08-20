@@ -223,7 +223,7 @@ bool am_update_windows(lua_State *L) {
 }
 
 bool am_execute_actions(lua_State *L, double dt) {
-    am_pre_execute_actions(L, dt);
+    am_pre_frame(L, dt);
     unsigned int n = windows.size();
     bool res = true;
     for (unsigned int i = 0; i < n; i++) {
@@ -237,7 +237,7 @@ bool am_execute_actions(lua_State *L, double dt) {
             am_call_amulet(L, "_clear_events", 1, 0);
         }
     }
-    am_post_execute_actions(L);
+    am_post_frame(L);
     return res;
 }
 

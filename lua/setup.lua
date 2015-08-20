@@ -72,3 +72,26 @@ function extend(node, fields)
 end
 
 _metatable_registry.scene_node.extend = extend
+
+local pre_frame_funcs = {}
+local post_frame_funcs = {}
+
+function am._pre_frame(dt, curr_time) 
+    for i = 1, #pre_frame_funcs do
+        pre_frame_funcs[i](dt, curr_time)
+    end
+end
+
+function am._post_frame(dt, curr_time) 
+    for i = 1, #post_frame_funcs do
+        post_frame_funcs[i](dt, curr_time)
+    end
+end
+
+function am._register_pre_frame_func(f)
+    table.insert(pre_frame_funcs, f)
+end
+
+function am._register_post_frame_func(f)
+    table.insert(post_frame_funcs, f)
+end

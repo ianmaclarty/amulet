@@ -23,6 +23,15 @@
 #define AM_NEED_GLES2_FUNC_PTRS
 #endif
 
+#if (UINTPTR_MAX == UINT64_MAX)
+    #define AM_64BIT 1
+#elif (UINTPTR_MAX == UINT32_MAX)
+    #define AM_32BIT 1
+#else
+    #error unsupported word size
+#endif
+
+
 #ifdef AM_WIN32
 #include <windows.h>
 #endif

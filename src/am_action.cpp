@@ -38,13 +38,15 @@ static void add_actions(lua_State *L, am_scene_node *node, int actions_tbl) {
     g_action_seq++;
 }
 
-void am_pre_execute_actions(lua_State *L, double dt) {
-    am_update_times(L, dt);
-    am_call_amulet(L, "_update_action_seq", 0, 0);
+void am_pre_frame(lua_State *L, double dt) {
+    lua_pushnumber(L, dt);
+    lua_pushnumber(L, am_get_current_time());
+    am_call_amulet(L, "_pre_frame", 2, 0);
     num_actions = 0;
 }
 
-void am_post_execute_actions(lua_State *L) {
+void am_post_frame(lua_State *L) {
+    am_call_amulet(L, "_post_frame", 0, 0);
 }
 
 bool am_execute_node_actions(lua_State *L, am_scene_node *node) {

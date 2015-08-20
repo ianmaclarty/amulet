@@ -8,12 +8,19 @@ static bool run_embedded_scripts(lua_State *L, bool worker);
 static void set_arg_global(lua_State *L, int argc, char** argv);
 
 am_engine *am_init_engine(bool worker, int argc, char** argv) {
+#if defined(AM_LUAJIT) && defined(AM_64BIT)
+    // luajit requires using luaL_newstate on 64 bit
+    lua_State *L = luaL_newstate();
+    if (L == NULL) return NULL;
+    am_allocator *allocator = NULL;
+#else
     am_allocator *allocator = am_new_allocator();
     lua_State *L = lua_newstate(&am_alloc, allocator);
     if (L == NULL) {
         am_destroy_allocator(allocator);
         return NULL;
     }
+#endif
     am_engine *eng = new am_engine();
     eng->allocator = allocator;
     eng->L = L;
@@ -64,7 +71,9 @@ void am_destroy_engine(am_engine *eng) {
         am_destroy_windows(eng->L);
     }
     lua_close(eng->L);
-    am_destroy_allocator(eng->allocator);
+    if (eng->allocator != NULL) {
+        am_destroy_allocator(eng->allocator);
+    }
     delete eng;
     am_reset_log_cache(); // XXX what about other running engines?
 }
@@ -173,6 +182,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/text.lua") &&
         run_embedded_script(L, "lua/events.lua") &&
         run_embedded_script(L, "lua/actions.lua") &&
+        run_embedded_script(L, "lua/audio.lua") &&
         run_embedded_script(L, "lua/tweens.lua");
 }
 

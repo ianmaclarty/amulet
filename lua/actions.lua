@@ -2,12 +2,11 @@ local am = amulet
 
 local seq = 1
 
-function am._update_action_seq()
+am._register_pre_frame_func(function()
     seq = seq + 1
-end
+end)
 
-local
-function do_action(f, node)
+function am.step_action(f, node)
     if type(f) == "thread" then
         if coroutine.status(f) == "dead" then
             return true
@@ -24,6 +23,8 @@ function do_action(f, node)
         return f(node)
     end
 end
+
+local do_action = am.step_action
 
 function am._execute_actions(actions, from, to)
     local t = am.frame_time
@@ -83,7 +84,7 @@ local
 function cancel_action(node, id)
     local actions = node._actions
     if actions then
-        for i = #actions, 1 do
+        for i = #actions, 1, -1 do
             local action = actions[i]
             if action.id == id then
                 table.remove(actions, i)
