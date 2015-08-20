@@ -242,7 +242,3 @@ function log1(fmt, ...)
     end
 end
 rawset(_G, "log1", log1)
-
--- userdata functions
-
-rawset(_G, "getusertable", amulet._getusertable)

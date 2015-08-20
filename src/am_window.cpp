@@ -108,6 +108,11 @@ static int create_window(lua_State *L) {
 
     windows.push_back(win);
 
+    win->pushuservalue(L);
+    lua_newtable(L);
+    lua_setfield(L, -2, "_event_data");
+    lua_pop(L, 1); // uservalue
+
     lua_pushvalue(L, -1);
     am_call_amulet(L, "_init_window_event_data", 1, 0);
 

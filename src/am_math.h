@@ -1,4 +1,4 @@
-struct am_vec2 : am_userdata {
+struct am_vec2 {
     glm::vec2 v;
     am_vec2() {}
     am_vec2(float *val) {
@@ -6,7 +6,7 @@ struct am_vec2 : am_userdata {
     }
 };
 
-struct am_vec3 : am_userdata {
+struct am_vec3 {
     glm::vec3 v;
     am_vec3() {}
     am_vec3(float *val) {
@@ -14,7 +14,7 @@ struct am_vec3 : am_userdata {
     }
 };
 
-struct am_vec4 : am_userdata {
+struct am_vec4 {
     glm::vec4 v;
     am_vec4() {}
     am_vec4(float *val) {
@@ -22,7 +22,7 @@ struct am_vec4 : am_userdata {
     }
 };
 
-struct am_mat2 : am_userdata {
+struct am_mat2 {
     glm::mat2 m;
     am_mat2() {}
     am_mat2(float *val) {
@@ -30,7 +30,7 @@ struct am_mat2 : am_userdata {
     }
 };
 
-struct am_mat3 : am_userdata {
+struct am_mat3 {
     glm::mat3 m;
     am_mat3() {}
     am_mat3(float *val) {
@@ -38,7 +38,7 @@ struct am_mat3 : am_userdata {
     }
 };
 
-struct am_mat4 : am_userdata {
+struct am_mat4 {
     glm::mat4 m;
     am_mat4() {}
     am_mat4(float *val) {
@@ -46,7 +46,7 @@ struct am_mat4 : am_userdata {
     }
 };
 
-struct am_quat : am_userdata {
+struct am_quat {
     glm::quat q;
     am_quat() {}
 };

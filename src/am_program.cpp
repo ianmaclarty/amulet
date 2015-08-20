@@ -607,7 +607,8 @@ static void set_param_value(lua_State *L, am_program_param_value *param, int idx
 }
 
 static am_bind_node *new_bind_node(lua_State *L, int num_params) {
-    am_bind_node *node = (am_bind_node*)am_init_userdata(L,
+    // allocate extra space for the shader paramter names, values and refs
+    am_bind_node *node = (am_bind_node*)am_set_metatable(L,
         new (lua_newuserdata(L, 
             sizeof(am_bind_node)
                 + sizeof(am_param_name_id) * num_params

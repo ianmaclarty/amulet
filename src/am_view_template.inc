@@ -235,7 +235,14 @@ static void AM_CONCAT3(register_,TNAME,_view_mt)(lua_State *L) {
     lua_pushcclosure(L, AM_CONCAT(TNAME,_view_set), 0);
     lua_setfield(L, -2, "set");
 
+    lua_pushvalue(L, -1);
     am_register_metatable(L, AM_STR(TNAME) "_view", AM_CONCAT(MT_VIEW_TYPE_,TNAME), MT_am_buffer_view);
+
+    // set the metatable id to MT_am_buffer_view so that am_get_type returns that.
+    // this makes typechecking easier in some spots (e.g. am_program.cpp).
+    lua_pushinteger(L, MT_am_buffer_view);
+    lua_rawseti(L, -2, AM_METATABLE_ID_INDEX);
+    lua_pop(L, 1);
 }
 
 #undef TNAME

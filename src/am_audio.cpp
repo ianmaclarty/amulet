@@ -1241,7 +1241,8 @@ static void register_oscillator_node_mt(lua_State *L) {
 static am_spectrum_node *new_spectrum_node(lua_State *L, int fftsize) {
     size_t cfg_sz = 0;
     kiss_fftr_alloc(fftsize, 0, NULL, &cfg_sz);
-    am_spectrum_node *node = (am_spectrum_node*)am_init_userdata(L,
+    // allocate extra space for kissfft cfg
+    am_spectrum_node *node = (am_spectrum_node*)am_set_metatable(L,
         new (lua_newuserdata(L, 
             sizeof(am_spectrum_node) + cfg_sz))
         am_spectrum_node(), MT_am_spectrum_node);

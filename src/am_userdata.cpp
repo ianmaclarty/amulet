@@ -1,17 +1,12 @@
 #include "amulet.h"
 
-am_userdata::am_userdata() {
-    ud_flags = 0;
-}
-
-void am_userdata::push(lua_State *L) {
-    lua_unsafe_pushuserdata(L, this);
-}
-
 am_nonatomic_userdata::am_nonatomic_userdata() {
     num_refs = -1;
     freelist = 0;
-    ud_flags = AM_NONATOMIC_MASK;
+}
+
+void am_nonatomic_userdata::push(lua_State *L) {
+    lua_unsafe_pushuserdata(L, this);
 }
 
 int am_nonatomic_userdata::ref(lua_State *L, int idx) {
@@ -73,8 +68,7 @@ void am_nonatomic_userdata::pushuservalue(lua_State *L) {
     lua_remove(L, -2); // remove userdata
 }
 
-am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id) {
-    ud->ud_flags |= metatable_id;
+void *am_set_metatable(lua_State *L, void *ud, int metatable_id) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
     assert(lua_istable(L, -1));
     lua_setmetatable(L, -2);
@@ -101,8 +95,11 @@ void am_register_metatable(lua_State *L, const char *tname, int metatable_id, in
     }
     int mt_idx = am_absindex(L, -1);
 
+    lua_pushinteger(L, metatable_id);
+    lua_rawseti(L, mt_idx, AM_METATABLE_ID_INDEX);
+
     lua_pushstring(L, tname);
-    lua_setfield(L, -2, "tname");
+    lua_setfield(L, mt_idx, "tname");
 
     if (parent_mt_id > 0) {
         mt_parent[metatable_id] = parent_mt_id;
@@ -146,10 +143,19 @@ void am_push_metatable(lua_State *L, int metatable_id) {
 int am_get_type(lua_State *L, int idx) {
     int t = lua_type(L, idx);
     if (t == LUA_TUSERDATA) {
-        am_userdata *ud = (am_userdata*)lua_touserdata(L, idx);
-        uint32_t mtid = ud->ud_flags & AM_METATABLE_ID_MASK;
-        assert(mtid < AM_RESERVED_REFS_END && mtid > AM_RESERVED_REFS_START);
-        return mtid;
+        if (lua_getmetatable(L, idx)) {
+            lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
+            uint32_t mt = lua_tointeger(L, -1);
+            lua_pop(L, 2); // mt, metatable
+            if (mt != 0) {
+                assert(mt < AM_RESERVED_REFS_END && mt > AM_RESERVED_REFS_START);
+                return mt;
+            } else {
+                return t;
+            }
+        } else {
+            return t;
+        }
     } else {
         return t;
     }
@@ -176,15 +182,14 @@ const char* am_get_typename(lua_State *L, int metatable_id) {
     }
 }
 
-am_userdata *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
-    int type = lua_type(L, idx);
-    am_userdata *ud = NULL;
-    if (type == LUA_TUSERDATA) {
-        ud = (am_userdata*)lua_touserdata(L, idx);
-        if (ud != NULL) {
-            int mt = ud->ud_flags & AM_METATABLE_ID_MASK;
-            while (mt > 0 && mt < AM_RESERVED_REFS_END) {
-                if (mt == metatable_id) return ud;
+void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
+    if (lua_getmetatable(L, idx)) {
+        lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
+        uint32_t mt = lua_tointeger(L, -1);
+        lua_pop(L, 2); // mt, metatable
+        if (mt != 0) {
+            while (mt > AM_RESERVED_REFS_START && mt < AM_RESERVED_REFS_END) {
+                if (mt == metatable_id) return lua_touserdata(L, idx);
                 mt = mt_parent[mt];
             }
         }
@@ -367,21 +372,6 @@ void am_set_default_newindex_func(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
 }
 
-static int getusertable(lua_State *L) {
-    am_check_nargs(L, 1);
-    if (lua_type(L, 1) != LUA_TUSERDATA) {
-        return luaL_error(L, "expecting a full userdata argument (in fact a %s)", lua_typename(L, lua_type(L, 1)));
-    }
-    am_userdata *ud = (am_userdata*)lua_touserdata(L, 1);
-    if (!(ud->ud_flags & AM_NONATOMIC_MASK)) {
-        lua_pushnil(L);
-        return 1;
-    }
-    am_nonatomic_userdata *naud = (am_nonatomic_userdata*)ud;
-    naud->pushuservalue(L);
-    return 1;
-}
-
 static int getter_key(lua_State *L) {
     am_check_nargs(L, 1);
     lua_pushlightuserdata(L, (void*)lua_tostring(L, 1));
@@ -408,7 +398,6 @@ static int setmetatable(lua_State *L) {
 
 void am_open_userdata_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"_getusertable",           getusertable},
         {"_getter_key",             getter_key},
         {"_setter_key",             setter_key},
         {"_custom_property_marker", custom_property_marker},

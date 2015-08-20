@@ -21,15 +21,15 @@
 
 #endif // AM_LUAJIT
 
-// XXX Tweak these for 32/64 bit + lua/luajit:
+// these values are just rough guesses:
 
-#define TINY_CELL_SZ 64
-#define SMALL_CELL_SZ 72
-#define MEDIUM_CELL_SZ 160
+#define TINY_CELL_SZ (UD_SZ + sizeof(am_vec4))
+#define SMALL_CELL_SZ (UD_SZ + sizeof(am_mat4))
+#define MEDIUM_CELL_SZ (SMALL_CELL_SZ * 2)
 
 #define TINY_BLOCK_SZ (TINY_CELL_SZ * 2048)
 #define SMALL_BLOCK_SZ (SMALL_CELL_SZ * 1024)
-#define MEDIUM_BLOCK_SZ (MEDIUM_CELL_SZ * 1024)
+#define MEDIUM_BLOCK_SZ (MEDIUM_CELL_SZ * 512)
 
 #ifdef AM_PRINT_ALLOC_STATS
 struct pool_stats {

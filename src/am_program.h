@@ -66,7 +66,7 @@ struct am_program_param {
     void bind(am_render_state *rstate);
 };
 
-struct am_program : am_userdata {
+struct am_program : am_nonatomic_userdata {
     am_program_id program_id;
     int num_params;
     bool sets_point_size;
