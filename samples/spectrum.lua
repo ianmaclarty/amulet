@@ -2,21 +2,23 @@ local am = amulet
 
 local win = am.window{}
 
-local track = am.stream(am.read_buffer("killing.ogg"), true)
+local track = am.stream(am.read_buffer("handstand.ogg"), true)
 
 local n = 64
 local show = 64
 local spec_arr = am.buffer(n * 4):view("float", 0, 4)
+spec_arr:set(-1000)
 local spectrum = track:spectrum(n, spec_arr, 0.5)
 
-am.root_audio_node():add(spectrum)
 local scene = am.group()
+scene:action(am.play(spectrum))
+
 local rects = {}
 local x = -0.8
 local dx = 1.6 / show
 local w = 1.0 / show
 for i = 1, show do
-    rects[i] = am.rect(x, -0.8, x+w, 0)
+    rects[i] = am.rect(x, -0.8, x+w, -0.8)
     x = x + dx
     scene:append(rects[i])
 end

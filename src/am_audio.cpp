@@ -1,7 +1,9 @@
 #include "amulet.h"
 
-#define AM_AUDIO_NODE_FLAG_MARK           ((uint32_t)1)
-#define AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY ((uint32_t)2)
+#define AM_AUDIO_NODE_FLAG_MARK             ((uint32_t)1)
+#define AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY   ((uint32_t)2)
+#define AM_AUDIO_NODE_FLAG_PENDING_PAUSE    ((uint32_t)4)
+#define AM_AUDIO_NODE_MASK_LIVE_PAUSE_STATE ((uint32_t)(8+16))
 
 #define node_marked(node)           (node->flags & AM_AUDIO_NODE_FLAG_MARK)
 #define mark_node(node)             node->flags |= AM_AUDIO_NODE_FLAG_MARK
@@ -10,6 +12,18 @@
 #define children_dirty(node)        (node->flags & AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY)
 #define set_children_dirty(node)    node->flags |= AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY
 #define clear_children_dirty(node)  node->flags &= ~AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY
+
+#define LIVE_PAUSE_STATE_UNPAUSED   (0 << 3)
+#define LIVE_PAUSE_STATE_BEGIN      (1 << 3)
+#define LIVE_PAUSE_STATE_PAUSED     (2 << 3) 
+#define LIVE_PAUSE_STATE_END        (3 << 3)
+
+#define live_pause_state(node)      (node->flags & AM_AUDIO_NODE_MASK_LIVE_PAUSE_STATE)
+#define set_live_pause_state(node, state) {node->flags &= ~AM_AUDIO_NODE_MASK_LIVE_PAUSE_STATE; node->flags |= state;}
+
+#define pending_pause(node)         (node->flags & AM_AUDIO_NODE_FLAG_PENDING_PAUSE)
+#define set_pending_pause(node)     node->flags |= AM_AUDIO_NODE_FLAG_PENDING_PAUSE
+#define clear_pending_pause(node)   node->flags &= ~AM_AUDIO_NODE_FLAG_PENDING_PAUSE
 
 static am_audio_context audio_context;
 
@@ -96,7 +110,6 @@ am_audio_node::am_audio_node() {
     last_render = 0;
     flags = 0;
     recursion_limit = 0;
-    root_ref = LUA_NOREF;
 }
 
 void am_audio_node::sync_params() {
@@ -161,28 +174,34 @@ void am_audio_node::render_children(am_audio_context *context, am_audio_bus *bus
     recursion_limit--;
     for (int i = 0; i < live_children.size; i++) {
         am_audio_node_child *child = &live_children.arr[i];
-        switch (child->state) {
-            case AM_AUDIO_NODE_CHILD_STATE_NEW: {
-                am_audio_bus tmp(bus);
-                child->child->render_audio(context, &tmp);
+        int pause_state = live_pause_state(child->child);
+        am_audio_node_child_state child_state = child->state;
+        if (child_state == AM_AUDIO_NODE_CHILD_STATE_OLD
+            && pause_state == LIVE_PAUSE_STATE_UNPAUSED)
+        {
+            child->child->render_audio(context, bus);
+        } else if (child_state == AM_AUDIO_NODE_CHILD_STATE_DONE
+            || pause_state == LIVE_PAUSE_STATE_PAUSED
+            // also ignore if paused and added at same time...
+            || (pause_state == LIVE_PAUSE_STATE_BEGIN && child->state == AM_AUDIO_NODE_CHILD_STATE_NEW)
+            // ...or if unpaused and removed at same time
+            || (pause_state == LIVE_PAUSE_STATE_END && child->state == AM_AUDIO_NODE_CHILD_STATE_REMOVED))
+        {
+            // ignore
+        } else {
+            // a fadein or fadeout is required, because
+            // the child was recently added/removed or
+            // paused/unpaused.
+            am_audio_bus tmp(bus);
+            child->child->render_audio(context, &tmp);
+            if (child_state == AM_AUDIO_NODE_CHILD_STATE_NEW || pause_state == LIVE_PAUSE_STATE_END) {
                 apply_fadein(&tmp);
-                mix_bus(bus, &tmp);
-                break;
-            }
-            case AM_AUDIO_NODE_CHILD_STATE_OLD: {
-                child->child->render_audio(context, bus);
-                break;
-            }
-            case AM_AUDIO_NODE_CHILD_STATE_REMOVED: {
-                am_audio_bus tmp(bus);
-                child->child->render_audio(context, &tmp);
+            } else if (child_state == AM_AUDIO_NODE_CHILD_STATE_REMOVED || pause_state == LIVE_PAUSE_STATE_BEGIN) {
                 apply_fadeout(&tmp);
-                mix_bus(bus, &tmp);
-                break;
+            } else {
+                assert(false);
             }
-            case AM_AUDIO_NODE_CHILD_STATE_DONE: {
-                break;
-            }
+            mix_bus(bus, &tmp);
         }
     }
     recursion_limit++;
@@ -416,13 +435,13 @@ static bool track_resample_required(am_audio_track_node *node) {
         || (fabs(node->playback_speed.current_value - 1.0f) > 0.00001f);
 }
 
-static bool is_paused(float playback_speed) {
+static bool is_too_slow(float playback_speed) {
     return playback_speed < 0.00001f;
 }
 
 void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     if (done_server) return;
-    if (is_paused(playback_speed.current_value)) return;
+    if (is_too_slow(playback_speed.current_value)) return;
     int buf_num_channels = num_channels;
     int buf_num_samples = buffer->size / (buf_num_channels * sizeof(float));
     int bus_num_samples = bus->num_samples;
@@ -1327,6 +1346,22 @@ static void get_num_children(lua_State *L, void *obj) {
 
 static am_property num_children_property = {get_num_children, NULL};
 
+static void get_paused(lua_State *L, void *obj) {
+    am_audio_node *node = (am_audio_node*)obj;
+    lua_pushboolean(L, pending_pause(node));
+}
+
+static void set_paused(lua_State *L, void *obj) {
+    am_audio_node *node = (am_audio_node*)obj;
+    if (lua_toboolean(L, 3)) {
+        set_pending_pause(node);
+    } else {
+        clear_pending_pause(node);
+    }
+}
+
+static am_property paused_property = {get_paused, set_paused};
+
 static void register_audio_node_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -1361,6 +1396,7 @@ static void register_audio_node_mt(lua_State *L) {
 
     am_register_property(L, "finished", &finished_property);
     am_register_property(L, "num_children", &num_children_property);
+    am_register_property(L, "paused", &paused_property);
 
     am_register_metatable(L, "audio_node", MT_am_audio_node, 0);
 }
@@ -1436,9 +1472,17 @@ void am_destroy_audio() {
     clear_buffer_pool();
 }
 
+static void update_live_pause_state(am_audio_node *node) {
+    switch (live_pause_state(node)) {
+        case LIVE_PAUSE_STATE_BEGIN: set_live_pause_state(node, LIVE_PAUSE_STATE_PAUSED); break;
+        case LIVE_PAUSE_STATE_END: set_live_pause_state(node, LIVE_PAUSE_STATE_UNPAUSED); break;
+    }
+}
+
 static void do_post_render(am_audio_context *context, int num_samples, am_audio_node *node) {
     if (node->last_render >= context->render_id) return; // already processed
     node->last_render = context->render_id;
+    update_live_pause_state(node);
     node->post_render(context, num_samples);
     for (int i = 0; i < node->live_children.size; i++) {
         am_audio_node_child *child = &node->live_children.arr[i];
@@ -1518,11 +1562,21 @@ static void sync_children_list(lua_State *L, am_audio_node *node) {
     }
 }
 
+static void sync_paused(am_audio_node *node) {
+    int live_state = live_pause_state(node);
+    if (pending_pause(node) && live_state != LIVE_PAUSE_STATE_PAUSED) {
+        set_live_pause_state(node, LIVE_PAUSE_STATE_BEGIN);
+    } else if (!pending_pause(node) && live_state != LIVE_PAUSE_STATE_UNPAUSED) {
+        set_live_pause_state(node, LIVE_PAUSE_STATE_END);
+    }
+}
+
 static void sync_audio_graph(lua_State *L, am_audio_context *context, am_audio_node *node) {
     if (node->last_sync >= context->sync_id) return; // already synced
     node->last_sync = context->sync_id;
     node->sync_params();
     sync_children_list(L, node);
+    sync_paused(node);
     for (int i = 0; i < node->live_children.size; i++) {
         sync_audio_graph(L, context, node->live_children.arr[i].child);
     }

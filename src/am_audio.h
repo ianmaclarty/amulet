@@ -86,7 +86,6 @@ struct am_audio_node : am_nonatomic_userdata {
     int last_render;
     uint32_t flags;
     int recursion_limit;
-    int root_ref;
 
     am_audio_node();
 

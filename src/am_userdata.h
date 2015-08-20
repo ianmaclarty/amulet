@@ -53,6 +53,7 @@ struct am_nonatomic_userdata : am_userdata {
     // Push referenced object onto the stack.
     void pushref(lua_State *L, int ref);
 
+    // This will create the uservalue table if it does not exist.
     void pushuservalue(lua_State *L);
 };
 

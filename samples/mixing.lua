@@ -26,16 +26,9 @@ for i = 1, show do
     scene:append(rects[i])
 end
 
-local is_playing = false
-
 local
-function play_pause()
-    if is_playing then
-        am.root_audio_node():remove(spectrum)
-    else
-        am.root_audio_node():add(spectrum)
-    end
-    is_playing = not is_playing
+function toggle_pause()
+    master.paused = not master.paused
 end
 
 local
@@ -54,23 +47,19 @@ end
 
 select_tracks()
 
+scene:action(am.play(spectrum))
+
 win.root = scene:bind{MV = mat4(1), P = mat4(1)}
 scene:action(function()
     if win:key_pressed("enter") then
-        play_pause()
+        toggle_pause()
     elseif win:key_pressed("r") then
         select_tracks()
     elseif win:key_pressed("escape") then
         win:close()
     end
-    if is_playing then
-        for i = 1, show do 
-            rects[i].y2 = math.clamp((spec_arr[i] + 50) / 50, -0.8, 0.8)
-            rects[i].color = vec4((rects[i].y2 + 0.8)^2, i/show, 1, 1)
-        end
-    else
-        for i = 1, show do 
-            scene:action(am.tween{target = rects[i], y2 = -0.8, time = 0.1})
-        end
+    for i = 1, show do 
+        rects[i].y2 = math.clamp((spec_arr[i] + 50) / 50, -0.8, 0.8)
+        rects[i].color = vec4((rects[i].y2 + 0.8)^2, i/show, 1, 1)
     end
 end)
