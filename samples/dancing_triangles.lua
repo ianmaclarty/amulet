@@ -37,8 +37,8 @@ yview[3] = -0.4
 
 local MVP = math.mat4(1)
 local base = am.draw_arrays()
-    :bind_array("x", xview)
-    :bind_array("y", yview)
+    :bind("x", xview)
+    :bind("y", yview)
 
 local group = am.group()
 
@@ -49,34 +49,28 @@ for i = 1, num_tris do
 end
 
 for i, seed in ipairs(seeds) do
-    local size_node = base:scale("MVP")
-    local position_node = size_node:translate("MVP")
+    local size_node = base:scale("MVP", vec3(1))
+    local position_node = size_node:translate("MVP", vec3(0))
     local node = position_node
-        :bind_vec4("tint", math.random(), math.random(), math.random(), 1)
+        :bind("tint", vec4(math.random(), math.random(), math.random(), 1))
         :action(function(node)
             local t = am.frame_time
             local r = math.cos(t * seed * 2)
             local x = math.sin((t + seed * 6) * seed) * r 
             local y = math.cos(t - i * seed) * r
-            position_node.x = x
-            position_node.y = y
-            size_node.xy = math.sin(t * seed * 4 + i) * 0.15 + 0.2
-            return 0
+            position_node.position = vec3(x, y, 0)
+            local s = math.sin(t * seed * 4 + i) * 0.15 + 0.2
+            size_node.scaling = vec3(s, s, 1)
         end)
     group:append(node)
 end
 
-local top = group:bind_mat4("MVP", MVP):bind_program(prog)
+local top = group:bind("MVP", MVP):bind_program(prog)
 
 top:action(function()
-    log(am.perf_stats().avg_fps)
-    return 1
-end)
-:action(function()
     if win:key_pressed("escape") then
         win:close()
     end
-    return 0
 end)
 
 win.root = top

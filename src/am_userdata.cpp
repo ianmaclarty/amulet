@@ -1,17 +1,12 @@
 #include "amulet.h"
 
-am_userdata::am_userdata() {
-    ud_flags = 0;
-}
-
-void am_userdata::push(lua_State *L) {
-    lua_unsafe_pushuserdata(L, this);
-}
-
 am_nonatomic_userdata::am_nonatomic_userdata() {
     num_refs = -1;
     freelist = 0;
-    ud_flags = AM_NONATOMIC_MASK;
+}
+
+void am_nonatomic_userdata::push(lua_State *L) {
+    lua_unsafe_pushuserdata(L, this);
 }
 
 int am_nonatomic_userdata::ref(lua_State *L, int idx) {
@@ -73,8 +68,7 @@ void am_nonatomic_userdata::pushuservalue(lua_State *L) {
     lua_remove(L, -2); // remove userdata
 }
 
-am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id) {
-    ud->ud_flags |= metatable_id;
+void *am_set_metatable(lua_State *L, void *ud, int metatable_id) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, metatable_id);
     assert(lua_istable(L, -1));
     lua_setmetatable(L, -2);
@@ -82,9 +76,9 @@ am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id) {
 }
 
 static int mt_parent[AM_RESERVED_REFS_END];
+static bool mt_parent_initialized = false;
 
 static void ensure_mt_parent_initialized() {
-    static bool mt_parent_initialized = false;
     if (!mt_parent_initialized) {
         for (int i = 0; i < AM_RESERVED_REFS_END; i++) {
             mt_parent[i] = 0;
@@ -95,19 +89,42 @@ static void ensure_mt_parent_initialized() {
 
 void am_register_metatable(lua_State *L, const char *tname, int metatable_id, int parent_mt_id) {
     ensure_mt_parent_initialized();
+    if (mt_parent[metatable_id] != 0) {
+        // already initialized (could be a worker thread)
+        return;
+    }
+    int mt_idx = am_absindex(L, -1);
+
+    lua_pushinteger(L, metatable_id);
+    lua_rawseti(L, mt_idx, AM_METATABLE_ID_INDEX);
 
     lua_pushstring(L, tname);
-    lua_setfield(L, -2, "tname");
+    lua_setfield(L, mt_idx, "tname");
 
     if (parent_mt_id > 0) {
         mt_parent[metatable_id] = parent_mt_id;
-        lua_newtable(L);
         am_push_metatable(L, parent_mt_id);
         if (!lua_istable(L, -1)) {
             am_abort("attempt to register metatable %s before parent", tname);
         }
-        lua_setfield(L, -2, "__index");
-        lua_setmetatable(L, -2);
+        int parent_idx = am_absindex(L, -1);
+        lua_pushstring(L, "_parent_mt");
+        lua_pushvalue(L, parent_idx);
+        lua_rawset(L, mt_idx);
+        lua_pushnil(L);
+        while (lua_next(L, parent_idx)) {
+            int key_idx = am_absindex(L, -2);
+            int val_idx = am_absindex(L, -1);
+            lua_pushvalue(L, key_idx);
+            lua_rawget(L, mt_idx);
+            if (lua_isnil(L, -1)) {
+                lua_pushvalue(L, key_idx);
+                lua_pushvalue(L, val_idx);
+                lua_rawset(L, mt_idx);
+            }
+            lua_pop(L, 2);
+        }
+        lua_pop(L, 1); // parent
     }
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_METATABLE_REGISTRY);
@@ -126,10 +143,19 @@ void am_push_metatable(lua_State *L, int metatable_id) {
 int am_get_type(lua_State *L, int idx) {
     int t = lua_type(L, idx);
     if (t == LUA_TUSERDATA) {
-        am_userdata *ud = (am_userdata*)lua_touserdata(L, idx);
-        uint32_t mtid = ud->ud_flags & AM_METATABLE_ID_MASK;
-        assert(mtid < AM_RESERVED_REFS_END && mtid > AM_RESERVED_REFS_START);
-        return mtid;
+        if (lua_getmetatable(L, idx)) {
+            lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
+            uint32_t mt = lua_tointeger(L, -1);
+            lua_pop(L, 2); // mt, metatable
+            if (mt != 0) {
+                assert(mt < AM_RESERVED_REFS_END && mt > AM_RESERVED_REFS_START);
+                return mt;
+            } else {
+                return t;
+            }
+        } else {
+            return t;
+        }
     } else {
         return t;
     }
@@ -156,15 +182,14 @@ const char* am_get_typename(lua_State *L, int metatable_id) {
     }
 }
 
-am_userdata *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
-    int type = lua_type(L, idx);
-    am_userdata *ud = NULL;
-    if (type == LUA_TUSERDATA) {
-        ud = (am_userdata*)lua_touserdata(L, idx);
-        if (ud != NULL) {
-            int mt = ud->ud_flags & AM_METATABLE_ID_MASK;
-            while (mt > 0 && mt < AM_RESERVED_REFS_END) {
-                if (mt == metatable_id) return ud;
+void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
+    if (lua_getmetatable(L, idx)) {
+        lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
+        uint32_t mt = lua_tointeger(L, -1);
+        lua_pop(L, 2); // mt, metatable
+        if (mt != 0) {
+            while (mt > AM_RESERVED_REFS_START && mt < AM_RESERVED_REFS_END) {
+                if (mt == metatable_id) return lua_touserdata(L, idx);
                 mt = mt_parent[mt];
             }
         }
@@ -215,43 +240,126 @@ void am_register_property(lua_State *L, const char *field, const am_property *pr
     lua_setfield(L, -2, field);
 }
 
+static bool try_getter(lua_State *L) {
+    if (lua_islightuserdata(L, -1)) {
+        am_property *property = (am_property*)lua_touserdata(L, -1);
+        if (property != NULL) {
+            void *obj = lua_touserdata(L, 1);
+            lua_pop(L, 2); // property, metatable
+            assert(property->getter != NULL);
+            property->getter(L, obj);
+        } else {
+            // custom lua getter
+            lua_pop(L, 1); // property (NULL)
+            lua_pushlightuserdata(L, (void*)lua_tostring(L, 2));
+            lua_rawget(L, -2);
+            lua_remove(L, -2); // remove metatable
+            if (lua_isfunction(L, -1)) {
+                lua_pushvalue(L, 1);
+                lua_call(L, 1, 1);
+            }
+        }
+        return true;
+    } 
+    return false;
+}
+
 int am_default_index_func(lua_State *L) {
     lua_getmetatable(L, 1);
     lua_pushvalue(L, 2);
-    lua_gettable(L, -2);
-    if (lua_islightuserdata(L, -1)) {
-        void *obj = lua_touserdata(L, 1);
-        am_property *property = (am_property*)lua_touserdata(L, -1);
-        lua_pop(L, 2); // property, metatable
-        assert(property->getter != NULL);
-        property->getter(L, obj);
+    lua_rawget(L, -2);
+    if (try_getter(L)) {
         return 1;
+    } else if (lua_isnil(L, -1)) {
+        lua_pop(L, 2); // nil, metatable
+        lua_getuservalue(L, 1);
+        if (!lua_istable(L, -1)) { // lua5.2 initializes uservalues to nil
+            lua_pop(L, 1); // uservalue
+            lua_pushnil(L);
+            return 1;
+        }
+        lua_pushvalue(L, 2);
+        lua_rawget(L, -2);
+        if (try_getter(L)) {
+            return 1;
+        } else {
+            lua_remove(L, -2); // uservalue table
+            return 1;
+        }
     } else {
         lua_remove(L, -2); // remove metatable
         return 1;
     }
 }
 
-int am_default_newindex_func(lua_State *L) {
-    lua_getmetatable(L, 1);
-    lua_pushvalue(L, 2);
-    lua_gettable(L, -2);
+static bool try_setter(lua_State *L) {
     if (lua_islightuserdata(L, -1)) {
-        void *obj = lua_touserdata(L, 1);
         am_property *property = (am_property*)lua_touserdata(L, -1);
-        lua_pop(L, 2); // property, metatable
-        if (property->setter != NULL) {
-            property->setter(L, obj);
-            return 0;
+        if (property != NULL) {
+            void *obj = lua_touserdata(L, 1);
+            lua_pop(L, 2); // property, metatable
+            if (property->setter != NULL) {
+                property->setter(L, obj);
+                return true;
+            } else {
+                const char *field = lua_tostring(L, 2);
+                if (field == NULL) field = "<unknown>";
+                luaL_error(L, "field '%s' is readonly");
+                return false;
+            }
         } else {
-            const char *field = lua_tostring(L, 2);
-            if (field == NULL) field = "<unknown>";
-            return luaL_error(L, "field '%s' is readonly");
+            // custom lua setter
+            lua_pop(L, 1); // property (NULL)
+            lua_pushlightuserdata(L, (void*)(lua_tostring(L, 2) + 1));
+            lua_rawget(L, -2);
+            lua_remove(L, -2); // remove metatable
+            if (lua_isfunction(L, -1)) {
+                lua_pushvalue(L, 1);
+                lua_pushvalue(L, 3);
+                lua_call(L, 2, 0);
+                return true;
+            } else {
+                const char *field = lua_tostring(L, 2);
+                if (field == NULL) field = "<unknown>";
+                luaL_error(L, "field '%s' is readonly");
+                return false;
+            }
         }
     }
+    return false;
+}
+
+bool am_try_default_newindex(lua_State *L) {
+    lua_getmetatable(L, 1);
+    lua_pushvalue(L, 2);
+    lua_rawget(L, -2);
+    if (try_setter(L)) {
+        return true;
+    } else if (lua_isnil(L, -1)) {
+        lua_pop(L, 2); // nil, metatable
+        lua_getuservalue(L, 1);
+        if (!lua_istable(L, -1)) {
+            lua_pop(L, 1); // uservalue
+            return false;
+        }
+        lua_pushvalue(L, 2);
+        lua_rawget(L, -2);
+        if (try_setter(L)) {
+            return true;
+        } else {
+            lua_pop(L, 2); // uservalue, field val
+            return false;
+        }
+    }
+    lua_pop(L, 2);
+    return false;
+}
+
+int am_default_newindex_func(lua_State *L) {
+    if (am_try_default_newindex(L)) return 0;
     const char *field = lua_tostring(L, 2);
     if (field == NULL) field = "<unknown>";
-    return luaL_error(L, "cannot set field '%s' to value of type %s", field, am_get_typename(L, am_get_type(L, 3)));
+    return luaL_error(L, "attempt set field '%s' to value of type %s", field, am_get_typename(L, am_get_type(L, 3)));
 }
 
 void am_set_default_index_func(lua_State *L) {
@@ -264,24 +372,36 @@ void am_set_default_newindex_func(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
 }
 
-static int getusertable(lua_State *L) {
+static int getter_key(lua_State *L) {
     am_check_nargs(L, 1);
-    if (lua_type(L, 1) != LUA_TUSERDATA) {
-        return luaL_error(L, "expecting a full userdata argument (in fact a %s)", lua_typename(L, lua_type(L, 1)));
-    }
-    am_userdata *ud = (am_userdata*)lua_touserdata(L, 1);
-    if (!(ud->ud_flags & AM_NONATOMIC_MASK)) {
-        lua_pushnil(L);
-        return 1;
-    }
-    am_nonatomic_userdata *naud = (am_nonatomic_userdata*)ud;
-    naud->pushuservalue(L);
+    lua_pushlightuserdata(L, (void*)lua_tostring(L, 1));
     return 1;
+}
+
+static int setter_key(lua_State *L) {
+    am_check_nargs(L, 1);
+    lua_pushlightuserdata(L, (void*)(lua_tostring(L, 1) + 1));
+    return 1;
+}
+
+static int custom_property_marker(lua_State *L) {
+    lua_pushlightuserdata(L, NULL);
+    return 1;
+}
+
+static int setmetatable(lua_State *L) {
+    am_check_nargs(L, 2);
+    lua_pushvalue(L, 2);
+    lua_setmetatable(L, 1);
+    return 0;
 }
 
 void am_open_userdata_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"_getusertable",    getusertable},
+        {"_getter_key",             getter_key},
+        {"_setter_key",             setter_key},
+        {"_custom_property_marker", custom_property_marker},
+        {"_setmetatable",           setmetatable},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

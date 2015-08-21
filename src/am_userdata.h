@@ -10,8 +10,17 @@
  * can be traced by the GC.
  */
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// IMPORTANT: Do not register a class that derives from am_userdata and not
+// am_nonatomic_userdata as the child of a class that derives from
+// am_nonatomic_userdata.  An object registered this way will become corrupted
+// when retrieved from the lua stack and cast to the parent class.
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#define AM_METATABLE_ID_INDEX 1
+
 #define am_new_userdata(L, T, ...) \
-    ((T*)am_init_userdata(L, new (lua_newuserdata(L, sizeof(T))) T(__VA_ARGS__), MT_##T))
+    ((T*)am_set_metatable(L, new (lua_newuserdata(L, sizeof(T))) T(__VA_ARGS__), MT_##T))
 
 #define am_get_userdata(L, T, idx) \
     ((T*)am_check_metatable_id(L, MT_##T, idx))
@@ -19,24 +28,10 @@
 #define am_get_userdata_or_nil(L, T, idx) \
     (lua_isnil(L, idx) ? NULL : ((T*)am_check_metatable_id(L, MT_##T, idx)))
 
-#define AM_METATABLE_ID_MASK 0x0000FFFF
-#define AM_NONATOMIC_MASK    0x00010000
-
 template<typename T>
 struct am_lua_array;
 
-struct am_userdata {
-    uint32_t ud_flags;
-
-    am_userdata();
-
-    // push the Lua userdata for this object onto the stack
-    void push(lua_State *L);
-
-    virtual void force_vtable() {};
-};
-
-struct am_nonatomic_userdata : am_userdata {
+struct am_nonatomic_userdata {
     int num_refs; // number of references from this object to other
                   // lua objects. A value of -1 indicates that the
                   // uservalue table for this object has not been
@@ -44,6 +39,9 @@ struct am_nonatomic_userdata : am_userdata {
     int freelist; // head of freelist. 0 if empty.
 
     am_nonatomic_userdata();
+
+    // push the Lua userdata for this object onto the stack
+    void push(lua_State *L);
 
     // Create, delete, replace references to other Lua values
     int ref(lua_State *L, int idx);
@@ -53,7 +51,12 @@ struct am_nonatomic_userdata : am_userdata {
     // Push referenced object onto the stack.
     void pushref(lua_State *L, int ref);
 
+    // This will create the uservalue table if it does not exist.
     void pushuservalue(lua_State *L);
+
+    // this is needed so we can safely cast subclasses with virtual methods to
+    // this class from void*.
+    virtual void force_vtable() {};
 };
 
 template<typename T>
@@ -170,8 +173,8 @@ void am_register_metatable(lua_State *L, const char *tname, int metatable_id, in
 void am_push_metatable(lua_State *L, int metatable_id);
 int am_get_type(lua_State *L, int idx);
 const char* am_get_typename(lua_State *L, int metatable_id);
-am_userdata *am_check_metatable_id(lua_State *L, int metatable_id, int idx);
-am_userdata *am_init_userdata(lua_State *L, am_userdata *ud, int metatable_id);
+void *am_check_metatable_id(lua_State *L, int metatable_id, int idx);
+void *am_set_metatable(lua_State *L, void *ud, int metatable_id);
 
 void am_register_property(lua_State *L, const char *field, const am_property *property);
 
@@ -179,5 +182,6 @@ int am_default_index_func(lua_State *L);
 int am_default_newindex_func(lua_State *L);
 void am_set_default_index_func(lua_State *L);
 void am_set_default_newindex_func(lua_State *L);
+bool am_try_default_newindex(lua_State *L);
 
 void am_open_userdata_module(lua_State *L);

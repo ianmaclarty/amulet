@@ -1,4 +1,7 @@
 #define AM_MAX_CHANNELS 2
+#define AM_MIN_FFT_SIZE 64
+#define AM_MAX_FFT_SIZE 2048
+#define AM_MAX_FFT_BINS (AM_MAX_FFT_SIZE / 2 + 1)
 
 struct am_audio_node;
 
@@ -83,7 +86,6 @@ struct am_audio_node : am_nonatomic_userdata {
     int last_render;
     uint32_t flags;
     int recursion_limit;
-    int root_ref;
 
     am_audio_node();
 
@@ -93,6 +95,7 @@ struct am_audio_node : am_nonatomic_userdata {
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 struct am_gain_node : am_audio_node {
@@ -171,15 +174,17 @@ struct am_audio_track_node : am_audio_node {
     am_audio_param<float> playback_speed;
     bool loop;
     bool needs_reset;
+    bool done_server;
     bool done_client;
 
-    float current_position;
-    float next_position;
+    double current_position;
+    double next_position;
 
     am_audio_track_node();
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 struct am_audio_stream_node : am_audio_node {
@@ -194,13 +199,14 @@ struct am_audio_stream_node : am_audio_node {
     bool done_server;
     bool done_client;
 
-    float current_position;
-    float next_position;
+    double current_position;
+    double next_position;
 
     am_audio_stream_node();
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 enum am_waveform {
@@ -220,6 +226,31 @@ struct am_oscillator_node : am_audio_node {
     virtual void sync_params();
     virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
     virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
+};
+
+struct am_spectrum_node : am_audio_node {
+    int fftsize;
+    int num_bins;
+    float bin_data[AM_MAX_FFT_BINS];
+    kiss_fftr_cfg cfg;
+    am_audio_param<float> smoothing;
+    am_buffer_view *arr;
+    int arr_ref;
+    bool done;
+    
+    am_spectrum_node();
+    virtual void sync_params();
+    virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
+    virtual void post_render(am_audio_context *context, int num_samples);
+};
+
+struct am_capture_node : am_audio_node {
+    am_capture_node();
+    virtual void sync_params();
+    virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
+    virtual void post_render(am_audio_context *context, int num_samples);
+    virtual bool finished();
 };
 
 void am_open_audio_module(lua_State *L);
@@ -230,3 +261,5 @@ void am_sync_audio_graph(lua_State *L);
 
 void am_interleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
     int num_channels, int num_samples, int sample_offset, int count);
+void am_uninterleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
+    int num_channels, int num_samples);

@@ -8,6 +8,7 @@ struct am_texture2d : am_nonatomic_userdata {
     bool                    has_mipmap;
     am_buffer               *buffer;
     int                     buffer_ref;
+    int                     last_video_capture_frame;
 
     void update_from_buffer();
 };

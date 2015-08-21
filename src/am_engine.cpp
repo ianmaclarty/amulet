@@ -7,23 +7,40 @@ static void init_package_searcher(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
 static void set_arg_global(lua_State *L, int argc, char** argv);
 
-lua_State *am_init_engine(bool worker, int argc, char** argv) {
+am_engine *am_init_engine(bool worker, int argc, char** argv) {
+#if defined(AM_LUAJIT) && defined(AM_64BIT)
+    // luajit requires using luaL_newstate on 64 bit
     lua_State *L = luaL_newstate();
+    if (L == NULL) return NULL;
+    am_allocator *allocator = NULL;
+#else
+    am_allocator *allocator = am_new_allocator();
+    lua_State *L = lua_newstate(&am_alloc, allocator);
+    if (L == NULL) {
+        am_destroy_allocator(allocator);
+        return NULL;
+    }
+#endif
+    am_engine *eng = new am_engine();
+    eng->allocator = allocator;
+    eng->L = L;
+    eng->worker = worker;
     init_reserved_refs(L);
     init_metatable_registry(L);
     open_stdlualibs(L);
     set_arg_global(L, argc, argv);
     init_package_searcher(L);
     am_init_traceback_func(L);
+    am_open_userdata_module(L);
     am_open_logging_module(L);
     am_open_math_module(L);
     am_open_time_module(L);
     am_open_buffer_module(L);
-    am_open_userdata_module(L);
     am_open_json_module(L);
+    am_open_utf8_module(L);
     if (!worker) {
         am_init_param_name_map(L);
-        am_init_actions(L);
+        am_open_actions_module(L);
         am_open_window_module(L);
         am_open_scene_module(L);
         am_open_program_module(L);
@@ -39,21 +56,27 @@ lua_State *am_init_engine(bool worker, int argc, char** argv) {
         am_open_renderer_module(L);
         am_open_audio_module(L);
     }
+    am_set_globals_metatable(L);
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
         return NULL;
     }
-    am_set_globals_metatable(L);
-    return L;
+    return eng;
 }
 
-void am_destroy_engine(lua_State *L) {
-    // Audio must be destroyed before closing the lua state, because
-    // closing the lua state will destroy the root audio node.
-    am_destroy_audio();
-    am_destroy_windows(L);
-    lua_close(L);
-    am_reset_log_cache();
+void am_destroy_engine(am_engine *eng) {
+    if (!eng->worker) {
+        // Audio must be destroyed before closing the lua state, because
+        // closing the lua state will destroy the root audio node.
+        am_destroy_audio();
+        am_destroy_windows(eng->L);
+    }
+    lua_close(eng->L);
+    if (eng->allocator != NULL) {
+        am_destroy_allocator(eng->allocator);
+    }
+    delete eng;
+    am_reset_log_cache(); // XXX what about other running engines?
 }
 
 static void init_reserved_refs(lua_State *L) {
@@ -149,13 +172,18 @@ static bool run_embedded_script(lua_State *L, const char *filename) {
 static bool run_embedded_scripts(lua_State *L, bool worker) {
     return
         run_embedded_script(L, "lua/traceback.lua") &&
+        run_embedded_script(L, "lua/setup.lua") &&
         run_embedded_script(L, "lua/type.lua") &&
         run_embedded_script(L, "lua/extra.lua") &&
         run_embedded_script(L, "lua/config.lua") &&
         run_embedded_script(L, "lua/time.lua") &&
         run_embedded_script(L, "lua/buffer.lua") &&
+        run_embedded_script(L, "lua/shaders.lua") &&
         run_embedded_script(L, "lua/shapes.lua") &&
+        run_embedded_script(L, "lua/text.lua") &&
         run_embedded_script(L, "lua/events.lua") &&
-        run_embedded_script(L, "lua/actions.lua");
+        run_embedded_script(L, "lua/actions.lua") &&
+        run_embedded_script(L, "lua/audio.lua") &&
+        run_embedded_script(L, "lua/tweens.lua");
 }
 

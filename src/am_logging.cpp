@@ -21,6 +21,7 @@ static void init_logcache() {
 }
 
 // Returns true if the msg was not found and adds it to the cache.
+// XXX not thread safe
 static bool check_log_cache(char *msg) {
     init_logcache();
     int i = 0;

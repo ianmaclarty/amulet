@@ -19,6 +19,7 @@ static int create_window(lua_State *L) {
     bool borderless = false;
     bool depth_buffer = false;
     bool stencil_buffer = false;
+    glm::vec4 clear_color(0.0f, 0.0f, 0.0f, 1.0f);
     bool lock_pointer = false;
     int msaa_samples = 0;
 
@@ -60,6 +61,8 @@ static int create_window(lua_State *L) {
             if (msaa_samples < 0) {
                 return luaL_error(L, "msaa_samples can't be negative");
             }
+        } else if (strcmp(key, "clear_color") == 0) {
+            clear_color = am_get_userdata(L, am_vec4, -1)->v;
         } else {
             return luaL_error(L, "unrecognised window setting: '%s'", key);
         }
@@ -78,6 +81,7 @@ static int create_window(lua_State *L) {
         depth_buffer,
         stencil_buffer,
         msaa_samples);
+    win->clear_color = clear_color;
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
@@ -103,6 +107,11 @@ static int create_window(lua_State *L) {
     lua_pop(L, 1); // window table
 
     windows.push_back(win);
+
+    win->pushuservalue(L);
+    lua_newtable(L);
+    lua_setfield(L, -2, "_event_data");
+    lua_pop(L, 1); // uservalue
 
     lua_pushvalue(L, -1);
     am_call_amulet(L, "_init_window_event_data", 1, 0);
@@ -198,6 +207,8 @@ static void draw_windows() {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
             am_get_native_window_size(win->native_win, &win->width, &win->height);
+            glm::vec4 cc = win->clear_color;
+            am_set_framebuffer_clear_color(cc.r, cc.g, cc.b, cc.a);
             rstate->do_render(win->root, 0, true, win->width, win->height, win->has_depth_buffer);
             am_native_window_post_render(win->native_win);
         }
@@ -217,7 +228,7 @@ bool am_update_windows(lua_State *L) {
 }
 
 bool am_execute_actions(lua_State *L, double dt) {
-    am_pre_execute_actions(L, dt);
+    am_pre_frame(L, dt);
     unsigned int n = windows.size();
     bool res = true;
     for (unsigned int i = 0; i < n; i++) {
@@ -231,7 +242,7 @@ bool am_execute_actions(lua_State *L, double dt) {
             am_call_amulet(L, "_clear_events", 1, 0);
         }
     }
-    am_post_execute_actions(L);
+    am_post_frame(L);
     return res;
 }
 
@@ -322,6 +333,17 @@ static void set_window_mode(lua_State *L, void *obj) {
 
 static am_property window_mode_property = {get_window_mode, set_window_mode};
 
+static void get_clear_color(lua_State *L, void *obj) {
+    am_window *win = (am_window*)obj;
+    am_new_userdata(L, am_vec4)->v = win->clear_color;
+}
+static void set_clear_color(lua_State *L, void *obj) {
+    am_window *win = (am_window*)obj;
+    win->clear_color = am_get_userdata(L, am_vec4, 3)->v;
+}
+
+static am_property clear_color_property = {get_clear_color, set_clear_color};
+
 static void register_window_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -333,6 +355,7 @@ static void register_window_mt(lua_State *L) {
     am_register_property(L, "width", &width_property);
     am_register_property(L, "height", &height_property);
     am_register_property(L, "mode", &window_mode_property);
+    am_register_property(L, "clear_color", &clear_color_property);
 
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");

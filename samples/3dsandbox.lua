@@ -21,7 +21,6 @@ local camera
 local shader
 
 local main_action
-local log_action
 local init_shader
 local create_floor
 local load_model
@@ -36,49 +35,33 @@ function init()
     objects = am.group()
     objects:append(create_floor())
     local torus = load_model("torus.obj")
-        :rotate("MV", 0, 0, 1, 0):action(function(node)
-            node.angle = am.frame_time
-            return 0
+        :rotate("MV", quat(0, vec3(0, 1, 0))):action(function(node)
+            node.rotation = quat(am.frame_time, vec3(0, 1, 0))
         end)
-        :rotate("MV", 0, 1, 0, 0):action(function(node)
-            node.angle = am.frame_time * 0.3
-            return 0
+        :rotate("MV", quat(0, vec3(1, 0, 0))):action(function(node)
+            node.rotation = quat(am.frame_time * 0.3, vec3(1, 0, 0))
         end)
-        :rotate("MV", 0, 0, 0, 1):action(function(node)
-            node.angle = am.frame_time * 0.7
-            return 0
+        :rotate("MV", quat(0, vec3(0, 0, 1))):action(function(node)
+            node.rotation = quat(am.frame_time * 0.7, vec3(0, 0, 1))
         end)
         :scale("MV", vec3(0.5))
         :cull_sphere("P", "MV", 1.5)
     for i = 1, 20000 do
         objects:append(torus
-            :rotate("MV", math.random() * math.pi * 2, math.normalize(vec3(math.random(), math.random(), math.random())))
-            :translate("MV", (math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
+            :rotate("MV", quat(
+                math.random() * math.pi * 2, math.normalize(vec3(math.random(), math.random(), math.random()))))
+            :translate("MV", vec3((math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100)))
     end
-    --[[
-    for i = 1, 3 do
-        for j = 1, 3 do
-            local tree = load_image("tree.png")
-                :billboard("MV", true)
-                :scale("MV", vec3(i*j))
-                :translate("MV", -i*6, -1, -j*6)
-                --:blend("add")
-                --:pass(2)
-            objects:prepend(tree)
-        end
-    end
-    ]]
 
     camera = objects
         :lookat("MV", vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0))
 
     win.root = camera
-        :bind_mat4("P", math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip))
+        :bind{P = math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip)}
         :bind_program(shader)
         :cull_face("ccw")
 
     win.root:action(main_action)
-    win.root:action(log_action)
 end
 
 local pitch = 0
@@ -116,12 +99,7 @@ function main_action()
         win.lock_pointer = not win.lock_pointer
     end
     update_camera()
-    return 0
-end
-
-function log_action()
-    log(am.perf_stats().avg_fps.." FPS")
-    return 1
+    log(am.perf_stats().avg_fps)
 end
 
 local
@@ -133,7 +111,7 @@ function load_texture(name, swrap, twrap, minfilter, magfilter)
     twrap = twrap or "repeat"
     minfilter = minfilter or "linear_mipmap_linear"
     magfilter = magfilter or "linear"
-    local img = am.decode_png(am.read_buffer(name))
+    local img = am.load_image(name)
     local texture = am.texture2d{
         buffer = img.buffer,
         width = img.width,
@@ -152,22 +130,24 @@ function create_floor()
     local s = 100
     local y = floor_y
     return am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
-        :bind_array("pos", am.vec3_array{
-            -r, y, r,
-            r, y, r,
-            -r, y, -r,
-            r, y, -r})
-        :bind_array("uv", am.vec2_array{
-            0, 0,
-            s, 0,
-            0, s,
-            s, s})
-        :bind_array("color", am.vec3_array{
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1})
-        :bind_sampler2d("tex", load_texture("floor_tile.png"))
+        :bind{
+            pos = am.vec3_array{
+                -r, y, r,
+                r, y, r,
+                -r, y, -r,
+                r, y, -r},
+            uv = am.vec2_array{
+                0, 0,
+                s, 0,
+                0, s,
+                s, s},
+            color = am.vec3_array{
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1},
+            tex = load_texture("floor_tile.png"),
+        }
 end
 
 function init_shader() 
@@ -204,30 +184,34 @@ function load_model(name)
     local uvs = buf:view("vec2", 0, stride)
     local colors = buf:view("vec3", normals_offset, stride)
     return am.draw_arrays("triangles")
-        :bind_array("pos", verts)
-        :bind_array("uv", uvs)
-        :bind_array("color", colors)
-        :bind_sampler2d("tex", load_texture("gradient.png"))
+        :bind{
+            pos = verts,
+            uv = uvs,
+            color = colors,
+            tex = load_texture("gradient.png"),
+        }
 end
 
 function load_image(name)
     return am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
-        :bind_array("pos", am.vec3_array{
-            -1, 0, 0,
-            1, 0, 0,
-            -1, 2, 0,
-            1, 2, 0})
-        :bind_array("uv", am.vec2_array{
-            0, 0,
-            1, 0,
-            0, 1,
-            1, 1})
-        :bind_array("color", am.vec3_array{
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1})
-        :bind_sampler2d("tex", load_texture(name, "mirrored_repeat", "mirrored_repeat"))
+        :bind{
+            pos = am.vec3_array{
+                -1, 0, 0,
+                1, 0, 0,
+                -1, 2, 0,
+                1, 2, 0},
+            uv = am.vec2_array{
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1},
+            color = am.vec3_array{
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1},
+            tex = load_texture(name, "mirrored_repeat", "mirrored_repeat"),
+        }
 end
 
 

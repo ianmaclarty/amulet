@@ -1,7 +1,9 @@
 #include "amulet.h"
 
-#define AM_AUDIO_NODE_FLAG_MARK           ((uint32_t)1)
-#define AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY ((uint32_t)2)
+#define AM_AUDIO_NODE_FLAG_MARK             ((uint32_t)1)
+#define AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY   ((uint32_t)2)
+#define AM_AUDIO_NODE_FLAG_PENDING_PAUSE    ((uint32_t)4)
+#define AM_AUDIO_NODE_MASK_LIVE_PAUSE_STATE ((uint32_t)(8+16))
 
 #define node_marked(node)           (node->flags & AM_AUDIO_NODE_FLAG_MARK)
 #define mark_node(node)             node->flags |= AM_AUDIO_NODE_FLAG_MARK
@@ -10,6 +12,18 @@
 #define children_dirty(node)        (node->flags & AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY)
 #define set_children_dirty(node)    node->flags |= AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY
 #define clear_children_dirty(node)  node->flags &= ~AM_AUDIO_NODE_FLAG_CHILDREN_DIRTY
+
+#define LIVE_PAUSE_STATE_UNPAUSED   (0 << 3)
+#define LIVE_PAUSE_STATE_BEGIN      (1 << 3)
+#define LIVE_PAUSE_STATE_PAUSED     (2 << 3) 
+#define LIVE_PAUSE_STATE_END        (3 << 3)
+
+#define live_pause_state(node)      (node->flags & AM_AUDIO_NODE_MASK_LIVE_PAUSE_STATE)
+#define set_live_pause_state(node, state) {node->flags &= ~AM_AUDIO_NODE_MASK_LIVE_PAUSE_STATE; node->flags |= state;}
+
+#define pending_pause(node)         (node->flags & AM_AUDIO_NODE_FLAG_PENDING_PAUSE)
+#define set_pending_pause(node)     node->flags |= AM_AUDIO_NODE_FLAG_PENDING_PAUSE
+#define clear_pending_pause(node)   node->flags &= ~AM_AUDIO_NODE_FLAG_PENDING_PAUSE
 
 static am_audio_context audio_context;
 
@@ -83,7 +97,7 @@ am_audio_bus::~am_audio_bus() {
 
 // Audio Param
 
-inline static float linear_incf(am_audio_param<float> param, int samples) {
+static float linear_incf(am_audio_param<float> param, int samples) {
     return (param.target_value - param.current_value) / (float)samples;
 }
 
@@ -96,7 +110,6 @@ am_audio_node::am_audio_node() {
     last_render = 0;
     flags = 0;
     recursion_limit = 0;
-    root_ref = LUA_NOREF;
 }
 
 void am_audio_node::sync_params() {
@@ -107,6 +120,14 @@ void am_audio_node::post_render(am_audio_context *context, int num_samples) {
 
 void am_audio_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     render_children(context, bus);
+}
+
+bool am_audio_node::finished() {
+    for (int i = 0; i < pending_children.size; i++) {
+        am_audio_node_child *child = &pending_children.arr[i];
+        if (!child->child->finished()) return false;
+    }
+    return true;
 }
 
 static void mix_bus(am_audio_bus * AM_RESTRICT dest, am_audio_bus * AM_RESTRICT src) {
@@ -153,28 +174,34 @@ void am_audio_node::render_children(am_audio_context *context, am_audio_bus *bus
     recursion_limit--;
     for (int i = 0; i < live_children.size; i++) {
         am_audio_node_child *child = &live_children.arr[i];
-        switch (child->state) {
-            case AM_AUDIO_NODE_CHILD_STATE_NEW: {
-                am_audio_bus tmp(bus);
-                child->child->render_audio(context, &tmp);
+        int pause_state = live_pause_state(child->child);
+        am_audio_node_child_state child_state = child->state;
+        if (child_state == AM_AUDIO_NODE_CHILD_STATE_OLD
+            && pause_state == LIVE_PAUSE_STATE_UNPAUSED)
+        {
+            child->child->render_audio(context, bus);
+        } else if (child_state == AM_AUDIO_NODE_CHILD_STATE_DONE
+            || pause_state == LIVE_PAUSE_STATE_PAUSED
+            // also ignore if paused and added at same time...
+            || (pause_state == LIVE_PAUSE_STATE_BEGIN && child->state == AM_AUDIO_NODE_CHILD_STATE_NEW)
+            // ...or if unpaused and removed at same time
+            || (pause_state == LIVE_PAUSE_STATE_END && child->state == AM_AUDIO_NODE_CHILD_STATE_REMOVED))
+        {
+            // ignore
+        } else {
+            // a fadein or fadeout is required, because
+            // the child was recently added/removed or
+            // paused/unpaused.
+            am_audio_bus tmp(bus);
+            child->child->render_audio(context, &tmp);
+            if (child_state == AM_AUDIO_NODE_CHILD_STATE_NEW || pause_state == LIVE_PAUSE_STATE_END) {
                 apply_fadein(&tmp);
-                mix_bus(bus, &tmp);
-                break;
-            }
-            case AM_AUDIO_NODE_CHILD_STATE_OLD: {
-                child->child->render_audio(context, bus);
-                break;
-            }
-            case AM_AUDIO_NODE_CHILD_STATE_REMOVED: {
-                am_audio_bus tmp(bus);
-                child->child->render_audio(context, &tmp);
+            } else if (child_state == AM_AUDIO_NODE_CHILD_STATE_REMOVED || pause_state == LIVE_PAUSE_STATE_BEGIN) {
                 apply_fadeout(&tmp);
-                mix_bus(bus, &tmp);
-                break;
+            } else {
+                assert(false);
             }
-            case AM_AUDIO_NODE_CHILD_STATE_DONE: {
-                break;
-            }
+            mix_bus(bus, &tmp);
         }
     }
     recursion_limit++;
@@ -383,50 +410,49 @@ am_audio_track_node::am_audio_track_node()
     buffer_ref = LUA_NOREF;
     num_channels = 2;
     sample_rate = 44100;
-    current_position = 0.0f;
-    next_position = 0.0f;
+    current_position = 0.0;
+    next_position = 0.0;
     loop = false;
     needs_reset = false;
+    done_server = false;
     done_client = false;
 }
 
 void am_audio_track_node::sync_params() {
     playback_speed.update_target();
     if (needs_reset) {
-        current_position = 0.0f;
-        next_position = 0.0f;
+        current_position = 0.0;
+        next_position = 0.0;
         needs_reset = false;
+        done_server = false;
     }
-    int buf_num_samples = buffer->size / (num_channels * sizeof(float));
-    done_client = !loop && current_position >= (float)buf_num_samples;
+    done_client = done_server;
 }
 
-static inline bool track_resample_required(am_audio_track_node *node) {
+static bool track_resample_required(am_audio_track_node *node) {
     return (node->sample_rate != am_conf_audio_sample_rate)
         || (node->playback_speed.current_value != node->playback_speed.target_value)
         || (fabs(node->playback_speed.current_value - 1.0f) > 0.00001f);
 }
 
-static inline bool is_paused(float playback_speed) {
+static bool is_too_slow(float playback_speed) {
     return playback_speed < 0.00001f;
 }
 
 void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
-    if (is_paused(playback_speed.current_value)) return;
+    if (done_server) return;
+    if (is_too_slow(playback_speed.current_value)) return;
     int buf_num_channels = num_channels;
     int buf_num_samples = buffer->size / (buf_num_channels * sizeof(float));
     int bus_num_samples = bus->num_samples;
     int bus_num_channels = bus->num_channels;
-    if (!loop && current_position >= buf_num_samples) {
-        return;
-    }
     if (!track_resample_required(this)) {
         // optimise common case where no resampling is required
         for (int c = 0; c < bus_num_channels; c++) {
             float *bus_data = bus->channel_data[c];
             float *buf_data = ((float*)buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
-                int buf_pos = (int)current_position;
+                int buf_pos = (int)floor(current_position);
                 assert(buf_pos < buf_num_samples);
                 for (int bus_pos = 0; bus_pos < bus_num_samples; bus_pos++) {
                     bus_data[bus_pos] += buf_data[buf_pos++];
@@ -434,6 +460,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                         if (loop) {
                             buf_pos = 0;
                         } else {
+                            done_server = true;
                             break;
                         }
                     }
@@ -444,9 +471,9 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                 memcpy(bus_data, bus->channel_data[c-1], bus_num_samples * sizeof(float));
             }
         }
-        next_position = current_position + (float)bus_num_samples;
-        if (loop && next_position >= (float)buf_num_samples) {
-            next_position = fmodf(next_position, (float)buf_num_samples);
+        next_position = current_position + (double)bus_num_samples;
+        if (next_position >= (double)buf_num_samples) {
+            next_position = fmod(next_position, (double)buf_num_samples);
         }
     } else {
         // resample
@@ -454,27 +481,29 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
             float *bus_data = bus->channel_data[c];
             float *buf_data = ((float*)buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
-                float pos = current_position;
+                double pos = current_position;
                 for (int write_index = 0; write_index < bus_num_samples; write_index++) {
-                    int read_index1 = (int)floorf(pos);
+                    int read_index1 = (int)floor(pos);
                     int read_index2 = read_index1 + 1;
                     if (read_index2 >= buf_num_samples) {
                         if (loop) {
                             read_index2 = 0;
                         } else {
+                            done_server = true;
                             break;
                         }
                     }
-                    float interpolation_factor = (float)(pos - (float)read_index1);
+                    double interpolation_factor = pos - (double)read_index1;
                     float sample1 = buf_data[read_index1];
                     float sample2 = buf_data[read_index2];
-                    float interpolated_sample = (1.0f - interpolation_factor) * sample1 + interpolation_factor * sample2;
+                    float interpolated_sample = (1.0 - interpolation_factor) * sample1 + interpolation_factor * sample2;
                     bus_data[write_index] += interpolated_sample;
                     pos += playback_speed.interpolate_linear(write_index) * sample_rate_ratio;
-                    if (pos >= (float)buf_num_samples) {
+                    if (pos >= (double)buf_num_samples) {
                         if (loop) {
-                            pos = fmodf(pos, (float)buf_num_samples);
+                            pos = fmod(pos, (double)buf_num_samples);
                         } else {
+                            done_server = true;
                             break;
                         }
                     }
@@ -494,6 +523,10 @@ void am_audio_track_node::post_render(am_audio_context *context, int num_samples
     current_position = next_position;
 }
 
+bool am_audio_track_node::finished() {
+    return done_client;
+}
+
 // Audio stream node
 
 am_audio_stream_node::am_audio_stream_node()
@@ -508,8 +541,8 @@ am_audio_stream_node::am_audio_stream_node()
     loop = false;
     done_server = false;
     done_client = false;
-    current_position = 0.0f;
-    next_position = 0.0f;
+    current_position = 0.0;
+    next_position = 0.0;
 }
 
 void am_audio_stream_node::sync_params() {
@@ -518,9 +551,7 @@ void am_audio_stream_node::sync_params() {
 }
 
 void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
-    if (!loop && done_server) {
-        return;
-    }
+    if (done_server) return;
     int bus_num_samples = bus->num_samples;
     int bus_num_channels = bus->num_channels;
     stb_vorbis *f = (stb_vorbis*)handle;
@@ -530,13 +561,14 @@ void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus 
     for (int i = 0; i < bus_num_channels; i++) {
         channel_data[i] = tmp.channel_data[i];
     }
-    while (n < bus_num_samples && !done_server) {
+    while (n < bus_num_samples) {
         int m = stb_vorbis_get_samples_float(f, bus_num_channels, channel_data, bus_num_samples - n);
         if (m == 0) {
             if (loop) {
                 stb_vorbis_seek_start(f);
             } else {
                 done_server = true;
+                break;
             }
         } else {
             n += m;
@@ -551,17 +583,15 @@ void am_audio_stream_node::render_audio(am_audio_context *context, am_audio_bus 
         memcpy(tmp.channel_data[c], tmp.channel_data[c-1], bus_num_samples * sizeof(float));
     }
     mix_bus(bus, &tmp);
-    /*
-    next_position = current_position + (float)bus_num_samples;
-    if (loop && next_position >= (float)buf_num_samples) {
-        next_position = fmodf(next_position, (float)buf_num_samples);
-    }
-    */
 }
 
 void am_audio_stream_node::post_render(am_audio_context *context, int num_samples) {
     playback_speed.update_current();
     current_position = next_position;
+}
+
+bool am_audio_stream_node::finished() {
+    return done_client;
 }
 
 // Oscillator Node
@@ -610,8 +640,163 @@ void am_oscillator_node::render_audio(am_audio_context *context, am_audio_bus *b
     }
 }
 
+bool am_oscillator_node::finished() {
+    return false;
+}
+
+// Spectrum node
+
+am_spectrum_node::am_spectrum_node() : smoothing(0.9f) {
+    for (int i = 0; i < AM_MAX_FFT_BINS; i++) {
+        bin_data[i] = 0.0f;
+    }
+    fftsize = 1024;
+    num_bins = fftsize / 2 + 1;
+    cfg = NULL;
+    arr = NULL;
+    arr_ref = LUA_NOREF;
+}
+
+void am_spectrum_node::sync_params() {
+    if (arr->size < num_bins - 1) return;
+    if (arr->type != AM_VIEW_TYPE_FLOAT) return;
+    for (int i = 1; i < num_bins; i++) {
+        float data = bin_data[i];
+        float decibels = data == 0.0f ? -1000.0f : 20.0f * log10f(data);
+        arr->set_float(i-1, decibels);
+    }
+    smoothing.update_target();
+    smoothing.update_current();
+    done = false;
+}
+
+void am_spectrum_node::post_render(am_audio_context *context, int num_samples) {
+}
+
+static void apply_fft_window(float *p, size_t n) {
+    // Blackman window, copied from http://www.chromium.org/blink
+    double alpha = 0.16;
+    double a0 = 0.5 * (1 - alpha);
+    double a1 = 0.5;
+    double a2 = 0.5 * alpha;
+
+    for (unsigned i = 0; i < n; ++i) {
+        double x = static_cast<double>(i) / static_cast<double>(n);
+        double window = a0 - a1 * cos(AM_2PI * x) + a2 * cos(AM_2PI * 2.0 * x);
+        p[i] *= float(window);
+    }
+}
+
+void am_spectrum_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
+    am_audio_bus tmp(bus);
+    render_children(context, &tmp);
+    mix_bus(bus, &tmp);
+    if (done) return;
+
+    int num_channels = tmp.num_channels;
+    int num_samples = tmp.num_samples;
+
+    if (fftsize > num_samples) {
+        am_log1("%s", "WARNING: fft size > audio buffer size, ignoring");
+        return;
+    }
+    if (num_samples % fftsize != 0) {
+        am_log1("%s", "WARNING: audio buffer size not divisible by fft size, ignoring");
+        return;
+    }
+    if (!am_is_power_of_two(fftsize)) {
+        am_log1("%s", "WARNING: fft size is not a power of 2, ignoring");
+        return;
+    }
+
+    float *input = tmp.channel_data[0];
+
+    // combine channels
+    for (int c = 1; c < num_channels; c++) {
+        float *channeln = tmp.channel_data[c];
+        for (int s = 0; s < num_samples; s++) {
+            input[s] += channeln[s];
+        }
+    }
+    
+    for (int i = 0; i < num_samples / fftsize; i++) {
+        apply_fft_window(input, fftsize);
+        kiss_fft_cpx output[AM_MAX_FFT_BINS];
+        kiss_fftr(cfg, input, output);
+
+        // Adapted from http://www.chromium.org/blink (I don't understand this)
+        // Normalize so that an input sine wave at 0dBfs registers as 0dBfs (undo FFT scaling factor).
+        const float magnitudeScale = 1.0f / (float)fftsize;
+
+        // A value of 0 does no averaging with the previous result.  Larger values produce slower, but smoother changes.
+        float k = smoothing.current_value;
+
+        // Convert the analysis data from complex to magnitude and average with the previous result.
+        for (int j = 0; j < num_bins; j++) {
+            float im = output[j].i;
+            float re = output[j].r;
+            double scalarMagnitude = sqrtf(re * re + im * im) * magnitudeScale;
+            bin_data[j] = k * bin_data[j] + (1.0f - k) * scalarMagnitude;
+        }
+
+        input += fftsize;
+    }
+
+    done = true;
+}
+
+// Capture Node
+
+am_capture_node::am_capture_node() {
+}
+
+void am_capture_node::sync_params() {
+}
+
+void am_capture_node::post_render(am_audio_context *context, int num_samples) {
+}
+
+void am_capture_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
+    am_audio_bus tmp(bus);
+    am_capture_audio(&tmp);
+    mix_bus(bus, &tmp);
+}
+
+bool am_capture_node::finished() {
+    return false;
+}
+
 //-------------------------------------------------------------------------
 // Lua bindings.
+
+static int search_uservalues(lua_State *L, am_audio_node *node) {
+    if (node_marked(node)) return 0; // cycle
+    node->pushuservalue(L); // push uservalue table of node
+    lua_pushvalue(L, 2); // push field
+    lua_rawget(L, -2); // lookup field in uservalue table
+    if (!lua_isnil(L, -1)) {
+        // found it
+        lua_remove(L, -2); // remove uservalue table
+        return 1;
+    }
+    lua_pop(L, 2); // pop nil, uservalue table
+    if (node->pending_children.size != 1) return 0;
+    mark_node(node);
+    am_audio_node *child = node->pending_children.arr[0].child;
+    child->push(L);
+    lua_replace(L, 1); // child is now at index 1
+    int r = search_uservalues(L, child);
+    unmark_node(node);
+    return r;
+}
+
+int am_audio_node_index(lua_State *L) {
+    am_audio_node *node = (am_audio_node*)lua_touserdata(L, 1);
+    am_default_index_func(L); // check metatable
+    if (!lua_isnil(L, -1)) return 1;
+    lua_pop(L, 1); // pop nil
+    return search_uservalues(L, node);
+}
 
 static int add_child(lua_State *L) {
     am_check_nargs(L, 2);
@@ -708,6 +893,54 @@ static int get_child(lua_State *L) {
     }
 }
 
+static void check_alias(lua_State *L) {
+    am_default_index_func(L);
+    if (!lua_isnil(L, -1)) goto error;
+    lua_pop(L, 1);
+    return;
+    error:
+    luaL_error(L,
+        "alias '%s' is already used for something else",
+        lua_tostring(L, 2));
+}
+
+static int alias(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    am_audio_node *node = am_get_userdata(L, am_audio_node, 1);
+    node->pushuservalue(L);
+    int userval_idx = am_absindex(L, -1);
+    if (lua_istable(L, 2)) {
+        // create multiple aliases - one for each key/value pair
+        lua_pushvalue(L, 2); // push table, as we need position 2 for check_alias
+        int tbl_idx = am_absindex(L, -1);
+        lua_pushnil(L);
+        while (lua_next(L, tbl_idx)) {
+            lua_pushvalue(L, -2); // key
+            lua_replace(L, 2); // check_alias expects key in position 2
+            check_alias(L);
+            lua_pushvalue(L, -2); // key
+            lua_pushvalue(L, -2); // value
+            lua_rawset(L, userval_idx); // uservalue[key] = value
+            lua_pop(L, 1); // value
+        }
+        lua_pop(L, 1); // table
+    } else if (lua_isstring(L, 2)) {
+        check_alias(L);
+        lua_pushvalue(L, 2);
+        if (nargs > 2) {
+            lua_pushvalue(L, 3);
+        } else {
+            lua_pushvalue(L, 1);
+        }
+        lua_rawset(L, userval_idx);
+    } else {
+        return luaL_error(L, "expecting a string or table at position 2");
+    }
+    lua_pop(L, 1); // uservalue
+    lua_pushvalue(L, 1);
+    return 1;
+}
+
 // Gain node lua bindings
 
 static int create_gain_node(lua_State *L) {
@@ -732,7 +965,8 @@ static am_property gain_property = {get_gain, set_gain};
 
 static void register_gain_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     am_register_property(L, "value", &gain_property);
@@ -777,7 +1011,8 @@ static am_property lowpass_resonance_property = {get_lowpass_resonance, set_lowp
 
 static void register_lowpass_filter_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     am_register_property(L, "cutoff", &lowpass_cutoff_property);
@@ -823,7 +1058,8 @@ static am_property highpass_resonance_property = {get_highpass_resonance, set_hi
 
 static void register_highpass_filter_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     am_register_property(L, "cutoff", &highpass_cutoff_property);
@@ -874,23 +1110,16 @@ static void set_track_playback_speed(lua_State *L, void *obj) {
 
 static am_property track_playback_speed_property = {get_track_playback_speed, set_track_playback_speed};
 
-static void get_track_done(lua_State *L, void *obj) {
-    am_audio_track_node *node = (am_audio_track_node*)obj;
-    lua_pushboolean(L, node->done_client);
-}
-
-static am_property track_done_property = {get_track_done, NULL};
-
 static void register_audio_track_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     lua_pushcclosure(L, reset_track, 0);
     lua_setfield(L, -2, "reset");
 
     am_register_property(L, "playback_speed", &track_playback_speed_property);
-    am_register_property(L, "done", &track_done_property);
 
     am_register_metatable(L, "track", MT_am_audio_track_node, MT_am_audio_node);
 }
@@ -946,22 +1175,15 @@ static void set_stream_playback_speed(lua_State *L, void *obj) {
 
 static am_property stream_playback_speed_property = {get_stream_playback_speed, set_stream_playback_speed};
 
-static void get_stream_done(lua_State *L, void *obj) {
-    am_audio_stream_node *node = (am_audio_stream_node*)obj;
-    lua_pushboolean(L, node->done_client);
-}
-
-static am_property stream_done_property = {get_stream_done, NULL};
-
 static void register_audio_stream_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
     lua_pushcclosure(L, audio_stream_gc, 0);
     lua_setfield(L, -2, "__gc");
 
     am_register_property(L, "playback_speed", &stream_playback_speed_property);
-    am_register_property(L, "done", &stream_done_property);
 
     am_register_metatable(L, "audio_stream", MT_am_audio_stream_node, MT_am_audio_node);
 }
@@ -1004,13 +1226,99 @@ static am_property freq_property = {get_freq, set_freq};
 
 static void register_oscillator_node_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     am_register_property(L, "phase", &phase_property);
     am_register_property(L, "freq", &freq_property);
 
     am_register_metatable(L, "oscillator", MT_am_oscillator_node, MT_am_audio_node);
+}
+
+// Spectrum node lua bindings
+
+static am_spectrum_node *new_spectrum_node(lua_State *L, int fftsize) {
+    size_t cfg_sz = 0;
+    kiss_fftr_alloc(fftsize, 0, NULL, &cfg_sz);
+    // allocate extra space for kissfft cfg
+    am_spectrum_node *node = (am_spectrum_node*)am_set_metatable(L,
+        new (lua_newuserdata(L, 
+            sizeof(am_spectrum_node) + cfg_sz))
+        am_spectrum_node(), MT_am_spectrum_node);
+    node->cfg = kiss_fftr_alloc(fftsize, 0, (void*)(node + 1), &cfg_sz);
+    assert(node->cfg);
+    node->fftsize = fftsize;
+    node->num_bins = fftsize / 2 + 1;
+    return node;
+}
+
+static int create_spectrum_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 3);
+    int freq_bins = luaL_checkinteger(L, 2);
+    int fftsize = freq_bins * 2;
+    if (fftsize < AM_MIN_FFT_SIZE) {
+        return luaL_error(L, "number of frequency bins must be at least %d", AM_MIN_FFT_SIZE / 2);
+    }
+    if (fftsize > am_min(am_conf_audio_buffer_size, AM_MAX_FFT_SIZE)) {
+        return luaL_error(L, "too many frequency bins (max %d)", am_min(am_conf_audio_buffer_size, AM_MAX_FFT_SIZE) / 2);
+    }
+    if (!am_is_power_of_two(fftsize)) {
+        return luaL_error(L, "frequency bins must be a power of 2", freq_bins);
+    }
+    am_spectrum_node *node = new_spectrum_node(L, fftsize);
+    am_set_audio_node_child(L, node);
+    node->arr = am_get_userdata(L, am_buffer_view, 3);
+    node->arr_ref = node->ref(L, 3);
+    if (node->arr->size < freq_bins) {
+        return luaL_error(L, "array must have at least %d elements", freq_bins);
+    }
+    if (node->arr->type != AM_VIEW_TYPE_FLOAT) {
+        return luaL_error(L, "array must have of type float");
+    }
+    if (nargs > 3) {
+        node->smoothing.set_immediate(luaL_checknumber(L, 4));
+    }
+    return 1;
+}
+
+static void get_smoothing(lua_State *L, void *obj) {
+    am_spectrum_node *node = (am_spectrum_node*)obj;
+    lua_pushnumber(L, node->smoothing.pending_value);
+}
+
+static void set_smoothing(lua_State *L, void *obj) {
+    am_spectrum_node *node = (am_spectrum_node*)obj;
+    node->smoothing.pending_value = am_clamp(luaL_checknumber(L, 3), 0.0, 1.0);
+}
+
+static am_property smoothing_property = {get_smoothing, set_smoothing};
+
+static void register_spectrum_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
+
+    am_register_property(L, "smoothing", &smoothing_property);
+
+    am_register_metatable(L, "spectrum", MT_am_spectrum_node, MT_am_audio_node);
+}
+
+// Capture node lua bindings
+
+static int create_capture_node(lua_State *L) {
+    am_new_userdata(L, am_capture_node);
+    return 1;
+}
+
+static void register_capture_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    am_set_default_newindex_func(L);
+
+    am_register_metatable(L, "capture", MT_am_capture_node, MT_am_audio_node);
 }
 
 // Audio node lua bindings
@@ -1025,16 +1333,50 @@ static int get_root_audio_node(lua_State *L) {
     return 1;
 }
 
+static void get_finished(lua_State *L, void *obj) {
+    am_audio_node *node = (am_audio_node*)obj;
+    lua_pushboolean(L, node->finished());
+}
+
+static am_property finished_property = {get_finished, NULL};
+
+static void get_num_children(lua_State *L, void *obj) {
+    am_audio_node *node = (am_audio_node*)obj;
+    lua_pushinteger(L, node->pending_children.size);
+}
+
+static am_property num_children_property = {get_num_children, NULL};
+
+static void get_paused(lua_State *L, void *obj) {
+    am_audio_node *node = (am_audio_node*)obj;
+    lua_pushboolean(L, pending_pause(node));
+}
+
+static void set_paused(lua_State *L, void *obj) {
+    am_audio_node *node = (am_audio_node*)obj;
+    if (lua_toboolean(L, 3)) {
+        set_pending_pause(node);
+    } else {
+        clear_pending_pause(node);
+    }
+}
+
+static am_property paused_property = {get_paused, set_paused};
+
 static void register_audio_node_mt(lua_State *L) {
     lua_newtable(L);
 
-    am_set_default_index_func(L);
+    lua_pushcclosure(L, am_audio_node_index, 0);
+    lua_setfield(L, -2, "__index");
     am_set_default_newindex_func(L);
 
     lua_pushcclosure(L, child_pairs, 0);
     lua_setfield(L, -2, "children");
     lua_pushcclosure(L, get_child, 0);
     lua_setfield(L, -2, "child");
+
+    lua_pushcclosure(L, alias, 0);
+    lua_setfield(L, -2, "alias");
 
     lua_pushcclosure(L, add_child, 0);
     lua_setfield(L, -2, "add");
@@ -1049,6 +1391,13 @@ static void register_audio_node_mt(lua_State *L) {
     lua_setfield(L, -2, "lowpass_filter");
     lua_pushcclosure(L, create_highpass_filter_node, 0);
     lua_setfield(L, -2, "highpass_filter");
+
+    lua_pushcclosure(L, create_spectrum_node, 0);
+    lua_setfield(L, -2, "spectrum");
+
+    am_register_property(L, "finished", &finished_property);
+    am_register_property(L, "num_children", &num_children_property);
+    am_register_property(L, "paused", &paused_property);
 
     am_register_metatable(L, "audio_node", MT_am_audio_node, 0);
 }
@@ -1124,9 +1473,17 @@ void am_destroy_audio() {
     clear_buffer_pool();
 }
 
+static void update_live_pause_state(am_audio_node *node) {
+    switch (live_pause_state(node)) {
+        case LIVE_PAUSE_STATE_BEGIN: set_live_pause_state(node, LIVE_PAUSE_STATE_PAUSED); break;
+        case LIVE_PAUSE_STATE_END: set_live_pause_state(node, LIVE_PAUSE_STATE_UNPAUSED); break;
+    }
+}
+
 static void do_post_render(am_audio_context *context, int num_samples, am_audio_node *node) {
     if (node->last_render >= context->render_id) return; // already processed
     node->last_render = context->render_id;
+    update_live_pause_state(node);
     node->post_render(context, num_samples);
     for (int i = 0; i < node->live_children.size; i++) {
         am_audio_node_child *child = &node->live_children.arr[i];
@@ -1206,11 +1563,21 @@ static void sync_children_list(lua_State *L, am_audio_node *node) {
     }
 }
 
+static void sync_paused(am_audio_node *node) {
+    int live_state = live_pause_state(node);
+    if (pending_pause(node) && live_state != LIVE_PAUSE_STATE_PAUSED) {
+        set_live_pause_state(node, LIVE_PAUSE_STATE_BEGIN);
+    } else if (!pending_pause(node) && live_state != LIVE_PAUSE_STATE_UNPAUSED) {
+        set_live_pause_state(node, LIVE_PAUSE_STATE_END);
+    }
+}
+
 static void sync_audio_graph(lua_State *L, am_audio_context *context, am_audio_node *node) {
     if (node->last_sync >= context->sync_id) return; // already synced
     node->last_sync = context->sync_id;
     node->sync_params();
     sync_children_list(L, node);
+    sync_paused(node);
     for (int i = 0; i < node->live_children.size; i++) {
         sync_audio_graph(L, context, node->live_children.arr[i].child);
     }
@@ -1243,6 +1610,21 @@ void am_interleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
     }
 }
 
+void am_uninterleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
+    int num_channels, int num_samples)
+{
+    int i = 0;
+    int j;
+    for (int c = 0; c < num_channels; c++) {
+        j = c;
+        for (int k = 0; k < num_samples; k++) {
+            dest[i] = src[j];
+            i++;
+            j += num_channels;
+        }
+    }
+}
+
 //-------------------------------------------------------------------------
 // Module registration
 
@@ -1250,6 +1632,7 @@ void am_open_audio_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"audio_node", create_audio_node},
         {"oscillator", create_oscillator_node},
+        {"capture_audio", create_capture_node},
         {"track", create_audio_track_node},
         {"stream", create_audio_stream_node},
         {"decode_ogg", decode_ogg},
@@ -1264,6 +1647,8 @@ void am_open_audio_module(lua_State *L) {
     register_audio_track_node_mt(L);
     register_audio_stream_node_mt(L);
     register_oscillator_node_mt(L);
+    register_capture_node_mt(L);
+    register_spectrum_node_mt(L);
 
     audio_context.sample_rate = am_conf_audio_sample_rate;
     audio_context.sync_id = 0;

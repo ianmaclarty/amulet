@@ -1,0 +1,65 @@
+A:A
+B:B
+C:C
+base
+AA
+BB
+CC
+
+C
+  B
+    A
+      base
+
+C
+  B
+    A
+      base
+        D
+
+C
+  B
+    A
+      base
+        D
+    E
+
+C
+  B
+    A
+      base
+        D
+
+2
+3
+4
+---
+C
+  B
+    A
+      C [cycle]
+
+A
+  C
+    B
+      A [cycle]
+
+B
+  A
+    C
+      B [cycle]
+
+C
+  B
+    A
+      C [cycle]
+
+1
+2
+3
+1
+2
+3
+
+2
+3

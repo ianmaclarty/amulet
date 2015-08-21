@@ -1,0 +1,12 @@
+- Detect and handle cyclic module imports
+
+- Add context to errors that occur in rendering (e.g. missing uniform
+  values). This would require the lua file/line to be recorded when nodes
+  are created. Assess the performance tradeoff of doing this.
+
+- Remove am_ prefixes on source file names.
+
+- Make vecs and mats readonly.
+
+- Look at integrating luasocket for networking support (what about html
+  backend?).

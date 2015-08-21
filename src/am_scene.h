@@ -22,12 +22,10 @@ struct am_scene_node : am_nonatomic_userdata {
     int recursion_limit;
     uint32_t flags;
     int actions_ref;
-    uint32_t action_seq;
+    unsigned int action_seq; // used to avoid duplicating action in lua action list
 
     am_scene_node();
     virtual void render(am_render_state *rstate);
-    virtual int specialized_index(lua_State *L);
-    virtual int specialized_newindex(lua_State *L); // return -1 for failure
     void render_children(am_render_state *rstate);
 };
 

@@ -12,9 +12,10 @@ SDL_DIR          = $(DEPS_DIR)/SDL2-2.0.3
 LUA_DIR          = $(DEPS_DIR)/lua-5.2.4
 LUAJIT_DIR       = $(DEPS_DIR)/LuaJIT-2.0.3
 ANGLE_DIR        = $(DEPS_DIR)/angle-chrome_m34
-GLM_DIR          = $(DEPS_DIR)/glm-0.9.5.3
+GLM_DIR          = $(DEPS_DIR)/glm-0.9.7.0
 FT2_DIR          = $(DEPS_DIR)/freetype-2.5.5
 STB_DIR		 = $(DEPS_DIR)/stb
+KISSFFT_DIR	 = $(DEPS_DIR)/kiss_fft130
 
 SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-VC-prebuilt
 ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
@@ -75,6 +76,7 @@ LUAJIT_ALIB = $(BUILD_LIB_DIR)/libluajit$(ALIB_EXT)
 LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 FT2_ALIB = $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
 STB_ALIB = $(BUILD_LIB_DIR)/libstb$(ALIB_EXT)
+KISSFFT_ALIB = $(BUILD_LIB_DIR)/libkissfft$(ALIB_EXT)
 
 SRC_DIR = src
 BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(GRADE)
@@ -102,7 +104,7 @@ AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
 LUA_TARGET = posix
-XCFLAGS = -DLUA_COMPAT_ALL -Wall -Werror -ffast-math -pthread -fno-strict-aliasing
+XCFLAGS = -DLUA_COMPAT_ALL -Wall -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
 LUA_LDFLAGS = 
@@ -116,7 +118,7 @@ EMSCRIPTEN_LIBS = src/library_sdl.js
 EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
 EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_resize']"
 
-TARGET_CFLAGS=
+TARGET_CFLAGS=-ffast-math
 
 # Adjust flags for target
 ifeq ($(TARGET_PLATFORM),osx)
@@ -129,6 +131,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   XLDFLAGS = -lm -liconv -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
+	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia \
 	     -pagezero_size 10000 -image_base 100000000
   LUA_CFLAGS += -DLUA_USE_POSIX
   MACOSX_DEPLOYMENT_TARGET=10.6
@@ -168,7 +171,7 @@ else ifeq ($(TARGET_PLATFORM),html)
   LINK = em++
   LUAVM = lua
   LUA_TARGET = generic
-  XLDFLAGS = -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS_OPTS)
+  XLDFLAGS = --memory-init-file 0 -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS_OPTS)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
 else ifeq ($(TARGET_PLATFORM),win32)
@@ -189,11 +192,11 @@ else ifeq ($(TARGET_PLATFORM),win32)
   AR = $(VC_LIB)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
-  XCFLAGS = -DLUA_COMPAT_ALL -fp:fast -WX 
+  XCFLAGS = -DLUA_COMPAT_ALL -WX 
   XLDFLAGS = -SUBSYSTEM:CONSOLE \
 	-NODEFAULTLIB:msvcrt.lib \
 	$(BUILD_LIB_DIR)/SDL2.lib
-  TARGET_CFLAGS = -nologo -EHsc
+  TARGET_CFLAGS = -nologo -EHsc -fp:fast
 else
   LUA_CFLAGS += -DLUA_USE_POSIX
 endif

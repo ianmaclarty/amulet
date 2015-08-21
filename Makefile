@@ -18,15 +18,15 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 EXTRA_PREREQS = 
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = lua ft2 stb
+  AM_DEPS = lua ft2 stb kissfft
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifeq ($(TARGET_PLATFORM),ios)
-  AM_DEPS = lua ft2 stb
+  AM_DEPS = $(LUAVM) ft2 stb kissfft
 else ifeq ($(TARGET_PLATFORM),win32)
-  AM_DEPS = $(LUAVM) ft2 stb
+  AM_DEPS = $(LUAVM) ft2 stb kissfft
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(LIBTURBOJPEG_WIN_PREBUILT)
 else
-  AM_DEPS = $(LUAVM) sdl angle ft2 stb
+  AM_DEPS = $(LUAVM) sdl angle ft2 stb kissfft
   AM_DEFS += AM_USE_ANGLE
 endif
 
@@ -50,7 +50,6 @@ AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 AM_CFLAGS = $(AM_DEF_FLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS) $(COMMON_CFLAGS) 
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
-DEFAULT_HTML_EDITOR_SCRIPT = samples/synth.lua
 HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html)
 BUILD_HTML_EDITOR_FILES = $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 
@@ -60,16 +59,14 @@ default: all
 
 .PHONY: all
 ifeq ($(TARGET_PLATFORM),html)
-all: $(BUILD_HTML_EDITOR_FILES) $(BUILD_BIN_DIR)/example.lua $(AMULET) 
+all: $(BUILD_HTML_EDITOR_FILES) $(AMULET) 
 else
 all: $(AMULET)
 endif
 
 ifeq ($(TARGET_PLATFORM),html)
-$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(DEFAULT_HTML_EDITOR_SCRIPT) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR) 
-	cp $(DEFAULT_HTML_EDITOR_SCRIPT) main.lua
-	$(LINK) --embed-file main.lua $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
-	rm main.lua
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR) 
+	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT) $@
 	@$(PRINT_BUILD_DONE_MSG)
 else ifeq ($(TARGET_PLATFORM),ios)
 # Just build the static library for iOS. Building the executable works,
@@ -80,13 +77,13 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
-	"$(LINK)" $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	"$(LINK)" $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT) $@
 	ln -fs $@ `basename $@`
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
-	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
+	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT) $@
 
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): src/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
@@ -133,13 +130,16 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
 
+$(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom clean all
+	cp $(KISSFFT_DIR)/libkissfft$(ALIB_EXT) $@
+	cp $(KISSFFT_DIR)/kiss_fft.h $(BUILD_INC_DIR)/
+	cp $(KISSFFT_DIR)/kiss_fftr.h $(BUILD_INC_DIR)/
+
 $(BUILD_DIRS): %:
 	mkdir -p $@
 
 $(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: html/% | $(BUILD_BIN_DIR)
-	cp $< $@
-
-$(BUILD_BIN_DIR)/example.lua: $(DEFAULT_HTML_EDITOR_SCRIPT)
 	cp $< $@
 
 # View templates
@@ -160,8 +160,8 @@ $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 
 # Font generation tool
 
-tools/am_gen_font$(EXE_EXT): tools/am_gen_font.c
-	$(CC) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT)$@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
+tools/ampack$(EXE_EXT): tools/ampack.c
+	$(CC) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT) $@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT) $(XLDFLAGS)
 
 # Cleanup
 

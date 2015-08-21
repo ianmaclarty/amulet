@@ -23,6 +23,15 @@
 #define AM_NEED_GLES2_FUNC_PTRS
 #endif
 
+#if (UINTPTR_MAX == UINT64_MAX)
+    #define AM_64BIT 1
+#elif (UINTPTR_MAX == UINT32_MAX)
+    #define AM_32BIT 1
+#else
+    #error unsupported word size
+#endif
+
+
 #ifdef AM_WIN32
 #include <windows.h>
 #endif
@@ -57,19 +66,21 @@ extern "C" {
 #define STB_VORBIS_NO_STDIO 1
 #include "stb_image.h"
 #include "stb_vorbis.h"
-#include "stb_rect_pack.h"
-#include "stb_truetype.h"
 #include "miniz.h"
 }
+
+#include "kiss_fftr.h"
 
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
+#include "glm/gtc/quaternion.hpp"
 
+#include "am_alloc.h"
 #include "am_util.h"
+#include "am_utf8.h"
 #include "am_package.h"
 #include "am_gl.h"
-#include "am_backend.h"
 #include "am_time.h"
 #include "am_input.h"
 #include "am_embedded.h"
@@ -84,7 +95,7 @@ extern "C" {
 #include "am_texture2d.h"
 #include "am_framebuffer.h"
 #include "am_audio.h"
-#include "am_trail.h"
+#include "am_backend.h"
 #include "am_action.h"
 #include "am_scene.h"
 #include "am_window.h"

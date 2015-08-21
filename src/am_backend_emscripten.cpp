@@ -7,7 +7,7 @@
 
 static SDL_Surface* sdl_window;
 
-static const char *filename = "main.lua";
+static am_package *package = NULL;
 
 static void init_sdl();
 static void init_audio();
@@ -15,7 +15,11 @@ static bool handle_events();
 static am_key convert_key(SDL_Keycode key);
 static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state();
-static int report_status(lua_State *L, int status);
+static void open_package();
+static void load_package();
+static void on_load_package_complete(unsigned int x, void *arg, const char *filename);
+static void on_load_package_error(unsigned int x, void *arg, int http_status);
+static void on_load_package_progress(unsigned int x, void *arg, int perc);
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -30,7 +34,6 @@ am_native_window *am_create_native_window(
     int msaa_samples)
 {
     if (sdl_window != NULL) return NULL;
-    *framebuffer = 0;
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -82,6 +85,10 @@ void am_get_native_window_size(am_native_window *window, int *w, int *h) {
 
 void am_destroy_native_window(am_native_window* win) {
     sdl_window = NULL;
+}
+
+bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
+    return false;
 }
 
 void am_native_window_pre_render(am_native_window* win) {
@@ -159,18 +166,21 @@ static void main_loop() {
 
 int main( int argc, char *argv[] )
 {
-    int status;
+    load_package();
+}
 
+static void start() {
     init_sdl();
 
     L = am_init_engine(false, 0, NULL);
-    if (L == NULL) return 1;
+    if (L == NULL) return;
 
     frame_time = am_get_current_time();
 
-    status = luaL_dofile(L, filename);
-    if (report_status(L, status)) return 1;
-    if (sdl_window == NULL) return 1;
+    lua_pushcclosure(L, am_load_module, 0);
+    lua_pushstring(L, "main");
+    if (!am_call(L, 1, 0)) return;
+    if (sdl_window == NULL) return;
 
     t0 = am_get_current_time();
     frame_time = t0;
@@ -180,17 +190,6 @@ int main( int argc, char *argv[] )
     frame_count = 0;
 
     emscripten_set_main_loop(main_loop, 0, 0);
-    return 0;
-}
-
-static int report_status(lua_State *L, int status) {
-    if (status && !lua_isnil(L, -1)) {
-        const char *msg = lua_tostring(L, -1);
-        if (msg == NULL) msg = "(error object is not a string)";
-        am_log0("%s", msg);
-        lua_pop(L, 1);
-    }
-    return status;
 }
 
 static int mouse_x = 0;
@@ -210,9 +209,10 @@ static void update_mouse_state(lua_State *L) {
     SDL_GetWindowSize(NULL, &w, &h);
     float norm_x = ((float)mouse_x / (float)w) * 2.0f - 1.0f;
     float norm_y = (1.0f - (float)mouse_y / (float)h) * 2.0f - 1.0f;
+    am_find_window((am_native_window*)sdl_window)->push(L);
     lua_pushnumber(L, norm_x);
     lua_pushnumber(L, norm_y);
-    am_call_amulet(L, "_mouse_move", 2, 0);
+    run_loop = am_call_amulet(L, "_mouse_move", 3, 0);
 }
 
 static bool handle_events() {
@@ -233,8 +233,9 @@ static bool handle_events() {
                         SDL_WM_ToggleFullScreen(sdl_window);
                     } else {
                         am_key key = convert_key(event.key.keysym.sym);
+                        am_find_window((am_native_window*)sdl_window)->push(L);
                         lua_pushstring(L, am_key_name(key));
-                        am_call_amulet(L, "_key_down", 1, 0);
+                        run_loop = am_call_amulet(L, "_key_down", 2, 0);
                     }
                 }
                 break;
@@ -242,27 +243,30 @@ static bool handle_events() {
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
                     am_key key = convert_key(event.key.keysym.sym);
+                    am_find_window((am_native_window*)sdl_window)->push(L);
                     lua_pushstring(L, am_key_name(key));
-                    am_call_amulet(L, "_key_up", 1, 0);
+                    run_loop = am_call_amulet(L, "_key_up", 2, 0);
                 }
                 break;
             }
             case SDL_MOUSEMOTION: {
-                mouse_x += event.motion.x;
-                mouse_y += event.motion.y;
+                mouse_x += event.motion.xrel;
+                mouse_y += event.motion.yrel;
                 break;
             }
             case SDL_MOUSEBUTTONDOWN: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
+                    am_find_window((am_native_window*)sdl_window)->push(L);
                     lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    am_call_amulet(L, "_mouse_down", 1, 0);
+                    run_loop = am_call_amulet(L, "_mouse_down", 2, 0);
                 }
                 break;
             }
             case SDL_MOUSEBUTTONUP: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
+                    am_find_window((am_native_window*)sdl_window)->push(L);
                     lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    am_call_amulet(L, "_mouse_up", 1, 0);
+                    run_loop = am_call_amulet(L, "_mouse_up", 2, 0);
                 }
                 break;
             }
@@ -306,8 +310,7 @@ static void init_audio() {
     SDL_PauseAudio(0);
 }
 
-bool am_set_relative_mouse_mode(bool enabled) {
-    return false;
+void am_set_native_window_lock_pointer(am_native_window *window, bool lock) {
 }
 
 static am_key convert_key(SDL_Keycode key) {
@@ -384,19 +387,79 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
     return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
+static void on_load_package_complete(unsigned int x, void *arg, const char *filename) {
+    EM_ASM(
+        window.amulet.load_progress = 100;
+    );
+    open_package();
+    EM_ASM(
+        window.amulet.start();
+    );
+    start();
+}
+
+static void on_load_package_error(unsigned int x, void *arg, int http_status) {
+    am_log0("error loading data (HTTP status: %d)", http_status);
+}
+
+static void on_load_package_progress(unsigned int x, void *arg, int perc) {
+    EM_ASM_INT({
+        window.amulet.load_progress = $0;
+    }, perc);
+}
+
+static void load_package() {
+    emscripten_async_wget2("data.pak", "data.pak", "GET", "", NULL,
+        &on_load_package_complete, &on_load_package_error, &on_load_package_progress); 
+}
+
+static void open_package() {
+    char *errmsg;
+    package = am_open_package("data.pak", &errmsg);
+    if (package == NULL) {
+        am_log0("%s", errmsg);
+        free(errmsg);
+    }
+}
+
 void *am_read_resource(const char *filename, int *len, char **errmsg) {
-    const char *msg = "sorry, require() not yet supported in html backend";
-    *errmsg = (char*)malloc(strlen(msg)+1);
-    strcpy(*errmsg, msg);
-    am_log0("%s", "sorry, require() not yet supported in html backend");
-    return NULL;
+    return am_read_package_resource(package, filename, len, errmsg);
+}
+
+void am_copy_video_frame_to_texture() {
+    EM_ASM(
+        (function() {
+            if (!window.amulet.video_capture_initialized) {
+                if (!navigator.getUserMedia) {
+                    if (!window.amulet.displayed_no_video_capture_alert) {
+                        alert("Sorry, your browser does not appear to support video catpure.");
+                        window.amulet.displayed_no_video_capture_alert = true;
+                    }
+                    return;
+                }
+                var errorCallback = function(e) {
+                    window.amulet.video_capture_disallowed = true;
+                };
+                navigator.getUserMedia({video: true}, function(stream) {
+                  var video = document.getElementById("video");
+                  video.src = window.URL.createObjectURL(stream);
+                  //video.onloadedmetadata = function(e) {
+                  //};
+                }, errorCallback);
+                window.amulet.video_capture_initialized = true;
+            } else if (!window.amulet.video_capture_disallowed) {
+                GLctx.texImage2D(GLctx.TEXTURE_2D, 0, GLctx.RGBA, GLctx.RGBA, GLctx.UNSIGNED_BYTE,
+                    document.getElementById("video"));
+            }
+        })();
+    );
 }
 
 extern "C" {
 
 void am_emscripten_run(const char *script) {
     am_destroy_engine(L);
-    L = am_init_engine(false);
+    L = am_init_engine(false, 0, NULL);
     if (am_run_script(L, script, "main.lua")) {
         run_loop = true;
     } else {

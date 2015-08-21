@@ -20,28 +20,42 @@ void am_scene_node::render_children(am_render_state *rstate) {
     recursion_limit++;
 }
 
-int am_scene_node::specialized_index(lua_State *L) {
-    return 0;
-}
-
-int am_scene_node::specialized_newindex(lua_State *L) {
-    return -1;
-}
-
 void am_scene_node::render(am_render_state *rstate) {
     render_children(rstate);
 }
 
 int am_scene_node_index(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
-    if (node->specialized_index(L)) return 1;
-    return am_default_index_func(L);
+    if (am_node_marked(node)) return 0; // cycle
+    am_default_index_func(L);
+    if (lua_isnil(L, -1) && node->children.size == 1) {
+        am_mark_node(node);
+        node->children.arr[0].child->push(L);
+        lua_replace(L, 1);
+        int r = am_scene_node_index(L);
+        am_unmark_node(node);
+        return r;
+    } else {
+        return 1;
+    }
 }
 
 int am_scene_node_newindex(lua_State *L) {
     am_scene_node *node = (am_scene_node*)lua_touserdata(L, 1);
-    if (node->specialized_newindex(L) != -1) return 0;
-    return am_default_newindex_func(L);
+    if (am_node_marked(node)) {
+        // cycle
+        return luaL_error(L, "field %s not found", lua_tostring(L, 2));
+    }
+    if (am_try_default_newindex(L)) return 0;
+    if (node->children.size == 1) {
+        am_mark_node(node);
+        node->children.arr[0].child->push(L);
+        lua_replace(L, 1);
+        int r = am_scene_node_newindex(L);
+        am_unmark_node(node);
+        return r;
+    }
+    return luaL_error(L, "field %s not found", lua_tostring(L, 2));
 }
 
 static int append_child(lua_State *L) {
@@ -193,6 +207,54 @@ static void set_hidden(lua_State *L, void *obj) {
 
 static am_property hidden_property = {get_hidden, set_hidden};
 
+static void check_alias(lua_State *L) {
+    am_default_index_func(L);
+    if (!lua_isnil(L, -1)) goto error;
+    lua_pop(L, 1);
+    return;
+    error:
+    luaL_error(L,
+        "alias '%s' is already used",
+        lua_tostring(L, 2));
+}
+
+static int alias(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
+    node->pushuservalue(L);
+    int userval_idx = am_absindex(L, -1);
+    if (lua_istable(L, 2)) {
+        // create multiple aliases - one for each key/value pair
+        lua_pushvalue(L, 2); // push table, as we need position 2 for check_alias
+        int tbl_idx = am_absindex(L, -1);
+        lua_pushnil(L);
+        while (lua_next(L, tbl_idx)) {
+            lua_pushvalue(L, -2); // key
+            lua_replace(L, 2); // check_alias expects key in position 2
+            check_alias(L);
+            lua_pushvalue(L, -2); // key
+            lua_pushvalue(L, -2); // value
+            lua_rawset(L, userval_idx); // uservalue[key] = value
+            lua_pop(L, 1); // value
+        }
+        lua_pop(L, 1); // table
+    } else if (lua_isstring(L, 2)) {
+        check_alias(L);
+        lua_pushvalue(L, 2);
+        if (nargs > 2) {
+            lua_pushvalue(L, 3);
+        } else {
+            lua_pushvalue(L, 1);
+        }
+        lua_rawset(L, userval_idx);
+    } else {
+        return luaL_error(L, "expecting a string or table at position 2");
+    }
+    lua_pop(L, 1); // uservalue
+    lua_pushvalue(L, 1);
+    return 1;
+}
+
 static void get_num_children(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
     lua_pushinteger(L, node->children.size);
@@ -237,6 +299,9 @@ static void register_scene_node_mt(lua_State *L) {
     am_register_property(L, "num_children", &num_children_property);
     am_register_property(L, "_actions", &actions_property);
 
+    lua_pushcclosure(L, alias, 0);
+    lua_setfield(L, -2, "alias");
+
     lua_pushcclosure(L, append_child, 0);
     lua_setfield(L, -2, "append");
     lua_pushcclosure(L, prepend_child, 0);
@@ -248,6 +313,8 @@ static void register_scene_node_mt(lua_State *L) {
     lua_pushcclosure(L, remove_all_children, 0);
     lua_setfield(L, -2, "remove_all");
     
+    lua_pushcclosure(L, am_create_bind_node, 0);
+    lua_setfield(L, -2, "bind");
     lua_pushcclosure(L, am_create_bind_float_node, 0);
     lua_setfield(L, -2, "bind_float");
     lua_pushcclosure(L, am_create_bind_mat2_node, 0);

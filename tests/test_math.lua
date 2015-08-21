@@ -9,8 +9,24 @@ function printvec(v)
         str = str..", "..string.format("%0.2f", v.q)
     end
     str = str..">"
-    print(str)
+    print(""..str:gsub("%-0%.00", "0.00"))
 end
+
+local
+function printquat(q)
+    local str = string.format("quat(%0.2f, <%0.2f, %0.2f, %0.2f>)",
+        math.deg(q.angle), q.axis.x, q.axis.y, q.axis.z)
+    print(""..str:gsub("%-0%.00", "0.00"))
+end
+
+local
+function printeuler(e)
+    local str = string.format("euler(%0.2f, %0.2f, %0.2f)",
+        math.deg(e.x), math.deg(e.y), math.deg(e.z))
+    print(""..str:gsub("%-0%.00", "0.00"))
+end
+
+
 
 local
 function printmat(m)
@@ -113,18 +129,6 @@ printvec(math.refract(math.normalize(vec3(1, 2, 3)), math.normalize(vec3(4, 5, 6
 printvec(-vec2(1, 2))
 printmat(-mat2(1, 2, 3, 4))
 
-local i = 1
-for j = 1, 3 do
-    i = math.cycle(i, 3, 5)
-    print(i) -- 4, 2, 5
-end
-for j = 1, 3 do
-    i = math.cycle(i, -2, 5)
-    print(i) -- 3, 1, 4
-end
-print(math.cycle(i, 20, 5)) -- 4
-print(math.cycle(i, -20, 5)) -- 4
-
 print(math.clamp(-1, 0, 1)) -- 0
 print(math.clamp(4, 0, 1)) -- 1
 print(math.clamp(-1, -3, -1)) -- -1
@@ -132,3 +136,18 @@ print(math.clamp(-1, -3, -1)) -- -1
 printvec(math.mix(vec3(0, -1, 2), vec3(1, 1, -1), 0.5)) -- 0.5, 0, 0.5
 printvec(math.mix(vec2(0, 100), vec2(100, 0), vec2(0.25, 0.90))) -- 25, 10
 print(math.mix(100, 200, 0.1)) -- 110
+
+local q1 = quat(math.rad(90), vec3(0, 0, 1))
+local v1 = vec3(1, 0, 0)
+printquat(q1 * q1)
+printvec(q1 * v1)
+printvec(q1 * q1 * v1)
+printvec(v1 * q1)
+printquat(quat(0, 0, math.rad(90)))
+printquat(quat(vec3(0, 0, math.rad(90))))
+printquat(quat(math.rad(45)))
+printquat(quat(vec3(1, 0, 0), vec3(0, 1, 0)))
+printquat(quat(q1.w, q1.x, q1.y, q1.z))
+printeuler(q1.euler)
+printquat(quat(q1.mat3))
+printquat(quat(q1.mat4))

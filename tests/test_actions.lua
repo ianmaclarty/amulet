@@ -15,23 +15,26 @@ local f = 1
 node3:action(function()
     print("F"..f)
     f = f + 1
-    return 0
 end)
 local g = 1
 node2:action(function()
     print("G"..g)
     g = g + 1
-    return 0
 end)
 
 local frame = 1
 win.root:action(function()
     print("------- start frame "..frame)
+    if frame == 6 then
+        win.root:update()
+        print("DONE 6")
+    elseif frame == 7 then
+        win:close()
+    end
     frame = frame + 1
-    return true
 end)
 
-win.root:action(coroutine.wrap(function(node)
+win.root:action(coroutine.create(function(node)
     print("A1")
     local b = 1
     node:action(function()
@@ -41,22 +44,26 @@ win.root:action(coroutine.wrap(function(node)
                 print("D1")
                 node:action(function()
                     print("E1")
+                    return true
                 end)
+                return true
             end)
         end
         b = b + 1
-        return b <= 2
+        return b > 2
     end)
     node:action(function()
         print("C1")
+        return true
     end)
-    coroutine.yield(0)
+    coroutine.yield()
     print("A2")
-    coroutine.yield(0)
+    coroutine.yield()
     print("A3")
-    coroutine.yield(true)
+    coroutine.yield()
     print("A4")
-    coroutine.yield(true)
+    coroutine.yield()
     print("A5")
-    win:close()
+    coroutine.yield()
+    print("A6")
 end))

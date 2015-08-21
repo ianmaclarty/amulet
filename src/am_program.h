@@ -66,7 +66,7 @@ struct am_program_param {
     void bind(am_render_state *rstate);
 };
 
-struct am_program : am_userdata {
+struct am_program : am_nonatomic_userdata {
     am_program_id program_id;
     int num_params;
     bool sets_point_size;
@@ -76,6 +76,15 @@ struct am_program : am_userdata {
 struct am_program_node : am_scene_node {
     am_program *program;
     int program_ref;
+
+    virtual void render(am_render_state *rstate);
+};
+
+struct am_bind_node : am_scene_node {
+    int num_params;
+    am_param_name_id *names;
+    am_program_param_value *values;
+    int *refs; // refs for array or texture params
 
     virtual void render(am_render_state *rstate);
 };
@@ -119,8 +128,6 @@ struct am_bind_vec##D##_node : am_scene_node {                          \
     am_param_name_id name;                                              \
     glm::vec##D v;                                                      \
     virtual void render(am_render_state *rstate);                       \
-    virtual int specialized_index(lua_State *L);                        \
-    virtual int specialized_newindex(lua_State *L);                     \
 };
 
 AM_BIND_VEC_NODE_DECL(2)
@@ -139,6 +146,7 @@ AM_READ_MAT_NODE_DECL(3)
 AM_READ_MAT_NODE_DECL(4)
 
 int am_create_program_node(lua_State *L);
+int am_create_bind_node(lua_State *L);
 int am_create_bind_float_node(lua_State *L);
 int am_create_bind_array_node(lua_State *L);
 int am_create_bind_sampler2d_node(lua_State *L);

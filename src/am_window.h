@@ -11,6 +11,7 @@ struct am_window : am_nonatomic_userdata {
     int                 restore_windowed_height;
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
+    glm::vec4           clear_color;
     bool                lock_pointer;
     am_window_mode      mode;
     bool                dirty;

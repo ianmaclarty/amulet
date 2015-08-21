@@ -17,6 +17,7 @@ typedef enum {
     MT_am_scene_node,
     MT_am_action,
     MT_am_program_node,
+    MT_am_bind_node,
     MT_am_bind_float_node,
     MT_am_bind_array_node,
     MT_am_bind_sampler2d_node,
@@ -50,6 +51,8 @@ typedef enum {
     MT_am_audio_track_node,
     MT_am_audio_stream_node,
     MT_am_oscillator_node,
+    MT_am_spectrum_node,
+    MT_am_capture_node,
 
     MT_am_buffer,
 
@@ -81,6 +84,7 @@ typedef enum {
     MT_am_mat2,
     MT_am_mat3,
     MT_am_mat4,
+    MT_am_quat,
 
     ENUM_am_buffer_view_type,
     ENUM_am_texture_format,

@@ -21,16 +21,27 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #4e4e4e;
+    background-color: #000;
     z-index: 1000;
 }
-#status {
+#status-positioner {
     position: absolute;
-    font-size: 20px;
-    font-weight: bold;
-    color: #fff;
-    left: 10px;
-    top: 3px;
+    left: 50%;
+    bottom: 20%;
+}
+#status-box {
+    width: 400px;
+    height: 30px;
+    margin-left: -200px;
+    border: 2px solid #fff;
+    padding: 2px;
+}
+#status-bar {
+    width: 1%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
 }
 #canvas {
     position: absolute;
@@ -39,11 +50,19 @@ html, body {
     width: 100%;
     height: 100%;
 }
+#video {
+    display: none;
+}
     </style>
   </head>
   <body>
+    <video id="video" autoplay></video>
     <div id="status-overlay">
-        <div id="status">Loading...</div>
+        <div id="status-positioner">
+            <div id="status-box">
+                <div id="status-bar"></div>
+            </div>
+        </div>
     </div>
     <canvas id="canvas" width="100" height="100"></canvas>
 
@@ -53,6 +72,13 @@ var status_timer;
 var havePointerLock = 'pointerLockElement' in document ||
     'mozPointerLockElement' in document ||
     'webkitPointerLockElement' in document;
+
+navigator.getUserMedia  = navigator.getUserMedia ||
+                          navigator.webkitGetUserMedia ||
+                          navigator.mozGetUserMedia ||
+                          navigator.msGetUserMedia;
+
+window.amulet = {};
 
 function run(script) {
     $.get(script, function(data) {
@@ -69,7 +95,7 @@ function init_canvas() {
         alert('WebGL context lost. You will need to reload the page or, failing that, restart your browser).');
         e.preventDefault();
     }, false);
-    if (false && havePointerLock) {
+    if (havePointerLock) {
         $(canvas).click(function() {
             canvas.requestPointerLock =
                 canvas.requestPointerLock ||
@@ -84,17 +110,32 @@ function set_status_text(text) {
     $("#status").text(text);
 }
 
-var dots = 3;
+function set_progress(perc) {
+    document.getElementById("status-bar").style.width = perc + "%";
+}
+var perc = 1;
+var delta = 0.65;
+var phase1_limit = 33;
+function phase1() {
+    perc = Math.min(phase1_limit, perc + delta);
+    delta = delta * 0.98;
+    set_progress(perc);
+    console.log(perc);
+}
+function phase2() {
+    var prog = window.amulet.load_progress || 0;
+    set_progress(prog * ((100-phase1_limit)/100) + phase1_limit);
+}
+var phase = phase1;
 function animate_loading_status() {
-    dots = (dots + 1) % 10;
-    var text = "Loading";
-    for (var i = 0; i < dots; i++) {
-        text += ".";
+    if (phase === phase1 && document.readyState == "complete") {
+        phase = phase2;
+        set_progress(phase1_limit);
     }
-    set_status_text(text);
+    phase();
 }
 
-status_timer = setInterval(animate_loading_status, 500);
+status_timer = setInterval(animate_loading_status, 100);
 function clear_status_timer() {
     clearInterval(status_timer);
     status_timer = null;
@@ -105,7 +146,7 @@ function remove_status_overlay() {
     clear_status_timer();
 }
 
-function setup() {
+window.amulet.start = function() {
     try {
         init_canvas();
         remove_status_overlay();
@@ -119,7 +160,7 @@ function setup() {
 //------------------------------------------------------------------------
 
 var Module = {
-  preRun: [setup],
+  preRun: [],
   postRun: [],
   print: function(text) {
       console.log(text);

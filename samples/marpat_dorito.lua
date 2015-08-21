@@ -51,16 +51,10 @@ local texture = am.texture2d{
 local MVP = math.mat4(1)
 
 local node = am.draw_arrays()
-    :bind_array("x", xview)
-    :bind_array("y", yview)
-    :bind_sampler2d("tex1", texture)
-    :bind_mat4("MVP", MVP)
+    :bind("x", xview)
+    :bind("y", yview)
+    :bind("tex1", texture)
+    :bind("MVP", MVP)
     :bind_program(prog)
-
-node:action(function()
-    --local stats = am.perf_stats()
-    --log("FPS: %0.2f [%0.2f]", stats.avg_fps, stats.min_fps)
-    return 0
-end)
 
 win.root = node

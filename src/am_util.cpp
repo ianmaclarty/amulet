@@ -20,3 +20,10 @@ bool am_file_exists(const char *filename) {
     struct stat info;
     return stat(filename, &info) == 0;
 }
+
+void am_replchr(char *str, char c0, char c) {
+    while (*str) {
+        if (*str == c0) *str = c;
+        str++;
+    }
+}

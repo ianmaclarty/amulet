@@ -153,12 +153,13 @@ end
 
 -- vector/matrix stuff
 
-vec2 = math.vec2
-vec3 = math.vec3
-vec4 = math.vec4
-mat2 = math.mat2
-mat3 = math.mat3
-mat4 = math.mat4
+rawset(_G, "vec2", math.vec2)
+rawset(_G, "vec3", math.vec3)
+rawset(_G, "vec4", math.vec4)
+rawset(_G, "mat2", math.mat2)
+rawset(_G, "mat3", math.mat3)
+rawset(_G, "mat4", math.mat4)
+rawset(_G, "quat", math.quat)
 
 local
 function format_vec(v)
@@ -213,8 +214,16 @@ _metatable_registry.mat2.__tostring = format_mat
 _metatable_registry.mat3.__tostring = format_mat
 _metatable_registry.mat4.__tostring = format_mat
 
+local
+function format_quat(q)
+    return "quat("..q.angle..", "..tostring(q.axis)..")";
+end
+
+_metatable_registry.quat.__tostring = format_quat
+
 -- extra builtins
 
+local
 function log(fmt, ...)
     if type(fmt) == "string" and ... then
         amulet.log(string.format(fmt, ...), false, 2)
@@ -222,7 +231,9 @@ function log(fmt, ...)
         amulet.log(tostring(fmt), false, 2)
     end
 end
+rawset(_G, "log", log)
 
+local
 function log1(fmt, ...)
     if type(fmt) == "string" and ... then
         amulet.log(string.format(fmt, ...), true, 2)
@@ -230,7 +241,4 @@ function log1(fmt, ...)
         amulet.log(tostring(fmt), true, 2)
     end
 end
-
--- userdata functions
-
-getusertable = amulet._getusertable
+rawset(_G, "log1", log1)

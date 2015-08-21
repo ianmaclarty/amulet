@@ -155,18 +155,23 @@ static int buffer_gc(lua_State *L) {
     return 0;
 }
 
+static int release_vbo(lua_State *L) {
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    if (buf->arraybuf_id != 0) {
+        am_delete_buffer(buf->arraybuf_id);
+        buf->arraybuf_id = 0;
+    }
+    return 0;
+}
+
 static am_buffer_view* new_buffer_view(lua_State *L, am_buffer_view_type type) {
     int mtid = (int)MT_am_buffer_view + (int)type + 1;
     assert(mtid < (int)MT_VIEW_TYPE_END_MARKER);
-    // Set the actual metatable based on the metatable type...
+    // use the element-type specific metatable
     am_buffer_view *view = (am_buffer_view*)
-        am_init_userdata(L,
+        am_set_metatable(L,
             new (lua_newuserdata(L, sizeof(am_buffer_view))) am_buffer_view(),
             mtid);
-    // ... but set the metatable_id to the standard buffer view id, which
-    // makes type checking easier.
-    view->ud_flags &= ~AM_METATABLE_ID_MASK;
-    view->ud_flags |= MT_am_buffer_view;
     return view;
 }
 
@@ -302,6 +307,8 @@ static void register_buffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
+    lua_pushcclosure(L, release_vbo, 0);
+    lua_setfield(L, -2, "release_vbo");
 
     am_register_metatable(L, "buffer", MT_am_buffer, 0);
 }

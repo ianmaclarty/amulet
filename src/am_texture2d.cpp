@@ -101,6 +101,7 @@ static int create_texture2d(lua_State *L) {
     texture->type = type;
     texture->pixel_size = pixel_size;
     texture->has_mipmap = needs_mipmap;
+    texture->last_video_capture_frame = 0;
     am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture->texture_id);
     am_set_texture_min_filter(AM_TEXTURE_BIND_TARGET_2D, min_filter);
     am_set_texture_mag_filter(AM_TEXTURE_BIND_TARGET_2D, mag_filter);
@@ -154,6 +155,18 @@ void am_texture2d::update_from_buffer() {
     if (has_mipmap) am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
 }
 
+static int capture_video(lua_State *L) {
+    am_texture2d *texture = am_get_userdata(L, am_texture2d, 1);
+    int next_frame = am_next_video_capture_frame();
+    if (next_frame != texture->last_video_capture_frame) {
+        am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture->texture_id);
+        am_copy_video_frame_to_texture();
+        texture->last_video_capture_frame = next_frame;
+        //am_debug("%s", "updated texture");
+    }
+    return 0;
+}
+
 static int texture2d_gc(lua_State *L) {
     am_texture2d *texture = am_get_userdata(L, am_texture2d, 1);
     am_delete_texture(texture->texture_id);
@@ -192,6 +205,9 @@ static void register_texture2d_mt(lua_State *L) {
 
     lua_pushcclosure(L, texture2d_gc, 0);
     lua_setfield(L, -2, "__gc");
+
+    lua_pushcclosure(L, capture_video, 0);
+    lua_setfield(L, -2, "capture_video");
 
     am_register_property(L, "width",  &texture_width_property);
     am_register_property(L, "height", &texture_height_property);

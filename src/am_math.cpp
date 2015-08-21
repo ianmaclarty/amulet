@@ -72,6 +72,10 @@ static int vec_faceforward(lua_State *L);
 static int vec_reflect(lua_State *L);
 static int vec_refract(lua_State *L);
 
+static int quat_new(lua_State *L);
+static int quat_index(lua_State *L);
+static int quat_mul(lua_State *L);
+
 static int perspective(lua_State *L);
 
 //-------------------------- vec* helper macros ------------------//
@@ -110,6 +114,33 @@ static int vec##D##_mul(lua_State *L) {                                         
         am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
         am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                        \
         z->v = x->v * y->m;                                                     \
+    } else {                                                                    \
+        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
+        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
+        z->v = x->v * y->v;                                                     \
+    }                                                                           \
+    return 1;                                                                   \
+}
+
+#define VEC_MUL_FUNC_Q(D)                                                       \
+static int vec##D##_mul(lua_State *L) {                                         \
+    am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
+    if (lua_isnumber(L, 1)) {                                                   \
+        float x = lua_tonumber(L, 1);                                           \
+        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
+        z->v = x * y->v;                                                        \
+    } else if (lua_isnumber(L, 2)) {                                            \
+        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
+        float y = lua_tonumber(L, 2);                                           \
+        z->v = x->v * y;                                                        \
+    } else if (am_get_type(L, 2) == MT_am_mat##D) {                             \
+        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
+        am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                        \
+        z->v = x->v * y->m;                                                     \
+    } else if (am_get_type(L, 2) == MT_am_quat) {                               \
+        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
+        am_quat *y = am_get_userdata(L, am_quat, 2);                            \
+        z->v = x->v * y->q;                                                     \
     } else {                                                                    \
         am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
         am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
@@ -735,7 +766,7 @@ AM_VEC_NEWINDEX_FUNC(3)
 VEC_NEWINDEX_FUNC(3)
 VEC_OP_FUNC(3, add, +)
 VEC_OP_FUNC(3, sub, -)
-VEC_MUL_FUNC(3)
+VEC_MUL_FUNC_Q(3)
 VEC_DIV_FUNC(3)
 VEC_UNM_FUNC(3)
 VEC_LEN_FUNC(3)
@@ -750,7 +781,7 @@ AM_VEC_NEWINDEX_FUNC(4)
 VEC_NEWINDEX_FUNC(4)
 VEC_OP_FUNC(4, add, +)
 VEC_OP_FUNC(4, sub, -)
-VEC_MUL_FUNC(4)
+VEC_MUL_FUNC_Q(4)
 VEC_DIV_FUNC(4)
 VEC_UNM_FUNC(4)
 VEC_LEN_FUNC(4)
@@ -791,6 +822,150 @@ MAT_OP_FUNC(4, div, /)
 MAT_MUL_FUNC(4)
 MAT_UNM_FUNC(4)
 MAT_LEN_FUNC(4)
+
+//-------------------------- quat --------------------------------//
+
+static int quat_mul(lua_State *L) {
+    if (lua_isnumber(L, 1)) {
+        am_quat *z = am_new_userdata(L, am_quat);
+        float x = lua_tonumber(L, 1);
+        am_quat *y = am_get_userdata(L, am_quat, 2);
+        z->q = x * y->q;
+    } else {
+        int t = am_get_type(L, 2);
+        if (t == MT_am_vec3) {
+            am_vec3 *z = am_new_userdata(L, am_vec3);
+            am_quat *x = am_get_userdata(L, am_quat, 1);
+            am_vec3 *y = am_get_userdata(L, am_vec3, 2);
+            z->v = x->q * y->v;
+        } else if (t == MT_am_vec4) {
+            am_vec4 *z = am_new_userdata(L, am_vec4);
+            am_quat *x = am_get_userdata(L, am_quat, 1);
+            am_vec4 *y = am_get_userdata(L, am_vec4, 2);
+            z->v = x->q * y->v;
+        } else {
+            am_quat *z = am_new_userdata(L, am_quat);
+            am_quat *x = am_get_userdata(L, am_quat, 1);
+            am_quat *y = am_get_userdata(L, am_quat, 2);
+            z->q = x->q * y->q;
+        }
+    }
+    return 1;
+}
+
+static int quat_new(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    glm::quat quat;
+    switch (nargs) {
+        case 1: {
+            switch (am_get_type(L, 1)) {
+                case LUA_TNUMBER: {
+                    float angle = lua_tonumber(L, 1);
+                    glm::vec3 axis(0.0f, 0.0f, 1.0f);
+                    quat = glm::angleAxis(angle, axis);
+                    break;
+                }
+                case MT_am_vec3:
+                    quat = glm::quat(am_get_userdata(L, am_vec3, 1)->v);
+                    break;
+                case MT_am_mat3:
+                    quat = glm::quat(am_get_userdata(L, am_mat3, 1)->m);
+                    break;
+                case MT_am_mat4:
+                    quat = glm::quat(am_get_userdata(L, am_mat4, 1)->m);
+                    break;
+                default:
+                    return luaL_error(L, "unexpected argument type: %s", am_get_typename(L, am_get_type(L, 1)));
+            }
+            break;
+        }
+        case 2: {
+            if (lua_isnumber(L, 1)) {
+                float angle = luaL_checknumber(L, 1);
+                quat = glm::angleAxis(angle, am_get_userdata(L, am_vec3, 2)->v);
+            } else {
+                quat = glm::quat(am_get_userdata(L, am_vec3, 1)->v, am_get_userdata(L, am_vec3, 2)->v);
+            }
+            break;
+        }
+        case 3: {
+            quat = glm::quat(glm::vec3(luaL_checknumber(L, 1), luaL_checknumber(L, 2), luaL_checknumber(L, 3)));
+            break;
+        }
+        case 4: {
+            quat = glm::quat(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+                luaL_checknumber(L, 3), luaL_checknumber(L, 4));
+            break;
+        }
+        default: {
+            return luaL_error(L, "too many arguments to quat");
+        }
+    }
+    am_new_userdata(L, am_quat)->q = quat;
+    return 1;
+}
+
+static int quat_index(lua_State *L) {
+    am_quat *quat = (am_quat*)lua_touserdata(L, 1);
+    if (lua_type(L, 2) != LUA_TSTRING) {
+        lua_pushnil(L);
+        return 1;
+    }
+    size_t len;
+    const char *field = lua_tolstring(L, 2, &len);
+    switch (*field) {
+        case 'a':
+            if (strcmp(field, "angle") == 0) {
+                lua_pushnumber(L, glm::angle(quat->q));
+                return 1;
+            } else if (strcmp(field, "axis") == 0) {
+                am_new_userdata(L, am_vec3)->v = glm::axis(quat->q);
+                return 1;
+            }
+            break;
+        case 'e':
+            if (strcmp(field, "euler") == 0) {
+                am_new_userdata(L, am_vec3)->v = glm::eulerAngles(quat->q);
+                return 1;
+            }
+            break;
+        case 'm':
+            if (strcmp(field, "mat3") == 0) {
+                am_new_userdata(L, am_mat3)->m = glm::mat3_cast(quat->q);
+                return 1;
+            } else if (strcmp(field, "mat4") == 0) {
+                am_new_userdata(L, am_mat4)->m = glm::mat4_cast(quat->q);
+                return 1;
+            }
+            break;
+        case 'w':
+            if (len == 1) {
+                lua_pushnumber(L, quat->q.w);
+                return 1;
+            }
+            break;
+        case 'x':
+            if (len == 1) {
+                lua_pushnumber(L, quat->q.x);
+                return 1;
+            }
+            break;
+        case 'y':
+            if (len == 1) {
+                lua_pushnumber(L, quat->q.y);
+                return 1;
+            }
+            break;
+        case 'z':
+            if (len == 1) {
+                lua_pushnumber(L, quat->q.z);
+                return 1;
+            }
+            break;
+    }
+    lua_pushnil(L);
+    return 1;
+}
 
 //----------------------- vec functions -------------------------//
 
@@ -1081,7 +1256,7 @@ static int euleryxz4(lua_State *L) {
     return 1;
 }
 
-inline static glm::vec4 plane_normalize(glm::vec4 plane) {
+static glm::vec4 plane_normalize(glm::vec4 plane) {
     float l = glm::length(glm::vec3(plane.x, plane.y, plane.z));
     return glm::vec4(plane.x/l, plane.y/l, plane.z/l, plane.w/l);
 }
@@ -1149,6 +1324,11 @@ static int inverse(lua_State *L) {
         case MT_am_mat4: {
             am_mat4 *m = am_new_userdata(L, am_mat4);
             m->m = glm::inverse(((am_mat4*)lua_touserdata(L, 1))->m);
+            break;
+        }
+        case MT_am_quat: {
+            am_quat *q = am_new_userdata(L, am_quat);
+            q->q = glm::inverse(((am_quat*)lua_touserdata(L, 1))->q);
             break;
         }
         default:
@@ -1300,6 +1480,14 @@ static int mix(lua_State *L) {
             }
             break;
         }
+        case MT_am_quat: {
+            am_quat *x = (am_quat*)lua_touserdata(L, 1);
+            am_quat *y = am_get_userdata(L, am_quat, 2);
+            am_quat *r = am_new_userdata(L, am_quat);
+            float a = lua_tonumber(L, 3);
+            r->q = glm::slerp(x->q, y->q, a);
+            break;
+        }
         default:
             return luaL_error(L, "expecting a number or vec in position 1");
     }
@@ -1371,37 +1559,37 @@ static int smoothstep(lua_State *L) {
 }
 */
 
-static inline lua_Number smootherstep0(lua_Number edge0, lua_Number edge1, lua_Number x) {
+static lua_Number smootherstep0(lua_Number edge0, lua_Number edge1, lua_Number x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
     return x*x*x*(x*(x*6.0 - 15.0) + 10.0);
 }
 
-static inline glm::vec2 smootherstep0(float edge0, float edge1, glm::vec2 x) {
+static glm::vec2 smootherstep0(float edge0, float edge1, glm::vec2 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec3 smootherstep0(float edge0, float edge1, glm::vec3 x) {
+static glm::vec3 smootherstep0(float edge0, float edge1, glm::vec3 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec4 smootherstep0(float edge0, float edge1, glm::vec4 x) {
+static glm::vec4 smootherstep0(float edge0, float edge1, glm::vec4 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec2 smootherstep0(glm::vec2 edge0, glm::vec2 edge1, glm::vec2 x) {
+static glm::vec2 smootherstep0(glm::vec2 edge0, glm::vec2 edge1, glm::vec2 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec3 smootherstep0(glm::vec3 edge0, glm::vec3 edge1, glm::vec3 x) {
+static glm::vec3 smootherstep0(glm::vec3 edge0, glm::vec3 edge1, glm::vec3 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
 
-static inline glm::vec4 smootherstep0(glm::vec4 edge0, glm::vec4 edge1, glm::vec4 x) {
+static glm::vec4 smootherstep0(glm::vec4 edge0, glm::vec4 edge1, glm::vec4 x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
     return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
 }
@@ -1618,6 +1806,15 @@ static int fract(lua_State *L) {
     lua_setfield(L, -2, "set");                         \
     am_register_metatable(L, #T, MTID, 0);
 
+static void register_quat_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, quat_index, 0);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, quat_mul, 0);
+    lua_setfield(L, -2, "__mul");
+    am_register_metatable(L, "quat", MT_am_quat, 0);
+}
+
 void am_open_math_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"vec2",        vec2_new},
@@ -1626,6 +1823,7 @@ void am_open_math_module(lua_State *L) {
         {"mat2",        mat2_new},
         {"mat3",        mat3_new},
         {"mat4",        mat4_new},
+        {"quat",        quat_new},
         {"length",      vec_length},
         {"distance",    vec_distance},
         {"dot",         vec_dot},
@@ -1658,4 +1856,5 @@ void am_open_math_module(lua_State *L) {
     REGISTER_MAT_MT(mat2, MT_am_mat2)
     REGISTER_MAT_MT(mat3, MT_am_mat3)
     REGISTER_MAT_MT(mat4, MT_am_mat4)
+    register_quat_mt(L);
 }

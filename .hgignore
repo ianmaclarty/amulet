@@ -28,6 +28,7 @@ src/am_generated_view_defs.inc
 
 tools/embed
 tools/gen_view_defs
+tools/ampack
 
 xcode/*
 
@@ -50,6 +51,11 @@ deps/stb/*.lib
 deps/stb/*.a
 deps/stb/*.obj
 deps/stb/*.o-*
+
+deps/kiss_fft*/*.lib
+deps/kiss_fft*/*.a
+deps/kiss_fft*/*.obj
+deps/kiss_fft*/*.o-*
 
 deps/LuaJIT-*/src/host/buildvm
 deps/LuaJIT-*/src/host/buildvm_arch.h

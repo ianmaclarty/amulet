@@ -10,15 +10,25 @@ end
 
 local master = am.audio_node()
 
-local is_playing = false
+local n = 512
+local show = 100
+local spec_arr = am.buffer(n * 4):view("float", 0, 4)
+local spectrum = master:spectrum(n, spec_arr, 0.5)
+
+local scene = am.group()
+local rects = {}
+local x = -0.8
+local dx = 1.6 / show
+local w = 1.0 / show
+for i = 1, show do
+    rects[i] = am.rect(x, -0.8, x+w, -0.8)
+    x = x + dx
+    scene:append(rects[i])
+end
+
 local
-function play_pause()
-    if is_playing then
-        am.root_audio_node():remove(master)
-    else
-        am.root_audio_node():add(master)
-    end
-    is_playing = not is_playing
+function toggle_pause()
+    master.paused = not master.paused
 end
 
 local
@@ -37,14 +47,19 @@ end
 
 select_tracks()
 
-win.root = am.group()
-win.root:action(function()
+scene:action(am.play(spectrum))
+
+win.root = scene:bind{MV = mat4(1), P = mat4(1)}
+scene:action(function()
     if win:key_pressed("enter") then
-        play_pause()
+        toggle_pause()
     elseif win:key_pressed("r") then
         select_tracks()
     elseif win:key_pressed("escape") then
         win:close()
     end
-    return 0
+    for i = 1, show do 
+        rects[i].y2 = math.clamp((spec_arr[i] + 50) / 50, -0.8, 0.8)
+        rects[i].color = vec4((rects[i].y2 + 0.8)^2, i/show, 1, 1)
+    end
 end)
