@@ -716,8 +716,10 @@
 #	endif// GLM_COMPILER & GLM_COMPILER_VC
 #endif
 
+#ifndef AM_WIN32 // see https://github.com/g-truc/glm/issues/325
 // Not standard
 #define GLM_HAS_ANONYMOUS_UNION (GLM_LANG & GLM_LANG_CXXMS_FLAG)
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Platform

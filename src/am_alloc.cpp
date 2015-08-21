@@ -289,17 +289,17 @@ static void free_pool_blocks(am_pool *pool) {
 
 #ifdef AM_PRINT_ALLOC_STATS
 static void log_pool_stats(const char *name, am_pool *pool) {
-    am_log0(      "%-6s: %6lu %6lu %10lu %10lu %10lu %6d %10luk %10luk %10luk   %4.0f%%",
+    am_log0(      "%-6s: %6u %6u %10u %10u %10u %6d %10uk %10uk %10uk   %4.0f%%",
         name,
-        pool->cellsize,
-        pool->blocksize,
-        pool->stats.nallocs,
-        pool->stats.nfrees,
-        pool->stats.hwm_cells,
+        (unsigned)pool->cellsize,
+        (unsigned)pool->blocksize,
+        (unsigned)pool->stats.nallocs,
+        (unsigned)pool->stats.nfrees,
+        (unsigned)pool->stats.hwm_cells,
         pool->num_blocks,
-        pool->stats.allocsz / 1024,
-        pool->stats.freesz / 1024,
-        pool->stats.hwm_sz / 1024,
+        (unsigned)pool->stats.allocsz / 1024,
+        (unsigned)pool->stats.freesz / 1024,
+        (unsigned)pool->stats.hwm_sz / 1024,
         (double)pool->stats.allocsz / (double)(pool->stats.nallocs * pool->cellsize) * 100.0);
 }
 #endif
@@ -312,15 +312,15 @@ void am_destroy_allocator(am_allocator *allocator) {
     log_pool_stats("tiny", &allocator->tiny_pool);
     log_pool_stats("small", &allocator->small_pool);
     log_pool_stats("medium", &allocator->medium_pool);
-    am_log0(      "%-6s: %6s %6s %10lu %10lu %10lu %6s %10luk %10luk %10luk   %4s",
+    am_log0(      "%-6s: %6s %6s %10u %10u %10u %6s %10uk %10uk %10uk   %4s",
         "large", "-", "-", 
-        allocator->heap_stats.nallocs,
-        allocator->heap_stats.nfrees,
-        allocator->heap_stats.hwm_cells,
+        (unsigned)allocator->heap_stats.nallocs,
+        (unsigned)allocator->heap_stats.nfrees,
+        (unsigned)allocator->heap_stats.hwm_cells,
         "-",
-        allocator->heap_stats.allocsz / 1024,
-        allocator->heap_stats.freesz / 1024,
-        allocator->heap_stats.hwm_sz / 1024,
+        (unsigned)allocator->heap_stats.allocsz / 1024,
+        (unsigned)allocator->heap_stats.freesz / 1024,
+        (unsigned)allocator->heap_stats.hwm_sz / 1024,
         "-");
 #endif 
     free_pool_blocks(&allocator->tiny_pool);

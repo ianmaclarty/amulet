@@ -66,7 +66,7 @@ endif
 
 ifeq ($(TARGET_PLATFORM),html)
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR) 
-	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT) $@
+	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	@$(PRINT_BUILD_DONE_MSG)
 else ifeq ($(TARGET_PLATFORM),ios)
 # Just build the static library for iOS. Building the executable works,
@@ -77,13 +77,13 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
-	"$(LINK)" $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT) $@
+	"$(LINK)" $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	ln -fs $@ `basename $@`
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
-	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT) $@
+	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
 
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): src/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
@@ -161,7 +161,7 @@ $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 # Font generation tool
 
 tools/ampack$(EXE_EXT): tools/ampack.c
-	$(CC) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT) $@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT) $(XLDFLAGS)
+	$(CC) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT)$@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT) $(XLDFLAGS)
 
 # Cleanup
 
