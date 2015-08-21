@@ -99,7 +99,7 @@ void am_native_window_post_render(am_native_window* win) {
     SDL_GL_SwapBuffers();
 }
 
-static lua_State *L = NULL;
+static am_engine *eng = NULL;
 static double t0;
 static double frame_time = 0.0;
 static double t_debt;
@@ -117,12 +117,12 @@ double am_get_current_time() {
 static void main_loop() {
     if (!run_loop || sdl_window == NULL) return;
 
-    if (!am_update_windows(L)) {
+    if (!am_update_windows(eng->L)) {
         run_loop = false;
         return;
     }
 
-    am_sync_audio_graph(L);
+    am_sync_audio_graph(eng->L);
 
     if (!handle_events()) {
         run_loop = false;
@@ -135,14 +135,14 @@ static void main_loop() {
 
     if (am_conf_fixed_delta_time > 0.0) {
         while (t_debt > 0.0) {
-            if (!am_execute_actions(L, am_conf_fixed_delta_time)) {
+            if (!am_execute_actions(eng->L, am_conf_fixed_delta_time)) {
                 run_loop = false;
                 return;
             }
             t_debt -= am_conf_fixed_delta_time;
         }
     } else {
-        if (!am_execute_actions(L, t_debt)) {
+        if (!am_execute_actions(eng->L, t_debt)) {
             run_loop = false;
             return;
         }
@@ -172,14 +172,14 @@ int main( int argc, char *argv[] )
 static void start() {
     init_sdl();
 
-    L = am_init_engine(false, 0, NULL);
-    if (L == NULL) return;
+    eng = am_init_engine(false, 0, NULL);
+    if (eng == NULL) return;
 
     frame_time = am_get_current_time();
 
-    lua_pushcclosure(L, am_load_module, 0);
-    lua_pushstring(L, "main");
-    if (!am_call(L, 1, 0)) return;
+    lua_pushcclosure(eng->L, am_load_module, 0);
+    lua_pushstring(eng->L, "main");
+    if (!am_call(eng->L, 1, 0)) return;
     if (sdl_window == NULL) return;
 
     t0 = am_get_current_time();
@@ -233,9 +233,9 @@ static bool handle_events() {
                         SDL_WM_ToggleFullScreen(sdl_window);
                     } else {
                         am_key key = convert_key(event.key.keysym.sym);
-                        am_find_window((am_native_window*)sdl_window)->push(L);
-                        lua_pushstring(L, am_key_name(key));
-                        run_loop = am_call_amulet(L, "_key_down", 2, 0);
+                        am_find_window((am_native_window*)sdl_window)->push(eng->L);
+                        lua_pushstring(eng->L, am_key_name(key));
+                        run_loop = am_call_amulet(eng->L, "_key_down", 2, 0);
                     }
                 }
                 break;
@@ -243,9 +243,9 @@ static bool handle_events() {
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
                     am_key key = convert_key(event.key.keysym.sym);
-                    am_find_window((am_native_window*)sdl_window)->push(L);
-                    lua_pushstring(L, am_key_name(key));
-                    run_loop = am_call_amulet(L, "_key_up", 2, 0);
+                    am_find_window((am_native_window*)sdl_window)->push(eng->L);
+                    lua_pushstring(eng->L, am_key_name(key));
+                    run_loop = am_call_amulet(eng->L, "_key_up", 2, 0);
                 }
                 break;
             }
@@ -256,17 +256,17 @@ static bool handle_events() {
             }
             case SDL_MOUSEBUTTONDOWN: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    am_find_window((am_native_window*)sdl_window)->push(L);
-                    lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    run_loop = am_call_amulet(L, "_mouse_down", 2, 0);
+                    am_find_window((am_native_window*)sdl_window)->push(eng->L);
+                    lua_pushstring(eng->L, am_mouse_button_name(convert_mouse_button(event.button.button)));
+                    run_loop = am_call_amulet(eng->L, "_mouse_down", 2, 0);
                 }
                 break;
             }
             case SDL_MOUSEBUTTONUP: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    am_find_window((am_native_window*)sdl_window)->push(L);
-                    lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    run_loop = am_call_amulet(L, "_mouse_up", 2, 0);
+                    am_find_window((am_native_window*)sdl_window)->push(eng->L);
+                    lua_pushstring(eng->L, am_mouse_button_name(convert_mouse_button(event.button.button)));
+                    run_loop = am_call_amulet(eng->L, "_mouse_up", 2, 0);
                 }
                 break;
             }
@@ -277,7 +277,7 @@ static bool handle_events() {
             }
         }
     }
-    update_mouse_state(L);
+    update_mouse_state(eng->L);
     return true;
 }
 
@@ -426,6 +426,11 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
     return am_read_package_resource(package, filename, len, errmsg);
 }
 
+static int video_frame = 0;
+int am_next_video_capture_frame() {
+    return video_frame++;
+}
+
 void am_copy_video_frame_to_texture() {
     EM_ASM(
         (function() {
@@ -447,20 +452,25 @@ void am_copy_video_frame_to_texture() {
                   //};
                 }, errorCallback);
                 window.amulet.video_capture_initialized = true;
+                window.amulet.video_element = document.getElementById("video");
             } else if (!window.amulet.video_capture_disallowed) {
                 GLctx.texImage2D(GLctx.TEXTURE_2D, 0, GLctx.RGBA, GLctx.RGBA, GLctx.UNSIGNED_BYTE,
-                    document.getElementById("video"));
+                    window.amulet.video_element);
             }
         })();
     );
 }
 
+void am_capture_audio(am_audio_bus *bus) {
+    // NYI
+}
+
 extern "C" {
 
 void am_emscripten_run(const char *script) {
-    am_destroy_engine(L);
-    L = am_init_engine(false, 0, NULL);
-    if (am_run_script(L, script, "main.lua")) {
+    am_destroy_engine(eng);
+    eng = am_init_engine(false, 0, NULL);
+    if (am_run_script(eng->L, script, "main.lua")) {
         run_loop = true;
     } else {
         run_loop = false;

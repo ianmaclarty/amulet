@@ -1,5 +1,8 @@
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
+SPACE1=
+SPACE=$(SPACE1) $(SPACE1)
+
 TARGET_PLATFORMS = linux32 linux64 win32 osx ios android html
 
 DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
@@ -174,6 +177,8 @@ else ifeq ($(TARGET_PLATFORM),html)
   XLDFLAGS = --memory-init-file 0 -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS_OPTS)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
+  EXE_OUT_OPT = -o$(SPACE)
+  OBJ_OUT_OPT = -o$(SPACE)
 else ifeq ($(TARGET_PLATFORM),win32)
   VC_CL = cl.exe
   VC_CL_PATH = $(shell which $(VC_CL))
@@ -225,10 +230,10 @@ else
   ifeq ($(TARGET_PLATFORM),html)
     EM_PROFILING =
     #EM_PROFILING = --profiling
-    GRADE_CFLAGS = -O3 $(EM_PROFILING) -DNDEBUG
-    GRADE_LDFLAGS = -O3 $(EM_PROFILING) 
-    LUA_CFLAGS += -O3 $(EM_PROFILING)
-    LUA_LDFLAGS += -O3 $(EM_PROFILING)
+    GRADE_CFLAGS = -Os $(EM_PROFILING) -DNDEBUG
+    GRADE_LDFLAGS = -Os $(EM_PROFILING) 
+    LUA_CFLAGS += -Os $(EM_PROFILING)
+    LUA_LDFLAGS += -Os $(EM_PROFILING)
   else ifeq ($(TARGET_PLATFORM),win32)
     GRADE_CFLAGS = -Ox -DNDEBUG
     GRADE_LDFLAGS =
