@@ -119,7 +119,7 @@ bool am_process_args(int *argc, char ***argv, int *exit_status) {
     }
 
     if (filename != NULL) {
-        char *last_slash = strrchr(filename, AM_PATH_SEP);
+        char *last_slash = am_max(strrchr(filename, AM_PATH_SEP), strrchr(filename, '/')); // accept / on windows
         if (last_slash != NULL) {
             am_opt_data_dir = filename;
             *last_slash = '\0';
