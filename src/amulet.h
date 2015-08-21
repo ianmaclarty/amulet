@@ -44,7 +44,6 @@
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
 #include <math.h>
-#include <unistd.h>
 
 #include <new>
 #include <climits>
@@ -110,6 +109,7 @@ extern "C" {
 #include "am_text.h"
 #include "am_model.h"
 #include "am_engine.h"
+#include "am_json.h"
 
 #undef near
 #undef far

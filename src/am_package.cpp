@@ -35,6 +35,7 @@ void *am_read_package_resource(am_package *pkg, const char *filename, int *len, 
 }
 
 bool am_build_package(char *dir) {
+    /*
     char *cwd = getcwd(NULL, 0);
     char *cmd = am_format("cd \"%s\" && rm -f \"%s/data.pak\" && "
         "zip -r -n .png:.ogg:.jpg \"%s/data.pak\" * -x \\*.pak \\*~",
@@ -48,4 +49,6 @@ bool am_build_package(char *dir) {
     } else {
         return true;
     }
+    */
+    return false;
 }
