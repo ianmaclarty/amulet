@@ -145,7 +145,7 @@ int am_get_type(lua_State *L, int idx) {
     if (t == LUA_TUSERDATA) {
         if (lua_getmetatable(L, idx)) {
             lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
-            uint32_t mt = lua_tointeger(L, -1);
+            int mt = lua_tointeger(L, -1);
             lua_pop(L, 2); // mt, metatable
             if (mt != 0) {
                 assert(mt < AM_RESERVED_REFS_END && mt > AM_RESERVED_REFS_START);
@@ -185,7 +185,7 @@ const char* am_get_typename(lua_State *L, int metatable_id) {
 void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
     if (lua_getmetatable(L, idx)) {
         lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
-        uint32_t mt = lua_tointeger(L, -1);
+        int mt = lua_tointeger(L, -1);
         lua_pop(L, 2); // mt, metatable
         if (mt != 0) {
             while (mt > AM_RESERVED_REFS_START && mt < AM_RESERVED_REFS_END) {
