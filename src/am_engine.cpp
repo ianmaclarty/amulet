@@ -20,6 +20,7 @@ lua_State *am_init_engine(bool worker, int argc, char** argv) {
     am_open_time_module(L);
     am_open_buffer_module(L);
     am_open_userdata_module(L);
+    am_open_json_module(L);
     if (!worker) {
         am_init_param_name_map(L);
         am_init_actions(L);
