@@ -97,11 +97,13 @@ function init_canvas() {
     }, false);
     if (havePointerLock) {
         $(canvas).click(function() {
-            canvas.requestPointerLock =
-                canvas.requestPointerLock ||
-                canvas.mozRequestPointerLock ||
-                canvas.webkitRequestPointerLock;
-            canvas.requestPointerLock();
+            if (amulet.pointer_lock_requested) {
+                canvas.requestPointerLock =
+                    canvas.requestPointerLock ||
+                    canvas.mozRequestPointerLock ||
+                    canvas.webkitRequestPointerLock;
+                canvas.requestPointerLock();
+            }
         });
     }
 }

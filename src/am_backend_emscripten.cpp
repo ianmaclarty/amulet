@@ -311,6 +311,15 @@ static void init_audio() {
 }
 
 void am_set_native_window_lock_pointer(am_native_window *window, bool lock) {
+    if (lock) {
+        EM_ASM(
+            window.amulet.pointer_lock_requested = true;
+        );
+    } else {
+        EM_ASM(
+            window.amulet.pointer_lock_requested = false;
+        );
+    }
 }
 
 static am_key convert_key(SDL_Keycode key) {
