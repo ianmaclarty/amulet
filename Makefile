@@ -162,6 +162,7 @@ $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 
 tools/ampack$(EXE_EXT): tools/ampack.c
 	$(CC) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT)$@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT) $(XLDFLAGS)
+	ln -fs $@ `basename $@`
 
 # Cleanup
 
