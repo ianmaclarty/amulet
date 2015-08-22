@@ -137,6 +137,18 @@ function am.series(funcs)
     end
 end
 
+function am.loop(func)
+    local action
+    return function(node)
+        if not action then 
+            action = func(node)
+        end
+        if do_action(action, node) then
+            action = nil
+        end
+    end
+end
+
 function am.parallel(funcs)
     for i, val in ipairs(funcs) do
         if type(val) ~= "function" and type(val) ~= "thread" then
