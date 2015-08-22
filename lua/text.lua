@@ -174,6 +174,15 @@ function am.sprite(image)
         :bind_sampler2d("tex", image.texture)
         :bind_program(am.shaders.texture)
         :blend("normal")
+        :extend{
+            get_sprite = function(node)
+                return image
+            end,
+            set_sprite = function(node, img)
+                image = img
+                set_sprite_verts(image, verts, uvs)
+            end,
+        }
 end
 
 function am._init_fonts(data, imgfile)
@@ -193,17 +202,25 @@ function am._init_fonts(data, imgfile)
         end
         data[name] = entry
     end
+    local texture
+    local
+    function ensure_texture_loaded()
+        if not texture then
+            local img = am.load_image(imgfile);
+            texture = am.texture2d{buffer = img.buffer, width = img.width, height = img.height,
+                minfilter = "linear", magfilter = "linear"}
+        end
+    end
     setmetatable(fonts, {__index = function(fonts, name)
+        if name == "texture" then
+            ensure_texture_loaded()
+            return texture
+        end
         local entry = data[name]
         if not entry then
             return nil
         end
-        if not data.texture then
-            local img = am.load_image(imgfile);
-            data.texture = am.texture2d{buffer = img.buffer, width = img.width, height = img.height,
-                minfilter = "linear", magfilter = "linear"}
-        end
-        entry.texture = data.texture
+        entry.texture = texture
         return entry
     end})
     return fonts
