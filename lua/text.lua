@@ -98,10 +98,23 @@ function set_text_verts(font, str, verts_view, uvs_view)
 end
 
 local
-function set_sprite_verts(img, verts_view, uvs_view)
+function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
     local x1, y1, x2, y2 = img.x1, img.y1, img.x2, img.y2
     local s1, t1, s2, t2 = img.s1, img.t1, img.s2, img.t2
-    verts_view:set{x1, y2, 0, x1, y1, 0, x2, y1, 0, x2, y2, 0}
+    local w = img.w
+    local h = img.h
+    local x_os, y_os = 0, 0
+    if halign == "center" then
+        x_os = -w/2
+    elseif halign == "right" then
+        x_os = -w
+    end
+    if valign == "center" then
+        y_os = -h/2
+    elseif valign == "top" then
+        y_os = -h
+    end
+    verts_view:set{x1 + x_os, y2 + y_os, 0, x1 + x_os, y1 + y_os, 0, x2 + x_os, y1 + y_os, 0, x2 + x_os, y2 + y_os, 0}
     uvs_view:set{s1, t2, s1, t1, s2, t1, s2, t2}
 end
 
@@ -163,15 +176,19 @@ function am.text(font, str)
         }
 end
 
-function am.sprite(image)
+function am.sprite(image, halign, valign)
+    halign = halign or "center"
+    valign = valign or "center"
     local num_verts = 4
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
-    set_sprite_verts(image, verts, uvs)
+    set_sprite_verts(image, verts, uvs, halign, valign)
     return am.draw_elements(indices)
-        :bind_array("pos", verts)
-        :bind_array("uv", uvs)
-        :bind_sampler2d("tex", image.texture)
+        :bind{
+            pos = verts,
+            uv = uvs,
+            tex = image.texture,
+        }
         :bind_program(am.shaders.texture)
         :blend("normal")
         :extend{
@@ -180,7 +197,7 @@ function am.sprite(image)
             end,
             set_sprite = function(node, img)
                 image = img
-                set_sprite_verts(image, verts, uvs)
+                set_sprite_verts(image, verts, uvs, halign, valign)
             end,
         }
 end
@@ -220,6 +237,7 @@ function am._init_fonts(data, imgfile)
         if not entry then
             return nil
         end
+        ensure_texture_loaded()
         entry.texture = texture
         return entry
     end})

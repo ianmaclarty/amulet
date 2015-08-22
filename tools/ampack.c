@@ -279,10 +279,12 @@ static void write_data() {
                    "        filename = \"%s\",\n"
                    "        x1 = %g, y1 = %g, x2 = %g, y2 = %g,\n"
                    "        s1 = %g, t1 = %g, s2 = %g, t2 = %g,\n"
+                   "        w = %d, h = %d,\n"
                    "    },\n",
                 items[s].filename, 
                 x1, y1, x2, y2,
-                s1, t1, s2, t2);
+                s1, t1, s2, t2,
+                image_width, image_height);
             r++;
         }
     }
