@@ -1209,6 +1209,23 @@ static int perspective(lua_State *L) {
     return 1;
 }
 
+static int ortho(lua_State *L) {
+    int nargs = am_check_nargs(L, 4);
+    float left = luaL_checknumber(L, 1);
+    float right = luaL_checknumber(L, 2);
+    float bottom = luaL_checknumber(L, 3);
+    float top = luaL_checknumber(L, 4);
+    float near = 1.0f;
+    float far = -1.0f;
+    if (nargs > 4) {
+        near = luaL_checknumber(L, 5);
+        far = luaL_checknumber(L, 6);
+    }
+    am_mat4 *m = am_new_userdata(L, am_mat4);
+    m->m = glm::ortho(left, right, bottom, top, near, far);
+    return 1;
+}
+
 static int lookat(lua_State *L) {
     am_check_nargs(L, 3);
     am_vec3 *eye = am_get_userdata(L, am_vec3, 1);
@@ -1833,6 +1850,7 @@ void am_open_math_module(lua_State *L) {
         {"reflect",     vec_reflect},
         {"refract",     vec_refract},
         {"perspective", perspective},
+        {"ortho",       ortho},
         {"lookat",      lookat},
         {"rotate3",     rotate3},
         {"rotate4",     rotate4},
