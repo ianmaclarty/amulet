@@ -38,6 +38,7 @@ struct am_cull_face_state {
 enum am_blend_mode {
     AM_BLEND_MODE_OFF,
     AM_BLEND_MODE_NORMAL,
+    AM_BLEND_MODE_PREMULT,
     AM_BLEND_MODE_ADD,
     AM_BLEND_MODE_SUBTRACT,
 };

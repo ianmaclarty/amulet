@@ -100,7 +100,6 @@ end
 local
 function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
     local x1, y1, x2, y2 = img.x1, img.y1, img.x2, img.y2
-    local s1, t1, s2, t2 = img.s1, img.t1, img.s2, img.t2
     local w = img.w
     local h = img.h
     local x_os, y_os = 0, 0
@@ -115,7 +114,7 @@ function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
         y_os = -h
     end
     verts_view:set{x1 + x_os, y2 + y_os, 0, x1 + x_os, y1 + y_os, 0, x2 + x_os, y1 + y_os, 0, x2 + x_os, y2 + y_os, 0}
-    uvs_view:set{s1, t2, s1, t1, s2, t1, s2, t2}
+    uvs_view:set(img.uvs)
 end
 
 local
@@ -152,7 +151,7 @@ function am.text(font, str)
         :bind_array("uv", uvs)
         :bind_sampler2d("tex", font.texture)
         :bind_program(am.shaders.texture)
-        :blend("normal")
+        :blend("premult")
         :extend{
             get_text = function(node)
                 return str
@@ -190,7 +189,7 @@ function am.sprite(image, halign, valign)
             tex = image.texture,
         }
         :bind_program(am.shaders.texture)
-        :blend("normal")
+        :blend("premult")
         :extend{
             get_sprite = function(node)
                 return image

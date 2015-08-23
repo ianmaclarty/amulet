@@ -127,6 +127,19 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             color_b         = 1.0f;
             color_a         = 1.0f;
             break;
+        case AM_BLEND_MODE_PREMULT:
+            enabled         = true; 
+            equation_rgb    = AM_BLEND_EQUATION_ADD;
+            equation_alpha  = AM_BLEND_EQUATION_ADD;
+            sfactor_rgb     = AM_BLEND_SFACTOR_ONE;
+            dfactor_rgb     = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+            sfactor_alpha   = AM_BLEND_SFACTOR_ONE;
+            dfactor_alpha   = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+            color_r         = 1.0f;
+            color_g         = 1.0f;
+            color_b         = 1.0f;
+            color_a         = 1.0f;
+            break;
         case AM_BLEND_MODE_ADD:
             enabled         = true; 
             equation_rgb    = AM_BLEND_EQUATION_ADD;

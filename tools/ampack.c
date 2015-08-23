@@ -22,6 +22,13 @@ typedef struct {
     int face;
 } item_spec;
 
+typedef struct {
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+    unsigned char a;
+} pixel;
+
 static FT_Library ft_library;
 static FT_Face ft_face;
 static char *png_filename;
@@ -34,8 +41,11 @@ static int atlas_width = 128;
 static int atlas_height = 64;
 static unsigned char *atlas_data = NULL;
 static unsigned char *image_data = NULL;
+static unsigned char *bordered_image_data = NULL;
 static int image_width = 0;
 static int image_height = 0;
+static int bordered_image_width = 0;
+static int bordered_image_height = 0;
 static int bb_width = 0;
 static int bb_height = 0;
 static int bb_left = 0;
@@ -48,11 +58,13 @@ static int is_mono = 0;
 static void process_args(int argc, char *argv[]);
 static void gen_rects();
 static int try_pack();
+static void premult();
 static void write_data();
 static void write_png();
 static void load_font(int s);
 static void load_char(int c);
 static void load_image(int s);
+static void compute_bordered_image();
 static void compute_bbox();
 
 int main(int argc, char *argv[]) {
@@ -77,6 +89,7 @@ int main(int argc, char *argv[]) {
     atlas_data = malloc(4 * atlas_width * atlas_height);
     memset(atlas_data, 0, 4 * atlas_width * atlas_height);
     write_data();
+    premult();
     write_png();
     free(rects);
     free(atlas_data);
@@ -118,8 +131,8 @@ static void gen_rects() {
         } else {
             load_image(s);
             rects[r].id = 0;
-            rects[r].w = bb_width + 1;
-            rects[r].h = bb_height + 1;
+            rects[r].w = bb_width + 2;
+            rects[r].h = bb_height + 2;
             r++;
         }
     }
@@ -129,7 +142,7 @@ static int try_pack() {
     int r;
     stbrp_context ctx;
     stbrp_node *nodes = malloc(atlas_width * sizeof(stbrp_node));
-    stbrp_init_target(&ctx, atlas_width-1, atlas_height-1, nodes, atlas_width);
+    stbrp_init_target(&ctx, atlas_width, atlas_height, nodes, atlas_width);
     stbrp_pack_rects(&ctx, rects, num_rects);
     free(nodes);
     for (r = 0; r < num_rects; r++) {
@@ -150,7 +163,9 @@ static void write_data() {
     int pitch;
     unsigned char *src_ptr;
     unsigned char *dest_ptr;
-    double s1, t1, s2, t2, x1, y1, x2, y2, w, h, adv;
+    double s1, t1, s2, t2, x1, y1, x2, y2;
+    double blx1, bly1, blx2, bly2, bls1, blt1, bls2, blt2;
+    double w, h, adv;
     FILE *f = fopen(lua_filename, "w");
     fprintf(f, "local font_data = {\n");
     for (s = 0; s < num_items; s++) {
@@ -230,13 +245,16 @@ static void write_data() {
                 h = ((double)rects[r].h) / (double)atlas_height;
                 t1 = t2 - h;
                 s2 = s1 + w;
+
                 x1 = (double)ft_face->glyph->bitmap_left + 0.5;
                 y2 = (double)ft_face->glyph->bitmap_top - 0.5;
                 w = (double)char_bitmap.width;
                 h = (double)char_bitmap.rows;
                 x2 = x1 + w;
                 y1 = y2 - h;
+
                 adv = (double)ft_face->glyph->advance.x * ADVANCE_SCALE;
+
                 fprintf(f, 
                        "            [%d] = {\n"
                        "                x1 = %g, y1 = %g, x2 = %g, y2 = %g,\n"
@@ -254,36 +272,43 @@ static void write_data() {
             fprintf(f, "    },\n");
         } else {
             load_image(s);
-            src_ptr = image_data + bb_top * image_width * 4 + bb_left * 4;
-            dest_ptr = atlas_data + (rects[r].x+1) * 4 +
-                (rects[r].y+1) * atlas_width * 4;
-            for (i = 0; i < bb_height; i++) {
-                memcpy(dest_ptr, src_ptr, bb_width * 4);
-                src_ptr += image_width * 4;
+            src_ptr = bordered_image_data + (bb_top - 1) * bordered_image_width * 4 + (bb_left - 1) * 4;
+            dest_ptr = atlas_data + (rects[r].x) * 4 +
+                (rects[r].y) * atlas_width * 4;
+            for (i = 0; i < (bb_height + 2); i++) {
+                memcpy(dest_ptr, src_ptr, (bb_width + 2) * 4);
+                src_ptr += bordered_image_width * 4;
                 dest_ptr += atlas_width * 4;
             }
-            s1 = ((double)rects[r].x + 0.5) / (double)atlas_width;
-            t2 = 1.0 - (((double)rects[r].y) + 0.5) / (double)atlas_height;
-            w = ((double)rects[r].w) / (double)atlas_width;
-            h = ((double)rects[r].h) / (double)atlas_height;
+
+            s1 = ((double)rects[r].x + 1.0) / (double)atlas_width;
+            t2 = 1.0 - (((double)rects[r].y) + 1.0) / (double)atlas_height;
+            w = ((double)bb_width) / (double)atlas_width;
+            h = ((double)bb_height) / (double)atlas_height;
             t1 = t2 - h;
             s2 = s1 + w;
-            x1 = (double)bb_left + 0.5;
-            y1 = (double)(image_height - bb_bottom) + 0.5;
+
+            x1 = (double)bb_left - 1.0;
+            y1 = (double)(bordered_image_height - bb_bottom - 2.0);
             w = (double)bb_width;
             h = (double)bb_height;
             x2 = x1 + w;
             y2 = y1 + h;
+
             fprintf(f, 
                    "    {\n"
                    "        filename = \"%s\",\n"
                    "        x1 = %g, y1 = %g, x2 = %g, y2 = %g,\n"
                    "        s1 = %g, t1 = %g, s2 = %g, t2 = %g,\n"
+                   "        verts = {%g, %g, 0, %g, %g, 0, %g, %g, 0, %g, %g, 0},\n"
+                   "        uvs = {%g, %g, %g, %g, %g, %g, %g, %g},\n"
                    "        w = %d, h = %d,\n"
                    "    },\n",
                 items[s].filename, 
                 x1, y1, x2, y2,
                 s1, t1, s2, t2,
+                x1, y2, x1, y1, x2, y1, x2, y2,
+                s1, t2, s1, t1, s2, t1, s2, t2,
                 image_width, image_height);
             r++;
         }
@@ -291,6 +316,21 @@ static void write_data() {
     fprintf(f, "}\n\n");
     fprintf(f, "return amulet._init_fonts(font_data, \"%s\")", png_filename);
     fclose(f);
+}
+
+static void premult() {
+    pixel *ptr = (pixel*)atlas_data;
+    pixel *end = ptr + atlas_width * atlas_height;
+    while (ptr != end) {
+        int r = ptr->r;
+        int g = ptr->g;
+        int b = ptr->b;
+        int a = ptr->a;
+        ptr->r = (r * a + 1) >> 8;
+        ptr->g = (g * a + 1) >> 8;
+        ptr->b = (b * a + 1) >> 8;
+        ptr++;
+    }
 }
 
 static void write_png() {
@@ -349,7 +389,39 @@ static void load_image(int s) {
         fprintf(stderr, "error loading image file %s: %s\n", items[s].filename, stbi_failure_reason());
         exit(EXIT_FAILURE);
     }
+    compute_bordered_image();
     compute_bbox();
+}
+
+static void compute_bordered_image() {
+    int row;
+    if (bordered_image_data != NULL) {
+        free(bordered_image_data);
+    }
+    bordered_image_width = image_width + 2;
+    bordered_image_height = image_height + 2;
+    bordered_image_data = (unsigned char*)malloc(4 * bordered_image_width * bordered_image_height);
+    uint32_t *img_ptr = (uint32_t*)image_data;
+    uint32_t *bimg_ptr = (uint32_t*)bordered_image_data;
+    for (row = 0; row < bordered_image_height; row++) {
+        if (row == 0) {
+            bimg_ptr[0] = img_ptr[0];
+            memcpy(&bimg_ptr[1], &img_ptr[0], 4 * image_width);
+            bimg_ptr[bordered_image_width-1] = img_ptr[image_width-1];
+            bimg_ptr += bordered_image_width;
+        } else if (row == bordered_image_height - 1) {
+            img_ptr -= image_width;
+            bimg_ptr[0] = img_ptr[0];
+            memcpy(&bimg_ptr[1], &img_ptr[0], 4 * image_width);
+            bimg_ptr[bordered_image_width-1] = img_ptr[image_width-1];
+        } else {
+            bimg_ptr[0] = img_ptr[0];
+            memcpy(&bimg_ptr[1], &img_ptr[0], 4 * image_width);
+            bimg_ptr[bordered_image_width-1] = img_ptr[image_width-1];
+            bimg_ptr += bordered_image_width;
+            img_ptr += image_width;
+        }
+    }
 }
 
 static void compute_bbox() {
@@ -392,6 +464,28 @@ static void compute_bbox() {
     if (bb_top > bb_bottom) {
         bb_top = bb_bottom;
     }
+
+    // make sure we have a 1 pixel transparent border, if possible
+    if (bb_left > 0) {
+        bb_left = bb_left - 1;
+    }
+    if (bb_right < image_width - 1) {
+        bb_right = bb_right + 1;
+    }
+    if (bb_top > 0) {
+        bb_top = bb_top - 1;
+    }
+    if (bb_bottom < image_height - 1) {
+        bb_bottom = bb_bottom + 1;
+    }
+
+    // convert the bounding box to the bordered image coordinate space
+    bb_left = bb_left + 1;
+    bb_top = bb_top + 1;
+    bb_right = bb_right + 1;
+    bb_bottom = bb_bottom + 1;
+
+    // compute bounding box dimensions
     bb_width = bb_right - bb_left + 1;
     bb_height = bb_bottom - bb_top + 1;
 }
