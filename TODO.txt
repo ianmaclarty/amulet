@@ -4,9 +4,11 @@
   values). This would require the lua file/line to be recorded when nodes
   are created. Assess the performance tradeoff of doing this.
 
-- Remove am_ prefixes on source file names.
-
-- Make vecs and mats readonly.
+- Make vecs and mats readonly. Actually this makes some things quite
+  awkward, such as tweening a vector's components separately.
+  In cases where vec updates would be problematic (e.g. with views
+  or matrix columns), we could return readonly vecs, which are the
+  same as normal vecs, but have a modified metatable.
 
 - Look at integrating luasocket for networking support (what about html
   backend?).

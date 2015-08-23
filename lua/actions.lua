@@ -36,18 +36,15 @@ function am._execute_actions(actions, from, to)
             if do_action(action.func, action.node) then
                 -- remove action
                 local node_actions = action.node._actions
-                local prev = nil
-                for j = #node_actions, 1, -1 do
+                for j = 1, #node_actions do
                     --log("query actions[%d] = %s", j, tostring(node_actions[j]))
-                    node_actions[j], prev = prev, node_actions[j]
-                    if prev == action then
-                        goto next_action
+                    if node_actions[j] == action then
+                        table.remove(node_actions, j)
+                        break
                     end
                 end
-                assert(false) -- action not found
             end
         end
-        ::next_action::
     end
 end
 

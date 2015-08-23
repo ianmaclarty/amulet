@@ -1359,6 +1359,10 @@ static int inverse(lua_State *L) {
 static int simplex(lua_State *L) {
     am_check_nargs(L, 1);
     switch (am_get_type(L, 1)) {
+        case LUA_TNUMBER: {
+            lua_pushnumber(L, glm::simplex(glm::vec2((float)lua_tonumber(L, 1), 0.0f)));
+            break;
+        }
         case MT_am_vec2: {
             lua_pushnumber(L, glm::simplex(((am_vec2*)lua_touserdata(L, 1))->v));
             break;
@@ -1381,6 +1385,10 @@ static int perlin(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     if (nargs == 1) {
         switch (am_get_type(L, 1)) {
+            case LUA_TNUMBER: {
+                lua_pushnumber(L, glm::perlin(glm::vec2((float)lua_tonumber(L, 1), 0.0f)));
+                break;
+            }
             case MT_am_vec2: {
                 lua_pushnumber(L, glm::perlin(((am_vec2*)lua_touserdata(L, 1))->v));
                 break;
@@ -1398,6 +1406,11 @@ static int perlin(lua_State *L) {
         }
     } else if (nargs == 2) {
         switch (am_get_type(L, 1)) {
+            case LUA_TNUMBER: {
+                lua_pushnumber(L, glm::perlin(glm::vec2((float)lua_tonumber(L, 1), 0.0f),
+                    glm::vec2((float)luaL_checknumber(L, 2), 1.0f)));
+                break;
+            }
             case MT_am_vec2: {
                 lua_pushnumber(L,
                     glm::perlin(((am_vec2*)lua_touserdata(L, 1))->v,
