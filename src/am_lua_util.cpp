@@ -304,7 +304,11 @@ void lua_unsafe_pushuserdata(lua_State *L, void *v) {
     Udata *u = ((Udata*)v)-1;
     lua_lock(L);
     setuvalue(L, L->top, u);
+#ifdef LUA51
     L->top++;
+#else
+    api_incr_top(L);
+#endif
     lua_unlock(L);
 }
 
