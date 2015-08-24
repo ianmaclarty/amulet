@@ -13,8 +13,10 @@
 - Look at integrating luasocket for networking support (what about html
   backend?).
 
-- Change to Lua 5.1. Lua 5.2 uses longjmp for yield, which is very
-  slow on Chrome. Maybe keep 5.2 as an option (like luajit).
+- Investigate whether double to int conversions in Lua 5.1/5.2 are
+  slow. I might not be defining the right macros in my custom makefile
+  to get the fast implementation of this, but then again maybe -fast-math
+  takes care of it?
 
 - Things that could be improved:
     - How to integrate sprite sheet generation

@@ -9,8 +9,14 @@ AM_DEFS = AM_$(shell echo $(TARGET_PLATFORM) | tr a-z A-Z) AM_$(shell echo $(GRA
 ifeq ($(LUAVM),luajit)
   BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUAJIT_INCLUDE_DIR)
   AM_DEFS += AM_LUAJIT
+else ifeq ($(LUAVM),lua51)
+  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA51_INCLUDE_DIR)
+  AM_DEFS += AM_LUA51
+else ifeq ($(LUAVM),lua52)
+  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA52_INCLUDE_DIR)
+  AM_DEFS += AM_LUA52
 else
-  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA_INCLUDE_DIR)
+  $(error invalid lua vm: $(LUAVM))
 endif
 
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
@@ -109,10 +115,15 @@ $(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp $(ANGLE_WIN_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
 	touch $@
 
-$(LUA_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA_INCLUDE_DIR)
-	cd $(LUA_DIR) && $(MAKE) -f Makefile.custom clean all
-	cp $(LUA_DIR)/src/*.h $(BUILD_LUA_INCLUDE_DIR)/
-	cp $(LUA_DIR)/src/liblua$(ALIB_EXT) $@
+$(LUA51_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA51_INCLUDE_DIR)
+	cd $(LUA51_DIR) && $(MAKE) -f Makefile.custom clean all
+	cp $(LUA51_DIR)/src/*.h $(BUILD_LUA51_INCLUDE_DIR)/
+	cp $(LUA51_DIR)/src/liblua$(ALIB_EXT) $@
+
+$(LUA52_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA52_INCLUDE_DIR)
+	cd $(LUA52_DIR) && $(MAKE) -f Makefile.custom clean all
+	cp $(LUA52_DIR)/src/*.h $(BUILD_LUA52_INCLUDE_DIR)/
+	cp $(LUA52_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
 	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"

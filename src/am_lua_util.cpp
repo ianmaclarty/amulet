@@ -19,7 +19,7 @@ static int global_index(lua_State *L) {
 }
 
 void am_set_globals_metatable(lua_State *L) {
-#ifndef AM_LUAJIT
+#ifdef AM_LUA52
     lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
 #endif
     lua_newtable(L);
@@ -27,7 +27,7 @@ void am_set_globals_metatable(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
     lua_pushcfunction(L, global_index);
     lua_setfield(L, -2, "__index");
-#ifdef AM_LUAJIT
+#ifndef AM_LUA52
     lua_setmetatable(L, LUA_GLOBALSINDEX);
 #else
     lua_setmetatable(L, -2);
@@ -45,10 +45,10 @@ static void setfuncs(lua_State *L, const luaL_Reg *l) {
 void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs) {
     if (name == NULL) {
         // global namespace
-#ifdef AM_LUAJIT
-        lua_pushvalue(L, LUA_GLOBALSINDEX);
-#else
+#ifdef AM_LUA52
         lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+#else
+        lua_pushvalue(L, LUA_GLOBALSINDEX);
 #endif
         setfuncs(L, funcs);
         lua_pop(L, 1);
@@ -69,7 +69,10 @@ void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs) {
 }
 
 void am_requiref(lua_State *L, const char *modname, lua_CFunction openf) {
-#ifdef AM_LUAJIT
+#ifdef AM_LUA52
+    luaL_requiref(L, modname, openf, 1);
+    lua_pop(L, 1);
+#else
     lua_pushcfunction(L, openf);
     lua_pushstring(L, modname);  /* argument to open function */
     lua_call(L, 1, 1);  /* open module */
@@ -78,9 +81,6 @@ void am_requiref(lua_State *L, const char *modname, lua_CFunction openf) {
     lua_setfield(L, -2, modname);  /* _LOADED[modname] = module */
     lua_pop(L, 1); // _LOADED
     lua_setglobal(L, modname); // pops call result
-#else
-    luaL_requiref(L, modname, openf, 1);
-    lua_pop(L, 1);
 #endif
 }
 
@@ -244,7 +244,7 @@ int am_package_searcher(lua_State *L) {
     return 1;
 }
 
-#ifdef AM_LUAJIT
+#ifndef AM_LUA52 
 void lua_setuservalue(lua_State *L, int idx) {
     lua_setfenv(L, idx);
 }
@@ -273,6 +273,10 @@ lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum) {
     }
 }
 
+#endif 
+
+#ifdef AM_LUAJIT
+
 #include "lj_gc.h"
 #include "lj_obj.h"
 #include "lj_state.h"
@@ -292,12 +296,15 @@ void lua_unsafe_pushuserdata(lua_State *L, void *v) {
 #include "lapi.h"
 #include "lgc.h"
 #include "lobject.h"
+#ifdef AM_LUA51
+#include "lstate.h"
+#endif
 
 void lua_unsafe_pushuserdata(lua_State *L, void *v) {
     Udata *u = ((Udata*)v)-1;
     lua_lock(L);
     setuvalue(L, L->top, u);
-    api_incr_top(L);
+    L->top++;
     lua_unlock(L);
 }
 

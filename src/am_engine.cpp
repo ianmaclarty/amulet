@@ -119,8 +119,8 @@ static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "base",      luaopen_base);
     am_requiref(L, "package",   luaopen_package);
     am_requiref(L, "math",      luaopen_math);
-#ifndef AM_LUAJIT
-    // luajit opens coroutine in luaopen_base
+#ifdef AM_LUA52
+    // luajit and lua51 open coroutine in luaopen_base
     am_requiref(L, "coroutine", luaopen_coroutine);
 #endif
     am_requiref(L, "string",    luaopen_string);
