@@ -18,12 +18,24 @@
   to get the fast implementation of this, but then again maybe -fast-math
   takes care of it?
 
-- Things that could be improved:
-    - How to integrate sprite sheet generation
-    - Pattern of having model for different kinds of game objects
-      isn't very convenient as we end up want to call instances of
-      the object the same name as the module. When convention could
-      we use to solve this.
-    - Action execution order - still worried about this. How to
-      easily ensure dependencies between actions are satisfied,
-      so that we don't get e.g. some nodes being a frame behind.
+- Figure out how to integrate sprite sheet generation
+
+- The convention of having module for different kinds of game objects
+  isn't very convenient as we end up wanting to name instances of
+  the object the same name as the module. What convention could
+  we use to solve this. module return a constructor function perhaps?
+  Need to try out some alternate conventions. (This is more a application
+  code style thing, but thinking about it may lead to changes in amulet).
+
+- Action execution order - still worried about this. How to
+  easily ensure dependencies between actions are satisfied,
+  so that we don't get e.g. some nodes being a frame behind.
+
+- Lua5.1 and LuaJIT seem to do a full traversal of all objects to extract
+  objects that need finalization. This happens as an atomic GC step
+  (i.e. is not incremental).  See if this is a problem. It seems like it
+  might cause pauses when there are many objects. Lua5.2 seems to not do this.
+  Instead it puts finanizable objects on a separate list in setmetatable.  It
+  does need to scan the full object list inside setmetatable to move the
+  object, but usually the object should be near the front of the list, because
+  we usually set the metatable soon after creating the object (check this).
