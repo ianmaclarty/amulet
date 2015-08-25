@@ -70,6 +70,9 @@ am_native_window *am_create_native_window(
     if (sdl_window == NULL) return NULL;
     am_init_gl();
     init_mouse_state();
+    EM_ASM_INT({
+        document.getElementById("title").innerHTML = Module.Pointer_stringify($0);
+    }, title);
     return (am_native_window*)sdl_window;
 }
 
