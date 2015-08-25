@@ -112,6 +112,9 @@ function am.delay(time)
 end
 
 function am.series(funcs)
+    if type(funcs) ~= "table" then
+        error("expecting a table of actions as the single argument to series", 2)
+    end
     for i, val in ipairs(funcs) do
         if type(val) ~= "function" and type(val) ~= "thread" then
             error("expecting a function or coroutine at index "..i, 2)

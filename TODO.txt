@@ -27,3 +27,6 @@
     - Action execution order - still worried about this. How to
       easily ensure dependencies between actions are satisfied,
       so that we don't get e.g. some nodes being a frame behind.
+
+- Show user-code context in main error message, not embedded-lua context.
+  (can still show embedded-lua in stack trace)

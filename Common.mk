@@ -232,7 +232,7 @@ ifeq ($(GRADE),debug)
 else
   ifeq ($(TARGET_PLATFORM),html)
     EM_PROFILING =
-    EM_PROFILING = --profiling
+    #EM_PROFILING = --profiling
     GRADE_CFLAGS = -O3 $(EM_PROFILING) -DNDEBUG
     GRADE_LDFLAGS = -O3 $(EM_PROFILING) 
     LUA_CFLAGS += -O3 $(EM_PROFILING)

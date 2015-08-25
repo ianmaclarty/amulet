@@ -24,7 +24,7 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 EXTRA_PREREQS = 
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = lua ft2 stb kissfft
+  AM_DEPS = $(LUAVM) ft2 stb kissfft
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifeq ($(TARGET_PLATFORM),ios)
   AM_DEPS = $(LUAVM) ft2 stb kissfft
