@@ -38,6 +38,11 @@ static int create_texture2d(lua_State *L) {
             type = am_get_enum(L, am_texture_type, -1);
         } else if (strcmp(key, "buffer") == 0) {
             buffer = am_get_userdata(L, am_buffer, -1);
+        } else if (strcmp(key, "image") == 0) {
+            am_image *img = am_get_userdata(L, am_image, -1);
+            buffer = img->buffer;
+            width = img->width;
+            height = img->height;
         } else {
             return luaL_error(L, "unrecognised texture setting: '%s'", key);
         }
