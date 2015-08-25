@@ -113,7 +113,6 @@ LUA_TARGET = posix
 XCFLAGS = -DLUA_COMPAT_ALL -Wall -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -lGL -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
-LUA_LDFLAGS = 
 LUAJIT_CFLAGS =
 LUAJIT_LDFLAGS = 
 OBJ_OUT_OPT = -o
@@ -215,17 +214,14 @@ ifeq ($(GRADE),debug)
     GRADE_CFLAGS = -O1
     GRADE_LDFLAGS =
     LUA_CFLAGS += -DLUA_USE_APICHECK
-    LUA_LDFLAGS +=
   else ifeq ($(TARGET_PLATFORM),win32)
     GRADE_CFLAGS = -MTd -Zi
     GRADE_LDFLAGS = -DEBUG
     LUA_CFLAGS += -DLUA_USE_APICHECK
-    LUA_LDFLAGS +=
   else
     GRADE_CFLAGS = -g -O1
     GRADE_LDFLAGS = -g 
     LUA_CFLAGS += -DLUA_USE_APICHECK
-    LUA_LDFLAGS += -g
     LUAJIT_CFLAGS += -DLUA_USE_APICHECK
     LUAJIT_LDFLAGS += -g
   endif
@@ -235,23 +231,15 @@ else
     #EM_PROFILING = --profiling
     GRADE_CFLAGS = -O3 $(EM_PROFILING) -DNDEBUG
     GRADE_LDFLAGS = -O3 $(EM_PROFILING) 
-    LUA_CFLAGS += -O3 $(EM_PROFILING)
-    LUA_LDFLAGS += -O3 $(EM_PROFILING)
   else ifeq ($(TARGET_PLATFORM),win32)
     GRADE_CFLAGS = -Ox -DNDEBUG
     GRADE_LDFLAGS =
-    LUA_CFLAGS += -Ox
-    LUA_LDFLAGS += -Ox
   else ifeq ($(TARGET_PLATFORM),osx)
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =
-    LUA_CFLAGS += -O3
-    LUA_LDFLAGS += -O2
   else
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS = -s
-    LUA_CFLAGS += -O3
-    LUA_LDFLAGS += -O3
   endif
 endif
 
