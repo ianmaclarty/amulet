@@ -50,3 +50,10 @@
   objects for lua51 and luajit. lua52 seems ok, so default to using that,
   except with the html backend where lua52's coroutines are inefficient
   (because they use longjmp).
+
+- Allow hot reloading of images / spritesheets (should be ok for spritesheets
+  as long as sizes don't change).
+
+- Implement console.
+
+- Support y or z sorting.
