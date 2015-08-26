@@ -1589,6 +1589,7 @@ static int smoothstep(lua_State *L) {
 }
 */
 
+/*
 static lua_Number smootherstep0(lua_Number edge0, lua_Number edge1, lua_Number x) {
     x = glm::clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
     return x*x*x*(x*(x*6.0 - 15.0) + 10.0);
@@ -1685,6 +1686,7 @@ static int smootherstep(lua_State *L) {
     }
     return 1;
 }
+*/
 
 //-------------------- clamping functions ------------------------//
 
@@ -1877,7 +1879,7 @@ void am_open_math_module(lua_State *L) {
         {"clamp",       clamp},
         {"fract",       fract},
         //{"smoothstep",  smoothstep},
-        {"smootherstep",smootherstep},
+        //{"smootherstep",smootherstep},
         {NULL, NULL}
     };
     am_open_module(L, "math", funcs);

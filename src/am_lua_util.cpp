@@ -19,7 +19,7 @@ static int global_index(lua_State *L) {
 }
 
 void am_set_globals_metatable(lua_State *L) {
-#ifdef AM_LUA52
+#if defined(AM_LUA52) || defined(AM_LUA53)
     lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
 #endif
     lua_newtable(L);
@@ -27,11 +27,11 @@ void am_set_globals_metatable(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
     lua_pushcfunction(L, global_index);
     lua_setfield(L, -2, "__index");
-#ifndef AM_LUA52
-    lua_setmetatable(L, LUA_GLOBALSINDEX);
-#else
+#if defined(AM_LUA52) || defined(AM_LUA53)
     lua_setmetatable(L, -2);
     lua_pop(L, 1);
+#else
+    lua_setmetatable(L, LUA_GLOBALSINDEX);
 #endif
 }
 
@@ -45,7 +45,7 @@ static void setfuncs(lua_State *L, const luaL_Reg *l) {
 void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs) {
     if (name == NULL) {
         // global namespace
-#ifdef AM_LUA52
+#if defined(AM_LUA52) || defined(AM_LUA53)
         lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
 #else
         lua_pushvalue(L, LUA_GLOBALSINDEX);
@@ -69,7 +69,7 @@ void am_open_module(lua_State *L, const char *name, luaL_Reg *funcs) {
 }
 
 void am_requiref(lua_State *L, const char *modname, lua_CFunction openf) {
-#ifdef AM_LUA52
+#if defined(AM_LUA52) || defined(AM_LUA53)
     luaL_requiref(L, modname, openf, 1);
     lua_pop(L, 1);
 #else
@@ -244,7 +244,8 @@ int am_package_searcher(lua_State *L) {
     return 1;
 }
 
-#ifndef AM_LUA52 
+#if defined(AM_LUAJIT) || defined(AM_LUA51)
+
 void lua_setuservalue(lua_State *L, int idx) {
     lua_setfenv(L, idx);
 }

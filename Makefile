@@ -15,8 +15,11 @@ else ifeq ($(LUAVM),lua51)
 else ifeq ($(LUAVM),lua52)
   BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA52_INCLUDE_DIR)
   AM_DEFS += AM_LUA52
+else ifeq ($(LUAVM),lua53)
+  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA53_INCLUDE_DIR)
+  AM_DEFS += AM_LUA53
 else
-  $(error invalid lua vm: $(LUAVM))
+  $(error invalid LUAVM: $(LUAVM))
 endif
 
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
@@ -53,7 +56,7 @@ AM_INCLUDE_FLAGS = $(INCLUDE_OPT)$(BUILD_INC_DIR) $(INCLUDE_OPT)$(BUILD_LUAVM_IN
 
 AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 
-AM_CFLAGS = $(AM_DEF_FLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS) $(COMMON_CFLAGS) 
+AM_CFLAGS = $(AM_DEF_FLAGS) $(LUA_CFLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS) $(COMMON_CFLAGS) 
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
 HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html)
@@ -124,6 +127,11 @@ $(LUA52_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA52_INCLUDE_DIR)
 	cd $(LUA52_DIR) && $(MAKE) -f Makefile.custom clean all
 	cp $(LUA52_DIR)/src/*.h $(BUILD_LUA52_INCLUDE_DIR)/
 	cp $(LUA52_DIR)/src/liblua$(ALIB_EXT) $@
+
+$(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA53_INCLUDE_DIR)
+	cd $(LUA53_DIR) && $(MAKE) -f Makefile.custom clean all
+	cp $(LUA53_DIR)/src/*.h $(BUILD_LUA53_INCLUDE_DIR)/
+	cp $(LUA53_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
 	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"

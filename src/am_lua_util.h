@@ -29,7 +29,7 @@ void lua_unsafe_pushuserdata(lua_State *L, void *v);
 int am_load_module(lua_State *L);
 int am_package_searcher(lua_State *L);
 
-#ifndef AM_LUA52
+#if defined(AM_LUA51) || defined(AM_LUAJIT)
 void lua_setuservalue(lua_State *L, int idx);
 void lua_getuservalue(lua_State *L, int idx);
 lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum);

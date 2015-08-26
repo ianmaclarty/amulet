@@ -119,7 +119,7 @@ static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "base",      luaopen_base);
     am_requiref(L, "package",   luaopen_package);
     am_requiref(L, "math",      luaopen_math);
-#ifdef AM_LUA52
+#if defined(AM_LUA52) || defined(AM_LUA53)
     // luajit and lua51 open coroutine in luaopen_base
     am_requiref(L, "coroutine", luaopen_coroutine);
 #endif
@@ -171,6 +171,7 @@ static bool run_embedded_script(lua_State *L, const char *filename) {
 
 static bool run_embedded_scripts(lua_State *L, bool worker) {
     return
+        run_embedded_script(L, "lua/compat.lua") &&
         run_embedded_script(L, "lua/traceback.lua") &&
         run_embedded_script(L, "lua/setup.lua") &&
         run_embedded_script(L, "lua/type.lua") &&
