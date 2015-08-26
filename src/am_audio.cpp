@@ -1404,15 +1404,23 @@ static void register_audio_node_mt(lua_State *L) {
 
 //-------------------------------------------------------------------------
 
-static int decode_ogg(lua_State *L) {
-    am_buffer *source_buf = am_get_userdata(L, am_buffer, 1);
+static int load_audio(lua_State *L) {
+    char *errmsg;
+    int len;
+    const char *filename = luaL_checkstring(L, 1);
+    void *data = am_read_resource(filename, &len, &errmsg);
+    if (data == NULL) {
+        lua_pushstring(L, errmsg);
+        free(errmsg);
+        return lua_error(L);
+    }
     int num_channels;
     int sample_rate;
     short *tmp_data;
-    int num_samples = stb_vorbis_decode_memory((unsigned char*)source_buf->data,
-        source_buf->size, &num_channels, &sample_rate, &tmp_data);
+    int num_samples = stb_vorbis_decode_memory((unsigned char*)data,
+        len, &num_channels, &sample_rate, &tmp_data);
     if (num_samples <= 0) {
-        return luaL_error(L, "error decoding ogg '%s'", source_buf->origin);
+        return luaL_error(L, "error loading audio '%s'", filename);
     }
     am_buffer *dest_buf;
     float *dest_data;
@@ -1421,7 +1429,7 @@ static int decode_ogg(lua_State *L) {
     if (sample_rate != am_conf_audio_sample_rate) {
         // resample required
         am_log0("WARNING: resampling buffer '%s' from %dHz to %dHz",
-            source_buf->origin, sample_rate, am_conf_audio_sample_rate);
+            filename, sample_rate, am_conf_audio_sample_rate);
         double sample_rate_ratio = (double)sample_rate / (double)am_conf_audio_sample_rate;
         dest_samples = floor((double)num_samples / sample_rate_ratio);
         dest_buf = am_new_userdata(L, am_buffer, dest_samples * am_conf_audio_channels * 4);
@@ -1635,7 +1643,7 @@ void am_open_audio_module(lua_State *L) {
         {"capture_audio", create_capture_node},
         {"track", create_audio_track_node},
         {"stream", create_audio_stream_node},
-        {"decode_ogg", decode_ogg},
+        {"load_audio", load_audio},
         {"root_audio_node", get_root_audio_node},
         {NULL, NULL}
     };

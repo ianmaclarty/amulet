@@ -16,6 +16,9 @@ local lowpass_resonance_editor_node
 local highpass_cutoff_editor_node
 local highpass_resonance_editor_node
 
+local scene = am.group()
+win.root = scene
+
 local
 function create_audio_buffer()
     local rate = 44100
@@ -34,7 +37,7 @@ function create_audio_node()
     track_node = am.track(audio_buffer, true, 1, 1)
     lowpass_filter_node = track_node:lowpass_filter(2000, 0)
     highpass_filter_node = lowpass_filter_node:highpass_filter(20, 0)
-    am.root_audio_node():add(highpass_filter_node)
+    scene:action(am.play(highpass_filter_node))
 end
 
 local
@@ -200,7 +203,7 @@ local
 function assemble_ui()
     local dy = 0.15
     local x = 0
-    win.root = am.group(
+    scene:append(am.group(
             wave_editor_node
                 :scale("MVP", vec3(0.8, 0.45, 1))
                 :translate("MVP", vec3(x, -0.43, 0)),
@@ -227,6 +230,7 @@ function assemble_ui()
                 win:close()
             end
         end)
+    )
 end
 
 create_audio_buffer()

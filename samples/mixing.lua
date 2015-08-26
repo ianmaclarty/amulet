@@ -5,7 +5,7 @@ local win = am.window{}
 local tracks = {}
 
 for i = 1, 6 do
-    tracks[i] = am.stream(am.read_buffer("track"..i..".ogg"), true)
+    tracks[i] = am.stream(am.load_buffer("track"..i..".ogg"), true)
 end
 
 local master = am.audio_node()

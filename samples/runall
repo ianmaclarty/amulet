@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+dir="$( cd "$( dirname "$0" )" && pwd )"
+for f in `ls $dir/*.lua`; do
+    echo Running `basename $f`
+    $dir/../amulet $dir/`basename $f`
+done

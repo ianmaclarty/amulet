@@ -9,9 +9,10 @@ local show = 100
 local spec_arr = am.buffer(n * 4):view("float", 0, 4)
 local spectrum = capture:spectrum(n, spec_arr, 0.5)
 
-am.root_audio_node():add(spectrum)
-
 local scene = am.group()
+
+scene:action(am.play(spectrum))
+
 local rects = {}
 local x = -0.8
 local dx = 1.6 / show

@@ -31,6 +31,8 @@ local facing_node
 local pitch_node
 local limit1_node
 local building_shader
+local root_audio = am.audio_node()
+
 
 local
 function init()
@@ -86,6 +88,8 @@ function init()
 
     init_audio()
     play_chime(1)
+
+    win.root:action(am.play(root_audio, true))
 end
 
 local zones = {
@@ -497,10 +501,10 @@ function init_audio()
 end
 
 function play_chime(c)
-    am.root_audio_node():remove_all()
+    root_audio:remove_all()
     if c < #zones and c > 1 then
         for i = c, 1, -1 do
-            am.root_audio_node():add(chimes[i])
+            root_audio:add(chimes[i])
         end
         num_active_chimes = c
     else

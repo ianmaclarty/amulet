@@ -33,7 +33,7 @@ yview[1] = -0.7
 yview[2] = 0.7
 yview[3] = -0.7
 
-local image = am.decode_jpg(am.read_buffer("face.jpg"))
+local image = am.load_image("face.jpg")
 
 local texture = am.texture2d{
     width = image.width,

@@ -120,7 +120,7 @@ static int create_buffer(lua_State *L) {
     return 1;
 }
 
-static int read_buffer(lua_State *L) {
+static int load_buffer(lua_State *L) {
     am_check_nargs(L, 1);
     const char *filename = luaL_checkstring(L, 1);
     int len;
@@ -490,7 +490,7 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 void am_open_buffer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"buffer", create_buffer},
-        {"read_buffer", read_buffer},
+        {"load_buffer", load_buffer},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
