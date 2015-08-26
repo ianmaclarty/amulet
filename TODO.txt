@@ -4,6 +4,9 @@
   values). This would require the lua file/line to be recorded when nodes
   are created. Assess the performance tradeoff of doing this.
 
+- Show user-code context in main error message, not embedded-lua context.
+  (can still show embedded-lua in stack trace)
+
 - Make vecs and mats readonly. Actually this makes some things quite
   awkward, such as tweening a vector's components separately.
   In cases where vec updates would be problematic (e.g. with views
@@ -15,11 +18,8 @@
 
 - Investigate whether double to int conversions in Lua 5.1/5.2 are
   slow. I might not be defining the right macros in my custom makefile
-  to get the fast implementation of this, but then again maybe -fast-math
+  to get the fast implementation of this, but then again maybe -ffast-math
   takes care of it?
-
-- Show user-code context in main error message, not embedded-lua context.
-  (can still show embedded-lua in stack trace)
 
 - The convention of having module for different kinds of game objects
   isn't very convenient as we end up wanting to name instances of
@@ -40,3 +40,7 @@
   does need to scan the full object list inside setmetatable to move the
   object, but usually the object should be near the front of the list, because
   we usually set the metatable soon after creating the object (check this).
+  Update: this does seem to cause longer pauses with a large number of 
+  objects for lua51 and luajit. lua52 seems ok, so default to using that,
+  except with the html backend where lua52's coroutines are inefficient
+  (because they use longjmp).
