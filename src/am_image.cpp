@@ -62,6 +62,19 @@ static int load_image(lua_State *L) {
     return 1;
 }
 
+static int save_image(lua_State *L) {
+    am_check_nargs(L, 2);
+    am_image *img = am_get_userdata(L, am_image, 1);
+    const char *filename = luaL_checkstring(L, 2);
+    size_t len;
+    void *png_data = tdefl_write_image_to_png_file_in_memory_ex(
+        img->buffer->data, img->width, img->height, 4, &len, MZ_DEFAULT_LEVEL, 1);
+    FILE *f = fopen(filename, "wb");
+    fwrite(png_data, len, 1, f);
+    fclose(f);
+    return 0;
+}
+
 static void get_image_width(lua_State *L, void *obj) {
     am_image *img = (am_image*)obj;
     lua_pushinteger(L, img->width);
@@ -97,6 +110,7 @@ void am_open_image_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"create_image", create_image},
         {"load_image", load_image},
+        {"save_image", save_image},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
