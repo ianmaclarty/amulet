@@ -19,7 +19,7 @@
 
 #include <mach/mach_time.h>
 
-static lua_State *ios_L = NULL;
+static am_engine *ios_eng = NULL;
 static am_package *package = NULL;
 static am_display_orientation ios_orientation = AM_DISPLAY_ORIENTATION_ANY;
 static bool ios_window_created = false;
@@ -318,13 +318,13 @@ static void ios_init_engine() {
     am_opt_data_dir = ios_bundle_path();
     am_opt_main_module = "main";
     if (!open_package()) return;
-    ios_L = am_init_engine(false, 0, NULL);
-    if (ios_L == NULL) return;
+    ios_eng = am_init_engine(false, 0, NULL);
+    if (ios_eng == NULL) return;
 
     frame_time = am_get_current_time();
-    lua_pushcclosure(ios_L, am_load_module, 0);
-    lua_pushstring(ios_L, am_opt_main_module);
-    if (am_call(ios_L, 1, 0)) {
+    lua_pushcclosure(ios_eng->L, am_load_module, 0);
+    lua_pushstring(ios_eng->L, am_opt_main_module);
+    if (am_call(ios_eng->L, 1, 0)) {
         ios_running = true;
     }
     t0 = am_get_current_time();
@@ -334,9 +334,9 @@ static void ios_init_engine() {
 
 static void ios_teardown() {
     ios_running = false;
-    if (ios_L != NULL) {
-        am_destroy_engine(ios_L);
-        ios_L = NULL;
+    if (ios_eng->L != NULL) {
+        am_destroy_engine(ios_eng);
+        ios_eng = NULL;
     }
     if (am_gl_is_initialized()) {
         am_destroy_gl();
@@ -356,7 +356,7 @@ static int frames_since_disable_animations = 0;
 
 static void ios_draw() {
     if (!ios_running) return;
-    if (!am_update_windows(ios_L)) {
+    if (!am_update_windows(ios_eng->L)) {
         ios_running = false;
         return;
     }
@@ -371,7 +371,7 @@ static void ios_update() {
     if (!ios_running) return;
 
     [ios_audio_mutex lock];
-    am_sync_audio_graph(ios_L);
+    am_sync_audio_graph(ios_eng->L);
     [ios_audio_mutex unlock];
 
     frame_time = am_get_current_time();
@@ -386,7 +386,7 @@ static void ios_update() {
 
     if (am_conf_fixed_delta_time > 0.0) {
         while (t_debt > 0.0) {
-            if (!am_execute_actions(ios_L, am_conf_fixed_delta_time)) {
+            if (!am_execute_actions(ios_eng->L, am_conf_fixed_delta_time)) {
                 ios_running = false;
                 return;
             }
@@ -394,7 +394,7 @@ static void ios_update() {
         }
     } else {
         if (t_debt > MIN_UPDATE_TIME) {
-            if (!am_execute_actions(ios_L, t_debt)) {
+            if (!am_execute_actions(ios_eng->L, t_debt)) {
                 ios_running = false;
                 return;
             }
@@ -406,50 +406,50 @@ static void ios_update() {
 }
 
 static void ios_garbage_collect() {
-    lua_gc(ios_L, LUA_GCCOLLECT, 0);
-    lua_gc(ios_L, LUA_GCCOLLECT, 0);
+    lua_gc(ios_eng->L, LUA_GCCOLLECT, 0);
+    lua_gc(ios_eng->L, LUA_GCCOLLECT, 0);
 }
 
 
 static void ios_touch_began(NSSet *touches) {
-    if (ios_L == NULL) return;
+    if (ios_eng->L == NULL) return;
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->push(ios_L);
-        lua_pushlightuserdata(ios_L, touch);
-        lua_pushnumber(ios_L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
-        lua_pushnumber(ios_L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
-        am_call_amulet(ios_L, "_touch_begin", 4, 0);
+        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
+        lua_pushlightuserdata(ios_eng->L, touch);
+        lua_pushnumber(ios_eng->L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
+        lua_pushnumber(ios_eng->L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
+        am_call_amulet(ios_eng->L, "_touch_begin", 4, 0);
     }
 }
 
 static void ios_touch_moved(NSSet *touches) {
-    if (ios_L == NULL) return;
+    if (ios_eng->L == NULL) return;
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->push(ios_L);
-        lua_pushlightuserdata(ios_L, touch);
-        lua_pushnumber(ios_L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
-        lua_pushnumber(ios_L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
-        am_call_amulet(ios_L, "_touch_move", 4, 0);
+        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
+        lua_pushlightuserdata(ios_eng->L, touch);
+        lua_pushnumber(ios_eng->L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
+        lua_pushnumber(ios_eng->L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
+        am_call_amulet(ios_eng->L, "_touch_move", 4, 0);
     }
 }
 
 static void ios_touch_ended(NSSet *touches) {
-    if (ios_L == NULL) return;
+    if (ios_eng->L == NULL) return;
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->push(ios_L);
-        lua_pushlightuserdata(ios_L, touch);
-        lua_pushnumber(ios_L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
-        lua_pushnumber(ios_L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
-        am_call_amulet(ios_L, "_touch_end", 4, 0);
+        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
+        lua_pushlightuserdata(ios_eng->L, touch);
+        lua_pushnumber(ios_eng->L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
+        lua_pushnumber(ios_eng->L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
+        am_call_amulet(ios_eng->L, "_touch_end", 4, 0);
     }
 }
 
