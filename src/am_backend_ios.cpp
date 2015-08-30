@@ -815,4 +815,11 @@ void *am_read_resource(const char *filename, int *len, char** errmsg) {
 void am_copy_video_frame_to_texture() {
 }
 
+void am_capture_audio(am_audio_bus *bus) {
+}
+
+int am_next_video_capture_frame() {
+    return 0;
+}
+
 #endif // AM_BACKEND_IOS
