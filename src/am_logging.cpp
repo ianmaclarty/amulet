@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-#define MAX_MSG_LEN 10240
+#define MAX_MSG_LEN (1024 * 100)
 
 #ifdef AM_BACKEND_EMSCRIPTEN
 #define LOG_F stdout
@@ -14,7 +14,7 @@ static int log_cache_end = 0;
 
 static void init_logcache() {
     if (log_cache == NULL) {
-        log_cache_size = 10240;
+        log_cache_size = (1024 * 100);
         log_cache = (char*)malloc(log_cache_size); // never freed
         memset(log_cache, 0, log_cache_size);
     }
@@ -55,7 +55,7 @@ void am_reset_log_cache() {
 }
 
 void am_log(lua_State *L, int level, bool once, const char *fmt, ...) {
-    char msg[MAX_MSG_LEN];
+    char *msg = (char*)malloc(MAX_MSG_LEN);
     va_list argp;
     va_start(argp, fmt);
     vsnprintf(msg, MAX_MSG_LEN, fmt, argp);
@@ -75,6 +75,7 @@ void am_log(lua_State *L, int level, bool once, const char *fmt, ...) {
         fprintf(LOG_F, "%s\n", msg);
         fflush(LOG_F);
     }
+    free(msg);
 }
 
 void am_abort(const char *fmt, ...) {

@@ -143,6 +143,46 @@ static int load_buffer(lua_State *L) {
     return 1;
 }
 
+static int load_string(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *filename = luaL_checkstring(L, 1);
+    int len;
+    char *errmsg;
+    void *data = am_read_resource(filename, &len, &errmsg);
+    if (data == NULL) {
+        if (errmsg != NULL) {
+            lua_pushfstring(L, "error reading file '%s': %s", filename, errmsg);
+            free(errmsg);
+            return lua_error(L);
+        } else {
+            return luaL_error(L, "unknown error reading file '%s'", filename);
+        }
+    }
+    lua_pushlstring(L, (const char*)data, len);
+    free(data);
+    return 1;
+}
+
+static int load_script(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *filename = luaL_checkstring(L, 1);
+    int len;
+    char *errmsg;
+    void *data = am_read_resource(filename, &len, &errmsg);
+    if (data == NULL) {
+        if (errmsg != NULL) {
+            lua_pushfstring(L, "error reading file '%s': %s", filename, errmsg);
+            free(errmsg);
+            return lua_error(L);
+        } else {
+            return luaL_error(L, "unknown error reading file '%s'", filename);
+        }
+    }
+    luaL_loadbuffer(L, (const char*)data, len, filename);
+    free(data);
+    return 1;
+}
+
 static int buffer_len(lua_State *L) {
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
     lua_pushinteger(L, buf->size);
@@ -491,6 +531,8 @@ void am_open_buffer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"buffer", create_buffer},
         {"load_buffer", load_buffer},
+        {"load_string", load_string},
+        {"load_script", load_script},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
