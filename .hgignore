@@ -88,3 +88,4 @@ tests/*.res
 tests/*.time
 
 doc/manual.html
+sphinx/_build
