@@ -524,7 +524,7 @@ Matrix functions
     -  ``aspect`` is typically the window width divided by its height.
     -  ``near`` and ``far`` are the distances of the near and far clipping plains from the camera (these should be positive).
 
-Quaternion funcitons
+Quaternion functions
 ~~~~~~~~~~~~~~~~~~~~
 
 Noise functions

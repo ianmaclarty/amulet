@@ -380,7 +380,7 @@ textarea,
 }
 
 @font-face {
-    font-family: 'Oxygen', sans-serif;
+    font-family: 'Bree Serif', serif;
     font-weight: normal;
     font-style: normal
 }
@@ -395,7 +395,7 @@ textarea,
 .rst-content dl dt .headerlink,
 .icon {
     display: inline-block;
-    font-family: 'Oxygen', sans-serif;
+    font-family: 'Bree Serif', serif;
     font-style: normal;
     font-weight: normal;
     line-height: 1;
@@ -1781,7 +1781,7 @@ textarea,
 .wy-inline-validate.wy-inline-validate-danger .wy-input-context:before,
 .wy-inline-validate.wy-inline-validate-warning .wy-input-context:before,
 .wy-inline-validate.wy-inline-validate-info .wy-input-context:before {
-    font-family: 'Oxygen', sans-serif;
+    font-family: 'Bree Serif', serif;
     display: inline-block;
     font-style: normal;
     font-weight: normal;
@@ -2186,7 +2186,7 @@ a .icon {
 .rst-content .wy-alert-neutral.tip .admonition-title,
 .rst-content .wy-alert-neutral.warning .admonition-title,
 .rst-content .wy-alert-neutral.seealso .admonition-title {
-    color: #404040;
+    color: #494149;
     background: #e1e4e5
 }
 .wy-alert.wy-alert-neutral a,
@@ -2200,7 +2200,7 @@ a .icon {
 .rst-content .wy-alert-neutral.tip a,
 .rst-content .wy-alert-neutral.warning a,
 .rst-content .wy-alert-neutral.seealso a {
-    color: #2980b9
+    color: #494149
 }
 .wy-alert p:last-child,
 .rst-content .note p:last-child,
@@ -2242,7 +2242,7 @@ a .icon {
     background: #27ae60
 }
 .wy-tray-container li.wy-tray-item-info {
-    background: #2980b9
+    background: #494149
 }
 .wy-tray-container li.wy-tray-item-warning {
     background: #e67e22
@@ -2358,14 +2358,14 @@ button[disabled] {
 }
 .btn-neutral {
     background-color: #f3f6f6 !important;
-    color: #404040 !important
+    color: #494149 !important
 }
 .btn-neutral:hover {
     background-color: #e5ebeb !important;
-    color: #404040
+    color: #494149
 }
 .btn-neutral:visited {
-    color: #404040 !important
+    color: #494149 !important
 }
 .btn-success {
     background-color: #27ae60 !important
@@ -2393,7 +2393,7 @@ button[disabled] {
 }
 .btn-link {
     background-color: transparent !important;
-    color: #2980b9;
+    color: #494149;
     box-shadow: none;
     border-color: transparent !important
 }
@@ -2446,14 +2446,14 @@ button[disabled] {
 .wy-dropdown-menu>dd>a {
     display: block;
     clear: both;
-    color: #404040;
+    color: #494149;
     white-space: nowrap;
     font-size: 90%;
     padding: 0 12px;
     cursor: pointer
 }
 .wy-dropdown-menu>dd>a:hover {
-    background: #2980b9;
+    background: #494149;
     color: #fff
 }
 .wy-dropdown-menu>dd.divider {
@@ -2492,7 +2492,7 @@ button[disabled] {
     padding: 6px 12px
 }
 .wy-dropdown.wy-dropdown-bubble .wy-dropdown-menu a:hover {
-    background: #2980b9;
+    background: #494149;
     color: #fff
 }
 .wy-dropdown.wy-dropdown-left .wy-dropdown-menu {
@@ -2894,7 +2894,7 @@ textarea[readonly] {
 .wy-checkbox,
 .wy-radio {
     margin: 6px 0;
-    color: #404040;
+    color: #494149;
     display: block
 }
 .wy-checkbox input,
@@ -2967,7 +2967,7 @@ textarea[readonly] {
     color: #e67e22
 }
 .wy-inline-validate.wy-inline-validate-info .wy-input-context {
-    color: #2980b9
+    color: #494149
 }
 .rotate-90 {
     -webkit-transform: rotate(90deg);
@@ -3233,14 +3233,14 @@ textarea[readonly] {
     white-space: nowrap
 }
 a {
-    color: #2980b9;
+    color: #9d009b;
     text-decoration: none
 }
 a:hover {
-    color: #3091d1
+    color: #f0f;
 }
 a:visited {
-    color: #9b59b6
+    color: #9d009b;
 }
 html {
     height: 100%;
@@ -3251,7 +3251,7 @@ body {
     
     font-family: "proxima-nova", "Helvetica Neue", Arial, sans-serif;
     font-weight: normal;
-    color: #404040;
+    color: #494149;
     min-height: 100%;
     overflow-x: hidden;
     background: #edf0f2
@@ -3285,7 +3285,7 @@ a.wy-text-warning:hover {
     color: #eb9950 !important
 }
 .wy-text-info {
-    color: #2980b9 !important
+    color: #494149 !important
 }
 a.wy-text-info:hover {
     color: #409ad5 !important
@@ -3303,7 +3303,7 @@ a.wy-text-danger:hover {
     color: #ed7669 !important
 }
 .wy-text-neutral {
-    color: #404040 !important
+    color: #494149 !important
 }
 a.wy-text-neutral:hover {
     color: #595959 !important
@@ -3317,7 +3317,7 @@ h6,
 legend {
     margin-top: 0;
     font-weight: 700;
-    font-family: "Oxygen", sans-serif
+    font-family: "Bree Serif", serif
 }
 p {
     line-height: 24px;
@@ -3478,7 +3478,7 @@ div[class^='highlight'] pre {
     line-height: 1.5;
     display: block;
     overflow: auto;
-    color: #404040
+    color: #494149
 }
 @media print {
     .codeblock,
@@ -3759,10 +3759,10 @@ div[class^='highlight'] pre {
     background: rgba(255, 255, 255, 0.1)
 }
 .wy-menu-horiz li.divide-left {
-    border-left: solid 1px #404040
+    border-left: solid 1px #494149
 }
 .wy-menu-horiz li.divide-right {
-    border-right: solid 1px #404040
+    border-right: solid 1px #494149
 }
 .wy-menu-horiz a {
     height: 32px;
@@ -3779,17 +3779,17 @@ div[class^='highlight'] pre {
     font-weight: bold;
     text-transform: uppercase;
     font-size: 80%;
-    color: #2980b9;
+    color: #494149;
     white-space: nowrap
 }
 .wy-menu-vertical ul {
     margin-bottom: 0
 }
 .wy-menu-vertical li.divide-top {
-    border-top: solid 1px #404040
+    border-top: solid 1px #494149
 }
 .wy-menu-vertical li.divide-bottom {
-    border-bottom: solid 1px #404040
+    border-bottom: solid 1px #494149
 }
 .wy-menu-vertical li.current {
     background: #e3e3e3
@@ -3803,7 +3803,7 @@ div[class^='highlight'] pre {
     background: #d6d6d6
 }
 .wy-menu-vertical li.on a {
-    color: #404040;
+    color: #494149;
     padding: 0.4045em 1.618em;
     font-weight: bold;
     position: relative;
@@ -3814,7 +3814,7 @@ div[class^='highlight'] pre {
     padding-left: 1.618em -4px
 }
 .wy-menu-vertical li.current>a {
-    color: #404040;
+    color: #494149;
     padding: 0.4045em 1.618em;
     font-weight: bold;
     position: relative;
@@ -3867,7 +3867,7 @@ div[class^='highlight'] pre {
 }
 .wy-side-nav-search {
     z-index: 200;
-    background-color: #ffffff;
+    background-color: #494149;
     text-align: center;
     /* padding:0.809em; */
     /* padding-top: 0.809em;*/
@@ -3910,12 +3910,14 @@ div[class^='highlight'] pre {
     padding-left: 6px;
     /* margin-bottom:0.809em */
 }
+/*
 .wy-side-nav-search>a:hover,
 .wy-side-nav-search .wy-dropdown>a:hover {
     background: rgba(255, 255, 255, 0.1)
 }
+*/
 .wy-nav .wy-menu-vertical header {
-    color: #2980b9
+    color: #494149
 }
 .wy-nav .wy-menu-vertical a {
     color: #b3b3b3
@@ -3973,12 +3975,12 @@ div[class^='highlight'] pre {
     width: 300px;
     overflow: hidden;
     min-height: 100%;
-    background: #ffffff;
+    background: #494149;
     z-index: 200
 }
 .wy-nav-top {
     display: none;
-    background: #2980b9;
+    background: #494149;
     color: #fff;
     padding: 0.4045em 0.809em;
     position: relative;
@@ -4005,7 +4007,6 @@ div[class^='highlight'] pre {
     /*width:45px;*/
     
     width: 200px;
-    background-color: #ffffff;
     padding: 5px;
     /*border-radius:100%*/
 }
@@ -4155,7 +4156,7 @@ nav.stickynav {
     z-index: 400
 }
 .rst-versions a {
-    color: #2980b9;
+    color: #494149;
     text-decoration: none
 }
 .rst-versions .rst-badge-small {
@@ -4347,7 +4348,7 @@ nav.stickynav {
     margin-bottom: 12px
 }
 .rst-content .toc-backref {
-    color: #404040
+    color: #494149
 }
 .rst-content .align-right {
     float: right;
@@ -4381,7 +4382,7 @@ nav.stickynav {
 .rst-content dl dt .headerlink:after {
     visibility: visible;
     content: "\f0c1";
-    font-family: 'Oxygen', sans-serif;
+    font-family: 'Bree Serif', serif;
     display: inline-block
 }
 .rst-content h1:hover .headerlink,
@@ -4412,7 +4413,7 @@ nav.stickynav {
 }
 .rst-content .sidebar .sidebar-title {
     display: block;
-    font-family: "Oxygen", sans-serif;
+    font-family: "Bree Serif", serif;
     font-weight: bold;
     background: #e1e4e5;
     padding: 6px 12px;
@@ -4472,7 +4473,7 @@ nav.stickynav {
     padding-left: 0
 }
 .rst-content tt {
-    color: #000
+    color: #29a3c8;
 }
 .rst-content tt big,
 .rst-content tt em {
@@ -4484,7 +4485,7 @@ a .rst-content tt {
     font-weight: bold
 }
 .rst-content a tt {
-    color: #2980b9
+    color: #494149
 }
 .rst-content dl {
     margin-bottom: 24px
@@ -4509,9 +4510,9 @@ a .rst-content tt {
     margin: 6px 0;
     font-size: 90%;
     line-height: normal;
-    background: #e7f2fa;
-    color: #2980b9;
-    border-top: solid 3px #6ab0de;
+    /* background: #e7f2fa; */
+    color: #29a3c8;
+    /* border-top: solid 3px #6ab0de; */
     padding: 6px;
     position: relative
 }
@@ -4519,7 +4520,7 @@ a .rst-content tt {
     color: #6ab0de
 }
 .rst-content dl:not(.docutils) dt .headerlink {
-    color: #404040;
+    color: #494149;
     font-size: 100% !important
 }
 .rst-content dl:not(.docutils) dl dt {
@@ -4530,7 +4531,7 @@ a .rst-content tt {
     color: gray
 }
 .rst-content dl:not(.docutils) dl dt .headerlink {
-    color: #404040;
+    color: #494149;
     font-size: 100% !important
 }
 .rst-content dl:not(.docutils) dt:first-child {
@@ -4576,7 +4577,7 @@ a .rst-content tt {
     }
 }
 span[id*='MathJax-Span'] {
-    color: #404040
+    color: #494149
 }
 /*!
  *  HamishW - some CSS for nav bar
@@ -4785,4 +4786,10 @@ background: purple; */
     .footer-navlink-short {
         display: none;
     }
+}
+
+
+
+h1, h2, h3 {
+    color: #f0f;
 }
