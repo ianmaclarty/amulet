@@ -152,6 +152,9 @@ operand.
     vec3(10, 3, 6)
     vec4(2, 4, 6, 8)
 
+.. figure:: screenshots/screenshot3.jpg
+   :alt: 
+
 .. _mat-cons:
 
 Matrices
@@ -446,8 +449,7 @@ Matrix functions
 
     -  ``fovy`` is the field of view in the y plain, in radians.
     -  ``aspect`` is typically the window width divided by its height.
-    -  ``near`` and ``far`` are the distances of the near and far clipping
-        plains from the camera (these should be positive).
+    -  ``near`` and ``far`` are the distances of the near and far clipping plains from the camera (these should be positive).
 
 Quaternion funcitons
 ~~~~~~~~~~~~~~~~~~~~

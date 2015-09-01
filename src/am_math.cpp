@@ -654,6 +654,7 @@ static int mat##D##_new(lua_State *L) {                                         
                     am_quat *q = (am_quat*)lua_touserdata(L, 1);                        \
                     glm::mat3 m3 = glm::mat3_cast(q->q);                                \
                     mat->m = glm::mat##D(m3);                                           \
+                    break;                                                              \
                 }                                                                       \
                 default:                                                                \
                     return luaL_error(L, "invalid mat" #D " constructor arguments");    \
@@ -870,9 +871,6 @@ static int quat_new(lua_State *L) {
                     quat = glm::angleAxis(angle, axis);
                     break;
                 }
-                case MT_am_vec3:
-                    quat = glm::quat(am_get_userdata(L, am_vec3, 1)->v);
-                    break;
                 case MT_am_mat3:
                     quat = glm::quat(am_get_userdata(L, am_mat3, 1)->m);
                     break;
@@ -928,18 +926,15 @@ static int quat_index(lua_State *L) {
                 return 1;
             }
             break;
-        case 'e':
-            if (strcmp(field, "euler") == 0) {
-                am_new_userdata(L, am_vec3)->v = glm::eulerAngles(quat->q);
+        case 'p':
+            if (strcmp(field, "pitch") == 0) {
+                lua_pushnumber(L, glm::pitch(quat->q));
                 return 1;
             }
             break;
-        case 'm':
-            if (strcmp(field, "mat3") == 0) {
-                am_new_userdata(L, am_mat3)->m = glm::mat3_cast(quat->q);
-                return 1;
-            } else if (strcmp(field, "mat4") == 0) {
-                am_new_userdata(L, am_mat4)->m = glm::mat4_cast(quat->q);
+        case 'r':
+            if (strcmp(field, "roll") == 0) {
+                lua_pushnumber(L, glm::roll(quat->q));
                 return 1;
             }
             break;
@@ -959,6 +954,9 @@ static int quat_index(lua_State *L) {
             if (len == 1) {
                 lua_pushnumber(L, quat->q.y);
                 return 1;
+            } else if (strcmp(field, "yaw") == 0) {
+                lua_pushnumber(L, glm::yaw(quat->q));
+                return 1;
             }
             break;
         case 'z':
@@ -970,6 +968,66 @@ static int quat_index(lua_State *L) {
     }
     lua_pushnil(L);
     return 1;
+}
+
+static int quat_newindex(lua_State *L) {
+    am_quat *quat = (am_quat*)lua_touserdata(L, 1);
+    if (lua_type(L, 2) != LUA_TSTRING) {
+        return luaL_error(L, "invalid quat index: %s", lua_tostring(L, 2));        \
+    }
+    size_t len;
+    const char *field = lua_tolstring(L, 2, &len);
+    switch (*field) {
+        case 'a':
+            if (strcmp(field, "angle") == 0) {
+                quat->q = glm::angleAxis((float)luaL_checknumber(L, 3), glm::axis(quat->q));
+                return 0;
+            } else if (strcmp(field, "axis") == 0) {
+                quat->q = glm::angleAxis(glm::angle(quat->q), am_get_userdata(L, am_vec3, 3)->v);
+                return 0;
+            }
+            break;
+        case 'p':
+            if (strcmp(field, "pitch") == 0) {
+                quat->q = glm::quat(glm::vec3(luaL_checknumber(L, 3), glm::yaw(quat->q), glm::roll(quat->q)));
+                return 0;
+            }
+            break;
+        case 'r':
+            if (strcmp(field, "roll") == 0) {
+                quat->q = glm::quat(glm::vec3(glm::pitch(quat->q), glm::yaw(quat->q), luaL_checknumber(L, 3)));
+                return 0;
+            }
+            break;
+        case 'w':
+            if (len == 1) {
+                quat->q.w = luaL_checknumber(L, 3);
+                return 0;
+            }
+            break;
+        case 'x':
+            if (len == 1) {
+                quat->q.x = luaL_checknumber(L, 3);
+                return 0;
+            }
+            break;
+        case 'y':
+            if (len == 1) {
+                quat->q.y = luaL_checknumber(L, 3);
+                return 0;
+            } else if (strcmp(field, "yaw") == 0) {
+                quat->q = glm::quat(glm::vec3(glm::pitch(quat->q), luaL_checknumber(L, 3), glm::roll(quat->q)));
+                return 0;
+            }
+            break;
+        case 'z':
+            if (len == 1) {
+                quat->q.z = luaL_checknumber(L, 3);
+                return 0;
+            }
+            break;
+    }
+    return luaL_error(L, "invalid quat field: %s", field);
 }
 
 //----------------------- vec functions -------------------------//
@@ -1847,6 +1905,8 @@ static void register_quat_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, quat_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, quat_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
     lua_pushcclosure(L, quat_mul, 0);
     lua_setfield(L, -2, "__mul");
     am_register_metatable(L, "quat", MT_am_quat, 0);
