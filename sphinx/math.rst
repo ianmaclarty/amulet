@@ -152,10 +152,8 @@ operand.
     vec3(10, 3, 6)
     vec4(2, 4, 6, 8)
 
-.. figure:: screenshots/screenshot3.jpg
+.. figure:: screenshots/screenshot4.jpg
    :alt: 
-
-.. _mat-cons:
 
 Matrices
 --------
@@ -164,6 +162,8 @@ Amulet has built-in support for 2x2, 3x3 and 4x4 matrices.
 Matrices are typically used to represent transformations in 2 or
 3 dimensional space such as rotation, scaling, translation or
 perspective projection.
+
+.. _mat-cons:
 
 Constructing matrices
 ~~~~~~~~~~~~~~~~~~~~~
@@ -231,7 +231,7 @@ This sets ``m`` to the matrix:
         4 &  8 & 12 & 16
     \end{bmatrix}
 
-Finally a matrix may be constructed by passing a matrix of equal or
+A matrix may also be constructed by passing a matrix of equal or
 smaller size to one of the matrix construction functions. The given
 matrix is used to fill in the top-left corner of the new matrix and the
 rest is filled in with elements from the identity matrix. For example:
@@ -250,6 +250,10 @@ will set ``m`` to the matrix:
         0 & 0 & 1 & 0 \\
         0 & 0 & 0 & 1
     \end{bmatrix}
+
+Finally a 3x3 or 4x4 rotation matrix can be constructed from a quaternion
+by passing the quaternion as the single argument to ``mat3`` or ``mat4``
+(see :ref:`quaternions`).
 
 Accessing matrix components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -362,16 +366,85 @@ multiplying by the inverse of the matrix.
 .. figure:: screenshots/screenshot2.jpg
    :alt: 
 
+.. _quaternions:
+
 Quaternions
 -----------
 
-Quaternions are useful for representing rotations in 3 dimensional space.
+Quaternions are useful for representing and manipulating 3D rotations.
+
+.. _quat-cons:
 
 Constructing quaternions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Accessing quaternion components
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use the ``quat`` function to construct a quaternion.
+
+Pass an angle (in radians) and a unit 3D vector to construct
+a quaternion that represents a rotation about that axis.
+For example:
+
+..  code:: lua
+
+    local q = quat(math.rad(45), vec3(0, 0, 1))
+
+constructs a quaternion that represents a 45 degree
+rotation around the z axis. (``math.rad`` converts
+radians to degrees).
+
+If the axis argument is omitted then it is taken to be
+``vec3(0, 0, 1)``, so the above is equivalent to:
+
+..  code:: lua
+
+    local q = quat(math.rad(45))
+
+This is a useful shortcut for 2D rotations in the xy plane.
+
+A quaternion can also be constructed from euler angles. Euler angles
+are rotations around the x, y and z axes, also known as pitch, roll
+and yaw. For example:
+
+..  code:: lua
+
+    local q = quat(math.rad(30), math.rad(60), math.rad(20))
+
+constructs a quaternion that represents the rotation you'd end up
+with if you first rotated 30 degrees around the x axis, then 60 degrees
+around the y axis and finally 20 degrees around the z axis. 
+
+If two unit vector arguments are given, then the quaternion represents
+the rotation that would be needed to rotate the one vector into
+into the other. For example:
+
+..  code:: lua
+
+    local q = quat(vec3(1, 0, 0), vec3(0, 1, 0))
+
+The above quaternion represents a rotation of 90 degrees in the xy
+plane, since it rotates a vector pointing along the x axis to one
+pointing along the y axis.
+
+A quaternion can be constructed from a 3x3 or 4x4 matrix by passing
+the matrix as the single argument to ``quat``.
+
+A quaternion can also be converted to a 3x3 or 4x4 matrix by passing it
+as the single argument to the ``mat3`` or ``mat4`` functions (see :ref:`mat-cons`).
+
+Finally a quaternion can also be contructed from the coefficients
+of its real and imaginary parts:
+
+..  code:: lua
+
+    local q = quat(w, x, y, z)
+
+w is the real part and x, y and z are the coeffients of the 
+imaginary parts i, j and k.
+
+Quaternion fields
+~~~~~~~~~~~~~~~~~
+
+
 
 Quaternion operations
 ~~~~~~~~~~~~~~~~~~~~~
