@@ -650,6 +650,11 @@ static int mat##D##_new(lua_State *L) {                                         
                     mat->m = glm::mat##D(m->m);                                         \
                     break;                                                              \
                 }                                                                       \
+                case MT_am_quat: {                                                      \
+                    am_quat *q = (am_quat*)lua_touserdata(L, 1);                        \
+                    glm::mat3 m3 = glm::mat3_cast(q->q);                                \
+                    mat->m = glm::mat##D(m3);                                           \
+                }                                                                       \
                 default:                                                                \
                     return luaL_error(L, "invalid mat" #D " constructor arguments");    \
             }                                                                           \
