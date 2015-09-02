@@ -3269,7 +3269,7 @@ body {
     color: #494149;
     min-height: 100%;
     overflow-x: hidden;
-    background: #edf0f2
+    background: #e2dedf;
 }
 .wy-text-left {
     text-align: left
@@ -3815,7 +3815,7 @@ div[class^='highlight'] pre {
     padding: 0.4045em 2.427em
 }
 .wy-menu-vertical li.current a:hover {
-    background: #d6d6d6
+    background: #e2dedf;
 }
 .wy-menu-vertical li.on a {
     color: #494149;

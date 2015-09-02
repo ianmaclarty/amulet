@@ -970,66 +970,6 @@ static int quat_index(lua_State *L) {
     return 1;
 }
 
-static int quat_newindex(lua_State *L) {
-    am_quat *quat = (am_quat*)lua_touserdata(L, 1);
-    if (lua_type(L, 2) != LUA_TSTRING) {
-        return luaL_error(L, "invalid quat index: %s", lua_tostring(L, 2));        \
-    }
-    size_t len;
-    const char *field = lua_tolstring(L, 2, &len);
-    switch (*field) {
-        case 'a':
-            if (strcmp(field, "angle") == 0) {
-                quat->q = glm::angleAxis((float)luaL_checknumber(L, 3), glm::axis(quat->q));
-                return 0;
-            } else if (strcmp(field, "axis") == 0) {
-                quat->q = glm::angleAxis(glm::angle(quat->q), am_get_userdata(L, am_vec3, 3)->v);
-                return 0;
-            }
-            break;
-        case 'p':
-            if (strcmp(field, "pitch") == 0) {
-                quat->q = glm::quat(glm::vec3(luaL_checknumber(L, 3), glm::yaw(quat->q), glm::roll(quat->q)));
-                return 0;
-            }
-            break;
-        case 'r':
-            if (strcmp(field, "roll") == 0) {
-                quat->q = glm::quat(glm::vec3(glm::pitch(quat->q), glm::yaw(quat->q), luaL_checknumber(L, 3)));
-                return 0;
-            }
-            break;
-        case 'w':
-            if (len == 1) {
-                quat->q.w = luaL_checknumber(L, 3);
-                return 0;
-            }
-            break;
-        case 'x':
-            if (len == 1) {
-                quat->q.x = luaL_checknumber(L, 3);
-                return 0;
-            }
-            break;
-        case 'y':
-            if (len == 1) {
-                quat->q.y = luaL_checknumber(L, 3);
-                return 0;
-            } else if (strcmp(field, "yaw") == 0) {
-                quat->q = glm::quat(glm::vec3(glm::pitch(quat->q), luaL_checknumber(L, 3), glm::roll(quat->q)));
-                return 0;
-            }
-            break;
-        case 'z':
-            if (len == 1) {
-                quat->q.z = luaL_checknumber(L, 3);
-                return 0;
-            }
-            break;
-    }
-    return luaL_error(L, "invalid quat field: %s", field);
-}
-
 //----------------------- vec functions -------------------------//
 
 static int vec_length(lua_State *L) {
@@ -1905,8 +1845,6 @@ static void register_quat_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, quat_index, 0);
     lua_setfield(L, -2, "__index");
-    lua_pushcclosure(L, quat_newindex, 0);
-    lua_setfield(L, -2, "__newindex");
     lua_pushcclosure(L, quat_mul, 0);
     lua_setfield(L, -2, "__mul");
     am_register_metatable(L, "quat", MT_am_quat, 0);

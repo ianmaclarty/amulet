@@ -371,15 +371,14 @@ multiplying by the inverse of the matrix.
 Quaternions
 -----------
 
-Quaternions are useful for representing and manipulating 3D rotations.
+Quaternions are useful for representing 3D rotations.
 
 .. _quat-cons:
 
 Constructing quaternions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the ``quat`` function to construct a quaternion.
-
+The ``quat`` function is used to construct quaternions.
 Pass an angle (in radians) and a unit 3D vector to construct
 a quaternion that represents a rotation about that axis.
 For example:
@@ -444,10 +443,31 @@ imaginary parts i, j and k.
 Quaternion fields
 ~~~~~~~~~~~~~~~~~
 
+The ``angle``, ``axis``, ``pitch``, ``roll``, ``yaw``, ``w``, ``x``, ``y`` and ``z``
+fields can be used to read the corresponding attributes of a quaternion.
 
+..  note::
+
+    Quaternions use a normalized internal representation, so the value returned
+    by a field might be different from the value used to construct
+    the quaternion, though they represent the equivalent rotatation.
 
 Quaternion operations
 ~~~~~~~~~~~~~~~~~~~~~
+
+Quaternions can be multiplied together using the ``*`` operator.
+The result of multiplying 2 quaternions is the rotation that results
+from applying the first quaternion's rotation followed by the second
+quaternion's rotation.
+
+Multiplying a quaternion by a vector rotates the vector. For example:
+
+    local v1 = vec3(1, 0, 0)
+    local q = quat(math.rad(90), vec3(0, 0, 1))
+    local v2 = q * v1
+
+would set ``v2`` to the vector ``vec3(0, 1, 0)``, which is ``v1`` rotated
+90 degrees in the xy plain.
 
 Math function reference
 -----------------------
@@ -524,11 +544,45 @@ Matrix functions
     -  ``aspect`` is typically the window width divided by its height.
     -  ``near`` and ``far`` are the distances of the near and far clipping plains from the camera (these should be positive).
 
+..  function:: math.ortho(left, right, bottom, top [, near, far])
+
+    Creates a 4x4 orthographic projection marix.
+
 Quaternion functions
 ~~~~~~~~~~~~~~~~~~~~
+
+..  function:: quat(...)
+
+    Constructs a quaternion. See :ref:`quat-cons` for more details.
 
 Noise functions
 ~~~~~~~~~~~~~~~
 
+..  function:: math.perlin(pos [, period])
+
+    Generate perlin noise. ``pos`` can be a 2, 3, or 4 dimensional vector, or a number.
+    If the second argument is supplied then the noise will be periodic with the given
+    period. ``period`` should be of the same type as ``pos`` and its components should
+    be integers greater than 1 (I'm not sure exactly why, but using non-integer
+    values doesn't seem to work with the implementation of perlin noise Amulet currently
+    uses).
+
+    The returned value is between -1 and 1.
+
+..  function:: math.simplex(pos)
+
+    Generate simplex noise. ``pos`` can be a 2, 3, or 4 dimensional vector, or a number.
+
+    The returned value is between -1 and 1.
+
 Interpolation functions
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+..  function:: math.mix(from, top, t)
+
+    Returns the linear interpolation between ``from`` and ``to`` determined by ``t``.
+    ``from`` and ``to`` can be numbers or vectors, and must be the same
+    type. ``t`` should be a number between 0 and 1. If ``t`` is 0 then the
+    function returns ``from``. If ``t`` is 1 then the function returns ``to``.
+    ``from`` and ``to`` can also be quaternions. In that case ``math.mix``
+    returns the spherical linear interpolation of the two quaternions.
