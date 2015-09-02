@@ -132,7 +132,7 @@ vector using another vector or a single number.
 Vector arithmetic
 ~~~~~~~~~~~~~~~~~
 
-We can do arithmetic on vectors using the standard operators ``+``,
+You can do arithmetic with vectors using the standard operators ``+``,
 ``-``, ``*`` and ``/``. If both operands are vectors then they should
 have the same size and the operation is applied in a component-wise
 fashion, yielding a new vector of the same size. If one operand is a
@@ -184,7 +184,7 @@ all other elements equal to zero. For example ``mat3(1)`` constructs the
         0 & 0 & 1
     \end{bmatrix}
 
-We can also pass the individual elements of the matrix as arguments to
+You can also pass the individual elements of the matrix as arguments to
 one of the constructors. These can either be numbers or vectors or a mix
 of the two. As the constructor arguments are consumed from left to
 right, the matrix is filled in column by column. This convention is also
@@ -206,9 +206,9 @@ sets ``m`` to the matrix:
         3 & 6 & 9
     \end{bmatrix}
 
-This is admittedly somewhat confusing, because when we write the matrix
+This is admittedly somewhat confusing, because when you write the matrix
 constructor in code the columns are layed out horizontally. This is
-however the convention used in GLSL and OpenGL and I thought it important to
+however the convention used in OpenGL and I thought it important to
 be consistent with established conventions.
 
 Here's another example:
@@ -289,8 +289,8 @@ that code such as the following has no effect:
 
 The value at row 2 and column 2 in the matrix will still be 1, because
 ``matrix[2]`` returns a new vector. Setting the 2nd component of this
-new vector to 3 has no effect on the original matrix. Instead if we want
-to update an individual element of a matrix, we need to update the
+new vector to 3 has no effect on the original matrix. Instead if you want
+to update an individual element of a matrix, you need to update the
 entire column. Like so:
 
 .. code:: lua
