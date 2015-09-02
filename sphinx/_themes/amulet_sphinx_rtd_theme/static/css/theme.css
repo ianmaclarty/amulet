@@ -384,6 +384,21 @@ textarea,
     font-weight: normal;
     font-style: normal
 }
+
+/*!
+ *  Font Awesome 4.0.3 by @davegandy - http://fontawesome.io - @fontawesome
+ *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
+ */
+@font-face {
+    font-family:'FontAwesome';
+    src:url("../fonts/fontawesome-webfont.eot?v=4.0.3");
+    src:url("../fonts/fontawesome-webfont.eot?#iefix&v=4.0.3")
+    format("embedded-opentype"),url("../fonts/fontawesome-webfont.woff?v=4.0.3")
+    format("woff"),url("../fonts/fontawesome-webfont.ttf?v=4.0.3") 
+    format("truetype"),url("../fonts/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular") format("svg");
+    font-weight:normal;font-style:normal
+}
+
 .fa,
 .rst-content .admonition-title,
 .rst-content h1 .headerlink,
@@ -1781,7 +1796,7 @@ textarea,
 .wy-inline-validate.wy-inline-validate-danger .wy-input-context:before,
 .wy-inline-validate.wy-inline-validate-warning .wy-input-context:before,
 .wy-inline-validate.wy-inline-validate-info .wy-input-context:before {
-    font-family: 'Bree Serif', serif;
+    font-family: 'FontAwesome', serif;
     display: inline-block;
     font-style: normal;
     font-weight: normal;
@@ -3237,7 +3252,7 @@ a {
     text-decoration: none
 }
 a:hover {
-    color: #f0f;
+    color: #ff00ff;
 }
 a:visited {
     color: #9d009b;
@@ -4791,5 +4806,5 @@ background: purple; */
 
 
 h1, h2, h3 {
-    color: #f0f;
+    color: #ff00ff;
 }
