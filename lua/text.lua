@@ -47,7 +47,7 @@ local dash = string.byte("-")
 local underscore = string.byte("_")
 
 local
-function set_text_verts(font, str, verts_view, uvs_view)
+function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
     local x = 0
     local y = 0
     local verts = {}
@@ -55,6 +55,24 @@ function set_text_verts(font, str, verts_view, uvs_view)
     local v = 1
     local u = 1
     local chars = font.chars
+
+    -- compute row_widths and height
+    local w, h = 0, 0
+    for p, c in utf8.codes(str) do
+        if c == newline then
+            x = 0
+            h = h + font.line_height
+        else
+            char_data = chars[c] or chars[0] or chars[space]
+            x = x + char_data.advance
+            if x > w then
+                w = x
+            end
+        end
+    end
+    
+
+    x = 0
     for p, c in utf8.codes(str) do
         local char_data, x1, y1, x2, y2, advance
         if c == newline then
@@ -136,7 +154,9 @@ function set_text(node, str)
     node.str = str
 end
 
-function am.text(font, str)
+function am.text(font, str, halign, valign)
+    halign = halign or "center"
+    valign = valign or "center"
     if not font.is_font then
         error("expecting a font in position 1", 2)
     end
@@ -145,7 +165,7 @@ function am.text(font, str)
     local num_verts = len * 4
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
-    set_text_verts(font, str, verts, uvs)
+    set_text_verts(font, str, verts, uvs, halign, verts)
     return am.draw_elements(indices)
         :bind_array("pos", verts)
         :bind_array("uv", uvs)
@@ -169,7 +189,7 @@ function am.text(font, str)
                     len = len1
                 end
                 str = str1
-                set_text_verts(font, str, verts, uvs)
+                set_text_verts(font, str, verts, uvs, halign, valign)
                 node.count = utf8.len(str) * 6
             end,
         }

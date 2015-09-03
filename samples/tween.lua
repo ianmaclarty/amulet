@@ -78,7 +78,7 @@ group:action(coroutine.create(function()
     while true do
         for i, node in ipairs(nodes) do
             anis[i] = coroutine.create(function() 
-                am.wait(am.tween{target = node, position = vec3(0.5, node.position.y, 0), time = math.random(), ease = easings[i]})
+                am.wait(am.tween{target = node.position, x = 0.5, time = math.random(), ease = easings[i]})
                 am.wait(am.delay(math.random()*0.3))
                 am.wait(am.tween{target = node, position = vec3(-0.5, node.position.y, 0), time = math.random(), ease = easings[i]})
                 am.wait(am.delay(0.5))

@@ -1,32 +1,32 @@
 struct am_translate_node : am_scene_node {
     am_param_name_id name;
-    glm::vec3 v;
+    am_vec3 *position;
+    int position_ref;
     virtual void render(am_render_state *rstate);
 };
 
 struct am_scale_node : am_scene_node {
     am_param_name_id name;
-    glm::vec3 v;
+    am_vec3 *scaling;
+    int scaling_ref;
     virtual void render(am_render_state *rstate);
 };
 
 struct am_rotate_node : am_scene_node {
     am_param_name_id name;
-    glm::quat rotation;
-    virtual void render(am_render_state *rstate);
-};
-
-struct am_mult_mat4_node : am_scene_node {
-    am_param_name_id name;
-    glm::mat4 mat;
+    am_quat *rotation;
+    int rotation_ref;
     virtual void render(am_render_state *rstate);
 };
 
 struct am_lookat_node : am_scene_node {
     am_param_name_id name;
-    glm::vec3 eye;
-    glm::vec3 center;
-    glm::vec3 up;
+    am_vec3 *eye;
+    int eye_ref;
+    am_vec3 *center;
+    int center_ref;
+    am_vec3 *up;
+    int up_ref;
     virtual void render(am_render_state *rstate);
 };
 
@@ -39,7 +39,6 @@ struct am_billboard_node : am_scene_node {
 int am_create_translate_node(lua_State *L);
 int am_create_scale_node(lua_State *L);
 int am_create_rotate_node(lua_State *L);
-int am_create_mult_mat4_node(lua_State *L);
 int am_create_lookat_node(lua_State *L);
 int am_create_billboard_node(lua_State *L);
 
