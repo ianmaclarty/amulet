@@ -106,7 +106,7 @@ local t_node = amulet.draw_arrays()
 local rotation_node = t_node:rotate("MVP", quat(0))
 local node1 = rotation_node
     :bind{MVP = mat4(1)}
-    :bind_program(prog1)
+    :use_program(prog1)
 
 -- create texture for post-processing (applying blur)
 local pptexture = amulet.texture2d{width = 512, height = 512, magfilter = "linear"}
@@ -137,7 +137,7 @@ local node2 = amulet.draw_arrays()
         tex = pptexture,
         MVP = mat4(1),
     }
-    :bind_program(prog2)
+    :use_program(prog2)
 
 -- set the post processing node as the root
 win.root = node2

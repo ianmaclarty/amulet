@@ -68,7 +68,7 @@ function init()
         :bind("limit1", 20)
         
     buildings_node = limit1_node
-        :bind_program(building_shader)
+        :use_program(building_shader)
 
     for x = -10, 10, 1 do
         for z = -10, 10, 1 do
@@ -335,7 +335,7 @@ function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
         :rotate("MVP", quat(0))
     local node = rotation_node
         :bind("MVP", mat4(1))
-        :bind_program(kaleidoscope_shader)
+        :use_program(kaleidoscope_shader)
 
     return {
         node = node,
@@ -368,7 +368,7 @@ function create_blur_node()
         :bind("vert", verts2)
         :bind("uv", uvs2)
         :bind("tex", pptexture)
-        :bind_program(create_blur_shader())
+        :use_program(create_blur_shader())
     return node2, ppfb, pptexture
 end
 

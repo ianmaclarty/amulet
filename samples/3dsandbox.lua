@@ -58,7 +58,7 @@ function init()
 
     win.root = camera
         :bind{P = math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip)}
-        :bind_program(shader)
+        :use_program(shader)
         :cull_face("ccw")
 
     win.root:action(main_action)

@@ -60,6 +60,6 @@ local node = am.draw_arrays()
     :bind("r", rview)
     :bind("g", gview)
     :bind("b", bview)
-    :bind_program(prog)
+    :use_program(prog)
 
 win.root = node

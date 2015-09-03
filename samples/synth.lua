@@ -224,7 +224,7 @@ function assemble_ui()
                 :translate("MVP", vec3(x, 0.2+4*dy, 0))
         )
         :bind("MVP", mat4(1))
-        :bind_program(shader_program)
+        :use_program(shader_program)
         :action(function()
             if win:key_down("escape") then
                 win:close()

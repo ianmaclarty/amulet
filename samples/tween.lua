@@ -88,7 +88,7 @@ group:action(coroutine.create(function()
     end
 end))
         
-local top = group:bind("tint", vec4(1)):bind("MVP", MVP):bind_program(prog)
+local top = group:bind("tint", vec4(1)):bind("MVP", MVP):use_program(prog)
 
 win.root = top
 top:action(function()

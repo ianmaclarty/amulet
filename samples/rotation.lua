@@ -61,7 +61,7 @@ scene_group:append(translated_cube)
 local scene = scene_group
     :bind("MV", mat4(1))
     :bind("P", projection_matrix)
-    :bind_program(shader)
+    :use_program(shader)
     :action(function()
         if win:key_pressed("escape") then
             win:close()

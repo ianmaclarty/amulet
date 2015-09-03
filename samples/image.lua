@@ -51,6 +51,6 @@ local node = am.draw_arrays()
     :bind("y", yview)
     :bind("tex1", texture)
     :bind("MVP", MVP)
-    :bind_program(prog)
+    :use_program(prog)
 
 win.root = node

@@ -45,7 +45,7 @@ local texture = am.texture2d{
 local node = am.draw_arrays()
     :bind("vert", verts)
     :bind("tex1", texture)
-    :bind_program(prog)
+    :use_program(prog)
 
 node:action(function()
     tview[math.random(n^2)] = math.random() * 255

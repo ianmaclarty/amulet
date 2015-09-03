@@ -55,7 +55,7 @@ scene_group:append(translated_cube)
 local scene = scene_group
     :bind("M", mat4(1))
     :bind("P", projection_matrix)
-    :bind_program(shader)
+    :use_program(shader)
     :action(function()
         translated_cube.position = vec3(win:mouse_position().xy * 10, translated_cube.position.z)
         log(math.sphere_visible(projection_matrix * modelview_matrix, vec3(0), math.sqrt(3)))

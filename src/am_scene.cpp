@@ -315,26 +315,8 @@ static void register_scene_node_mt(lua_State *L) {
     
     lua_pushcclosure(L, am_create_bind_node, 0);
     lua_setfield(L, -2, "bind");
-    lua_pushcclosure(L, am_create_bind_float_node, 0);
-    lua_setfield(L, -2, "bind_float");
-    lua_pushcclosure(L, am_create_bind_mat2_node, 0);
-    lua_setfield(L, -2, "bind_mat2");
-    lua_pushcclosure(L, am_create_bind_mat3_node, 0);
-    lua_setfield(L, -2, "bind_mat3");
-    lua_pushcclosure(L, am_create_bind_mat4_node, 0);
-    lua_setfield(L, -2, "bind_mat4");
-    lua_pushcclosure(L, am_create_bind_vec2_node, 0);
-    lua_setfield(L, -2, "bind_vec2");
-    lua_pushcclosure(L, am_create_bind_vec3_node, 0);
-    lua_setfield(L, -2, "bind_vec3");
-    lua_pushcclosure(L, am_create_bind_vec4_node, 0);
-    lua_setfield(L, -2, "bind_vec4");
-    lua_pushcclosure(L, am_create_bind_array_node, 0);
-    lua_setfield(L, -2, "bind_array");
-    lua_pushcclosure(L, am_create_bind_sampler2d_node, 0);
-    lua_setfield(L, -2, "bind_sampler2d");
     lua_pushcclosure(L, am_create_program_node, 0);
-    lua_setfield(L, -2, "bind_program");
+    lua_setfield(L, -2, "use_program");
     lua_pushcclosure(L, create_wrap_node, 0);
     lua_setfield(L, -2, "wrap");
 

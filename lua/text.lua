@@ -63,7 +63,7 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
             x = 0
             h = h + font.line_height
         else
-            char_data = chars[c] or chars[0] or chars[space]
+            local char_data = chars[c] or chars[0] or chars[space]
             x = x + char_data.advance
             if x > w then
                 w = x
@@ -167,10 +167,12 @@ function am.text(font, str, halign, valign)
     local indices = make_indices(num_verts)
     set_text_verts(font, str, verts, uvs, halign, verts)
     return am.draw_elements(indices)
-        :bind_array("pos", verts)
-        :bind_array("uv", uvs)
-        :bind_sampler2d("tex", font.texture)
-        :bind_program(am.shaders.texture)
+        :bind{
+            pos = verts,
+            uv = uvs,
+            tex = font.texture,
+        }
+        :use_program(am.shaders.texture)
         :blend("premult")
         :extend{
             get_text = function(node)
@@ -208,7 +210,7 @@ function am.sprite(image, halign, valign)
             uv = uvs,
             tex = image.texture,
         }
-        :bind_program(am.shaders.texture)
+        :use_program(am.shaders.texture)
         :blend("premult")
         :extend{
             get_sprite = function(node)

@@ -40,20 +40,16 @@ for field, os in pairs(offsets) do
         verts[os2] = v
     end
 end
-function rect_ext.get_color(node)
-    return node.col.color
-end
-function rect_ext.set_color(node, val)
-    node.col.color = val
-end
 
 function am.rect(x1, y1, x2, y2, color)
     color = color or vec4(1)
     local verts = am.rect_verts_3d(x1, y1, x2, y2)
     local node = am.draw_elements(am.rect_indices())
-        :bind("pos", verts)
-        :bind("color", color):alias("col")
-        :bind_program(am.shaders.color)
+        :bind{
+            pos = verts,
+            color = color,
+        }
+        :use_program(am.shaders.color)
         :alias("verts", verts)
         :extend(rect_ext)
     return node

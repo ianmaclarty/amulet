@@ -65,7 +65,7 @@ for i, seed in ipairs(seeds) do
     group:append(node)
 end
 
-local top = group:bind("MVP", MVP):bind_program(prog)
+local top = group:bind("MVP", MVP):use_program(prog)
 
 top:action(function()
     if win:key_pressed("escape") then

@@ -28,7 +28,7 @@ local cycles
 
 local root = am.group()
 root:alias("name", "root")
-local child1 = am.group():bind_vec2("test", math.vec2(0))
+local child1 = am.group():bind{test = math.vec2(0)}
 child1:remove_all()
 child1:alias("name", "child1")
 local frame = 0
