@@ -11,8 +11,14 @@ Contents:
 .. toctree::
     :maxdepth: 3
 
+    intro
+    quickstart
     math
-
+    buffers
+    graphics
+    actions
+    input
+    audio
 
 Indices and tables
 ==================
