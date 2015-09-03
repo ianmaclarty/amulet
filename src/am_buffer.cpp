@@ -447,9 +447,9 @@ ct_check_array_size(view_number_reader, AM_NUM_VIEW_TYPES);
 
 static const char *view_type_name[] = {
     "float",
-    "float2",
-    "float3",
-    "float4",
+    "vec2",
+    "vec3",
+    "vec4",
     "ubyte",
     "byte",
     "ubyte_norm",
@@ -472,7 +472,7 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 #define PUSH_CTYPE(L, x) lua_pushnumber(L, x)
 #include "am_view_template.inc"
 
-#define TNAME float2
+#define TNAME vec2
 #define CTYPE glm::vec2
 #define LUA_TYPE MT_am_vec2
 #define GET_CTYPE(L, idx) (am_get_userdata(L, am_vec2, idx)->v)
@@ -481,7 +481,7 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 #define GET_VEC_COMPONENT(L, idx) ((float)(lua_tonumber(L, idx)))
 #include "am_view_template.inc"
 
-#define TNAME float3
+#define TNAME vec3
 #define CTYPE glm::vec3
 #define LUA_TYPE MT_am_vec3
 #define GET_CTYPE(L, idx) (am_get_userdata(L, am_vec3, idx)->v)
@@ -490,7 +490,7 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 #define GET_VEC_COMPONENT(L, idx) ((float)(lua_tonumber(L, idx)))
 #include "am_view_template.inc"
 
-#define TNAME float4
+#define TNAME vec4
 #define CTYPE glm::vec4
 #define LUA_TYPE MT_am_vec4
 #define GET_CTYPE(L, idx) (am_get_userdata(L, am_vec4, idx)->v)
@@ -561,9 +561,9 @@ void am_open_buffer_module(lua_State *L) {
     register_buffer_mt(L);
     register_view_mt(L);
     register_float_view_mt(L);
-    register_float2_view_mt(L);
-    register_float3_view_mt(L);
-    register_float4_view_mt(L);
+    register_vec2_view_mt(L);
+    register_vec3_view_mt(L);
+    register_vec4_view_mt(L);
     register_ubyte_view_mt(L);
     register_byte_view_mt(L);
     register_ubyte_norm_view_mt(L);

@@ -59,9 +59,9 @@ typedef enum {
     MT_am_buffer_view,
     // The following list must be kept in sync with am_buffer_view_type
     MT_VIEW_TYPE_float,
-    MT_VIEW_TYPE_float2,
-    MT_VIEW_TYPE_float3,
-    MT_VIEW_TYPE_float4,
+    MT_VIEW_TYPE_vec2,
+    MT_VIEW_TYPE_vec3,
+    MT_VIEW_TYPE_vec4,
     MT_VIEW_TYPE_ubyte,
     MT_VIEW_TYPE_byte,
     MT_VIEW_TYPE_ubyte_norm,
