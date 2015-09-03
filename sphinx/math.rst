@@ -1,8 +1,8 @@
 Maths functions
 ===============
 
-.. figure:: screenshots/screenshot1.jpg
-   :alt: 
+..  figure:: screenshots/screenshot1.jpg
+    :alt: 
 
 Vectors
 -------
@@ -10,13 +10,15 @@ Vectors
 Amulet has built-in support for 2, 3 or 4 dimensional vectors.
 Vectors are typically used to represent things like position, direction or
 velocity in 2 or 3 dimensional space. Representing RGBA colors is another
-common use of 4 dimentional vectors.
+common use of 4 dimensional vectors.
 
-Each component of a vector is represented internally as a 32 bit float,
-so expect some loss of precision when converting between vector components
-and Lua numbers (Lua numbers are are typically 64 bit floats).
+..  note::
 
-.. _vec-cons:
+    Each component of a vector is represented internally as a 32 bit float,
+    so expect some loss of precision when converting between vector components
+    and Lua numbers (Lua numbers are typically 64 bit floats).
+
+..  _vec-cons:
 
 Constructing vectors
 ~~~~~~~~~~~~~~~~~~~~
@@ -25,31 +27,28 @@ To construct a vector use one of the functions ``vec2``, ``vec3`` or
 ``vec4``. A vector may be constructed by passing its components as
 separate arguments to one of these functions, for example:
 
-.. code:: lua
+..  code-block:: lua
 
     local velocity = vec3(1, 2, 3)
 
 Passing a single number to a vector constructor will set all components
 of the vector to that value.
 
-.. code:: lua
+..  code-block:: lua
 
     local origin = vec2(0)
 
 It's also possible to construct a vector from a combination of other
 vectors and numbers. The new vector's components will be taken from the
-other vectors in the order they are passed in.
+other vectors in the order they are passed in. For example:
 
-.. code:: lua
+..  code-block:: lua
 
     local bottom_left = vec2(0)
     local top_right = vec2(10, 100)
     local rect = vec4(bottom_left, top_right)
-    print(rect)
 
-.. code:
-
-    vec4(0, 0, 10, 100)
+will set ``rect`` to ``vec4(0, 0, 10, 100)``
 
 Accessing vector components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -59,9 +58,9 @@ component can be accessed using any of the fields ``x``, ``r`` or ``s``;
 the second using any of the fields ``y``, ``g`` or ``t``; the third
 using any of the fields ``z``, ``b`` or ``p``; and the fourth using any
 of the fields ``w``, ``a`` or ``q``. These fields can be used to
-retrieve or set the vector's components.
+read or set the vector's components. Here are some examples:
 
-.. code:: lua
+..  code-block:: lua
 
     local color = vec4(0.1, 0.3, 0.7, 0.8)
     print(color.r..", "..color.g..", "..color.b..", "..color.a)
@@ -70,27 +69,18 @@ retrieve or set the vector's components.
     point.y = 2
     print("x="..point.x..", y="..point.y)
 
-.. code::
+A vector's components can also be accessed with 1-based integer indices.
+Vectors also support the Lua length operator (``#``), which returns the
+number of components of the vector (not its magnitude). This allows
+for iterating through the components of a vector of unknown size, like
+so:
 
-    0.1, 0.3, 0.7, 0.8
-    x=5, y=2
+..  code-block:: lua
 
-A vector's components can also be accessed with 1-based integer indices
-and vectors support the Lua length operator (``#``) (this returns the
-number of components of the vector, not its magnitude).
-
-.. code:: lua
-
-    local position = vec3(10, 20, 30)
-    for i = 1, #position do
+    local v = vec3(10, 20, 30)
+    for i = 1, #v do
         print(position[i])
     end
-
-.. code:
-
-    10
-    20
-    30
 
 Swizzle fields
 ~~~~~~~~~~~~~~
@@ -98,25 +88,33 @@ Swizzle fields
 Another way to construct vectors is to recombine the components of an
 existing vector using *swizzle fields*, which are special fields whose
 characters are any of the component field characters. A new vector
-containing the named components will be returned.
+containing the named components will be returned. For example:
 
-.. code:: lua
+..  code-block:: lua
 
     local dir = vec3(1, 2, 3)
     print(dir.xy)
     print(dir.rggb)
     print(dir.zzys)
 
-.. code:
+Running the above code results in the following output:
+
+..  code-block:: text
 
     vec2(1, 2)
     vec4(1, 2, 2, 3)
     vec4(3, 3, 2, 1)
 
+..  note::
+
+    You can pass vectors, matrices and quaternions directly to ``print``
+    or other functions that expect strings and they will be formatted
+    appropriately.
+
 Swizzle fields can also be used to update multiple components of a
 vector using another vector or a single number.
 
-.. code:: lua
+..  code-block:: lua
 
     local color = vec3(1, 0.8, 0.5)
     color.rg = color.gr
@@ -124,7 +122,9 @@ vector using another vector or a single number.
     color.gb = 0
     print(color)
 
-.. code:
+Running the above produced the following output:
+
+..  code-block:: text
 
     vec3(0.8, 1, 0.5)
     vec3(0.8, 0, 0)
@@ -136,17 +136,18 @@ You can do arithmetic with vectors using the standard operators ``+``,
 ``-``, ``*`` and ``/``. If both operands are vectors then they should
 have the same size and the operation is applied in a component-wise
 fashion, yielding a new vector of the same size. If one operand is a
-number then the operation is applied to each component of the vector and
-the number, yielding a new vector of the same size as the vector
-operand.
+number then the operation is applied to each component of the vector,
+yielding a new vector of the same size as the vector operand. For example:
 
-.. code:: lua
+..  code-block:: lua
 
     print(vec2(3, 4) + 1)
     print(vec3(30) / vec3(3, 10, 5))
     print(2 * vec4(1, 2, 3, 4))
 
-.. code:
+produces the following output:
+
+..  code-block:: text
 
     vec2(4, 5)
     vec3(10, 3, 6)
@@ -162,6 +163,12 @@ Amulet has built-in support for 2x2, 3x3 and 4x4 matrices.
 Matrices are typically used to represent transformations in 2 or
 3 dimensional space such as rotation, scaling, translation or
 perspective projection.
+
+..  note::
+
+    As with vectors, each element of a matrix is represented internally as a 32
+    bit float, so the same caveat about loss of precision with respect to Lua
+    numbers applies.
 
 .. _mat-cons:
 
@@ -187,10 +194,9 @@ all other elements equal to zero. For example ``mat3(1)`` constructs the
 You can also pass the individual elements of the matrix as arguments to
 one of the constructors. These can either be numbers or vectors or a mix
 of the two. As the constructor arguments are consumed from left to
-right, the matrix is filled in column by column. This convention is also
-used in GLSL. For example:
+right, the matrix is filled in column by column. For example:
 
-.. code:: lua
+..  code-block:: lua
 
     local m = mat3(1, 2, 3,
                    4, 5, 6,
@@ -206,14 +212,9 @@ sets ``m`` to the matrix:
         3 & 6 & 9
     \end{bmatrix}
 
-This is admittedly somewhat confusing, because when you write the matrix
-constructor in code the columns are layed out horizontally. This is
-however the convention used in OpenGL and I thought it important to
-be consistent with established conventions.
-
 Here's another example:
 
-.. code:: lua
+..  code-block:: lua
 
     local m = mat4(vec3(1, 2, 3), 4,
                    vec4(5, 6, 7, 8),
@@ -231,12 +232,20 @@ This sets ``m`` to the matrix:
         4 &  8 & 12 & 16
     \end{bmatrix}
 
+..  note::
+
+    Matrix constructos are admittedly somewhat confusing, because when you
+    write the matrix constructor in code the columns are layed out
+    horizontally. This is however the convention used in the OpenGL Shader
+    Language (GLSL) and it seemed prudent to follow the established
+    convention in this case.
+
 A matrix may also be constructed by passing a matrix of equal or
 smaller size to one of the matrix construction functions. The given
 matrix is used to fill in the top-left corner of the new matrix and the
 rest is filled in with elements from the identity matrix. For example:
 
-.. code:: lua
+..  code-block:: lua
 
     local m = mat4(mat2(1, 2, 3, 4))
 
@@ -259,95 +268,99 @@ Accessing matrix components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The columns of a matrix can be accessed as vectors using 1-based integer
-indices and the Lua length operator returns the number of columns.
+indices. The Lua length operator can be used to determine the number of columns.
+For example:
 
-.. code:: lua
+..  code-block:: lua
 
     local matrix = mat2(1, 0, 0, 2)
     for i = 1, #matrix do
         print(matrix[i])
     end
 
-.. code:
+This would produce the following output:
+
+..  code-block:: text
 
     vec2(1, 0)
     vec2(0, 2)
 
-When accessing a column it is returned as a new vector, so updating a
-returned column vector has no effect on the original matrix. This means
-that code such as the following has no effect:
+..  warning::
 
-.. code:: lua
+    When accessing a column it is returned as a new vector, so updating a
+    returned column vector has no effect on the original matrix. This means
+    that the following code has no effect:
 
-    local matrix = mat3(1)
-    matrix[2][2] = 3 -- THIS DOESN'T WORK!
-    print(matrix[2][2])
+    .. code:: lua
 
-.. code:
+        matrix[2][2] = 3 -- THIS HAS NO EFFECT!
 
-    1
+    Instead if you want to update an individual element of a matrix, you need
+    to update the entire column. Like so:
 
-The value at row 2 and column 2 in the matrix will still be 1, because
-``matrix[2]`` returns a new vector. Setting the 2nd component of this
-new vector to 3 has no effect on the original matrix. Instead if you want
-to update an individual element of a matrix, you need to update the
-entire column. Like so:
+    .. code:: lua
 
-.. code:: lua
-
-    local matrix = mat3(1)
-    matrix[2] = vec3(matrix[2][1], 3, matrix[2][3])
-    print(matrix[2][2])
-
-.. code:
-
-    3
+        local col = matrix[2]
+        col[2] = 3
+        matrix[2] = col
 
 Matrix arithmetic
 ~~~~~~~~~~~~~~~~~
 
 As with vectors the ``+``, ``-``, ``*`` and ``/`` operators work with
 matrices too. When one operand is a number, the result is a new matrix
-of the same size with the operation applied to each element of the
-matrix.
+of the same size with the operator applied to each element of the
+matrix. For example:
 
-.. code:: lua
+..  code-block:: lua
 
-    print(2 * mat2(1, 2, 3, 4))
-    print(mat3(3) - 1)
+    local m1 = 2 * mat2(1, 2, 3, 4)
 
-.. code:
+sets ``m1`` to the matrix:
 
-    mat2(2, 4,
-         6, 8)
-    mat4(2, -1, -1,
-        -1,  2, -1,
-        -1, -1,  2)
+..  math::
+
+    \begin{bmatrix}
+        2 & 6 \\
+        4 & 8
+    \end{bmatrix}
+
+and:
+
+..  code-block:: lua
+
+    local m2 = mat3(3) - 1
+
+sets ``m2`` to the matrix:
+
+..  math::
+
+    \begin{bmatrix}
+        2 & -1 & -1 \\
+        -1 & 2 & -1 \\
+        -1 & -1 & 2
+    \end{bmatrix}
 
 When both operands are matrices, the ``+`` and ``-`` operators work in a
-similar way to vectors, with the operations applied component-wise.
+similar way to vectors, with the operations applied component-wise. For
+example:
 
-.. code:: lua
+..  code-block:: lua
 
-    print(mat2(1, 2, 3, 4) + mat2(0.1, 0.2, 0.3, 0.4))
+    local m3 = mat2(1, 2, 3, 4) + mat2(0.1, 0.2, 0.3, 0.4)
 
-.. code:
+sets ``m3`` to the matrix:
 
-    mat2(1.1, 2.2,
-         3.3, 4.4)
+..  math::
+
+    \begin{bmatrix}
+        1.1 & 3.3 \\
+        2.2 & 4.4
+    \end{bmatrix}
 
 However, when both operands are matrices, the ``*`` operator computes
 the `matrix
 product <http://en.wikipedia.org/wiki/Matrix_multiplication>`__.
-
-.. code:: lua
-
-    print(mat2(1, 2, 3, 4) * mat2(10, 20, 30, 40))
-
-.. code:
-
-    mat2( 70, 100,
-         150, 220)
 
 If the first operand is a vector and the second is a matrix, then the
 first operand is taken to be a row vector (a matrix with one row) and
@@ -371,7 +384,8 @@ multiplying by the inverse of the matrix.
 Quaternions
 -----------
 
-Quaternions are useful for representing 3D rotations.
+`Quaternions
+<https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation>`__ are useful for representing 3D rotations.
 
 .. _quat-cons:
 
@@ -379,11 +393,11 @@ Constructing quaternions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``quat`` function is used to construct quaternions.
-Pass an angle (in radians) and a unit 3D vector to construct
-a quaternion that represents a rotation about that axis.
+The simplest way to construct a quaternion is to pass an angle (in radians) and
+a unit 3D vector representing the axis about which the rotation should occur.
 For example:
 
-..  code:: lua
+..  code-block:: lua
 
     local q = quat(math.rad(45), vec3(0, 0, 1))
 
@@ -394,7 +408,7 @@ radians to degrees).
 If the axis argument is omitted then it is taken to be
 ``vec3(0, 0, 1)``, so the above is equivalent to:
 
-..  code:: lua
+..  code-block:: lua
 
     local q = quat(math.rad(45))
 
@@ -404,7 +418,7 @@ A quaternion can also be constructed from euler angles. Euler angles
 are rotations around the x, y and z axes, also known as pitch, roll
 and yaw. For example:
 
-..  code:: lua
+..  code-block:: lua
 
     local q = quat(math.rad(30), math.rad(60), math.rad(20))
 
@@ -416,7 +430,7 @@ If two unit vector arguments are given, then the quaternion represents
 the rotation that would be needed to rotate the one vector into
 into the other. For example:
 
-..  code:: lua
+..  code-block:: lua
 
     local q = quat(vec3(1, 0, 0), vec3(0, 1, 0))
 
@@ -430,15 +444,15 @@ the matrix as the single argument to ``quat``.
 A quaternion can also be converted to a 3x3 or 4x4 matrix by passing it
 as the single argument to the ``mat3`` or ``mat4`` functions (see :ref:`mat-cons`).
 
-Finally a quaternion can also be contructed from the coefficients
+Finally a quaternion can be contructed from the coefficients
 of its real and imaginary parts:
 
-..  code:: lua
+..  code-block:: lua
 
     local q = quat(w, x, y, z)
 
-w is the real part and x, y and z are the coeffients of the 
-imaginary parts i, j and k.
+``w`` is the real part and ``x``, ``y`` and ``z`` are the coeffients of the 
+imaginary numbers :math:`i`, :math:`j` and :math:`k`.
 
 Quaternion fields
 ~~~~~~~~~~~~~~~~~
@@ -446,11 +460,15 @@ Quaternion fields
 The ``angle``, ``axis``, ``pitch``, ``roll``, ``yaw``, ``w``, ``x``, ``y`` and ``z``
 fields can be used to read the corresponding attributes of a quaternion.
 
+There is no way to update a quaternion after creating it. Instead create a new
+quaternion.
+
 ..  note::
 
     Quaternions use a normalized internal representation, so the value returned
     by a field might be different from the value used to construct
-    the quaternion, though they represent the equivalent rotatation.
+    the quaternion. Though the quaternion as a whole represents
+    the equivalent rotatation.
 
 Quaternion operations
 ~~~~~~~~~~~~~~~~~~~~~
@@ -461,6 +479,8 @@ from applying the first quaternion's rotation followed by the second
 quaternion's rotation.
 
 Multiplying a quaternion by a vector rotates the vector. For example:
+
+..  code-block:: lua
 
     local v1 = vec3(1, 0, 0)
     local q = quat(math.rad(90), vec3(0, 0, 1))
@@ -582,7 +602,6 @@ Interpolation functions
 
     Returns the linear interpolation between ``from`` and ``to`` determined by ``t``.
     ``from`` and ``to`` can be numbers or vectors, and must be the same
-    type. ``t`` should be a number between 0 and 1. If ``t`` is 0 then the
-    function returns ``from``. If ``t`` is 1 then the function returns ``to``.
+    type. ``t`` should be a number between 0 and 1.
     ``from`` and ``to`` can also be quaternions. In that case ``math.mix``
     returns the spherical linear interpolation of the two quaternions.
