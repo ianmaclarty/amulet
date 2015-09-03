@@ -1,4 +1,4 @@
-Quick Start Guide
+Quick start guide
 =================
 
 Installing Amulet

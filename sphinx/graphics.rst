@@ -4,8 +4,8 @@ Graphics
 Overview
 --------
 
-Introduction to shaders
------------------------
+Shaders
+-------
 
 The scene graph
 ---------------

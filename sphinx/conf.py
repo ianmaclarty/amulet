@@ -13,6 +13,13 @@
 
 import sys, os
 
+def setup(sphinx):
+    sys.path.insert(0, os.path.abspath('.'))
+    from lua import LuaDomain
+    sphinx.add_domain(LuaDomain)
+
+primary_domain = "lua"
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.

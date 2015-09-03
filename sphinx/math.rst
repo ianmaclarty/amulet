@@ -234,7 +234,7 @@ This sets ``m`` to the matrix:
 
 ..  note::
 
-    Matrix constructos are admittedly somewhat confusing, because when you
+    Matrix constructors are admittedly somewhat confusing, because when you
     write the matrix constructor in code the columns are layed out
     horizontally. This is however the convention used in the OpenGL Shader
     Language (GLSL) and it seemed prudent to follow the established
@@ -507,7 +507,7 @@ Vector functions
 
     Constructs a 4 dimensional vector. See :ref:`vec-cons` for more details.
 
-..  function:: math.dot(vector1, vector2)
+..  function:: math.dot (vector1, vector2)
 
     Returns the dot product of two vectors. The vectors must have the same
     size.

@@ -1,4 +1,4 @@
-Buffers and Views
+Buffers and views
 =================
 
 Buffers
