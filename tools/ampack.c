@@ -635,8 +635,6 @@ static void usage() {
 }
 
 static void process_args(int argc, char *argv[]) {
-    /* -png myfont.png -lua myfont.lua [-mono] [-nearest] font.ttf@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E */
-
     int a;
     if (argc < 6) usage();
 

@@ -44,7 +44,8 @@ DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(AM_DEPS))
 VIEW_TEMPLATES = $(wildcard src/am*view_template.inc)
 
 EMBEDDED_LUA_FILES = $(wildcard lua/*.lua)
-EMBEDDED_FILES = $(EMBEDDED_LUA_FILES)
+EMBEDDED_PNGS = $(wildcard lua/*.png)
+EMBEDDED_FILES = $(EMBEDDED_LUA_FILES) $(EMBEDDED_PNGS)
 EMBEDDED_DATA_CPP_FILE = $(SRC_DIR)/am_embedded_data.cpp
 
 AM_CPP_FILES = $(sort $(wildcard $(SRC_DIR)/*.cpp) $(EMBEDDED_DATA_CPP_FILE))

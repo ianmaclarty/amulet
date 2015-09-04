@@ -62,6 +62,35 @@ static int load_image(lua_State *L) {
     return 1;
 }
 
+static int load_embedded_image(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *filename = luaL_checkstring(L, 1);
+    am_embedded_file_record *rec = am_get_embedded_file(filename);
+    if (rec == NULL) {
+        return luaL_error(L, "embedded file not found: %s", filename);
+    }
+    int width, height;
+    int components = 4;
+    stbi_set_flip_vertically_on_load(1);
+    stbi_uc *img_data =
+        stbi_load_from_memory((stbi_uc const *)rec->data, rec->len, &width, &height, &components, 4);
+    if (img_data == NULL) {
+        return luaL_error(L, "error loading image %s: %s", filename, stbi_failure_reason());
+    }
+    am_image *img = am_new_userdata(L, am_image);
+    img->width = width;
+    img->height = height;
+    img->format = AM_PIXEL_FORMAT_RGBA8;
+    int sz = width * height * pixel_format_size(img->format);
+    am_buffer *imgbuf = am_new_userdata(L, am_buffer);
+    imgbuf->size = sz;
+    imgbuf->data = img_data;
+    img->buffer = imgbuf;
+    img->buffer_ref = img->ref(L, -1);
+    lua_pop(L, 1); // pop imgbuf
+    return 1;
+}
+
 static int save_image(lua_State *L) {
     am_check_nargs(L, 2);
     am_image *img = am_get_userdata(L, am_image, 1);
@@ -110,6 +139,7 @@ void am_open_image_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"create_image", create_image},
         {"load_image", load_image},
+        {"_load_embedded_image", load_embedded_image},
         {"save_image", save_image},
         {NULL, NULL}
     };

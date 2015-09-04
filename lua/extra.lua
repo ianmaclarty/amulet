@@ -111,9 +111,9 @@ end
 
 local
 function table_tostring(t, indent)
+    indent = indent or 0
     local tp = type(t)
     if tp == "table" then
-        indent = indent or 4
         local tab = "    "
         local prefix = string.rep(tab, indent)
         local str = "{\n"

@@ -175,6 +175,10 @@ function set_text(node, str)
 end
 
 function am.text(font, str, halign, valign)
+    if type(font) == "string" then
+        str, halign, valign = font, str, halign
+        font = am.default_font.default16
+    end
     halign = halign or "center"
     valign = valign or "center"
     if not font.is_font then
@@ -243,7 +247,7 @@ function am.sprite(image, halign, valign)
         }
 end
 
-function am._init_fonts(data, imgfile)
+function am._init_fonts(data, imgfile, embedded)
     local fonts = {}
     for _, entry in ipairs(data) do
         local name = entry.filename:match("([^/%.:\\]+)%.([^/%.:\\]+)$")
@@ -264,7 +268,12 @@ function am._init_fonts(data, imgfile)
     local
     function ensure_texture_loaded()
         if not texture then
-            local img = am.load_image(imgfile);
+            local img
+            if embedded then
+                img = am._load_embedded_image(imgfile);
+            else
+                img = am.load_image(imgfile);
+            end
             texture = am.texture2d{buffer = img.buffer, width = img.width, height = img.height,
                 minfilter = data.minfilter, magfilter = data.magfilter}
         end
