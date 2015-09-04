@@ -10,6 +10,16 @@ local color_v = [[
     }
 ]]
 
+local color2d_v = [[
+    precision highp float;
+    attribute vec2 pos;
+    uniform mat4 MV;
+    uniform mat4 P;
+    void main() {
+        gl_Position = P * MV * vec4(pos, 0.0, 1.0);
+    }
+]]
+
 local color_f = [[
     precision mediump float;
     uniform vec4 color;
@@ -27,7 +37,20 @@ local texture_v = [[
     varying vec2 v_uv;
     void main() {
         v_uv = uv;
-        gl_Position = P * MV * vec4(pos, 1);
+        gl_Position = P * MV * vec4(pos, 1.0);
+    }
+]]
+
+local texture2d_v = [[
+    precision highp float;
+    attribute vec2 pos;
+    attribute vec2 uv;
+    uniform mat4 MV;
+    uniform mat4 P;
+    varying vec2 v_uv;
+    void main() {
+        v_uv = uv;
+        gl_Position = P * MV * vec4(pos, 0.0, 1.0);
     }
 ]]
 
@@ -42,7 +65,9 @@ local texture_f = [[
 
 local sources = {
     color = {color_v, color_f},
+    color2d = {color2d_v, color_f},
     texture = {texture_v, texture_f},
+    texture2d = {texture2d_v, texture_f},
 }
 
 am.shaders = {}

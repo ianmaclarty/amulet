@@ -311,7 +311,7 @@ static int view_slice(lua_State *L) {
     }
     int size;
     if (nargs > 2) {
-        size = luaL_checkinteger(L, 2);
+        size = luaL_checkinteger(L, 3);
         if (size < 0 || size > (view->size - start + 1)) {
             return luaL_error(L, "slice size must be in the range [0, %d] (in fact %d)",
                 view->size - start + 1, size);
