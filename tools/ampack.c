@@ -123,8 +123,8 @@ static void gen_rects() {
             while (items[s].codepoints[c] >= 0) {
                 load_char(items[s].codepoints[c]);
                 rects[r].id = 0;
-                rects[r].w = char_bitmap.width + 1;
-                rects[r].h = char_bitmap.rows + 1;
+                rects[r].w = char_bitmap.width + 2;
+                rects[r].h = char_bitmap.rows + 2;
                 r++;
                 c++;
             }
@@ -202,12 +202,6 @@ static void write_data() {
                             dest_ptr[j*4+1] = 0xFF;
                             dest_ptr[j*4+2] = 0xFF;
                             dest_ptr[j*4+3] = src_ptr[j];
-                            /*
-                            dest_ptr[j*4+0] = src_ptr[j];
-                            dest_ptr[j*4+1] = src_ptr[j];
-                            dest_ptr[j*4+2] = src_ptr[j];
-                            dest_ptr[j*4+3] = 0xFF;
-                            */
                         }
                         src_ptr += pitch;
                         dest_ptr += atlas_width * 4;
@@ -223,12 +217,6 @@ static void write_data() {
                             } else {
                                 dest_ptr[j*4+3] = 0x00;
                             }
-                            /*
-                            dest_ptr[j*4+0] = src_ptr[j];
-                            dest_ptr[j*4+1] = src_ptr[j];
-                            dest_ptr[j*4+2] = src_ptr[j];
-                            dest_ptr[j*4+3] = 0xFF;
-                            */
                         }
                         src_ptr += pitch;
                         dest_ptr += atlas_width * 4;
@@ -239,15 +227,15 @@ static void write_data() {
                     exit(EXIT_FAILURE);
                 }
 
-                s1 = ((double)rects[r].x + 0.5) / (double)atlas_width;
-                t2 = 1.0 - (((double)rects[r].y) + 0.5) / (double)atlas_height;
+                s1 = ((double)rects[r].x) / (double)atlas_width;
+                t2 = 1.0 - ((double)rects[r].y) / (double)atlas_height;
                 w = ((double)rects[r].w) / (double)atlas_width;
                 h = ((double)rects[r].h) / (double)atlas_height;
                 t1 = t2 - h;
                 s2 = s1 + w;
 
-                x1 = (double)ft_face->glyph->bitmap_left + 0.5;
-                y2 = (double)ft_face->glyph->bitmap_top - 0.5;
+                x1 = (double)ft_face->glyph->bitmap_left - 1.0;
+                y2 = (double)ft_face->glyph->bitmap_top - 1.0;
                 w = (double)char_bitmap.width;
                 h = (double)char_bitmap.rows;
                 x2 = x1 + w;

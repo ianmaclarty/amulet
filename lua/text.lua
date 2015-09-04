@@ -57,30 +57,50 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
     local chars = font.chars
 
     -- compute row_widths and height
-    local w, h = 0, 0
+    local row_widths = {0}
+    local h = font.line_height
+    local row = 1
     for p, c in utf8.codes(str) do
         if c == newline then
-            x = 0
             h = h + font.line_height
+            row = row + 1
+            row_widths[row] = 0
         else
             local char_data = chars[c] or chars[0] or chars[space]
-            x = x + char_data.advance
-            if x > w then
-                w = x
-            end
+            row_widths[row] = row_widths[row] + char_data.advance
         end
     end
     
-
-    x = 0
+    row = 1
+    if halign == "center" then
+        x = -row_widths[row] / 2
+    elseif halign == "right" then
+        x = -row_widths[row]
+    else
+        x = 0
+    end
+    if valign == "center" then
+        y = (h - font.line_height) / 2
+    elseif valign == "bottom" then
+        y = h - font.line_height
+    else
+        y = -font.line_height
+    end
     for p, c in utf8.codes(str) do
         local char_data, x1, y1, x2, y2, advance
         if c == newline then
             y = y - font.line_height
-            x = 0
             x1, y1, x2, y2 = 0, 0, 0, 0
             char_data = chars[space]
             advance = 0
+            row = row + 1
+            if halign == "center" then
+                x = -row_widths[row] / 2
+            elseif halign == "right" then
+                x = -row_widths[row]
+            else
+                x = 0
+            end
         else
             char_data = chars[c] or chars[0] or chars[space]
             x1, y1, x2, y2 = char_data.x1, char_data.y1, char_data.x2, char_data.y2
