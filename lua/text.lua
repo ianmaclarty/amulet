@@ -266,7 +266,7 @@ function am._init_fonts(data, imgfile)
         if not texture then
             local img = am.load_image(imgfile);
             texture = am.texture2d{buffer = img.buffer, width = img.width, height = img.height,
-                minfilter = "linear", magfilter = "linear"}
+                minfilter = data.minfilter, magfilter = data.magfilter}
         end
     end
     setmetatable(fonts, {__index = function(fonts, name)

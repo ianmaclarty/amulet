@@ -54,6 +54,8 @@ static int bb_top = 0;
 static int bb_bottom = 0;
 #define char_bitmap ft_face->glyph->bitmap
 static int is_mono = 0;
+static const char* minfilter = "linear";
+static const char* magfilter = "linear";
 
 static void process_args(int argc, char *argv[]);
 static void gen_rects();
@@ -168,6 +170,8 @@ static void write_data() {
     double w, h, adv;
     FILE *f = fopen(lua_filename, "w");
     fprintf(f, "local font_data = {\n");
+    fprintf(f, "    minfilter = \"%s\",\n", minfilter);
+    fprintf(f, "    magfilter = \"%s\",\n", magfilter);
     for (s = 0; s < num_items; s++) {
         if (items[s].is_font) {
             int sz = items[s].size;
@@ -623,19 +627,43 @@ check_size:
     items[s].codepoints = read_ranges(arg);
 }
 
+static void usage() {
+    fprintf(stderr, "usage: ampack -png filename.png -lua filename.lua [-mono] [-minfiler <filter>] [-magfilter <filter>] <spec> ...\n");
+    fprintf(stderr, "  where <spec> is either an image file or a font spec of the form:\n");
+    fprintf(stderr, "  font.ttf@16[:A-Z,0x20-0x2F]\n");
+    exit(EXIT_FAILURE);
+}
+
 static void process_args(int argc, char *argv[]) {
-    /* myfont.png myfont.lua font.ttf@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E */
+    /* -png myfont.png -lua myfont.lua [-mono] [-nearest] font.ttf@16:A-Z,a-z,0-9,0x20-0x2F,0x3A-0x40,0x5B-0x60,0x7B-0x7E */
 
-    int i;
-    if (argc < 4) {
-        fprintf(stderr, "expecting at least 3 arguments\n");
-        exit(EXIT_FAILURE);
-    }
+    int a;
+    if (argc < 6) usage();
 
-    png_filename = argv[1];
-    lua_filename = argv[2];
-    num_items = argc-3;
-    for (i = 0; i < num_items; i++) {
-        parse_spec(argv[i+3], i);
+    png_filename = NULL;
+    lua_filename = NULL;
+    for (a = 1; a < argc; ++a) {
+        const char *arg = argv[a];
+        if (strcmp(arg, "-png") == 0) {
+            if (++a >= argc) usage();
+            png_filename = argv[a];
+        } else if (strcmp(arg, "-lua") == 0) {
+            if (++a >= argc) usage();
+            lua_filename = argv[a];
+        } else if (strcmp(arg, "-mono") == 0) {
+            is_mono = 1;
+        } else if (strcmp(arg, "-minfilter") == 0) {
+            if (++a >= argc) usage();
+            minfilter = argv[a];
+        } else if (strcmp(arg, "-magfilter") == 0) {
+            if (++a >= argc) usage();
+            magfilter = argv[a];
+        } else {
+            parse_spec(argv[a], num_items);
+            num_items++;
+        }
     }
+    if (png_filename == NULL) usage();
+    if (lua_filename == NULL) usage();
+    if (num_items == 0) usage();
 }
