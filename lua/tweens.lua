@@ -1,19 +1,30 @@
+local am = amulet
 local mix = math.mix
 
-function amulet.tween(tween_info)
-    local time = 0
-    local ease = amulet.ease.linear
-    local target = nil
-    local final_values = {}
-    for field, value in pairs(tween_info) do
-        if field == "target" then
-            target = value
-        elseif field == "time" then
-            time = value
-        elseif field == "ease" then
-            ease = value
-        else
-            final_values[field] = value
+function am.tween(target, time, final_values, ease)
+    if type(target) == "number" then
+        target, time, final_values, ease = nil, target, time, final_values
+    end
+    if not time then
+        error("missing tween time")
+    end
+    if not final_values then
+        error("missing final tween values")
+    end
+    if type(final_values) ~= "table" then
+        error("missing tween final values table")
+    end
+    ease = ease or am.ease.linear
+    local vecs = {}
+    local comps = {}
+    for k, v in pairs(final_values) do
+        if type(k) ~= "string" then
+            error("tween field must be a string", 2)
+        end
+        local vec, comp = k:match("^(.+)%.(.+)$")
+        if vec then
+            vecs[k] = vec
+            comps[k] = comp
         end
     end
     local init_values
@@ -27,34 +38,49 @@ function amulet.tween(tween_info)
             end
             init_values = {}
             for field, value in pairs(final_values) do
-                init_values[field] = target[field]
+                if vecs[field] then
+                    local v, c = vecs[field], comps[field]
+                    init_values[field] = target[v][c]
+                else
+                    init_values[field] = target[field]
+                end
             end
         end
-        elapsed = elapsed + amulet.delta_time
+        elapsed = elapsed + am.delta_time
         if elapsed >= time then
             -- done
             for field, value in pairs(final_values) do
-                target[field] = value
+                if vecs[field] then
+                    local v, c = vecs[field], comps[field]
+                    target[v] = target[v](c, value)
+                else
+                    target[field] = value
+                end
             end
             return true
         end
         local t = elapsed / time
         for field, val0 in pairs(init_values) do
-            local val = final_values[field]
-            target[field] = mix(val0, val, ease(t))
+            local val = mix(val0, final_values[field], ease(t))
+            if vecs[field] then
+                local v, c = vecs[field], comps[field]
+                target[v] = target[v](c, val)
+            else
+                target[field] = val
+            end
         end
     end
 end
 
-amulet.ease = {}
+am.ease = {}
 
-function amulet.ease.out(f)
+function am.ease.out(f)
     return function(t)
         return 1 - f(1 - t)
     end
 end
 
-function amulet.ease.inout(f, g)
+function am.ease.inout(f, g)
     g = g or f
     return function(t)
         t = t * 2
@@ -66,33 +92,33 @@ function amulet.ease.inout(f, g)
     end
 end
 
-function amulet.ease.linear(t)
+function am.ease.linear(t)
     return t
 end
 
-function amulet.ease.quadratic(t)
+function am.ease.quadratic(t)
     return t * t
 end
 
-function amulet.ease.cubic(t)
+function am.ease.cubic(t)
     return t * t * t
 end
 
-function amulet.ease.hyperbola(t)
+function am.ease.hyperbola(t)
     local s = 0.05
     return (1 / (1 + s - t) - 1) * s
 end
 
-function amulet.ease.sine(t)
+function am.ease.sine(t)
     return (math.sin(math.pi * (t - 0.5)) + 1) * 0.5
 end
 
-function amulet.ease.windup(t)
+function am.ease.windup(t)
     local s = 1.70158
     return t * t * ((s + 1) * t - s)
 end
 
-function amulet.ease.elastic(t)
+function am.ease.elastic(t)
     if t == 0 or t == 1 then
         return t
     end
@@ -101,7 +127,7 @@ function amulet.ease.elastic(t)
     return math.pow(2, -10 * t) * math.sin((t - s) * (2 * math.pi) / p) + 1
 end
 
-function amulet.ease.bounce(t)
+function am.ease.bounce(t)
     local s = 7.5625
     local p = 2.75
     local l
@@ -124,7 +150,7 @@ function amulet.ease.bounce(t)
     return l
 end
 
-function amulet.ease.cubic_bezier(x1, y1, x2, y2)
+function am.ease.cubic_bezier(x1, y1, x2, y2)
     local cx = 3 * x1
     local bx = 3 * (x2 - x1) - cx
     local ax = 1 - cx - bx

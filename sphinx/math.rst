@@ -12,6 +12,10 @@ Vectors are typically used to represent things like position, direction or
 velocity in 2 or 3 dimensional space. Representing RGBA colors is another
 common use of 4 dimensional vectors.
 
+In Amulet vectors are immutable. This means that once you create a vector,
+its value cannot be changed. Instead you need to construct a new vector
+with a new value.
+
 ..  note::
 
     Each component of a vector is represented internally as a 32 bit float,
@@ -32,11 +36,13 @@ separate arguments to one of these functions, for example:
     local velocity = vec3(1, 2, 3)
 
 Passing a single number to a vector constructor will set all components
-of the vector to that value.
+of the vector to that value. For example:
 
 ..  code-block:: lua
 
     local origin = vec2(0)
+
+sets ``origin`` to the value ``vec2(0, 0)``.
 
 It's also possible to construct a vector from a combination of other
 vectors and numbers. The new vector's components will be taken from the
@@ -48,7 +54,7 @@ other vectors in the order they are passed in. For example:
     local top_right = vec2(10, 100)
     local rect = vec4(bottom_left, top_right)
 
-will set ``rect`` to ``vec4(0, 0, 10, 100)``
+sets ``rect`` to ``vec4(0, 0, 10, 100)``
 
 Accessing vector components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,23 +63,21 @@ There are multiple ways to access the components of a vector. The first
 component can be accessed using any of the fields ``x``, ``r`` or ``s``;
 the second using any of the fields ``y``, ``g`` or ``t``; the third
 using any of the fields ``z``, ``b`` or ``p``; and the fourth using any
-of the fields ``w``, ``a`` or ``q``. These fields can be used to
-read or set the vector's components. Here are some examples:
+of the fields ``w``, ``a`` or ``q``. Here are some examples:
 
 ..  code-block:: lua
 
     local color = vec4(0.1, 0.3, 0.7, 0.8)
     print(color.r..", "..color.g..", "..color.b..", "..color.a)
-    local point = vec2(0)
-    point.x = 5
-    point.y = 2
+    local point = vec2(5, 2)
     print("x="..point.x..", y="..point.y)
 
 A vector's components can also be accessed with 1-based integer indices.
-Vectors also support the Lua length operator (``#``), which returns the
+
+Vectors support the Lua length operator (``#``), which returns the
 number of components of the vector (not its magnitude). This allows
-for iterating through the components of a vector of unknown size, like
-so:
+for iterating through the components of a vector of unknown size, for
+example:
 
 ..  code-block:: lua
 
@@ -111,23 +115,44 @@ Running the above code results in the following output:
     or other functions that expect strings and they will be formatted
     appropriately.
 
-Swizzle fields can also be used to update multiple components of a
-vector using another vector or a single number.
+Vector update syntax
+~~~~~~~~~~~~~~~~~~~~
+
+Although you can't directly set the components of a vector, Amulet
+provides some syntactic sugar to make it easier to create a new vector from an
+existing vector that has only some fields changed. Say, for example, you had a
+3 dimensional vector, ``v1``, and you wanted to create a new vector, ``v2``, that
+had the same components as ``v1``, except for the y component, which you'd like
+to be 10. One way to do this would be to write:
 
 ..  code-block:: lua
 
-    local color = vec3(1, 0.8, 0.5)
-    color.rg = color.gr
-    print(color)
-    color.gb = 0
-    print(color)
+    v2 = vec3(v1.x, 10, v1.z)
 
-Running the above produced the following output:
+but Amulet also allows you to write:
 
-..  code-block:: text
+..  code-block:: lua
 
-    vec3(0.8, 1, 0.5)
-    vec3(0.8, 0, 0)
+    v2 = v1{y = 10}
+
+You can use this syntax to "update" multiple components and it
+also supports swizzle fields. For example:
+
+..  code-block:: lua
+
+    local v = vec4(1, 2, 3, 4)
+    v = v{x = 5, ba = vec2(6)}
+
+This would set ``v`` to ``vec4(5, 2, 6, 6)``.
+
+If the values of a swizzle field are going to be updated to
+the same value (as with ``ba`` above), you can just set the
+field to the value instead of constructing a vector.  So
+the above could also have been written as:
+
+..  code-block:: lua
+
+    v = v{x = 5, ba = 6}
 
 Vector arithmetic
 ~~~~~~~~~~~~~~~~~
@@ -164,11 +189,8 @@ Matrices are typically used to represent transformations in 2 or
 3 dimensional space such as rotation, scaling, translation or
 perspective projection.
 
-..  note::
-
-    As with vectors, each element of a matrix is represented internally as a 32
-    bit float, so the same caveat about loss of precision with respect to Lua
-    numbers applies.
+Matrices, like vectors, are immutable and their components
+are represented internally as 32 bit floats.
 
 .. _mat-cons:
 
@@ -285,25 +307,6 @@ This would produce the following output:
     vec2(1, 0)
     vec2(0, 2)
 
-..  warning::
-
-    When accessing a column it is returned as a new vector, so updating a
-    returned column vector has no effect on the original matrix. This means
-    that the following code has no effect:
-
-    .. code:: lua
-
-        matrix[2][2] = 3 -- THIS HAS NO EFFECT!
-
-    Instead if you want to update an individual element of a matrix, you need
-    to update the entire column. Like so:
-
-    .. code:: lua
-
-        local col = matrix[2]
-        col[2] = 3
-        matrix[2] = col
-
 Matrix arithmetic
 ~~~~~~~~~~~~~~~~~
 
@@ -387,6 +390,8 @@ Quaternions
 `Quaternions
 <https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation>`__ are useful for representing 3D rotations.
 
+Like vectors and matrices they are immutable.
+
 .. _quat-cons:
 
 Constructing quaternions
@@ -459,9 +464,6 @@ Quaternion fields
 
 The ``angle``, ``axis``, ``pitch``, ``roll``, ``yaw``, ``w``, ``x``, ``y`` and ``z``
 fields can be used to read the corresponding attributes of a quaternion.
-
-There is no way to update a quaternion after creating it. Instead create a new
-quaternion.
 
 ..  note::
 

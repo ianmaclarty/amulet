@@ -32,12 +32,8 @@ for field, os in pairs(offsets) do
     end
     rect_ext["set_"..field] = function(node, val)
         local verts = node.verts
-        local v = verts[os1]
-        v[c] = val
-        verts[os1] = v
-        v = verts[os2]
-        v[c] = val
-        verts[os2] = v
+        verts[os1] = verts[os1](c, val)
+        verts[os2] = verts[os2](c, val)
     end
 end
 

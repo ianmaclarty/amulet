@@ -44,8 +44,8 @@ local rotating_cube = cube
         while true do
             local angle = math.random() * 2 * math.pi
             local axis = math.normalize(vec3(math.random(), math.random(), math.random()) - 0.5)
-            am.wait(am.tween{target = node, rotation = quat(angle, axis), time = 1,
-                ease = am.ease.inout(am.ease.cubic)})
+            am.wait(am.tween(1, {rotation = quat(angle, axis)},
+                am.ease.inout(am.ease.cubic)), node)
             am.wait(am.delay(0.5))
         end
     end))

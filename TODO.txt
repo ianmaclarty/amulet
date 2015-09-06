@@ -7,12 +7,6 @@
 - Show user-code context in main error message, not embedded-lua context.
   (can still show embedded-lua in stack trace)
 
-- Make vecs and mats readonly. Actually this makes some things quite
-  awkward, such as tweening a vector's components separately.
-  In cases where vec updates would be problematic (e.g. with views
-  or matrix columns), we could return readonly vecs, which are the
-  same as normal vecs, but have a modified metatable.
-
 - Make transform nodes (tranlate, rotate, scale, lookat, billboard, etc)
   operated on MV and/or P by default.
 
@@ -57,3 +51,5 @@
 - Implement console.
 
 - Support y or z sorting.
+
+- Change 'hidden' field on scene nodes to 'visible'.

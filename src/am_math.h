@@ -51,17 +51,6 @@ struct am_quat {
     am_quat() {}
 };
 
-int am_vec2_index(lua_State *L, glm::vec2 *v);
-int am_vec3_index(lua_State *L, glm::vec3 *v);
-int am_vec4_index(lua_State *L, glm::vec4 *v);
-int am_vec2_newindex(lua_State *L, glm::vec2 *v);
-int am_vec3_newindex(lua_State *L, glm::vec3 *v);
-int am_vec4_newindex(lua_State *L, glm::vec4 *v);
-
-void am_read_vec2(lua_State *L, glm::vec2 *v, int start, int end);
-void am_read_vec3(lua_State *L, glm::vec3 *v, int start, int end);
-void am_read_vec4(lua_State *L, glm::vec4 *v, int start, int end);
-
 bool am_sphere_visible(glm::mat4 &matrix, glm::vec3 &center, float radius);
 
 void am_open_math_module(lua_State *L);

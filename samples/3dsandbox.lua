@@ -85,7 +85,7 @@ function update_camera()
         pos = pos + perp * strafe_speed * am.delta_time
     end
     if pos.y < floor_y + near_clip * 2 then
-        pos.y = floor_y + near_clip * 2
+        pos = pos{y = floor_y + near_clip * 2}
     end
     camera.eye = pos
     camera.center = pos + dir

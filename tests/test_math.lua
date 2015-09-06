@@ -26,8 +26,6 @@ function printeuler(e)
     print(""..str:gsub("%-0%.00", "0.00"))
 end
 
-
-
 local
 function printmat(m)
     print(m)
@@ -35,9 +33,7 @@ end
 
 local v = vec3(1, 2, 3)
 printvec(v)
-v.x = 3.14
-v.y = 6.666
-v.z = -12.009
+v = v{x = 3.14, y = 6.666, z = -12.009}
 printvec(v)
 
 v = vec3(9, vec2(10.1, 11.1)) / vec3(vec2(1.1, 2), 3)
@@ -75,26 +71,25 @@ printvec(v.xwwx)
 printvec(v.wyx)
 printvec(vec3(1, v.yz))
 
-v.gb = vec2(20, 30)
+v = v{gb = vec2(20, 30)}
 printvec(v)
-v.wx = vec2(40, 10)
+v = v("wx", vec2(40, 10))
 printvec(v)
 
-v.xyzw = vec4(1, 2, 3, 4)
+v = v{xyzw = vec4(1, 2, 3, 4)}
 printvec(v)
-v.rgba = 0.5
+v = v{rgba = 0.5}
 printvec(v)
-v.stq = 2
+v = v{stq = 2}
 printvec(v)
-v.s = v.s/2
-v.pq = 3
+v = v{s = v.s/2, pq = 3}
 printvec(v)
 v = v.xyz * 10
-v.bgr = 0.5 * v.rgb
+v = v{bgr = 0.5 * v.rgb}
 printvec(v)
 
 v = v.yx * 2
-v.xy = vec2(1, 2)
+v = v{xy = vec2(1, 2)}
 printvec(v)
 
 local m = mat4(2)
@@ -112,7 +107,7 @@ m = mat4( 1,  2,  3,  4,
                9, 10, 11, 12,
               13, 14, 15, 16)
 printmat(m)
-m[2] = vec4(50, 60, 70, 80)
+m = mat4(m[1], vec4(50, 60, 70, 80), m[3], m[4])
 m:set(1, 3, 9)
 m:set(4, 4, 99)
 printmat(m)

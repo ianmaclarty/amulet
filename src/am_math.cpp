@@ -2,7 +2,7 @@
 
 static int vec2_new(lua_State *L);
 static int vec2_index(lua_State *L);
-static int vec2_newindex(lua_State *L);
+static int vec2_call(lua_State *L);
 static int vec2_add(lua_State *L);
 static int vec2_sub(lua_State *L);
 static int vec2_mul(lua_State *L);
@@ -12,7 +12,7 @@ static int vec2_len(lua_State *L);
 
 static int vec3_new(lua_State *L);
 static int vec3_index(lua_State *L);
-static int vec3_newindex(lua_State *L);
+static int vec3_call(lua_State *L);
 static int vec3_add(lua_State *L);
 static int vec3_sub(lua_State *L);
 static int vec3_mul(lua_State *L);
@@ -22,7 +22,7 @@ static int vec3_len(lua_State *L);
 
 static int vec4_new(lua_State *L);
 static int vec4_index(lua_State *L);
-static int vec4_newindex(lua_State *L);
+static int vec4_call(lua_State *L);
 static int vec4_add(lua_State *L);
 static int vec4_sub(lua_State *L);
 static int vec4_mul(lua_State *L);
@@ -32,7 +32,6 @@ static int vec4_len(lua_State *L);
 
 static int mat2_new(lua_State *L);
 static int mat2_index(lua_State *L);
-static int mat2_newindex(lua_State *L);
 static int mat2_add(lua_State *L);
 static int mat2_sub(lua_State *L);
 static int mat2_mul(lua_State *L);
@@ -43,7 +42,6 @@ static int mat2_len(lua_State *L);
 
 static int mat3_new(lua_State *L);
 static int mat3_index(lua_State *L);
-static int mat3_newindex(lua_State *L);
 static int mat3_add(lua_State *L);
 static int mat3_sub(lua_State *L);
 static int mat3_mul(lua_State *L);
@@ -54,7 +52,6 @@ static int mat3_len(lua_State *L);
 
 static int mat4_new(lua_State *L);
 static int mat4_index(lua_State *L);
-static int mat4_newindex(lua_State *L);
 static int mat4_add(lua_State *L);
 static int mat4_sub(lua_State *L);
 static int mat4_mul(lua_State *L);
@@ -77,6 +74,13 @@ static int quat_index(lua_State *L);
 static int quat_mul(lua_State *L);
 
 static int perspective(lua_State *L);
+
+//---------------- newindex func for immutable objects ------------------//
+
+static int immutable_newindex(lua_State *L) {
+    return luaL_error(L, "attempt to update immutable type %s",
+        am_get_typename(L, am_get_type(L, 1)));
+}
 
 //-------------------------- vec* helper macros ------------------//
 
@@ -253,45 +257,6 @@ static int vec##D##_new(lua_State *L) {                                         
     return 1;                                                                           \
 }
 
-#define AM_READ_VEC_FUNC(D)                                                             \
-void am_read_vec##D(lua_State *L, glm::vec##D *v, int start, int end) {                 \
-    int j = 0;                                                                          \
-    int k;                                                                              \
-    for (int i = start; i <= end && j < D; i++) {                                       \
-        switch (am_get_type(L, i)) {                                                    \
-            case LUA_TNUMBER:                                                           \
-                (*v)[j++] = lua_tonumber(L, i);                                         \
-                break;                                                                  \
-            case MT_am_vec2: {                                                          \
-                am_vec2 *v2 = (am_vec2*)lua_touserdata(L, i);                           \
-                k = 0;                                                                  \
-                while (j < D && k < 2) {                                                \
-                    (*v)[j++] = v2->v[k++];                                             \
-                }                                                                       \
-                break;                                                                  \
-            }                                                                           \
-            case MT_am_vec3: {                                                          \
-                am_vec3 *v3 = (am_vec3*)lua_touserdata(L, i);                           \
-                k = 0;                                                                  \
-                while (j < D && k < 3) {                                                \
-                    (*v)[j++] = v3->v[k++];                                             \
-                }                                                                       \
-                break;                                                                  \
-            }                                                                           \
-            case MT_am_vec4: {                                                          \
-                am_vec4 *v4 = (am_vec4*)lua_touserdata(L, i);                           \
-                k = 0;                                                                  \
-                while (j < D && k < 4) {                                                \
-                    (*v)[j++] = v4->v[k++];                                             \
-                }                                                                       \
-                break;                                                                  \
-            }                                                                           \
-            default:                                                                    \
-                luaL_error(L, "unexpected value of type %s at position %d", lua_typename(L, lua_type(L, i)), i); \
-        }                                                                               \
-    }                                                                                   \
-}
-
 static const int vec_component_offset[] = {
      3, // a
      2, // b
@@ -420,128 +385,151 @@ int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                           
 #define VEC_INDEX_FUNC(D)                                                               \
 static int vec##D##_index(lua_State *L) {                                               \
     am_vec##D *vv = (am_vec##D*)lua_touserdata(L, 1);                                   \
-    return am_vec##D##_index(L, &vv->v);                                                \
+    int r = am_vec##D##_index(L, &vv->v);                                               \
+    if (r != 0) {                                                                       \
+        return r;                                                                       \
+    } else {                                                                            \
+        return am_default_index_func(L);                                                \
+    }                                                                                   \
 }
 
-#define AM_VEC_NEWINDEX_FUNC(D)                                                         \
-int am_vec##D##_newindex(lua_State *L, glm::vec##D *v) {                                \
-    if (lua_type(L, 2) == LUA_TSTRING) {                                                \
+#define VEC_CALL_FUNC(D)                                                                \
+                                                                                        \
+static int vec##D##_set(lua_State *L, glm::vec##D *v) {                                 \
+    if (lua_type(L, -2) == LUA_TSTRING) {                                               \
         size_t len;                                                                     \
-        const char *str = lua_tolstring(L, 2, &len);                                    \
+        const char *str = lua_tolstring(L, -2, &len);                                   \
         if (len == 1) {                                                                 \
             switch (str[0]) {                                                           \
                 case 'x':                                                               \
                 case 'r':                                                               \
                 case 's':                                                               \
-                    v->x = luaL_checknumber(L, 3);                                      \
+                    v->x = luaL_checknumber(L, -1);                                     \
                     break;                                                              \
                 case 'y':                                                               \
                 case 'g':                                                               \
                 case 't':                                                               \
-                    v->y = luaL_checknumber(L, 3);                                      \
+                    v->y = luaL_checknumber(L, -1);                                     \
                     break;                                                              \
                 case 'z':                                                               \
                 case 'b':                                                               \
                 case 'p':                                                               \
                     if (D > 2) {                                                        \
-                        (*v)[2] = luaL_checknumber(L, 3);                               \
+                        (*v)[2] = luaL_checknumber(L, -1);                              \
                     } else {                                                            \
-                        goto fail;                                                      \
+                        return false;                                                   \
                     }                                                                   \
                     break;                                                              \
                 case 'w':                                                               \
                 case 'a':                                                               \
                 case 'q':                                                               \
                     if (D > 3) {                                                        \
-                        (*v)[3] = luaL_checknumber(L, 3);                               \
+                        (*v)[3] = luaL_checknumber(L, -1);                              \
                     } else {                                                            \
-                        goto fail;                                                      \
+                       return false;                                                    \
                     }                                                                   \
                     break;                                                              \
                 default:                                                                \
-                    goto fail;                                                          \
+                    return false;                                                       \
             }                                                                           \
         } else {                                                                        \
-            if (len == 0 || len > D) goto fail;                                         \
-            switch (am_get_type(L, 3)) {                                                \
+            if (len == 0 || len > D) return false;                                      \
+            switch (am_get_type(L, -1)) {                                               \
                 case LUA_TNUMBER: {                                                     \
-                    float num = lua_tonumber(L, 3);                                     \
+                    float num = lua_tonumber(L, -1);                                    \
                     for (unsigned int i = 0; i < len; i++) {                            \
                         int os = VEC_COMPONENT_OFFSET(str[i]);                          \
                         if (os >= 0 && os < D) {                                        \
                             (*v)[os] = num;                                             \
                         } else {                                                        \
-                            goto fail;                                                  \
+                            return false;                                               \
                         }                                                               \
                     }                                                                   \
                     break;                                                              \
                 }                                                                       \
                 case MT_am_vec2: {                                                      \
-                    if (len != 2) goto fail;                                            \
-                    glm::vec2 *nv = &((am_vec2*)lua_touserdata(L, 3))->v;               \
+                    if (len != 2) return false;                                         \
+                    glm::vec2 *nv = &((am_vec2*)lua_touserdata(L, -1))->v;              \
                     for (int i = 0; i < 2; i++) {                                       \
                         int os = VEC_COMPONENT_OFFSET(str[i]);                          \
                         if (os >= 0 && os < D) {                                        \
                             (*v)[os] = (*nv)[i];                                        \
                         } else {                                                        \
-                            goto fail;                                                  \
+                            return false;                                               \
                         }                                                               \
                     }                                                                   \
                     break;                                                              \
                 }                                                                       \
                 case MT_am_vec3: {                                                      \
-                    if (len != 3) goto fail;                                            \
-                    glm::vec3 *nv = &((am_vec3*)lua_touserdata(L, 3))->v;               \
+                    if (len != 3) return false;                                         \
+                    glm::vec3 *nv = &((am_vec3*)lua_touserdata(L, -1))->v;              \
                     for (int i = 0; i < 3; i++) {                                       \
                         int os = VEC_COMPONENT_OFFSET(str[i]);                          \
                         if (os >= 0 && os < D) {                                        \
                             (*v)[os] = (*nv)[i];                                        \
                         } else {                                                        \
-                            goto fail;                                                  \
+                            return false;                                               \
                         }                                                               \
                     }                                                                   \
                     break;                                                              \
                 }                                                                       \
                 case MT_am_vec4: {                                                      \
-                    if (len != 4) goto fail;                                            \
-                    glm::vec4 *nv = &((am_vec4*)lua_touserdata(L, 3))->v;               \
+                    if (len != 4) return false;                                         \
+                    glm::vec4 *nv = &((am_vec4*)lua_touserdata(L, -1))->v;              \
                     for (int i = 0; i < 4; i++) {                                       \
                         int os = VEC_COMPONENT_OFFSET(str[i]);                          \
                         if (os >= 0 && os < D) {                                        \
                             (*v)[os] = (*nv)[i];                                        \
                         } else {                                                        \
-                            goto fail;                                                  \
+                            return false;                                               \
                         }                                                               \
                     }                                                                   \
                     break;                                                              \
                 }                                                                       \
                 default:                                                                \
-                    goto fail;                                                          \
+                    return false;                                                       \
             }                                                                           \
         }                                                                               \
     } else {                                                                            \
-        int i = lua_tointeger(L, 2);                                                    \
+        int i = lua_tointeger(L, -2);                                                   \
         if (i > 0 && i <= D) {                                                          \
-            (*v)[i-1] = luaL_checknumber(L, 3);                                         \
+            (*v)[i-1] = luaL_checknumber(L, -1);                                        \
         } else {                                                                        \
-            goto fail;                                                                  \
+            return false;                                                               \
         }                                                                               \
     }                                                                                   \
-    return 0;                                                                           \
-    fail:                                                                               \
-    return -1;                                                                          \
-}
-
-#define VEC_NEWINDEX_FUNC(D)                                                            \
-static int vec##D##_newindex(lua_State *L) {                                            \
-    am_vec##D *vv = (am_vec##D*)lua_touserdata(L, 1);                                   \
-    glm::vec##D *v = &vv->v;                                                            \
-    int r = am_vec##D##_newindex(L, v);                                                 \
-    if (r < 0) {                                                                        \
-        return luaL_error(L, "invalid vec" #D " index or value");                       \
-    } else {                                                                            \
-        return r;                                                                       \
+    return true;                                                                        \
+}                                                                                       \
+                                                                                        \
+static int vec##D##_call(lua_State *L) {                                                \
+    int nargs = am_check_nargs(L, 2);                                                   \
+    glm::vec##D v = am_get_userdata(L, am_vec##D, 1)->v;                                \
+    switch (lua_type(L, 2)) {                                                           \
+        case LUA_TSTRING:                                                               \
+        case LUA_TNUMBER:                                                               \
+            if (nargs != 3) {                                                           \
+                return luaL_error(L, "expecting exactly 2 arguments when first is a string or number"); \
+            }                                                                           \
+            if (!vec##D##_set(L, &v)) {                                                 \
+                return luaL_error(L, "cannot set field %s to a %s", lua_tostring(L, -2),\
+                    am_get_typename(L, am_get_type(L, -1)));                            \
+            }                                                                           \
+            break;                                                                      \
+        case LUA_TTABLE:                                                                \
+            lua_pushnil(L);                                                             \
+            while (lua_next(L, 2)) {                                                    \
+                if (!vec##D##_set(L, &v)) {                                             \
+                    return luaL_error(L, "cannot set field %s to a %s", lua_tostring(L, -2),\
+                        am_get_typename(L, am_get_type(L, -1)));                        \
+                }                                                                       \
+                lua_pop(L, 1);                                                          \
+            }                                                                           \
+            break;                                                                      \
+        default:                                                                        \
+            return luaL_error(L, "expecting a table or field/value pair");              \
     }                                                                                   \
+    am_new_userdata(L, am_vec##D)->v = v;                                               \
+    return 1;                                                                           \
 }
 
 //-------------------------- mat* helper macros ------------------//
@@ -735,69 +723,49 @@ static int mat##D##_index(lua_State *L) {                                       
     return 1;                                                                           \
 }
 
-#define MAT_NEWINDEX_FUNC(D)                                                            \
-static int mat##D##_newindex(lua_State *L) {                                            \
-    am_mat##D *m = (am_mat##D*)lua_touserdata(L, 1);                                    \
-    int i = lua_tointeger(L, 2);                                                        \
-    if (i >= 1 && i <= D) {                                                             \
-        am_vec##D *v = am_get_userdata(L, am_vec##D, 3);                                \
-        m->m[i-1] = v->v;                                                               \
-        return 1;                                                                       \
-    } else {                                                                            \
-        return luaL_error(L, "invalid mat" #D " index: %s", lua_tostring(L, 2));        \
-    }                                                                                   \
-}
-
 //-------------------------- vec2 --------------------------------//
 
 VEC_NEW_FUNC(2)
 AM_VEC_INDEX_FUNC(2)
 VEC_INDEX_FUNC(2)
-AM_VEC_NEWINDEX_FUNC(2)
-VEC_NEWINDEX_FUNC(2)
+VEC_CALL_FUNC(2)
 VEC_OP_FUNC(2, add, +)
 VEC_OP_FUNC(2, sub, -)
 VEC_MUL_FUNC(2)
 VEC_DIV_FUNC(2)
 VEC_UNM_FUNC(2)
 VEC_LEN_FUNC(2)
-AM_READ_VEC_FUNC(2)
 
 //-------------------------- vec3 --------------------------------//
 
 VEC_NEW_FUNC(3)
 AM_VEC_INDEX_FUNC(3)
 VEC_INDEX_FUNC(3)
-AM_VEC_NEWINDEX_FUNC(3)
-VEC_NEWINDEX_FUNC(3)
+VEC_CALL_FUNC(3)
 VEC_OP_FUNC(3, add, +)
 VEC_OP_FUNC(3, sub, -)
 VEC_MUL_FUNC_Q(3)
 VEC_DIV_FUNC(3)
 VEC_UNM_FUNC(3)
 VEC_LEN_FUNC(3)
-AM_READ_VEC_FUNC(3)
 
 //-------------------------- vec4 --------------------------------//
 
 VEC_NEW_FUNC(4)
 AM_VEC_INDEX_FUNC(4)
 VEC_INDEX_FUNC(4)
-AM_VEC_NEWINDEX_FUNC(4)
-VEC_NEWINDEX_FUNC(4)
+VEC_CALL_FUNC(4)
 VEC_OP_FUNC(4, add, +)
 VEC_OP_FUNC(4, sub, -)
 VEC_MUL_FUNC_Q(4)
 VEC_DIV_FUNC(4)
 VEC_UNM_FUNC(4)
 VEC_LEN_FUNC(4)
-AM_READ_VEC_FUNC(4)
 
 //-------------------------- mat2 --------------------------------//
 
 MAT_NEW_FUNC(2)
 MAT_INDEX_FUNC(2)
-MAT_NEWINDEX_FUNC(2)
 MAT_OP_FUNC(2, add, +)
 MAT_OP_FUNC(2, sub, -)
 MAT_OP_FUNC(2, div, /)
@@ -809,7 +777,6 @@ MAT_LEN_FUNC(2)
 
 MAT_NEW_FUNC(3)
 MAT_INDEX_FUNC(3)
-MAT_NEWINDEX_FUNC(3)
 MAT_OP_FUNC(3, add, +)
 MAT_OP_FUNC(3, sub, -)
 MAT_OP_FUNC(3, div, /)
@@ -821,7 +788,6 @@ MAT_LEN_FUNC(3)
 
 MAT_NEW_FUNC(4)
 MAT_INDEX_FUNC(4)
-MAT_NEWINDEX_FUNC(4)
 MAT_OP_FUNC(4, add, +)
 MAT_OP_FUNC(4, sub, -)
 MAT_OP_FUNC(4, div, /)
@@ -1803,8 +1769,10 @@ static int fract(lua_State *L) {
     lua_newtable(L);                                    \
     lua_pushcclosure(L, T##_index, 0);                  \
     lua_setfield(L, -2, "__index");                     \
-    lua_pushcclosure(L, T##_newindex, 0);               \
+    lua_pushcclosure(L, immutable_newindex, 0);         \
     lua_setfield(L, -2, "__newindex");                  \
+    lua_pushcclosure(L, T##_call, 0);                   \
+    lua_setfield(L, -2, "__call");                      \
     lua_pushcclosure(L, T##_add, 0);                    \
     lua_setfield(L, -2, "__add");                       \
     lua_pushcclosure(L, T##_sub, 0);                    \
@@ -1823,7 +1791,7 @@ static int fract(lua_State *L) {
     lua_newtable(L);                                    \
     lua_pushcclosure(L, T##_index, 0);                  \
     lua_setfield(L, -2, "__index");                     \
-    lua_pushcclosure(L, T##_newindex, 0);               \
+    lua_pushcclosure(L, immutable_newindex, 0);         \
     lua_setfield(L, -2, "__newindex");                  \
     lua_pushcclosure(L, T##_add, 0);                    \
     lua_setfield(L, -2, "__add");                       \
@@ -1845,6 +1813,8 @@ static void register_quat_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, quat_index, 0);
     lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, immutable_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
     lua_pushcclosure(L, quat_mul, 0);
     lua_setfield(L, -2, "__mul");
     am_register_metatable(L, "quat", MT_am_quat, 0);

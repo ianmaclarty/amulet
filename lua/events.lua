@@ -52,10 +52,8 @@ end
 
 function amulet._mouse_move(win, x, y)
     local u = win._event_data
-    u._mouse_position.x = x
-    u._mouse_position.y = y
-    u._mouse_delta.x = u._mouse_position.x - u._prev_mouse_position.x
-    u._mouse_delta.y = u._mouse_position.y - u._prev_mouse_position.y
+    u._mouse_position = vec2(x, y)
+    u._mouse_delta = vec2(u._mouse_position - u._prev_mouse_position)
 end
 
 local
@@ -63,8 +61,7 @@ function clear_mouse(win)
     local u = win._event_data
     table.clear(u._mouse_button_pressed)    
     table.clear(u._mouse_button_released)    
-    u._prev_mouse_position.x = u._mouse_position.x
-    u._prev_mouse_position.y = u._mouse_position.y
+    u._prev_mouse_position = u._mouse_position
 end
 
 function window_mt.mouse_button_down(win, button)
