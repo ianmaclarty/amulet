@@ -80,26 +80,11 @@ struct am_program_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
-struct am_program_param_bind_value {
-    am_program_param_client_type type;
-    union {
-        float f;
-        am_vec2 *v2;
-        am_vec3 *v3;
-        am_vec4 *v4;
-        am_mat2 *m2;
-        am_mat3 *m3;
-        am_mat4 *m4;
-        am_buffer_view *arr;
-        am_texture2d *texture;
-    } value;
-    int ref;
-    am_param_name_id name;
-};
-
 struct am_bind_node : am_scene_node {
     int num_params;
-    am_program_param_bind_value *values;
+    am_param_name_id *names;
+    am_program_param_value *values;
+    int *refs; // refs for array or texture params
 
     virtual void render(am_render_state *rstate);
 };
