@@ -242,7 +242,8 @@ static int vec##D##_new(lua_State *L) {                                         
                     break;                                                              \
                 }                                                                       \
                 default: return luaL_error(L,                                           \
-                    "unexpected type at position %d in vec" #D " argument list (%d)", j, am_get_type(L, i)); \
+                    "unexpected type %s at position %d in vec" #D " argument list",     \
+                    am_get_typename(L, am_get_type(L, j)), j);                          \
             }                                                                           \
         }                                                                               \
         endfor:                                                                         \
@@ -690,7 +691,8 @@ static int mat##D##_new(lua_State *L) {                                         
                         break;                                                          \
                     }                                                                   \
                     default: return luaL_error(L,                                       \
-                        "unexpected type in vec" #D " argument list");                  \
+                        "unexpected type %s in vec" #D " argument list at position %d", \
+                            am_get_typename(L, am_get_type(L, i)), i);                  \
                 }                                                                       \
             }                                                                           \
         }                                                                               \
