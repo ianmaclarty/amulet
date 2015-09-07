@@ -13,6 +13,8 @@
 - Allow omiting vec3 constructor in translate and scale, and quat constructor
   in rotate nodes (e.g. can write node:translate(0, 0) or similar).
 
+- Add 2d versions of translate, rotate and scale that accept vec2s.
+
 - Look at integrating luasocket for networking support (what about html
   backend?).
 
@@ -48,8 +50,18 @@
 - Allow hot reloading of images / spritesheets (should be ok for spritesheets
   as long as sizes don't change).
 
+- Allow hot reloading of code.  Establish convensions so this works most 
+  of the time (impossible to work all the time).
+
 - Implement console.
 
 - Support y or z sorting.
 
 - Change 'hidden' field on scene nodes to 'visible'.
+
+- Use standard endianess for views. All target platforms use little endian,
+  but big endian would be nice for 32 bit pixels. Then we could write colours
+  as 0xAABBCCFF in RGBA order.
+
+- Support other vec types in views, e.g. short2 (e.g. for UV coords) or ubyte4
+  (e.g. for colours) or byte3 (e.g. for normals).
