@@ -117,7 +117,35 @@ function table_tostring(t, indent)
         local tab = "    "
         local prefix = string.rep(tab, indent)
         local str = "{\n"
-        for key, value in pairs(t) do
+        local keys = {}
+        for key, _ in pairs(t) do
+            table.insert(keys, key)
+        end
+        table.sort(keys, function(k1, k2) 
+            local t1 = type(k1)
+            local t2 = type(k2)
+            if t1 == "string" and t2 == "string" then
+                return k1 < k2
+            end
+            if t1 == "number" and t2 == "number" then
+                return k1 < k2
+            end
+            if t1 == "string" then
+                return true
+            end
+            if t2 == "string" then
+                return false
+            end
+            if t1 == "number" then
+                return true
+            end
+            if t2 == "number" then
+                return false
+            end
+            return tostring(k1) < tostring(k2)
+        end)
+        for _, key in ipairs(keys) do
+            local value = t[key]
             local keystr
             if type(key) == "string" then
                 keystr = key

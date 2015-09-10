@@ -35,44 +35,6 @@ for i, mt in pairs(_metatable_registry) do
     setmetatable(mt, mtmt)
 end
 
-local
-function define_property(mt, field, getter, setter)
-    mt[field] = am._custom_property_marker()
-    mt[am._getter_key(field)] = getter
-    if setter then
-        mt[am._setter_key(field)] = setter
-    end
-end
-
-local
-function create_extension(fields)
-    local extension = table.shallow_copy(fields)
-    for field, value in pairs(fields) do
-        if type(field) ~= "string" then
-            error("only string fields allowed for extensions", 3)
-        end
-        extension[field] = value
-        local propname = field:match("^get_([A-Za-z0-9_]+)$")
-        if propname and not fields[propname] then
-            local getter = value
-            local setter = fields["set_"..propname]
-            if type(setter) ~= "function" then
-                setter = nil
-            end
-            define_property(extension, propname, getter, setter)
-        end
-    end
-    return extension
-end
-
-local
-function extend(node, fields)
-    node:alias(create_extension(fields))
-    return node
-end
-
-_metatable_registry.scene_node.extend = extend
-
 local pre_frame_funcs = {}
 local post_frame_funcs = {}
 

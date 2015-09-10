@@ -288,8 +288,9 @@ static const int vec_component_offset[] = {
 };
 #define VEC_COMPONENT_OFFSET(c) (((c) >= 'a' && (c) <= 'z') ? vec_component_offset[c-'a'] : -1)
 
-#define AM_VEC_INDEX_FUNC(D)                                                            \
-int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                                   \
+#define VEC_INDEX_FUNC(D)                                                               \
+int vec##D##_index(lua_State *L) {                                                      \
+    glm::vec##D v = ((am_vec##D*)lua_touserdata(L, 1))->v;                              \
     if (lua_type(L, 2) == LUA_TSTRING) {                                                \
         size_t len;                                                                     \
         const char *str = lua_tolstring(L, 2, &len);                                    \
@@ -299,18 +300,18 @@ int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                           
                     case 'x':                                                           \
                     case 'r':                                                           \
                     case 's':                                                           \
-                        lua_pushnumber(L, (*v)[0]);                                     \
+                        lua_pushnumber(L, v[0]);                                        \
                         return 1;                                                       \
                     case 'y':                                                           \
                     case 'g':                                                           \
                     case 't':                                                           \
-                        lua_pushnumber(L, (*v)[1]);                                     \
+                        lua_pushnumber(L, v[1]);                                        \
                         return 1;                                                       \
                     case 'z':                                                           \
                     case 'b':                                                           \
                     case 'p':                                                           \
                         if (D > 2) {                                                    \
-                            lua_pushnumber(L, (*v)[2]);                                 \
+                            lua_pushnumber(L, v[2]);                                    \
                             return 1;                                                   \
                         } else {                                                        \
                             return 0;                                                   \
@@ -319,7 +320,7 @@ int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                           
                     case 'a':                                                           \
                     case 'q':                                                           \
                         if (D > 3) {                                                    \
-                            lua_pushnumber(L, (*v)[3]);                                 \
+                            lua_pushnumber(L, v[3]);                                    \
                             return 1;                                                   \
                         } else {                                                        \
                             return 0;                                                   \
@@ -332,7 +333,7 @@ int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                           
                 for (int i = 0; i < 2; i++) {                                           \
                     int os = VEC_COMPONENT_OFFSET(str[i]);                              \
                     if (os >= 0 && os < D) {                                            \
-                        vv[i] = (*v)[os];                                               \
+                        vv[i] = v[os];                                                  \
                     } else {                                                            \
                         return 0;                                                       \
                     }                                                                   \
@@ -346,7 +347,7 @@ int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                           
                 for (int i = 0; i < 3; i++) {                                           \
                     int os = VEC_COMPONENT_OFFSET(str[i]);                              \
                     if (os >= 0 && os < D) {                                            \
-                        vv[i] = (*v)[os];                                               \
+                        vv[i] = v[os];                                                  \
                     } else {                                                            \
                         return 0;                                                       \
                     }                                                                   \
@@ -360,7 +361,7 @@ int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                           
                 for (int i = 0; i < 4; i++) {                                           \
                     int os = VEC_COMPONENT_OFFSET(str[i]);                              \
                     if (os >= 0 && os < D) {                                            \
-                        vv[i] = (*v)[os];                                               \
+                        vv[i] = v[os];                                                  \
                     } else {                                                            \
                         return 0;                                                       \
                     }                                                                   \
@@ -375,22 +376,11 @@ int am_vec##D##_index(lua_State *L, glm::vec##D *v) {                           
     } else {                                                                            \
         int i = lua_tointeger(L, 2);                                                    \
         if (i > 0 && i <= D) {                                                          \
-            lua_pushnumber(L, (*v)[i-1]);                                               \
+            lua_pushnumber(L, v[i-1]);                                                  \
             return 1;                                                                   \
         } else {                                                                        \
             return 0;                                                                   \
         }                                                                               \
-    }                                                                                   \
-}
-
-#define VEC_INDEX_FUNC(D)                                                               \
-static int vec##D##_index(lua_State *L) {                                               \
-    am_vec##D *vv = (am_vec##D*)lua_touserdata(L, 1);                                   \
-    int r = am_vec##D##_index(L, &vv->v);                                               \
-    if (r != 0) {                                                                       \
-        return r;                                                                       \
-    } else {                                                                            \
-        return am_default_index_func(L);                                                \
     }                                                                                   \
 }
 
@@ -728,7 +718,6 @@ static int mat##D##_index(lua_State *L) {                                       
 //-------------------------- vec2 --------------------------------//
 
 VEC_NEW_FUNC(2)
-AM_VEC_INDEX_FUNC(2)
 VEC_INDEX_FUNC(2)
 VEC_CALL_FUNC(2)
 VEC_OP_FUNC(2, add, +)
@@ -741,7 +730,6 @@ VEC_LEN_FUNC(2)
 //-------------------------- vec3 --------------------------------//
 
 VEC_NEW_FUNC(3)
-AM_VEC_INDEX_FUNC(3)
 VEC_INDEX_FUNC(3)
 VEC_CALL_FUNC(3)
 VEC_OP_FUNC(3, add, +)
@@ -754,7 +742,6 @@ VEC_LEN_FUNC(3)
 //-------------------------- vec4 --------------------------------//
 
 VEC_NEW_FUNC(4)
-AM_VEC_INDEX_FUNC(4)
 VEC_INDEX_FUNC(4)
 VEC_CALL_FUNC(4)
 VEC_OP_FUNC(4, add, +)

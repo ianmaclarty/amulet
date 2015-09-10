@@ -4,7 +4,7 @@
 #define am_node_marked(node)        (node->flags & AM_NODE_FLAG_MARK)
 #define am_mark_node(node)          node->flags |= AM_NODE_FLAG_MARK
 #define am_unmark_node(node)        node->flags &= ~AM_NODE_FLAG_MARK
-#define am_node_hidden(node)       (node->flags & AM_NODE_FLAG_HIDDEN)
+#define am_node_hidden(node)        (node->flags & AM_NODE_FLAG_HIDDEN)
 #define am_set_node_hidden(node, hidden) \
     {if (hidden) (node)->flags |= AM_NODE_FLAG_HIDDEN; else (node)->flags &= ~AM_NODE_FLAG_HIDDEN; }
 
@@ -17,8 +17,22 @@ struct am_node_child {
 
 struct am_render_state;
 
+#define AM_MAX_TAG UINT16_MAX
+typedef uint16_t am_tag;
+
+extern am_tag AM_TAG_GROUP;
+extern am_tag AM_TAG_BIND;
+extern am_tag AM_TAG_USE_PROGRAM;
+extern am_tag AM_TAG_TRANSLATE;
+extern am_tag AM_TAG_ROTATE;
+extern am_tag AM_TAG_SCALE;
+extern am_tag AM_TAG_BILLBOARD;
+extern am_tag AM_TAG_LOOKAT;
+extern am_tag AM_TAG_BLEND;
+
 struct am_scene_node : am_nonatomic_userdata {
     am_lua_array<am_node_child> children;
+    am_lua_array<am_tag> tags;
     int recursion_limit;
     uint32_t flags;
     int actions_ref;
@@ -28,8 +42,6 @@ struct am_scene_node : am_nonatomic_userdata {
     virtual void render(am_render_state *rstate);
     void render_children(am_render_state *rstate);
 };
-
-void am_set_scene_node_child(lua_State *L, am_scene_node *parent);
 
 int am_scene_node_index(lua_State *L);
 int am_scene_node_newindex(lua_State *L);

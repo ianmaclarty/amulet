@@ -19,7 +19,4 @@ struct am_cull_sphere_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
-int am_create_cull_face_node(lua_State *L);
-int am_create_cull_sphere_node(lua_State *L);
-
 void am_open_culling_module(lua_State *L);

@@ -154,19 +154,4 @@ struct am_buffer_view : am_nonatomic_userdata {
     void update_max_elem_if_required();
 };
 
-typedef am_buffer_view am_buffer_view_float;
-typedef am_buffer_view am_buffer_view_float2;
-typedef am_buffer_view am_buffer_view_float3;
-typedef am_buffer_view am_buffer_view_float4;
-typedef am_buffer_view am_buffer_view_ubyte;
-typedef am_buffer_view am_buffer_view_ubyte_normalized;
-typedef am_buffer_view am_buffer_view_short;
-typedef am_buffer_view am_buffer_view_short_normalized;
-typedef am_buffer_view am_buffer_view_ushort;
-typedef am_buffer_view am_buffer_view_ushort_normalized;
-typedef am_buffer_view am_buffer_view_int;
-typedef am_buffer_view am_buffer_view_int_normalized;
-typedef am_buffer_view am_buffer_view_uint;
-typedef am_buffer_view am_buffer_view_uint_normalized;
-
 void am_open_buffer_module(lua_State *L);

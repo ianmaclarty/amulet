@@ -26,13 +26,13 @@ void am_translate_node::render(am_render_state *rstate) {
     }
 }
 
-int am_create_translate_node(lua_State *L) {
-    am_check_nargs(L, 3);
-    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
+static int create_translate_node(lua_State *L) {
+    am_check_nargs(L, 2);
+    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_translate_node *node = am_new_userdata(L, am_translate_node);
-    am_set_scene_node_child(L, node);
-    node->name = am_lookup_param_name(L, 2);
-    node->v = am_get_userdata(L, am_vec3, 3)->v;
+    node->tags.push_back(L, AM_TAG_TRANSLATE);
+    node->name = am_lookup_param_name(L, 1);
+    node->v = am_get_userdata(L, am_vec3, 2)->v;
     return 1;
 }
 
@@ -76,27 +76,27 @@ void am_scale_node::render(am_render_state *rstate) {
     }
 }
 
-int am_create_scale_node(lua_State *L) {
-    am_check_nargs(L, 3);
-    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
+static int create_scale_node(lua_State *L) {
+    am_check_nargs(L, 2);
+    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_scale_node *node = am_new_userdata(L, am_scale_node);
-    am_set_scene_node_child(L, node);
-    node->name = am_lookup_param_name(L, 2);
-    node->v = am_get_userdata(L, am_vec3, 3)->v;
+    node->tags.push_back(L, AM_TAG_SCALE);
+    node->name = am_lookup_param_name(L, 1);
+    node->v = am_get_userdata(L, am_vec3, 2)->v;
     return 1;
 }
 
-static void get_scaling(lua_State *L, void *obj) {
+static void get_scale(lua_State *L, void *obj) {
     am_scale_node *node = (am_scale_node*)obj;
     am_new_userdata(L, am_vec3)->v = node->v;
 }
 
-static void set_scaling(lua_State *L, void *obj) {
+static void set_scale(lua_State *L, void *obj) {
     am_scale_node *node = (am_scale_node*)obj;
     node->v = am_get_userdata(L, am_vec3, 3)->v;
 }
 
-static am_property scaling_property = {get_scaling, set_scaling};
+static am_property scale_property = {get_scale, set_scale};
 
 static void register_scale_node_mt(lua_State *L) {
     lua_newtable(L);
@@ -105,7 +105,7 @@ static void register_scale_node_mt(lua_State *L) {
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
 
-    am_register_property(L, "scaling", &scaling_property);
+    am_register_property(L, "scale", &scale_property);
 
     am_register_metatable(L, "scale", MT_am_scale_node, MT_am_scene_node);
 }
@@ -126,13 +126,13 @@ void am_rotate_node::render(am_render_state *rstate) {
     }
 }
 
-int am_create_rotate_node(lua_State *L) {
-    am_check_nargs(L, 3);
-    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
+static int create_rotate_node(lua_State *L) {
+    am_check_nargs(L, 2);
+    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_rotate_node *node = am_new_userdata(L, am_rotate_node);
-    am_set_scene_node_child(L, node);
-    node->name = am_lookup_param_name(L, 2);
-    node->rotation = am_get_userdata(L, am_quat, 3)->q;
+    node->tags.push_back(L, AM_TAG_ROTATE);
+    node->name = am_lookup_param_name(L, 1);
+    node->rotation = am_get_userdata(L, am_quat, 2)->q;
     return 1;
 }
 
@@ -160,59 +160,6 @@ static void register_rotate_node_mt(lua_State *L) {
     am_register_metatable(L, "rotate", MT_am_rotate_node, MT_am_scene_node);
 }
 
-/* Multiply */
-
-void am_mult_mat4_node::render(am_render_state *rstate) {
-    am_program_param_value *param = &am_param_name_map[name].value;
-    if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-        glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
-        glm::mat4 old = *m;
-        *m = *m * mat;
-        render_children(rstate);
-        *m = old;
-    } else {
-        log_ignored_transform(name, "mult_mat4");
-        render_children(rstate);
-    }
-}
-
-int am_create_mult_mat4_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
-    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
-    am_mult_mat4_node *node = am_new_userdata(L, am_mult_mat4_node);
-    am_set_scene_node_child(L, node);
-    node->name = am_lookup_param_name(L, 2);
-    if (nargs > 2) {
-        node->mat = am_get_userdata(L, am_mat4, 3)->m;
-    }
-    return 1;
-}
-
-static void get_mult_mat4_mat4(lua_State *L, void *obj) {
-    am_mult_mat4_node *node = (am_mult_mat4_node*)obj;
-    am_mat4 *mat = am_new_userdata(L, am_mat4);
-    mat->m = node->mat;
-}
-
-static void set_mult_mat4_mat4(lua_State *L, void *obj) {
-    am_mult_mat4_node *node = (am_mult_mat4_node*)obj;
-    node->mat = am_get_userdata(L, am_mat4, 3)->m;
-}
-
-static am_property mult_mat4_mat4_property = {get_mult_mat4_mat4, set_mult_mat4_mat4};
-
-static void register_mult_mat4_node_mt(lua_State *L) {
-    lua_newtable(L);
-    lua_pushcclosure(L, am_scene_node_index, 0);
-    lua_setfield(L, -2, "__index");
-    lua_pushcclosure(L, am_scene_node_newindex, 0);
-    lua_setfield(L, -2, "__newindex");
-
-    am_register_property(L, "mat4", &mult_mat4_mat4_property);
-
-    am_register_metatable(L, "mult_mat4", MT_am_mult_mat4_node, MT_am_scene_node);
-}
-
 /* Lookat */
 
 void am_lookat_node::render(am_render_state *rstate) {
@@ -224,15 +171,15 @@ void am_lookat_node::render(am_render_state *rstate) {
     *param = old_val;
 }
 
-int am_create_lookat_node(lua_State *L) {
-    am_check_nargs(L, 5);
-    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
+static int create_lookat_node(lua_State *L) {
+    am_check_nargs(L, 4);
+    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_lookat_node *node = am_new_userdata(L, am_lookat_node);
-    am_set_scene_node_child(L, node);
-    node->name = am_lookup_param_name(L, 2);
-    node->eye = am_get_userdata(L, am_vec3, 3)->v;
-    node->center = am_get_userdata(L, am_vec3, 4)->v;
-    node->up = am_get_userdata(L, am_vec3, 5)->v;
+    node->tags.push_back(L, AM_TAG_LOOKAT);
+    node->name = am_lookup_param_name(L, 1);
+    node->eye = am_get_userdata(L, am_vec3, 2)->v;
+    node->center = am_get_userdata(L, am_vec3, 3)->v;
+    node->up = am_get_userdata(L, am_vec3, 4)->v;
     return 1;
 }
 
@@ -317,15 +264,15 @@ void am_billboard_node::render(am_render_state *rstate) {
     }
 }
 
-int am_create_billboard_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
-    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
+static int create_billboard_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_billboard_node *node = am_new_userdata(L, am_billboard_node);
-    am_set_scene_node_child(L, node);
-    node->name = am_lookup_param_name(L, 2);
+    node->tags.push_back(L, AM_TAG_BILLBOARD);
+    node->name = am_lookup_param_name(L, 1);
     node->preserve_uniform_scaling = false;
-    if (nargs > 2) {
-        node->preserve_uniform_scaling = lua_toboolean(L, 3);
+    if (nargs > 1) {
+        node->preserve_uniform_scaling = lua_toboolean(L, 2);
     }
     return 1;
 }
@@ -343,10 +290,18 @@ static void register_billboard_node_mt(lua_State *L) {
 /* Module init */
 
 void am_open_transforms_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"translate", create_translate_node},
+        {"rotate", create_rotate_node},
+        {"scale", create_scale_node},
+        {"billboard", create_billboard_node},
+        {"lookat", create_lookat_node},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_translate_node_mt(L);
     register_scale_node_mt(L);
     register_rotate_node_mt(L);
-    register_mult_mat4_node_mt(L);
     register_lookat_node_mt(L);
     register_billboard_node_mt(L);
 }

@@ -7,11 +7,11 @@ void am_blend_node::render(am_render_state *rstate) {
     rstate->active_blend_state = old;
 }
 
-int am_create_blend_node(lua_State *L) {
-    am_check_nargs(L, 2);
+static int create_blend_node(lua_State *L) {
+    am_check_nargs(L, 1);
     am_blend_node *node = am_new_userdata(L, am_blend_node);
-    am_set_scene_node_child(L, node);
-    node->mode = am_get_enum(L, am_blend_mode, 2);
+    node->tags.push_back(L, AM_TAG_BLEND);
+    node->mode = am_get_enum(L, am_blend_mode, 1);
     return 1;
 }
 
@@ -42,6 +42,11 @@ static void register_blend_node_mt(lua_State *L) {
 // Module init
 
 void am_open_blending_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"blend", create_blend_node},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     am_enum_value blend_mode_enum[] = {
         {"off", AM_BLEND_MODE_OFF},
         {"normal", AM_BLEND_MODE_NORMAL},

@@ -19,11 +19,10 @@ void am_cull_face_node::render(am_render_state *rstate) {
     rstate->active_cull_face_state.restore(&old_state);
 }
 
-int am_create_cull_face_node(lua_State *L) {
-    am_check_nargs(L, 2);
+static int create_cull_face_node(lua_State *L) {
+    am_check_nargs(L, 1);
     am_cull_face_node *node = am_new_userdata(L, am_cull_face_node);
-    am_set_scene_node_child(L, node);
-    node->mode = am_get_enum(L, am_cull_face_mode, 2);
+    node->mode = am_get_enum(L, am_cull_face_mode, 1);
     return 1;
 }
 
@@ -57,14 +56,13 @@ void am_cull_sphere_node::render(am_render_state *rstate) {
     }
 }
 
-int am_create_cull_sphere_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 3);
-    if (lua_type(L, 2) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 2");
+static int create_cull_sphere_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 2);
+    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_cull_sphere_node *node = am_new_userdata(L, am_cull_sphere_node);
-    am_set_scene_node_child(L, node);
-    node->names[0] = am_lookup_param_name(L, 2);
+    node->names[0] = am_lookup_param_name(L, 1);
     node->num_names = 1;
-    int i = 3;
+    int i = 2;
     while (i < nargs && lua_type(L, i) == LUA_TSTRING && node->num_names < AM_MAX_CULL_SPHERE_NAMES) {
         node->names[node->num_names] = am_lookup_param_name(L, i);
         node->num_names++;
@@ -126,6 +124,12 @@ static void register_cull_sphere_node_mt(lua_State *L) {
 // Module init
 
 void am_open_culling_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"cull_face", create_cull_face_node},
+        {"cull_sphere", create_cull_sphere_node},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     am_enum_value cull_face_enum[] = {
         {"front", AM_CULL_FACE_MODE_FRONT},
         {"cw", AM_CULL_FACE_MODE_FRONT},

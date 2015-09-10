@@ -27,10 +27,10 @@ local win = am.window({title = "test", width = 100, height = 100})
 local cycles
 
 local root = am.group()
-root:alias("name", "root")
-local child1 = am.group():bind{test = math.vec2(0)}
+root.name = "root"
+local child1 = am.bind{test = math.vec2(0)} ^ am.group()
 child1:remove_all()
-child1:alias("name", "child1")
+child1.name = "child1"
 local frame = 0
 local child2 = am.group():action(function()
     frame = frame + 1
@@ -43,9 +43,9 @@ local child2 = am.group():action(function()
         return true
     end
 end)
-child2:alias("name", "child2")
+child2.name = "child2"
 local child3 = am.group()
-child3:alias{name = "child3"}
+child3.name = "child3"
 
 local
 function do_test()

@@ -580,12 +580,11 @@ void am_pass_filter_node::render(am_render_state *rstate) {
     }
 }
 
-int am_create_pass_filter_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
+static int create_pass_filter_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
     am_pass_filter_node *node = am_new_userdata(L, am_pass_filter_node);
-    am_set_scene_node_child(L, node);
-    node->mask = 1 << (luaL_checkinteger(L, 2) - 1);
-    for (int i = 3; i <= nargs; i++) {
+    node->mask = 1 << (luaL_checkinteger(L, 1) - 1);
+    for (int i = 2; i <= nargs; i++) {
         node->mask |= 1 << (luaL_checkinteger(L, i) - 1);
     }
     return 1;
@@ -605,6 +604,7 @@ void am_open_renderer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"draw_arrays", create_draw_arrays_node},
         {"draw_elements", create_draw_elements_node},
+        {"pass", create_pass_filter_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

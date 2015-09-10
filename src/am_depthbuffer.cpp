@@ -7,14 +7,13 @@ void am_depth_test_node::render(am_render_state *rstate) {
     rstate->active_depth_test_state.restore(&old_state);
 }
 
-int am_create_depth_test_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 2);
+static int create_depth_test_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
     am_depth_test_node *node = am_new_userdata(L, am_depth_test_node);
-    am_set_scene_node_child(L, node);
-    node->func = am_get_enum(L, am_depth_func, 2);
+    node->func = am_get_enum(L, am_depth_func, 1);
     node->mask_enabled = true;
-    if (nargs > 2) {
-        node->mask_enabled = lua_toboolean(L, 3);
+    if (nargs > 1) {
+        node->mask_enabled = lua_toboolean(L, 2);
     }
     return 1;
 }
@@ -30,6 +29,12 @@ static void register_depth_test_node_mt(lua_State *L) {
 }
 
 void am_open_depthbuffer_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"depth_test", create_depth_test_node},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+
     am_enum_value depth_func_enum[] = {
         {"never", AM_DEPTH_FUNC_NEVER},
         {"always", AM_DEPTH_FUNC_ALWAYS},

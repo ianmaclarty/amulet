@@ -182,7 +182,7 @@ const char* am_get_typename(lua_State *L, int metatable_id) {
     }
 }
 
-void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
+void *am_check_metatable_id_no_err(lua_State *L, int metatable_id, int idx) {
     if (lua_getmetatable(L, idx)) {
         lua_rawgeti(L, -1, AM_METATABLE_ID_INDEX);
         int mt = lua_tointeger(L, -1);
@@ -194,6 +194,12 @@ void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
             }
         }
     }
+    return NULL;
+}
+
+void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
+    void *ud = am_check_metatable_id_no_err(L, metatable_id, idx);
+    if (ud != NULL) return ud;
 
     // fail
     idx = am_absindex(L, idx);
@@ -321,7 +327,7 @@ static bool try_setter(lua_State *L) {
             } else {
                 const char *field = lua_tostring(L, 2);
                 if (field == NULL) field = "<unknown>";
-                luaL_error(L, "field '%s' is readonly");
+                luaL_error(L, "field '%s' is readonly", field);
                 return false;
             }
         }
@@ -329,34 +335,77 @@ static bool try_setter(lua_State *L) {
     return false;
 }
 
-bool am_try_default_newindex(lua_State *L) {
+static void set_custom_getter_or_setter(lua_State *L) {
+    if (!lua_isfunction(L, 3)) return;
+    size_t len;
+    const char *field_name = lua_tolstring(L, 2, &len);
+    if (field_name == NULL) return;
+    if (len < 5) return;
+    if (field_name[0] == 'g' &&
+        field_name[1] == 'e' &&
+        field_name[2] == 't' &&
+        field_name[3] == '_')
+    {
+        const char *prop_name = field_name + 4;
+        lua_pushstring(L, prop_name);
+        prop_name = lua_tostring(L, -1);
+        lua_pushlightuserdata(L, NULL);
+        lua_rawset(L, -3);
+        lua_pushlightuserdata(L, (void*)prop_name);
+        lua_pushvalue(L, 3);
+        lua_rawset(L, -3);
+    } else if (
+        field_name[0] == 's' &&
+        field_name[1] == 'e' &&
+        field_name[2] == 't' &&
+        field_name[3] == '_')
+    {
+        const char *prop_name = field_name + 4;
+        lua_pushstring(L, prop_name);
+        prop_name = lua_tostring(L, -1);
+        lua_pushlightuserdata(L, NULL);
+        lua_rawset(L, -3);
+        lua_pushlightuserdata(L, (void*)(prop_name + 1));
+        lua_pushvalue(L, 3);
+        lua_rawset(L, -3);
+    }
+}
+
+int am_default_newindex_func(lua_State *L) {
+    if (!lua_isstring(L, 2)) goto fail;
     lua_getmetatable(L, 1);
     lua_pushvalue(L, 2);
     lua_rawget(L, -2);
     if (try_setter(L)) {
-        return true;
+        lua_pop(L, 2); // field val, metatable
+        return 0;
     } else if (lua_isnil(L, -1)) {
         lua_pop(L, 2); // nil, metatable
-        lua_getuservalue(L, 1);
-        if (!lua_istable(L, -1)) {
-            lua_pop(L, 1); // uservalue
-            return false;
-        }
+        // this should be ok, because am_default_newindex_func should only
+        // be on am_nonatomic_userdata values:
+        am_nonatomic_userdata *ud = (am_nonatomic_userdata*)lua_touserdata(L, 1);
+        ud->pushuservalue(L);
         lua_pushvalue(L, 2);
         lua_rawget(L, -2);
         if (try_setter(L)) {
-            return true;
+            lua_pop(L, 2); // field val, uservalue
+            return 0;
         } else {
-            lua_pop(L, 2); // uservalue, field val
-            return false;
+            // set in uservalue
+            lua_pop(L, 1); // existing field val
+            // maybe set custom getter/setter
+            set_custom_getter_or_setter(L);
+            // set field in uservalue table
+            lua_pushvalue(L, 2); // field
+            lua_pushvalue(L, 3); // value
+            lua_rawset(L, -3); // set in uservalue table
+            lua_pop(L, 1); // uservalue
+            return true;
         }
     }
-    lua_pop(L, 2);
-    return false;
-}
-
-int am_default_newindex_func(lua_State *L) {
-    if (am_try_default_newindex(L)) return 0;
+    // key exists in metatable, and is not a property
+    lua_pop(L, 2); // field value, metatable
+fail:
     const char *field = lua_tostring(L, 2);
     if (field == NULL) field = "<unknown>";
     return luaL_error(L, "attempt set field '%s' to value of type %s", field, am_get_typename(L, am_get_type(L, 3)));

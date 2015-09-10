@@ -16,12 +16,6 @@ struct am_rotate_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
-struct am_mult_mat4_node : am_scene_node {
-    am_param_name_id name;
-    glm::mat4 mat;
-    virtual void render(am_render_state *rstate);
-};
-
 struct am_lookat_node : am_scene_node {
     am_param_name_id name;
     glm::vec3 eye;
@@ -35,12 +29,5 @@ struct am_billboard_node : am_scene_node {
     bool preserve_uniform_scaling;
     virtual void render(am_render_state *rstate);
 };
-
-int am_create_translate_node(lua_State *L);
-int am_create_scale_node(lua_State *L);
-int am_create_rotate_node(lua_State *L);
-int am_create_mult_mat4_node(lua_State *L);
-int am_create_lookat_node(lua_State *L);
-int am_create_billboard_node(lua_State *L);
 
 void am_open_transforms_module(lua_State *L);

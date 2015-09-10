@@ -386,13 +386,13 @@ static void register_program_mt(lua_State *L) {
     am_register_metatable(L, "program", MT_am_program, 0);
 }
 
-int am_create_program_node(lua_State *L) {
-    am_check_nargs(L, 2);
-    am_program *prog = am_get_userdata(L, am_program, 2);
+static int create_program_node(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_program *prog = am_get_userdata(L, am_program, 1);
     am_program_node *node = am_new_userdata(L, am_program_node);
-    am_set_scene_node_child(L, node);
+    node->tags.push_back(L, AM_TAG_USE_PROGRAM);
     node->program = prog;
-    node->program_ref = node->ref(L, 2);
+    node->program_ref = node->ref(L, 1);
     return 1;
 }
 
@@ -638,40 +638,32 @@ static void set_bind_property(lua_State *L, am_bind_node *node, int index, int n
     lua_pop(L, 1); // uservalue table
 }
 
-int am_create_bind_node(lua_State *L) {
-    am_check_nargs(L, 2);
+static int create_bind_node(lua_State *L) {
+    am_check_nargs(L, 1);
     am_bind_node *node;
-    if (lua_isstring(L, 2)) {
-        node = new_bind_node(L, 1);
-        node->names[0] = am_lookup_param_name(L, 2);
-        set_param_value(L, &node->values[0], 3, &node->refs[0], node);
-        set_bind_property(L, node, 0, 2);
-    } else if (lua_istable(L, 2)) {
-        int num_params = 0;
-        lua_pushnil(L);
-        while (lua_next(L, 2)) {
-            if (!lua_isstring(L, -2)) {
-                return luaL_error(L, "all bind param names must be strings");
-            }
-            num_params++;
-            lua_pop(L, 1);
-        }
-        node = new_bind_node(L, num_params);
-        lua_pushnil(L);
-        int index = 0;
-        while (lua_next(L, 2)) {
-            node->names[index] = am_lookup_param_name(L, -2);
-            set_param_value(L, &node->values[index], -1, &node->refs[index], node);
-            set_bind_property(L, node, index, -2);
-            index++;
-            lua_pop(L, 1);
-        }
-    } else {
-        return luaL_error(L, "expecting a table or string in position 2");
+    if (!lua_istable(L, 1)) {
+        return luaL_error(L, "expecting a table in position 1");
     }
-
-    am_set_scene_node_child(L, node);
-
+    int num_params = 0;
+    lua_pushnil(L);
+    while (lua_next(L, 1)) {
+        if (!lua_isstring(L, -2)) {
+            return luaL_error(L, "all bind param names must be strings");
+        }
+        num_params++;
+        lua_pop(L, 1);
+    }
+    node = new_bind_node(L, num_params);
+    node->tags.push_back(L, AM_TAG_BIND);
+    lua_pushnil(L);
+    int index = 0;
+    while (lua_next(L, 1)) {
+        node->names[index] = am_lookup_param_name(L, -2);
+        set_param_value(L, &node->values[index], -1, &node->refs[index], node);
+        set_bind_property(L, node, index, -2);
+        index++;
+        lua_pop(L, 1);
+    }
     return 1;
 }
 
@@ -693,12 +685,11 @@ void am_read_mat##D##_node::render(am_render_state *rstate) {           \
     }                                                                   \
     render_children(rstate);                                            \
 }                                                                       \
-int am_create_read_mat##D##_node(lua_State *L) {                        \
-    am_check_nargs(L, 2);                                               \
-    if (!lua_isstring(L, 2)) return luaL_error(L, "expecting a string in position 2"); \
+static int create_read_mat##D##_node(lua_State *L) {                        \
+    am_check_nargs(L, 1);                                               \
+    if (!lua_isstring(L, 1)) return luaL_error(L, "expecting a string in position 2"); \
     am_read_mat##D##_node *node = am_new_userdata(L, am_read_mat##D##_node); \
-    am_set_scene_node_child(L, node);                                   \
-    node->name = am_lookup_param_name(L, 2);                            \
+    node->name = am_lookup_param_name(L, 1);                            \
     return 1;                                                           \
 }                                                                       \
 static void get_read_mat##D##_node_value(lua_State *L, void *obj) {     \
@@ -782,6 +773,11 @@ const char *am_program_param_client_type_name(am_program_param_name_slot *slot) 
 void am_open_program_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"program", create_program},
+        {"bind", create_bind_node},
+        {"use_program", create_program_node},
+        {"read_mat2", create_read_mat2_node},
+        {"read_mat3", create_read_mat3_node},
+        {"read_mat4", create_read_mat4_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

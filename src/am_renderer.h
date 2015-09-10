@@ -196,6 +196,4 @@ struct am_pass_filter_node : am_scene_node {
 
 extern am_render_state am_global_render_state;
 
-int am_create_pass_filter_node(lua_State *L);
-
 void am_open_renderer_module(lua_State *L);

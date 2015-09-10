@@ -100,12 +100,6 @@ AM_READ_MAT_NODE_DECL(2)
 AM_READ_MAT_NODE_DECL(3)
 AM_READ_MAT_NODE_DECL(4)
 
-int am_create_program_node(lua_State *L);
-int am_create_bind_node(lua_State *L);
-int am_create_read_mat2_node(lua_State *L);
-int am_create_read_mat3_node(lua_State *L);
-int am_create_read_mat4_node(lua_State *L);
-
 void am_open_program_module(lua_State *L);
 
 const char *am_program_param_type_name(am_program_param_type t);

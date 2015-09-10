@@ -155,12 +155,3 @@ enum am_mouse_button {
 
 const char *am_key_name(am_key key);
 const char *am_mouse_button_name(am_mouse_button button);
-
-/*
-TODO
-void am_handle_key_down(lua_State *L, am_native_window *nwin, am_key key);
-void am_handle_key_up(lua_State *L, am_native_window *nwin, am_key key);
-void am_handle_mouse_move(lua_State *L, am_native_window *nwin, float x, float y);
-void am_handle_mouse_down(lua_State *L, am_native_window *nwin, am_mouse_button button);
-void am_handle_mouse_up(lua_State *L, am_native_window *nwin, am_mouse_button button);
-*/

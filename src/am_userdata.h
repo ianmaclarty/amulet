@@ -1,21 +1,13 @@
 /*
  * Memory management notes
  * -----------------------
- * Instances of am_userdata and am_nonatomic_userdata are managed by the Lua
- * GC.
+ * Instances of am_nonatomic_userdata are managed by the Lua GC.
  * They are allocated as Lua userdata values.
- * am_nonatomic_userdata objects may contain references to other Lua managed
+ * They may contain references to other Lua managed
  * objects.
  * These references are maintained in the userdata's uservalue table so they
  * can be traced by the GC.
  */
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// IMPORTANT: Do not register a class that derives from am_userdata and not
-// am_nonatomic_userdata as the child of a class that derives from
-// am_nonatomic_userdata.  An object registered this way will become corrupted
-// when retrieved from the lua stack and cast to the parent class.
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #define AM_METATABLE_ID_INDEX 1
 
@@ -173,15 +165,16 @@ void am_register_metatable(lua_State *L, const char *tname, int metatable_id, in
 void am_push_metatable(lua_State *L, int metatable_id);
 int am_get_type(lua_State *L, int idx);
 const char* am_get_typename(lua_State *L, int metatable_id);
+void *am_check_metatable_id_no_err(lua_State *L, int metatable_id, int idx);
 void *am_check_metatable_id(lua_State *L, int metatable_id, int idx);
 void *am_set_metatable(lua_State *L, void *ud, int metatable_id);
 
 void am_register_property(lua_State *L, const char *field, const am_property *property);
 
+// WARNING: the following are only for use on subclasses of am_nonatomic_userdata!
 int am_default_index_func(lua_State *L);
 int am_default_newindex_func(lua_State *L);
 void am_set_default_index_func(lua_State *L);
 void am_set_default_newindex_func(lua_State *L);
-bool am_try_default_newindex(lua_State *L);
 
 void am_open_userdata_module(lua_State *L);
