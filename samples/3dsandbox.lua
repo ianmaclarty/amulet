@@ -34,32 +34,36 @@ function init()
 
     objects = am.group()
     objects:append(create_floor())
-    local torus = load_model("torus.obj")
-        :rotate("MV", quat(0, vec3(0, 1, 0))):action(function(node)
-            node.rotation = quat(am.frame_time, vec3(0, 1, 0))
-        end)
-        :rotate("MV", quat(0, vec3(1, 0, 0))):action(function(node)
-            node.rotation = quat(am.frame_time * 0.3, vec3(1, 0, 0))
-        end)
-        :rotate("MV", quat(0, vec3(0, 0, 1))):action(function(node)
+    local torus = 
+        am.cull_sphere("P", "MV", 1.5)
+        ^am.scale("MV", vec3(0.5)) 
+        ^am.rotate("MV", quat(0, vec3(0, 0, 1))):action(function(node)
             node.rotation = quat(am.frame_time * 0.7, vec3(0, 0, 1))
         end)
-        :scale("MV", vec3(0.5))
-        :cull_sphere("P", "MV", 1.5)
+        ^am.rotate("MV", quat(0, vec3(1, 0, 0))):action(function(node)
+            node.rotation = quat(am.frame_time * 0.3, vec3(1, 0, 0))
+        end)
+        ^am.rotate("MV", quat(0, vec3(0, 1, 0))):action(function(node)
+            node.rotation = quat(am.frame_time, vec3(0, 1, 0))
+        end)
+        ^load_model("torus.obj")
     for i = 1, 20000 do
-        objects:append(torus
-            :rotate("MV", quat(
+        objects:append(
+            am.translate("MV", vec3((math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
+            ^am.rotate("MV", quat(
                 math.random() * math.pi * 2, math.normalize(vec3(math.random(), math.random(), math.random()))))
-            :translate("MV", vec3((math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100)))
+            ^torus
+        )
     end
 
-    camera = objects
-        :lookat("MV", vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0))
+    camera =
+        am.lookat("MV", vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0)) ^ objects
 
-    win.root = camera
-        :bind{P = math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip)}
-        :use_program(shader)
-        :cull_face("ccw")
+    win.root = 
+        am.cull_face("ccw")
+        ^am.use_program(shader)
+        ^am.bind{P = math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip)}
+        ^camera
 
     win.root:action(main_action)
 end
@@ -94,7 +98,7 @@ end
 function main_action()
     if win:key_pressed("escape") then
         win:close()
-        return
+        return true
     elseif win:key_pressed("lalt") then
         win.lock_pointer = not win.lock_pointer
     end
@@ -129,8 +133,8 @@ function create_floor()
     local r = 100
     local s = 100
     local y = floor_y
-    return am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
-        :bind{
+    return 
+        am.bind{
             pos = am.vec3_array{
                 -r, y, r,
                 r, y, r,
@@ -148,6 +152,7 @@ function create_floor()
                 1, 1, 1},
             tex = load_texture("floor_tile.png"),
         }
+        ^am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
 end
 
 function init_shader() 
@@ -183,18 +188,19 @@ function load_model(name)
     local verts = buf:view("vec3", 0, stride)
     local uvs = buf:view("vec2", 0, stride)
     local colors = buf:view("vec3", normals_offset, stride)
-    return am.draw_arrays("triangles")
-        :bind{
+    return 
+        am.bind{
             pos = verts,
             uv = uvs,
             color = colors,
             tex = load_texture("gradient.png"),
         }
+        ^am.draw_arrays("triangles")
 end
 
 function load_image(name)
-    return am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
-        :bind{
+    return 
+        am.bind{
             pos = am.vec3_array{
                 -1, 0, 0,
                 1, 0, 0,
@@ -212,6 +218,7 @@ function load_image(name)
                 1, 1, 1},
             tex = load_texture(name, "mirrored_repeat", "mirrored_repeat"),
         }
+        ^am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
 end
 
 

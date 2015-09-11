@@ -24,29 +24,37 @@ local offsets = {
     y2 = {1, 4, 2},
 }
 
-local rect_ext = {}
+local rect_props = {}
 for field, os in pairs(offsets) do
     local os1, os2, c = unpack(os)
-    rect_ext["get_"..field] = function(node)
+    rect_props["get_"..field] = function(node)
         return node.verts[os1][c]
     end
-    rect_ext["set_"..field] = function(node, val)
+    rect_props["set_"..field] = function(node, val)
         local verts = node.verts
         verts[os1] = verts[os1](c, val)
         verts[os2] = verts[os2](c, val)
     end
 end
+function rect_props:get_color()
+    return self"bind".color
+end
+function rect_props:set_color(color)
+    self"bind".color = color
+end
 
 function am.rect(x1, y1, x2, y2, color)
     color = color or vec4(1)
     local verts = am.rect_verts_3d(x1, y1, x2, y2)
-    local node = am.draw_elements(am.rect_indices())
-        :bind{
+    local node = am.use_program(am.shaders.color)
+        ^am.bind{
             pos = verts,
             color = color,
         }
-        :use_program(am.shaders.color)
-        :alias("verts", verts)
-        :extend(rect_ext)
+        ^am.draw_elements(am.rect_indices())
+    node.verts = verts
+    for prop, func in pairs(rect_props) do
+        node[prop] = func
+    end
     return node
 end

@@ -2,7 +2,7 @@ local am = amulet
 
 local win = am.window{}
 
-local rect = am.rect(-0.5, -0.5, 0.5, 0.5, vec4(0.6, 0.9, 0.1, 1)):blend("add")
+local rect = am.rect(-0.5, -0.5, 0.5, 0.5, vec4(0.6, 0.9, 0.1, 1))
 
 local
 function rand_color()
@@ -17,5 +17,9 @@ rect:action(coroutine.create(function(node)
     end
 end))
 
-win.root = rect
-    :bind("MV", mat4(1)):bind("P", mat4(1))
+win.root = am.bind{MV = mat4(1), P = mat4(1)} ^ am.blend("add") ^ rect
+win.root:action(function()
+    if win:key_pressed("escape") then
+        win:close()
+    end
+end)

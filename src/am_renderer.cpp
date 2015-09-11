@@ -433,6 +433,7 @@ static int create_draw_arrays_node(lua_State *L) {
         }
     }
     am_draw_arrays_node *node = am_new_userdata(L, am_draw_arrays_node);
+    node->tags.push_back(L, AM_TAG_DRAW_ARRAYS);
     node->first = first;
     node->count = count;
     node->mode = mode;
@@ -542,6 +543,7 @@ static int create_draw_elements_node(lua_State *L) {
     int count = INT_MAX;
     am_draw_mode mode = AM_DRAWMODE_TRIANGLES;
     am_draw_elements_node *node = am_new_userdata(L, am_draw_elements_node);
+    node->tags.push_back(L, AM_TAG_DRAW_ELEMENTS);
     set_indices(L, node, 1);
     if (nargs > 1) {
         mode = am_get_enum(L, am_draw_mode, 2);

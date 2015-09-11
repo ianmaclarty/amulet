@@ -61,22 +61,8 @@ Yet it shall be tempest-tost.
 Look what I have.]]
 }
 
-win.root = am.group(
-        am.text(strs[1], "left", "center")
-            :action(coroutine.create(function(node)
-                while true do
-                    local str
-                    repeat
-                        str = strs[math.random(#strs)]
-                    until str ~= node.text
-                    node.text = str
-                    am.wait(am.delay(2))
-                end
-            end))
-    )
-    :scale("MV", vec3(1))
-    :translate("MV", vec3(200, 300, 0))
-    :bind{
+win.root =
+    am.bind{
         MV = mat4(1),
         P = math.ortho(0, win.width, 0, win.height)
     }
@@ -85,3 +71,14 @@ win.root = am.group(
             win:close()
         end
     end)
+    ^am.translate("MV", vec3(200, 300, 0))
+    ^am.text(strs[1], "left", "center"):action(coroutine.create(function(node)
+        while true do
+            local str
+            repeat
+                str = strs[math.random(#strs)]
+            until str ~= node.text
+            node.text = str
+            am.wait(am.delay(2))
+        end
+    end))

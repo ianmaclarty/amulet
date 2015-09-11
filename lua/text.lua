@@ -155,25 +155,6 @@ function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
     uvs_view:set(img.uvs)
 end
 
-local
-function set_text(node, str)
-    local len = utf8.len(str)
-    local verts, uvs
-    if len > node.len then
-        local num_verts = len * 4
-        node.buffer:release_vbo()
-        node.buffer, verts, uvs = make_buffer(num_verts)
-        node.verts = verts
-        node.uvs = uvs
-    else
-        verts = node.verts
-        uvs = node.uvs
-    end
-    set_text_verts(node.font, str, verts, uvs)
-    node.len = len
-    node.str = str
-end
-
 function am.text(font, str, halign, valign)
     if type(font) == "string" then
         str, halign, valign = font, str, halign
@@ -190,35 +171,35 @@ function am.text(font, str, halign, valign)
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
     set_text_verts(font, str, verts, uvs, halign, verts)
-    return am.draw_elements(indices)
-        :bind{
+    local node =
+        am.blend("premult")
+        ^am.use_program(am.shaders.texture)
+        ^am.bind{
             pos = verts,
             uv = uvs,
             tex = font.texture,
         }
-        :use_program(am.shaders.texture)
-        :blend("premult")
-        :extend{
-            get_text = function(node)
-                return str
-            end,
-            set_text = function(node, str1)
-                str1 = type(str1) == "string" and str1 or tostring(str1)
-                local len1 = utf8.len(str1)
-                if len1 > len then
-                    local num_verts = len1 * 4 
-                    buffer, verts, uvs = make_buffer(num_verts)
-                    indices = make_indices(num_verts)
-                    node.pos = verts
-                    node.uv = uvs
-                    node.elements = indices
-                    len = len1
-                end
-                str = str1
-                set_text_verts(font, str, verts, uvs, halign, valign)
-                node.count = utf8.len(str) * 6
-            end,
-        }
+        ^am.draw_elements(indices)
+    function node:get_text()
+        return str
+    end
+    function node:set_text(str1)
+        str1 = type(str1) == "string" and str1 or tostring(str1)
+        local len1 = utf8.len(str1)
+        if len1 > len then
+            local num_verts = len1 * 4 
+            buffer, verts, uvs = make_buffer(num_verts)
+            indices = make_indices(num_verts)
+            self"bind".pos = verts
+            self"bind".uv = uvs
+            self"draw_elements".elements = indices
+            len = len1
+        end
+        str = str1
+        set_text_verts(font, str, verts, uvs, halign, valign)
+        self"draw_elements".count = utf8.len(str) * 6
+    end
+    return node
 end
 
 function am.sprite(image, halign, valign)
@@ -228,23 +209,23 @@ function am.sprite(image, halign, valign)
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
     set_sprite_verts(image, verts, uvs, halign, valign)
-    return am.draw_elements(indices)
-        :bind{
+    local node =
+        am.blend("premult")
+        ^am.use_program(am.shaders.texture)
+        ^am.bind{
             pos = verts,
             uv = uvs,
             tex = image.texture,
         }
-        :use_program(am.shaders.texture)
-        :blend("premult")
-        :extend{
-            get_sprite = function(node)
-                return image
-            end,
-            set_sprite = function(node, img)
-                image = img
-                set_sprite_verts(image, verts, uvs, halign, valign)
-            end,
-        }
+        ^am.draw_elements(indices)
+    function node:get_sprite()
+        return image
+    end
+    function node:set_sprite(img)
+        image = img
+        set_sprite_verts(image, verts, uvs, halign, valign)
+    end
+    return node
 end
 
 function am._init_fonts(data, imgfile, embedded)

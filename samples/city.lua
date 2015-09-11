@@ -56,19 +56,18 @@ function init()
 
     blur_node, blur_fb = create_blur_node()
 
-    position_node = buildings_group
-        :translate("MV", vec3(0, -0.1, 0))
-    facing_node = position_node
-        :rotate("MV", quat(0, vec3(0, 1, 0)))
-    pitch_node = facing_node
-        :rotate("MV", quat(0, vec3(-1, 0, 0)))
-    limit1_node = pitch_node
-        :bind("MV", mat4(1))
-        :bind("P", math.perspective(math.rad(85), 1, 0.01, 100))
-        :bind("limit1", 20)
+    position_node = am.translate("MV", vec3(0, -0.1, 0)) ^ buildings_group
+    facing_node = am.rotate("MV", quat(0, vec3(0, 1, 0))) ^ position_node
+    pitch_node = am.rotate("MV", quat(0, vec3(-1, 0, 0))) ^ facing_node
+    limit1_node = 
+        am.bind{
+            MV = mat4(1),
+            P = math.perspective(math.rad(85), 1, 0.01, 100),
+            limit1 = 20,
+        }
+        ^pitch_node
         
-    buildings_node = limit1_node
-        :use_program(building_shader)
+    buildings_node = am.use_program(building_shader) ^ limit1_node
 
     for x = -10, 10, 1 do
         for z = -10, 10, 1 do
@@ -236,9 +235,12 @@ function create_building(height, highlight, width, depth, position)
         color_view[i] = back_color
     end
 
-    return am.draw_arrays()
-        :bind("vert", vert_view)
-        :bind("color", color_view)
+    return 
+        am.bind{
+            vert = vert_view,
+            color = color_view,
+        }
+        ^ am.draw_arrays()
 end
 
 function create_floor(height)
@@ -265,9 +267,12 @@ function create_floor(height)
         color_view[i] = color
     end
 
-    return am.draw_arrays()
-        :bind("vert", vert_view)
-        :bind("color", color_view)
+    return 
+        am.bind{
+            vert = vert_view,
+            color = color_view,
+        }
+        ^ am.draw_arrays()
 end
 
 function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
@@ -328,14 +333,18 @@ function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
         end
     end
 
-    local rotation_node = am.draw_arrays()
-        :bind("vert", verts)
-        :bind("uv", uvs)
-        :bind("tex", texture)
-        :rotate("MVP", quat(0))
-    local node = rotation_node
-        :bind("MVP", mat4(1))
-        :use_program(kaleidoscope_shader)
+    local rotation_node = 
+        am.rotate("MVP", quat(0))
+        ^am.bind{
+            tex = texture,
+            uv = uvs,
+            vert = verts,
+        }
+        ^am.draw_arrays()
+    local node = 
+        am.use_program(kaleidoscope_shader)
+        ^am.bind{MVP = mat4(1)}
+        ^rotation_node
 
     return {
         node = node,
@@ -364,11 +373,14 @@ function create_blur_node()
     uvs2[4] = vec2(0, 0)
     uvs2[5] = vec2(1, 1)
     uvs2[6] = vec2(1, 0)
-    local node2 = amulet.draw_arrays()
-        :bind("vert", verts2)
-        :bind("uv", uvs2)
-        :bind("tex", pptexture)
-        :use_program(create_blur_shader())
+    local node2 = 
+        am.use_program(create_blur_shader())
+        ^am.bind{
+            tex = pptexture,
+            uv = uvs2,
+            vert = verts2,
+        }
+        ^am.draw_arrays()
     return node2, ppfb, pptexture
 end
 
