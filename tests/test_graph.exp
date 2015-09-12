@@ -141,3 +141,29 @@ A
     B
       C [cycle]
       C [cycle]
+23
+A
+  B
+    C
+      D
+  E
+    F
+24
+A
+  B
+    C
+      D
+        G
+  E
+    F
+      G
+25
+A
+  B
+    C
+      D
+26
+A
+  B
+    C
+    D

@@ -154,3 +154,41 @@ print_graph(
     ^ mk_node("B")
     ^ { nodeC, nodeC }
 )
+print_graph(
+    mk_node("A")
+    ^ {
+        mk_node("B")
+        ^ mk_node("C")
+        ^ mk_node("D")
+        ,
+        mk_node("E")
+        ^ mk_node("F")
+    }
+)
+print_graph(
+    mk_node("A")
+    ^ {
+        mk_node("B")
+        ^ mk_node("C")
+        ^ mk_node("D")
+        ,
+        mk_node("E")
+        ^ mk_node("F")
+    }
+    ^ mk_node("G")
+)
+print_graph(
+    mk_node("A")
+    ^ (
+        mk_node("B")
+        ^ mk_node("C")
+    )
+    ^ mk_node("D")
+)
+print_graph(
+    (
+        mk_node("A")
+        ^ mk_node("B")
+    )
+    ^ { mk_node("C"), mk_node("D") }
+)
