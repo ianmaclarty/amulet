@@ -85,94 +85,59 @@ root
     child2
       child3 [cycle]
     child1
----
 14
-root
+A
+  B
+    C
 15
-root
-  child1
-  child2
+A
+  B
+    C
+      D
 16
-root
-  child1
-  child2
-  child3
+A
+  B
+    C
+    D
+    E
 17
-root
-  child1
-  child2
-  child3
-  child2
-  child1
+A
+  B
+    C
+      F
+    D
+      F
+    E
+      F
 18
-root
-  child2
-  child3
-  child2
-  child1
+A
+  B
+    C
+    C
 19
-root
-  child2
-  child3
-  child2
-  child3
+A
+  C
+    C [cycle]
+    C [cycle]
 20
-root
-  child1
-  child2
-  child3
-  child2
-  child3
+A
+  C
+    C [cycle]
+  C
+    C [cycle]
 21
-root
+A
+  C
+    B
+  C
+    B
 22
-root
-  child1
-  child2
-  child3
-23
-root
-  child1
-    child1 [cycle]
-  child2
-  child3
-24
-root
-  child1
-    child1 [cycle]
-  child2
-    child1
-      child1 [cycle]
-  child3
-25
-root
-  child1
-    child2
-      child3
-        child2 [cycle]
-        child1 [cycle]
-  child2
-    child3
-      child2 [cycle]
-      child1
-        child2 [cycle]
-  child3
-    child2
-      child3 [cycle]
-    child1
-      child2
-        child3 [cycle]
-26
-root
-  child1
-  child2
-    child3
-      child2 [cycle]
-      child1
-  child3
-    child2
-      child3 [cycle]
-    child1
-*child2 action frame 1*
-*child2 action frame 2*
-*child1 action*
+A
+  C
+    B
+      C [cycle]
+      C [cycle]
+  C
+    B
+      C [cycle]
+      C [cycle]

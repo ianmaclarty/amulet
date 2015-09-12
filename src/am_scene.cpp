@@ -223,16 +223,35 @@ static int chain(lua_State *L) {
     am_check_nargs(L, 2);
     check_chain_arg_2(L);
     if (lua_istable(L, 1)) {
-        create_group_node(L);
-        am_scene_node *parent = am_get_userdata(L, am_scene_node, -1);
-        chain_leaves(L, parent);
-        unmark_all(parent);
+        int i = 1;
+        do {
+            lua_rawgeti(L, 1, i);
+            if (lua_isnil(L, -1)) {
+                lua_pop(L, 1); // nil
+                break;
+            }
+            am_scene_node *parent = am_get_userdata(L, am_scene_node, -1);
+            chain_leaves(L, parent);
+            lua_pop(L, 1); // parent
+            i++;
+        } while (true);
+        do {
+            lua_rawgeti(L, 1, i);
+            if (lua_isnil(L, -1)) {
+                lua_pop(L, 1); // nil
+                break;
+            }
+            am_scene_node *parent = am_get_userdata(L, am_scene_node, -1);
+            unmark_all(parent);
+            lua_pop(L, 1); // parent
+            i++;
+        } while (true);
     } else {
         am_scene_node *parent = am_get_userdata(L, am_scene_node, 1);
         chain_leaves(L, parent);
         unmark_all(parent);
-        lua_pushvalue(L, 1);
     }
+    lua_pushvalue(L, 1);
     return 1;
 }
 

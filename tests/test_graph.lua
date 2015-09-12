@@ -22,8 +22,6 @@ function print_graph(root)
     print_graph2(root, {}, "")
 end
 
-local win = am.window({title = "test", width = 100, height = 100})
-
 local cycles
 
 local root = am.group()
@@ -32,23 +30,13 @@ local child1 = am.bind{test = math.vec2(0)} ^ am.group()
 child1:remove_all()
 child1.name = "child1"
 local frame = 0
-local child2 = am.group():action(function()
-    frame = frame + 1
-    print("*child2 action frame "..frame.."*")
-    if frame == 2 then
-        child1:action(function()
-            print("*child1 action*")
-            win:close()
-        end)
-        return true
-    end
-end)
+local child2 = am.group()
 child2.name = "child2"
 local child3 = am.group()
 child3.name = "child3"
 
 local
-function do_test()
+function do_test1()
     root:remove_all()
     child1:remove_all()
     child2:remove_all()
@@ -104,7 +92,65 @@ function do_test()
     print_graph(root)
 end
 
-do_test()
-print("---")
-win.root = root
-do_test()
+do_test1()
+
+local
+function mk_node(name)
+    local node = am.group()
+    node.name = name
+    return node
+end
+
+print_graph(
+    mk_node("A")
+    ^ mk_node("B")
+    ^ { mk_node("C") }
+)
+print_graph(
+    mk_node("A")
+    ^ mk_node("B")
+    ^ { mk_node("C") }
+    ^ mk_node("D")
+)
+print_graph(
+    mk_node("A")
+    ^ mk_node("B")
+    ^ { mk_node("C"), mk_node("D"), mk_node("E") }
+)
+print_graph(
+    mk_node("A")
+    ^ mk_node("B")
+    ^ { mk_node("C"), mk_node("D"), mk_node("E") }
+    ^ mk_node("F")
+)
+local nodeC = mk_node("C")
+print_graph(
+    mk_node("A")
+    ^ mk_node("B")
+    ^ { nodeC, nodeC }
+)
+nodeC = mk_node("C")
+print_graph(
+    mk_node("A")
+    ^ nodeC
+    ^ { nodeC, nodeC }
+)
+nodeC = mk_node("C")
+print_graph(
+    mk_node("A")
+    ^ { nodeC, nodeC }
+    ^ nodeC
+)
+nodeC = mk_node("C")
+print_graph(
+    mk_node("A")
+    ^ { nodeC, nodeC }
+    ^ mk_node("B")
+)
+nodeC = mk_node("C")
+print_graph(
+    mk_node("A")
+    ^ { nodeC, nodeC }
+    ^ mk_node("B")
+    ^ { nodeC, nodeC }
+)
