@@ -4808,3 +4808,7 @@ background: purple; */
 h1, h2, h3 {
     color: #ff00ff;
 }
+
+.graphviz {
+    font-family: monospace;
+}
