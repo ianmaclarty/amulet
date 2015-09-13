@@ -21,14 +21,14 @@ function print_graph(root)
 end
 
 local node = 
-    am.bind{C = vec4(4)}:tag"nodeC"
+    am.bind{C = vec4(4)}:tag'nodeC'
     ^am.bind{B = vec3(3)}:tag"nodeB"
     ^am.bind{A = vec2(2)}:tag"nodeA"
     ^am.group():tag"base"
 
 node"nodeC".name = "C"
-node"nodeC".fc = "CC"
-node"nodeB".name = "B"
+node'nodeC'.fc = "CC"
+node[[nodeB]].name = "B"
 node"nodeB".fb = "BB"
 node"nodeA".name = "A"
 node"nodeA".fa = "AA"
@@ -39,9 +39,9 @@ print(node"nodeB".name..":"..node"nodeB".name)
 print(node"nodeC".name..":"..node"nodeC".name)
 print(node"base".name)
 
-print(node"nodeA".fa)
+print(node'nodeA'.fa)
 print(node"nodeB".fb)
-print(node"nodeC".fc)
+print(node[[nodeC]].fc)
 
 print("")
 print_graph(node)
