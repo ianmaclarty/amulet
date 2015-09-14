@@ -112,6 +112,11 @@ m:set(1, 3, 9)
 m:set(4, 4, 99)
 printmat(m)
 
+printmat(mat2(mat3(1, 2, 3, 4, 5, 6, 7, 8, 9)))
+
+printmat(math.inverse(math.inverse(mat3(1, 2, 1, -1, -2, 1, 1, 0, -3))))
+printmat(math.inverse(mat3(1)/mat3(1, 2, 1, -1, -2, 1, 1, 0, -3)))
+
 print(math.dot(vec3(1, 2, 3), vec3(1, 2, 3)))
 printvec(math.cross(vec3(3, 2, 1), vec3(1, 2, 3)))
 print(math.length(vec4(1, 0, 0, 0)))

@@ -262,10 +262,12 @@ This sets ``m`` to the matrix:
     Language (GLSL) and it seemed prudent to follow the established
     convention in this case.
 
-A matrix may also be constructed by passing a matrix of equal or
-smaller size to one of the matrix construction functions. The given
-matrix is used to fill in the top-left corner of the new matrix and the
-rest is filled in with elements from the identity matrix. For example:
+A matrix can also be constructed by passing an existing matrix
+to one of the matrix construction functions. If the existing matrix
+is larger than the construction function, the new matrix's elements
+come from the top-left corner of the existing matrix. Otherwise
+the top-left corner of the new matrix is filled with the contents of
+the existing matrix and the rest from the identity matrix. For example:
 
 ..  code-block:: lua
 
@@ -375,9 +377,9 @@ vector is taken to be a column vector (a matrix with one column) and the
 result is the matrix product of the matrix and column vector, which is
 another column vector.
 
-The ``/`` operator also works, although the second argument should be a
-matrix, not a vector. Dividing by a matrix is the same as
-multiplying by the inverse of the matrix.
+The ``/`` operator also works when both arguments are matrices
+and is equivalent to multiplying by the first matrix by the inverse
+of the second.
 
 .. figure:: screenshots/screenshot2.jpg
    :alt: 
