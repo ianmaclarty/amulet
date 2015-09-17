@@ -1,5 +1,3 @@
-local am = amulet
-
 local win = am.window{}
 
 local track = am.stream(am.load_buffer("handstand.ogg"), true)

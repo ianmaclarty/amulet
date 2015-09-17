@@ -1,4 +1,3 @@
-local am = amulet
 local win = am.window{
     title = "3D Scene",
     width = 1200,

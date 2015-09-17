@@ -12,7 +12,7 @@ function printv_and_restore(view, index, val)
 end
 
 local n = 10000
-local buf = amulet.buffer(4 * n)
+local buf = am.buffer(4 * n)
 local view = buf:view("float", 0, 4)
 
 for i = 1, n do
@@ -65,7 +65,7 @@ view4:slice(3):set({103, 203, 303, 403, 503, 603, 703, 803})
 printvec(view4[3])
 printvec(view4[4])
 
-local buf2 = amulet.buffer(10)
+local buf2 = am.buffer(10)
 local viewub = buf2:view("ubyte", 0, 1)
 for i = 1, 10 do
     viewub[i] = i

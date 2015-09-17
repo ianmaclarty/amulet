@@ -1,6 +1,6 @@
 local remove_c_stack_slots = true
 
-function amulet._traceback(msg, thread)
+function am._traceback(msg, thread)
     local match = msg:match("^.*__coroutine__(.*)$")
     if match then
         return match

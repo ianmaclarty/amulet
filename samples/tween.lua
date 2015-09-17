@@ -1,5 +1,3 @@
-local am = amulet
-
 local vshader = [[
     attribute float x;
     attribute float y;

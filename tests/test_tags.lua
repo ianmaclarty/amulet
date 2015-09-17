@@ -1,5 +1,3 @@
-local am = amulet
-
 local
 function print_graph2(node, visited, indent)
     if visited[node] then

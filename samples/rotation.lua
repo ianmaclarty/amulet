@@ -1,4 +1,3 @@
-local am = amulet
 local win = am.window{depth_buffer = true, msaa_samples = 8}
 
 math.randomseed(os.time())

@@ -1,5 +1,3 @@
-local am = amulet
-
 local data = {
     [1] = {
         chars = {

@@ -1,5 +1,3 @@
-local am = amulet
-
 local
 function make_buffer(num_verts)
     local buffer = am.buffer(num_verts * 20)

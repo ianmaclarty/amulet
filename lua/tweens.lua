@@ -1,4 +1,3 @@
-local am = amulet
 local mix = math.mix
 
 function am.tween(target, time, final_values, ease)

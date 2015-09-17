@@ -1,5 +1,3 @@
-local am = amulet
-
 -- rects:
 -- 1-4
 -- |\|

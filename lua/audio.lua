@@ -1,4 +1,3 @@
-local am = amulet
 local root = am.root_audio_node()
 
 am._register_pre_frame_func(function()

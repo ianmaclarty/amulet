@@ -1,6 +1,4 @@
-local am = amulet
-
-local win = amulet.window({})
+local win = am.window({})
 
 -- create the shader program for rendering kaleidoscope
 local vshader1 = [[
@@ -23,7 +21,7 @@ local fshader1 = [[
         gl_FragColor = texture2D(tex, v_uv);
     }
 ]]
-local prog1 = amulet.program(vshader1, fshader1)
+local prog1 = am.program(vshader1, fshader1)
 
 -- create the shader program for adding blur
 local vshader2 = [[
@@ -60,11 +58,11 @@ local fshader2 = [[
             + vec4(e * 50.0, 0.0, 0.0, 0.0);
     }
 ]]
-local prog2 = amulet.program(vshader2, fshader2)
+local prog2 = am.program(vshader2, fshader2)
 
 -- setup vertices and texture coords
 local num_segments = 9
-local vbuf = amulet.buffer(16 * 3 * num_segments)
+local vbuf = am.buffer(16 * 3 * num_segments)
 local verts = vbuf:view("vec2", 0, 16)
 local uvs = vbuf:view("vec2", 8, 16)
 local uv_scale = 5
@@ -81,12 +79,12 @@ end
 
 -- create pattern texture
 local pattern_tex_size = 8
-local pattern_tex_buf = amulet.buffer(pattern_tex_size^2*2)
+local pattern_tex_buf = am.buffer(pattern_tex_size^2*2)
 local pattern_tex_view = pattern_tex_buf:view("ushort", 0, 2)
 for i = 1, pattern_tex_size^2 do
     pattern_tex_view[i] = math.random(2^16)
 end
-local pattern_texture = amulet.texture2d{
+local pattern_texture = am.texture2d{
     buffer = pattern_tex_buf,
     width = pattern_tex_size,
     height = pattern_tex_size,
@@ -105,7 +103,7 @@ local t_node =
         tex = pattern_texture,
         t = 0,
     }
-    ^amulet.draw("triangles")
+    ^am.draw("triangles")
 local rotation_node = am.rotate("MVP", quat(0)) ^ t_node
 local node1 = 
     am.use_program(prog1)
@@ -113,13 +111,13 @@ local node1 =
     ^rotation_node
 
 -- create texture for post-processing (applying blur)
-local pptexture = amulet.texture2d{width = 512, height = 512, magfilter = "linear"}
+local pptexture = am.texture2d{width = 512, height = 512, magfilter = "linear"}
 
 -- create framebuffer so we can draw into pptexture
-local ppfb = amulet.framebuffer(pptexture)
+local ppfb = am.framebuffer(pptexture)
 
 -- create node to apply post-processing
-local buf2 = amulet.buffer(4 * 4 * 6)
+local buf2 = am.buffer(4 * 4 * 6)
 local verts2 = buf2:view("vec2", 0, 16)
 local uvs2 = buf2:view("vec2", 8, 16)
 verts2[1] = vec2(-1, -1)
@@ -153,8 +151,8 @@ win.root = node2
 -- blur shader (since it's the root).
 win.root:action(function()
     pattern_tex_view[math.random(pattern_tex_size^2)] = math.random(2^16)
-    rotation_node.rotation = quat(amulet.frame_time)
-    t_node.t = amulet.frame_time
+    rotation_node.rotation = quat(am.frame_time)
+    t_node.t = am.frame_time
     ppfb:render(node1)
     if win:key_pressed("escape") then
         win:close()

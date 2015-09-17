@@ -1,5 +1,3 @@
-local am = amulet
-
 local win = am.window{width = 800, height = 600}
 
 local strs = {

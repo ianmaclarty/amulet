@@ -254,9 +254,9 @@ _metatable_registry.quat.__tostring = format_quat
 local
 function log(fmt, ...)
     if type(fmt) == "string" and ... then
-        amulet.log(string.format(fmt, ...), false, 2)
+        am.log(string.format(fmt, ...), false, 2)
     else
-        amulet.log(tostring(fmt), false, 2)
+        am.log(tostring(fmt), false, 2)
     end
 end
 rawset(_G, "log", log)
@@ -264,9 +264,9 @@ rawset(_G, "log", log)
 local
 function log1(fmt, ...)
     if type(fmt) == "string" and ... then
-        amulet.log(string.format(fmt, ...), true, 2)
+        am.log(string.format(fmt, ...), true, 2)
     else
-        amulet.log(tostring(fmt), true, 2)
+        am.log(tostring(fmt), true, 2)
     end
 end
 rawset(_G, "log1", log1)

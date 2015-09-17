@@ -1,5 +1,3 @@
-local am = amulet
-
 local win = am.window({title = "test", width = 100, height = 100})
 
 win.root = am.group()

@@ -1,4 +1,3 @@
-local am = amulet
 local win = am.window{
     title = "City",
     width = 1200,
@@ -353,12 +352,12 @@ function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
 end
 
 function create_blur_node() 
-    local pptexture = amulet.texture2d{
+    local pptexture = am.texture2d{
         width = 1024,
         height = 1024,
         magfilter = "linear"}
-    local ppfb = amulet.framebuffer(pptexture)
-    local buf2 = amulet.buffer(4 * 4 * 6)
+    local ppfb = am.framebuffer(pptexture)
+    local buf2 = am.buffer(4 * 4 * 6)
     local verts2 = buf2:view("vec2", 0, 16)
     local uvs2 = buf2:view("vec2", 8, 16)
     verts2[1] = vec2(-1, -1)

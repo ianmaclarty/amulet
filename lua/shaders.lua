@@ -1,5 +1,3 @@
-local am = amulet
-
 local color_v = [[
     precision highp float;
     attribute vec3 pos;

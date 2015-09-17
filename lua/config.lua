@@ -1,11 +1,11 @@
-local devmode = amulet.devmode
+local devmode = am.devmode
 
 local conf = {} -- global configuration settings
 
 local watched = {}
 local watched_objs_mt = {__mode = "k"}
 
-function amulet.config(obj, index, property)
+function am.config(obj, index, property)
     if conf[property] then
         obj[index] = conf[property]
     end

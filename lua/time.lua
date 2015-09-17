@@ -1,5 +1,3 @@
-local am = amulet
-
 am.delta_time = 0
 am.frame_time = 0
 

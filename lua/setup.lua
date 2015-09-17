@@ -1,5 +1,3 @@
-local am = amulet
-
 for i, mt in pairs(_metatable_registry) do
     mt._children = {}
 end

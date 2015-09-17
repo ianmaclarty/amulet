@@ -1,4 +1,3 @@
-local am = amulet
 local win = am.window({title = "demo", width = 640, height = 480, resizable = true})
 
 local vshader = [[

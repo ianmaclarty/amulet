@@ -1,5 +1,3 @@
-local am = amulet
-
 local win = am.window{}
 
 local audio_data_view

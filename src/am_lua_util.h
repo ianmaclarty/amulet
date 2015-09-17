@@ -1,4 +1,4 @@
-#define AMULET_LUA_MODULE_NAME "amulet"
+#define AMULET_LUA_MODULE_NAME "am"
 
 void am_set_globals_metatable(lua_State *L);
 void am_requiref(lua_State *L, const char *modname, lua_CFunction openf);

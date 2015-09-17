@@ -2,13 +2,13 @@ local window_mt = _metatable_registry.window
 
 -- keyboard
 
-function amulet._key_down(win, key)
+function am._key_down(win, key)
     local u = win._event_data
     u._key_down[key] = true
     u._key_pressed[key] = (u._key_pressed[key] or 0) + 1
 end
 
-function amulet._key_up(win, key)
+function am._key_up(win, key)
     local u = win._event_data
     u._key_down[key] = nil
     u._key_released[key] = (u._key_released[key] or 0) + 1
@@ -38,19 +38,19 @@ end
 
 -- mouse
 
-function amulet._mouse_down(win, button)
+function am._mouse_down(win, button)
     local u = win._event_data
     u._mouse_button_down[button] = true
     u._mouse_button_pressed[button] = (u._mouse_button_pressed[button] or 0) + 1
 end
 
-function amulet._mouse_up(win, button)
+function am._mouse_up(win, button)
     local u = win._event_data
     u._mouse_button_down[button] = nil
     u._mouse_button_released[button] = (u._mouse_button_released[button] or 0) + 1
 end
 
-function amulet._mouse_move(win, x, y)
+function am._mouse_move(win, x, y)
     local u = win._event_data
     u._mouse_position = vec2(x, y)
     u._mouse_delta = vec2(u._mouse_position - u._prev_mouse_position)
@@ -91,7 +91,7 @@ end
 
 -- touch
 
-function amulet._touch_begin(win, id, x, y)
+function am._touch_begin(win, id, x, y)
     local u = win._event_data
     local free_i = nil
     for i, touch in ipairs(u._touches) do
@@ -111,7 +111,7 @@ function amulet._touch_begin(win, id, x, y)
     end
 end
 
-function amulet._touch_end(win, id, x, y)
+function am._touch_end(win, id, x, y)
     local u = win._event_data
     for i, touch in ipairs(u._touches) do
         if touch.id == id then
@@ -122,7 +122,7 @@ function amulet._touch_end(win, id, x, y)
     end
 end
 
-function amulet._touch_move(win, id, x, y)
+function am._touch_move(win, id, x, y)
     local u = win._event_data
     for i, touch in ipairs(u._touches) do
         if touch.id == id then
@@ -164,13 +164,13 @@ function clear_touch(win)
     table.clear(u._touch_ended)
 end
 
-function amulet._clear_events(win)
+function am._clear_events(win)
     clear_keys(win)
     clear_mouse(win)
     clear_touch(win)
 end
 
-function amulet._init_window_event_data(window)
+function am._init_window_event_data(window)
     local u = window._event_data
 
     -- keyboard

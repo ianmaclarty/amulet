@@ -1,6 +1,6 @@
 local get_mt = getmetatable
 
-function amulet.type(val)
+function am.type(val)
     local t = type(val)
     if t == "userdata" then
         local mt = get_mt(val) 

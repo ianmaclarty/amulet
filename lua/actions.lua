@@ -1,5 +1,3 @@
-local am = amulet
-
 local seq = 1
 
 am._register_pre_frame_func(function()

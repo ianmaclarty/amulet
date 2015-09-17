@@ -27,12 +27,3 @@ sections.
 At the end of each section is an API reference listing the available
 functions relevant to that section. You can find a list of all available
 functions in the `Index <genindex.html>`__.
-
-..  note::
-
-    Most Amulet functions exist in a Lua module called ``amulet``. Sometimes
-    in this document you might see ``am`` used instead (for example something
-    like ``am.window{}`` instead of ``amulet.window{}``). You can either just use
-    the full module name in your code (i.e. ``amulet.window{}``) or do what I do
-    and put ``local am = amulet`` at the top of your scripts, which will then
-    let you use ``am`` instead.
