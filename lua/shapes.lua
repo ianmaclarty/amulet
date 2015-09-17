@@ -51,7 +51,7 @@ function am.rect(x1, y1, x2, y2, color)
             pos = verts,
             color = color,
         }
-        ^am.draw_elements(am.rect_indices())
+        ^am.draw("triangles", am.rect_indices())
     node.verts = verts
     for prop, func in pairs(rect_props) do
         node[prop] = func

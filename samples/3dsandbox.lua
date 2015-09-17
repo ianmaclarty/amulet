@@ -152,7 +152,7 @@ function create_floor()
                 1, 1, 1},
             tex = load_texture("floor_tile.png"),
         }
-        ^am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
+        ^am.draw("triangles", am.ushort_elem_array{1, 2, 3, 2, 4, 3})
 end
 
 function init_shader() 
@@ -195,7 +195,7 @@ function load_model(name)
             color = colors,
             tex = load_texture("gradient.png"),
         }
-        ^am.draw_arrays("triangles")
+        ^am.draw("triangles")
 end
 
 function load_image(name)
@@ -218,7 +218,7 @@ function load_image(name)
                 1, 1, 1},
             tex = load_texture(name, "mirrored_repeat", "mirrored_repeat"),
         }
-        ^am.draw_elements(am.ushort_elem_array{1, 2, 3, 2, 4, 3})
+        ^am.draw("triangles", am.ushort_elem_array{1, 2, 3, 2, 4, 3})
 end
 
 

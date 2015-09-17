@@ -50,11 +50,14 @@ local texture = am.texture2d{
 
 local MVP = math.mat4(1)
 
-local node = am.draw_arrays()
-    :bind("x", xview)
-    :bind("y", yview)
-    :bind("tex1", texture)
-    :bind("MVP", MVP)
-    :use_program(prog)
+local node = 
+    am.use_program(prog)
+    ^am.bind{
+        x = xview,
+        y = yview,
+        tex1 = texture,
+        MVP = MVP,
+    }
+    ^am.draw("triangles")
 
 win.root = node

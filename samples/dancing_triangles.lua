@@ -36,9 +36,12 @@ yview[2] = 0.6
 yview[3] = -0.4
 
 local MVP = math.mat4(1)
-local base = am.draw_arrays()
-    :bind("x", xview)
-    :bind("y", yview)
+local base = 
+    am.bind{
+        x = xview,
+        y = yview
+    }
+    ^am.draw("triangles")
 
 local group = am.group()
 
@@ -49,23 +52,24 @@ for i = 1, num_tris do
 end
 
 for i, seed in ipairs(seeds) do
-    local size_node = base:scale("MVP", vec3(1))
-    local position_node = size_node:translate("MVP", vec3(0))
-    local node = position_node
-        :bind("tint", vec4(math.random(), math.random(), math.random(), 1))
-        :action(function(node)
-            local t = am.frame_time
-            local r = math.cos(t * seed * 2)
-            local x = math.sin((t + seed * 6) * seed) * r 
-            local y = math.cos(t - i * seed) * r
-            position_node.position = vec3(x, y, 0)
-            local s = math.sin(t * seed * 4 + i) * 0.15 + 0.2
-            size_node.scaling = vec3(s, s, 1)
-        end)
+    local size_node = am.scale("MVP", vec3(1)) ^ base
+    local position_node = am.translate("MVP", vec3(0)) ^ size_node
+    local node = 
+        am.bind{tint = vec4(math.random(), math.random(), math.random(), 1)}
+            :action(function(node)
+                local t = am.frame_time
+                local r = math.cos(t * seed * 2)
+                local x = math.sin((t + seed * 6) * seed) * r 
+                local y = math.cos(t - i * seed) * r
+                position_node.position = vec3(x, y, 0)
+                local s = math.sin(t * seed * 4 + i) * 0.15 + 0.2
+                size_node.scale = vec3(s, s, 1)
+            end)
+        ^position_node
     group:append(node)
 end
 
-local top = group:bind("MVP", MVP):use_program(prog)
+local top = am.use_program(prog) ^ am.bind{MVP = MVP} ^ group
 
 top:action(function()
     if win:key_pressed("escape") then

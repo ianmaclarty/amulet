@@ -169,15 +169,7 @@ struct am_render_state {
     void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
 };
 
-struct am_draw_arrays_node : am_scene_node {
-    int first;
-    int count;
-    am_draw_mode mode;
-
-    virtual void render(am_render_state *rstate);
-};
-
-struct am_draw_elements_node : am_scene_node {
+struct am_draw_node : am_scene_node {
     int first;
     int count;
     am_draw_mode mode;
@@ -185,7 +177,7 @@ struct am_draw_elements_node : am_scene_node {
     am_buffer_view *indices_view;
     int view_ref;
 
-    am_draw_elements_node();
+    am_draw_node();
     virtual void render(am_render_state *rstate);
 };
 

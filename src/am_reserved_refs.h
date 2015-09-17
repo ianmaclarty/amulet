@@ -41,8 +41,7 @@ typedef enum {
     MT_am_depth_test_node,
     MT_am_cull_face_node,
     MT_am_cull_sphere_node,
-    MT_am_draw_arrays_node,
-    MT_am_draw_elements_node,
+    MT_am_draw_node,
     MT_am_pass_filter_node,
 
     MT_am_audio_node,

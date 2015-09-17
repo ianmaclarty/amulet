@@ -29,8 +29,7 @@ extern am_tag AM_TAG_SCALE;
 extern am_tag AM_TAG_BILLBOARD;
 extern am_tag AM_TAG_LOOKAT;
 extern am_tag AM_TAG_BLEND;
-extern am_tag AM_TAG_DRAW_ELEMENTS;
-extern am_tag AM_TAG_DRAW_ARRAYS;
+extern am_tag AM_TAG_DRAW;
 
 struct am_scene_node : am_nonatomic_userdata {
     am_lua_array<am_node_child> children;

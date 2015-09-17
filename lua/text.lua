@@ -179,7 +179,7 @@ function am.text(font, str, halign, valign)
             uv = uvs,
             tex = font.texture,
         }
-        ^am.draw_elements(indices)
+        ^am.draw("triangles", indices)
     function node:get_text()
         return str
     end
@@ -192,12 +192,12 @@ function am.text(font, str, halign, valign)
             indices = make_indices(num_verts)
             self"bind".pos = verts
             self"bind".uv = uvs
-            self"draw_elements".elements = indices
+            self"draw".elements = indices
             len = len1
         end
         str = str1
         set_text_verts(font, str, verts, uvs, halign, valign)
-        self"draw_elements".count = utf8.len(str) * 6
+        self"draw".count = utf8.len(str) * 6
     end
     return node
 end
@@ -217,7 +217,7 @@ function am.sprite(image, halign, valign)
             uv = uvs,
             tex = image.texture,
         }
-        ^am.draw_elements(indices)
+        ^am.draw("triangles", indices)
     function node:get_sprite()
         return image
     end

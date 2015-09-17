@@ -66,11 +66,11 @@ win.root =
         MV = mat4(1),
         P = math.ortho(0, win.width, 0, win.height)
     }
-    :action(function()
-        if win:key_pressed("escape") then
-            win:close()
-        end
-    end)
+        :action(function()
+            if win:key_pressed("escape") then
+                win:close()
+            end
+        end)
     ^am.translate("MV", vec3(200, 300, 0))
     ^am.text(strs[1], "left", "center"):action(coroutine.create(function(node)
         while true do

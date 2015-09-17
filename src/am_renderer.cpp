@@ -398,49 +398,7 @@ am_render_state::am_render_state() {
 am_render_state::~am_render_state() {
 }
 
-static void register_draw_arrays_node_mt(lua_State *L) {
-    lua_newtable(L);
-    lua_pushcclosure(L, am_scene_node_index, 0);
-    lua_setfield(L, -2, "__index");
-    lua_pushcclosure(L, am_scene_node_newindex, 0);
-    lua_setfield(L, -2, "__newindex");
-
-    am_register_metatable(L, "draw_arrays", MT_am_draw_arrays_node, MT_am_scene_node);
-}
-
-void am_draw_arrays_node::render(am_render_state *rstate) {
-    rstate->draw_arrays(mode, first, count);
-}
-
-static int create_draw_arrays_node(lua_State *L) {
-    int nargs = am_check_nargs(L, 0);
-    int first = 0;
-    int count = INT_MAX;
-    am_draw_mode mode = AM_DRAWMODE_TRIANGLES;
-    if (nargs > 0) {
-        mode = am_get_enum(L, am_draw_mode, 1);
-    }
-    if (nargs > 1) {
-        first = luaL_checkinteger(L, 2) - 1;
-        if (first < 0) {
-            return luaL_error(L, "argument 2 must be positive");
-        }
-    }
-    if (nargs > 2) {
-        count = luaL_checkinteger(L, 3);
-        if (count < 0) {
-            return luaL_error(L, "argument 3 must be non-negative");
-        }
-    }
-    am_draw_arrays_node *node = am_new_userdata(L, am_draw_arrays_node);
-    node->tags.push_back(L, AM_TAG_DRAW_ARRAYS);
-    node->first = first;
-    node->count = count;
-    node->mode = mode;
-    return 1;
-}
-
-am_draw_elements_node::am_draw_elements_node() {
+am_draw_node::am_draw_node() {
     first = 0;
     count = INT_MAX;
     mode = AM_DRAWMODE_TRIANGLES;
@@ -449,13 +407,13 @@ am_draw_elements_node::am_draw_elements_node() {
     view_ref = LUA_NOREF;
 }
 
-static void get_draw_elements_first(lua_State *L, void *obj) {
-    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+static void get_draw_node_first(lua_State *L, void *obj) {
+    am_draw_node *node = (am_draw_node*)obj;
     lua_pushinteger(L, node->first + 1);
 }
 
-static void set_draw_elements_first(lua_State *L, void *obj) {
-    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+static void set_draw_node_first(lua_State *L, void *obj) {
+    am_draw_node *node = (am_draw_node*)obj;
     int first = luaL_checkinteger(L, 3) - 1;
     if (first < 0) {
         luaL_error(L, "value must be positive (in fact %d)", first + 1);
@@ -463,15 +421,15 @@ static void set_draw_elements_first(lua_State *L, void *obj) {
     node->first = first;
 }
 
-static am_property draw_elements_first_property = {get_draw_elements_first, set_draw_elements_first};
+static am_property draw_node_first_property = {get_draw_node_first, set_draw_node_first};
 
-static void get_draw_elements_count(lua_State *L, void *obj) {
-    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+static void get_draw_node_count(lua_State *L, void *obj) {
+    am_draw_node *node = (am_draw_node*)obj;
     lua_pushinteger(L, node->count);
 }
 
-static void set_draw_elements_count(lua_State *L, void *obj) {
-    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+static void set_draw_node_count(lua_State *L, void *obj) {
+    am_draw_node *node = (am_draw_node*)obj;
     int count = luaL_checkinteger(L, 3);
     if (count < 0) {
         luaL_error(L, "value must be non-negative (in fact %d)", count);
@@ -479,9 +437,9 @@ static void set_draw_elements_count(lua_State *L, void *obj) {
     node->count = count;
 }
 
-static am_property draw_elements_count_property = {get_draw_elements_count, set_draw_elements_count};
+static am_property draw_node_count_property = {get_draw_node_count, set_draw_node_count};
 
-static void set_indices(lua_State *L, am_draw_elements_node *node, int idx) {
+static void set_indices(lua_State *L, am_draw_node *node, int idx) {
     am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, idx);
     switch (indices_view->type) {
         case AM_VIEW_TYPE_USHORT_ELEM:
@@ -507,58 +465,69 @@ static void set_indices(lua_State *L, am_draw_elements_node *node, int idx) {
     }
 }
 
-static void get_draw_elements_elements(lua_State *L, void *obj) {
-    am_draw_elements_node *node = (am_draw_elements_node*)obj;
-    node->pushref(L, node->view_ref);
+static void get_draw_node_elements(lua_State *L, void *obj) {
+    am_draw_node *node = (am_draw_node*)obj;
+    if (node->view_ref != LUA_NOREF) {
+        node->pushref(L, node->view_ref);
+    } else {
+        lua_pushnil(L);
+    }
 }
 
-static void set_draw_elements_elements(lua_State *L, void *obj) {
-    am_draw_elements_node *node = (am_draw_elements_node*)obj;
+static void set_draw_node_elements(lua_State *L, void *obj) {
+    am_draw_node *node = (am_draw_node*)obj;
     set_indices(L, node, 3);
 }
 
-static am_property draw_elements_elements_property = {get_draw_elements_elements, set_draw_elements_elements};
+static am_property draw_node_elements_property = {get_draw_node_elements, set_draw_node_elements};
 
-static void register_draw_elements_node_mt(lua_State *L) {
+static void register_draw_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
 
-    am_register_property(L, "first", &draw_elements_first_property);
-    am_register_property(L, "count", &draw_elements_count_property);
-    am_register_property(L, "elements", &draw_elements_elements_property);
+    am_register_property(L, "first", &draw_node_first_property);
+    am_register_property(L, "count", &draw_node_count_property);
+    am_register_property(L, "elements", &draw_node_elements_property);
 
-    am_register_metatable(L, "draw_elements", MT_am_draw_elements_node, MT_am_scene_node);
+    am_register_metatable(L, "draw_node", MT_am_draw_node, MT_am_scene_node);
 }
 
-void am_draw_elements_node::render(am_render_state *rstate) {
-    rstate->draw_elements(mode, first, count, indices_view, type);
+void am_draw_node::render(am_render_state *rstate) {
+    if (indices_view == NULL) {
+        rstate->draw_arrays(mode, first, count);
+    } else {
+        rstate->draw_elements(mode, first, count, indices_view, type);
+    }
 }
 
-static int create_draw_elements_node(lua_State *L) {
+static int create_draw_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     int first = 0;
     int count = INT_MAX;
-    am_draw_mode mode = AM_DRAWMODE_TRIANGLES;
-    am_draw_elements_node *node = am_new_userdata(L, am_draw_elements_node);
-    node->tags.push_back(L, AM_TAG_DRAW_ELEMENTS);
-    set_indices(L, node, 1);
-    if (nargs > 1) {
-        mode = am_get_enum(L, am_draw_mode, 2);
+    am_draw_mode mode = am_get_enum(L, am_draw_mode, 1);
+    am_draw_node *node = am_new_userdata(L, am_draw_node);
+    node->tags.push_back(L, AM_TAG_DRAW);
+    int nxt_arg = 2;
+    if (nargs >= nxt_arg && !lua_isnumber(L, nxt_arg)) {
+        set_indices(L, node, nxt_arg);
+        nxt_arg++;
     }
-    if (nargs > 2) {
-        first = luaL_checkinteger(L, 3) - 1;
+    if (nargs >= nxt_arg) {
+        first = luaL_checkinteger(L, nxt_arg) - 1;
         if (first < 0) {
-            return luaL_error(L, "argument 3 must be positive");
+            return luaL_error(L, "argument %d must be positive", nxt_arg);
         }
+        nxt_arg++;
     }
-    if (nargs > 3) {
-        count = luaL_checkinteger(L, 4);
+    if (nargs >= nxt_arg) {
+        count = luaL_checkinteger(L, nxt_arg);
         if (count < 0) {
-            return luaL_error(L, "argument 4 must be non-negative");
+            return luaL_error(L, "argument %d must be non-negative", nxt_arg);
         }
+        nxt_arg++;
     }
     node->first = first;
     node->count = count;
@@ -604,8 +573,7 @@ static void register_pass_filter_node_mt(lua_State *L) {
 
 void am_open_renderer_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"draw_arrays", create_draw_arrays_node},
-        {"draw_elements", create_draw_elements_node},
+        {"draw", create_draw_node},
         {"pass", create_pass_filter_node},
         {NULL, NULL}
     };
@@ -623,7 +591,6 @@ void am_open_renderer_module(lua_State *L) {
     };
     am_register_enum(L, ENUM_am_draw_mode, draw_mode_enum);
 
-    register_draw_arrays_node_mt(L);
-    register_draw_elements_node_mt(L);
+    register_draw_node_mt(L);
     register_pass_filter_node_mt(L);
 }

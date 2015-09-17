@@ -9,8 +9,7 @@ am_tag AM_TAG_SCALE;
 am_tag AM_TAG_BILLBOARD;
 am_tag AM_TAG_LOOKAT;
 am_tag AM_TAG_BLEND;
-am_tag AM_TAG_DRAW_ELEMENTS;
-am_tag AM_TAG_DRAW_ARRAYS;
+am_tag AM_TAG_DRAW;
 
 am_scene_node::am_scene_node() {
     children.owner = this;
@@ -426,12 +425,8 @@ static void init_default_tags(lua_State *L) {
     AM_TAG_BLEND = lookup_tag(L, -1);
     lua_pop(L, 1);
 
-    lua_pushstring(L, "draw_elements");
-    AM_TAG_DRAW_ELEMENTS = lookup_tag(L, -1);
-    lua_pop(L, 1);
-
-    lua_pushstring(L, "draw_arrays");
-    AM_TAG_DRAW_ARRAYS = lookup_tag(L, -1);
+    lua_pushstring(L, "draw");
+    AM_TAG_DRAW = lookup_tag(L, -1);
     lua_pop(L, 1);
 }
 

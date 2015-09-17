@@ -1,3 +1,5 @@
+local am = amulet
+
 local win = amulet.window({})
 
 -- create the shader program for rendering kaleidoscope
@@ -96,17 +98,19 @@ local pattern_texture = amulet.texture2d{
 
 -- create node that will render the kaleidoscope vertices using
 -- the program and texture we created earlier
-local t_node = amulet.draw_arrays()
-    :bind{
+local t_node = 
+    am.bind{
         vert = verts,
         uv = uvs,
         tex = pattern_texture,
         t = 0,
     }
-local rotation_node = t_node:rotate("MVP", quat(0))
-local node1 = rotation_node
-    :bind{MVP = mat4(1)}
-    :use_program(prog1)
+    ^amulet.draw("triangles")
+local rotation_node = am.rotate("MVP", quat(0)) ^ t_node
+local node1 = 
+    am.use_program(prog1)
+    ^am.bind{MVP = mat4(1)}
+    ^rotation_node
 
 -- create texture for post-processing (applying blur)
 local pptexture = amulet.texture2d{width = 512, height = 512, magfilter = "linear"}
@@ -130,14 +134,15 @@ uvs2[3] = vec2(1, 1)
 uvs2[4] = vec2(0, 0)
 uvs2[5] = vec2(1, 1)
 uvs2[6] = vec2(1, 0)
-local node2 = amulet.draw_arrays()
-    :bind{
+local node2 = 
+    am.use_program(prog2)
+    ^am.bind{
         vert = verts2,
         uv = uvs2,
         tex = pptexture,
         MVP = mat4(1),
     }
-    :use_program(prog2)
+    ^am.draw("triangles")
 
 -- set the post processing node as the root
 win.root = node2

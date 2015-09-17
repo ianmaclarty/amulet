@@ -89,3 +89,4 @@ tests/*.time
 
 doc/manual.html
 sphinx/_build
+sphinx/__pycache__

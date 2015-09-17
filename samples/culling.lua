@@ -29,39 +29,46 @@ function load_model(name)
     local buf, stride, normals_offset, tex_offset = am.load_obj(name)
     local verts = buf:view("vec3", 0, stride)
     local normals = buf:view("vec3", normals_offset, stride)
-    return am.draw_arrays("triangles")
-        :bind("pos", verts)
-        :bind("normal", normals)
+    return 
+        am.bind{
+            pos = verts,
+            normal = normals,
+        }
+        ^am.draw("triangles")
 end
 
 local cube = load_model("cube.obj")
 
 local modelview_matrix = mat4(1)
 
-local rotating_cube = cube
-    :read_mat4("M")
+local rotating_cube = 
+    am.read_mat4("M")
     :action(function(node)
         modelview_matrix = node.value
         --log(modelview_matrix)
     end)
+    ^cube
 local scene_group = am.group()
 
-local translated_cube = rotating_cube:translate("M", vec3(0, 0, -7))
+local translated_cube = am.translate("M", vec3(0, 0, -7)) ^ rotating_cube
 
 local projection_matrix = math.perspective(math.rad(85), 1, 0.1, 10)
 
 scene_group:append(translated_cube)
 
-local scene = scene_group
-    :bind("M", mat4(1))
-    :bind("P", projection_matrix)
-    :use_program(shader)
-    :action(function()
-        translated_cube.position = vec3(win:mouse_position().xy * 10, translated_cube.position.z)
-        log(math.sphere_visible(projection_matrix * modelview_matrix, vec3(0), math.sqrt(3)))
-        if win:key_pressed("escape") then
-            win:close()
-        end
-    end)
+local scene = 
+    am.use_program(shader)
+        :action(function()
+            translated_cube.position = vec3(win:mouse_position().xy * 10, translated_cube.position.z)
+            log(math.sphere_visible(projection_matrix * modelview_matrix, vec3(0), math.sqrt(3)))
+            if win:key_pressed("escape") then
+                win:close()
+            end
+        end)
+    ^am.bind{
+        M = mat4(1),
+        P = projection_matrix,
+    }
+    ^scene_group
 
 win.root = scene

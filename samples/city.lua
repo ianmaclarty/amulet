@@ -240,7 +240,7 @@ function create_building(height, highlight, width, depth, position)
             vert = vert_view,
             color = color_view,
         }
-        ^ am.draw_arrays()
+        ^ am.draw("triangles")
 end
 
 function create_floor(height)
@@ -272,7 +272,7 @@ function create_floor(height)
             vert = vert_view,
             color = color_view,
         }
-        ^ am.draw_arrays()
+        ^ am.draw("triangles")
 end
 
 function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
@@ -340,7 +340,7 @@ function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
             uv = uvs,
             vert = verts,
         }
-        ^am.draw_arrays()
+        ^am.draw("triangles")
     local node = 
         am.use_program(kaleidoscope_shader)
         ^am.bind{MVP = mat4(1)}
@@ -380,7 +380,7 @@ function create_blur_node()
             uv = uvs2,
             vert = verts2,
         }
-        ^am.draw_arrays()
+        ^am.draw("triangles")
     return node2, ppfb, pptexture
 end
 

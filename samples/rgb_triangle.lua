@@ -54,12 +54,15 @@ bview[1] = 0
 bview[2] = 0
 bview[3] = 1
 
-local node = am.draw_arrays()
-    :bind("x", xview)
-    :bind("y", yview)
-    :bind("r", rview)
-    :bind("g", gview)
-    :bind("b", bview)
-    :use_program(prog)
+local node = 
+    am.use_program(prog)
+    ^am.bind{
+        x = xview,
+        y = yview,
+        r = rview,
+        g = gview,
+        b = bview,
+    }
+    ^am.draw("triangles")
 
 win.root = node

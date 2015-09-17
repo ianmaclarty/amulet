@@ -32,11 +32,12 @@ yview[2] = 0.05
 yview[3] = -0.05
 
 local MVP = math.mat4(1)
-local base = am.draw_arrays()
-    :bind("x", xview)
-    :bind("y", yview)
-
-local group = am.group()
+local base = 
+    am.bind{
+        x = xview,
+        y = yview,
+    }
+    ^am.draw("triangles")
 
 local num_tris = 100
 local seeds = {}
@@ -68,7 +69,7 @@ local group = am.group()
 local nodes = {}
 for i, easing in ipairs(easings) do
     local y = #easings == 1 and 0 or - (i - 1) / (#easings - 1) * 1.6 + 0.8
-    local node = base:translate("MVP", vec3(-0.5, y, 0))
+    local node = am.translate("MVP", vec3(-0.5, y, 0)) ^ base
     group:append(node)
     table.insert(nodes, node)
 end
@@ -88,7 +89,7 @@ group:action(coroutine.create(function()
     end
 end))
         
-local top = group:bind("tint", vec4(1)):bind("MVP", MVP):use_program(prog)
+local top = am.use_program(prog) ^ am.bind{tint = vec4(1), MVP = MVP} ^ group
 
 win.root = top
 top:action(function()
