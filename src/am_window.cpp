@@ -373,8 +373,8 @@ void am_open_window_module(lua_State *L) {
 
     am_enum_value window_mode_enum[] = {
         {"windowed",        AM_WINDOW_MODE_WINDOWED},
-        {"fullscreen",      AM_WINDOW_MODE_FULLSCREEN},
-        {"desktop",         AM_WINDOW_MODE_FULLSCREEN_DESKTOP},
+        {"fullscreen",      AM_WINDOW_MODE_FULLSCREEN_DESKTOP},
+        {"real-fullscreen", AM_WINDOW_MODE_FULLSCREEN},
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_window_mode, window_mode_enum);
