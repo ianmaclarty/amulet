@@ -83,6 +83,7 @@ am_native_window *am_create_native_window(
     int top, int left,
     int width, int height,
     const char *title,
+    bool highdpi,
     bool resizable,
     bool borderless,
     bool depth_buffer,
@@ -127,13 +128,14 @@ am_native_window *am_create_native_window(
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     }
-    Uint32 flags = SDL_WINDOW_OPENGL;// | SDL_WINDOW_ALLOW_HIGHDPI;
+    Uint32 flags = SDL_WINDOW_OPENGL;
     switch (mode) {
         case AM_WINDOW_MODE_WINDOWED: break;
         case AM_WINDOW_MODE_FULLSCREEN: flags |= SDL_WINDOW_FULLSCREEN; break;
         case AM_WINDOW_MODE_FULLSCREEN_DESKTOP: flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; break;
     }
     if (borderless) flags |= SDL_WINDOW_BORDERLESS;
+    if (highdpi) flags |= SDL_WINDOW_ALLOW_HIGHDPI;
     if (resizable) flags |= SDL_WINDOW_RESIZABLE;
     if (left == -1) left = SDL_WINDOWPOS_CENTERED;
     else if (left < -1) left = SDL_WINDOWPOS_UNDEFINED;
@@ -178,8 +180,8 @@ void am_get_native_window_size(am_native_window *window, int *w, int *h) {
     *h = 0;
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window == (SDL_Window*)window) {
-            //SDL_GL_GetDrawableSize(windows[i], w, h);
-            SDL_GetWindowSize(windows[i].window, w, h);
+            SDL_GL_GetDrawableSize(windows[i].window, w, h);
+            //SDL_GetWindowSize(windows[i].window, w, h);
             return;
         }
     }

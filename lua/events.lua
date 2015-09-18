@@ -164,10 +164,28 @@ function clear_touch(win)
     table.clear(u._touch_ended)
 end
 
+-- resize
+
+local
+function resized(win)
+    local u = win._event_data
+    return u._prev_width ~= win.width or u._prev_height ~= win.height
+end
+
+local
+function clear_resized(win)
+    local u = win._event_data
+    u._prev_width = win.width
+    u._prev_height = win.height
+end
+
+-- setup
+
 function am._clear_events(win)
     clear_keys(win)
     clear_mouse(win)
     clear_touch(win)
+    clear_resized(win)
 end
 
 function am._init_window_event_data(window)
@@ -198,4 +216,10 @@ function am._init_window_event_data(window)
     for i = 1, max_touches do
         u._touches[i] = {pos = vec2(0)}
     end
+
+    -- resize
+
+    u._prev_height = 0
+    u._prev_width = 0
+    window.resized = resized
 end
