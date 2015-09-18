@@ -47,7 +47,7 @@ select_tracks()
 
 scene:action(am.play(spectrum))
 
-win.root = am.bind{MV = mat4(1), P = mat4(1)} ^ scene
+win.scene = am.bind{MV = mat4(1), P = mat4(1)} ^ scene
 scene:action(function()
     if win:key_pressed("enter") then
         toggle_pause()

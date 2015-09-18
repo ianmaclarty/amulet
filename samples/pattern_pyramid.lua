@@ -53,4 +53,4 @@ node:action(function()
     tview[math.random(n^2)] = math.random() * 255
 end)
 
-win.root = node
+win.scene = node

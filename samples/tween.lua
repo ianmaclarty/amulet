@@ -89,7 +89,7 @@ end))
         
 local top = am.use_program(prog) ^ am.bind{tint = vec4(1), MVP = MVP} ^ group
 
-win.root = top
+win.scene = top
 top:action(function()
     if win:key_pressed("escape") then
         win:close()

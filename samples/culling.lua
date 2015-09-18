@@ -70,4 +70,4 @@ local scene =
     }
     ^scene_group
 
-win.root = scene
+win.scene = scene

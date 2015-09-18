@@ -63,4 +63,4 @@ local node =
     }
     ^am.draw("triangles")
 
-win.root = node
+win.scene = node

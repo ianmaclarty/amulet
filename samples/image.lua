@@ -54,4 +54,4 @@ local node =
     ^am.use_program(prog)
     ^am.draw'triangles'
 
-win.root = node
+win.scene = node

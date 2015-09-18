@@ -59,7 +59,7 @@ Yet it shall be tempest-tost.
 Look what I have.]]
 }
 
-win.root =
+win.scene =
     am.bind{
         MV = mat4(1),
         P = math.ortho(0, win.width, 0, win.height)

@@ -93,8 +93,8 @@ static int create_window(lua_State *L) {
     }
     am_get_native_window_size(win->native_win, &win->pwidth, &win->pheight);
 
-    win->root = NULL;
-    win->root_ref = LUA_NOREF;
+    win->scene = NULL;
+    win->scene_ref = LUA_NOREF;
 
     win->has_depth_buffer = depth_buffer;
     win->has_stencil_buffer = stencil_buffer;
@@ -201,7 +201,7 @@ static void draw_windows() {
             am_get_native_window_size(win->native_win, &win->pwidth, &win->pheight);
             glm::vec4 cc = win->clear_color;
             am_set_framebuffer_clear_color(cc.r, cc.g, cc.b, cc.a);
-            rstate->do_render(win->root, 0, true, win->pwidth, win->pheight, win->has_depth_buffer);
+            rstate->do_render(win->scene, 0, true, win->pwidth, win->pheight, win->has_depth_buffer);
             am_native_window_post_render(win->native_win);
         }
     }
@@ -225,8 +225,8 @@ bool am_execute_actions(lua_State *L, double dt) {
     bool res = true;
     for (unsigned int i = 0; i < n; i++) {
         am_window *win = windows[i];
-        if (!win->needs_closing && win->root != NULL) {
-            if (!am_execute_node_actions(L, win->root)) {
+        if (!win->needs_closing && win->scene != NULL) {
+            if (!am_execute_node_actions(L, win->scene)) {
                 res = false;
                 break;
             }
@@ -238,29 +238,29 @@ bool am_execute_actions(lua_State *L, double dt) {
     return res;
 }
 
-static void get_root_node(lua_State *L, void *obj) {
+static void get_scene(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    window->pushref(L, window->root_ref);
+    window->pushref(L, window->scene_ref);
 }
 
-static void set_root_node(lua_State *L, void *obj) {
+static void set_scene(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     if (lua_isnil(L, 3)) {
-        if (window->root == NULL) return;
-        window->unref(L, window->root_ref);
-        window->root_ref = LUA_NOREF;
-        window->root = NULL;
+        if (window->scene == NULL) return;
+        window->unref(L, window->scene_ref);
+        window->scene_ref = LUA_NOREF;
+        window->scene = NULL;
         return;
     }
-    window->root = am_get_userdata(L, am_scene_node, 3);
-    if (window->root_ref == LUA_NOREF) {
-        window->root_ref = window->ref(L, 3);
+    window->scene = am_get_userdata(L, am_scene_node, 3);
+    if (window->scene_ref == LUA_NOREF) {
+        window->scene_ref = window->ref(L, 3);
     } else {
-        window->reref(L, window->root_ref, 3);
+        window->reref(L, window->scene_ref, 3);
     }
 }
 
-static am_property root_property = {get_root_node, set_root_node};
+static am_property scene_property = {get_scene, set_scene};
 
 static void get_window_pwidth(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
@@ -323,7 +323,7 @@ static void register_window_mt(lua_State *L) {
     am_set_default_index_func(L);
     am_set_default_newindex_func(L);
 
-    am_register_property(L, "root", &root_property);
+    am_register_property(L, "scene", &scene_property);
     am_register_property(L, "lock_pointer", &lock_pointer_property);
     am_register_property(L, "width", &pwidth_property);
     am_register_property(L, "height", &pheight_property);

@@ -15,8 +15,8 @@ rect:action(coroutine.create(function(node)
     end
 end))
 
-win.root = am.bind{MV = mat4(1), P = mat4(1)} ^ am.blend("add") ^ rect
-win.root:action(function()
+win.scene = am.bind{MV = mat4(1), P = mat4(1)} ^ am.blend("add") ^ rect
+win.scene:action(function()
     if win:key_pressed("escape") then
         win:close()
     end

@@ -81,4 +81,4 @@ top:action(function()
     end
 end)
 
-win.root = top
+win.scene = top

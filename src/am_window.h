@@ -1,8 +1,8 @@
 struct am_window : am_nonatomic_userdata {
     bool                needs_closing;
     am_native_window   *native_win;
-    am_scene_node      *root;
-    int                 root_ref;
+    am_scene_node      *scene;
+    int                 scene_ref;
     int                 window_ref;
     int                 requested_width;
     int                 requested_height;

@@ -15,7 +15,7 @@ local highpass_cutoff_editor_node
 local highpass_resonance_editor_node
 
 local scene = am.group()
-win.root = scene
+win.scene = scene
 
 local
 function create_audio_buffer()
