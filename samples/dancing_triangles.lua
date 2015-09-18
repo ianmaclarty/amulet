@@ -19,7 +19,7 @@ local fshader = [[
     }
 ]]
 
-local win = am.window({title = "test1"})
+local win = am.window({title = "test1", highdpi = true})
 
 local prog = am.program(vshader, fshader)
 

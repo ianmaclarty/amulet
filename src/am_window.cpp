@@ -195,7 +195,7 @@ static void update_window_sizes() {
 static void draw_windows() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
-        if (!win->needs_closing && win->root != NULL) {
+        if (!win->needs_closing) {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
             am_get_native_window_size(win->native_win, &win->pwidth, &win->pheight);
