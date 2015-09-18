@@ -3,7 +3,7 @@
 static void init_reserved_refs(lua_State *L);
 static void init_metatable_registry(lua_State *L);
 static void open_stdlualibs(lua_State *L);
-static void init_package_searcher(lua_State *L);
+static void init_require_func(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
 static void set_arg_global(lua_State *L, int argc, char** argv);
 
@@ -29,7 +29,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     init_metatable_registry(L);
     open_stdlualibs(L);
     set_arg_global(L, argc, argv);
-    init_package_searcher(L);
+    init_require_func(L);
     am_init_traceback_func(L);
     am_open_userdata_module(L);
     am_open_logging_module(L);
@@ -135,15 +135,11 @@ static void open_stdlualibs(lua_State *L) {
 #endif
 }
 
-static void init_package_searcher(lua_State *L) {
-    lua_getglobal(L, "package");
+static void init_require_func(lua_State *L) {
     lua_newtable(L);
-    lua_pushcclosure(L, am_package_searcher, 0);
-    lua_rawseti(L, -2, 1);
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -3, "loaders"); // for luajit2
-    lua_setfield(L, -2, "searchers"); // for lua5.2
-    lua_pop(L, 1);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_MODULE_TABLE);
+    lua_pushcclosure(L, am_load_module, 0);
+    lua_setglobal(L, "require");
 }
 
 #define MAX_CHUNKNAME_SIZE 100

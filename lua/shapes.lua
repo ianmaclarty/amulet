@@ -46,7 +46,7 @@ function am.rect(x1, y1, x2, y2, color)
     local verts = am.rect_verts_3d(x1, y1, x2, y2)
     local node = am.use_program(am.shaders.color)
         ^am.bind{
-            pos = verts,
+            vert = verts,
             color = color,
         }
         ^am.draw("triangles", am.rect_indices())

@@ -173,7 +173,7 @@ function am.text(font, str, halign, valign)
         am.blend("premult")
         ^am.use_program(am.shaders.texture)
         ^am.bind{
-            pos = verts,
+            vert = verts,
             uv = uvs,
             tex = font.texture,
         }
@@ -188,7 +188,7 @@ function am.text(font, str, halign, valign)
             local num_verts = len1 * 4 
             buffer, verts, uvs = make_buffer(num_verts)
             indices = make_indices(num_verts)
-            self"bind".pos = verts
+            self"bind".vert = verts
             self"bind".uv = uvs
             self"draw".elements = indices
             len = len1
@@ -211,7 +211,7 @@ function am.sprite(image, halign, valign)
         am.blend("premult")
         ^am.use_program(am.shaders.texture)
         ^am.bind{
-            pos = verts,
+            vert = verts,
             uv = uvs,
             tex = image.texture,
         }

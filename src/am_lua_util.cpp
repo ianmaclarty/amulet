@@ -209,9 +209,9 @@ void am_init_traceback_func(lua_State *L) {
 #define TMP_BUF_SZ 512
 
 int am_load_module(lua_State *L) {
+    am_check_nargs(L, 1);
     char tmpbuf1[TMP_BUF_SZ];
     char tmpbuf2[TMP_BUF_SZ];
-    am_check_nargs(L, 1);
     size_t len;
     const char *modname = lua_tolstring(L, 1, &len);
     if (modname == NULL) {
@@ -220,6 +220,22 @@ int am_load_module(lua_State *L) {
     if (len > TMP_BUF_SZ - 10) {
         return luaL_error(L, "module name '%s' too long", modname);
     }
+    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_MODULE_TABLE);
+    lua_pushvalue(L, 1); // module name
+    lua_rawget(L, -2);
+    if (!lua_isnil(L, -1)) {
+        // already loaded, or busy loading
+        lua_remove(L, -2); // module table
+        return 1;
+    }
+    lua_pop(L, 1); // nil
+    // create exports table and add to module table:
+    lua_newtable(L);
+    lua_pushvalue(L, 1); // module name
+    lua_pushvalue(L, -2); // export table
+    lua_rawset(L, -4); // set it
+    // export table now on top
+
     int sz;
     strncpy(tmpbuf1, modname, TMP_BUF_SZ);
     am_replchr(tmpbuf1, '.', AM_PATH_SEP);
@@ -235,12 +251,21 @@ int am_load_module(lua_State *L) {
     int res = luaL_loadbuffer(L, (const char*)buf, sz, tmpbuf2);
     free(buf);
     if (res != 0) return lua_error(L);
-    lua_call(L, 0, 1);
-    return 1;
-}
-
-int am_package_searcher(lua_State *L) {
-    lua_pushcclosure(L, am_load_module, 0);
+    lua_pushvalue(L, -2); // export table
+    lua_call(L, 1, 1);
+    if (!lua_isnil(L, -1)) {
+        // replace export table with returned value in module table
+        lua_pushvalue(L, 1); // module name
+        lua_pushvalue(L, -2); // returned value
+        lua_rawset(L, -5);
+        lua_remove(L, -2); // export table
+        lua_remove(L, -2); // module table
+        // return value now on top
+    } else {
+        lua_pop(L, 1); // nil
+        lua_remove(L, -2); // module table
+        // export table now on top
+    }
     return 1;
 }
 

@@ -1,7 +1,6 @@
+local module1 = ...
 print("loading module 1")
 
-return {
-    test = function()
-        print("running module 1 test")
-    end
-}
+function module1.test()
+    print("running module 1 test")
+end

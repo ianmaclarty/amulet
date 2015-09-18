@@ -4397,7 +4397,7 @@ nav.stickynav {
 .rst-content dl dt .headerlink:after {
     visibility: visible;
     content: "\f0c1";
-    font-family: 'Bree Serif', serif;
+    font-family: 'FontAwesome', serif;
     display: inline-block
 }
 .rst-content h1:hover .headerlink,
@@ -4538,6 +4538,7 @@ a .rst-content tt {
     color: #494149;
     font-size: 100% !important
 }
+/*
 .rst-content dl:not(.docutils) dl dt {
     margin-bottom: 6px;
     border: none;
@@ -4545,6 +4546,7 @@ a .rst-content tt {
     background: #f0f0f0;
     color: gray
 }
+*/
 .rst-content dl:not(.docutils) dl dt .headerlink {
     color: #494149;
     font-size: 100% !important

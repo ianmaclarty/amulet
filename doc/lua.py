@@ -103,14 +103,14 @@ class JSObject(ObjectDescription):
         name, obj = name_obj
         if self.objtype == 'function':
             if not obj:
-                return _('%s() (built-in function)') % name
-            return _('%s() (%s method)') % (name, obj)
+                return _('%s()') % name
+            return _('%s()') % name
         elif self.objtype == 'class':
-            return _('%s() (class)') % name
+            return _('%s()') % name
         elif self.objtype == 'data':
-            return _('%s (global variable or constant)') % name
+            return _('%s') % name
         elif self.objtype == 'attribute':
-            return _('%s (%s attribute)') % (name, obj)
+            return _('%s') % (name, obj)
         return ''
 
 

@@ -69,7 +69,7 @@ else
 endif
 
 ifndef LUAVM
-  LUAVM = lua52
+  LUAVM = lua51
 endif
 
 SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
@@ -178,7 +178,6 @@ else ifeq ($(TARGET_PLATFORM),html)
   CPP = em++
   AR = emar
   LINK = em++
-  LUAVM = lua51
   LUA_TARGET = generic
   XLDFLAGS = --memory-init-file 0 -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS_OPTS)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1

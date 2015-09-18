@@ -19,6 +19,8 @@ Contents:
     actions
     input
     audio
+    conf
+    api_ref
 
 Indices and tables
 ==================

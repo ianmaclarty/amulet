@@ -1,5 +1,5 @@
-Maths functions
-===============
+Maths
+=====
 
 ..  figure:: screenshots/screenshot1.jpg
     :alt: 

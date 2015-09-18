@@ -1,5 +1,3 @@
-- Detect and handle cyclic module imports
-
 - Add context to errors that occur in rendering (e.g. missing uniform
   values). This would require the lua file/line to be recorded when nodes
   are created. Assess the performance tradeoff of doing this.
@@ -65,3 +63,7 @@
 
 - Support other vec types in views, e.g. short2 (e.g. for UV coords) or ubyte4
   (e.g. for colours) or byte3 (e.g. for normals).
+
+- Fix real fullscreen mode on Linux.
+
+- Implement amconf.lua project config file.
