@@ -95,6 +95,16 @@ local texture_f = [[
     }
 ]]
 
+local texturecolor_f = [[
+    precision mediump float;
+    uniform sampler2D tex;
+    uniform vec4 color;
+    varying vec2 v_uv;
+    void main() {
+        gl_FragColor = texture2D(tex, v_uv) * color;
+    }
+]]
+
 local sources = {
     color = {color_v, color_f},
     color2d = {color2d_v, color_f},
@@ -102,6 +112,8 @@ local sources = {
     colors2d = {colors2d_v, colors_f},
     texture = {texture_v, texture_f},
     texture2d = {texture2d_v, texture_f},
+    texturecolor = {texture_v, texturecolor_f},
+    texturecolor2d = {texture2d_v, texturecolor_f},
 }
 
 am.shaders = {}

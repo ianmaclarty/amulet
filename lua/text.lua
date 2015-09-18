@@ -153,10 +153,14 @@ function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
     uvs_view:set(img.uvs)
 end
 
-function am.text(font, str, halign, valign)
+function am.text(font, str, color, halign, valign)
     if type(font) == "string" then
-        str, halign, valign = font, str, halign
+        str, color, halign, valign = font, str, halign, color
         font = am.default_font.default16
+    end
+    if type(color) ~= "userdata" then
+        halign, valign = color, halign
+        color = vec4(1)
     end
     halign = halign or "center"
     valign = valign or "center"
@@ -168,14 +172,15 @@ function am.text(font, str, halign, valign)
     local num_verts = len * 4
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
-    set_text_verts(font, str, verts, uvs, halign, verts)
+    set_text_verts(font, str, verts, uvs, halign, valign)
     local node =
         am.blend("premult")
-        ^am.use_program(am.shaders.texture)
+        ^am.use_program(am.shaders.texturecolor)
         ^am.bind{
             vert = verts,
             uv = uvs,
             tex = font.texture,
+            color = color,
         }
         ^am.draw("triangles", indices)
     function node:get_text()
@@ -196,6 +201,13 @@ function am.text(font, str, halign, valign)
         str = str1
         set_text_verts(font, str, verts, uvs, halign, valign)
         self"draw".count = utf8.len(str) * 6
+    end
+    function node:get_color()
+        return color
+    end
+    function node:set_color(col)
+        color = col
+        self"bind".color = color
     end
     return node
 end

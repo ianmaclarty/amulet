@@ -72,11 +72,12 @@ win.scene =
     ^am.translate("MV", vec3(200, 300, 0))
     ^am.text(strs[1], "left", "center"):action(coroutine.create(function(node)
         while true do
+            am.wait(am.delay(2))
             local str
             repeat
                 str = strs[math.random(#strs)]
             until str ~= node.text
             node.text = str
-            am.wait(am.delay(2))
+            node.color = vec4(math.random(), math.random(), math.random(), 1)
         end
     end))

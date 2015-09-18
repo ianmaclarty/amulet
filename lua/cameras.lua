@@ -10,5 +10,6 @@ function am.camera2d(width, height, pos)
             0, 0, 1, 0,
             -pos, 0, 1)
     end
+    node.position = pos
     return node
 end
