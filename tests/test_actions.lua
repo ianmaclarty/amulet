@@ -1,13 +1,13 @@
 local win = am.window({title = "test", width = 100, height = 100})
 
-win.root = am.group()
+win.scene = am.group()
 local node1 = am.group()
 local node2 = am.group()
 local node3 = am.group()
-win.root:append(node1)
+win.scene:append(node1)
 node1:append(node2)
 node1:append(node3)
-node3:append(win.root) -- cycle
+node3:append(win.scene) -- cycle
 
 local f = 1
 node3:action(function()
@@ -21,10 +21,10 @@ node2:action(function()
 end)
 
 local frame = 1
-win.root:action(function()
+win.scene:action(function()
     print("------- start frame "..frame)
     if frame == 6 then
-        win.root:update()
+        win.scene:update()
         print("DONE 6")
     elseif frame == 7 then
         win:close()
@@ -32,7 +32,7 @@ win.root:action(function()
     frame = frame + 1
 end)
 
-win.root:action(coroutine.create(function(node)
+win.scene:action(coroutine.create(function(node)
     print("A1")
     local b = 1
     node:action(function()
