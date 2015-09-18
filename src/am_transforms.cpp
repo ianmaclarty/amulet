@@ -1,13 +1,18 @@
 #include "amulet.h"
 
-/* Translate */
-
 static void log_ignored_transform(am_param_name_id name, const char *transform) {
     am_program_param_name_slot *slot = &am_param_name_map[name];
     am_log1("WARNING: ignoring %s on %s '%s' (expecting a mat4)",
         transform,
         am_program_param_client_type_name(slot),
         slot->name);
+}
+
+static void maybe_insert_default_mv(lua_State *L) {
+    if (lua_gettop(L) >= 1 && lua_type(L, 1) != LUA_TSTRING) {
+        lua_pushstring(L, am_conf_default_modelview_matrix_name);
+        lua_insert(L, 1);
+    }
 }
 
 /* Translate */
@@ -27,8 +32,8 @@ void am_translate_node::render(am_render_state *rstate) {
 }
 
 static int create_translate_node(lua_State *L) {
+    maybe_insert_default_mv(L);
     am_check_nargs(L, 2);
-    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_translate_node *node = am_new_userdata(L, am_translate_node);
     node->tags.push_back(L, AM_TAG_TRANSLATE);
     node->name = am_lookup_param_name(L, 1);
@@ -77,8 +82,8 @@ void am_scale_node::render(am_render_state *rstate) {
 }
 
 static int create_scale_node(lua_State *L) {
+    maybe_insert_default_mv(L);
     am_check_nargs(L, 2);
-    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_scale_node *node = am_new_userdata(L, am_scale_node);
     node->tags.push_back(L, AM_TAG_SCALE);
     node->name = am_lookup_param_name(L, 1);
@@ -127,8 +132,8 @@ void am_rotate_node::render(am_render_state *rstate) {
 }
 
 static int create_rotate_node(lua_State *L) {
+    maybe_insert_default_mv(L);
     am_check_nargs(L, 2);
-    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_rotate_node *node = am_new_userdata(L, am_rotate_node);
     node->tags.push_back(L, AM_TAG_ROTATE);
     node->name = am_lookup_param_name(L, 1);
@@ -172,8 +177,8 @@ void am_lookat_node::render(am_render_state *rstate) {
 }
 
 static int create_lookat_node(lua_State *L) {
+    maybe_insert_default_mv(L);
     am_check_nargs(L, 4);
-    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_lookat_node *node = am_new_userdata(L, am_lookat_node);
     node->tags.push_back(L, AM_TAG_LOOKAT);
     node->name = am_lookup_param_name(L, 1);
@@ -265,8 +270,8 @@ void am_billboard_node::render(am_render_state *rstate) {
 }
 
 static int create_billboard_node(lua_State *L) {
+    maybe_insert_default_mv(L);
     int nargs = am_check_nargs(L, 1);
-    if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_billboard_node *node = am_new_userdata(L, am_billboard_node);
     node->tags.push_back(L, AM_TAG_BILLBOARD);
     node->name = am_lookup_param_name(L, 1);

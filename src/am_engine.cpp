@@ -182,6 +182,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/actions.lua") &&
         run_embedded_script(L, "lua/audio.lua") &&
         run_embedded_script(L, "lua/tweens.lua") &&
+        run_embedded_script(L, "lua/cameras.lua") &&
         run_embedded_script(L, "lua/default_font.lua");
 }
 

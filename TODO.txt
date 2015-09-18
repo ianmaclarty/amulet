@@ -5,9 +5,6 @@
 - Show user-code context in main error message, not embedded-lua context.
   (can still show embedded-lua in stack trace)
 
-- Make transform nodes (tranlate, rotate, scale, lookat, billboard, etc)
-  operated on MV and/or P by default.
-
 - Allow omiting vec3 constructor in translate and scale, and quat constructor
   in rotate nodes (e.g. can write node:translate(0, 0) or similar).
 
