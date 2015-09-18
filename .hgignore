@@ -88,5 +88,5 @@ tests/*.res
 tests/*.time
 
 doc/manual.html
-sphinx/_build
-sphinx/__pycache__
+doc/_build
+doc/__pycache__

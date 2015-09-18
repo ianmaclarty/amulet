@@ -1,14 +1,13 @@
 struct am_window : am_nonatomic_userdata {
     bool                needs_closing;
     am_native_window   *native_win;
-    am_scene_node      *root;
-    int                 root_ref;
+    am_scene_node      *scene;
+    int                 scene_ref;
     int                 window_ref;
-    int                 width;
-    int                 height;
-    // used when restoring windowed mode from fullscreen mode
-    int                 restore_windowed_width;
-    int                 restore_windowed_height;
+    int                 requested_width;
+    int                 requested_height;
+    int                 pwidth; // actual pixel width
+    int                 pheight; // actual pixel height
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
     glm::vec4           clear_color;

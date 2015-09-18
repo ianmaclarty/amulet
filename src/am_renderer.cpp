@@ -274,12 +274,14 @@ void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer) {
     setup(fb, clear, w, h, has_depthbuffer);
-    next_pass = 1;
-    do {
-        pass = next_pass;
-        pass_mask = 1;
-        root->render(this);
-    } while (next_pass > pass);
+    if (root != NULL) {
+        next_pass = 1;
+        do {
+            pass = next_pass;
+            pass_mask = 1;
+            root->render(this);
+        } while (next_pass > pass);
+    }
 }
 
 static bool check_pass(am_render_state *rstate) {

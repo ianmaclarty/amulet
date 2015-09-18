@@ -58,13 +58,13 @@ function init()
     camera =
         am.lookat("MV", vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0)) ^ objects
 
-    win.root = 
+    win.scene = 
         am.cull_face("ccw")
         ^am.use_program(shader)
         ^am.bind{P = math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip)}
         ^camera
 
-    win.root:action(main_action)
+    win.scene:action(main_action)
 end
 
 local pitch = 0

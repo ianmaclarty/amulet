@@ -142,14 +142,14 @@ local node2 =
     }
     ^am.draw("triangles")
 
--- set the post processing node as the root
-win.root = node2
+-- set the post processing node as the scene
+win.scene = node2
 
--- create an action on the root that updates the various uniforms
+-- create an action on the scene that updates the various uniforms
 -- and then renders the kaleidoscope into the post-processing framebuffer
 -- which then gets automatically drawn to the window using the
--- blur shader (since it's the root).
-win.root:action(function()
+-- blur shader (since it's the scene).
+win.scene:action(function()
     pattern_tex_view[math.random(pattern_tex_size^2)] = math.random(2^16)
     rotation_node.rotation = quat(am.frame_time)
     t_node.t = am.frame_time

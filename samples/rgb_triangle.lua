@@ -2,10 +2,9 @@ local win =
 am.window{
     top = 0,
     left = 0,
-    mode = "fullscreen"
     }
 
-win.root =
+win.scene =
     am.use_program(am.shaders.colors2d)
     :action(function()
         if win:key_pressed("escape") then

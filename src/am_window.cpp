@@ -12,10 +12,11 @@ static int create_window(lua_State *L) {
     am_display_orientation orientation = AM_DISPLAY_ORIENTATION_ANY;
     int top = -1;
     int left = -1;
-    int width = DEFAULT_WIN_WIDTH;
-    int height = DEFAULT_WIN_HEIGHT;
+    int requested_width = DEFAULT_WIN_WIDTH;
+    int requested_height = DEFAULT_WIN_HEIGHT;
     const char *title = "Untitled";
     bool resizable = true;
+    bool highdpi = false;
     bool borderless = false;
     bool depth_buffer = false;
     bool stencil_buffer = false;
@@ -35,17 +36,19 @@ static int create_window(lua_State *L) {
         } else if (strcmp(key, "left") == 0) {
             left = luaL_checkinteger(L, -1);
         } else if (strcmp(key, "width") == 0) {
-            width = luaL_checkinteger(L, -1);
-            if (width <= 0) {
+            requested_width = luaL_checkinteger(L, -1);
+            if (requested_width <= 0) {
                 return luaL_error(L, "width must be positive");
             }
         } else if (strcmp(key, "height") == 0) {
-            height = luaL_checkinteger(L, -1);
-            if (height <= 0) {
+            requested_height = luaL_checkinteger(L, -1);
+            if (requested_height <= 0) {
                 return luaL_error(L, "height must be positive");
             }
         } else if (strcmp(key, "title") == 0) {
             title = luaL_checkstring(L, -1);
+        } else if (strcmp(key, "highdpi") == 0) {
+            highdpi = lua_toboolean(L, -1);
         } else if (strcmp(key, "resizable") == 0) {
             resizable = lua_toboolean(L, -1);
         } else if (strcmp(key, "borderless") == 0) {
@@ -70,12 +73,15 @@ static int create_window(lua_State *L) {
     }
     am_window *win = am_new_userdata(L, am_window);
     win->needs_closing = false;
+    win->requested_width = requested_width;
+    win->requested_height = requested_height;
     win->native_win = am_create_native_window(
         mode,
         orientation,
         top, left,
-        width, height,
+        requested_width, requested_height,
         title,
+        highdpi,
         resizable,
         borderless,
         depth_buffer,
@@ -85,10 +91,10 @@ static int create_window(lua_State *L) {
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
-    am_get_native_window_size(win->native_win, &win->width, &win->height);
+    am_get_native_window_size(win->native_win, &win->pwidth, &win->pheight);
 
-    win->root = NULL;
-    win->root_ref = LUA_NOREF;
+    win->scene = NULL;
+    win->scene_ref = LUA_NOREF;
 
     win->has_depth_buffer = depth_buffer;
     win->has_stencil_buffer = stencil_buffer;
@@ -97,9 +103,6 @@ static int create_window(lua_State *L) {
     am_set_native_window_lock_pointer(win->native_win, lock_pointer);
     win->mode = mode;
     win->dirty = false;
-
-    win->restore_windowed_width = -1;
-    win->restore_windowed_height = -1;
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
     lua_pushvalue(L, -2);
@@ -183,18 +186,7 @@ static void update_window_sizes() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
         if (win->dirty) {
-            int w, h;
-            if (win->mode == AM_WINDOW_MODE_WINDOWED && win->restore_windowed_height > 0 && win->restore_windowed_width > 0) {
-                w = win->restore_windowed_width;
-                h = win->restore_windowed_height;
-                win->restore_windowed_width = -1;
-                win->restore_windowed_height = -1;
-            } else {
-                w = win->width;
-                h = win->height;
-            }
-            //am_debug("resized window to %dx%d", w, h);
-            am_set_native_window_size_and_mode(win->native_win, w, h, win->mode);
+            am_set_native_window_size_and_mode(win->native_win, win->requested_width, win->requested_height, win->mode);
             win->dirty = false;
         }
     }
@@ -203,13 +195,13 @@ static void update_window_sizes() {
 static void draw_windows() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
-        if (!win->needs_closing && win->root != NULL) {
+        if (!win->needs_closing) {
             am_native_window_pre_render(win->native_win);
             am_render_state *rstate = &am_global_render_state;
-            am_get_native_window_size(win->native_win, &win->width, &win->height);
+            am_get_native_window_size(win->native_win, &win->pwidth, &win->pheight);
             glm::vec4 cc = win->clear_color;
             am_set_framebuffer_clear_color(cc.r, cc.g, cc.b, cc.a);
-            rstate->do_render(win->root, 0, true, win->width, win->height, win->has_depth_buffer);
+            rstate->do_render(win->scene, 0, true, win->pwidth, win->pheight, win->has_depth_buffer);
             am_native_window_post_render(win->native_win);
         }
     }
@@ -233,8 +225,8 @@ bool am_execute_actions(lua_State *L, double dt) {
     bool res = true;
     for (unsigned int i = 0; i < n; i++) {
         am_window *win = windows[i];
-        if (!win->needs_closing && win->root != NULL) {
-            if (!am_execute_node_actions(L, win->root)) {
+        if (!win->needs_closing && win->scene != NULL) {
+            if (!am_execute_node_actions(L, win->scene)) {
                 res = false;
                 break;
             }
@@ -246,60 +238,42 @@ bool am_execute_actions(lua_State *L, double dt) {
     return res;
 }
 
-static void get_root_node(lua_State *L, void *obj) {
+static void get_scene(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    window->pushref(L, window->root_ref);
+    window->pushref(L, window->scene_ref);
 }
 
-static void set_root_node(lua_State *L, void *obj) {
+static void set_scene(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     if (lua_isnil(L, 3)) {
-        if (window->root == NULL) return;
-        window->unref(L, window->root_ref);
-        window->root_ref = LUA_NOREF;
-        window->root = NULL;
+        if (window->scene == NULL) return;
+        window->unref(L, window->scene_ref);
+        window->scene_ref = LUA_NOREF;
+        window->scene = NULL;
         return;
     }
-    window->root = am_get_userdata(L, am_scene_node, 3);
-    if (window->root_ref == LUA_NOREF) {
-        window->root_ref = window->ref(L, 3);
+    window->scene = am_get_userdata(L, am_scene_node, 3);
+    if (window->scene_ref == LUA_NOREF) {
+        window->scene_ref = window->ref(L, 3);
     } else {
-        window->reref(L, window->root_ref, 3);
+        window->reref(L, window->scene_ref, 3);
     }
 }
 
-static am_property root_property = {get_root_node, set_root_node};
+static am_property scene_property = {get_scene, set_scene};
 
-static void get_window_width(lua_State *L, void *obj) {
+static void get_window_pwidth(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    lua_pushinteger(L, window->width);
+    lua_pushinteger(L, am_max(1, window->pwidth));
 }
 
-static void set_window_width(lua_State *L, void *obj) {
+static void get_window_pheight(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    int w = luaL_checkinteger(L, 3);
-    if (w > 0) {
-        window->width = w;
-        window->dirty = true;
-    }
+    lua_pushinteger(L, am_max(1, window->pheight));
 }
 
-static void get_window_height(lua_State *L, void *obj) {
-    am_window *window = (am_window*)obj;
-    lua_pushinteger(L, window->height);
-}
-
-static void set_window_height(lua_State *L, void *obj) {
-    am_window *window = (am_window*)obj;
-    int h = luaL_checkinteger(L, 3);
-    if (h > 0) {
-        window->height = h;
-        window->dirty = true;
-    }
-}
-
-static am_property width_property = {get_window_width, set_window_width};
-static am_property height_property = {get_window_height, set_window_height};
+static am_property pwidth_property = {get_window_pwidth, NULL};
+static am_property pheight_property = {get_window_pheight, NULL};
 
 static void get_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
@@ -323,12 +297,11 @@ static void get_window_mode(lua_State *L, void *obj) {
 static void set_window_mode(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     am_window_mode old_mode = window->mode;
-    window->mode = am_get_enum(L, am_window_mode, 3);
-    if (old_mode == AM_WINDOW_MODE_WINDOWED && window->mode != old_mode) {
-        window->restore_windowed_width = window->width;
-        window->restore_windowed_height = window->height;
+    am_window_mode new_mode = am_get_enum(L, am_window_mode, 3);
+    if (old_mode != new_mode) {
+        window->mode = new_mode;
+        window->dirty = true;
     }
-    window->dirty = true;
 }
 
 static am_property window_mode_property = {get_window_mode, set_window_mode};
@@ -350,10 +323,10 @@ static void register_window_mt(lua_State *L) {
     am_set_default_index_func(L);
     am_set_default_newindex_func(L);
 
-    am_register_property(L, "root", &root_property);
+    am_register_property(L, "scene", &scene_property);
     am_register_property(L, "lock_pointer", &lock_pointer_property);
-    am_register_property(L, "width", &width_property);
-    am_register_property(L, "height", &height_property);
+    am_register_property(L, "width", &pwidth_property);
+    am_register_property(L, "height", &pheight_property);
     am_register_property(L, "mode", &window_mode_property);
     am_register_property(L, "clear_color", &clear_color_property);
 
@@ -373,8 +346,8 @@ void am_open_window_module(lua_State *L) {
 
     am_enum_value window_mode_enum[] = {
         {"windowed",        AM_WINDOW_MODE_WINDOWED},
-        {"fullscreen",      AM_WINDOW_MODE_FULLSCREEN},
-        {"desktop",         AM_WINDOW_MODE_FULLSCREEN_DESKTOP},
+        {"fullscreen",      AM_WINDOW_MODE_FULLSCREEN_DESKTOP},
+        {"real-fullscreen", AM_WINDOW_MODE_FULLSCREEN},
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_window_mode, window_mode_enum);

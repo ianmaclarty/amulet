@@ -18,6 +18,7 @@ am_native_window *am_create_native_window(
     int top, int left,
     int width, int height,
     const char *title,
+    bool highdpi,
     bool resizable,
     bool borderless,
     bool depth_buffer,

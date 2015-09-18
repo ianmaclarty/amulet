@@ -81,13 +81,13 @@ function init()
 
     kaleidoscope_fb:render(buildings_node)
 
-    win.root = blur_node
-    win.root:action(main_action)
+    win.scene = blur_node
+    win.scene:action(main_action)
 
     init_audio()
     play_chime(1)
 
-    win.root:action(am.play(root_audio, true))
+    win.scene:action(am.play(root_audio, true))
 end
 
 local zones = {
@@ -501,7 +501,7 @@ function init_audio()
         chimes[i] = chimes[i]:gain(0.1)
     end
     local primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73 }
-    win.root:action(function()
+    win.scene:action(function()
         local pos = win:mouse_position()
         for i = 1, num_active_chimes do
             local z = math.cos(pos.x * pos.y + i) * 0.4 + 0.6
