@@ -56,3 +56,86 @@ function am.rect(x1, y1, x2, y2, color)
     end
     return node
 end
+
+-- ellipse:
+
+local default_ellipse_sides = 255
+
+function am.ellipse_indices(sides)
+    sides = sides or default_ellipse_sides
+    local t = {}
+    local i = 1
+    for s = 2, sides + 1 do
+        t[i] = 1
+        t[i + 1] = s
+        t[i + 2] = (s - 1) % sides + 2
+        i = i + 3
+    end
+    if sides < 2^15 then
+        return am.ushort_elem_array(t)
+    else
+        return am.uint_elem_array(t)
+    end
+end
+
+function am.ellipse_verts_2d(center, xrad, yrad, sides)
+    sides = sides or default_ellipse_sides
+    local x = center.x
+    local y = center.y
+    local t = {x, y}
+    local angle = 0
+    local dangle = 2 * math.pi / sides
+    local cos, sin = math.cos, math.sin
+    local i = 3
+    for s = 0, sides - 1 do
+        t[i] = cos(angle) * xrad + x
+        t[i + 1] = sin(angle) * yrad + y
+        i = i + 2
+        angle = angle + dangle
+    end
+    return am.vec2_array(t)
+end
+
+function am.ellipse_verts_3d(center, xrad, yrad, sides)
+    sides = sides or default_ellipse_sides
+    local x = center.x
+    local y = center.y
+    local t = {x, y, 0}
+    local angle = 0
+    local dangle = 2 * math.pi / sides
+    local cos, sin = math.cos, math.sin
+    local i = 4
+    for s = 0, sides - 1 do
+        t[i] = cos(angle) * xrad + x
+        t[i + 1] = sin(angle) * yrad + y
+        t[i + 2] = 0
+        i = i + 3
+        angle = angle + dangle
+    end
+    return am.vec3_array(t)
+end
+
+function am.ellipse(center, xrad, yrad, color, sides)
+    sides = sides or default_ellipse_sides
+    color = color or vec4(1)
+    local verts = am.ellipse_verts_3d(center, xrad, yrad, sides)
+    local node = am.use_program(am.shaders.color)
+        ^am.bind{
+            vert = verts,
+            color = color,
+        }
+        ^am.draw("triangles", am.ellipse_indices(sides))
+    node.verts = verts
+    function node:get_color()
+        return color
+    end
+    function node:set_color(c)
+        color = c
+        node"bind".color = color
+    end
+    return node
+end
+
+function am.circle(center, rad, color, sides)
+    return am.ellipse(center, rad, rad, color, sides)
+end
