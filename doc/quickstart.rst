@@ -1,135 +1,122 @@
 .. _quick-start:
 
-Quick start guide
-=================
-
-This section will get you up and running with Amulet.
-You'll learn how to create a window, draw and animate
-simple 2D graphics, play audio and respond to use input.
+Quick start
+===========
 
 Install Amulet
 --------------
 
-First `download <http://xxx/download.html>`__ and run the Amulet installer
-(or if you're using Linux extract it to a directory and add that directory
+`Download <http://XXX.html>`__ the installer and run it.
+(or if you're using Linux extract it to a folder and add it
 to your PATH).
 
-Amulet is a command line tool and doesn't come with an IDE or
-editor.
+Run a script
+------------
 
-Create a folder for your new project anywhere you like. In that
-folder create a text file called ``main.lua`` containing the following:
+Create a text file called ``main.lua`` containing the following:
 
 ..  code-block:: lua
 
-    print("Hello!")
+    log("It works!")
 
-Now open a terminal (or "command prompt" on Windows) and navigate
-to the new project folder. Then type ``amulet main.lua``:
+Open a terminal ("command prompt" on Windows) and change to the
+folder containing the file. Then type ``amulet main.lua``:
 
 ..  code-block:: sh
 
     $ amulet main.lua
-    Hello!
+    test.lua:1: It works!
 
-If you see the text ``Hello!`` Amulet is installed and working.
+If you see the text ``test.lua:1: It works!`` Amulet is
+installed and working.
 
-Creating a window and rendering some text
------------------------------------------
+Create a window
+---------------
 
-Instead of printing "Hello!" to the terminal, let's instead display
-it in a new window. 
 Type the following into main.lua:
 
 ..  code-block:: lua
-    :linenos:
 
-    local win = am.window{title = "Hi", width = 400, height = 300}
-    local camera = am.camera2d(400, 300, vec2(0, 0))
-    local text = am.text("Hello!")
-    camera:append(text)
-    win.scene = camera
+    local win = am.window{
+        title = "Hi",
+        width = 400,
+        height = 300,
+        clear_color = vec4(1, 0, 0.5, 1)
+    }
 
-Let's go through this script line by line.
+and run it as before. This time a bright pink window should appear.
 
-On line 1 we create a window by calling the :func:`am.window` function.
-The returned window object is stored in a local variable called
-``win``.
+Render some text
+----------------
 
-On line 2 we create a 2D camera *scene node*. In Amulet you don't draw
-directly to a window. Instead you create a *scene* and attach that
-to the window. Amulet then renders the scene to the window each frame.
-A scene is composed of scene nodes. The camera node we create on 
-line 2 is going to be the topmost node of the scene, also know as
-the root node.
-It sets up a viewing area into which other nodes will be drawn.
-The first argument (``400``) is with width of the viewing area and
-the second argument (``300``) is its height. The third argument
-is the position of the center of the viewing area.
-``vec2(0, 0)`` sets the center of the viewing to the point
-where the x and y coordinates are both zero.
-
-On line 3 we create a scene node that renders some text.
-By default text is centered around the origin (i.e. the point where x
-and y are zero).
-
-Line 4 adds the new text node as a *child node* of the camera
-node. This has the effect of drawing the text in the viewing
-area set up by the camera node.
-
-Finally on line 5 we set the camera node as the window's scene.
-This tells the window to render this scene each frame.
-
-Now run the script as before:
-
-..  code-block:: sh
-
-    $ amulet main.lua
-
-This time a small window should appear containing the text "Hello!".
-It should look something like this:
-
-..  figure:: screenshots/hello1.png
-    :alt: 
-
-Notice that the script doesn't immediately terminate as it did
-before. This is because Amulet will continue to run the
-script as long as there is an open window.
-
-Close the window by clicking its close button and the
-script will end.
-
-Let's try changing the camera position. Change line 2 to:
+Add the following line to main.lua after the line that creates
+the window:
 
 ..  code-block:: lua
 
-    local camera = am.camera2d(400, 300, vec2(100, 100))
+    win.scene = am.camera2d(400, 300, vec2(0, 0)) ^ am.text("Hello!")
 
-Now when we run the script we get the following:
+This sets up a scene with two nodes: A 2D camera with a 400x300 view
+centered at (0, 0) and a text node. The text node is a child of the
+camera node.
 
-..  figure:: screenshots/hello2.png
-    :alt: 
+..  figure:: screenshots/hello1.png
 
-The camera is now centered at the point (100, 100).
-This is 100 above and to the right of the text node,
-which is at position (0, 0), so the text node appears
-to the left and below the center of the camera.
-
-..  note::
-
-    By convention the y coordinate increases in the upward direction
-    in Amulet.
-
-Drawing shapes
---------------
-
-
-
-Making things move
+Transform the text
 ------------------
 
-Responding to key presses
+Change the scene setup command to:
+
+..  code-block:: lua
+
+    win.scene = am.camera2d(400, 300, vec2(0, 0))
+        ^ am.translate(vec3(150, 100, 0))
+        ^ am.scale(vec3(2))
+        ^ am.rotate(math.rad(90))
+        ^ am.text("Hello!")
+
+This adds translate, scale and rotate nodes as parents of the text
+node. These nodes transform the position, size and rotation of all their
+children. The translate node moves it to the right 150 and up 100
+(by convention the y axis increases in upward direction). The scale node
+doubles its size and the rotate node rotates it by 90 degrees (math.rad
+converts degrees to radians).
+
+..  figure:: screenshots/hello2.png
+
+Animate!
+--------
+
+If you add the following to the end of main.lua:
+
+..  code-block:: lua
+
+    win.scene:action(function(scene)
+        scene"translate".position = vec3(math.cos(am.frame_time) * 150, math.sin(am.frame_time) * 100, 0)
+        scene"scale".scale = vec3(math.abs(math.sin(am.frame_time * 3)) + 0.5)
+        scene"rotate".angle = am.frame_time * 4
+    end)
+
+the text will appear to bounce around the screen.
+
+This code adds an *action* to the scene, which is a function that
+is run once per frame. This action sets properties of the
+translate, scale and rotate nodes we defined earlier using the
+current frame time, causing them to animate.
+
+Draw some shapes
+----------------
+
+
+
+Make things move
+------------------
+
+Draw images
+-----------
+
+Respond to key presses
 -------------------------
 
-Playing sounds
+Play sounds
 --------------
