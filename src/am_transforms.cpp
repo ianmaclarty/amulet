@@ -133,11 +133,26 @@ void am_rotate_node::render(am_render_state *rstate) {
 
 static int create_rotate_node(lua_State *L) {
     maybe_insert_default_mv(L);
-    am_check_nargs(L, 2);
+    int nargs = am_check_nargs(L, 2);
     am_rotate_node *node = am_new_userdata(L, am_rotate_node);
     node->tags.push_back(L, AM_TAG_ROTATE);
     node->name = am_lookup_param_name(L, 1);
-    node->rotation = am_get_userdata(L, am_quat, 2)->q;
+    switch (am_get_type(L, 2)) {
+        case MT_am_quat:
+            node->rotation = am_get_userdata(L, am_quat, 2)->q;
+            node->angle = glm::angle(node->rotation);
+            node->axis = glm::axis(node->rotation);
+            break;
+        default:
+            node->angle = luaL_checknumber(L, 2);
+            if (nargs > 2) {
+                node->axis = am_get_userdata(L, am_vec3, 3)->v;
+            } else {
+                node->axis = glm::vec3(0.0f, 0.0f, 1.0f);
+            }
+            node->rotation = glm::angleAxis(node->angle, node->axis);
+            break;
+    }
     return 1;
 }
 
@@ -153,6 +168,32 @@ static void set_rotation(lua_State *L, void *obj) {
 
 static am_property rotation_property = {get_rotation, set_rotation};
 
+static void get_angle(lua_State *L, void *obj) {
+    am_rotate_node *node = (am_rotate_node*)obj;
+    lua_pushnumber(L, node->angle);
+}
+
+static void set_angle(lua_State *L, void *obj) {
+    am_rotate_node *node = (am_rotate_node*)obj;
+    node->angle = luaL_checknumber(L, 3);
+    node->rotation = glm::angleAxis(node->angle, node->axis);
+}
+
+static am_property angle_property = {get_angle, set_angle};
+
+static void get_axis(lua_State *L, void *obj) {
+    am_rotate_node *node = (am_rotate_node*)obj;
+    am_new_userdata(L, am_vec3)->v = node->axis;
+}
+
+static void set_axis(lua_State *L, void *obj) {
+    am_rotate_node *node = (am_rotate_node*)obj;
+    node->axis = am_get_userdata(L, am_vec3, 3)->v;
+    node->rotation = glm::angleAxis(node->angle, node->axis);
+}
+
+static am_property axis_property = {get_axis, set_axis};
+
 static void register_rotate_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
@@ -161,6 +202,8 @@ static void register_rotate_node_mt(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
 
     am_register_property(L, "rotation", &rotation_property);
+    am_register_property(L, "angle", &angle_property);
+    am_register_property(L, "axis", &axis_property);
 
     am_register_metatable(L, "rotate", MT_am_rotate_node, MT_am_scene_node);
 }

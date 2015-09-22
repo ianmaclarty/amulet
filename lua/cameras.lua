@@ -11,5 +11,6 @@ function am.camera2d(width, height, pos)
             -pos, 0, 1)
     end
     node.position = pos
+    node:tag"camera2d"
     return node
 end

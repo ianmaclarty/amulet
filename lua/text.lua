@@ -209,6 +209,7 @@ function am.text(font, str, color, halign, valign)
         color = col
         self"bind".color = color
     end
+    node:tag"text"
     return node
 end
 
@@ -235,6 +236,7 @@ function am.sprite(image, halign, valign)
         image = img
         set_sprite_verts(image, verts, uvs, halign, valign)
     end
+    node:tag"sprite"
     return node
 end
 

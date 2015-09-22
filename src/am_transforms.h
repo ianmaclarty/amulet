@@ -13,6 +13,8 @@ struct am_scale_node : am_scene_node {
 struct am_rotate_node : am_scene_node {
     am_param_name_id name;
     glm::quat rotation;
+    float angle;
+    glm::vec3 axis;
     virtual void render(am_render_state *rstate);
 };
 
