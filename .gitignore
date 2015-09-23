@@ -38,7 +38,6 @@ deps/SDL2-2.0.3/sdl2-config
 deps/SDL2-2.0.3/sdl2.pc
 deps/SDL2-2.0.3/build/*
 deps/SDL2-2.0.3/include/SDL_config.h
-deps/SDL2-2.0.3/include/SDL_revision.h
 
 deps/lua-*/src/lua
 deps/lua-*/src/luac
