@@ -13,8 +13,8 @@ before_install:
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -y libc6-dev-i386 g++-multilib; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -y libx11-6:i386; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -y libasound2:i386; fi
-    #- if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz; fi
-    #- if [ "$TRAVIS_OS_NAME" = "linux" ]; then tar xzf emsdk-portable.tar.gz; fi
-    #- if [ "$TRAVIS_OS_NAME" = "linux" ]; then cd emsdk_portable && ./emsdk update && ./emsdk install latest && ./emsdk activate latest && source ./emsdk_env.sh ; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then tar xzf emsdk-portable.tar.gz; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cd emsdk_portable && ./emsdk update && ./emsdk install latest && ./emsdk activate latest && source ./emsdk_env.sh ; fi
 
 script: ./travis-build.sh
