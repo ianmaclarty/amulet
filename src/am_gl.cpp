@@ -37,7 +37,7 @@
 #include "GLSLANG/ShaderLang.h"
 #endif
 
-#ifdef AM_WIN32
+#ifdef AM_MSVC
 #define __func__ "unknown"
 #endif
 

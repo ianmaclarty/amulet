@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 win32 osx ios android html
+TARGET_PLATFORMS = linux32 linux64 msvc osx ios android html mingw32 mingw64
 
 DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
 RELEASE_TARGETS = $(patsubst %,%.release,$(TARGET_PLATFORMS))
@@ -31,7 +31,7 @@ PATH_SEP = :
 
 UNAME := $(shell uname)
 ifneq (,$(findstring W32,$(UNAME)))
-  HOST_PLATFORM = win32
+  HOST_PLATFORM = msvc
   PATH_SEP = ;
 else ifneq (,$(findstring Linux,$(UNAME)))
   UNAME_A := $(shell uname -a)
@@ -184,7 +184,7 @@ else ifeq ($(TARGET_PLATFORM),html)
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
   EXE_OUT_OPT = -o$(SPACE)
   OBJ_OUT_OPT = -o$(SPACE)
-else ifeq ($(TARGET_PLATFORM),win32)
+else ifeq ($(TARGET_PLATFORM),msvc)
   VC_CL = cl.exe
   VC_CL_PATH = $(shell which $(VC_CL))
   VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")
@@ -207,6 +207,14 @@ else ifeq ($(TARGET_PLATFORM),win32)
 	-NODEFAULTLIB:msvcrt.lib \
 	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc -fp:fast
+else ifeq ($(TARGET_PLATFORM),mingw32)
+  EXE_EXT = .exe
+  CC = i686-w64-mingw32-gcc
+  CPP = i686-w64-mingw32-g++
+  LINK = $(CPP)
+  LUA_TARGET = generic
+  AR = i686-w64-mingw32-ar
+  XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib
 else
   LUA_CFLAGS += -DLUA_USE_POSIX
 endif
@@ -217,7 +225,7 @@ ifeq ($(GRADE),debug)
     GRADE_CFLAGS = -O1
     GRADE_LDFLAGS =
     LUA_CFLAGS += -DLUA_USE_APICHECK
-  else ifeq ($(TARGET_PLATFORM),win32)
+  else ifeq ($(TARGET_PLATFORM),msvc)
     GRADE_CFLAGS = -MTd -Zi
     GRADE_LDFLAGS = -DEBUG
     LUA_CFLAGS += -DLUA_USE_APICHECK
@@ -234,7 +242,7 @@ else
     #EM_PROFILING = --profiling
     GRADE_CFLAGS = -O3 $(EM_PROFILING) -DNDEBUG
     GRADE_LDFLAGS = -O3 $(EM_PROFILING) 
-  else ifeq ($(TARGET_PLATFORM),win32)
+  else ifeq ($(TARGET_PLATFORM),msvc)
     GRADE_CFLAGS = -Ox -DNDEBUG
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),osx)

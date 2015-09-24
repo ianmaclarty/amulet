@@ -1,7 +1,13 @@
 #if defined(AM_LINUX32) || defined(AM_LINUX64)
     #define AM_LINUX
 #endif
-#if defined(AM_WIN32) || defined(AM_OSX) || defined(AM_LINUX) || defined(AM_ANDROID)
+#if defined(AM_MINGW32) || defined(AM_MINGW64)
+    #define AM_MINGW
+#endif
+#if defined(AM_MINGW) || defined(AM_MSVC32)
+    #define AM_WINDOWS
+#endif
+#if defined(AM_WINDOWS) || defined(AM_OSX) || defined(AM_LINUX) || defined(AM_ANDROID)
     #define AM_BACKEND_SDL
 #elif defined(AM_IOS)
     #define AM_BACKEND_IOS
@@ -13,13 +19,13 @@
 #endif
 #if defined(AM_OSX) || defined(AM_LINUX)
     #define AM_GLPROFILE_DESKTOP 1
-#elif defined(AM_WIN32) || defined(AM_ANDROID) || defined(AM_IOS) || defined(AM_HTML)
+#elif defined(AM_WINDOWS) || defined(AM_ANDROID) || defined(AM_IOS) || defined(AM_HTML)
     #define AM_GLPROFILE_ES 1
 #else
     #error unsupported target
 #endif
 
-#if defined(AM_GLPROFILE_ES) && defined(AM_WIN32)
+#if defined(AM_GLPROFILE_ES) && defined(AM_WINDOWS)
 #define AM_NEED_GLES2_FUNC_PTRS
 #endif
 
@@ -32,7 +38,7 @@
 #endif
 
 
-#ifdef AM_WIN32
+#ifdef AM_WINDOWS
 #include <windows.h>
 #endif
 

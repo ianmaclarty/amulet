@@ -485,7 +485,7 @@ static void init_sdl() {
     init_gamepad();
     init_audio();
     sdl_initialized = true;
-#if defined(AM_WIN32) && defined(AM_GLPROFILE_ES)
+#if defined(AM_WINDOWS) && defined(AM_GLPROFILE_ES)
     if (!SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "d3dcompiler_47.dll")) {
         am_abort("unable to set SDL_HINT_VIDEO_WIN_D3DCOMPILER");
     }

@@ -8,7 +8,7 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 
 #define am_is_power_of_two(n) ((((n)-1) & (n)) == 0)
 
-#ifdef AM_WIN32
+#ifdef AM_WINDOWS
 #define AM_PATH_SEP '\\'
 #else
 #define AM_PATH_SEP '/'
@@ -28,7 +28,7 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #define AM_STR_(a) #a
 #define AM_STR(a) AM_STR_(a)
 
-#ifndef AM_WIN32 
+#ifndef AM_MSVC
 #define ct_assert(e) enum { AM_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
 #define ct_check_array_size(arr, sz) ct_assert(sizeof(arr) == sz * sizeof(arr[0]))
 #else
@@ -36,7 +36,7 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #define ct_check_array_size(arr, sz)
 #endif
 
-#ifndef AM_WIN32
+#ifndef AM_MSVC
 #define AM_RESTRICT __restrict__
 #else
 #define AM_RESTRICT __restrict

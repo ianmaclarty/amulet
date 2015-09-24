@@ -31,9 +31,12 @@ ifeq ($(TARGET_PLATFORM),html)
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifeq ($(TARGET_PLATFORM),ios)
   AM_DEPS = $(LUAVM) ft2 stb kissfft
-else ifeq ($(TARGET_PLATFORM),win32)
+else ifeq ($(TARGET_PLATFORM),msvc)
   AM_DEPS = $(LUAVM) ft2 stb kissfft
-  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(LIBTURBOJPEG_WIN_PREBUILT)
+  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
+else ifeq ($(TARGET_PLATFORM),mingw32)
+  AM_DEPS = $(LUAVM) ft2 stb kissfft
+  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
 else
   AM_DEPS = $(LUAVM) sdl angle ft2 stb kissfft
   AM_DEFS += AM_USE_ANGLE
@@ -98,7 +101,7 @@ $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | 
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): src/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" && $(MAKE) clean && $(MAKE)
+	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE)
 	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
 	cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@
 
