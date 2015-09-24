@@ -115,6 +115,13 @@
 #endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
+#undef __WINDOWS__
+#define __WINDOWS__   1
+#endif
+
+
+#if 0
+#if defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
 /* Try to find out if we're compiling for WinRT or non-WinRT */
 /* If _USING_V110_SDK71_ is defined it means we are using the v110_xp or v120_xp toolset. */
 #if (defined(_MSC_VER) && (_MSC_VER >= 1700) && !_USING_V110_SDK71_)	/* _MSC_VER==1700 for MSVC 2012 */
@@ -132,6 +139,7 @@
 #define __WINDOWS__   1
 #endif /* _MSC_VER < 1700 */
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) */
+#endif
 
 #if defined(__WINDOWS__)
 #undef __WIN32__
