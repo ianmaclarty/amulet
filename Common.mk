@@ -106,10 +106,16 @@ ALIB_EXT = .a
 OBJ_EXT = .o
 DEF_OPT = -D
 INCLUDE_OPT = -I
+ifndef CC
 CC = gcc
-HOSTCC = gcc
+endif
+HOSTCC = $(CC)
+ifdef CXX
+CPP = $(CXX)
+else
 CPP = g++
-LINK = g++
+endif
+LINK = $(CPP)
 AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
@@ -171,8 +177,6 @@ else ifeq ($(TARGET_PLATFORM),ios)
 	     -Wl,-framework,GLKit \
 	     $(TARGET_CFLAGS)
   LUA_CFLAGS += -DLUA_USE_POSIX
-  IPHONEOS_DEPLOYMENT_TARGET=5.0
-  export IPHONEOS_DEPLOYMENT_TARGET
 else ifeq ($(TARGET_PLATFORM),html)
   CC = emcc
   CPP = em++
