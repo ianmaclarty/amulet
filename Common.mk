@@ -106,16 +106,10 @@ ALIB_EXT = .a
 OBJ_EXT = .o
 DEF_OPT = -D
 INCLUDE_OPT = -I
-ifndef CC
 CC = gcc
-endif
-HOSTCC := $(CC)
-ifdef CXX
-CPP = $(CXX)
-else
+HOSTCC = gcc
 CPP = g++
-endif
-LINK = $(CPP)
+LINK = g++
 AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
@@ -219,7 +213,11 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   LUA_TARGET = generic
   AR = i686-w64-mingw32-ar
   XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib
-else
+else ifeq ($(TARGET_PLATFORM),linux32)
+  TARGET_CFLAGS += -m32
+  LDFLAGS += -m32
+  LUA_CFLAGS += -DLUA_USE_POSIX
+else ifeq ($(TARGET_PLATFORM),linux64)
   LUA_CFLAGS += -DLUA_USE_POSIX
 endif
 
