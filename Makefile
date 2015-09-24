@@ -210,9 +210,6 @@ doc: $(AMULET)
 
 # Tests
 
-TIMEPROG = /usr/bin/time
-TIMEFORMAT = "[%es %Mk]"
-
 LUA_TESTS = $(patsubst tests/test_%.lua,test_%,$(wildcard tests/test_*.lua))
 
 .PHONY: test
@@ -227,14 +224,19 @@ run_lua_tests: $(AMULET)
 	    fexp2=tests/$$t.exp2; \
 	    fout=tests/$$t.out; \
 	    fres=tests/$$t.res; \
-	    ftime=tests/$$t.time; \
-	    $(AMULET) $$flua > $$fout 2>&1 ; \
-	    if ( diff -u $$fexp $$fout > $$fres ) || ( [ -e $$fexp2 ] && ( diff -u $$fexp2 $$fout > $$fres ) ); then \
-		res="  pass  "; \
+	    haswindow=`grep "am\.window" $$flua`; \
+	    if [ -n "$(TRAVIS)" -a -n "$$haswindow" ]; then \
+		printf "%-30s%s       %s\n" "$$t" "skipped"; \
 	    else \
-		res="**FAIL**"; \
+		$(AMULET) $$flua > $$fout 2>&1 ; \
+		if ( diff -u $$fexp $$fout > $$fres ) || ( [ -e $$fexp2 ] && ( diff -u $$fexp2 $$fout > $$fres ) ); then \
+		    printf "%-30s%s       %s\n" "$$t" "pass"; \
+		else \
+		    cat $$fres;	\
+		    echo "$$t **FAIL**"; \
+		    exit 1;		\
+		fi; \
 	    fi; \
-	    printf "%-30s%s       %s\n" "$$t" "$$res"; \
 	done
 	@echo DONE
 
@@ -242,8 +244,6 @@ clean-tests:
 	rm -f tests/*.out
 	rm -f tests/*.res
 	rm -f tests/*.err
-	rm -f tests/*.time
-	rm -f $(patsubst %,tests/%$(EXE_EXT),$(CPP_TESTS))
 
 # Avoid setting options or variables in submakes,
 # because setting TARGET messes up the SDL build.
