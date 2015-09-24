@@ -5,6 +5,6 @@ os:
     - linux
 
 before_install:
-    - ./travis/install.sh
+    - sudo ./travis/install.sh
 
 script: ./travis/build.sh
