@@ -109,7 +109,7 @@ INCLUDE_OPT = -I
 ifndef CC
 CC = gcc
 endif
-HOSTCC = $(CC)
+HOSTCC := $(CC)
 ifdef CXX
 CPP = $(CXX)
 else
