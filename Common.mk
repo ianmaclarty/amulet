@@ -213,6 +213,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   LUA_TARGET = generic
   AR = i686-w64-mingw32-ar
   XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib
+  XCFLAGS = -Wall -Werror -fno-strict-aliasing
 else ifeq ($(TARGET_PLATFORM),linux32)
   TARGET_CFLAGS += -m32
   LDFLAGS += -m32
