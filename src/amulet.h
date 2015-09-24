@@ -25,8 +25,8 @@
     #error unsupported target
 #endif
 
-#if defined(AM_GLPROFILE_ES) && defined(AM_WINDOWS)
-#define AM_NEED_GLES2_FUNC_PTRS
+#if defined(AM_GLPROFILE_ES) && defined(AM_WINDOWS) || defined(AM_LINUX)
+#define AM_NEED_GL_FUNC_PTRS
 #endif
 
 #if (UINTPTR_MAX == UINT64_MAX)

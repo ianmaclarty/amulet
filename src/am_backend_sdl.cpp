@@ -12,14 +12,18 @@
 #define MIN_UPDATE_TIME (1.0/400.0)
 
 // Create variables for OpenGL ES 2 functions
-#ifdef AM_NEED_GLES2_FUNC_PTRS
+#ifdef AM_NEED_GL_FUNC_PTRS
+#if defined(AM_GLPROFILE_ES)
 #include <SDL_opengles2.h>
+#else
+#include <SDL_opengl.h>
+#endif
 #define AM_GLPROC(ret,func,params) \
     typedef ret (APIENTRY *func##_ptr_t) params; \
     extern ret (APIENTRY *func##_ptr) params;
-#include "am_gles2funcs.h"
+#include "am_glfuncs.h"
 #undef AM_GLPROC
-static void init_gles2_func_ptrs();
+static void init_gl_func_ptrs();
 #endif
 
 enum axis_button {
@@ -155,8 +159,8 @@ am_native_window *am_create_native_window(
     }
     if (!gl_context_initialized) {
         gl_context = SDL_GL_CreateContext(win);
-#ifdef AM_NEED_GLES2_FUNC_PTRS
-        init_gles2_func_ptrs();
+#ifdef AM_NEED_GL_FUNC_PTRS
+        init_gl_func_ptrs();
 #endif
         gl_context_initialized = true;
     }
@@ -492,16 +496,16 @@ static void init_sdl() {
 #endif
 }
 
-#ifdef AM_NEED_GLES2_FUNC_PTRS
-static void init_gles2_func_ptrs() {
+#ifdef AM_NEED_GL_FUNC_PTRS
+static void init_gl_func_ptrs() {
 #define AM_GLPROC(ret,func,params) \
     do { \
         func##_ptr = (func##_ptr_t)SDL_GL_GetProcAddress(#func); \
         if ( ! func##_ptr ) { \
-            am_abort("Couldn't load GLES2 function %s: %s", #func, SDL_GetError()); \
+            am_abort("Couldn't load GL function %s: %s", #func, SDL_GetError()); \
         } \
     } while ( 0 );
-#include "am_gles2funcs.h"
+#include "am_glfuncs.h"
 #undef AM_GLPROC
 }
 #endif

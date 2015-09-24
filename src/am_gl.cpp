@@ -21,13 +21,13 @@
     #error unknown backend
 #endif
 
-#ifdef AM_NEED_GLES2_FUNC_PTRS
+#ifdef AM_NEED_GL_FUNC_PTRS
 #define AM_GLPROC(ret,func,params) ret (APIENTRY *func##_ptr) params = NULL;
-#include "am_gles2funcs.h"
+#include "am_glfuncs.h"
 #undef AM_GLPROC
 #endif
 
-#ifdef AM_NEED_GLES2_FUNC_PTRS
+#ifdef AM_NEED_GL_FUNC_PTRS
 #define GLFUNC(func) func##_ptr
 #else
 #define GLFUNC(func) func
@@ -95,8 +95,8 @@ void am_init_gl() {
     // need to explicitly enable point sprites on desktop gl
     // (they are always enabled in opengle)
 #if defined(AM_GLPROFILE_DESKTOP)
-    glEnable(GL_POINT_SPRITE);
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    GLFUNC(glEnable)(GL_POINT_SPRITE);
+    GLFUNC(glEnable)(GL_VERTEX_PROGRAM_POINT_SIZE);
 #endif
 }
 
