@@ -64,11 +64,6 @@ extern "C" {
 }
 
 extern "C" {
-#include "ft2build.h"
-#include FT_FREETYPE_H
-}
-
-extern "C" {
 #define STB_VORBIS_NO_STDIO 1
 #include "stb_image.h"
 #include "stb_vorbis.h"
@@ -112,7 +107,6 @@ extern "C" {
 #include "am_culling.h"
 #include "am_blending.h"
 #include "am_image.h"
-#include "am_text.h"
 #include "am_model.h"
 #include "am_engine.h"
 #include "am_json.h"

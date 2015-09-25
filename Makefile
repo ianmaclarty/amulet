@@ -27,18 +27,18 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 EXTRA_PREREQS = 
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = $(LUAVM) ft2 stb kissfft
+  AM_DEPS = $(LUAVM) stb kissfft
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifeq ($(TARGET_PLATFORM),ios)
-  AM_DEPS = $(LUAVM) ft2 stb kissfft
+  AM_DEPS = $(LUAVM) stb kissfft
 else ifeq ($(TARGET_PLATFORM),msvc)
-  AM_DEPS = $(LUAVM) ft2 stb kissfft
+  AM_DEPS = $(LUAVM) stb kissfft
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
 else ifeq ($(TARGET_PLATFORM),mingw32)
-  AM_DEPS = $(LUAVM) ft2 stb kissfft
+  AM_DEPS = $(LUAVM) stb kissfft
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
 else
-  AM_DEPS = $(LUAVM) sdl angle ft2 stb kissfft
+  AM_DEPS = $(LUAVM) sdl angle stb kissfft
   AM_DEFS += AM_USE_ANGLE
 endif
 
@@ -183,8 +183,8 @@ $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 
 # Font generation tool
 
-tools/ampack$(EXE_EXT): tools/ampack.c
-	$(CC) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT)$@ $< $(BUILD_LIB_DIR)/libft2$(ALIB_EXT) $(XLDFLAGS)
+tools/ampack$(EXE_EXT): tools/ampack.c $(FT2_ALIB)
+	$(CC) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT)$@ $< $(FT2_ALIB) $(XLDFLAGS)
 	ln -fs $@ `basename $@`
 
 # Cleanup
