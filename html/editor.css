@@ -28,7 +28,7 @@ div {
     padding: 7px 10px 3px 10px;
 }
 
-#top-panel a {
+#top-panel a.button {
     color: #fff;
     font-size: 16px;
     padding: 2px 10px 2px 10px;
@@ -44,7 +44,7 @@ div {
 }
 
 #top-panel .title {
-    color: #21eddc;
+    color: #ff00ff;
     font-size: 20px;
     text-decoration: underline;
     margin-right: 20px;
@@ -143,6 +143,18 @@ div {
 
 #output-panel .running {
     color: #21eddc;
+}
+
+#output-panel .error {
+    color: #ff1111;
+}
+
+#output-panel .success {
+    color: #11ff11;
+}
+
+#output-panel a {
+    color: #44aaff;
 }
 
 #output-panel a.error-link {

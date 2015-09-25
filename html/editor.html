@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Amulet</title>
+    <title>Amulet Editor</title>
     <link rel="stylesheet" href="codemirror-4.9.css">
     <link rel="stylesheet" href="editor.css">
     <style type="text/css">
@@ -11,9 +11,10 @@
   </head>
   <body>
     <div id="top-panel">
-        <span class="title">Amulet</span>
-        <a id="run">Run</a>
-        <a id="pause-resume">Pause</a>
+        <a href="http://amulet.xyz" class="title">Amulet</a>
+        <a id="run" class="button">Run</a>
+        <a id="pause-resume" class="button">Pause</a>
+        <a id="share" class="button">Share</a>
     </div>
     <div id="left-panel">
         <div id="editor-panel">
@@ -41,6 +42,12 @@ var editor;
 var is_paused = false;
 var was_error = false;
 
+function qualifyURL(url) {
+    var a = document.createElement('a');
+    a.href = url;
+    return a.href;
+}
+
 function init_controls() {
     $("#run").click(function() {
         var code = editor.getDoc().getValue();
@@ -57,12 +64,35 @@ function init_controls() {
         var win = document.getElementById("player-frame").contentWindow;
         if (is_paused) {
             win.postMessage({resume: true}, "*");
+            log_output("Resumed...", "running");
             $("#pause-resume").text("Pause");
         } else {
             win.postMessage({pause: true}, "*");
             $("#pause-resume").text("Resume");
+            log_output("Paused.", "running");
         }
         is_paused = !is_paused;
+    });
+    $("#share").click(function() {
+        var code = editor.getDoc().getValue();
+        var req = {
+            description: "amulet share",
+            "public": true,
+            files: {"main.lua": {content: code}}
+        };
+        $.post("https://api.github.com/gists", JSON.stringify(req), function(resp) {
+            console.log(resp);
+            var res = JSON.parse(resp);
+            var id = res.id;
+            console.log("id = " + id);
+            var playurl = qualifyURL("standalone.html?gist="+id);
+            var editurl = qualifyURL("editor.html?gist="+id);
+            log_output("Share successful!", "success", true);
+            log_output("Play at: <a href=\"" + playurl + "\">" + playurl + "</a>", null, true);
+            log_output("Edit at: <a href=\"" + editurl + "\">" + editurl + "</a>", null, true);
+        }, "text").fail(function() {
+            log_output("Share failed :(", "error");
+        });
     });
 }
 
@@ -243,14 +273,16 @@ function highlight_error(line) {
 
 var max_output_items = 100;
 var output_items = [];
-function log_output(text, cls) {
+function log_output(text, cls, raw) {
     var panel = document.getElementById("output-panel");
 
-    text = text.replace(/&/g, "&amp;");
-    text = text.replace(/</g, "&lt;");
-    text = text.replace(/>/g, "&gt;");
-    text = text.replace('\n', '<br>', 'g');
-    text = text.replace(/(main\.lua):([0-9]+)/g, '<a class="error-link" onclick="window.highlight_error($2); return false;">$1:$2</a>');
+    if (!raw) {
+        text = text.replace(/&/g, "&amp;");
+        text = text.replace(/</g, "&lt;");
+        text = text.replace(/>/g, "&gt;");
+        text = text.replace('\n', '<br>', 'g');
+        text = text.replace(/(main\.lua):([0-9]+)/g, '<a class="error-link" onclick="window.highlight_error($2); return false;">$1:$2</a>');
+    }
     if (!cls) cls = "";
     output_items.push('<div class="output-item ' + cls + '">' + text + '</div>');
 
