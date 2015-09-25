@@ -198,7 +198,7 @@ am_shader_id load_shader(lua_State *L, am_shader_type type, const char *src) {
         if (line_str != NULL && line_no > 0) {
             const char *nl = "";
             if (strlen(msg) > 0 && msg[strlen(msg)-1] != '\n') nl = "\n";
-            lua_pushfstring(L, "%s shader compilation error:\n%s%sline %d:[[%s]]", type_str, msg, nl, line_no, line_str);
+            lua_pushfstring(L, "%s shader compilation error:\n%s%sline %d:%s", type_str, msg, nl, line_no, line_str);
             free((void*)line_str);
         } else {
             lua_pushfstring(L, "%s shader compilation error:\n%s", type_str, msg);

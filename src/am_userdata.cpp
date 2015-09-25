@@ -89,10 +89,6 @@ static void ensure_mt_parent_initialized() {
 
 void am_register_metatable(lua_State *L, const char *tname, int metatable_id, int parent_mt_id) {
     ensure_mt_parent_initialized();
-    if (mt_parent[metatable_id] != 0) {
-        // already initialized (could be a worker thread)
-        return;
-    }
     int mt_idx = am_absindex(L, -1);
 
     lua_pushinteger(L, metatable_id);

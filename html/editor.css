@@ -37,6 +37,12 @@ div {
     background-color: #17a499;
 }
 
+#top-panel a.disabled {
+    background-color: #888;
+    color: #4e4e4e;
+    cursor: default;
+}
+
 #top-panel .title {
     color: #21eddc;
     font-size: 20px;
@@ -100,7 +106,7 @@ div {
     bottom: 7px;
 }
 
-#canvas-panel {
+#player-panel {
     position: absolute;
     top: 0;
     bottom: 207px;
@@ -108,6 +114,12 @@ div {
     background-color: #111;
     overflow-x: hidden;
     overflow-y: hidden;
+}
+
+#player-frame {
+    border: 0;
+    width: 100%;
+    height: 100%;
 }
 
 #output-panel {

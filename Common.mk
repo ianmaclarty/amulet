@@ -125,7 +125,7 @@ NOLINK_OPT = -c
 
 EMSCRIPTEN_LIBS = src/library_sdl.js
 EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
-EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_resize']"
+EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_pause', '_am_emscripten_resume', '_am_emscripten_resize']"
 
 TARGET_CFLAGS=-ffast-math
 

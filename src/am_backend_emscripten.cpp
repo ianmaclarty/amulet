@@ -113,23 +113,32 @@ static double fps_max;
 static double delta_time = 1.0/60.0;
 static long long frame_count = 0;
 static bool run_loop = true;
+static bool was_error = false;
+static bool printed_error = false;
 
 double am_get_current_time() {
     return ((double)SDL_GetTicks())/1000.0;
 }
 
 static void main_loop() {
+    if (was_error) {
+        if (!printed_error) {
+            am_log0("%s", "ERROR");
+            printed_error = true;
+        }
+        return;
+    }
     if (!run_loop || sdl_window == NULL) return;
 
     if (!am_update_windows(eng->L)) {
-        run_loop = false;
+        was_error = true;
         return;
     }
 
     am_sync_audio_graph(eng->L);
 
     if (!handle_events()) {
-        run_loop = false;
+        was_error = true;
         return;
     }
 
@@ -140,14 +149,14 @@ static void main_loop() {
     if (am_conf_fixed_delta_time > 0.0) {
         while (t_debt > 0.0) {
             if (!am_execute_actions(eng->L, am_conf_fixed_delta_time)) {
-                run_loop = false;
+                was_error = true;
                 return;
             }
             t_debt -= am_conf_fixed_delta_time;
         }
     } else {
         if (!am_execute_actions(eng->L, t_debt)) {
-            run_loop = false;
+            was_error = true;
             return;
         }
         t_debt = 0.0;
@@ -216,7 +225,7 @@ static void update_mouse_state(lua_State *L) {
     am_find_window((am_native_window*)sdl_window)->push(L);
     lua_pushnumber(L, norm_x);
     lua_pushnumber(L, norm_y);
-    run_loop = am_call_amulet(L, "_mouse_move", 3, 0);
+    was_error = !am_call_amulet(L, "_mouse_move", 3, 0);
 }
 
 static bool handle_events() {
@@ -239,7 +248,7 @@ static bool handle_events() {
                         am_key key = convert_key(event.key.keysym.sym);
                         am_find_window((am_native_window*)sdl_window)->push(eng->L);
                         lua_pushstring(eng->L, am_key_name(key));
-                        run_loop = am_call_amulet(eng->L, "_key_down", 2, 0);
+                        was_error = !am_call_amulet(eng->L, "_key_down", 2, 0);
                     }
                 }
                 break;
@@ -249,7 +258,7 @@ static bool handle_events() {
                     am_key key = convert_key(event.key.keysym.sym);
                     am_find_window((am_native_window*)sdl_window)->push(eng->L);
                     lua_pushstring(eng->L, am_key_name(key));
-                    run_loop = am_call_amulet(eng->L, "_key_up", 2, 0);
+                    was_error = !am_call_amulet(eng->L, "_key_up", 2, 0);
                 }
                 break;
             }
@@ -262,7 +271,7 @@ static bool handle_events() {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
                     am_find_window((am_native_window*)sdl_window)->push(eng->L);
                     lua_pushstring(eng->L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    run_loop = am_call_amulet(eng->L, "_mouse_down", 2, 0);
+                    was_error = !am_call_amulet(eng->L, "_mouse_down", 2, 0);
                 }
                 break;
             }
@@ -270,7 +279,7 @@ static bool handle_events() {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
                     am_find_window((am_native_window*)sdl_window)->push(eng->L);
                     lua_pushstring(eng->L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    run_loop = am_call_amulet(eng->L, "_mouse_up", 2, 0);
+                    was_error = !am_call_amulet(eng->L, "_mouse_up", 2, 0);
                 }
                 break;
             }
@@ -483,11 +492,21 @@ extern "C" {
 void am_emscripten_run(const char *script) {
     am_destroy_engine(eng);
     eng = am_init_engine(false, 0, NULL);
+    printed_error = false;
     if (am_run_script(eng->L, script, "main.lua")) {
         run_loop = true;
+        was_error = false;
     } else {
-        run_loop = false;
+        was_error = true;
     }
+}
+
+void am_emscripten_pause() {
+    run_loop = false;
+}
+
+void am_emscripten_resume() {
+    run_loop = true;
 }
 
 void am_emscripten_resize(int w, int h) {

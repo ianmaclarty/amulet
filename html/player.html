@@ -176,11 +176,29 @@ function set_visibility_handler() {
     }
     document.addEventListener(visibilityChange, function(event) {
         window.amulet.window_hidden = document[hidden] ? 1 : 0;
-        console.log("hidden = " + window.amulet.window_hidden);
+        //console.log("hidden = " + window.amulet.window_hidden);
     }, false);
     window.amulet.window_hidden = 0;
 }
 set_visibility_handler();
+
+var msg_source = null;
+var msg_origin = null;
+function set_message_handler() {
+    window.addEventListener("message", function(event) {
+        var cmd = event.data;
+        if (cmd.run) {
+            msg_source = event.source;
+            msg_origin = event.origin;
+            Module.ccall('am_emscripten_run', null, ['string'], [cmd.run]);
+        } else if (cmd.pause) {
+            Module.ccall('am_emscripten_pause', null, [], []);
+        } else if (cmd.resume) {
+            Module.ccall('am_emscripten_resume', null, [], []);
+        }
+    }, false);
+}
+set_message_handler();
 
 //------------------------------------------------------------------------
 
@@ -189,10 +207,16 @@ var Module = {
   postRun: [],
   print: function(text) {
       console.log(text);
+      if (msg_source) {
+        msg_source.postMessage(text, msg_origin);
+      }
   },
   printErr: function(text) {
     text = Array.prototype.slice.call(arguments).join(' ');
     console.error(text);
+    if (msg_source) {
+      msg_source.postMessage(text, msg_origin);
+    }
   },
   canvas: document.getElementById("canvas"),
   keyboardListeningElement: document,
