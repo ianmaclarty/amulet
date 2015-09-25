@@ -78,7 +78,7 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
         x = 0
     end
     if valign == "center" then
-        y = (h - font.line_height) / 2
+        y = h / 2 - font.line_height
     elseif valign == "bottom" then
         y = h - font.line_height
     else
@@ -155,15 +155,16 @@ end
 
 function am.text(font, str, color, halign, valign)
     if type(font) == "string" then
-        str, color, halign, valign = font, str, halign, color
+        str, color, halign, valign = font, str, color, halign
         font = am.default_font.default16
     end
-    if type(color) ~= "userdata" then
+    if type(color) == "string" then
         halign, valign = color, halign
         color = vec4(1)
     end
     halign = halign or "center"
     valign = valign or "center"
+    color = color or vec4(1)
     if not font.is_font then
         error("expecting a font in position 1", 2)
     end

@@ -28,13 +28,44 @@ div {
     padding: 7px 10px 3px 10px;
 }
 
-#top-panel a.button {
+#top-panel .title {
+    color: #ff00ff;
+    font-size: 20px;
+    text-decoration: underline;
+    margin-right: 20px;
+    float: left;
+}
+
+#top-panel div.button {
     color: #fff;
-    font-size: 16px;
-    padding: 2px 10px 2px 10px;
+    font-size: 14px;
+    padding: 3px 5px 3px 5px;
     cursor: pointer;
     font-weight: bold;
     background-color: #17a499;
+    height: 20px;
+    margin-right: 5px;
+    float: left;
+    height: 26px;
+}
+
+#top-panel .button input {
+    width: 100px;
+    background-color: #038378;
+    border: none;
+    font-size: 12px;
+    color: #fff;
+    padding: 2px 3px 2px 3px;
+    height: 16px;
+}
+
+#top-panel .button select {
+    width: 120px;
+    background-color: #038378;
+    border: none;
+    font-size: 12px;
+    color: #fff;
+    padding: 2px 3px 2px 3px;
 }
 
 #top-panel a.disabled {
@@ -43,11 +74,11 @@ div {
     cursor: default;
 }
 
-#top-panel .title {
-    color: #ff00ff;
-    font-size: 20px;
-    text-decoration: underline;
-    margin-right: 20px;
+#top-panel div.separator {
+    width: 20px;
+    height: 26px;
+    background-color: none;
+    float: left;
 }
 
 #left-panel {

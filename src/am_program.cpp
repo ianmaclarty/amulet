@@ -551,58 +551,59 @@ static void set_bind_node_value(lua_State *L, void *obj) {
             node->refs[index] = node->ref(L, 3);
             break;
         default:
-            luaL_error(L, "invalid bind value of type %s", am_get_typename(L, am_get_type(L, 3)));
+            luaL_error(L, "invalid bind value for %s (%s)", lua_tostring(L, 2), am_get_typename(L, am_get_type(L, 3)));
     }
 }
 
 static am_property bind_node_value_property =
     {get_bind_node_value, set_bind_node_value};
 
-static void set_param_value(lua_State *L, am_program_param_value *param, int idx, int *ref, am_scene_node *node) {
-    idx = am_absindex(L, idx);
+static void set_param_value(lua_State *L, am_program_param_value *param, int val_idx, int name_idx, int *ref, am_scene_node *node) {
+    val_idx = am_absindex(L, val_idx);
+    name_idx = am_absindex(L, name_idx);
     *ref = LUA_NOREF;
-    switch (am_get_type(L, idx)) {
+    switch (am_get_type(L, val_idx)) {
         case LUA_TNUMBER:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_1F;
-            param->value.f = lua_tonumber(L, idx);
+            param->value.f = lua_tonumber(L, val_idx);
             break;
         case MT_am_vec2:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_2F;
-            memcpy(&param->value.v2[0], glm::value_ptr(am_get_userdata(L, am_vec2, idx)->v), 2 * sizeof(float));
+            memcpy(&param->value.v2[0], glm::value_ptr(am_get_userdata(L, am_vec2, val_idx)->v), 2 * sizeof(float));
             break;
         case MT_am_vec3:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_3F;
-            memcpy(&param->value.v3[0], glm::value_ptr(am_get_userdata(L, am_vec3, idx)->v), 3 * sizeof(float));
+            memcpy(&param->value.v3[0], glm::value_ptr(am_get_userdata(L, am_vec3, val_idx)->v), 3 * sizeof(float));
             break;
         case MT_am_vec4:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_4F;
-            memcpy(&param->value.v4[0], glm::value_ptr(am_get_userdata(L, am_vec4, idx)->v), 4 * sizeof(float));
+            memcpy(&param->value.v4[0], glm::value_ptr(am_get_userdata(L, am_vec4, val_idx)->v), 4 * sizeof(float));
             break;
         case MT_am_mat2:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2;
-            memcpy(&param->value.m2[0], glm::value_ptr(am_get_userdata(L, am_mat2, idx)->m), 4 * sizeof(float));
+            memcpy(&param->value.m2[0], glm::value_ptr(am_get_userdata(L, am_mat2, val_idx)->m), 4 * sizeof(float));
             break;
         case MT_am_mat3:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3;
-            memcpy(&param->value.m3[0], glm::value_ptr(am_get_userdata(L, am_mat3, idx)->m), 9 * sizeof(float));
+            memcpy(&param->value.m3[0], glm::value_ptr(am_get_userdata(L, am_mat3, val_idx)->m), 9 * sizeof(float));
             break;
         case MT_am_mat4:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4;
-            memcpy(&param->value.m4[0], glm::value_ptr(am_get_userdata(L, am_mat4, idx)->m), 16 * sizeof(float));
+            memcpy(&param->value.m4[0], glm::value_ptr(am_get_userdata(L, am_mat4, val_idx)->m), 16 * sizeof(float));
             break;
         case MT_am_buffer_view:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY;
-            param->value.arr = am_get_userdata(L, am_buffer_view, idx);
-            *ref = node->ref(L, idx);
+            param->value.arr = am_get_userdata(L, am_buffer_view, val_idx);
+            *ref = node->ref(L, val_idx);
             break;
         case MT_am_texture2d:
             param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D;
-            param->value.sampler2d.texture = am_get_userdata(L, am_texture2d, idx);
+            param->value.sampler2d.texture = am_get_userdata(L, am_texture2d, val_idx);
             param->value.sampler2d.texture_unit = 0; // assigned in render method
-            *ref = node->ref(L, idx);
+            *ref = node->ref(L, val_idx);
             break;
         default:
-            luaL_error(L, "invalid parameter bind value of type %s", am_get_typename(L, am_get_type(L, idx)));
+            luaL_error(L, "invalid bind value for %s (%s)", lua_tostring(L, name_idx), am_get_typename(L, am_get_type(L, val_idx)));
     }
 }
 
@@ -658,8 +659,11 @@ static int create_bind_node(lua_State *L) {
     lua_pushnil(L);
     int index = 0;
     while (lua_next(L, 1)) {
+        if (!lua_isstring(L, -2)) {
+            return luaL_error(L, "bind parameters must be strings");
+        }
         node->names[index] = am_lookup_param_name(L, -2);
-        set_param_value(L, &node->values[index], -1, &node->refs[index], node);
+        set_param_value(L, &node->values[index], -1, -2, &node->refs[index], node);
         set_bind_property(L, node, index, -2);
         index++;
         lua_pop(L, 1);

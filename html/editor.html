@@ -6,15 +6,22 @@
     <title>Amulet Editor</title>
     <link rel="stylesheet" href="codemirror-4.9.css">
     <link rel="stylesheet" href="editor.css">
+    <link rel="shortcut icon" href="favicon.ico"/>
     <style type="text/css">
     </style>
   </head>
   <body>
     <div id="top-panel">
-        <a href="http://amulet.xyz" class="title">Amulet</a>
-        <a id="run" class="button">Run</a>
-        <a id="pause-resume" class="button">Pause</a>
-        <a id="share" class="button">Share</a>
+        <div class="title"><a href="http://amulet.xyz" class="title">Amulet</a></div>
+        <div class="button"><a id="new">New</a></div>
+        <div class="button"><a id="save">Save</a>: <input id="savename" type="text" value="Untitled"></input></div>
+        <div class="button"><select id="load"></select></div>
+        <div class="button"><a id="delete">Delete</a></div>
+        <div class="separator"></div>
+        <div class="button"><a id="run">Run</a></div>
+        <div class="button"><a id="pause-resume">Pause</a></div>
+        <div class="separator"></div>
+        <div class="button"><a id="share">Share</a></div>
     </div>
     <div id="left-panel">
         <div id="editor-panel">
@@ -38,6 +45,7 @@
     <script type='text/javascript'>
 
 var editor;
+var editor_dirty = false;
 
 var is_paused = false;
 var was_error = false;
@@ -48,10 +56,63 @@ function qualifyURL(url) {
     return a.href;
 }
 
+function reset_save() {
+    $("#save").text("Save");
+    editor_dirty = false;
+}
+
+function init_load_options() {
+    $("#load").empty().append('<option value="">Load</option>');
+    var saves = get_storage_object("saves");
+    if (saves) {
+        var keys = Object.keys(saves);
+        keys.sort();
+        for (var i = 0; i < keys.length; i++) {
+            $("#load").append('<option value="'+keys[i]+'">'+keys[i]+'</option>');
+        }
+    }
+}
+
+function load_new() {
+    var saves = get_storage_object("saves");
+    var name = "Untitled";
+    var i = 2;
+    while (saves[name]) name = "Untitled " + (i++);
+    editor.getDoc().setValue(
+        'local win = am.window{title = "'+name+'"}\n\n' +
+        'win.scene = am.camera2d(200, 150, vec2(0))\n' +
+        '    ^ am.scale(vec3(0, 0, 1))\n' +
+        '        :action(am.tween(0.8, {scale = vec3(2, 2, 1)}, am.ease.out(am.ease.windup)))\n' +
+        '    ^ am.text("Hello!")');
+    $("#savename").val(name);
+}
+
+function load_file(name) {
+    var saves = get_storage_object("saves");
+    editor.getDoc().setValue(saves[name]);
+    reset_save();
+    $("#savename").val(name);
+    set_storate_object("lastopen", name);
+}
+
 function init_controls() {
+    $("#new").click(function() {
+        if (!editor_dirty || confirm("Loose current changes?")) {
+            load_new();
+        }
+    });
+    $("#save").click(function() {
+        var saves = get_storage_object("saves");
+        if (!saves) saves = {};
+        var name = $("#savename").val();
+        saves[name] = editor.getDoc().getValue();
+        set_storate_object("saves", saves);
+        reset_save();
+        init_load_options();
+        set_storate_object("lastopen", name);
+    });
     $("#run").click(function() {
         var code = editor.getDoc().getValue();
-        clear_output();
         log_start();
         was_error = false;
         is_paused = false;
@@ -94,6 +155,28 @@ function init_controls() {
             log_output("Share failed :(", "error");
         });
     });
+    $("#load").change(function() {
+        var val = $(this).val();
+        if (!editor_dirty || confirm("Loose current changes?")) {
+            load_file(val);
+            $("#load").val("");
+        }
+    });
+    $("#delete").click(function() {
+        if (confirm("Are you sure?")) {
+            var saves = get_storage_object("saves");
+            delete saves[$("#savename").val()];
+            set_storate_object("saves", saves);
+            init_load_options();
+            for (s in saves) {
+                console.log("loading: " + s);
+                load_file(s);
+                return;
+            }
+            load_new();
+        }
+    });
+    init_load_options();
 }
 
 function init_editor() {
@@ -109,11 +192,18 @@ function init_editor() {
         extraKeys: {"Tab": "indentMore", "Shift-Tab": "indentLess"}, 
         electricChars: false,
     });
-
-    // load example script
-    $.get("example.lua", function(data) {
-        editor.getDoc().setValue(data);
-    }, "text");
+    editor.on('change', function(cm, changeObj) {
+        if (!editor_dirty) {
+            editor_dirty = true;
+            $("#save").text("Save*");
+        }
+    });
+    var last = get_storage_object("lastopen");
+    if (last) {
+        load_file(last);
+    } else {
+        load_new();
+    }
 }
 
 function get_storage_object(key) {
@@ -294,7 +384,7 @@ function log_output(text, cls, raw) {
 }
 
 function log_start() {
-    log_output("Running...", "running");
+    log_output("Running "+$("#savename").val()+"...", "running");
 }
 
 function clear_output() {
@@ -313,6 +403,20 @@ function set_message_handler() {
     }, false);
 }
 set_message_handler();
+
+function set_unload_handler() {
+    window.addEventListener("beforeunload", function(event) {
+        var e = e || window.event;
+        var msg = 'You have unsaved changes!';
+        if (editor_dirty) {      
+            // For IE and Firefox prior to version 4
+            if (e) e.returnValue = msg;
+            // For Safari
+            return msg;
+        }
+    });
+}
+set_unload_handler();
 
 function resize_player() {
     var player = document.getElementById("player-frame");

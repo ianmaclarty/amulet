@@ -3,7 +3,7 @@
 **WORK IN PROGRESS** Amulet isn't ready yet, but I'm aiming to have a 1.0 release
 by the end of 2015.
 
-Amulet is a Lua-based framework for making games.
+Amulet is a Lua-based framework for making games by [Ian MacLarty](http://ianmaclarty.com).
 
 Here's what Hello World looks like in Amulet:
 
@@ -31,5 +31,27 @@ Here are some games I've made with Amulet:
 - [Leisurely Sunday Drive IV: the Reckoning](http://gamejolt.com/games/leisurely-sunday-drive-iv-the-reckoning/80716)
 - [Reflection](http://ianmaclarty.itch.io/reflection)
 - [Totem](http://ludumdare.com/compo/ludum-dare-33/?action=preview&uid=20641)
+
+## Credits
+
+Amulet uses or borrows code and ideas from the following projects:
+
+- [Lua](http://lua.org)
+- [LuaJIT](http://luajit.org/)
+- [SDL2](https://www.libsdl.org/download-2.0.php)
+- [Sean's Tool Box](https://github.com/nothings/stb)
+- [KissFFT](http://sourceforge.net/projects/kissfft/)
+- [Blink](http://www.chromium.org/blink)
+- [ANGLE](https://code.google.com/p/angleproject/)
+- [FreeType](http://www.freetype.org/)
+- [GLM](http://glm.g-truc.net/0.9.7/index.html)
+- [Emscripten](http://kripken.github.io/emscripten-site/)
+- [OpenCV](http://opencv.org/)
+
+The HTML editor uses code and ideas from:
+
+- [Codemirror](https://codemirror.net/)
+- [PuzzleScript](https://github.com/increpare/PuzzleScript) and [Zeedonk](https://github.com/increpare/zeedonk)
+- [jQuery](https://jquery.com/)
 
 [![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet)
