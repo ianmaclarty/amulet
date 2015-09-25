@@ -32,7 +32,7 @@
     </div>
     <div id="right-panel">
         <div id="player-panel">
-            <iframe id="player-frame" src="player.html"></iframe>
+            <iframe id="player-frame" src="player.html?noload=1"></iframe>
         </div>
         <div id="hsplitter">
         </div>
@@ -56,6 +56,13 @@ function qualifyURL(url) {
     return a.href;
 }
 
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 function reset_save() {
     $("#save").text("Save");
     editor_dirty = false;
@@ -77,7 +84,7 @@ function load_new() {
     var saves = get_storage_object("saves");
     var name = "Untitled";
     var i = 2;
-    while (saves[name]) name = "Untitled " + (i++);
+    while (saves && saves[name]) name = "Untitled " + (i++);
     editor.getDoc().setValue(
         'local win = am.window{title = "'+name+'"}\n\n' +
         'win.scene = am.camera2d(200, 150, vec2(0))\n' +
@@ -93,6 +100,18 @@ function load_file(name) {
     reset_save();
     $("#savename").val(name);
     set_storate_object("lastopen", name);
+}
+
+function load_gist(id) {
+    console.log("loading gist " + id);
+    log_output("Loading gist " + id + "...");
+    var url = 'https://api.github.com/gists/'+id;
+    $.get(url, function(data) {
+        var res = JSON.parse(data);
+        editor.getDoc().setValue(res.files["main.lua"].content);
+        reset_save();
+        log_output("Done.");
+    }, "text");
 }
 
 function init_controls() {
@@ -149,7 +168,7 @@ function init_controls() {
             var playurl = qualifyURL("standalone.html?gist="+id);
             var editurl = qualifyURL("editor.html?gist="+id);
             log_output("Share successful!", "success", true);
-            log_output("Play at: <a href=\"" + playurl + "\">" + playurl + "</a>", null, true);
+            log_output("Play at: <a target=\"_blank\" href=\"" + playurl + "\">" + playurl + "</a>", null, true);
             log_output("Edit at: <a href=\"" + editurl + "\">" + editurl + "</a>", null, true);
         }, "text").fail(function() {
             log_output("Share failed :(", "error");
@@ -198,11 +217,16 @@ function init_editor() {
             $("#save").text("Save*");
         }
     });
-    var last = get_storage_object("lastopen");
-    if (last) {
-        load_file(last);
+    var gist = getParameterByName("gist");
+    if (gist) {
+        load_gist(gist);
     } else {
-        load_new();
+        var last = get_storage_object("lastopen");
+        if (last) {
+            load_file(last);
+        } else {
+            load_new();
+        }
     }
 }
 
@@ -288,7 +312,6 @@ function init_vsplitter() {
                 $(document).off("mousemove", m_move);
                 $(document).off("mouseup", m_up);
                 $("#player-frame").show();
-                //resize_player();
                 save_layout();
                 dragging = false;
             }
@@ -335,7 +358,6 @@ function init_hsplitter() {
                 $(document).off("mousemove", m_move);
                 $(document).off("mouseup", m_up);
                 $("#player-frame").show();
-                //resize_player();
                 save_layout();
                 dragging = false;
             }
@@ -417,16 +439,6 @@ function set_unload_handler() {
     });
 }
 set_unload_handler();
-
-function resize_player() {
-    var player = document.getElementById("player-frame");
-    var player_parent = $("#player-frame").parent();
-    var w = player_parent.outerWidth();
-    var h = player_parent.outerHeight();
-    player.width = w;
-    player.height = h;
-    log_output("resize_player called " + w + "x" + h);
-}
 
 function setup() {
     init_controls();

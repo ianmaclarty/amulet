@@ -574,6 +574,9 @@ static void register_pass_filter_node_mt(lua_State *L) {
 }
 
 void am_open_renderer_module(lua_State *L) {
+    // reset render state
+    new (&am_global_render_state) am_render_state();
+
     luaL_Reg funcs[] = {
         {"draw", create_draw_node},
         {"pass", create_pass_filter_node},

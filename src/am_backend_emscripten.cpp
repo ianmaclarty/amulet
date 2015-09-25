@@ -115,12 +115,14 @@ static long long frame_count = 0;
 static bool run_loop = true;
 static bool was_error = false;
 static bool printed_error = false;
+static int script_loaded = 0;
 
 double am_get_current_time() {
     return ((double)SDL_GetTicks())/1000.0;
 }
 
 static void main_loop() {
+    if (eng == NULL) return;
     if (was_error) {
         if (!printed_error) {
             am_log0("%s", "ERROR");
@@ -177,23 +179,32 @@ static void main_loop() {
     SDL_GL_SwapBuffers();
 }
 
-int main( int argc, char *argv[] )
-{
-    load_package();
-}
-
-static void start() {
+static void start_main_loop(bool run_main) {
     init_sdl();
 
+    if (eng != NULL) {
+        am_log0("%s", "INTERNAL ERROR: eng != NULL");
+        return;
+    }
     eng = am_init_engine(false, 0, NULL);
     if (eng == NULL) return;
 
     frame_time = am_get_current_time();
 
-    lua_pushcclosure(eng->L, am_load_module, 0);
-    lua_pushstring(eng->L, "main");
-    if (!am_call(eng->L, 1, 0)) return;
-    if (sdl_window == NULL) return;
+    if (run_main) {
+        script_loaded = 1;
+        lua_pushcclosure(eng->L, am_load_module, 0);
+        lua_pushstring(eng->L, "main");
+        if (!am_call(eng->L, 1, 0)) {
+            run_loop = false;
+            was_error = true;
+        }
+        if (sdl_window == NULL) {
+            run_loop = false;
+        }
+    } else {
+        run_main = false;
+    }
 
     t0 = am_get_current_time();
     frame_time = t0;
@@ -203,6 +214,22 @@ static void start() {
     frame_count = 0;
 
     emscripten_set_main_loop(main_loop, 0, 0);
+}
+
+int main( int argc, char *argv[] )
+{
+    int noload = EM_ASM_INT({
+        return window.amulet.noload ? 1 : 0;
+    }, 0);
+    if (noload) {
+        start_main_loop(false);
+        EM_ASM(
+            window.amulet.load_progress = 100;
+            window.amulet.ready();
+        );
+    } else {
+        load_package();
+    }
 }
 
 static int mouse_x = 0;
@@ -410,18 +437,19 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
 }
 
 static void on_load_package_complete(unsigned int x, void *arg, const char *filename) {
+    open_package();
+    start_main_loop(true);
     EM_ASM(
         window.amulet.load_progress = 100;
+        window.amulet.ready();
     );
-    open_package();
-    EM_ASM(
-        window.amulet.start();
-    );
-    start();
 }
 
 static void on_load_package_error(unsigned int x, void *arg, int http_status) {
     am_log0("error loading data (HTTP status: %d)", http_status);
+    EM_ASM(
+        window.amulet.error("Error loading data file");
+    );
 }
 
 static void on_load_package_progress(unsigned int x, void *arg, int perc) {
@@ -445,7 +473,14 @@ static void open_package() {
 }
 
 void *am_read_resource(const char *filename, int *len, char **errmsg) {
-    return am_read_package_resource(package, filename, len, errmsg);
+    if (package) {
+        return am_read_package_resource(package, filename, len, errmsg);
+    } else {
+        const char *msg = "no package available";
+        *errmsg = (char*)malloc(strlen(msg) + 1);
+        strcpy(*errmsg, msg);
+        return NULL;
+    }
 }
 
 static int video_frame = 0;
@@ -490,8 +525,18 @@ void am_capture_audio(am_audio_bus *bus) {
 extern "C" {
 
 void am_emscripten_run(const char *script) {
-    am_destroy_engine(eng);
-    eng = am_init_engine(false, 0, NULL);
+    if (eng == NULL) {
+        am_log0("%s", "INTERNAL ERROR: eng == NULL");
+        return;
+    }
+    if (script_loaded) {
+        // restart engine
+        am_destroy_engine(eng);
+        eng = NULL;
+        eng = am_init_engine(false, 0, NULL);
+    }
+    script_loaded = 1;
+
     printed_error = false;
     if (am_run_script(eng->L, script, "main.lua")) {
         run_loop = true;

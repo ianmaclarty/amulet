@@ -43,6 +43,12 @@ html, body {
     padding: 0;
     background-color: #fff;
 }
+#status-bar.error {
+    background-color: #f00;
+}
+#status-box.error {
+    border: 2px solid #f00;
+}
 #canvas {
     position: absolute;
     top: 0;
@@ -53,12 +59,19 @@ html, body {
 #video {
     display: none;
 }
+#status {
+    color: #ff0000;
+    margin: 0 0 10px -200px;
+    font-size: 16px;
+    font-weight: bold;
+}
     </style>
   </head>
   <body>
     <video id="video" autoplay></video>
     <div id="status-overlay">
         <div id="status-positioner">
+            <div id="status"></div>
             <div id="status-box">
                 <div id="status-bar"></div>
             </div>
@@ -68,6 +81,13 @@ html, body {
 
     <script type='text/javascript'>
 var status_timer;
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
 
 var havePointerLock = 'pointerLockElement' in document ||
     'mozPointerLockElement' in document ||
@@ -82,7 +102,7 @@ window.amulet = {};
 
 function run(script) {
     $.get(script, function(data) {
-        Module.ccall('am_emscripten_run', null, ['string'], [data]);
+        load(data);
     }, "text");
 }
 
@@ -108,8 +128,10 @@ function init_canvas() {
     }
 }
 
-function set_status_text(text) {
-    $("#status").text(text);
+function set_error_text(text) {
+    $("#status").html(text);
+    $("#status-box").addClass("error");
+    $("#status-bar").addClass("error");
 }
 
 function set_progress(perc) {
@@ -122,7 +144,7 @@ function phase1() {
     perc = Math.min(phase1_limit, perc + delta);
     delta = delta * 0.98;
     set_progress(perc);
-    console.log(perc);
+    //console.log(perc);
 }
 function phase2() {
     var prog = window.amulet.load_progress || 0;
@@ -148,15 +170,53 @@ function remove_status_overlay() {
     clear_status_timer();
 }
 
-window.amulet.start = function() {
+var pending_load = null;
+var started = false;
+
+function load(script) {
+    if (!started) {
+        pending_load = script;
+    } else {
+        Module.ccall('am_emscripten_run', null, ['string'], [script]);
+    }
+}
+
+function load_gist(id) {
+    console.log("loading gist " + id);
+    var url = 'https://api.github.com/gists/'+id;
+    $.get(url, function(data) {
+        console.log("received gist");
+        var res = JSON.parse(data);
+        var code = res.files["main.lua"].content;
+        load(code);
+    }, "text").fail(function() {
+        console.log("loading gist failed");
+    });
+}
+
+window.amulet.ready = function() {
     try {
         init_canvas();
         remove_status_overlay();
     } catch (e) {
         clear_status_timer();
-        set_status_text('Something went wrong. See JavaScript console for details.');
+        set_error_text('Something went wrong.<br>See JavaScript console for details.');
         throw e;
     }
+    started = true;
+    var gist = getParameterByName("gist");
+    if (gist) {
+        pending_load = null;
+        load_gist(gist);
+    } else if (pending_load) {
+        console.log("loading: " + pending_load);
+        load(pending_load);
+        pending_load = null;
+    }
+}
+
+window.amulet.error = function(msg) {
+    set_error_text(msg);
 }
 
 function set_visibility_handler() {
@@ -190,7 +250,7 @@ function set_message_handler() {
         if (cmd.run) {
             msg_source = event.source;
             msg_origin = event.origin;
-            Module.ccall('am_emscripten_run', null, ['string'], [cmd.run]);
+            load(cmd.run);
         } else if (cmd.pause) {
             Module.ccall('am_emscripten_pause', null, [], []);
         } else if (cmd.resume) {
@@ -199,6 +259,8 @@ function set_message_handler() {
     }, false);
 }
 set_message_handler();
+
+window.amulet.noload = (getParameterByName("noload") || getParameterByName("gist")) ? 1 : 0;
 
 //------------------------------------------------------------------------
 
@@ -232,7 +294,7 @@ var Module = {
 Module.setStatus('Downloading...');
 window.onerror = function(event) {
   // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
-  set_status_text('Something went wrong. See JavaScript console for details.');
+  set_error_text('Something went wrong.<br>See JavaScript console for details.');
   Module.setStatus = function(text) {
     if (text) Module.printErr('[post-exception status] ' + text);
   };

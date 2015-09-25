@@ -51,6 +51,7 @@
 #define UNI_NAME_SIZE 100
 
 #if defined(AM_USE_ANGLE)
+static bool angle_initialized = false;
 static void init_angle();
 static void destroy_angle();
 static void angle_translate_shader(am_shader_type type,
@@ -63,10 +64,7 @@ static void angle_translate_shader(am_shader_type type,
 
 static bool am_gl_initialized = false;
 
-void am_init_gl() {
-    assert(!am_gl_initialized);
-    am_gl_initialized = true;
-
+static void reset_gl() {
     GLFUNC(glPixelStorei)(GL_PACK_ALIGNMENT, 1);
     GLFUNC(glPixelStorei)(GL_UNPACK_ALIGNMENT, 1);
     GLFUNC(glHint)(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
@@ -86,11 +84,6 @@ void am_init_gl() {
     am_set_blend_func(AM_BLEND_SFACTOR_SRC_ALPHA, AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA,
         AM_BLEND_SFACTOR_SRC_ALPHA, AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA);
     am_set_blend_color(1.0f, 1.0f, 1.0f, 1.0f);
-
-    // initialize angle if using
-#if defined(AM_USE_ANGLE)
-    init_angle();
-#endif
     
     // need to explicitly enable point sprites on desktop gl
     // (they are always enabled in opengle)
@@ -100,8 +93,23 @@ void am_init_gl() {
 #endif
 }
 
+void am_init_gl() {
+    am_gl_initialized = true;
+
+    // initialize angle if using
+#if defined(AM_USE_ANGLE)
+    if (!angle_initialized) {
+        init_angle();
+        angle_initialized = true;
+    }
+#endif
+
+    reset_gl();
+}
+
 void am_destroy_gl() {
     if (!am_gl_initialized) return;
+    am_gl_initialized = false;
 #if defined(AM_USE_ANGLE)
     destroy_angle();
 #endif
