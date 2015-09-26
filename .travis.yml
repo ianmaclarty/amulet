@@ -39,11 +39,11 @@ matrix:
           env:
             - TARGET=mingw32.release
             - MK_TARGET=default
-        - os: linux
-          env:
-            - TARGET=mingw32.release
-            - LUAVM=luajit
-            - MK_TARGET=default
+        #- os: linux
+        #  env:
+        #    - TARGET=mingw32.release
+        #    - LUAVM=luajit
+        #    - MK_TARGET=default
 
 before_install:
     - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get update -qq; fi

@@ -116,8 +116,7 @@ AR_OUT_OPT =
 XCFLAGS = -Wall -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
-LUAJIT_CFLAGS =
-LUAJIT_LDFLAGS = 
+LUAJIT_FLAGS = 
 OBJ_OUT_OPT = -o
 EXE_OUT_OPT = -o
 NOLINK_OPT = -c
@@ -231,10 +230,12 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   AR = i686-w64-mingw32-ar
   XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib
   XCFLAGS = -Wall -Werror -fno-strict-aliasing
+  LUAJIT_FLAGS += HOST_CC="gcc -m32" CROSS=i686-w64-mingw32- TARGET_SYS=Windows
 else ifeq ($(TARGET_PLATFORM),linux32)
   TARGET_CFLAGS += -m32
   LDFLAGS += -m32
   LUA_CFLAGS += -DLUA_USE_POSIX
+  LUAJIT_FLAGS += CC="gcc -m32"
 else ifeq ($(TARGET_PLATFORM),linux64)
   LUA_CFLAGS += -DLUA_USE_POSIX
 endif
@@ -253,8 +254,7 @@ ifeq ($(GRADE),debug)
     GRADE_CFLAGS = -g -O1
     GRADE_LDFLAGS = -g 
     LUA_CFLAGS += -DLUA_USE_APICHECK
-    LUAJIT_CFLAGS += -DLUA_USE_APICHECK
-    LUAJIT_LDFLAGS += -g
+    LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
   endif
 else
   ifeq ($(TARGET_PLATFORM),html)
