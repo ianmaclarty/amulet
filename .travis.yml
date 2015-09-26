@@ -1,5 +1,18 @@
 language: cpp
-os:
-- osx
-- linux
-script: make test
+
+matrix:
+    include:
+        - os: osx
+          env:
+            - TARGET=osx.release
+            - MK_TARGET=test
+        - os: osx
+          env:
+            - TARGET=ios.release
+            - MK_TARGET=default
+        - os: linux
+          env:
+            - TARGET=linux64.release
+            - MK_TARGET=test
+        
+script: make $MK_TARGET
