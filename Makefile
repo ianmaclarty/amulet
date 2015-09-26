@@ -63,6 +63,7 @@ AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 AM_CFLAGS = $(AM_DEF_FLAGS) $(LUA_CFLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS) $(COMMON_CFLAGS) 
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
+HTML_EDITOR_EXAMPLE_LIST = $(BUILD_BIN_DIR)/example_list.txt
 HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html html/*.ico)
 BUILD_HTML_EDITOR_FILES = $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 
@@ -72,7 +73,7 @@ default: all
 
 .PHONY: all
 ifeq ($(TARGET_PLATFORM),html)
-all: $(BUILD_HTML_EDITOR_FILES) $(AMULET) 
+all: $(BUILD_HTML_EDITOR_FILES) $(HTML_EDITOR_EXAMPLE_LIST) $(AMULET) 
 else
 all: $(AMULET)
 endif
@@ -164,6 +165,14 @@ $(BUILD_DIRS): %:
 
 $(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: html/% | $(BUILD_BIN_DIR)
 	cp $< $@
+
+EXAMPLE_FILES := $(wildcard examples/*.lua)
+EXAMPLE_NAMES := $(patsubst examples/%.lua,%,$(EXAMPLE_FILES))
+
+$(HTML_EDITOR_EXAMPLE_LIST): $(EXAMPLE_FILES)
+	echo $(EXAMPLE_NAMES) > $@
+	mkdir -p $(BUILD_BIN_DIR)/examples
+	cp $(EXAMPLE_FILES) $(BUILD_BIN_DIR)/examples/
 
 # View templates
 

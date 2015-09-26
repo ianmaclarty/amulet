@@ -16,6 +16,7 @@
         <div class="button"><a id="new">New</a></div>
         <div class="button"><a id="save">Save</a>: <input id="savename" type="text" value="Untitled"></input></div>
         <div class="button"><select id="load"></select></div>
+        <div class="button"><select id="loadexample"></select></div>
         <div class="button"><a id="delete">Delete</a></div>
         <div class="separator"></div>
         <div class="button"><a id="run">Run</a></div>
@@ -69,7 +70,7 @@ function reset_save() {
 }
 
 function init_load_options() {
-    $("#load").empty().append('<option value="">Load</option>');
+    $("#load").empty().append('<option value="">Load saved</option>');
     var saves = get_storage_object("saves");
     if (saves) {
         var keys = Object.keys(saves);
@@ -78,6 +79,17 @@ function init_load_options() {
             $("#load").append('<option value="'+keys[i]+'">'+keys[i]+'</option>');
         }
     }
+}
+
+function init_examples() {
+    $("#loadexample").empty().append('<option value="">Load example</option>');
+    $.get("example_list.txt", function(str) {
+        var examples = str.split(/\s+/);
+        for (var i = 0; i < examples.length; i++) {
+            var example = examples[i];
+            $("#loadexample").append('<option value="'+example+'">'+example+'</option>');
+        }
+    }, "text");
 }
 
 function pick_new_name() {
@@ -97,6 +109,14 @@ function load_new() {
         '    ^ am.scale(vec3(0, 0, 1))\n' +
         '        :action(am.tween(0.8, {scale = vec3(2, 2, 1)}, am.ease.out(am.ease.windup)))\n' +
         '    ^ am.text("Hello!")');
+}
+
+function load_example(name) {
+    $.get("examples/"+name+".lua", function(code) {
+        editor.getDoc().setValue(code);
+        reset_save();
+        pick_new_name();
+    }, "text");
 }
 
 function load_file(name) {
@@ -167,10 +187,8 @@ function init_controls() {
             files: {"main.lua": {content: code}}
         };
         $.post("https://api.github.com/gists", JSON.stringify(req), function(resp) {
-            console.log(resp);
             var res = JSON.parse(resp);
             var id = res.id;
-            console.log("id = " + id);
             var playurl = qualifyURL("standalone.html?gist="+id);
             var editurl = qualifyURL("editor.html?gist="+id);
             log_output("Share successful!", "success", true);
@@ -185,6 +203,13 @@ function init_controls() {
         if (!editor_dirty || confirm("Loose current changes?")) {
             load_file(val);
             $("#load").val("");
+        }
+    });
+    $("#loadexample").change(function() {
+        var val = $(this).val();
+        if (!editor_dirty || confirm("Loose current changes?")) {
+            load_example(val);
+            $("#loadexample").val("");
         }
     });
     $("#delete").click(function() {
@@ -202,6 +227,7 @@ function init_controls() {
         }
     });
     init_load_options();
+    init_examples();
 }
 
 function init_editor() {
