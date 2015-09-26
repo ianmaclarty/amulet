@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 msvc osx ios android html mingw32 mingw64
+TARGET_PLATFORMS = linux32 linux64 msvc osx ios32 ios64 iossim android html mingw32 mingw64
 
 DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
 RELEASE_TARGETS = $(patsubst %,%.release,$(TARGET_PLATFORMS))
@@ -113,7 +113,6 @@ LINK = g++
 AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
-LUA_TARGET = posix
 XCFLAGS = -Wall -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
@@ -134,7 +133,6 @@ ifeq ($(TARGET_PLATFORM),osx)
   CC = clang
   CPP = clang++
   LINK = clang++
-  LUA_TARGET = macosx
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -m64 -arch x86_64
   XLDFLAGS = -lm -liconv -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
@@ -145,38 +143,59 @@ ifeq ($(TARGET_PLATFORM),osx)
   LUA_CFLAGS += -DLUA_USE_POSIX
   MACOSX_DEPLOYMENT_TARGET=10.6
   export MACOSX_DEPLOYMENT_TARGET
-else ifeq ($(TARGET_PLATFORM),ios)
-  CC = $(SELF_DIR)tools/ioscc
-  CPP = $(SELF_DIR)tools/iosc++
+else ifeq ($(TARGET_PLATFORM),ios32)
+  CC = clang
+  CPP = clang++
   LINK = $(CPP)
-  XCODE_PATH=$(shell xcode-select --print-path)
-  SDK_VERSION=$(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
-  SDK_PATH=$(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  SIM_SDK_PATH=$(XCODE_PATH)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDK_VERSION).sdk
-  AM_ARMV7_FLAGS=-arch armv7 -isysroot $(SDK_PATH)
-  export AM_ARMV7_FLAGS
-  AM_ARMV7S_FLAGS=-arch armv7s -isysroot $(SDK_PATH)
-  export AM_ARMV7S_FLAGS
-  AM_ARM64_FLAGS=-arch arm64 -isysroot $(SDK_PATH)
-  export AM_ARM64_FLAGS
-  AM_IOSSIM64_FLAGS=-arch x86_64 -isysroot $(SIM_SDK_PATH)
-  export AM_IOSSIM64_FLAGS
-  LUA_TARGET = generic
+  XCODE_PATH = $(shell xcode-select --print-path)
+  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
+  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
+  TARGET_CFLAGS += -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=5.0
   XCFLAGS += -ObjC++
-  TARGET_CFLAGS += -miphoneos-version-min=5.0
   XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
-	     -Wl,-framework,GLKit \
-	     $(TARGET_CFLAGS)
+	     -Wl,-framework,GLKit
   LUA_CFLAGS += -DLUA_USE_POSIX
+  IOS = 1
+else ifeq ($(TARGET_PLATFORM),ios64)
+  CC = clang
+  CPP = clang++
+  LINK = $(CPP)
+  XCODE_PATH = $(shell xcode-select --print-path)
+  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
+  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
+  TARGET_CFLAGS += -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=5.0
+  XCFLAGS += -ObjC++
+  XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
+	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
+	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
+	     -Wl,-framework,GLKit
+  LUA_CFLAGS += -DLUA_USE_POSIX
+  IOS = 1
+else ifeq ($(TARGET_PLATFORM),iossim)
+  CC = clang
+  CPP = clang++
+  LINK = $(CPP)
+  XCODE_PATH = $(shell xcode-select --print-path)
+  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
+  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDK_VERSION).sdk
+  TARGET_CFLAGS += -arch x86_64 -isysroot $(SIM_SDK_PATH) -miphoneos-version-min=5.0
+  XCFLAGS += -ObjC++
+  XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
+	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
+	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
+	     -Wl,-framework,GLKit
+  LUA_CFLAGS += -DLUA_USE_POSIX
+  IOS = 1
 else ifeq ($(TARGET_PLATFORM),html)
   CC = emcc
   CPP = em++
   AR = emar
   LINK = em++
-  LUA_TARGET = generic
   XLDFLAGS = --memory-init-file 0 -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS_OPTS)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
@@ -196,7 +215,6 @@ else ifeq ($(TARGET_PLATFORM),msvc)
   CC = $(VC_CL)
   CPP = $(VC_CL)
   LINK = $(VC_LINK)
-  LUA_TARGET = generic
   AR = $(VC_LIB)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
@@ -210,7 +228,6 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   CC = i686-w64-mingw32-gcc
   CPP = i686-w64-mingw32-g++
   LINK = $(CPP)
-  LUA_TARGET = generic
   AR = i686-w64-mingw32-ar
   XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib
   XCFLAGS = -Wall -Werror -fno-strict-aliasing

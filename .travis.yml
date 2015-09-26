@@ -15,12 +15,11 @@ matrix:
             - MK_TARGET=test
         - os: osx
           env:
-            - TARGET=ios.release
+            - TARGET=ios32.release
             - MK_TARGET=default
         - os: osx
           env:
-            - TARGET=ios.release
-            - LUAVM=luajit
+            - TARGET=ios64.release
             - MK_TARGET=default
         - os: linux
           env:

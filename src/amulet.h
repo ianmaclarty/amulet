@@ -7,6 +7,9 @@
 #if defined(AM_MINGW) || defined(AM_MSVC32)
     #define AM_WINDOWS
 #endif
+#if defined(AM_IOS32) || defined(AM_IOS64) || defined(AM_IOSSIM)
+    #define AM_IOS
+#endif
 #if defined(AM_WINDOWS) || defined(AM_OSX) || defined(AM_LINUX) || defined(AM_ANDROID)
     #define AM_BACKEND_SDL
 #elif defined(AM_IOS)

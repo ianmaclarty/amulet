@@ -29,7 +29,7 @@ EXTRA_PREREQS =
 ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = $(LUAVM) stb kissfft
   AMULET = $(BUILD_BIN_DIR)/amulet.html
-else ifeq ($(TARGET_PLATFORM),ios)
+else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft
 else ifeq ($(TARGET_PLATFORM),msvc)
   AM_DEPS = $(LUAVM) stb kissfft
@@ -81,7 +81,7 @@ ifeq ($(TARGET_PLATFORM),html)
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR) 
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	@$(PRINT_BUILD_DONE_MSG)
-else ifeq ($(TARGET_PLATFORM),ios)
+else ifdef IOS
 # Just build the static library for iOS. Building the executable works,
 # but I don't know how to import that into Xcode.
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
@@ -138,7 +138,7 @@ $(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA53_INCLUDE_DIR)
 	cp $(LUA53_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
-	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"
+	cd $(LUAJIT_DIR) && $(MAKE) clean all CFLAGS="$(COMMON_CFLAGS) $(LUAJIT_CFLAGS)" LDFLAGS="$(LUAJIT_LDFLAGS)"
 	cp $(LUAJIT_DIR)/src/*.h $(BUILD_LUAJIT_INCLUDE_DIR)/
 	cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@
 
