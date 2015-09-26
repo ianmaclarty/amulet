@@ -259,12 +259,12 @@ void am_destroy_native_window(am_native_window* window) {
     }
 }
 
-void am_native_window_pre_render(am_native_window* window) {
-    am_bind_framebuffer(0);
+void am_native_window_bind_framebuffer(am_native_window* window) {
     SDL_GL_MakeCurrent((SDL_Window*)window, gl_context);
+    am_bind_framebuffer(0);
 }
 
-void am_native_window_post_render(am_native_window* window) {
+void am_native_window_swap_buffers(am_native_window* window) {
     SDL_GL_SwapWindow((SDL_Window*)window);
 }
 

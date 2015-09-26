@@ -792,11 +792,14 @@ void am_set_native_window_lock_pointer(am_native_window *window, bool lock) {
 void am_destroy_native_window(am_native_window *window) {
 }
 
-void am_native_window_pre_render(am_native_window *window) {
-    // default framebuffer will be bound automatically by GLKView
+void am_native_window_bind_framebuffer(am_native_window *window) {
+    if (ios_view != nil) {
+        [ios_view bindDrawable];
+    }
 }
 
-void am_native_window_post_render(am_native_window *window) {
+void am_native_window_swap_buffers(am_native_window *window) {
+    // handled by iOS
 }
 
 double am_get_current_time() {

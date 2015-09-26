@@ -6,11 +6,14 @@ struct am_window : am_nonatomic_userdata {
     int                 window_ref;
     int                 requested_width;
     int                 requested_height;
-    int                 pwidth; // actual pixel width
-    int                 pheight; // actual pixel height
+    int                 curr_width; // actual pixel width
+    int                 curr_height; // actual pixel height
+    int                 prev_width;
+    int                 prev_height;
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
     glm::vec4           clear_color;
+    bool                auto_clear;
     bool                lock_pointer;
     am_window_mode      mode;
     bool                dirty;

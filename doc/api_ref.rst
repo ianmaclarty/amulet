@@ -187,6 +187,10 @@ Window functions
         The color used to clear the window each frame before drawing
         as a ``vec4``. The default clear color is black.
 
+    ``auto_clear``
+        ``true`` or ``false`` - whether to clear the window
+        before each frame.
+
     ``msaa_samples``
         The number of samples to use for multisample anti-aliasing.
         This must be a power of 2. Use zero for no anti-aliasing.
@@ -246,6 +250,14 @@ Window functions
     ..  function:: window:resized()
 
         Returns true if the window's size changed since the last frame.
+
+    ..  function:: window:clear([color_buffer, [depth_buffer, [stencil_buffer]]])
+
+        Clear the window now using the current clear color.
+        If no arguments are supplied then the color depth and stencil buffers
+        are cleared. You can choose which buffers to clear by passing approriate
+        booleans for each buffer. E.g. ``win:clear(false, true, false)``
+        clears only the depth buffer.
 
     ..  function:: window:close()
 

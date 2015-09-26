@@ -80,18 +80,23 @@ function init_load_options() {
     }
 }
 
-function load_new() {
+function pick_new_name() {
     var saves = get_storage_object("saves");
     var name = "Untitled";
     var i = 2;
     while (saves && saves[name]) name = "Untitled " + (i++);
+    $("#savename").val(name);
+    return name;
+}
+
+function load_new() {
+    var name = pick_new_name();
     editor.getDoc().setValue(
         'local win = am.window{title = "'+name+'"}\n\n' +
         'win.scene = am.camera2d(200, 150, vec2(0))\n' +
         '    ^ am.scale(vec3(0, 0, 1))\n' +
         '        :action(am.tween(0.8, {scale = vec3(2, 2, 1)}, am.ease.out(am.ease.windup)))\n' +
         '    ^ am.text("Hello!")');
-    $("#savename").val(name);
 }
 
 function load_file(name) {
@@ -109,6 +114,7 @@ function load_gist(id) {
     $.get(url, function(data) {
         var res = JSON.parse(data);
         editor.getDoc().setValue(res.files["main.lua"].content);
+        pick_new_name();
         reset_save();
         log_output("Done.");
     }, "text");

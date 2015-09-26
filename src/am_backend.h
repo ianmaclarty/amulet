@@ -30,8 +30,8 @@ bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, 
 void am_set_native_window_lock_pointer(am_native_window *window, bool lock);
 void am_destroy_native_window(am_native_window *window);
 
-void am_native_window_pre_render(am_native_window *window);
-void am_native_window_post_render(am_native_window *window);
+void am_native_window_bind_framebuffer(am_native_window *win);
+void am_native_window_swap_buffers(am_native_window *window);
 
 double am_get_current_time();
 

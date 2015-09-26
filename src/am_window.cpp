@@ -21,6 +21,7 @@ static int create_window(lua_State *L) {
     bool depth_buffer = false;
     bool stencil_buffer = false;
     glm::vec4 clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+    bool auto_clear = true;
     bool lock_pointer = false;
     int msaa_samples = 0;
 
@@ -66,6 +67,8 @@ static int create_window(lua_State *L) {
             }
         } else if (strcmp(key, "clear_color") == 0) {
             clear_color = am_get_userdata(L, am_vec4, -1)->v;
+        } else if (strcmp(key, "auto_clear") == 0) {
+            auto_clear = lua_toboolean(L, -1);
         } else {
             return luaL_error(L, "unrecognised window setting: '%s'", key);
         }
@@ -88,10 +91,15 @@ static int create_window(lua_State *L) {
         stencil_buffer,
         msaa_samples);
     win->clear_color = clear_color;
+    win->auto_clear = auto_clear;
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
-    am_get_native_window_size(win->native_win, &win->pwidth, &win->pheight);
+    am_get_native_window_size(win->native_win, &win->curr_width, &win->curr_height);
+
+    // this forces an initial clear using the supplied clear color
+    win->prev_width = 0;
+    win->prev_height = 0;
 
     win->scene = NULL;
     win->scene_ref = LUA_NOREF;
@@ -196,13 +204,24 @@ static void draw_windows() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
         if (!win->needs_closing) {
-            am_native_window_pre_render(win->native_win);
+            am_native_window_bind_framebuffer(win->native_win);
             am_render_state *rstate = &am_global_render_state;
-            am_get_native_window_size(win->native_win, &win->pwidth, &win->pheight);
-            glm::vec4 cc = win->clear_color;
-            am_set_framebuffer_clear_color(cc.r, cc.g, cc.b, cc.a);
-            rstate->do_render(win->scene, 0, true, win->pwidth, win->pheight, win->has_depth_buffer);
-            am_native_window_post_render(win->native_win);
+            am_get_native_window_size(win->native_win, &win->curr_width, &win->curr_height);
+            // always clear on resize since the framebuffer may have
+            // been re-created, which may have cleared it to black,
+            // in which case we want to at least clear to the color chosen
+            // by the user.
+            bool do_clear = win->auto_clear
+                || win->prev_width != win->curr_width
+                || win->prev_height != win->curr_height;
+            if (do_clear) {
+                glm::vec4 cc = win->clear_color;
+                am_set_framebuffer_clear_color(cc.r, cc.g, cc.b, cc.a);
+            }
+            rstate->do_render(win->scene, 0, do_clear, win->curr_width, win->curr_height, win->has_depth_buffer);
+            win->prev_width = win->curr_width;
+            win->prev_height = win->curr_height;
+            am_native_window_swap_buffers(win->native_win);
         }
     }
 }
@@ -238,6 +257,28 @@ bool am_execute_actions(lua_State *L, double dt) {
     return res;
 }
 
+static int clear_window(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    am_window *win = am_get_userdata(L, am_window, 1);
+    am_native_window_bind_framebuffer(win->native_win);
+    bool clear_color = true;
+    bool clear_depth = true;
+    bool clear_stencil = true;
+    if (nargs > 1) {
+        clear_color = lua_toboolean(L, 2);
+        am_set_framebuffer_clear_color(win->clear_color.r, win->clear_color.g, win->clear_color.b, win->clear_color.a);
+    }
+    if (nargs > 2) {
+        clear_depth = lua_toboolean(L, 3);
+        am_set_framebuffer_depth_mask(true); // XXX why?
+    }
+    if (nargs > 3) {
+        clear_stencil = lua_toboolean(L, 4);
+    }
+    am_clear_framebuffer(clear_color, clear_depth, clear_stencil);
+    return 0;
+}
+
 static void get_scene(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     window->pushref(L, window->scene_ref);
@@ -262,18 +303,18 @@ static void set_scene(lua_State *L, void *obj) {
 
 static am_property scene_property = {get_scene, set_scene};
 
-static void get_window_pwidth(lua_State *L, void *obj) {
+static void get_window_curr_width(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    lua_pushinteger(L, am_max(1, window->pwidth));
+    lua_pushinteger(L, am_max(1, window->curr_width));
 }
 
-static void get_window_pheight(lua_State *L, void *obj) {
+static void get_window_curr_height(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    lua_pushinteger(L, am_max(1, window->pheight));
+    lua_pushinteger(L, am_max(1, window->curr_height));
 }
 
-static am_property pwidth_property = {get_window_pwidth, NULL};
-static am_property pheight_property = {get_window_pheight, NULL};
+static am_property curr_width_property = {get_window_curr_width, NULL};
+static am_property curr_height_property = {get_window_curr_height, NULL};
 
 static void get_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
@@ -317,6 +358,17 @@ static void set_clear_color(lua_State *L, void *obj) {
 
 static am_property clear_color_property = {get_clear_color, set_clear_color};
 
+static void get_auto_clear(lua_State *L, void *obj) {
+    am_window *win = (am_window*)obj;
+    lua_pushboolean(L, win->auto_clear ? 1 : 0);
+}
+static void set_auto_clear(lua_State *L, void *obj) {
+    am_window *win = (am_window*)obj;
+    win->auto_clear = lua_toboolean(L, 3);
+}
+
+static am_property auto_clear_property = {get_auto_clear, set_auto_clear};
+
 static void register_window_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -325,10 +377,14 @@ static void register_window_mt(lua_State *L) {
 
     am_register_property(L, "scene", &scene_property);
     am_register_property(L, "lock_pointer", &lock_pointer_property);
-    am_register_property(L, "width", &pwidth_property);
-    am_register_property(L, "height", &pheight_property);
+    am_register_property(L, "width", &curr_width_property);
+    am_register_property(L, "height", &curr_height_property);
     am_register_property(L, "mode", &window_mode_property);
     am_register_property(L, "clear_color", &clear_color_property);
+    am_register_property(L, "auto_clear", &auto_clear_property);
+
+    lua_pushcclosure(L, clear_window, 0);
+    lua_setfield(L, -2, "clear");
 
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");

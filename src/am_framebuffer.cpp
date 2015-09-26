@@ -66,7 +66,7 @@ static int clear_framebuffer(lua_State *L) {
     }
     if (nargs > 2) {
         clear_depth = lua_toboolean(L, 3);
-        am_set_framebuffer_depth_mask(true);
+        am_set_framebuffer_depth_mask(true); // XXX why?
     }
     if (nargs > 3) {
         clear_stencil = lua_toboolean(L, 4);

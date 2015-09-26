@@ -51,13 +51,6 @@ size changed since the last frame.
 To close a window call its :func:`window:close` method. This also
 quits the application if there was only one window open.
 
-..  note::
-
-    Windows are automatically cleared each frame before drawing.
-    If you'd like for this not to happend, then you need to draw into an
-    offscreen framebuffer and then draw that to the window instead.
-    See :ref:`framebuffers` for more information.
-
 Shaders
 -------
 

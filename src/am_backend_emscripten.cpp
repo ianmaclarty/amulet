@@ -95,11 +95,11 @@ bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, 
     return false;
 }
 
-void am_native_window_pre_render(am_native_window* win) {
+void am_native_window_bind_framebuffer(am_native_window* win) {
     am_bind_framebuffer(0);
 }
 
-void am_native_window_post_render(am_native_window* win) {
+void am_native_window_swap_buffers(am_native_window* win) {
     SDL_GL_SwapBuffers();
 }
 
@@ -131,13 +131,6 @@ static void main_loop() {
         return;
     }
     if (!run_loop || sdl_window == NULL) return;
-
-    if (!am_update_windows(eng->L)) {
-        was_error = true;
-        return;
-    }
-
-    am_sync_audio_graph(eng->L);
 
     if (!handle_events()) {
         was_error = true;
@@ -176,7 +169,13 @@ static void main_loop() {
         fps_max = 0.0;
         frame_count = 0;
     }
-    SDL_GL_SwapBuffers();
+
+    if (!am_update_windows(eng->L)) {
+        was_error = true;
+        return;
+    }
+
+    am_sync_audio_graph(eng->L);
 }
 
 static void start_main_loop(bool run_main) {
