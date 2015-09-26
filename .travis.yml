@@ -1,5 +1,7 @@
 language: cpp
 
+
+
 matrix:
     include:
         - os: osx
@@ -15,6 +17,11 @@ matrix:
           env:
             - TARGET=ios.release
             - MK_TARGET=default
+        - os: osx
+          env:
+            - TARGET=ios.release
+            - LUAVM=luajit
+            - MK_TARGET=default
         - os: linux
           env:
             - TARGET=linux64.release
@@ -29,5 +36,20 @@ matrix:
             - TARGET=linux64.release
             - LUAVM=lua52
             - MK_TARGET=test
+        - os: linux
+          env:
+            - TARGET=mingw32.release
+            - MK_TARGET=default
+        - os: linux
+          env:
+            - TARGET=mingw32.release
+            - LUAVM=luajit
+            - MK_TARGET=default
+
+before_install:
+    - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get update -qq; fi
+    - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get install -y binutils-mingw-w64-i686; fi
+    - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get install -y gcc-mingw-w64-i686; fi
+    - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get install -y g++-mingw-w64-i686; fi
         
 script: make $MK_TARGET
