@@ -64,3 +64,5 @@
 - Fix real fullscreen mode on Linux.
 
 - Implement amconf.lua project config file.
+
+- Fix LuaJIT cross compile (mingw and ios)
