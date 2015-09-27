@@ -66,3 +66,14 @@
 - Implement amconf.lua project config file.
 
 - Fix LuaJIT cross compile (mingw and ios)
+
+- Make sure GL state is reset properly between restarts (html editor issue)
+
+- Add a "wrap" node that can be used to make a chain of nodes
+  appear as a single node, for the purposes of append, etc.
+
+- Add prerender actions. Disable mutating scene graph on prerender?
+  Prerender actions have access to current GL state and window being
+  rendered to.
+
+- Add late actions.
