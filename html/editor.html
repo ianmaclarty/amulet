@@ -109,14 +109,13 @@ function load_new() {
         '    ^ am.scale(vec3(0, 0, 1))\n' +
         '        :action(am.tween(0.8, {scale = vec3(2, 2, 1)}, am.ease.out(am.ease.windup)))\n' +
         '    ^ am.text("Hello!")');
-    run_waiting();
 }
 
 function load_example(name) {
     $.get(name, function(code) {
         editor.getDoc().setValue(code);
         reset_save();
-        pick_new_name();
+        $("#savename").val(name.replace(/\.lua$/, ""));
         run_current();
     }, "text");
 }
@@ -168,6 +167,7 @@ function init_controls() {
     $("#new").click(function() {
         if (!editor_dirty || confirm("Loose current changes?")) {
             load_new();
+            run_waiting();
         }
     });
     $("#save").click(function() {
@@ -249,6 +249,7 @@ function init_controls() {
                 return;
             }
             load_new();
+            run_waiting();
         }
     });
     init_load_options();
