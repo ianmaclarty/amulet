@@ -190,7 +190,7 @@ void am_destroy_windows(lua_State *L) {
     close_windows(L);
 }
 
-static void update_window_sizes() {
+static void resize_windows() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
         if (win->dirty) {
@@ -206,7 +206,6 @@ static void draw_windows() {
         if (!win->needs_closing) {
             am_native_window_bind_framebuffer(win->native_win);
             am_render_state *rstate = &am_global_render_state;
-            am_get_native_window_size(win->native_win, &win->curr_width, &win->curr_height);
             // always clear on resize since the framebuffer may have
             // been re-created, which may have cleared it to black,
             // in which case we want to at least clear to the color chosen
@@ -229,7 +228,7 @@ static void draw_windows() {
 bool am_update_windows(lua_State *L) {
     static unsigned int frame = 0;
     close_windows(L);
-    update_window_sizes();
+    resize_windows();
     draw_windows();
     frame++;
     if (am_conf_log_gl_calls) {
@@ -245,6 +244,9 @@ bool am_execute_actions(lua_State *L, double dt) {
     for (unsigned int i = 0; i < n; i++) {
         am_window *win = windows[i];
         if (!win->needs_closing && win->scene != NULL) {
+            // make sure window size properties are up-to-date before running 
+            // actions.
+            am_get_native_window_size(win->native_win, &win->curr_width, &win->curr_height);
             if (!am_execute_node_actions(L, win->scene)) {
                 res = false;
                 break;

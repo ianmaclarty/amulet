@@ -251,6 +251,8 @@ function set_message_handler() {
             msg_source = event.source;
             msg_origin = event.origin;
             load(cmd.run);
+        } else if (cmd.run_waiting) {
+            Module.ccall('am_emscripten_run_waiting', null, [], []);
         } else if (cmd.pause) {
             Module.ccall('am_emscripten_pause', null, [], []);
         } else if (cmd.resume) {
@@ -270,7 +272,11 @@ var Module = {
   print: function(text) {
       console.log(text);
       if (msg_source) {
-        msg_source.postMessage(text, msg_origin);
+        if (text == "ERROR") {
+            msg_source.postMessage({error: true}, msg_origin);
+        } else {
+            msg_source.postMessage({print: text}, msg_origin);
+        }
       }
   },
   printErr: function(text) {

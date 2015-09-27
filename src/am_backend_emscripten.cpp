@@ -202,7 +202,12 @@ static void start_main_loop(bool run_main) {
             run_loop = false;
         }
     } else {
-        run_main = false;
+        script_loaded = 1;
+        char *waiting_script = (char*)am_get_embedded_file("lua/waiting.lua")->data;
+        if (!am_run_script(eng->L, waiting_script, "main.lua")) {
+            run_loop = false;
+            was_error = true;
+        }
     }
 
     t0 = am_get_current_time();
@@ -543,6 +548,10 @@ void am_emscripten_run(const char *script) {
     } else {
         was_error = true;
     }
+}
+
+void am_emscripten_run_waiting() {
+    am_emscripten_run((char*)am_get_embedded_file("lua/waiting.lua")->data);
 }
 
 void am_emscripten_pause() {

@@ -22,6 +22,7 @@ amulet.exe.manifest
 vc*.pdb
 
 src/am_embedded_data.cpp
+src/am_version.cpp
 src/am_generated_view_defs.inc
 
 tools/embed

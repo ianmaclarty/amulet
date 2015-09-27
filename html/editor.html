@@ -16,11 +16,20 @@
         <div class="button"><a id="new">New</a></div>
         <div class="button"><a id="save">Save</a>: <input id="savename" type="text" value="Untitled"></input></div>
         <div class="button"><select id="load"></select></div>
-        <div class="button"><select id="loadexample"></select></div>
+        <div class="button"><select id="loadexample">
+            <option value="">Load example</option>
+            <option value="hello.lua">Hello, World!</option>
+            <option value="rgb_triangle.lua">RGB triangle</option>
+            <option value="kaleidoscope.lua">Kaleidoscope</option>
+            <option value="city.lua">City Lights</option>
+            <option value="synth.lua">Synth</option>
+        </div>
+        </select></div>
         <div class="button"><a id="delete">Delete</a></div>
         <div class="separator"></div>
         <div class="button"><a id="run">Run</a></div>
-        <div class="button"><a id="pause-resume">Pause</a></div>
+        <div class="button disabled"><a id="pause-resume">Pause</a></div>
+        <div class="button disabled"><a id="stop">Stop</a></div>
         <div class="separator"></div>
         <div class="button"><a id="share">Share</a></div>
     </div>
@@ -49,6 +58,7 @@ var editor;
 var editor_dirty = false;
 
 var is_paused = false;
+var is_running = false;
 var was_error = false;
 
 function qualifyURL(url) {
@@ -81,17 +91,6 @@ function init_load_options() {
     }
 }
 
-function init_examples() {
-    $("#loadexample").empty().append('<option value="">Load example</option>');
-    $.get("example_list.txt", function(str) {
-        var examples = str.split(/\s+/);
-        for (var i = 0; i < examples.length; i++) {
-            var example = examples[i];
-            $("#loadexample").append('<option value="'+example+'">'+example+'</option>');
-        }
-    }, "text");
-}
-
 function pick_new_name() {
     var saves = get_storage_object("saves");
     var name = "Untitled";
@@ -109,13 +108,15 @@ function load_new() {
         '    ^ am.scale(vec3(0, 0, 1))\n' +
         '        :action(am.tween(0.8, {scale = vec3(2, 2, 1)}, am.ease.out(am.ease.windup)))\n' +
         '    ^ am.text("Hello!")');
+    run_waiting();
 }
 
 function load_example(name) {
-    $.get("examples/"+name+".lua", function(code) {
+    $.get(name, function(code) {
         editor.getDoc().setValue(code);
         reset_save();
         pick_new_name();
+        run_current();
     }, "text");
 }
 
@@ -136,8 +137,30 @@ function load_gist(id) {
         editor.getDoc().setValue(res.files["main.lua"].content);
         pick_new_name();
         reset_save();
-        log_output("Done.");
+        log_output("Done. Click Run to start it.");
     }, "text");
+}
+
+function run_current() {
+    var code = editor.getDoc().getValue();
+    log_start();
+    was_error = false;
+    is_paused = false;
+    is_running = true;
+    $("#pause-resume").text("Pause").parent().removeClass("disabled");
+    $("#stop").parent().removeClass("disabled");
+    var win = document.getElementById("player-frame").contentWindow;
+    win.postMessage({run: code}, "*");
+}
+
+function run_waiting() {
+    was_error = false;
+    is_paused = false;
+    is_running = false;
+    $("#pause-resume").text("Pause").parent().addClass("disabled");
+    $("#stop").parent().addClass("disabled");
+    var win = document.getElementById("player-frame").contentWindow;
+    win.postMessage({run_waiting: true}, "*");
 }
 
 function init_controls() {
@@ -157,13 +180,7 @@ function init_controls() {
         set_storate_object("lastopen", name);
     });
     $("#run").click(function() {
-        var code = editor.getDoc().getValue();
-        log_start();
-        was_error = false;
-        is_paused = false;
-        $("#pause-resume").text("Pause").removeClass("disabled");
-        var win = document.getElementById("player-frame").contentWindow;
-        win.postMessage({run: code}, "*");
+        run_current();
     });
     $("#pause-resume").click(function() {
         if (was_error) return;
@@ -178,6 +195,12 @@ function init_controls() {
             log_output("Paused.", "running");
         }
         is_paused = !is_paused;
+    });
+    $("#stop").click(function() {
+        if (is_running) {
+            log_output("Stopped.", "running");
+            run_waiting();
+        }
     });
     $("#share").click(function() {
         var code = editor.getDoc().getValue();
@@ -202,6 +225,7 @@ function init_controls() {
         var val = $(this).val();
         if (!editor_dirty || confirm("Loose current changes?")) {
             load_file(val);
+            run_current();
             $("#load").val("");
         }
     });
@@ -227,7 +251,6 @@ function init_controls() {
         }
     });
     init_load_options();
-    init_examples();
 }
 
 function init_editor() {
@@ -448,11 +471,11 @@ function clear_output() {
 
 function set_message_handler() {
     window.addEventListener("message", function(event) {
-        if (event.data == "ERROR") {
+        if (event.data.error) {
             was_error = true;
-            $("#pause-resume").addClass("disabled");
-        } else {
-            log_output(event.data);
+            $("#pause-resume").parent().addClass("disabled");
+        } else if (event.data.print) {
+            log_output(event.data.print);
         }
     }, false);
 }

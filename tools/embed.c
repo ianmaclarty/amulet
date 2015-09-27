@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
             }
             chr = getc(f);
             if (chr == EOF) {
-                printf("};\n\n");
+                printf("0};\n\n");
                 break;
             }
             printf("0x%02X, ", chr);
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     printf("am_embedded_file_record am_embedded_files[] = {");
     for (i = 1; i < argc; i++) {
         filename = argv[i];
-        printf("\n    {\"%s\", data%d, sizeof(data%d)},", filename, i, i);
+        printf("\n    {\"%s\", data%d, sizeof(data%d)-1},", filename, i, i);
     }
     printf("\n    {NULL, NULL, 0}\n};\n");
     return EXIT_SUCCESS;

@@ -1,5 +1,7 @@
-local color = vec4(0.8, 0, 0.5, 1)
-local radius = 7
+math.randomseed(os.time())
+
+local color = vec4(math.random() * 0.8, math.random() * 0.8, math.random() * 0.8, 1)
+local radius = 30
 
 local win = am.window{
     title = "waiting for script...",
@@ -7,19 +9,18 @@ local win = am.window{
     clear_color = color
 }
 
-math.randomseed(os.time())
-
 local rect = am.translate(vec3(-20, 0, 0))
     ^ am.rect(-radius, -radius, radius, radius, color)
 
-local speed = vec2(37, 43)
+local speed = vec2(100, 100)
 
 rect:action(function()
     local pos = rect"translate".position
-    if pos.x < -100 and speed.x < 0 or pos.x > 100 and speed.x > 0 then
+    local w, h = win.width/2, win.height/2
+    if pos.x < -w and speed.x < 0 or pos.x > w and speed.x > 0 then
         speed = speed{x = -speed.x}
     end
-    if pos.y < -50 and speed.y < 0 or pos.y > 50 and speed.y > 0 then
+    if pos.y < -h and speed.y < 0 or pos.y > h and speed.y > 0 then
         speed = speed{y = -speed.y}
     end
     pos = pos + vec3(speed, 0) * am.delta_time
@@ -36,9 +37,16 @@ rect:action(function()
 end)
 
 win.scene =
-    am.camera2d(200, 100)
+    am.camera2d(win.width, win.height)
+        :action(function(cam)
+            cam.width = win.width
+            cam.height = win.height
+            cam"textpos".position = vec3(0, -win.height / 2 + 40, 0)
+        end)
     ^ {
         rect,
-        am.translate(vec3(0, -50, 0))
+        am.translate(vec3(0, -50, 0)):tag"textpos"
+        ^ am.scale(vec3(2.5))
         ^ am.text("Amulet v"..am.version.."\nwaiting for script...", "center", "bottom")
     }
+

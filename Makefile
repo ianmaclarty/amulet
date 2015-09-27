@@ -44,14 +44,16 @@ endif
 
 DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(AM_DEPS))
 
-VIEW_TEMPLATES = $(wildcard src/am*view_template.inc)
+VIEW_TEMPLATES = $(wildcard $(SRC_DIR)/am*view_template.inc)
+
+VERSION_CPP_FILE = $(SRC_DIR)/am_version.cpp
 
 EMBEDDED_LUA_FILES = $(wildcard lua/*.lua)
 EMBEDDED_PNGS = $(wildcard lua/*.png)
 EMBEDDED_FILES = $(EMBEDDED_LUA_FILES) $(EMBEDDED_PNGS)
 EMBEDDED_DATA_CPP_FILE = $(SRC_DIR)/am_embedded_data.cpp
 
-AM_CPP_FILES = $(sort $(wildcard $(SRC_DIR)/*.cpp) $(EMBEDDED_DATA_CPP_FILE))
+AM_CPP_FILES = $(sort $(wildcard $(SRC_DIR)/*.cpp) $(EMBEDDED_DATA_CPP_FILE) $(VERSION_CPP_FILE))
 AM_H_FILES = $(wildcard $(SRC_DIR)/*.h)
 AM_OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_OBJ_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
 
@@ -63,9 +65,10 @@ AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
 AM_CFLAGS = $(AM_DEF_FLAGS) $(LUA_CFLAGS) $(XCFLAGS) $(AM_INCLUDE_FLAGS) $(COMMON_CFLAGS) 
 AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
-HTML_EDITOR_EXAMPLE_LIST = $(BUILD_BIN_DIR)/example_list.txt
+EXAMPLE_FILES := $(wildcard examples/*.lua)
+BUILD_EXAMPLE_FILES := $(patsubst examples/%,$(BUILD_BIN_DIR)/%,$(EXAMPLE_FILES))
 HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html html/*.ico)
-BUILD_HTML_EDITOR_FILES = $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
+BUILD_HTML_EDITOR_FILES := $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 
 # Rules
 
@@ -73,7 +76,7 @@ default: all
 
 .PHONY: all
 ifeq ($(TARGET_PLATFORM),html)
-all: $(BUILD_HTML_EDITOR_FILES) $(HTML_EDITOR_EXAMPLE_LIST) $(AMULET) 
+all: $(BUILD_HTML_EDITOR_FILES) $(BUILD_EXAMPLE_FILES) $(AMULET) 
 else
 all: $(AMULET)
 endif
@@ -99,7 +102,7 @@ endif
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
 	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
 
-$(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): src/am_generated_view_defs.inc $(VIEW_TEMPLATES)
+$(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE)
@@ -166,20 +169,15 @@ $(BUILD_DIRS): %:
 $(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: html/% | $(BUILD_BIN_DIR)
 	cp $< $@
 
-EXAMPLE_FILES := $(wildcard examples/*.lua)
-EXAMPLE_NAMES := $(patsubst examples/%.lua,%,$(EXAMPLE_FILES))
-
-$(HTML_EDITOR_EXAMPLE_LIST): $(EXAMPLE_FILES)
-	echo $(EXAMPLE_NAMES) > $@
-	mkdir -p $(BUILD_BIN_DIR)/examples
-	cp $(EXAMPLE_FILES) $(BUILD_BIN_DIR)/examples/
+$(BUILD_EXAMPLE_FILES): $(BUILD_BIN_DIR)/%: examples/% | $(BUILD_BIN_DIR)
+	cp $< $@
 
 # View templates
 
 tools/gen_view_defs$(EXE_EXT): tools/gen_view_defs.c
 	$(HOSTCC) -o $@ $<
 
-src/am_generated_view_defs.inc: tools/gen_view_defs$(EXE_EXT)
+$(SRC_DIR)/am_generated_view_defs.inc: tools/gen_view_defs$(EXE_EXT)
 	tools/gen_view_defs$(EXE_EXT) > $@
 
 # Embedded Lua code
@@ -189,6 +187,13 @@ tools/embed$(EXE_EXT): tools/embed.c
 
 $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 	tools/embed$(EXE_EXT) $(EMBEDDED_FILES) > $@
+
+# Generate version file
+
+VERSION = $(shell cat VERSION)
+
+$(VERSION_CPP_FILE): VERSION
+	echo "const char *am_version = \"$(VERSION)\";" > $@
 
 # Font generation tool
 
@@ -202,6 +207,7 @@ clean:
 	rm -f $(BUILD_OBJ_DIR)/*
 	rm -f $(BUILD_BIN_DIR)/*
 	rm -f $(EMBEDDED_DATA_CPP_FILE)
+	rm =f $(VERSION_CPP_FILE)
 	rm -f amulet$(EXE_EXT)
 
 clean-target:

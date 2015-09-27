@@ -6,6 +6,7 @@ static void open_stdlualibs(lua_State *L);
 static void init_require_func(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
 static void set_arg_global(lua_State *L, int argc, char** argv);
+static void am_set_version(lua_State *L);
 
 am_engine *am_init_engine(bool worker, int argc, char** argv) {
 #if defined(AM_LUAJIT) && defined(AM_64BIT)
@@ -56,6 +57,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_audio_module(L);
     }
     am_set_globals_metatable(L);
+    am_set_version(L);
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
         return NULL;
@@ -139,6 +141,13 @@ static void init_require_func(lua_State *L) {
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_MODULE_TABLE);
     lua_pushcclosure(L, am_load_module, 0);
     lua_setglobal(L, "require");
+}
+
+static void am_set_version(lua_State *L) {
+    lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+    lua_pushstring(L, am_version);
+    lua_setfield(L, -2, "version");
+    lua_pop(L, 1); // am table
 }
 
 #define MAX_CHUNKNAME_SIZE 100

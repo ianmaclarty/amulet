@@ -54,6 +54,7 @@ function am.rect(x1, y1, x2, y2, color)
     for prop, func in pairs(rect_props) do
         node[prop] = func
     end
+    node:tag("rect")
     return node
 end
 
@@ -133,9 +134,10 @@ function am.ellipse(center, xrad, yrad, color, sides)
         color = c
         node"bind".color = color
     end
+    node:tag("ellipse")
     return node
 end
 
 function am.circle(center, rad, color, sides)
-    return am.ellipse(center, rad, rad, color, sides)
+    return am.ellipse(center, rad, rad, color, sides):tag("circle")
 end

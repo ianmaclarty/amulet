@@ -68,7 +68,7 @@ div {
     padding: 2px 3px 2px 3px;
 }
 
-#top-panel a.disabled {
+#top-panel div.disabled {
     background-color: #888;
     color: #4e4e4e;
     cursor: default;
