@@ -262,7 +262,8 @@ function set_message_handler() {
 }
 set_message_handler();
 
-window.amulet.noload = (getParameterByName("noload") || getParameterByName("gist")) ? 1 : 0;
+window.amulet.run_waiting = getParameterByName("run_waiting") ? 1 : 0;
+window.amulet.no_load_data = getParameterByName("gist") ? 1 : 0;
 
 //------------------------------------------------------------------------
 

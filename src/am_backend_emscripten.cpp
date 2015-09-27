@@ -178,7 +178,7 @@ static void main_loop() {
     am_sync_audio_graph(eng->L);
 }
 
-static void start_main_loop(bool run_main) {
+static void start_main_loop(bool run_main, bool run_waiting) {
     init_sdl();
 
     if (eng != NULL) {
@@ -201,13 +201,15 @@ static void start_main_loop(bool run_main) {
         if (sdl_window == NULL) {
             run_loop = false;
         }
-    } else {
+    } else if (run_waiting) {
         script_loaded = 1;
         char *waiting_script = (char*)am_get_embedded_file("lua/waiting.lua")->data;
         if (!am_run_script(eng->L, waiting_script, "main.lua")) {
             run_loop = false;
             was_error = true;
         }
+    } else {
+        run_loop = false;
     }
 
     t0 = am_get_current_time();
@@ -222,11 +224,14 @@ static void start_main_loop(bool run_main) {
 
 int main( int argc, char *argv[] )
 {
-    int noload = EM_ASM_INT({
-        return window.amulet.noload ? 1 : 0;
+    int no_load_data = EM_ASM_INT({
+        return window.amulet.no_load_data ? 1 : 0;
     }, 0);
-    if (noload) {
-        start_main_loop(false);
+    int run_waiting = EM_ASM_INT({
+        return window.amulet.run_waiting ? 1 : 0;
+    }, 0);
+    if (run_waiting || no_load_data) {
+        start_main_loop(false, run_waiting);
         EM_ASM(
             window.amulet.load_progress = 100;
             window.amulet.ready();
@@ -442,7 +447,7 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
 
 static void on_load_package_complete(unsigned int x, void *arg, const char *filename) {
     open_package();
-    start_main_loop(true);
+    start_main_loop(true, false);
     EM_ASM(
         window.amulet.load_progress = 100;
         window.amulet.ready();
