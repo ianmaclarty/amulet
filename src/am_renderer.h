@@ -156,7 +156,6 @@ struct am_render_state {
     int                     next_free_texture_unit;
 
     am_render_state();
-    virtual ~am_render_state();
 
     void draw_arrays(am_draw_mode mode, int first, int count);
     void draw_elements(am_draw_mode mode, int first, int count,

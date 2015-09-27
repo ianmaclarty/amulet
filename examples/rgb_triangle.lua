@@ -2,11 +2,6 @@ local win = am.window{}
 
 win.scene =
     am.use_program(am.shaders.colors2d)
-    :action(function()
-        if win:key_pressed("escape") then
-            win:close()
-        end
-    end)
     ^am.bind{
         P = mat4(1),
         MV = mat4(1),

@@ -291,14 +291,14 @@ static bool check_pass(am_render_state *rstate) {
 void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_count) {
     if (!check_pass(this)) { return; }
     if (active_program == NULL) {
-        am_log1("%s", "WARNING: ignoring draw_arrays, "
+        am_log1("%s", "WARNING: ignoring draw, "
             "because no shader program has been bound");
         return;
     }
     update_state();
     if (validate_active_program(mode)) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
-            am_log1("%s", "WARNING: ignoring draw_arrays, "
+            am_log1("%s", "WARNING: ignoring draw, "
                 "because no attribute arrays have been bound");
             draw_array_count = 0;
         }
@@ -315,7 +315,7 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
 {
     if (!check_pass(this)) return;
     if (active_program == NULL) {
-        am_log1("%s", "WARNING: ignoring draw_elements, "
+        am_log1("%s", "WARNING: ignoring draw, "
             "because no shader program has been bound");
         return;
     }
@@ -327,11 +327,11 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
         indices_view->buffer->update_if_dirty();
         indices_view->update_max_elem_if_required();
         if (max_draw_array_size == INT_MAX) {
-            am_log1("%s", "WARNING: ignoring draw_elements, "
+            am_log1("%s", "WARNING: ignoring draw, "
                 "because no attribute arrays have been bound");
             count = 0;
         } else if ((int)indices_view->max_elem >= max_draw_array_size) {
-            am_log1("WARNING: ignoring draw_elements, "
+            am_log1("WARNING: ignoring draw, "
                 "because one of its indices (%d) is out of bounds "
                 "(max allowed = %d)",
                 ((int)indices_view->max_elem + 1), max_draw_array_size);
@@ -395,9 +395,6 @@ am_render_state::am_render_state() {
     active_program = NULL;
 
     next_free_texture_unit = 0;
-}
-
-am_render_state::~am_render_state() {
 }
 
 am_draw_node::am_draw_node() {
@@ -576,7 +573,6 @@ static void register_pass_filter_node_mt(lua_State *L) {
 void am_open_renderer_module(lua_State *L) {
     // reset render state
     new (&am_global_render_state) am_render_state();
-
     luaL_Reg funcs[] = {
         {"draw", create_draw_node},
         {"pass", create_pass_filter_node},

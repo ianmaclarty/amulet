@@ -1,3 +1,5 @@
+-- click in the game window to allow it to capture your pointer
+-- WASD to walk
 local win = am.window{
     title = "City",
     width = 1200,

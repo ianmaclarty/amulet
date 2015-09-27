@@ -38,6 +38,7 @@ win.scene = am.blend("normal")
     ^ am.bind{P = proj, MV = mat4(1)}
     ^ particles
 
+local i = 1
 win.scene:action(function()
     add_particle()
     if win:mouse_button_pressed("left") then
@@ -50,4 +51,8 @@ win.scene:action(function()
             0)
     end
     curr_color = math.clamp(curr_color, 0, 1)
+    --if i == 2 then
+    --    win.scene = nil
+    --end
+    i = i + 1
 end)

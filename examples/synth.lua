@@ -1,3 +1,5 @@
+-- click on the wave to edit it
+-- the sliders control various filters and pitch
 local win = am.window{}
 
 local audio_data_view
