@@ -17,6 +17,7 @@ tmp/*
 *.orig
 log
 D.*
+*.swp
 
 amulet.exe.manifest
 vc*.pdb
