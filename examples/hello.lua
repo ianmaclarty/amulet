@@ -4,6 +4,6 @@ local scene = am.camera2d(200, 150, vec2(0))
     ^ am.scale(vec3(0, 0, 1))
     ^ am.text("Hello, World!")
 
-scene:action(am.tween(scene"scale", 0.8, {scale = vec3(2, 2, 1)}))
+scene:action(am.tween(scene"scale", 0.8, {scale = vec3(1, 1, 1)}))
 
 win.scene = scene

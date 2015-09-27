@@ -1,8 +1,4 @@
-local win = 
-am.window{
-    top = 0,
-    left = 0,
-    }
+local win = am.window{}
 
 win.scene =
     am.use_program(am.shaders.colors2d)
