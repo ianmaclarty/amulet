@@ -299,8 +299,14 @@ static bool handle_events() {
                 break;
             }
             case SDL_MOUSEMOTION: {
-                mouse_x += event.motion.xrel;
-                mouse_y += event.motion.yrel;
+                int lock_pointer = EM_ASM_INT({ return window.amulet.have_pointer_lock() ? 1 : 0; }, 0);
+                if (lock_pointer) {
+                    mouse_x += event.motion.xrel;
+                    mouse_y += event.motion.yrel;
+                } else {
+                    mouse_x = event.motion.x;
+                    mouse_y = event.motion.y;
+                }
                 break;
             }
             case SDL_MOUSEBUTTONDOWN: {

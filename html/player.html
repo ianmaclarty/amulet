@@ -89,9 +89,16 @@ function getParameterByName(name) {
     return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
-var havePointerLock = 'pointerLockElement' in document ||
-    'mozPointerLockElement' in document ||
-    'webkitPointerLockElement' in document;
+var pointerLockElementName = null;
+if ('pointerLockElement' in document) {
+    pointerLockElementName = 'pointerLockElement';
+} else if ('mozPointerLockElement' in document) {
+    pointerLockElementName = 'mozPointerLockElement';
+} else if ('webkitPointerLockElement' in document) {
+    pointerLockElementName = 'webkitPointerLockElement';
+}
+
+var havePointerLock = pointerLockElementName != null;
 
 navigator.getUserMedia  = navigator.getUserMedia ||
                           navigator.webkitGetUserMedia ||
@@ -108,6 +115,9 @@ function run(script) {
 
 function init_canvas() {
     var canvas = document.getElementById("canvas");
+    window.amulet.have_pointer_lock = function() {
+        return canvas === document[pointerLockElementName];
+    };
     // Pop up an alert when webgl context is lost.
     // TODO: handle webgl context restore event.
     // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
