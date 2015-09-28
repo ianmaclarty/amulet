@@ -38,14 +38,14 @@ Amulet uses or borrows code and ideas from the following projects:
 
 - [Lua](http://lua.org)
 - [LuaJIT](http://luajit.org/)
-- [SDL2](https://www.libsdl.org/download-2.0.php)
+- [SDL2](https://www.libsdl.org)
 - [Sean's Tool Box](https://github.com/nothings/stb)
 - [KissFFT](http://sourceforge.net/projects/kissfft/)
 - [Blink](http://www.chromium.org/blink)
 - [ANGLE](https://code.google.com/p/angleproject/)
 - [FreeType](http://www.freetype.org/)
-- [GLM](http://glm.g-truc.net/0.9.7/index.html)
-- [Emscripten](http://kripken.github.io/emscripten-site/)
+- [GLM](http://glm.g-truc.net)
+- [Emscripten](http://emscripten.org)
 - [OpenCV](http://opencv.org/)
 
 The HTML editor uses code and ideas from:
