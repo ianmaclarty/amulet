@@ -1,9 +1,8 @@
 <p align="center"><img src="logo.png"/></p>
 
-**WORK IN PROGRESS** Amulet isn't ready yet, but I'm aiming to have a 1.0 release
-by the end of 2015.
+Amulet is a Lua game engine by [Ian MacLarty](http://ianmaclarty.com).
 
-Amulet is a Lua-based framework for making games by [Ian MacLarty](http://ianmaclarty.com).
+**NOTE**: Amulet is not ready yet, but am initial release is planned for the end of 2015.
 
 Here's what Hello World looks like in Amulet:
 
@@ -19,9 +18,9 @@ It currently runs on the following platforms:
 - iOS
 - HTML5
 
-I will probably add support for Android at some point as well.
+Android support will also probably be added at some point.
 
-Here are some games I've made with Amulet:
+Here are some games that have been made with Amulet:
 
 - [City Lights](http://ianmaclarty.itch.io/city-lights)
 - [Doomdream](http://ianmaclarty.itch.io/doomdream)
