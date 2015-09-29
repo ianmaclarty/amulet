@@ -45,13 +45,12 @@
 
 #define log_gl_call(fmt, ...) {if (am_conf_log_gl_calls) {am_debug("GL: " fmt, __VA_ARGS__);}}
 
-#define check_initialized(...) {if (!am_gl_initialized) {am_log1("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
+#define check_initialized(...) {if (!gl_initialized) {am_log1("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
 
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
 
 #if defined(AM_USE_ANGLE)
-static bool angle_initialized = false;
 static void init_angle();
 static void destroy_angle();
 static void angle_translate_shader(am_shader_type type,
@@ -62,7 +61,7 @@ static void angle_translate_shader(am_shader_type type,
 #define GL_RGB565 GL_UNSIGNED_SHORT_5_6_5
 #endif
 
-static bool am_gl_initialized = false;
+static bool gl_initialized = false;
 
 static void reset_gl() {
     GLFUNC(glPixelStorei)(GL_PACK_ALIGNMENT, 1);
@@ -94,29 +93,31 @@ static void reset_gl() {
 }
 
 void am_init_gl() {
-    am_gl_initialized = true;
+    am_debug("%s", "am_init_gl");
+    if (gl_initialized) {
+        am_log0("INTERNAL ERROR: %s", "gl already initialized");
+        return;
+    }
+    gl_initialized = true;
 
     // initialize angle if using
 #if defined(AM_USE_ANGLE)
-    if (!angle_initialized) {
-        init_angle();
-        angle_initialized = true;
-    }
+    init_angle();
 #endif
 
     reset_gl();
 }
 
 void am_destroy_gl() {
-    if (!am_gl_initialized) return;
-    am_gl_initialized = false;
+    if (!gl_initialized) return;
+    gl_initialized = false;
 #if defined(AM_USE_ANGLE)
     destroy_angle();
 #endif
 }
 
 bool am_gl_is_initialized() {
-    return am_gl_initialized;
+    return gl_initialized;
 }
 
 static void check_glerror(const char *file, int line, const char *func);
@@ -543,7 +544,7 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
     *msg = NULL;
     *line_str = NULL;
     *line_no = -1;
-    if (!am_gl_initialized) {
+    if (!gl_initialized) {
         const char *m = "gl not initialized";
         *msg = (char*)malloc(strlen(m) + 1);
         strcpy(*msg, m);

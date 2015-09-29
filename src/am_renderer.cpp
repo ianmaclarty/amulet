@@ -282,6 +282,14 @@ void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb, bool 
             root->render(this);
         } while (next_pass > pass);
     }
+    // Unbind the current program, because it might be
+    // deleted and the id reused before the next call to
+    // do_render.
+    bound_program_id = 0;
+    am_use_program(0);
+
+    assert(active_program == NULL);
+    assert(next_free_texture_unit == 0);
 }
 
 static bool check_pass(am_render_state *rstate) {
@@ -571,8 +579,6 @@ static void register_pass_filter_node_mt(lua_State *L) {
 }
 
 void am_open_renderer_module(lua_State *L) {
-    // reset render state
-    new (&am_global_render_state) am_render_state();
     luaL_Reg funcs[] = {
         {"draw", create_draw_node},
         {"pass", create_pass_filter_node},

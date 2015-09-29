@@ -1,4 +1,4 @@
-local win = am.window{auto_clear = false}
+local win = am.window{auto_clear = false, clear_color = vec4(1)}
 
 math.randomseed(os.time())
 

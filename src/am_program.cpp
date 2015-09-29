@@ -134,6 +134,7 @@ void am_init_param_name_map(lua_State *L) {
     if (am_param_name_map != NULL) free(am_param_name_map);
     am_param_name_map_capacity = 32;
     am_param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
+    memset(am_param_name_map, 0, sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
     for (int i = 0; i < am_param_name_map_capacity; i++) {
         am_param_name_map[i].name = NULL;
         am_param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;

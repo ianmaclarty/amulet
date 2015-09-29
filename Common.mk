@@ -243,8 +243,8 @@ endif
 # Adjust flags for grade
 ifeq ($(GRADE),debug)
   ifeq ($(TARGET_PLATFORM),html)
-    GRADE_CFLAGS = -O1
-    GRADE_LDFLAGS =
+    GRADE_CFLAGS = -O1 -profiling
+    GRADE_LDFLAGS = -profiling
     LUA_CFLAGS += -DLUA_USE_APICHECK
   else ifeq ($(TARGET_PLATFORM),msvc)
     GRADE_CFLAGS = -MTd -Zi

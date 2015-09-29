@@ -45,7 +45,7 @@ win.scene =
         end)
     ^ {
         rect,
-        am.translate(vec3(0, -50, 0)):tag"textpos"
+        am.translate(vec3(0, -win.height / 2 + 40, 0)):tag"textpos"
         ^ am.scale(vec3(2))
         ^ am.text("Amulet v"..am.version.."\nwaiting for script...", "center", "bottom")
     }

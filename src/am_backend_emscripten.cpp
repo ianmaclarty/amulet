@@ -34,7 +34,9 @@ am_native_window *am_create_native_window(
     bool stencil_buffer,
     int msaa_samples)
 {
-    if (sdl_window != NULL) return NULL;
+    if (sdl_window != NULL) {
+        return (am_native_window*)sdl_window;
+    }
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -69,7 +71,9 @@ am_native_window *am_create_native_window(
     // This will cause the system to use the current canvas element size.
     sdl_window = SDL_SetVideoMode(0, 0, 16, flags);
     if (sdl_window == NULL) return NULL;
-    am_init_gl();
+    if (!am_gl_is_initialized()) {
+        am_init_gl();
+    }
     init_mouse_state();
     EM_ASM_INT({
         document.getElementById("title").innerHTML = Module.Pointer_stringify($0);
@@ -88,7 +92,6 @@ void am_get_native_window_size(am_native_window *window, int *w, int *h) {
 }
 
 void am_destroy_native_window(am_native_window* win) {
-    sdl_window = NULL;
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
@@ -547,7 +550,6 @@ void am_emscripten_run(const char *script) {
     if (script_loaded) {
         // restart engine
         am_destroy_engine(eng);
-        eng = NULL;
         eng = am_init_engine(false, 0, NULL);
     }
     script_loaded = 1;
@@ -574,9 +576,6 @@ void am_emscripten_resume() {
 }
 
 void am_emscripten_resize(int w, int h) {
-    if (sdl_window != NULL) {
-        //am_handle_window_resize((am_native_window*)sdl_window, w, h);
-    }
 }
 
 }

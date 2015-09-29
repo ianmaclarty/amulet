@@ -56,6 +56,7 @@ SDL_Window *main_window = NULL;
 static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
+static bool restart_triggered = false;
 
 static am_package *package = NULL;
 
@@ -94,6 +95,14 @@ am_native_window *am_create_native_window(
     bool stencil_buffer,
     int msaa_samples)
 {
+    if (windows.size() == 0 && main_window != NULL) {
+        win_info winfo;
+        winfo.window = main_window;
+        winfo.lock_pointer = false;
+        SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
+        windows.push_back(winfo);
+        return (am_native_window*)main_window;
+    }
     if (!sdl_initialized) {
         init_sdl();
     }
@@ -366,6 +375,8 @@ int main( int argc, char *argv[] )
         exit_status = EXIT_FAILURE;
         goto quit;
     }
+
+restart:
     L = eng->L;
 
     frame_time = am_get_current_time();
@@ -380,7 +391,7 @@ int main( int argc, char *argv[] )
     t_debt = 0.0;
     vsync = -2;
 
-    while (windows.size() > 0) {
+    while (windows.size() > 0 && !restart_triggered) {
         if (vsync != (am_conf_vsync ? 1 : 0)) {
             vsync = (am_conf_vsync ? 1 : 0);
             SDL_GL_SetSwapInterval(vsync);
@@ -436,6 +447,13 @@ int main( int argc, char *argv[] )
             usleep(10 * 1000); // 10 milliseconds
 #endif
         }
+    }
+
+    if (restart_triggered) {
+        restart_triggered = false;
+        am_destroy_engine(eng);
+        eng = am_init_engine(false, argc, argv);
+        goto restart;
     }
 
 
@@ -690,12 +708,16 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
-                    win_info *info = win_from_id(event.key.windowID);
-                    if (info) {
-                        am_find_window((am_native_window*)info->window)->push(L);
-                        am_key key = convert_key(event.key.keysym.sym);
-                        lua_pushstring(L, am_key_name(key));
-                        am_call_amulet(L, "_key_up", 2, 0);
+                    if (am_conf_allow_restart && event.key.keysym.sym == SDLK_F5) {
+                        restart_triggered = true;
+                    } else {
+                        win_info *info = win_from_id(event.key.windowID);
+                        if (info) {
+                            am_find_window((am_native_window*)info->window)->push(L);
+                            am_key key = convert_key(event.key.keysym.sym);
+                            lua_pushstring(L, am_key_name(key));
+                            am_call_amulet(L, "_key_up", 2, 0);
+                        }
                     }
                 }
                 break;
