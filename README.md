@@ -2,7 +2,7 @@
 
 Amulet is a Lua game engine by [Ian MacLarty](http://ianmaclarty.com).
 
-**NOTE**: Amulet is not ready yet, but am initial release is planned for the end of 2015.
+**NOTE**: Amulet is not ready yet, but a initial release is planned for the end of 2015.
 
 Here's what Hello World looks like in Amulet:
 
