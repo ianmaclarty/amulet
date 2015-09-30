@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet)
+
 <p align="center"><img src="logo.png"/></p>
 
 Amulet is a Lua game engine by [Ian MacLarty](http://ianmaclarty.com).
@@ -53,4 +55,4 @@ The HTML editor uses code and ideas from:
 - [PuzzleScript](https://github.com/increpare/PuzzleScript) and [Zeedonk](https://github.com/increpare/zeedonk)
 - [jQuery](https://jquery.com/)
 
-[![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet)
+
