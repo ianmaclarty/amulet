@@ -44,7 +44,7 @@
 #define check_for_errors { if (am_conf_check_gl_errors) check_glerror(__FILE__, __LINE__, __func__); }
 
 #define log_gl(fmt, ...) {if (am_conf_log_gl_calls) {fprintf(stderr, fmt "\n", __VA_ARGS__);}}
-#define log_gl_ptr(ptr, len) {if (am_conf_log_gl_calls) {print_ptr(ptr, len);}}
+#define log_gl_ptr(ptr, len) {if (am_conf_log_gl_calls) {print_ptr((void*)ptr, len);}}
 
 static void print_ptr(void* p, int len);
 
