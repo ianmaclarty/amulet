@@ -232,7 +232,7 @@ bool am_update_windows(lua_State *L) {
     draw_windows();
     frame++;
     if (am_conf_log_gl_calls) {
-        am_debug("GL: ===================== END FRAME %d ==========================", frame);
+        fprintf(stderr, "SDL_GL_SwapWindow(win);\n\n // ===================== END FRAME %d ==========================\n\n", frame);
     }
     return windows.size() > 0;
 }

@@ -67,8 +67,11 @@ static void angle_translate_shader(am_shader_type type,
 static bool gl_initialized = false;
 
 static void reset_gl() {
+    log_gl("glPixelStorei(GL_PACK_ALIGNMENT, %d);", 1);
     GLFUNC(glPixelStorei)(GL_PACK_ALIGNMENT, 1);
+    log_gl("glPixelStorei(GL_UNPACK_ALIGNMENT, %d);", 1);
     GLFUNC(glPixelStorei)(GL_UNPACK_ALIGNMENT, 1);
+    log_gl("glHint(GL_GENERATE_MIPMAP_HINT, %s);", "GL_NICEST");
     GLFUNC(glHint)(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
     // initialize global gl state so it corresponds with the initial
@@ -88,15 +91,60 @@ static void reset_gl() {
     am_set_blend_color(1.0f, 1.0f, 1.0f, 1.0f);
     
     // need to explicitly enable point sprites on desktop gl
-    // (they are always enabled in opengle)
+    // (they are always enabled in opengles)
 #if defined(AM_GLPROFILE_DESKTOP)
+    log_gl("glEnable(%s);", "GL_POINT_SPRITE");
     GLFUNC(glEnable)(GL_POINT_SPRITE);
+    log_gl("glEnable(%s);", "GL_VERTEX_PROGRAM_POINT_SIZE");
     GLFUNC(glEnable)(GL_VERTEX_PROGRAM_POINT_SIZE);
 #endif
 }
 
+static void log_gl_prog_header() {
+    if (!am_conf_log_gl_calls) return;
+    fprintf(stderr, "%s\n", "#define SDL_MAIN_HANDLED 1");
+    fprintf(stderr, "%s\n", "#include \"SDL.h\"");
+    fprintf(stderr, "%s\n", "#define GL_GLEXT_PROTOTYPES");
+    fprintf(stderr, "%s\n", "#include \"SDL_opengl.h\"");
+    fprintf(stderr, "%s\n", "#include <map>");
+    fprintf(stderr, "%s\n", "#include <assert.h>");
+    fprintf(stderr, "%s\n", "int main( int argc, char *argv[] )");
+    fprintf(stderr, "%s\n", "{");
+    fprintf(stderr, "%s\n", "    std::map<uintptr_t, void*> ptr;");
+    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> prog;");
+    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> tex;");
+    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> buf;");
+    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> shader;");
+    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> fbuf;");
+    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> rbuf;");
+    fprintf(stderr, "%s\n", "    ptr[0] = NULL;");
+    fprintf(stderr, "%s\n", "    prog[0] = 0;");
+    fprintf(stderr, "%s\n", "    tex[0] = 0;");
+    fprintf(stderr, "%s\n", "    buf[0] = 0;");
+    fprintf(stderr, "%s\n", "    shader[0] = 0;");
+    fprintf(stderr, "%s\n", "    fbuf[0] = 0;");
+    fprintf(stderr, "%s\n", "    rbuf[0] = 0;");
+    fprintf(stderr, "%s\n", "    SDL_Init(SDL_INIT_VIDEO);");
+    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);");
+    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);");
+    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);");
+    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);");
+    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);");
+    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);");
+    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);");
+    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);");
+    fprintf(stderr, "%s\n", "    SDL_Window *win = SDL_CreateWindow(\"\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL);");
+    fprintf(stderr, "%s\n", "    SDL_GL_MakeCurrent(win, SDL_GL_CreateContext(win));");
+    fprintf(stderr, "\n\n");
+}
+
+static void log_gl_prog_footer() {
+    if (!am_conf_log_gl_calls) return;
+    fprintf(stderr, "%s\n", "    SDL_Quit();");
+    fprintf(stderr, "%s\n", "}");
+}
+
 void am_init_gl() {
-    am_debug("%s", "am_init_gl");
     if (gl_initialized) {
         am_log0("INTERNAL ERROR: %s", "gl already initialized");
         return;
@@ -108,6 +156,7 @@ void am_init_gl() {
     init_angle();
 #endif
 
+    log_gl_prog_header();
     reset_gl();
 }
 
@@ -117,6 +166,7 @@ void am_destroy_gl() {
 #if defined(AM_USE_ANGLE)
     destroy_angle();
 #endif
+    log_gl_prog_footer();
 }
 
 bool am_gl_is_initialized() {
@@ -327,7 +377,9 @@ void am_set_sample_coverage(float value, bool invert) {
 
 void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     check_initialized();
-    log_gl("glClear(%d, %d, %d);", (int)clear_color_buf, (int)clear_depth_buf, (int)clear_stencil_buf);
+    log_gl("glClear(%s | %s | %s);", clear_color_buf ? "GL_COLOR_BUFFER_BIT" : "0",
+        clear_depth_buf ? "GL_DEPTH_BUFFER_BIT" : "0",
+        clear_stencil_buf ? "GL_STENCIL_BUFFER_BIT" : "0");
     GLFUNC(glClear)((clear_color_buf ? GL_COLOR_BUFFER_BIT : 0) | (clear_depth_buf ? GL_DEPTH_BUFFER_BIT : 0) | (clear_stencil_buf ? GL_STENCIL_BUFFER_BIT : 0));
     check_for_errors
 }
@@ -741,7 +793,7 @@ am_gluint am_get_attribute_location(am_program_id program, const char *name) {
     check_initialized(0);
     log_gl("%s", "// about to call glGetAttribLocation");
     am_gluint l = GLFUNC(glGetAttribLocation)(program, name);
-    log_gl("{GLuint l = glGetAttribLocation(prog[%u], \"%s\")\nassert(l == %u);}", program, name, l);
+    log_gl("{GLuint l = glGetAttribLocation(prog[%u], \"%s\");\nassert(l == %u);}", program, name, l);
     check_for_errors
     return l;
 }
@@ -750,7 +802,7 @@ am_gluint am_get_uniform_location(am_program_id program, const char *name) {
     check_initialized(0);
     log_gl("%s", "// about to call glGetUniformLocation");
     am_gluint l = GLFUNC(glGetUniformLocation)(program, name);
-    log_gl("{GLuint l = glGetUniformLocation(prog[%u], \"%s\")\nassert(l == %u);}", program, name, l);
+    log_gl("{GLuint l = glGetUniformLocation(prog[%u], \"%s\");\nassert(l == %u);}", program, name, l);
     check_for_errors
     return l;
 }
@@ -797,7 +849,7 @@ void am_get_active_uniform(am_program_id program, am_gluint index,
 
 void am_set_uniform1f(am_gluint location, float value) {
     check_initialized();
-    log_gl("glUniform1fv(%u, 1, %f)", location, value);
+    log_gl("{GLfloat v = %f;\nglUniform1fv(%u, 1, &v);}", value, location);
     GLFUNC(glUniform1fv)(location, 1, &value);
     check_for_errors
 }
@@ -828,7 +880,7 @@ void am_set_uniform4f(am_gluint location, const float *value) {
 
 void am_set_uniform1i(am_gluint location, am_glint value) {
     check_initialized();
-    log_gl("glUniform1iv(%u, 1, %d);", location, value);
+    log_gl("{GLint v = %d;\nglUniform1iv(%u, 1, &v);}", value, location);
     GLFUNC(glUniform1iv)(location, 1, &value);
     check_for_errors
 }
@@ -920,7 +972,7 @@ void am_set_attribute4f(am_gluint location, const float *value) {
 void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_type type, bool normalized, int stride, int offset) {
     check_initialized();
     GLenum gl_type = to_gl_attr_client_type(type);
-    log_gl("glVertexAttribPointer(%u, %d, %s, %d, %d, %d);", location, size, gl_type_str(gl_type), (int)normalized, stride, offset);
+    log_gl("glVertexAttribPointer(%u, %d, %s, %d, %d, (void*)((uintptr_t)%d));", location, size, gl_type_str(gl_type), (int)normalized, stride, offset);
     GLFUNC(glVertexAttribPointer)(location, size, gl_type, normalized, stride, (void*)((uintptr_t)offset));
     check_for_errors
 }
@@ -954,7 +1006,7 @@ am_texture_id am_create_texture() {
 
 void am_delete_texture(am_texture_id texture) {
     check_initialized();
-    log_gl("glDeleteTextures(tex[%u]);", texture);
+    log_gl("glDeleteTextures(1, &tex[%u]);", texture);
     GLFUNC(glDeleteTextures)(1, &texture);
     check_for_errors
 }
@@ -1828,7 +1880,7 @@ static void get_src_error_line(char *errmsg, const char *src, int *line_no, char
 
 static void print_ptr(void* p, int len) {
     uint8_t *ptr = (uint8_t*)p;
-    fprintf(stderr, "ptr[%p] = \"", ptr);
+    fprintf(stderr, "ptr[%p] = (void*)\"", ptr);
     for (int i = 0; i < len; i++) {
         fprintf(stderr, "\\x%02X", *ptr);
         ptr++;

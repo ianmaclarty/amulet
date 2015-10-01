@@ -67,7 +67,13 @@ void am_log(lua_State *L, int level, bool once, const char *fmt, ...) {
             lua_getinfo(L, "Sl", &ar);
             char *tmp = (char*)malloc(strlen(msg)+1);
             strcpy(tmp, msg);
-            snprintf(msg, MAX_MSG_LEN, "%s:%d: %s", ar.short_src, ar.currentline, tmp);
+            const char *fmt;
+            if (am_conf_log_gl_calls) {
+                fmt = "// %s:%d: %s";
+            } else {
+                fmt = "%s:%d: %s";
+            }
+            snprintf(msg, MAX_MSG_LEN, fmt, ar.short_src, ar.currentline, tmp);
             free((void*)tmp);
         }
     }

@@ -16,6 +16,7 @@
 #if defined(AM_GLPROFILE_ES)
 #include <SDL_opengles2.h>
 #else
+#define GL_GLEXT_PROTOTYPES
 #include <SDL_opengl.h>
 #endif
 #define AM_GLPROC(ret,func,params) \
