@@ -249,12 +249,6 @@ static int create_program(lua_State *L) {
     am_attach_shader(program, fragment_shader);
     bool linked = am_link_program(program);
 
-    // shaders must be detached before they can be deleted.
-    am_detach_shader(program, vertex_shader);
-    am_detach_shader(program, fragment_shader);
-    am_delete_shader(vertex_shader);
-    am_delete_shader(fragment_shader);
-
     if (!linked) {
         char *msg = am_get_program_info_log(program);
         lua_pushfstring(L, "shader program link error:\n%s", msg);
@@ -363,6 +357,14 @@ static int create_program(lua_State *L) {
         free(name_str);
         i++;
     }
+
+    // Deleting the shaders must be done after reading the uniforms and
+    // attributes, because doing it before breaks in Safari on OSX
+    // (emscripten backend).
+    am_detach_shader(program, vertex_shader);
+    am_detach_shader(program, fragment_shader);
+    am_delete_shader(vertex_shader);
+    am_delete_shader(fragment_shader);
 
     am_program *prog = am_new_userdata(L, am_program);
     prog->program_id = program;
