@@ -254,6 +254,43 @@ static int chain(lua_State *L) {
     return 1;
 }
 
+// Wrap nodes
+
+void am_wrap_node::render(am_render_state *rstate) {
+    if (inside) {
+        inside = false;
+        render_children(rstate);
+        inside = true;
+    } else {
+        inside = true;
+        wrapped->render(rstate);
+        inside = false;
+    }
+}
+
+static int create_wrap_node(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    if (nargs > 1) {
+        // we depend on there only being one argument for
+        // chain_leaves call below.
+        luaL_error(L, "too many arguments (only 1 expected)");
+    }
+    am_wrap_node *node = am_new_userdata(L, am_wrap_node);
+    node->wrapped = am_get_userdata(L, am_scene_node, 1);
+    node->wrapped_ref = node->ref(L, 1);
+    node->inside = false;
+
+    chain_leaves(L, node->wrapped);
+    unmark_all(node->wrapped);
+
+    return 1;
+}
+
+static void register_wrap_node_mt(lua_State *L) {
+    lua_newtable(L);
+    am_register_metatable(L, "wrap_node", MT_am_wrap_node, MT_am_scene_node);
+}
+
 // Tags
 
 static int next_tag = 0;
@@ -549,10 +586,12 @@ static void register_scene_node_mt(lua_State *L) {
 void am_open_scene_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"group", create_group_node},
+        {"wrap", create_wrap_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_scene_node_mt(L);
+    register_wrap_node_mt(L);
     init_tag_table(L);
     init_default_tags(L);
 }

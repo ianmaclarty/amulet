@@ -17,7 +17,7 @@ typedef enum {
     MT_am_font,
 
     MT_am_scene_node,
-    MT_am_action,
+    MT_am_wrap_node,
     MT_am_program_node,
     MT_am_bind_node,
     MT_am_read_mat2_node,

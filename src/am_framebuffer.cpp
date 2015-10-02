@@ -44,6 +44,19 @@ static int render_node_to_framebuffer(lua_State *L) {
     return 0;
 }
 
+static int render_children_to_framebuffer(lua_State *L) {
+    am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
+    am_scene_node *node = am_get_userdata(L, am_scene_node, 2);
+    am_render_state *rstate = &am_global_render_state;
+    if (fb->color_attachment0->buffer != NULL) {
+        fb->color_attachment0->buffer->update_if_dirty();
+    }
+    am_scene_node tmpnode;
+    tmpnode.children = node->children;
+    rstate->do_render(&tmpnode, fb->framebuffer_id, false, fb->width, fb->height, fb->depth_renderbuffer_id != 0);
+    return 0;
+}
+
 static int framebuffer_gc(lua_State *L) {
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
     am_delete_framebuffer(fb->framebuffer_id);
@@ -62,14 +75,18 @@ static int clear_framebuffer(lua_State *L) {
     bool clear_stencil = true;
     if (nargs > 1) {
         clear_color = lua_toboolean(L, 2);
-        am_set_framebuffer_clear_color(fb->clear_color.r, fb->clear_color.g, fb->clear_color.b, fb->clear_color.a);
     }
     if (nargs > 2) {
         clear_depth = lua_toboolean(L, 3);
-        am_set_framebuffer_depth_mask(true); // XXX why?
     }
     if (nargs > 3) {
         clear_stencil = lua_toboolean(L, 4);
+    }
+    if (clear_color) {
+        am_set_framebuffer_clear_color(fb->clear_color.r, fb->clear_color.g, fb->clear_color.b, fb->clear_color.a);
+    }
+    if (clear_depth) {
+        am_set_framebuffer_depth_mask(true);
     }
     am_clear_framebuffer(clear_color, clear_depth, clear_stencil);
     return 0;
@@ -114,6 +131,9 @@ static void register_framebuffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, render_node_to_framebuffer, 0);
     lua_setfield(L, -2, "render");
+
+    lua_pushcclosure(L, render_children_to_framebuffer, 0);
+    lua_setfield(L, -2, "render_children");
 
     lua_pushcclosure(L, clear_framebuffer, 0);
     lua_setfield(L, -2, "clear");

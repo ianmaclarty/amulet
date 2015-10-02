@@ -44,6 +44,13 @@ struct am_scene_node : am_nonatomic_userdata {
     void render_children(am_render_state *rstate);
 };
 
+struct am_wrap_node : am_scene_node {
+    am_scene_node *wrapped;
+    int wrapped_ref;
+    bool inside;
+    virtual void render(am_render_state *rstate);
+};
+
 int am_scene_node_index(lua_State *L);
 int am_scene_node_newindex(lua_State *L);
 
