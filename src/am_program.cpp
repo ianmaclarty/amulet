@@ -24,8 +24,8 @@ static void bind_sampler2d(am_render_state *rstate,
     am_set_uniform1i(location, texture_unit);
 }
 
-static void report_incompatible_param_type(am_program_param *param) {
-    am_program_param_name_slot *slot = &am_param_name_map[param->name];
+static void report_incompatible_param_type(am_render_state *rstate, am_program_param *param) {
+    am_program_param_name_slot *slot = &rstate->param_name_map[param->name];
     const char *shader_type;
     const char *client_type;
     shader_type = am_program_param_type_name(param->type);
@@ -46,7 +46,7 @@ static void report_incompatible_param_type(am_program_param *param) {
 }
 
 bool am_program_param::bind(am_render_state *rstate) {
-    am_program_param_name_slot *slot = &am_param_name_map[name];
+    am_program_param_name_slot *slot = &rstate->param_name_map[name];
     bool bound = false;
     switch (type) {
         case AM_PROGRAM_PARAM_UNIFORM_1F:
@@ -122,28 +122,12 @@ bool am_program_param::bind(am_render_state *rstate) {
             }
             break;
     }
-    if (!bound) report_incompatible_param_type(this);
+    if (!bound) report_incompatible_param_type(rstate, this);
     return bound;
 }
 
-static int am_param_name_map_capacity = 0;
-
-am_program_param_name_slot *am_param_name_map = NULL;
-
-void am_init_param_name_map(lua_State *L) {
-    if (am_param_name_map != NULL) free(am_param_name_map);
-    am_param_name_map_capacity = 32;
-    am_param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
-    memset(am_param_name_map, 0, sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
-    for (int i = 0; i < am_param_name_map_capacity; i++) {
-        am_param_name_map[i].name = NULL;
-        am_param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
-    }
-    lua_newtable(L);
-    lua_rawseti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
-}
-
 am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
+    am_render_state *g = &am_global_render_state;
     name_idx = am_absindex(L, name_idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
     int strt_idx = lua_gettop(L);
@@ -158,18 +142,18 @@ am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
         lua_pushinteger(L, name_ref);
         lua_rawset(L, strt_idx);
         lua_pop(L, 1); // string table
-        if (name_ref >= am_param_name_map_capacity) {
-            int old_capacity = am_param_name_map_capacity;
-            while (name_ref >= am_param_name_map_capacity) {
-                am_param_name_map_capacity *= 2;
+        if (name_ref >= g->param_name_map_capacity) {
+            int old_capacity = g->param_name_map_capacity;
+            while (name_ref >= g->param_name_map_capacity) {
+                g->param_name_map_capacity *= 2;
             }
-            am_param_name_map = (am_program_param_name_slot*)realloc(am_param_name_map, sizeof(am_program_param_name_slot) * am_param_name_map_capacity);
-            for (int i = old_capacity; i < am_param_name_map_capacity; i++) {
-                am_param_name_map[i].name = NULL;
-                am_param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
+            g->param_name_map = (am_program_param_name_slot*)realloc(g->param_name_map, sizeof(am_program_param_name_slot) * g->param_name_map_capacity);
+            for (int i = old_capacity; i < g->param_name_map_capacity; i++) {
+                g->param_name_map[i].name = NULL;
+                g->param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
             }
         }
-        am_param_name_map[name_ref].name = lua_tostring(L, name_idx);
+        g->param_name_map[name_ref].name = lua_tostring(L, name_idx);
         return name_ref;
     } else {
         int name_ref = lua_tointeger(L, -1);
@@ -437,7 +421,7 @@ void am_program_node::render(am_render_state *rstate) {
 void am_bind_node::render(am_render_state *rstate) {
     am_program_param_value *old_vals = (am_program_param_value*)alloca(sizeof(am_program_param_value) * num_params);
     for (int i = 0; i < num_params; i++) {
-        am_program_param_value *param = &am_param_name_map[names[i]].value;
+        am_program_param_value *param = &rstate->param_name_map[names[i]].value;
         old_vals[i] = *param;
         *param = values[i];
         // assign texture unit if binding a sampler2D
@@ -450,7 +434,7 @@ void am_bind_node::render(am_render_state *rstate) {
     }
     render_children(rstate);
     for (int i = 0; i < num_params; i++) {
-        am_program_param_value *param = &am_param_name_map[names[i]].value;
+        am_program_param_value *param = &rstate->param_name_map[names[i]].value;
         // release texture unit
         if (values[i].type == AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
             if (old_vals[i].type != AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
@@ -689,7 +673,7 @@ static void register_bind_node_mt(lua_State *L) {
 
 #define AM_READ_MAT_NODE_IMPL(D)                                        \
 void am_read_mat##D##_node::render(am_render_state *rstate) {           \
-    am_program_param_value *param = &am_param_name_map[name].value;     \
+    am_program_param_value *param = &rstate->param_name_map[name].value;     \
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT##D) {           \
         m = glm::make_mat##D(&param->value.m##D[0]);                    \
     }                                                                   \

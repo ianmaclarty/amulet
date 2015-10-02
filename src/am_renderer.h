@@ -1,5 +1,6 @@
 struct am_program;
 struct am_program_param;
+struct am_program_param_name_slot;
 
 struct am_viewport_state {
     int                     x;
@@ -153,6 +154,8 @@ struct am_render_state {
     int                     num_enabled_vaas; // num enabled vertex attribute arrays
     am_program_id           bound_program_id;
     am_program              *active_program;
+    int                     param_name_map_capacity;
+    am_program_param_name_slot *param_name_map;
 
     int                     next_free_texture_unit;
 

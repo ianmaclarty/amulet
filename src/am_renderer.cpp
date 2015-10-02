@@ -426,6 +426,9 @@ am_render_state::am_render_state() {
     bound_program_id = 0;
     active_program = NULL;
 
+    param_name_map_capacity = 0;
+    param_name_map = NULL;
+
     next_free_texture_unit = 0;
 }
 
@@ -602,6 +605,19 @@ static void register_pass_filter_node_mt(lua_State *L) {
     am_register_metatable(L, "pass_filter", MT_am_pass_filter_node, MT_am_scene_node);
 }
 
+static void init_param_name_map(lua_State *L) {
+    am_render_state *g = &am_global_render_state;
+    g->param_name_map_capacity = 32;
+    g->param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * g->param_name_map_capacity);
+    memset(g->param_name_map, 0, sizeof(am_program_param_name_slot) * g->param_name_map_capacity);
+    for (int i = 0; i < g->param_name_map_capacity; i++) {
+        g->param_name_map[i].name = NULL;
+        g->param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
+    }
+    lua_newtable(L);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
+}
+
 void am_open_renderer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"draw", create_draw_node},
@@ -624,4 +640,6 @@ void am_open_renderer_module(lua_State *L) {
 
     register_draw_node_mt(L);
     register_pass_filter_node_mt(L);
+
+    init_param_name_map(L);
 }

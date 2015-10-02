@@ -1,7 +1,7 @@
 #include "amulet.h"
 
-static void log_ignored_transform(am_param_name_id name, const char *transform) {
-    am_program_param_name_slot *slot = &am_param_name_map[name];
+static void log_ignored_transform(am_render_state *rstate, am_param_name_id name, const char *transform) {
+    am_program_param_name_slot *slot = &rstate->param_name_map[name];
     am_log1("WARNING: ignoring %s on %s '%s' (expecting a mat4)",
         transform,
         am_program_param_client_type_name(slot),
@@ -18,7 +18,7 @@ static void maybe_insert_default_mv(lua_State *L) {
 /* Translate */
 
 void am_translate_node::render(am_render_state *rstate) {
-    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value *param = &rstate->param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
         glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
         glm::vec4 old_column = (*m)[3];
@@ -26,7 +26,7 @@ void am_translate_node::render(am_render_state *rstate) {
         render_children(rstate);
         (*m)[3] = old_column;
     } else {
-        log_ignored_transform(name, "translate");
+        log_ignored_transform(rstate, name, "translate");
         render_children(rstate);
     }
 }
@@ -68,7 +68,7 @@ static void register_translate_node_mt(lua_State *L) {
 /* Scale */
 
 void am_scale_node::render(am_render_state *rstate) {
-    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value *param = &rstate->param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
         glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
         glm::mat4 old = *m;
@@ -76,7 +76,7 @@ void am_scale_node::render(am_render_state *rstate) {
         render_children(rstate);
         *m = old;
     } else {
-        log_ignored_transform(name, "scale");
+        log_ignored_transform(rstate, name, "scale");
         render_children(rstate);
     }
 }
@@ -118,7 +118,7 @@ static void register_scale_node_mt(lua_State *L) {
 /* Rotate */
 
 void am_rotate_node::render(am_render_state *rstate) {
-    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value *param = &rstate->param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
         glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
         glm::mat4 old = *m;
@@ -126,7 +126,7 @@ void am_rotate_node::render(am_render_state *rstate) {
         render_children(rstate);
         *m = old;
     } else {
-        log_ignored_transform(name, "rotate");
+        log_ignored_transform(rstate, name, "rotate");
         render_children(rstate);
     }
 }
@@ -211,7 +211,7 @@ static void register_rotate_node_mt(lua_State *L) {
 /* Lookat */
 
 void am_lookat_node::render(am_render_state *rstate) {
-    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value *param = &rstate->param_name_map[name].value;
     am_program_param_value old_val = *param;
     param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4;
     memcpy(&param->value.m4[0], glm::value_ptr(glm::lookAt(eye, center, up)), 16 * sizeof(float));
@@ -287,7 +287,7 @@ static void register_lookat_node_mt(lua_State *L) {
 /* Billboard */
 
 void am_billboard_node::render(am_render_state *rstate) {
-    am_program_param_value *param = &am_param_name_map[name].value;
+    am_program_param_value *param = &rstate->param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
         glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
         glm::mat4 old = *m;
@@ -307,7 +307,7 @@ void am_billboard_node::render(am_render_state *rstate) {
         render_children(rstate);
         *m = old;
     } else {
-        log_ignored_transform(name, "billboard");
+        log_ignored_transform(rstate, name, "billboard");
         render_children(rstate);
     }
 }
