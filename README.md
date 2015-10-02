@@ -2,7 +2,7 @@
 
 <p align="center"><img src="logo.png"/></p>
 
-Amulet is a Lua game engine by [Ian MacLarty](http://ianmaclarty.com).
+Amulet is a Lua-based audio-visual toolkit designed for small-scope games and experimentation.
 
 **NOTE**: Amulet is not ready yet, but a initial release is planned for the end of 2015.
 
@@ -20,7 +20,7 @@ It currently runs on the following platforms:
 - iOS
 - HTML5
 
-Android support will also probably be added at some point.
+Android support will also be added at some point.
 
 Here are some games that have been made with Amulet:
 
@@ -54,5 +54,3 @@ The HTML editor uses code and ideas from:
 - [Codemirror](https://codemirror.net/)
 - [PuzzleScript](https://github.com/increpare/PuzzleScript) and [Zeedonk](https://github.com/increpare/zeedonk)
 - [jQuery](https://jquery.com/)
-
-
