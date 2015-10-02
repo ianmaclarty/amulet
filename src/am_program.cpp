@@ -3,7 +3,6 @@
 static void bind_attribute_array(am_render_state *rstate,
     am_gluint location, am_attribute_client_type type, int dims, am_buffer_view *view)
 {
-    am_set_attribute_array_enabled(location, true);
     am_buffer *buf = view->buffer;
     if (buf->arraybuf_id == 0) buf->create_arraybuf();
     buf->update_if_dirty();
@@ -46,7 +45,7 @@ static void report_incompatible_param_type(am_program_param *param) {
     }
 }
 
-void am_program_param::bind(am_render_state *rstate) {
+bool am_program_param::bind(am_render_state *rstate) {
     am_program_param_name_slot *slot = &am_param_name_map[name];
     bool bound = false;
     switch (type) {
@@ -124,6 +123,7 @@ void am_program_param::bind(am_render_state *rstate) {
             break;
     }
     if (!bound) report_incompatible_param_type(this);
+    return bound;
 }
 
 static int am_param_name_map_capacity = 0;
@@ -249,6 +249,9 @@ static int create_program(lua_State *L) {
     am_attach_shader(program, fragment_shader);
     bool linked = am_link_program(program);
 
+    // shaders must be detached before they can be deleted.
+    am_detach_shader(program, vertex_shader);
+    am_detach_shader(program, fragment_shader);
     am_delete_shader(vertex_shader);
     am_delete_shader(fragment_shader);
 
@@ -297,9 +300,9 @@ static int create_program(lua_State *L) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3:
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4:
             case AM_ATTRIBUTE_VAR_TYPE_UNKNOWN:
-                am_log(L, 1, false, "WARNING: ignoring attribute '%s' with unsupported type", name_str);
-                num_params--;
                 free(name_str);
+                am_delete_program(program);
+                return luaL_error(L, "sorry, attribute '%s' is of an unsupported type");
                 continue;
         }
         free(name_str);
@@ -353,10 +356,9 @@ static int create_program(lua_State *L) {
             case AM_UNIFORM_VAR_TYPE_BOOL_VEC4:
             case AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE:
             case AM_UNIFORM_VAR_TYPE_UNKNOWN:
-                am_log(L, 1, false, "WARNING: ignoring uniform '%s' with unsupported type", name_str);
-                num_params--;
                 free(name_str);
-                continue;
+                am_delete_program(program);
+                return luaL_error(L, "sorry, uniform '%s' is of an unsupported type");
         }
         free(name_str);
         i++;
@@ -367,6 +369,7 @@ static int create_program(lua_State *L) {
     prog->num_params = num_params;
     prog->sets_point_size = (strstr(vertex_shader_src, "gl_PointSize") != NULL);
     prog->params = params;
+    prog->num_vaas = num_attributes;
 
     return 1;
 }

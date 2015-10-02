@@ -63,7 +63,7 @@ struct am_program_param {
     am_gluint location;
     am_param_name_id name;
 
-    void bind(am_render_state *rstate);
+    bool bind(am_render_state *rstate);
 };
 
 struct am_program : am_nonatomic_userdata {
@@ -71,6 +71,7 @@ struct am_program : am_nonatomic_userdata {
     int num_params;
     bool sets_point_size;
     am_program_param *params;
+    int num_vaas; // number of vertex attribute arrays
 };
 
 struct am_program_node : am_scene_node {

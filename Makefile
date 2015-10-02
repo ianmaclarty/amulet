@@ -205,7 +205,7 @@ tools/ampack$(EXE_EXT): tools/ampack.c $(FT2_ALIB)
 
 gllog: gllog.cpp $(DEP_ALIBS) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)gllog.o
-	"$(LINK)" gllog.o $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	"$(LINK)" gllog.o $(AM_LDFLAGS) -lGL $(EXE_OUT_OPT)$@
 
 # Cleanup
 

@@ -249,13 +249,31 @@ void am_blend_state::bind(am_render_state *rstate) {
     }
 }
 
-void am_render_state::update_state() {
+void am_render_state::enable_vaas(int n) {
+    if (n > num_enabled_vaas) {
+        for (int i = num_enabled_vaas; i < n; i++) {
+            am_set_attribute_array_enabled(i, true);
+        }
+    } else {
+        for (int i = n; i < num_enabled_vaas; i++) {
+            am_set_attribute_array_enabled(i, false);
+        }
+    }
+    num_enabled_vaas = n;
+}
+
+bool am_render_state::update_state() {
+    assert(active_program != NULL);
     active_viewport_state.bind(this);
     active_depth_test_state.bind(this);
     active_cull_face_state.bind(this);
     active_blend_state.bind(this);
     bind_active_program();
-    bind_active_program_params();
+    if (!bind_active_program_params()) {
+        return false;
+    }
+    enable_vaas(active_program->num_vaas);
+    return true;
 }
 
 void am_render_state::setup(am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer) {
@@ -282,6 +300,7 @@ void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb, bool 
             root->render(this);
         } while (next_pass > pass);
     }
+
     // Unbind the current program, because it might be
     // deleted and the id reused before the next call to
     // do_render.
@@ -303,7 +322,10 @@ void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_c
             "because no shader program has been bound");
         return;
     }
-    update_state();
+    if (!update_state()) {
+        // warning would already have been emitted
+        return;
+    }
     if (validate_active_program(mode)) {
         if (max_draw_array_size == INT_MAX && draw_array_count == INT_MAX) {
             am_log1("%s", "WARNING: ignoring draw, "
@@ -384,12 +406,13 @@ void am_render_state::bind_active_program() {
     }
 }
 
-void am_render_state::bind_active_program_params() {
+bool am_render_state::bind_active_program_params() {
     max_draw_array_size = INT_MAX;
     for (int i = 0; i < active_program->num_params; i++) {
         am_program_param *param = &active_program->params[i];
-        param->bind(this);
+        if (!param->bind(this)) return false;
     }
+    return true;
 }
 
 am_render_state::am_render_state() {
@@ -399,6 +422,7 @@ am_render_state::am_render_state() {
 
     max_draw_array_size = 0;
 
+    num_enabled_vaas = 0;
     bound_program_id = 0;
     active_program = NULL;
 

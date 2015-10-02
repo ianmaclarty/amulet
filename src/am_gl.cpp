@@ -1590,19 +1590,17 @@ static am_framebuffer_status from_gl_framebuffer_status(GLenum gl_status) {
 }
 
 static void check_glerror(const char *file, int line, const char *func) {
-    {
-        GLenum err = GLFUNC(glGetError)();
-        if (err != GL_NO_ERROR) {
-            const char *str = "UNKNOWN";
-            switch (err) {
-                case GL_INVALID_ENUM: str = "INVALID_ENUM"; break;
-                case GL_INVALID_VALUE: str = "INVALID_VALUE"; break;
-                case GL_INVALID_OPERATION: str = "INVALID_OPERATION"; break;
-                case GL_INVALID_FRAMEBUFFER_OPERATION: str = "INVALID_FRAMEBUFFER_OPERATION"; break;
-                case GL_OUT_OF_MEMORY: str = "OUT_OF_MEMORY"; break;
-            }
-            am_log1("OpenGL error at %s:%d %s: %s", file, line, func, str);
+    GLenum err = GLFUNC(glGetError)();
+    if (err != GL_NO_ERROR) {
+        const char *str = "UNKNOWN";
+        switch (err) {
+            case GL_INVALID_ENUM: str = "INVALID_ENUM"; break;
+            case GL_INVALID_VALUE: str = "INVALID_VALUE"; break;
+            case GL_INVALID_OPERATION: str = "INVALID_OPERATION"; break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION: str = "INVALID_FRAMEBUFFER_OPERATION"; break;
+            case GL_OUT_OF_MEMORY: str = "OUT_OF_MEMORY"; break;
         }
+        am_log1("OpenGL error at %s:%d %s: %s", file, line, func, str);
     }
 }
 

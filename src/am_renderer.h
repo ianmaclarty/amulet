@@ -150,6 +150,7 @@ struct am_render_state {
 
     int                     max_draw_array_size;
 
+    int                     num_enabled_vaas; // num enabled vertex attribute arrays
     am_program_id           bound_program_id;
     am_program              *active_program;
 
@@ -162,8 +163,9 @@ struct am_render_state {
         am_buffer_view *indices_view, am_element_index_type type);
     bool validate_active_program(am_draw_mode mode);
     void bind_active_program();
-    void bind_active_program_params();
-    void update_state();
+    bool bind_active_program_params();
+    bool update_state();
+    void enable_vaas(int n);
     void setup(am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
     void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
 };
