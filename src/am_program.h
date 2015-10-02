@@ -46,6 +46,44 @@ struct am_program_param_value {
         am_buffer_view *arr;
         am_sampler2d_param_value sampler2d;
     } value;
+
+    void set_float(float f) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_1F;
+        value.f = f;
+    }
+    void set_vec2(glm::vec2 v2) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_2F;
+        memcpy(&value.v2[0], glm::value_ptr(v2), sizeof(glm::vec2));
+    }
+    void set_vec3(glm::vec3 v3) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_3F;
+        memcpy(&value.v3[0], glm::value_ptr(v3), sizeof(glm::vec3));
+    }
+    void set_vec4(glm::vec4 v4) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_4F;
+        memcpy(&value.v4[0], glm::value_ptr(v4), sizeof(glm::vec4));
+    }
+    void set_mat2(glm::mat2 m2) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2;
+        memcpy(&value.m2[0], glm::value_ptr(m2), sizeof(glm::mat2));
+    }
+    void set_mat3(glm::mat3 m3) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3;
+        memcpy(&value.m3[0], glm::value_ptr(m3), sizeof(glm::mat3));
+    }
+    void set_mat4(glm::mat4 m4) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4;
+        memcpy(&value.m4[0], glm::value_ptr(m4), sizeof(glm::mat4));
+    }
+    void set_arr(am_buffer_view *arr) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY;
+        value.arr = arr;
+    }
+    void set_samp2d(am_texture2d *tex) {
+        type = AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D;
+        value.sampler2d.texture = tex;
+        value.sampler2d.texture_unit = -1; // assigned when rendering
+    }
 };
 
 struct am_program_param_name_slot {

@@ -1,6 +1,7 @@
 struct am_program;
 struct am_program_param;
 struct am_program_param_name_slot;
+struct am_program_param_value;
 
 struct am_viewport_state {
     int                     x;
@@ -158,6 +159,9 @@ struct am_render_state {
     am_program_param_name_slot *param_name_map;
 
     int                     next_free_texture_unit;
+
+    am_program_param_value* modelview_param;
+    am_program_param_value* projection_param;
 
     am_render_state();
 

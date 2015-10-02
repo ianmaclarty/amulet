@@ -430,6 +430,9 @@ am_render_state::am_render_state() {
     param_name_map = NULL;
 
     next_free_texture_unit = 0;
+
+    modelview_param = NULL;
+    projection_param = NULL;
 }
 
 am_draw_node::am_draw_node() {
@@ -605,17 +608,27 @@ static void register_pass_filter_node_mt(lua_State *L) {
     am_register_metatable(L, "pass_filter", MT_am_pass_filter_node, MT_am_scene_node);
 }
 
-static void init_param_name_map(lua_State *L) {
-    am_render_state *g = &am_global_render_state;
-    g->param_name_map_capacity = 32;
-    g->param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * g->param_name_map_capacity);
-    memset(g->param_name_map, 0, sizeof(am_program_param_name_slot) * g->param_name_map_capacity);
-    for (int i = 0; i < g->param_name_map_capacity; i++) {
-        g->param_name_map[i].name = NULL;
-        g->param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
+static void init_param_name_map(am_render_state *rstate, lua_State *L) {
+    rstate->param_name_map_capacity = 32;
+    rstate->param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * rstate->param_name_map_capacity);
+    memset(rstate->param_name_map, 0, sizeof(am_program_param_name_slot) * rstate->param_name_map_capacity);
+    for (int i = 0; i < rstate->param_name_map_capacity; i++) {
+        rstate->param_name_map[i].name = NULL;
+        rstate->param_name_map[i].value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
     }
     lua_newtable(L);
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
+
+    // create default modelview and projection names
+    lua_pushstring(L, am_conf_default_modelview_matrix_name);
+    rstate->modelview_param = &rstate->param_name_map[am_lookup_param_name(L, -1)].value;
+    lua_pop(L, 1); // modelview name string
+    rstate->modelview_param->set_mat4(glm::mat4(1.0f));
+
+    lua_pushstring(L, am_conf_default_projection_matrix_name);
+    rstate->projection_param = &rstate->param_name_map[am_lookup_param_name(L, -1)].value;
+    lua_pop(L, 1); // projection name string
+    rstate->projection_param->set_mat4(glm::mat4(1.0f));
 }
 
 void am_open_renderer_module(lua_State *L) {
@@ -641,5 +654,5 @@ void am_open_renderer_module(lua_State *L) {
     register_draw_node_mt(L);
     register_pass_filter_node_mt(L);
 
-    init_param_name_map(L);
+    init_param_name_map(&am_global_render_state, L);
 }

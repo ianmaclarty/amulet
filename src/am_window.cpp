@@ -206,6 +206,11 @@ static void draw_windows() {
         if (!win->needs_closing) {
             am_native_window_bind_framebuffer(win->native_win);
             am_render_state *rstate = &am_global_render_state;
+            // set up default projection matrix
+            rstate->projection_param->set_mat4(
+                glm::ortho(0.0f, (float)win->requested_width,
+                           0.0f, (float)win->requested_height,
+                           -1.0f, 1.0f));
             // always clear on resize since the framebuffer may have
             // been re-created, which may have cleared it to black,
             // in which case we want to at least clear to the color chosen
