@@ -12,8 +12,6 @@ static int create_window(lua_State *L) {
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
     am_window_mode mode = AM_WINDOW_MODE_WINDOWED;
     am_display_orientation orientation = AM_DISPLAY_ORIENTATION_ANY;
-    int top = -1;
-    int left = -1;
     int requested_width = DEFAULT_WIN_WIDTH;
     int requested_height = DEFAULT_WIN_HEIGHT;
     const char *title = "Untitled";
@@ -34,10 +32,6 @@ static int create_window(lua_State *L) {
             mode = am_get_enum(L, am_window_mode, -1);
         } else if (strcmp(key, "orientation") == 0) {
             orientation = am_get_enum(L, am_display_orientation, -1);
-        } else if (strcmp(key, "top") == 0) {
-            top = luaL_checkinteger(L, -1);
-        } else if (strcmp(key, "left") == 0) {
-            left = luaL_checkinteger(L, -1);
         } else if (strcmp(key, "width") == 0) {
             requested_width = luaL_checkinteger(L, -1);
             if (requested_width <= 0) {
@@ -85,7 +79,7 @@ static int create_window(lua_State *L) {
     win->native_win = am_create_native_window(
         mode,
         orientation,
-        top, left,
+        -1, -1,
         requested_width, requested_height,
         title,
         highdpi,
@@ -97,12 +91,10 @@ static int create_window(lua_State *L) {
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
-    am_get_native_window_size(win->native_win, &win->pixel_width, &win->pixel_height);
+    am_get_native_window_size(win->native_win,
+        &win->pixel_width, &win->pixel_height,
+        &win->screen_width, &win->screen_height);
     compute_viewport(win);
-
-    // this forces an initial clear using the supplied clear color
-    win->prev_width = 0;
-    win->prev_height = 0;
 
     win->scene = NULL;
     win->scene_ref = LUA_NOREF;
@@ -131,6 +123,37 @@ static int create_window(lua_State *L) {
     am_call_amulet(L, "_init_window_event_data", 1, 0);
 
     return 1;
+}
+
+void am_window::mouse_move(lua_State *L, float x, float y) {
+    // invert y
+    y = (float)screen_height - y;
+    // convert from screen units to pixels
+    x *= ((float)pixel_width / (float)screen_width);
+    y *= ((float)pixel_height / (float)screen_height);
+    // subtract letterbox bar offsets
+    x -= (float)viewport_x;
+    y -= (float)viewport_y;
+    // convert to user window space
+    x = x / (float)viewport_width * (user_right - user_left) + user_left;
+    y = y / (float)viewport_height * (user_top - user_bottom) + user_bottom;
+    // finally send to lua
+    push(L);
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+    am_call_amulet(L, "_mouse_move", 3, 0);
+}
+
+void am_window::mouse_down(lua_State *L, am_mouse_button button) {
+    push(L);
+    lua_pushstring(L, am_mouse_button_name(button));
+    am_call_amulet(L, "_mouse_down", 2, 0);
+}
+
+void am_window::mouse_up(lua_State *L, am_mouse_button button) {
+    push(L);
+    lua_pushstring(L, am_mouse_button_name(button));
+    am_call_amulet(L, "_mouse_up", 2, 0);
 }
 
 am_window* am_find_window(am_native_window *nwin) {
@@ -204,40 +227,63 @@ static void resize_windows() {
 }
 
 static void compute_viewport(am_window *win) {
-    int *x = &win->viewport_x;
-    int *y = &win->viewport_y;
-    int *w = &win->viewport_width;
-    int *h = &win->viewport_height;
+    float w0 = (float)win->requested_width;
+    float h0 = (float)win->requested_height;
+    float w1 = (float)win->pixel_width;
+    float h1 = (float)win->pixel_height;
     if (win->letterbox) {
-        float box_aspect = (float)win->requested_width / (float)win->requested_height;
-        float win_aspect = (float)win->pixel_width / (float)win->pixel_height;
-        if (fabsf(box_aspect - win_aspect) < 0.05f || fabsf(1.0f/box_aspect - 1.0f/win_aspect) < 0.05f) {
-            // within 5% so don't adjust
-            *x = 0;
-            *y = 0;
-            *w = win->pixel_width;
-            *h = win->pixel_height;
-        } else if (box_aspect < win_aspect) {
-            // need bars to the left and right
-            int bar_width = (win->pixel_width - (int)((float)win->pixel_height * box_aspect)) / 2;
-            *x = bar_width;
-            *y = 0;
-            *w = win->pixel_width - bar_width * 2;
-            *h = win->pixel_height;
+        float sy = h1 / h0;
+        float dx = (w1 - w0 * sy) / (2.0f * w1);
+        float sx = w1 / w0;
+        float dy = (h1 - h0 * sx) / (2.0f * h1);
+        if (dx > 0.01f) {
+            win->viewport_x = (int)(dx * (float)win->pixel_width);
+            win->viewport_y = 0;
+            win->viewport_width = win->pixel_width - (int)(dx * (float)win->pixel_width * 2.0f);
+            win->viewport_height = win->pixel_height;
         } else {
-            // need bars above and below
-            int bar_height = (win->pixel_height - (int)((float)win->pixel_width / box_aspect)) / 2;
-            *x = 0;
-            *y = bar_height;
-            *w = win->pixel_width;
-            *h = win->pixel_height - bar_height * 2;
+            win->viewport_x = 0;
+            win->viewport_width = win->pixel_width;
+            if (dy > 0.01f) {
+                win->viewport_y = (int)(dy * (float)win->pixel_height);
+                win->viewport_height = win->pixel_height - (int)(dy * (float)win->pixel_height) * 2;
+            } else {
+                win->viewport_y = 0;
+                win->viewport_height = win->pixel_height;
+            }
         }
+        win->user_left = 0.0f;
+        win->user_right = (float)am_max(1, win->requested_width);
+        win->user_bottom = 0.0f;
+        win->user_top = (float)am_max(1, win->requested_height);
     } else {
-        *x = 0;
-        *y = 0;
-        *w = win->pixel_width;
-        *h = win->pixel_height;
+        float sy = h1 / h0;
+        float dx = (w1 - w0 * sy) / (2.0f * w0 * sy);
+        float sx = w1 / w0;
+        float dy = (h1 - h0 * sx) / (2.0f * h0 * sx);
+        if (dx > 0.01f) {
+            win->user_left = 0.0f - (float)win->requested_width * dx;
+            win->user_right = (float)win->requested_width + (float)win->requested_width * dx;
+            win->user_top = (float)win->requested_height;
+            win->user_bottom = 0.0f;
+        } else {
+            win->user_left = 0.0f;
+            win->user_right = (float)win->requested_width;
+            if (dy > 0.01f) {
+                win->user_bottom = 0.0f - (float)win->requested_height * dy;
+                win->user_top = (float)win->requested_height + (float)win->requested_height * dy;
+            } else {
+                win->user_bottom = 0.0f;
+                win->user_top = (float)win->requested_height;
+            }
+        }
+        win->viewport_x = 0;
+        win->viewport_y = 0;
+        win->viewport_width = win->pixel_width;
+        win->viewport_height = win->pixel_height;
     }
+    win->projection = glm::ortho(win->user_left, win->user_right,
+        win->user_bottom, win->user_top, -1.0f, 1.0f);
 }
 
 static void draw_windows() {
@@ -248,9 +294,7 @@ static void draw_windows() {
             am_render_state *rstate = &am_global_render_state;
             rstate->do_render(win->scene, 0, true, win->clear_color,
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
-                win->has_depth_buffer);
-            win->prev_width = win->pixel_width;
-            win->prev_height = win->pixel_height;
+                win->projection, win->has_depth_buffer);
             am_native_window_swap_buffers(win->native_win);
         }
     }
@@ -277,7 +321,9 @@ bool am_execute_actions(lua_State *L, double dt) {
         if (!win->needs_closing && win->scene != NULL) {
             // make sure window size properties are up-to-date before running 
             // actions.
-            am_get_native_window_size(win->native_win, &win->pixel_width, &win->pixel_height);
+            am_get_native_window_size(win->native_win,
+                &win->pixel_width, &win->pixel_height,
+                &win->screen_width, &win->screen_height);
             compute_viewport(win);
             if (!am_execute_node_actions(L, win->scene)) {
                 res = false;
@@ -289,28 +335,6 @@ bool am_execute_actions(lua_State *L, double dt) {
     }
     am_post_frame(L);
     return res;
-}
-
-static int clear_window(lua_State *L) {
-    int nargs = am_check_nargs(L, 1);
-    am_window *win = am_get_userdata(L, am_window, 1);
-    am_native_window_bind_framebuffer(win->native_win);
-    bool clear_color = true;
-    bool clear_depth = true;
-    bool clear_stencil = true;
-    if (nargs > 1) {
-        clear_color = lua_toboolean(L, 2);
-        am_set_framebuffer_clear_color(win->clear_color.r, win->clear_color.g, win->clear_color.b, win->clear_color.a);
-    }
-    if (nargs > 2) {
-        clear_depth = lua_toboolean(L, 3);
-        am_set_framebuffer_depth_mask(true); // XXX why?
-    }
-    if (nargs > 3) {
-        clear_stencil = lua_toboolean(L, 4);
-    }
-    am_clear_framebuffer(clear_color, clear_depth, clear_stencil);
-    return 0;
 }
 
 static void get_scene(lua_State *L, void *obj) {
@@ -337,18 +361,55 @@ static void set_scene(lua_State *L, void *obj) {
 
 static am_property scene_property = {get_scene, set_scene};
 
+static void get_window_left(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_left);
+}
+
+static void get_window_right(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_right);
+}
+
+static void get_window_bottom(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_bottom);
+}
+
+static void get_window_top(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_top);
+}
+
 static void get_window_width(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    lua_pushinteger(L, am_max(1, window->viewport_width));
+    lua_pushinteger(L, window->user_right - window->user_left);
 }
 
 static void get_window_height(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_top - window->user_bottom);
+}
+
+static am_property left_property = {get_window_left, NULL};
+static am_property right_property = {get_window_right, NULL};
+static am_property bottom_property = {get_window_bottom, NULL};
+static am_property top_property = {get_window_top, NULL};
+static am_property width_property = {get_window_width, NULL};
+static am_property height_property = {get_window_height, NULL};
+
+static void get_window_pixel_width(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, am_max(1, window->viewport_width));
+}
+
+static void get_window_pixel_height(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
     lua_pushinteger(L, am_max(1, window->viewport_height));
 }
 
-static am_property width_property = {get_window_width, NULL};
-static am_property height_property = {get_window_height, NULL};
+static am_property pixel_width_property = {get_window_pixel_width, NULL};
+static am_property pixel_height_property = {get_window_pixel_height, NULL};
 
 static void get_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
@@ -411,14 +472,17 @@ static void register_window_mt(lua_State *L) {
 
     am_register_property(L, "scene", &scene_property);
     am_register_property(L, "lock_pointer", &lock_pointer_property);
+    am_register_property(L, "pixel_width", &pixel_width_property);
+    am_register_property(L, "pixel_height", &pixel_height_property);
+    am_register_property(L, "left", &left_property);
+    am_register_property(L, "right", &right_property);
+    am_register_property(L, "bottom", &bottom_property);
+    am_register_property(L, "top", &top_property);
     am_register_property(L, "width", &width_property);
     am_register_property(L, "height", &height_property);
     am_register_property(L, "mode", &window_mode_property);
     am_register_property(L, "clear_color", &clear_color_property);
     am_register_property(L, "letterbox", &letterbox_property);
-
-    lua_pushcclosure(L, clear_window, 0);
-    lua_setfield(L, -2, "clear");
 
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");

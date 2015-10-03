@@ -276,9 +276,10 @@ bool am_render_state::update_state() {
     return true;
 }
 
-static void setup_fb(am_render_state *rstate, am_framebuffer_id fb,
+static void setup(am_render_state *rstate, am_framebuffer_id fb,
     bool clear, glm::vec4 clear_color,
-    int x, int y, int w, int h, bool has_depthbuffer)
+    int x, int y, int w, int h, glm::mat4 proj,
+    bool has_depthbuffer)
 {
     if (fb != 0) {
         // default framebuffer should be bound by backend-specific code
@@ -290,6 +291,7 @@ static void setup_fb(am_render_state *rstate, am_framebuffer_id fb,
         has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
     am_set_framebuffer_depth_mask(has_depthbuffer);
     rstate->bound_depth_test_state.mask_enabled = has_depthbuffer;
+    rstate->projection_param->set_mat4(proj);
     if (clear) {
         am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
         am_clear_framebuffer(true, true, true);
@@ -297,9 +299,10 @@ static void setup_fb(am_render_state *rstate, am_framebuffer_id fb,
 }
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
-        bool clear, glm::vec4 clear_color, int x, int y, int w, int h, bool has_depthbuffer)
+    bool clear, glm::vec4 clear_color, int x, int y, int w, int h,
+    glm::mat4 proj, bool has_depthbuffer)
 {
-    setup_fb(this, fb, clear, clear_color, x, y, w, h, has_depthbuffer);
+    setup(this, fb, clear, clear_color, x, y, w, h, proj, has_depthbuffer);
     if (root != NULL) {
         next_pass = 1;
         do {

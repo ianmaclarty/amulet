@@ -81,14 +81,10 @@ am_native_window *am_create_native_window(
     return (am_native_window*)sdl_window;
 }
 
-static int oldw = 0;
-static int oldh = 0;
-void am_get_native_window_size(am_native_window *window, int *w, int *h) {
-    SDL_GetWindowSize(NULL /* unused */, w, h);
-    if (oldw != *w || oldh != *h) {
-        //am_debug("native window size changed to %dx%d", *w, *h);
-        oldw = *w; oldh = *h;
-    }
+void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *sw, int *sh) {
+    SDL_GetWindowSize(NULL /* unused */, pw, ph);
+    *sw = *pw;
+    *sh = *ph;
 }
 
 void am_destroy_native_window(am_native_window* win) {

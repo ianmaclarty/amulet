@@ -40,8 +40,9 @@ static int render_node_to_framebuffer(lua_State *L) {
     if (fb->color_attachment0->buffer != NULL) {
         fb->color_attachment0->buffer->update_if_dirty();
     }
+    glm::mat4 proj = glm::ortho(0.0f, (float)fb->width, 0.0f, (float)fb->height, -1.0f, 1.0f);
     rstate->do_render(node, fb->framebuffer_id, false, glm::vec4(0.0f),
-        0, 0, fb->width, fb->height, fb->depth_renderbuffer_id != 0);
+        0, 0, fb->width, fb->height, proj, fb->depth_renderbuffer_id != 0);
     return 0;
 }
 
@@ -54,8 +55,9 @@ static int render_children_to_framebuffer(lua_State *L) {
     }
     am_scene_node tmpnode;
     tmpnode.children = node->children;
+    glm::mat4 proj = glm::ortho(0.0f, (float)fb->width, 0.0f, (float)fb->height, -1.0f, 1.0f);
     rstate->do_render(&tmpnode, fb->framebuffer_id, false, glm::vec4(0.0f),
-        0, 0, fb->width, fb->height, fb->depth_renderbuffer_id != 0);
+        0, 0, fb->width, fb->height, proj, fb->depth_renderbuffer_id != 0);
     return 0;
 }
 

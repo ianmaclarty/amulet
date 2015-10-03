@@ -137,7 +137,7 @@ function main_action()
     local strafe_speed = 0.2
     local pos_xz = position_node.position.xz
     local pos_y = position_node.position.y
-    if win:key_down("w") or win:mouse_button_down("left") then
+    if win:key_down("w") or win:mouse_down("left") then
         local dir = vec2(math.cos(facing+math.pi/2), math.sin(facing+math.pi/2))
         pos_xz = pos_xz + dir * walk_speed * am.delta_time
     elseif win:key_down("s") then
@@ -154,7 +154,7 @@ function main_action()
     if win:key_pressed("escape") then
         win:close()
     end
-    if win:key_down("w") or win:key_down("s") or win:mouse_button_down("left") then
+    if win:key_down("w") or win:key_down("s") or win:mouse_down("left") then
         walk_t = walk_t + am.delta_time
         pos_y = -0.1 + math.sin(walk_t*10) * 0.005
     end
@@ -162,9 +162,9 @@ function main_action()
 
     update_kaleidoscope_node()
 
-    facing = win:mouse_position().x * math.pi
+    facing = win:mouse_position_norm().x * math.pi
     facing_node.rotation = quat(facing, vec3(0, 1, 0))
-    pitch_node.rotation = quat(win:mouse_position().y * math.pi - 1, vec3(-1, 0, 0))
+    pitch_node.rotation = quat(win:mouse_position_norm().y * math.pi - 1, vec3(-1, 0, 0))
 
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)
@@ -504,7 +504,7 @@ function init_audio()
     end
     local primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73 }
     win.scene:action(function()
-        local pos = win:mouse_position()
+        local pos = win:mouse_position_norm()
         for i = 1, num_active_chimes do
             local z = math.cos(pos.x * pos.y + i) * 0.4 + 0.6
             chimes[i].value = (math.sin(am.frame_time * primes[i]) * 0.4 + 0.6) * math.min(0.4, 1/num_active_chimes)

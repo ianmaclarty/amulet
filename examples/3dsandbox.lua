@@ -71,11 +71,11 @@ local pitch = 0
 
 local
 function update_camera()
-    local yaw = -win:mouse_position().x*2
-    pitch = math.clamp(pitch + win:mouse_delta().y*2, -math.pi/2+0.001, math.pi/2-0.001)
+    local yaw = -win:mouse_position_norm().x*2
+    pitch = math.clamp(pitch + win:mouse_delta_norm().y*2, -math.pi/2+0.001, math.pi/2-0.001)
     local dir = math.euleryxz3(vec3(pitch, yaw, 0)) * vec3(0, 0, -1)
     local pos = camera.eye
-    if win:key_down("w") or win:mouse_button_down("left") then
+    if win:key_down("w") or win:mouse_down("left") then
         pos = pos + dir * walk_speed * am.delta_time
     elseif win:key_down("s") then
         pos = pos - dir * walk_speed * am.delta_time

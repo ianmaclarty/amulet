@@ -189,13 +189,15 @@ am_native_window *am_create_native_window(
     return (am_native_window*)win;
 }
 
-void am_get_native_window_size(am_native_window *window, int *w, int *h) {
-    *w = 0;
-    *h = 0;
+void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *sw, int *sh) {
+    *pw = 0;
+    *ph = 0;
+    *sw = 0;
+    *sh = 0;
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window == (SDL_Window*)window) {
-            SDL_GL_GetDrawableSize(windows[i].window, w, h);
-            //SDL_GetWindowSize(windows[i].window, w, h);
+            SDL_GL_GetDrawableSize(windows[i].window, pw, ph);
+            SDL_GetWindowSize(windows[i].window, sw, sh);
             return;
         }
     }
@@ -645,15 +647,9 @@ static void init_audio_capture() {
     SDL_PauseAudioDevice(capture_device, 0);
 }
 
-static void update_mouse_state(lua_State *L, win_info *info) {
-    int w, h;
-    SDL_GetWindowSize(info->window, &w, &h);
-    float norm_x = ((float)info->mouse_x / (float)w) * 2.0f - 1.0f;
-    float norm_y = (1.0f - (float)info->mouse_y / (float)h) * 2.0f - 1.0f;
-    am_find_window((am_native_window*)info->window)->push(L);
-    lua_pushnumber(L, norm_x);
-    lua_pushnumber(L, norm_y);
-    am_call_amulet(L, "_mouse_move", 3, 0);
+static void update_mouse_position(lua_State *L, win_info *info) {
+    am_find_window((am_native_window*)info->window)
+        ->mouse_move(L, (float)info->mouse_x, (float)info->mouse_y);
 }
 
 static bool handle_events(lua_State *L) {
@@ -740,9 +736,8 @@ static bool handle_events(lua_State *L) {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
                     win_info *info = win_from_id(event.button.windowID);
                     if (info) {
-                        am_find_window((am_native_window*)info->window)->push(L);
-                        lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                        am_call_amulet(L, "_mouse_down", 2, 0);
+                        am_find_window((am_native_window*)info->window)
+                            ->mouse_down(L, convert_mouse_button(event.button.button));
                     }
                 }
                 break;
@@ -751,9 +746,8 @@ static bool handle_events(lua_State *L) {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
                     win_info *info = win_from_id(event.button.windowID);
                     if (info) {
-                        am_find_window((am_native_window*)info->window)->push(L);
-                        lua_pushstring(L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                        am_call_amulet(L, "_mouse_up", 2, 0);
+                        am_find_window((am_native_window*)info->window)
+                            ->mouse_up(L, convert_mouse_button(event.button.button));
                     }
                 }
                 break;
@@ -761,7 +755,7 @@ static bool handle_events(lua_State *L) {
         }
     }
     for (unsigned i = 0; i < windows.size(); i++) {
-        update_mouse_state(L, &windows[i]);
+        update_mouse_position(L, &windows[i]);
     }
     return true;
 }

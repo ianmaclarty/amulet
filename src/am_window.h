@@ -8,12 +8,17 @@ struct am_window : am_nonatomic_userdata {
     int                 requested_height;
     int                 pixel_width;
     int                 pixel_height;
+    int                 screen_width;  // as above but in "screen units"
+    int                 screen_height;
     int                 viewport_x;
     int                 viewport_y;
     int                 viewport_width;
     int                 viewport_height;
-    int                 prev_width;
-    int                 prev_height;
+    float               user_left;
+    float               user_right;
+    float               user_bottom;
+    float               user_top;
+    glm::mat4           projection;
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
     bool                letterbox;
@@ -21,6 +26,10 @@ struct am_window : am_nonatomic_userdata {
     bool                lock_pointer;
     am_window_mode      mode;
     bool                dirty;
+
+    void mouse_move(lua_State *L, float x, float y);
+    void mouse_down(lua_State *L, am_mouse_button button);
+    void mouse_up(lua_State *L, am_mouse_button button);
 };
 
 void am_open_window_module(lua_State *L);

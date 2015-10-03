@@ -774,12 +774,14 @@ am_native_window *am_create_native_window(
     return (am_native_window*)ios_view;
 }
 
-void am_get_native_window_size(am_native_window *window, int *w, int *h) {
+void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *sw, int *sh) {
     GLKView *view = (GLKView*)window;
     CGRect bounds = view.bounds;
     float scale = view.contentScaleFactor;
-    *w = bounds.size.width * scale;
-    *h = bounds.size.height * scale;
+    *pw = bounds.size.width * scale;
+    *ph = bounds.size.height * scale;
+    *sw = *pw;
+    *sh = *ph;
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {

@@ -58,7 +58,7 @@ scene_group:append(translated_cube)
 local scene = 
     am.use_program(shader)
         :action(function()
-            translated_cube.position = vec3(win:mouse_position().xy * 10, translated_cube.position.z)
+            translated_cube.position = vec3(win:mouse_position_norm().xy * 10, translated_cube.position.z)
             log(math.sphere_visible(projection_matrix * modelview_matrix, vec3(0), math.sqrt(3)))
             if win:key_pressed("escape") then
                 win:close()

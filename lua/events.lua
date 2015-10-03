@@ -40,14 +40,14 @@ end
 
 function am._mouse_down(win, button)
     local u = win._event_data
-    u._mouse_button_down[button] = true
-    u._mouse_button_pressed[button] = (u._mouse_button_pressed[button] or 0) + 1
+    u._mouse_down[button] = true
+    u._mouse_pressed[button] = (u._mouse_pressed[button] or 0) + 1
 end
 
 function am._mouse_up(win, button)
     local u = win._event_data
-    u._mouse_button_down[button] = nil
-    u._mouse_button_released[button] = (u._mouse_button_released[button] or 0) + 1
+    u._mouse_down[button] = nil
+    u._mouse_released[button] = (u._mouse_released[button] or 0) + 1
 end
 
 function am._mouse_move(win, x, y)
@@ -59,24 +59,24 @@ end
 local
 function clear_mouse(win)
     local u = win._event_data
-    table.clear(u._mouse_button_pressed)    
-    table.clear(u._mouse_button_released)    
+    table.clear(u._mouse_pressed)    
+    table.clear(u._mouse_released)    
     u._prev_mouse_position = u._mouse_position
 end
 
-function window_mt.mouse_button_down(win, button)
+function window_mt.mouse_down(win, button)
     local u = win._event_data
-    return u._mouse_button_down[button]
+    return u._mouse_down[button]
 end
 
-function window_mt.mouse_button_pressed(win, button)
+function window_mt.mouse_pressed(win, button)
     local u = win._event_data
-    return u._mouse_button_pressed[button]
+    return u._mouse_pressed[button]
 end
 
-function window_mt.mouse_button_released(win, button)
+function window_mt.mouse_released(win, button)
     local u = win._event_data
-    return u._mouse_button_released[button]
+    return u._mouse_released[button]
 end
 
 function window_mt.mouse_position(win)
@@ -84,9 +84,21 @@ function window_mt.mouse_position(win)
     return u._mouse_position
 end
 
+function window_mt.mouse_position_norm(win)
+    local u = win._event_data
+    local sz = vec2(win.width, win.height)
+    return (u._mouse_position * 2 - sz) / sz
+end
+
 function window_mt.mouse_delta(win)
     local u = win._event_data
     return u._mouse_delta
+end
+
+function window_mt.mouse_delta_norm(win)
+    local u = win._event_data
+    local sz = vec2(win.width, win.height)
+    return u._mouse_delta * 2 / sz
 end
 
 -- touch
@@ -202,9 +214,9 @@ function am._init_window_event_data(window)
     u._prev_mouse_position = vec2(0, 0)
     u._mouse_position = vec2(0, 0)
     u._mouse_delta = vec2(0, 0)
-    u._mouse_button_down = {}
-    u._mouse_button_pressed = {}
-    u._mouse_button_released = {}
+    u._mouse_down = {}
+    u._mouse_pressed = {}
+    u._mouse_released = {}
 
     -- touch
 
