@@ -1,4 +1,4 @@
-local win = am.window({})
+local win = am.window{width = 400, height = 400}
 
 -- create the shader program for rendering kaleidoscope
 local vshader1 = [[

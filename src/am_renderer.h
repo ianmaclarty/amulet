@@ -173,8 +173,7 @@ struct am_render_state {
     bool bind_active_program_params();
     bool update_state();
     void enable_vaas(int n);
-    void setup(am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
-    void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, int w, int h, bool has_depthbuffer);
+    void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, int x, int y, int w, int h, bool has_depthbuffer);
 };
 
 struct am_draw_node : am_scene_node {

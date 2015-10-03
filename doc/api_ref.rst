@@ -133,6 +133,8 @@ Window functions
 
     **Available settings:**
 
+    Some of these settings can be re
+
     ``mode``
         Either ``"windowed"`` or ``"fullscreen"``.
         A fullscreen window will have the same resolution as the
@@ -189,7 +191,16 @@ Window functions
 
     ``auto_clear``
         ``true`` or ``false`` - whether to clear the window
-        before each frame.
+        before each frame. The default is ``true``.
+
+    ``letterbox``
+        ``true`` or ``false``. Indicates whether the original
+        aspect ratio (as determined by the ``width`` and ``height`` settings
+        of the window) should be maintained after a resize by adding
+        horizontal or vertical bars to the sides of the window.
+        The bars will be the same color as the ``clear_color`` settings for the
+        window.
+        The default is ``true``.
 
     ``msaa_samples``
         The number of samples to use for multisample anti-aliasing.
@@ -207,13 +218,15 @@ Window functions
 
     ..  object:: window.width
 
-        The current window width in pixels.
+        The current window width of the viewable area of the window
+        in pixels (excludes any bars added by the ``letterbox`` setting).
         
         Readonly.
 
     ..  object:: window.height
 
-        The current window height in pixels.
+        The current window height of the viewable area of the window
+        in pixels (excludes any bars added by the ``letterbox`` setting).
         
         Readonly.
 
@@ -226,6 +239,12 @@ Window functions
     ..  object:: window.clear_color
 
         The color to use to clear the window each frame (a ``vec4``).
+        
+        Updatable.
+
+    ..  object:: window.letterbox
+
+        The window's letterbox setting (see above).
         
         Updatable.
 

@@ -5,6 +5,8 @@
 
 static std::vector<am_window*> windows;
 
+static void compute_viewport(am_window *win);
+
 static int create_window(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
@@ -20,6 +22,7 @@ static int create_window(lua_State *L) {
     bool borderless = false;
     bool depth_buffer = false;
     bool stencil_buffer = false;
+    bool letterbox = true;
     glm::vec4 clear_color(0.0f, 0.0f, 0.0f, 1.0f);
     bool auto_clear = true;
     bool lock_pointer = false;
@@ -58,6 +61,8 @@ static int create_window(lua_State *L) {
             depth_buffer = lua_toboolean(L, -1);
         } else if (strcmp(key, "stencil_buffer") == 0) {
             stencil_buffer = lua_toboolean(L, -1);
+        } else if (strcmp(key, "letterbox") == 0) {
+            letterbox = lua_toboolean(L, -1);
         } else if (strcmp(key, "lock_pointer") == 0) {
             lock_pointer = lua_toboolean(L, -1);
         } else if (strcmp(key, "msaa_samples") == 0) {
@@ -78,6 +83,9 @@ static int create_window(lua_State *L) {
     win->needs_closing = false;
     win->requested_width = requested_width;
     win->requested_height = requested_height;
+    win->clear_color = clear_color;
+    win->auto_clear = auto_clear;
+    win->letterbox = letterbox;
     win->native_win = am_create_native_window(
         mode,
         orientation,
@@ -90,12 +98,11 @@ static int create_window(lua_State *L) {
         depth_buffer,
         stencil_buffer,
         msaa_samples);
-    win->clear_color = clear_color;
-    win->auto_clear = auto_clear;
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
-    am_get_native_window_size(win->native_win, &win->curr_width, &win->curr_height);
+    am_get_native_window_size(win->native_win, &win->pixel_width, &win->pixel_height);
+    compute_viewport(win);
 
     // this forces an initial clear using the supplied clear color
     win->prev_width = 0;
@@ -200,31 +207,65 @@ static void resize_windows() {
     }
 }
 
+static void compute_viewport(am_window *win) {
+    int *x = &win->viewport_x;
+    int *y = &win->viewport_y;
+    int *w = &win->viewport_width;
+    int *h = &win->viewport_height;
+    if (win->letterbox) {
+        float box_aspect = (float)win->requested_width / (float)win->requested_height;
+        float win_aspect = (float)win->pixel_width / (float)win->pixel_height;
+        if (fabsf(box_aspect - win_aspect) < 0.05f || fabsf(1.0f/box_aspect - 1.0f/win_aspect) < 0.05f) {
+            // within 5% so don't adjust
+            *x = 0;
+            *y = 0;
+            *w = win->pixel_width;
+            *h = win->pixel_height;
+        } else if (box_aspect < win_aspect) {
+            // need bars to the left and right
+            int bar_width = (win->pixel_width - (int)((float)win->pixel_height * box_aspect)) / 2;
+            *x = bar_width;
+            *y = 0;
+            *w = win->pixel_width - bar_width * 2;
+            *h = win->pixel_height;
+        } else {
+            // need bars above and below
+            int bar_height = (win->pixel_height - (int)((float)win->pixel_width / box_aspect)) / 2;
+            *x = 0;
+            *y = bar_height;
+            *w = win->pixel_width;
+            *h = win->pixel_height - bar_height * 2;
+        }
+    } else {
+        *x = 0;
+        *y = 0;
+        *w = win->pixel_width;
+        *h = win->pixel_height;
+    }
+}
+
 static void draw_windows() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
         if (!win->needs_closing) {
             am_native_window_bind_framebuffer(win->native_win);
             am_render_state *rstate = &am_global_render_state;
-            // set up default projection matrix
-            rstate->projection_param->set_mat4(
-                glm::ortho(0.0f, (float)win->requested_width,
-                           0.0f, (float)win->requested_height,
-                           -1.0f, 1.0f));
             // always clear on resize since the framebuffer may have
             // been re-created, which may have cleared it to black,
             // in which case we want to at least clear to the color chosen
             // by the user.
             bool do_clear = win->auto_clear
-                || win->prev_width != win->curr_width
-                || win->prev_height != win->curr_height;
+                || win->prev_width != win->pixel_width
+                || win->prev_height != win->pixel_height;
             if (do_clear) {
                 glm::vec4 cc = win->clear_color;
                 am_set_framebuffer_clear_color(cc.r, cc.g, cc.b, cc.a);
             }
-            rstate->do_render(win->scene, 0, do_clear, win->curr_width, win->curr_height, win->has_depth_buffer);
-            win->prev_width = win->curr_width;
-            win->prev_height = win->curr_height;
+            rstate->do_render(win->scene, 0, do_clear,
+                win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
+                win->has_depth_buffer);
+            win->prev_width = win->pixel_width;
+            win->prev_height = win->pixel_height;
             am_native_window_swap_buffers(win->native_win);
         }
     }
@@ -251,7 +292,8 @@ bool am_execute_actions(lua_State *L, double dt) {
         if (!win->needs_closing && win->scene != NULL) {
             // make sure window size properties are up-to-date before running 
             // actions.
-            am_get_native_window_size(win->native_win, &win->curr_width, &win->curr_height);
+            am_get_native_window_size(win->native_win, &win->pixel_width, &win->pixel_height);
+            compute_viewport(win);
             if (!am_execute_node_actions(L, win->scene)) {
                 res = false;
                 break;
@@ -310,18 +352,18 @@ static void set_scene(lua_State *L, void *obj) {
 
 static am_property scene_property = {get_scene, set_scene};
 
-static void get_window_curr_width(lua_State *L, void *obj) {
+static void get_window_width(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    lua_pushinteger(L, am_max(1, window->curr_width));
+    lua_pushinteger(L, am_max(1, window->viewport_width));
 }
 
-static void get_window_curr_height(lua_State *L, void *obj) {
+static void get_window_height(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    lua_pushinteger(L, am_max(1, window->curr_height));
+    lua_pushinteger(L, am_max(1, window->viewport_height));
 }
 
-static am_property curr_width_property = {get_window_curr_width, NULL};
-static am_property curr_height_property = {get_window_curr_height, NULL};
+static am_property width_property = {get_window_width, NULL};
+static am_property height_property = {get_window_height, NULL};
 
 static void get_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
@@ -376,6 +418,17 @@ static void set_auto_clear(lua_State *L, void *obj) {
 
 static am_property auto_clear_property = {get_auto_clear, set_auto_clear};
 
+static void get_letterbox(lua_State *L, void *obj) {
+    am_window *win = (am_window*)obj;
+    lua_pushboolean(L, win->letterbox ? 1 : 0);
+}
+static void set_letterbox(lua_State *L, void *obj) {
+    am_window *win = (am_window*)obj;
+    win->letterbox = lua_toboolean(L, 3);
+}
+
+static am_property letterbox_property = {get_letterbox, set_letterbox};
+
 static void register_window_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -384,11 +437,12 @@ static void register_window_mt(lua_State *L) {
 
     am_register_property(L, "scene", &scene_property);
     am_register_property(L, "lock_pointer", &lock_pointer_property);
-    am_register_property(L, "width", &curr_width_property);
-    am_register_property(L, "height", &curr_height_property);
+    am_register_property(L, "width", &width_property);
+    am_register_property(L, "height", &height_property);
     am_register_property(L, "mode", &window_mode_property);
     am_register_property(L, "clear_color", &clear_color_property);
     am_register_property(L, "auto_clear", &auto_clear_property);
+    am_register_property(L, "letterbox", &letterbox_property);
 
     lua_pushcclosure(L, clear_window, 0);
     lua_setfield(L, -2, "clear");

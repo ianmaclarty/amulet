@@ -1,7 +1,7 @@
 local win = am.window{
     title = "3D Scene",
     width = 1200,
-    height = 800,
+    height = 700,
     resizable = true,
     --lock_pointer = true,
     depth_buffer = true,
