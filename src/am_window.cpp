@@ -24,7 +24,6 @@ static int create_window(lua_State *L) {
     bool stencil_buffer = false;
     bool letterbox = true;
     glm::vec4 clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-    bool auto_clear = true;
     bool lock_pointer = false;
     int msaa_samples = 0;
 
@@ -72,8 +71,6 @@ static int create_window(lua_State *L) {
             }
         } else if (strcmp(key, "clear_color") == 0) {
             clear_color = am_get_userdata(L, am_vec4, -1)->v;
-        } else if (strcmp(key, "auto_clear") == 0) {
-            auto_clear = lua_toboolean(L, -1);
         } else {
             return luaL_error(L, "unrecognised window setting: '%s'", key);
         }
@@ -84,7 +81,6 @@ static int create_window(lua_State *L) {
     win->requested_width = requested_width;
     win->requested_height = requested_height;
     win->clear_color = clear_color;
-    win->auto_clear = auto_clear;
     win->letterbox = letterbox;
     win->native_win = am_create_native_window(
         mode,
@@ -250,18 +246,7 @@ static void draw_windows() {
         if (!win->needs_closing) {
             am_native_window_bind_framebuffer(win->native_win);
             am_render_state *rstate = &am_global_render_state;
-            // always clear on resize since the framebuffer may have
-            // been re-created, which may have cleared it to black,
-            // in which case we want to at least clear to the color chosen
-            // by the user.
-            bool do_clear = win->auto_clear
-                || win->prev_width != win->pixel_width
-                || win->prev_height != win->pixel_height;
-            if (do_clear) {
-                glm::vec4 cc = win->clear_color;
-                am_set_framebuffer_clear_color(cc.r, cc.g, cc.b, cc.a);
-            }
-            rstate->do_render(win->scene, 0, do_clear,
+            rstate->do_render(win->scene, 0, true, win->clear_color,
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                 win->has_depth_buffer);
             win->prev_width = win->pixel_width;
@@ -407,17 +392,6 @@ static void set_clear_color(lua_State *L, void *obj) {
 
 static am_property clear_color_property = {get_clear_color, set_clear_color};
 
-static void get_auto_clear(lua_State *L, void *obj) {
-    am_window *win = (am_window*)obj;
-    lua_pushboolean(L, win->auto_clear ? 1 : 0);
-}
-static void set_auto_clear(lua_State *L, void *obj) {
-    am_window *win = (am_window*)obj;
-    win->auto_clear = lua_toboolean(L, 3);
-}
-
-static am_property auto_clear_property = {get_auto_clear, set_auto_clear};
-
 static void get_letterbox(lua_State *L, void *obj) {
     am_window *win = (am_window*)obj;
     lua_pushboolean(L, win->letterbox ? 1 : 0);
@@ -441,7 +415,6 @@ static void register_window_mt(lua_State *L) {
     am_register_property(L, "height", &height_property);
     am_register_property(L, "mode", &window_mode_property);
     am_register_property(L, "clear_color", &clear_color_property);
-    am_register_property(L, "auto_clear", &auto_clear_property);
     am_register_property(L, "letterbox", &letterbox_property);
 
     lua_pushcclosure(L, clear_window, 0);

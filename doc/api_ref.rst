@@ -189,10 +189,6 @@ Window functions
         The color used to clear the window each frame before drawing
         as a ``vec4``. The default clear color is black.
 
-    ``auto_clear``
-        ``true`` or ``false`` - whether to clear the window
-        before each frame. The default is ``true``.
-
     ``letterbox``
         ``true`` or ``false``. Indicates whether the original
         aspect ratio (as determined by the ``width`` and ``height`` settings
@@ -212,7 +208,6 @@ Window functions
         This specifies the supported orientation of the
         window on platforms that support orientation changes (e.g. iOS)
         If omitted, both orientations are supported.
-
 
     **Window fields:**
 

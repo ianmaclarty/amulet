@@ -1,4 +1,4 @@
-local win = am.window{title = "Untitled", auto_clear = false}
+local win = am.window{title = "Untitled"}
 
 local scene = am.camera2d(200, 150, vec2(0))
     ^ am.scale(vec3(0, 0, 1))
