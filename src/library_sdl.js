@@ -363,7 +363,7 @@ var LibrarySDL = {
         antialias: ((SDL.glAttributes[13 /*SDL_GL_MULTISAMPLEBUFFERS*/] != 0) && (SDL.glAttributes[14 /*SDL_GL_MULTISAMPLESAMPLES*/] > 1)),
         depth: (SDL.glAttributes[6 /*SDL_GL_DEPTH_SIZE*/] > 0),
         stencil: (SDL.glAttributes[7 /*SDL_GL_STENCIL_SIZE*/] > 0),
-        preserveDrawingBuffer: true, /* XXX can be slow apparently */
+        preserveDrawingBuffer: false,
         alpha: false,
       };
       
