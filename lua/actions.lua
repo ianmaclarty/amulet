@@ -26,30 +26,45 @@ local do_action = am.step_action
 
 function am._execute_actions(actions, from, to)
     local t = am.frame_time
-    for i = from, to do
-        local action = actions[i]
-        actions[i] = false
-        if action.seq ~= seq then
-            action.seq = seq
-            if do_action(action.func, action.node) then
-                -- remove action
-                local node_actions = action.node._actions
-                for j = 1, #node_actions do
-                    --log("query actions[%d] = %s", j, tostring(node_actions[j]))
-                    if node_actions[j] == action then
-                        table.remove(node_actions, j)
-                        break
+    local priority = 1
+    repeat
+        local next_priority = 10000000
+        for i = from, to do
+            local action = actions[i]
+            if action then
+                local p = action.priority
+                if p <= priority then
+                    actions[i] = false
+                    if action.seq ~= seq then
+                        action.seq = seq
+                        if do_action(action.func, action.node) then
+                            -- remove action
+                            local node_actions = action.node._actions
+                            for j = 1, #node_actions do
+                                --log("query actions[%d] = %s", j, tostring(node_actions[j]))
+                                if node_actions[j] == action then
+                                    table.remove(node_actions, j)
+                                    break
+                                end
+                            end
+                        end
                     end
+                elseif p <= next_priority then
+                    next_priority = p
                 end
             end
         end
-    end
+        priority = next_priority
+    until priority == 10000000
 end
 
 local
-function add_action(node, id, func)
-    func = func or id
+function add_action(node, id, func, priority)
     local tp = type(func)
+    if tp == "number" or tp == "nil" then
+        func, priority = id, func
+    end
+    tp = type(func)
     if tp ~= "function" and tp ~= "thread" then
         error("action must be a function or coroutine (instead a "..tp..")", 2)
     end
@@ -58,6 +73,7 @@ function add_action(node, id, func)
         func = func,
         node = node,
         seq = seq, -- only execute on next frame
+        priority = priority or 1
     }
     local actions = node._actions
     if not actions then
@@ -73,6 +89,14 @@ function add_action(node, id, func)
     table.insert(actions, action)
     --log("set actions[%d] = %s", n+1, tostring(action))
     return node -- for chaining
+end
+
+local
+function add_late_action(node, id, func)
+    if not func then
+        func = id
+    end
+    add_action(node, id, func, 100)
 end
 
 local
@@ -94,6 +118,7 @@ function update(node)
 end
 
 _metatable_registry.scene_node.action = add_action
+_metatable_registry.scene_node.late_action = add_late_action
 _metatable_registry.scene_node.cancel = cancel_action
 _metatable_registry.scene_node.update = update
 

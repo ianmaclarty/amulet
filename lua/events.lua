@@ -181,14 +181,14 @@ end
 local
 function resized(win)
     local u = win._event_data
-    return u._prev_width ~= win.width or u._prev_height ~= win.height
+    return u._prev_width ~= win.pixel_width or u._prev_height ~= win.pixel_height
 end
 
 local
 function clear_resized(win)
     local u = win._event_data
-    u._prev_width = win.width
-    u._prev_height = win.height
+    u._prev_width = win.pixel_width
+    u._prev_height = win.pixel_height
 end
 
 -- setup
@@ -234,4 +234,8 @@ function am._init_window_event_data(window)
     u._prev_height = 0
     u._prev_width = 0
     window.resized = resized
+
+    if not am._main_window then
+        am._main_window = window
+    end
 end

@@ -5,8 +5,13 @@ local radius = 30
 
 local win = am.window{
     title = "waiting for script...",
+    letterbox = false,
+}
+win.perspective = math.ortho(0, win.pixel_width, 0, win.pixel_height)
+
+local pp = am.postprocess{
     auto_clear = false,
-    clear_color = color
+    clear_color = color,
 }
 
 local rect = am.translate(vec3(-20, 0, 0))
@@ -16,11 +21,11 @@ local speed = vec2(100, 100)
 
 rect:action(function()
     local pos = rect"translate".position
-    local w, h = win.width/2, win.height/2
-    if pos.x < -w and speed.x < 0 or pos.x > w and speed.x > 0 then
+    local w, h = win.pixel_width, win.pixel_height
+    if pos.x < -w/2 and speed.x < 0 or pos.x > w/2 and speed.x > 0 then
         speed = speed{x = -speed.x}
     end
-    if pos.y < -h and speed.y < 0 or pos.y > h and speed.y > 0 then
+    if pos.y < 0 and speed.y < 0 or pos.y > h and speed.y > 0 then
         speed = speed{y = -speed.y}
     end
     pos = pos + vec3(speed, 0) * am.delta_time
@@ -33,19 +38,17 @@ rect:action(function()
     )
     color = math.clamp(color, 0, 1)
     rect"rect".color = color
-    win.clear_color = color
+    pp.clear_color = color
 end)
 
 win.scene =
-    am.camera2d(win.width, win.height)
-        :action(function(cam)
-            cam.width = win.width
-            cam.height = win.height
-            cam"textpos".position = vec3(0, -win.height / 2 + 40, 0)
-        end)
+    pp:action(function(cam)
+        local w, h = win.pixel_width, win.pixel_height
+        win.projection = math.ortho(-w/2, w/2, 0, h)
+    end)
     ^ {
         rect,
-        am.translate(vec3(0, -win.height / 2 + 40, 0)):tag"textpos"
+        am.translate(0, 40)
         ^ am.scale(vec3(2))
         ^ am.text("Amulet v"..am.version.."\nwaiting for script...", "center", "bottom")
     }

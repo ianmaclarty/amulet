@@ -19,6 +19,9 @@ node2:action(function()
     print("G"..g)
     g = g + 1
 end)
+node2:late_action(function()
+    print("late")
+end)
 
 local frame = 1
 win.scene:action(function()

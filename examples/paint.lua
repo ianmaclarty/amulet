@@ -1,4 +1,4 @@
-local win = am.window{clear_color = vec4(1), letterbox = false}
+local win = am.window{letterbox = false}
 
 math.randomseed(os.time())
 
@@ -29,13 +29,15 @@ function add_particle()
     particles:append(particle)
 end
 
-win.scene = am.blend("normal") ^ particles
+win.scene = am.postprocess{
+        clear_color = vec4(1),
+        auto_clear = false
+    } ^ am.blend("normal") ^ particles
 
 win.scene:action(function()
     add_particle()
     if win:mouse_pressed("left") then
         curr_color = vec4(math.random(), math.random(), math.random(), 0.15)
-        win.letterbox = not win.letterbox
     else
         curr_color = curr_color + vec4(
             (math.random() * 1 - 0.5) * am.delta_time,
