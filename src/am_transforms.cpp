@@ -33,25 +33,59 @@ void am_translate_node::render(am_render_state *rstate) {
 
 static int create_translate_node(lua_State *L) {
     maybe_insert_default_mv(L);
-    am_check_nargs(L, 2);
+    int nargs = am_check_nargs(L, 2);
     am_translate_node *node = am_new_userdata(L, am_translate_node);
     node->tags.push_back(L, AM_TAG_TRANSLATE);
     node->name = am_lookup_param_name(L, 1);
-    node->v = am_get_userdata(L, am_vec3, 2)->v;
+    switch (am_get_type(L, 2)) {
+        case MT_am_vec2: {
+            glm::vec2 v2 = am_get_userdata(L, am_vec2, 2)->v;
+            node->v = glm::vec3(v2.x, v2.y, 0.0f);
+            break;
+        }
+        case MT_am_vec3: {
+            node->v = am_get_userdata(L, am_vec3, 2)->v;
+            break;
+        }
+        case LUA_TNUMBER: {
+            if (nargs == 3) {
+                node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), 0.0f);
+            } else if (nargs == 4) {
+                node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+            } else {
+                return luaL_error(L, "too many arguments");
+            }
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a vec2 or vec3 argument");
+    }
     return 1;
 }
 
-static void get_translation(lua_State *L, void *obj) {
+static void get_position(lua_State *L, void *obj) {
     am_translate_node *node = (am_translate_node*)obj;
     am_new_userdata(L, am_vec3)->v = node->v;
 }
 
-static void set_translation(lua_State *L, void *obj) {
+static void set_position(lua_State *L, void *obj) {
     am_translate_node *node = (am_translate_node*)obj;
     node->v = am_get_userdata(L, am_vec3, 3)->v;
 }
 
-static am_property translation_property = {get_translation, set_translation};
+static am_property position_property = {get_position, set_position};
+
+static void get_position2d(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    am_new_userdata(L, am_vec2)->v = glm::vec2(node->v.x, node->v.y);
+}
+
+static void set_position2d(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    node->v = glm::vec3(am_get_userdata(L, am_vec2, 3)->v, 0.0f);
+}
+
+static am_property position2d_property = {get_position2d, set_position2d};
 
 static void register_translate_node_mt(lua_State *L) {
     lua_newtable(L);
@@ -60,7 +94,8 @@ static void register_translate_node_mt(lua_State *L) {
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
 
-    am_register_property(L, "position", &translation_property);
+    am_register_property(L, "position", &position_property);
+    am_register_property(L, "position2d", &position2d_property);
 
     am_register_metatable(L, "translate", MT_am_translate_node, MT_am_scene_node);
 }
@@ -83,11 +118,36 @@ void am_scale_node::render(am_render_state *rstate) {
 
 static int create_scale_node(lua_State *L) {
     maybe_insert_default_mv(L);
-    am_check_nargs(L, 2);
+    int nargs = am_check_nargs(L, 2);
     am_scale_node *node = am_new_userdata(L, am_scale_node);
     node->tags.push_back(L, AM_TAG_SCALE);
     node->name = am_lookup_param_name(L, 1);
-    node->v = am_get_userdata(L, am_vec3, 2)->v;
+    switch (am_get_type(L, 2)) {
+        case MT_am_vec2: {
+            glm::vec2 v2 = am_get_userdata(L, am_vec2, 2)->v;
+            node->v = glm::vec3(v2.x, v2.y, 1.0f);
+            break;
+        }
+        case MT_am_vec3: {
+            node->v = am_get_userdata(L, am_vec3, 2)->v;
+            break;
+        }
+        case LUA_TNUMBER: {
+            if (nargs == 2) {
+                float s = (float)luaL_checknumber(L, 2);
+                node->v = glm::vec3(s, s, 1.0f);
+            } else if (nargs == 3) {
+                node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), 1.0f);
+            } else if (nargs == 4) {
+                node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+            } else {
+                return luaL_error(L, "too many arguments");
+            }
+            break;
+        }
+        default:
+            return luaL_error(L, "expecting a vec2 or vec3 argument");
+    }
     return 1;
 }
 
@@ -103,6 +163,18 @@ static void set_scale(lua_State *L, void *obj) {
 
 static am_property scale_property = {get_scale, set_scale};
 
+static void get_scale2d(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    am_new_userdata(L, am_vec2)->v = glm::vec2(node->v.x, node->v.y);
+}
+
+static void set_scale2d(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    node->v = glm::vec3(am_get_userdata(L, am_vec2, 3)->v, 1.0f);
+}
+
+static am_property scale2d_property = {get_scale2d, set_scale2d};
+
 static void register_scale_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
@@ -111,6 +183,7 @@ static void register_scale_node_mt(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
 
     am_register_property(L, "scale", &scale_property);
+    am_register_property(L, "scale2d", &scale2d_property);
 
     am_register_metatable(L, "scale", MT_am_scale_node, MT_am_scene_node);
 }

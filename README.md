@@ -9,7 +9,7 @@ Amulet is a Lua-based audio-visual toolkit designed for small-scope games and ex
 Here's what Hello World looks like in Amulet:
 
 ```lua
-am.window{}.scene = am.camera2d(200, 150, vec2(0)) ^ am.text("Hello World!")
+am.window{}.scene = am.translate(320, 240) ^ am.text("Hello World!")
 ```
 
 It currently runs on the following platforms:
