@@ -144,10 +144,10 @@ Window functions
     ``width`` and ``height``
         The desired size of the window. This is not necessarily the
         size of the window in pixels. Instead it's the size of
-        the window's coordinate system which is (``0``, ``0``) in the
+        the window's coordinate space which is (``0``, ``0``) in the
         bottom-left corner and (``width``, ``height``) in the
-        top-right corner if letterboxing is enabled (see
-        the ``letterbox`` setting below. If letterboxing
+        top-right corner if letterboxing is enabled (the default).
+        If letterboxing
         is disabled, then the coordinate system will extend
         in the horizontal or vertical directions to
         ensure an area of at least ``width`` x ``height`` is
@@ -207,12 +207,16 @@ Window functions
         window on platforms that support orientation changes (e.g. iOS)
         If omitted, both orientations are supported.
 
+    ``projection``
+        A custom projection matrix (a ``mat4``) that overrides the
+        window's default coordinate space.
+
     **Window fields:**
 
     ..  object:: window.left
 
         The x coordinate of the left edge of the 
-        window in the window's coordinate space. This will always be 0 if
+        window in the window's default coordinate space. This will always be 0 if
         ``letterbox`` is enabled, but can be negative if ``letterbox``
         is disabled.
 
@@ -221,14 +225,14 @@ Window functions
     ..  object:: window.right
 
         The x coordinate of the right edge of the window, in the window's
-        coordinate space.
+        default coordinate space.
 
         Readonly.
 
     ..  object:: window.bottom
 
         The y coordinate of the bottom edge of the window, in the window's
-        coordinate space.  This will always be 0 if ``letterbox`` is
+        default coordinate space.  This will always be 0 if ``letterbox`` is
         enabled, but can be negative if ``letterbox`` is disabled.
 
         Readonly.
@@ -236,13 +240,13 @@ Window functions
     ..  object:: window.top
 
         The y coordinate of the top edge of the window, in the window's
-        coordinate space.
+        default coordinate space.
     
         Readonly.
 
     ..  object:: window.width
         
-        The width of the window in the window's coordinate space.
+        The width of the window in the window's default coordinate space.
         This will always be equal to the ``width`` setting supplied
         when the window was created if the ``letterbox`` setting is
         enabled. Otherwise it may be larger, but it will never be
@@ -252,7 +256,7 @@ Window functions
 
     ..  object:: window.height
 
-        The height of the window in the window's coordinate space.
+        The height of the window in the window's default coordinate space.
         This will always be equal to the ``height`` setting supplied
         when the window was created if the ``letterbox`` setting is
         enabled. Otherwise it may be larger, but it will never be
@@ -302,6 +306,14 @@ Window functions
 
         The scene node currently attached to the window.
         This scene will be rendered to the window each frame.
+
+        Updatable.
+
+    ..  object:: window.projection
+
+        A custom projection matrix (a ``mat4``). This overrides
+        the windows's default coordinate space.
+        Set it to nil to use the default coordinate space.
 
         Updatable.
 

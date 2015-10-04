@@ -19,6 +19,7 @@ struct am_window : am_nonatomic_userdata {
     float               user_bottom;
     float               user_top;
     glm::mat4           projection;
+    bool                user_projection; // did the user set the projection?
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
     bool                letterbox;

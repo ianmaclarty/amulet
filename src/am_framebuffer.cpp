@@ -1,35 +1,54 @@
 #include "amulet.h"
 
+void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, glm::vec4 clear_color) {
+    framebuffer_id = am_create_framebuffer();
+    if (texture->buffer != NULL) {
+        texture->buffer->update_if_dirty();
+    }
+    color_attachment0 = texture;
+    color_attachment0_ref = ref(L, 1);
+    am_bind_framebuffer(framebuffer_id);
+    am_set_framebuffer_texture2d(AM_FRAMEBUFFER_COLOR_ATTACHMENT0, AM_TEXTURE_COPY_TARGET_2D, texture->texture_id);
+    width = texture->width;
+    height = texture->height;
+    depth_renderbuffer_id = 0;
+    if (depth_buf) {
+        depth_renderbuffer_id = am_create_renderbuffer();
+        am_bind_renderbuffer(depth_renderbuffer_id);
+        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24, width, height);
+        am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_DEPTH_ATTACHMENT, depth_renderbuffer_id);
+        am_set_framebuffer_depth_mask(true);
+    }
+    am_framebuffer_status status = am_check_framebuffer_status();
+    if (status != AM_FRAMEBUFFER_STATUS_COMPLETE) {
+        luaL_error(L, "framebuffer incomplete");
+    }
+    clear_color = clear_color;
+    am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
+    am_clear_framebuffer(true, depth_buf, false);
+    user_projection = false;
+    projection = glm::ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f);
+}
+
+void am_framebuffer::destroy(lua_State *L) {
+    am_delete_framebuffer(framebuffer_id);
+    if (depth_renderbuffer_id != 0) {
+        am_delete_renderbuffer(depth_renderbuffer_id);
+    }
+    color_attachment0 = NULL;
+    unref(L, color_attachment0_ref);
+    color_attachment0_ref = LUA_NOREF;
+}
+
 static int create_framebuffer(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_framebuffer *fb = am_new_userdata(L, am_framebuffer);
     fb->width = -1;
     fb->height = -1;
-    fb->framebuffer_id = am_create_framebuffer();
     am_texture2d *texture = am_get_userdata(L, am_texture2d, 1);
-    if (texture->buffer != NULL) {
-        texture->buffer->update_if_dirty();
-    }
-    fb->color_attachment0 = texture;
-    fb->color_attachment0_ref = fb->ref(L, 1);
-    am_bind_framebuffer(fb->framebuffer_id);
-    am_set_framebuffer_texture2d(AM_FRAMEBUFFER_COLOR_ATTACHMENT0, AM_TEXTURE_COPY_TARGET_2D, texture->texture_id);
-    fb->width = texture->width;
-    fb->height = texture->height;
-    fb->depth_renderbuffer_id = 0;
-    if (nargs > 1 && lua_toboolean(L, 2)) {
-        fb->depth_renderbuffer_id = am_create_renderbuffer();
-        am_bind_renderbuffer(fb->depth_renderbuffer_id);
-        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24,
-            fb->width, fb->height);
-        am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_DEPTH_ATTACHMENT, fb->depth_renderbuffer_id);
-        am_clear_framebuffer(false, true, false); // clear depth buffer
-    }
-    am_framebuffer_status status = am_check_framebuffer_status();
-    if (status != AM_FRAMEBUFFER_STATUS_COMPLETE) {
-        return luaL_error(L, "framebuffer incomplete");
-    }
-    fb->clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    bool depth_buf = nargs > 1 && lua_toboolean(L, 2);
+    glm::vec4 clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    fb->init(L, texture, depth_buf, clear_color);
     return 1;
 }
 
@@ -40,9 +59,8 @@ static int render_node_to_framebuffer(lua_State *L) {
     if (fb->color_attachment0->buffer != NULL) {
         fb->color_attachment0->buffer->update_if_dirty();
     }
-    glm::mat4 proj = glm::ortho(0.0f, (float)fb->width, 0.0f, (float)fb->height, -1.0f, 1.0f);
-    rstate->do_render(node, fb->framebuffer_id, false, glm::vec4(0.0f),
-        0, 0, fb->width, fb->height, proj, fb->depth_renderbuffer_id != 0);
+    rstate->do_render(node, fb->framebuffer_id, false, fb->clear_color,
+        0, 0, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
     return 0;
 }
 
@@ -55,18 +73,14 @@ static int render_children_to_framebuffer(lua_State *L) {
     }
     am_scene_node tmpnode;
     tmpnode.children = node->children;
-    glm::mat4 proj = glm::ortho(0.0f, (float)fb->width, 0.0f, (float)fb->height, -1.0f, 1.0f);
-    rstate->do_render(&tmpnode, fb->framebuffer_id, false, glm::vec4(0.0f),
-        0, 0, fb->width, fb->height, proj, fb->depth_renderbuffer_id != 0);
+    rstate->do_render(&tmpnode, fb->framebuffer_id, false, fb->clear_color,
+        0, 0, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
     return 0;
 }
 
 static int framebuffer_gc(lua_State *L) {
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
-    am_delete_framebuffer(fb->framebuffer_id);
-    if (fb->depth_renderbuffer_id != 0) {
-        am_delete_renderbuffer(fb->depth_renderbuffer_id);
-    }
+    fb->destroy(L);
     return 0;
 }
 
@@ -96,6 +110,40 @@ static int clear_framebuffer(lua_State *L) {
     return 0;
 }
 
+static int resize(lua_State *L) {
+    am_check_nargs(L, 3);
+    am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
+    int w = luaL_checkinteger(L, 2);
+    int h = luaL_checkinteger(L, 3);
+    if (w <= 0) return luaL_error(L, "width must be positive");
+    if (h <= 0) return luaL_error(L, "height must be positive");
+    am_texture2d *color_at = fb->color_attachment0;
+    if (color_at->buffer != NULL) {
+        return luaL_error(L, "cannot resize a framebuffer whose color attachment has a backing buffer");
+    }
+    if (color_at->has_mipmap) {
+        return luaL_error(L, "cannot resize a framebuffer whose color attachment is mipmapped");
+    }
+    color_at->width = w;
+    color_at->height = h;
+    void *data = malloc(am_compute_pixel_size(color_at->format, color_at->type) * w * h);
+    am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, color_at->texture_id);
+    am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, color_at->format, w, h, color_at->type, data);
+    free(data);
+    bool depth_buf = fb->depth_renderbuffer_id != 0;
+    glm::vec4 clear_color = fb->clear_color;
+    bool user_proj = fb->user_projection;
+    glm::mat4 old_proj = fb->projection;
+    fb->destroy(L);
+    fb->init(L, color_at, depth_buf, clear_color);
+    if (user_proj) {
+        // restore user-specified projection
+        fb->user_projection = true;
+        fb->projection = old_proj;
+    }
+    return 0;
+}
+
 static int read_back(lua_State *L) {
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
     am_texture2d *color_tex = fb->color_attachment0;
@@ -104,7 +152,7 @@ static int read_back(lua_State *L) {
     }
     am_buffer *color_buffer = color_tex->buffer;
     if (color_buffer == NULL) {
-        return luaL_error(L, "framebuffer texture has no buffer");
+        return luaL_error(L, "framebuffer texture has no backing buffer to write to");
     }
     color_buffer->update_if_dirty();
     am_bind_framebuffer(fb->framebuffer_id);
@@ -123,6 +171,37 @@ static void set_clear_color(lua_State *L, void *obj) {
 
 static am_property clear_color_property = {get_clear_color, set_clear_color};
 
+static void get_projection(lua_State *L, void *obj) {
+    am_framebuffer *fb = (am_framebuffer*)obj;
+    am_new_userdata(L, am_mat4)->m = fb->projection;
+}
+
+static void set_projection(lua_State *L, void *obj) {
+    am_framebuffer *fb = (am_framebuffer*)obj;
+    if (lua_isnil(L, 3)) {
+        fb->user_projection = false;
+        fb->projection = glm::ortho(0.0f, (float)fb->width, 0.0f, (float)fb->height, -1.0f, 1.0f);
+    } else {
+        fb->user_projection = true;
+        fb->projection = am_get_userdata(L, am_mat4, 3)->m;
+    }
+}
+
+static am_property projection_property = {get_projection, set_projection};
+
+static void get_pixel_width(lua_State *L, void *obj) {
+    am_framebuffer *fb = (am_framebuffer*)obj;
+    lua_pushinteger(L, fb->width);
+}
+
+static void get_pixel_height(lua_State *L, void *obj) {
+    am_framebuffer *fb = (am_framebuffer*)obj;
+    lua_pushinteger(L, fb->height);
+}
+
+static am_property pixel_width_property = {get_pixel_width, NULL};
+static am_property pixel_height_property = {get_pixel_height, NULL};
+
 static void register_framebuffer_mt(lua_State *L) {
     lua_newtable(L);
     am_set_default_index_func(L);
@@ -132,6 +211,9 @@ static void register_framebuffer_mt(lua_State *L) {
     lua_setfield(L, -2, "__gc");
 
     am_register_property(L, "clear_color", &clear_color_property);
+    am_register_property(L, "projection", &projection_property);
+    am_register_property(L, "pixel_width", &pixel_width_property);
+    am_register_property(L, "pixel_height", &pixel_height_property);
 
     lua_pushcclosure(L, render_node_to_framebuffer, 0);
     lua_setfield(L, -2, "render");
@@ -144,6 +226,9 @@ static void register_framebuffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, read_back, 0);
     lua_setfield(L, -2, "read_back");
+
+    lua_pushcclosure(L, resize, 0);
+    lua_setfield(L, -2, "resize");
 
     am_register_metatable(L, "framebuffer", MT_am_framebuffer, 0);
 }

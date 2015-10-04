@@ -7,6 +7,8 @@ static std::vector<am_window*> windows;
 
 static void compute_viewport(am_window *win);
 
+static void update_size(am_window *win);
+
 static int create_window(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
@@ -22,6 +24,8 @@ static int create_window(lua_State *L) {
     bool stencil_buffer = false;
     bool letterbox = true;
     glm::vec4 clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 projection;
+    bool user_projection = false;
     bool lock_pointer = false;
     int msaa_samples = 0;
 
@@ -65,6 +69,9 @@ static int create_window(lua_State *L) {
             }
         } else if (strcmp(key, "clear_color") == 0) {
             clear_color = am_get_userdata(L, am_vec4, -1)->v;
+        } else if (strcmp(key, "projection") == 0) {
+            projection = am_get_userdata(L, am_mat4, -1)->m;
+            user_projection = true;
         } else {
             return luaL_error(L, "unrecognised window setting: '%s'", key);
         }
@@ -91,10 +98,11 @@ static int create_window(lua_State *L) {
     if (win->native_win == NULL) {
         return luaL_error(L, "unable to create native window");
     }
-    am_get_native_window_size(win->native_win,
-        &win->pixel_width, &win->pixel_height,
-        &win->screen_width, &win->screen_height);
-    compute_viewport(win);
+    win->pixel_width = -1;
+    win->pixel_height = -1;
+    win->user_projection = user_projection;
+    win->projection = projection;
+    update_size(win);
 
     win->scene = NULL;
     win->scene_ref = LUA_NOREF;
@@ -135,8 +143,17 @@ void am_window::mouse_move(lua_State *L, float x, float y) {
     x -= (float)viewport_x;
     y -= (float)viewport_y;
     // convert to user window space
-    x = x / (float)viewport_width * (user_right - user_left) + user_left;
-    y = y / (float)viewport_height * (user_top - user_bottom) + user_bottom;
+    if (user_projection) {
+        glm::vec4 p(x * 2.0f / (float)viewport_width - 1.0f,
+            y * 2.0f / (float)viewport_height - 1.0f, 0.0f, 1.0f);
+        p = glm::inverse(projection) * p;
+        x = p.x;
+        y = p.y;
+    } else {
+        // can avoid a matrix inverse and mult in this case
+        x = x / (float)viewport_width * (user_right - user_left) + user_left;
+        y = y / (float)viewport_height * (user_top - user_bottom) + user_bottom;
+    }
     // finally send to lua
     push(L);
     lua_pushnumber(L, x);
@@ -226,6 +243,17 @@ static void resize_windows() {
     }
 }
 
+static void update_size(am_window *win) {
+    int old_width = win->pixel_width;
+    int old_height = win->pixel_height;
+    am_get_native_window_size(win->native_win,
+        &win->pixel_width, &win->pixel_height,
+        &win->screen_width, &win->screen_height);
+    if (old_width != win->pixel_width || old_height != win->pixel_height) {
+        compute_viewport(win);
+    }
+}
+
 static void compute_viewport(am_window *win) {
     float w0 = (float)win->requested_width;
     float h0 = (float)win->requested_height;
@@ -282,8 +310,10 @@ static void compute_viewport(am_window *win) {
         win->viewport_width = win->pixel_width;
         win->viewport_height = win->pixel_height;
     }
-    win->projection = glm::ortho(win->user_left, win->user_right,
-        win->user_bottom, win->user_top, -1.0f, 1.0f);
+    if (!win->user_projection) { // don't change user supplied projection
+        win->projection = glm::ortho(win->user_left, win->user_right,
+            win->user_bottom, win->user_top, -1.0f, 1.0f);
+    }
 }
 
 static void draw_windows() {
@@ -321,10 +351,7 @@ bool am_execute_actions(lua_State *L, double dt) {
         if (!win->needs_closing && win->scene != NULL) {
             // make sure window size properties are up-to-date before running 
             // actions.
-            am_get_native_window_size(win->native_win,
-                &win->pixel_width, &win->pixel_height,
-                &win->screen_width, &win->screen_height);
-            compute_viewport(win);
+            update_size(win);
             if (!am_execute_node_actions(L, win->scene)) {
                 res = false;
                 break;
@@ -411,6 +438,24 @@ static void get_window_pixel_height(lua_State *L, void *obj) {
 static am_property pixel_width_property = {get_window_pixel_width, NULL};
 static am_property pixel_height_property = {get_window_pixel_height, NULL};
 
+static void get_projection(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    am_new_userdata(L, am_mat4)->m = window->projection;
+}
+
+static void set_projection(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    if (lua_isnil(L, 3)) {
+        window->user_projection = false;
+        compute_viewport(window);
+    } else {
+        window->projection = am_get_userdata(L, am_mat4, 3)->m;
+        window->user_projection = true;
+    }
+}
+
+static am_property projection_property = {get_projection, set_projection};
+
 static void get_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     lua_pushboolean(L, window->lock_pointer);
@@ -460,6 +505,7 @@ static void get_letterbox(lua_State *L, void *obj) {
 static void set_letterbox(lua_State *L, void *obj) {
     am_window *win = (am_window*)obj;
     win->letterbox = lua_toboolean(L, 3);
+    compute_viewport(win);
 }
 
 static am_property letterbox_property = {get_letterbox, set_letterbox};
@@ -483,6 +529,7 @@ static void register_window_mt(lua_State *L) {
     am_register_property(L, "mode", &window_mode_property);
     am_register_property(L, "clear_color", &clear_color_property);
     am_register_property(L, "letterbox", &letterbox_property);
+    am_register_property(L, "projection", &projection_property);
 
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");
