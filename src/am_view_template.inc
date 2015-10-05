@@ -53,15 +53,9 @@ static int AM_CONCAT(TNAME,_view_newindex)(lua_State *L) {
     return 0;
 }
 
-static int AM_CONCAT(TNAME,_view_len)(lua_State *L) {
-    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
-    lua_pushinteger(L, view->size);
-    return 1;
-}
-
 #ifdef VEC_SZ
-static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buffer_view *view, int idx) {
-    int size = view->size;
+static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buffer_view *view, int idx, int sz) {
+    int size = am_min(sz, view->size);
     int stride = view->stride;
     int start_offset = view->offset;
     int end_offset = start_offset + stride * size;
@@ -102,7 +96,7 @@ static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buff
 }
 #endif
 
-static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *view, int idx) {
+static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *view, int idx, int sz) {
     lua_rawgeti(L, idx, 1);
     int first_type = lua_type(L, -1);
     lua_pop(L, 1);
@@ -111,11 +105,11 @@ static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *
     }
 #ifdef VEC_SZ
     if (first_type == LUA_TNUMBER) {
-        AM_CONCAT(TNAME,_view_set_vecs_from_num_table(L, view, idx));
+        AM_CONCAT(TNAME,_view_set_vecs_from_num_table(L, view, idx, sz));
         return;
     }
 #endif
-    int size = view->size;
+    int size = am_min(sz, view->size);
     int stride = view->stride;
     int start_offset = view->offset;
     int end_offset = start_offset + stride * size;
@@ -144,8 +138,8 @@ static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *
     buf->mark_dirty(start_offset, start_offset + (j-2) * stride + sizeof(CTYPE));
 }
 
-static void AM_CONCAT(TNAME,_view_set_from_single)(lua_State *L, am_buffer_view *view, int idx) {
-    int size = view->size;
+static void AM_CONCAT(TNAME,_view_set_from_single)(lua_State *L, am_buffer_view *view, int idx, int sz) {
+    int size = am_min(sz, view->size);
     if (size == 0) return;
     int stride = view->stride;
     am_buffer *buf = view->buffer;
@@ -161,8 +155,8 @@ static void AM_CONCAT(TNAME,_view_set_from_single)(lua_State *L, am_buffer_view 
     buf->mark_dirty(start_offset, end_offset);
 }
 
-static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *dest, am_buffer_view *src) {
-    int dest_size = dest->size;
+static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *dest, am_buffer_view *src, int sz) {
+    int dest_size = am_min(sz, dest->size);
     int dest_stride = dest->stride;
     am_buffer *dest_buf = dest->buffer;
     int dest_start_offset = dest->offset;
@@ -202,17 +196,24 @@ static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *d
 }
 
 static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
-    am_check_nargs(L, 2);
+    int nargs = am_check_nargs(L, 2);
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
+    int sz = INT_MAX;
+    if (nargs > 2) {
+        sz = luaL_checkinteger(L, 3);
+        if (sz < 0) {
+            return luaL_error(L, "size can't be negative");
+        }
+    }
     switch (am_get_type(L, 2)) {
         case LUA_TTABLE:
-            AM_CONCAT(TNAME,_view_set_from_table)(L, view, 2);
+            AM_CONCAT(TNAME,_view_set_from_table)(L, view, 2, sz);
             break;
         case LUA_TNUMBER:
-            AM_CONCAT(TNAME,_view_set_from_single)(L, view, 2);
+            AM_CONCAT(TNAME,_view_set_from_single)(L, view, 2, sz);
             break;
         case MT_am_buffer_view:
-            AM_CONCAT(TNAME,_view_set_from_view)(L, view, am_get_userdata(L, am_buffer_view, 2));
+            AM_CONCAT(TNAME,_view_set_from_view)(L, view, am_get_userdata(L, am_buffer_view, 2), sz);
             break;
         default:
             return luaL_error(L, "expecting a number, table or view in position 2 (got %s[%d])",
@@ -229,8 +230,6 @@ static void AM_CONCAT3(register_,TNAME,_view_mt)(lua_State *L) {
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, AM_CONCAT(TNAME,_view_newindex), 0);
     lua_setfield(L, -2, "__newindex");
-    lua_pushcclosure(L, AM_CONCAT(TNAME,_view_len), 0);
-    lua_setfield(L, -2, "__len");
 
     lua_pushcclosure(L, AM_CONCAT(TNAME,_view_set), 0);
     lua_setfield(L, -2, "set");

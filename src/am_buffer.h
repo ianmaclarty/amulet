@@ -61,6 +61,7 @@ struct am_buffer_view : am_nonatomic_userdata {
     int                 offset; // in bytes
     int                 stride; // in bytes
     int                 size;   // number of elements
+    int                 max_size;
     am_buffer_view_type type;
     int                 type_size; // size of each element in bytes
     bool                normalized;
