@@ -253,14 +253,8 @@ static void init_sdl() {
 }
 
 static void update_mouse_state(lua_State *L) {
-    int w, h;
-    SDL_GetWindowSize(NULL, &w, &h);
-    float norm_x = ((float)mouse_x / (float)w) * 2.0f - 1.0f;
-    float norm_y = (1.0f - (float)mouse_y / (float)h) * 2.0f - 1.0f;
-    am_find_window((am_native_window*)sdl_window)->push(L);
-    lua_pushnumber(L, norm_x);
-    lua_pushnumber(L, norm_y);
-    was_error = !am_call_amulet(L, "_mouse_move", 3, 0);
+    am_find_window((am_native_window*)sdl_window)
+        ->mouse_move(eng->L, (float)mouse_x, (float)mouse_y);
 }
 
 static bool handle_events() {
@@ -310,17 +304,15 @@ static bool handle_events() {
             }
             case SDL_MOUSEBUTTONDOWN: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    am_find_window((am_native_window*)sdl_window)->push(eng->L);
-                    lua_pushstring(eng->L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    was_error = !am_call_amulet(eng->L, "_mouse_down", 2, 0);
+                    am_find_window((am_native_window*)sdl_window)
+                        ->mouse_down(eng->L, convert_mouse_button(event.button.button));
                 }
                 break;
             }
             case SDL_MOUSEBUTTONUP: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    am_find_window((am_native_window*)sdl_window)->push(eng->L);
-                    lua_pushstring(eng->L, am_mouse_button_name(convert_mouse_button(event.button.button)));
-                    was_error = !am_call_amulet(eng->L, "_mouse_up", 2, 0);
+                    am_find_window((am_native_window*)sdl_window)
+                        ->mouse_up(eng->L, convert_mouse_button(event.button.button));
                 }
                 break;
             }
