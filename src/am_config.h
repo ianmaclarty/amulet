@@ -15,7 +15,8 @@ extern int am_conf_audio_channels;
 extern int am_conf_audio_sample_rate;
 extern int am_conf_audio_interpolate_samples;
 
-
+// main module load function
+extern lua_CFunction am_conf_main_load_func;
 
 // dev options
 extern bool am_conf_validate_shader_programs;

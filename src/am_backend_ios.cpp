@@ -322,7 +322,7 @@ static void ios_init_engine() {
     if (ios_eng == NULL) return;
 
     frame_time = am_get_current_time();
-    lua_pushcclosure(ios_eng->L, am_load_module, 0);
+    lua_pushcclosure(ios_eng->L, am_conf_main_load_func, 0);
     lua_pushstring(ios_eng->L, am_opt_main_module);
     if (am_call(ios_eng->L, 1, 0)) {
         ios_running = true;

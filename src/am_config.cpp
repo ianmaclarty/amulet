@@ -1,3 +1,5 @@
+#include "amulet.h"
+
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
 const char *am_conf_default_projection_matrix_name = "P";
@@ -13,6 +15,8 @@ int am_conf_audio_buffer_size = 1024;
 int am_conf_audio_channels = 2;
 int am_conf_audio_sample_rate = 44100;
 int am_conf_audio_interpolate_samples = 128; // must be less than am_conf_audio_buffer_size
+
+lua_CFunction am_conf_main_load_func = &am_require;
 
 // Note: enabling either of the following two options causes substantial
 // slowdowns on the html backend in some browsers

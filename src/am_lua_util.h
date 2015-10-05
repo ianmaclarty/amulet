@@ -26,7 +26,10 @@ bool am_run_script(lua_State *L, const char *script, const char *name);
 // with lua_newuserdata.
 void lua_unsafe_pushuserdata(lua_State *L, void *v);
 
-int am_load_module(lua_State *L);
+int am_require(lua_State *L);
+int am_import(lua_State *L);
+
+void am_setfenv(lua_State *L, int index);
 
 #if defined(AM_LUA51) || defined(AM_LUAJIT)
 void lua_setuservalue(lua_State *L, int idx);

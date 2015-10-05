@@ -191,7 +191,7 @@ static void start_main_loop(bool run_main, bool run_waiting) {
 
     if (run_main) {
         script_loaded = 1;
-        lua_pushcclosure(eng->L, am_load_module, 0);
+        lua_pushcclosure(eng->L, am_conf_main_load_func, 0);
         lua_pushstring(eng->L, "main");
         if (!am_call(eng->L, 1, 0)) {
             run_loop = false;

@@ -208,7 +208,7 @@ void am_init_traceback_func(lua_State *L) {
 
 #define TMP_BUF_SZ 512
 
-int am_load_module(lua_State *L) {
+static int load_module(lua_State *L, bool set_env) {
     am_check_nargs(L, 1);
     char tmpbuf1[TMP_BUF_SZ];
     char tmpbuf2[TMP_BUF_SZ];
@@ -251,8 +251,16 @@ int am_load_module(lua_State *L) {
     int res = luaL_loadbuffer(L, (const char*)buf, sz, tmpbuf2);
     free(buf);
     if (res != 0) return lua_error(L);
-    lua_pushvalue(L, -2); // export table
-    lua_call(L, 1, 1);
+    if (set_env) {
+        // set export table as chunk's enviroment
+        lua_pushvalue(L, -2); // export table
+        am_setfenv(L, -2);
+        lua_call(L, 0, 1);
+    } else {
+        // pass export table as arg instead
+        lua_pushvalue(L, -2); // export table
+        lua_call(L, 1, 1);
+    }
     if (!lua_isnil(L, -1)) {
         // replace export table with returned value in module table
         lua_pushvalue(L, 1); // module name
@@ -267,6 +275,26 @@ int am_load_module(lua_State *L) {
         // export table now on top
     }
     return 1;
+}
+
+int am_require(lua_State *L) {
+    return load_module(L, false);
+}
+
+int am_import(lua_State *L) {
+    return load_module(L, true);
+}
+
+void am_setfenv(lua_State *L, int index) {
+    assert(lua_isfunction(L, index));
+    assert(lua_istable(L, -1));
+#if defined(AM_LUAJIT) || defined(AM_LUA51)
+    lua_setfenv(L, index);
+#else
+    const char *name = lua_setupvalue(L, index, 1);
+    assert(strcmp(name, "_ENV") == 0);
+    AM_UNUSED(name);
+#endif
 }
 
 #if defined(AM_LUAJIT) || defined(AM_LUA51)
