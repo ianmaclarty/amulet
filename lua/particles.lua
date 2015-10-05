@@ -2,6 +2,7 @@ local particles2d_shader
 
 local
 function init_particles2d_shader()
+    if particles2d_shader then return end
     local v = [[
         precision highp float;
         uniform mat4 P;
@@ -23,6 +24,42 @@ function init_particles2d_shader()
         }
     ]]
     particles2d_shader = am.program(v, f)
+    return particles2d_shader
+end
+
+local particles2d_shader_tex
+
+local
+function init_particles2d_shader_tex()
+    if particles2d_shader_tex then return end
+    local v = [[
+        precision highp float;
+        uniform mat4 P;
+        uniform mat4 MV;
+        uniform vec2 uv_offset;
+        uniform vec2 uv_scale;
+        attribute vec3 vert;
+        attribute vec4 color;
+        attribute vec2 offset;
+        varying vec4 v_color;
+        varying vec2 v_uv;
+        void main() {
+            v_color = color;
+            v_uv = uv_scale * (offset * 0.5 + 0.5) + uv_offset;
+            gl_Position = P * MV * vec4(vert.xy + offset * vert.z, 0.0, 1.0);
+        }
+    ]]
+    local f = [[
+        precision mediump float;
+        uniform sampler2D tex;
+        varying vec4 v_color;
+        varying vec2 v_uv;
+        void main() {
+            gl_FragColor = clamp(texture2D(tex, v_uv) * v_color, 0.0, 1.0);
+        }
+    ]]
+    particles2d_shader_tex = am.program(v, f)
+    return particles2d_shader_tex
 end
 
 function am.particles2d(opts)
@@ -69,6 +106,7 @@ function am.particles2d(opts)
     local gravity_y = opts.gravity and opts.gravity.y or 0
     local gravity_x_2 = gravity_x / 2
     local gravity_y_2 = gravity_y / 2
+    local sprite = opts.sprite
 
     local n = 0  -- num active particles
     local emit_counter = 0
@@ -122,6 +160,13 @@ function am.particles2d(opts)
 
     local offsetview = am.vec2_array(offsets)
 
+    local uv_offset
+    local uv_scale
+    if sprite then
+        uv_offset = vec2(sprite.s1, sprite.t1)
+        uv_scale = vec2(sprite.s2 - sprite.s1, sprite.t2 - sprite.t1)
+    end
+
     local num_verts = max_particles * 4
     local stride = 12 + 16
     local vertbuf = am.buffer(num_verts * stride)
@@ -143,15 +188,22 @@ function am.particles2d(opts)
     local rgba4_view = vertbuf:view("vec4", 12+stride*3, stride * 4)
     local colorview = vertbuf:view("vec4", 12, stride)
 
-    if not particles2d_shader then
-        init_particles2d_shader()
+    local shader
+    local node
+    if sprite then
+        shader = init_particles2d_shader_tex()
+    else
+        shader = init_particles2d_shader()
     end
 
-    local node = am.use_program(particles2d_shader)
+    local node = am.use_program(shader)
         ^ am.bind{
             vert = vertview,
             offset = offsetview,
             color = colorview,
+            tex = sprite and sprite.texture or nil,
+            uv_offset = uv_offset,
+            uv_scale = uv_scale,
         }
         ^ am.draw("triangles", elemsview)
 

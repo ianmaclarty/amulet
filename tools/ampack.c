@@ -306,7 +306,7 @@ static void write_data() {
         }
     }
     fprintf(f, "}\n\n");
-    fprintf(f, "return amulet._init_fonts(font_data, \"%s\")", png_filename);
+    fprintf(f, "return am._init_fonts(font_data, \"%s\")", png_filename);
     fclose(f);
 }
 
