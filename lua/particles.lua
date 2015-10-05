@@ -1,8 +1,10 @@
 local particles2d_shader
 
 local
-function init_particles2d_shader()
-    if particles2d_shader then return end
+function get_particles2d_shader()
+    if particles2d_shader then
+        return particles2d_shader
+    end
     local v = [[
         precision highp float;
         uniform mat4 P;
@@ -30,8 +32,10 @@ end
 local particles2d_shader_tex
 
 local
-function init_particles2d_shader_tex()
-    if particles2d_shader_tex then return end
+function get_particles2d_shader_tex()
+    if particles2d_shader_tex then
+        return particles2d_shader_tex
+    end
     local v = [[
         precision highp float;
         uniform mat4 P;
@@ -191,9 +195,9 @@ function am.particles2d(opts)
     local shader
     local node
     if sprite then
-        shader = init_particles2d_shader_tex()
+        shader = get_particles2d_shader_tex()
     else
-        shader = init_particles2d_shader()
+        shader = get_particles2d_shader()
     end
 
     local node = am.use_program(shader)
