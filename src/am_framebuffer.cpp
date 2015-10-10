@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, glm::vec4 clear_color) {
+void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, bool stencil_buf, glm::vec4 clear_color) {
     framebuffer_id = am_create_framebuffer();
     if (texture->buffer != NULL) {
         texture->buffer->update_if_dirty();
@@ -19,15 +19,30 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, g
         am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_DEPTH_ATTACHMENT, depth_renderbuffer_id);
         am_set_framebuffer_depth_mask(true);
     }
+    stencil_renderbuffer_id = 0;
+    if (stencil_buf) {
+        stencil_renderbuffer_id = am_create_renderbuffer();
+        am_bind_renderbuffer(stencil_renderbuffer_id);
+        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8, width, height);
+        am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_STENCIL_ATTACHMENT, stencil_renderbuffer_id);
+    }
     am_framebuffer_status status = am_check_framebuffer_status();
     if (status != AM_FRAMEBUFFER_STATUS_COMPLETE) {
         luaL_error(L, "framebuffer incomplete");
     }
     clear_color = clear_color;
-    am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
-    am_clear_framebuffer(true, depth_buf, false);
     user_projection = false;
     projection = glm::ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f);
+}
+
+void am_framebuffer::clear(bool clear_colorbuf, bool clear_depth, bool clear_stencil) {
+    if (clear_colorbuf) {
+        am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
+    }
+    if (clear_depth) {
+        am_set_framebuffer_depth_mask(true);
+    }
+    am_clear_framebuffer(clear_colorbuf, clear_depth, clear_stencil);
 }
 
 void am_framebuffer::destroy(lua_State *L) {
@@ -47,8 +62,10 @@ static int create_framebuffer(lua_State *L) {
     fb->height = -1;
     am_texture2d *texture = am_get_userdata(L, am_texture2d, 1);
     bool depth_buf = nargs > 1 && lua_toboolean(L, 2);
+    bool stencil_buf = nargs > 2 && lua_toboolean(L, 3);
     glm::vec4 clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    fb->init(L, texture, depth_buf, clear_color);
+    fb->init(L, texture, depth_buf, stencil_buf, clear_color);
+    fb->clear(false, depth_buf, stencil_buf);
     return 1;
 }
 
@@ -100,13 +117,7 @@ static int clear_framebuffer(lua_State *L) {
     if (nargs > 3) {
         clear_stencil = lua_toboolean(L, 4);
     }
-    if (clear_color) {
-        am_set_framebuffer_clear_color(fb->clear_color.r, fb->clear_color.g, fb->clear_color.b, fb->clear_color.a);
-    }
-    if (clear_depth) {
-        am_set_framebuffer_depth_mask(true);
-    }
-    am_clear_framebuffer(clear_color, clear_depth, clear_stencil);
+    fb->clear(clear_color, clear_depth, clear_stencil);
     return 0;
 }
 
@@ -131,11 +142,13 @@ static int resize(lua_State *L) {
     am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, color_at->format, w, h, color_at->type, data);
     free(data);
     bool depth_buf = fb->depth_renderbuffer_id != 0;
+    bool stencil_buf = fb->stencil_renderbuffer_id != 0;
     glm::vec4 clear_color = fb->clear_color;
     bool user_proj = fb->user_projection;
     glm::mat4 old_proj = fb->projection;
     fb->destroy(L);
-    fb->init(L, color_at, depth_buf, clear_color);
+    fb->init(L, color_at, depth_buf, stencil_buf, clear_color);
+    fb->clear(true, depth_buf, stencil_buf);
     if (user_proj) {
         // restore user-specified projection
         fb->user_projection = true;

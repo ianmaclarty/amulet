@@ -26,8 +26,8 @@ function am.postprocess(opts)
     local fb = am.framebuffer(tex, opts.depth_buffer, opts.stencil_buffer)
     if opts.clear_color then
         fb.clear_color = opts.clear_color
-        fb:clear()
     end
+    fb:clear()
     local auto_clear = true
     if opts.auto_clear == false then
         auto_clear = false
