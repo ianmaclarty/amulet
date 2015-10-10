@@ -10,6 +10,7 @@ am_tag AM_TAG_BILLBOARD;
 am_tag AM_TAG_LOOKAT;
 am_tag AM_TAG_BLEND;
 am_tag AM_TAG_DRAW;
+am_tag AM_TAG_VIEWPORT;
 
 am_scene_node::am_scene_node() {
     children.owner = this;
@@ -464,6 +465,10 @@ static void init_default_tags(lua_State *L) {
 
     lua_pushstring(L, "draw");
     AM_TAG_DRAW = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "viewport");
+    AM_TAG_VIEWPORT = lookup_tag(L, -1);
     lua_pop(L, 1);
 }
 

@@ -30,6 +30,7 @@ extern am_tag AM_TAG_BILLBOARD;
 extern am_tag AM_TAG_LOOKAT;
 extern am_tag AM_TAG_BLEND;
 extern am_tag AM_TAG_DRAW;
+extern am_tag AM_TAG_VIEWPORT;
 
 struct am_scene_node : am_nonatomic_userdata {
     am_lua_array<am_node_child> children;

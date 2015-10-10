@@ -15,4 +15,13 @@ struct am_framebuffer : am_nonatomic_userdata {
     void destroy(lua_State *L);
 };
 
+struct am_viewport_node : am_scene_node {
+    int                     x;
+    int                     y;
+    int                     w;
+    int                     h;
+
+    virtual void render(am_render_state *rstate);
+};
+
 void am_open_framebuffer_module(lua_State *L);

@@ -16,6 +16,10 @@ void am_viewport_state::set(int x, int y, int w, int h) {
     am_viewport_state::h = h;
 }
 
+void am_viewport_state::restore(am_viewport_state *old) {
+    set(old->x, old->y, old->w, old->h);
+}
+
 void am_viewport_state::bind(am_render_state *rstate) {
     if (x != rstate->bound_viewport_state.x ||
         y != rstate->bound_viewport_state.y ||

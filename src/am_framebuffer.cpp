@@ -246,11 +246,94 @@ static void register_framebuffer_mt(lua_State *L) {
     am_register_metatable(L, "framebuffer", MT_am_framebuffer, 0);
 }
 
+void am_viewport_node::render(am_render_state *rstate) {
+    am_viewport_state old = rstate->active_viewport_state;
+    rstate->active_viewport_state.set(x, y, w, h);
+    render_children(rstate);
+    rstate->active_viewport_state.restore(&old);
+}
+
+static int create_viewport_node(lua_State *L) {
+    am_check_nargs(L, 4);
+    am_viewport_node *node = am_new_userdata(L, am_viewport_node);
+    node->tags.push_back(L, AM_TAG_VIEWPORT);
+    node->x = luaL_checkinteger(L, 1);
+    node->y = luaL_checkinteger(L, 2);
+    node->w = luaL_checkinteger(L, 3);
+    node->h = luaL_checkinteger(L, 4);
+    return 1;
+}
+
+static void get_x(lua_State *L, void *obj) {
+    am_viewport_node *node = (am_viewport_node*)obj;
+    lua_pushinteger(L, node->x);
+}
+
+static void set_x(lua_State *L, void *obj) {
+    am_viewport_node *node = (am_viewport_node*)obj;
+    node->x = luaL_checkinteger(L, 3);
+}
+
+static am_property x_property = {get_x, set_x};
+
+static void get_y(lua_State *L, void *obj) {
+    am_viewport_node *node = (am_viewport_node*)obj;
+    lua_pushinteger(L, node->y);
+}
+
+static void set_y(lua_State *L, void *obj) {
+    am_viewport_node *node = (am_viewport_node*)obj;
+    node->y = luaL_checkinteger(L, 3);
+}
+
+static am_property y_property = {get_y, set_y};
+
+static void get_w(lua_State *L, void *obj) {
+    am_viewport_node *node = (am_viewport_node*)obj;
+    lua_pushinteger(L, node->w);
+}
+
+static void set_w(lua_State *L, void *obj) {
+    am_viewport_node *node = (am_viewport_node*)obj;
+    node->w = luaL_checkinteger(L, 3);
+}
+
+static am_property w_property = {get_w, set_w};
+
+static void get_h(lua_State *L, void *obj) {
+    am_viewport_node *node = (am_viewport_node*)obj;
+    lua_pushinteger(L, node->h);
+}
+
+static void set_h(lua_State *L, void *obj) {
+    am_viewport_node *node = (am_viewport_node*)obj;
+    node->h = luaL_checkinteger(L, 3);
+}
+
+static am_property h_property = {get_h, set_h};
+
+static void register_viewport_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
+
+    am_register_property(L, "left", &x_property);
+    am_register_property(L, "bottom", &y_property);
+    am_register_property(L, "width", &w_property);
+    am_register_property(L, "height", &h_property);
+
+    am_register_metatable(L, "viewport", MT_am_viewport_node, MT_am_scene_node);
+}
+
 void am_open_framebuffer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"framebuffer",    create_framebuffer},
+        {"viewport",       create_viewport_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_framebuffer_mt(L);
+    register_viewport_node_mt(L);
 }
