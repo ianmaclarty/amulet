@@ -254,7 +254,15 @@ _metatable_registry.quat.__tostring = format_quat
 local
 function log(fmt, ...)
     if type(fmt) == "string" and ... then
-        am.log(string.format(fmt, ...), false, 2)
+        local args = {}
+        for a = 1, select("#", ...) do
+            local arg = select(a, ...)
+            if type(arg) == "userdata" then
+                arg = tostring(arg)
+            end
+            table.insert(args, arg)
+        end
+        am.log(string.format(fmt, unpack(args)), false, 2)
     else
         am.log(tostring(fmt), false, 2)
     end
