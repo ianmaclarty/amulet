@@ -298,6 +298,7 @@ void am_render_state::enable_vaas(int n) {
 bool am_render_state::update_state() {
     assert(active_program != NULL);
     active_viewport_state.bind(this);
+    active_color_mask_state.bind(this);
     active_depth_test_state.bind(this);
     active_cull_face_state.bind(this);
     active_blend_state.bind(this);
