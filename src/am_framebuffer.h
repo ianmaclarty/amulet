@@ -24,4 +24,13 @@ struct am_viewport_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
+struct am_color_mask_node : am_scene_node {
+    bool                    r;
+    bool                    g;
+    bool                    b;
+    bool                    a;
+
+    virtual void render(am_render_state *rstate);
+};
+
 void am_open_framebuffer_module(lua_State *L);

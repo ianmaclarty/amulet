@@ -31,6 +31,35 @@ void am_viewport_state::bind(am_render_state *rstate) {
     }
 }
 
+am_color_mask_state::am_color_mask_state() {
+    r = true;
+    g = true;
+    b = true;
+    a = true;
+}
+
+void am_color_mask_state::set(bool r, bool g, bool b, bool a) {
+    am_color_mask_state::r = r;
+    am_color_mask_state::g = g;
+    am_color_mask_state::b = b;
+    am_color_mask_state::a = a;
+}
+
+void am_color_mask_state::restore(am_color_mask_state *old) {
+    set(old->r, old->g, old->b, old->a);
+}
+
+void am_color_mask_state::bind(am_render_state *rstate) {
+    if (r != rstate->bound_color_mask_state.r ||
+        g != rstate->bound_color_mask_state.g ||
+        b != rstate->bound_color_mask_state.b ||
+        a != rstate->bound_color_mask_state.a)
+    {
+        am_set_framebuffer_color_mask(r, g, b, a);
+        rstate->bound_color_mask_state = *this;
+    }
+}
+
 am_depth_test_state::am_depth_test_state() {
     test_enabled = false;
     mask_enabled = false;
@@ -291,10 +320,16 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
         am_bind_framebuffer(fb);
     }
     rstate->active_viewport_state.set(x, y, w, h);
+
     rstate->active_depth_test_state.set(has_depthbuffer, has_depthbuffer,
         has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
     am_set_framebuffer_depth_mask(has_depthbuffer);
     rstate->bound_depth_test_state.mask_enabled = has_depthbuffer;
+
+    rstate->bound_color_mask_state.set(true, true, true, true);
+    rstate->active_color_mask_state.set(true, true, true, true);
+    am_set_framebuffer_color_mask(true, true, true, true);
+
     rstate->projection_param->set_mat4(proj);
     if (clear) {
         am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);

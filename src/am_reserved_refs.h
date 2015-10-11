@@ -31,6 +31,7 @@ typedef enum {
     MT_am_blend_node,
     MT_am_depth_test_node,
     MT_am_viewport_node,
+    MT_am_color_mask_node,
     MT_am_cull_face_node,
     MT_am_cull_sphere_node,
     MT_am_draw_node,

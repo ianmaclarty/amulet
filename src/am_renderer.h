@@ -15,6 +15,18 @@ struct am_viewport_state {
     void bind(am_render_state *rstate);
 };
 
+struct am_color_mask_state {
+    bool                    r;
+    bool                    g;
+    bool                    b;
+    bool                    a;
+
+    am_color_mask_state();
+    void set(bool r, bool g, bool b, bool a);
+    void restore(am_color_mask_state *old);
+    void bind(am_render_state *rstate);
+};
+
 struct am_depth_test_state {
     bool                    test_enabled;
     bool                    mask_enabled;
@@ -112,22 +124,6 @@ struct am_polygon_offset_state {
     float                   units;
 };
 
-struct am_framebuffer_state {
-    float                   clear_color_r;
-    float                   clear_color_g;
-    float                   clear_color_b;
-    float                   clear_color_a;
-    float                   clear_depth;
-    am_glint                clear_stencil_val;
-    bool                    color_mask_r;
-    bool                    color_mask_g;
-    bool                    color_mask_b;
-    bool                    color_mask_a;
-    bool                    depth_mask;
-    am_gluint               stencil_mask_front;
-    am_gluint               stencil_mask_back;
-};
-
 struct am_line_state {
     float                   line_width;
 };
@@ -143,6 +139,8 @@ struct am_render_state {
 
     am_viewport_state       bound_viewport_state;
     am_viewport_state       active_viewport_state;
+    am_color_mask_state     bound_color_mask_state;
+    am_color_mask_state     active_color_mask_state;
     am_depth_test_state     bound_depth_test_state;
     am_depth_test_state     active_depth_test_state;
     am_cull_face_state      bound_cull_face_state;
