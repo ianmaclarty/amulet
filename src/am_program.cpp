@@ -93,6 +93,7 @@ bool am_program_param::bind(am_render_state *rstate) {
             break;
         case AM_PROGRAM_PARAM_UNIFORM_SAMPLER2D:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
+                assert(slot->value.value.sampler2d.texture_unit >= 0);
                 bind_sampler2d(rstate, location, slot->value.value.sampler2d.texture_unit, slot->value.value.sampler2d.texture);
                 bound = true;
             }
@@ -420,6 +421,7 @@ void am_program_node::render(am_render_state *rstate) {
 
 void am_bind_node::render(am_render_state *rstate) {
     am_program_param_value *old_vals = (am_program_param_value*)alloca(sizeof(am_program_param_value) * num_params);
+    int texture_units_to_release = 0;
     for (int i = 0; i < num_params; i++) {
         am_program_param_value *param = &rstate->param_name_map[names[i]].value;
         old_vals[i] = *param;
@@ -429,20 +431,21 @@ void am_bind_node::render(am_render_state *rstate) {
         if (values[i].type == AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
             if (old_vals[i].type != AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
                 param->value.sampler2d.texture_unit = rstate->next_free_texture_unit++;
+                texture_units_to_release++;
+            } else {
+                // reuse texture unit
+                param->value.sampler2d.texture_unit = old_vals[i].value.sampler2d.texture_unit;
             }
+            assert(param->value.sampler2d.texture_unit >= 0);
         }
     }
     render_children(rstate);
     for (int i = 0; i < num_params; i++) {
         am_program_param_value *param = &rstate->param_name_map[names[i]].value;
-        // release texture unit
-        if (values[i].type == AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
-            if (old_vals[i].type != AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D) {
-                rstate->next_free_texture_unit--;
-            }
-        }
         *param = old_vals[i];
     }
+    rstate->next_free_texture_unit -= texture_units_to_release;
+    assert(rstate->next_free_texture_unit >= 0);
 }
 
 static void get_bind_node_value(lua_State *L, void *obj) {
