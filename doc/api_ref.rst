@@ -336,18 +336,32 @@ Window functions
     ..  function:: window:mouse_position_norm()
 
         The position of the mouse cursor in normalized device coordinates,
-        as a ``vec2``. (In normalized device coordinates x and y go
-        from -1 to 1.)
+        as a ``vec2``.
+
+    ..  function:: window:mouse_pixel_position()
+
+        The position of the mouse cursor in pixels where the bottom left
+        corner of the window has coordinate (0, 0), as a ``vec2``.
+
+    ..  function:: window:mouse_position_norm()
+
+        The position of the mouse cursor in normalized device coordinates,
+        as a ``vec2``.
 
     ..  function:: window:mouse_delta()
 
         The change in mouse position since the last frame, in
-        the window's coordinate system.
+        the window's coordinate system (a ``vec2``).
 
     ..  function:: window:mouse_delta_norm()
 
         The change in mouse position since the last frame, in
-        normalized device coordinates.
+        normalized device coordinates (a ``vec2``).
+
+    ..  function:: window:mouse_pixel_delta()
+
+        The change in mouse position since the last frame, in
+        pixels (a ``vec2``).
 
     ..  function:: window:mouse_down(button)
 

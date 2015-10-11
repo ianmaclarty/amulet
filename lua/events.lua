@@ -90,6 +90,12 @@ function window_mt.mouse_position_norm(win)
     return (u._mouse_position * 2 - sz) / sz
 end
 
+function window_mt.mouse_pixel_position(win)
+    local u = win._event_data
+    local sz = vec2(win.width, win.height)
+    return (u._mouse_position - vec2(win.left, win.bottom)) / sz * vec2(win.pixel_width, win.pixel_height)
+end
+
 function window_mt.mouse_delta(win)
     local u = win._event_data
     return u._mouse_delta
@@ -99,6 +105,12 @@ function window_mt.mouse_delta_norm(win)
     local u = win._event_data
     local sz = vec2(win.width, win.height)
     return u._mouse_delta * 2 / sz
+end
+
+function window_mt.mouse_pixel_delta(win)
+    local u = win._event_data
+    local sz = vec2(win.width, win.height)
+    return u._mouse_delta / sz * vec2(win.pixel_width, win.pixel_height)
 end
 
 -- touch
