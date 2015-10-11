@@ -48,7 +48,9 @@ static int create_translate_node(lua_State *L) {
             break;
         }
         case LUA_TNUMBER: {
-            if (nargs == 3) {
+            if (nargs < 3) {
+                return luaL_error(L, "too few arguments");
+            } else if (nargs == 3) {
                 node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), 0.0f);
             } else if (nargs == 4) {
                 node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
