@@ -66,6 +66,28 @@ function get_particles2d_shader_tex()
     return particles2d_shader_tex
 end
 
+-- settings:
+--      source_pos
+--      source_pos_var
+--      start_size
+--      start_size_var
+--      end_size
+--      end_size_var
+--      angle
+--      angle_var
+--      speed
+--      speed_var
+--      life
+--      life_var
+--      start_color
+--      start_color_var
+--      end_color
+--      end_color_var
+--      emission_rate
+--      start_particles
+--      max_particles
+--      gravity
+--      sprite
 function am.particles2d(opts)
     local max_particles = opts.max_particles or 100
     local start_particles = opts.start_particles or 0
@@ -323,6 +345,150 @@ function am.particles2d(opts)
         source_pos_x = p.x
         source_pos_y = p.y
     end
+    function node:get_source_pos_var()
+        return vec2(source_pos_x_var, source_pos_y_var)
+    end
+    function node:set_source_pos_var(v)
+        source_pos_x_var = v.x
+        source_pos_y_var = v.y
+    end
+    function node:get_start_size()
+        return start_size
+    end
+    function node:set_start_size(v)
+        start_size = v
+    end
+    function node:get_start_size_var()
+        return start_size_var
+    end
+    function node:set_start_size_var(v)
+        start_size_var = v
+    end
+    function node:get_end_size()
+        return end_size
+    end
+    function node:set_end_size(v)
+        end_size = v
+    end
+    function node:get_end_size_var()
+        return end_size_var
+    end
+    function node:set_end_size_var(v)
+        end_size_var = v
+    end
+    function node:get_angle()
+        return angle
+    end
+    function node:set_angle(v)
+        angle = v
+    end
+    function node:get_angle_var()
+        return angle_var
+    end
+    function node:set_angle_var(v)
+        angle_var = v
+    end
+    function node:get_speed()
+        return speed
+    end
+    function node:set_speed(v)
+        speed = v
+    end
+    function node:get_speed_var()
+        return speed_var
+    end
+    function node:set_speed_var(v)
+        speed_var = v
+    end
+    function node:get_life()
+        return life
+    end
+    function node:set_life(v)
+        life = v
+    end
+    function node:get_life_var()
+        return life_var
+    end
+    function node:set_life_var(v)
+        life_var = v
+    end
+    function node:get_start_color()
+        return vec4(start_r, start_g, start_b, start_a)
+    end
+    function node:set_start_color(v)
+        start_r = v.r
+        start_g = v.g
+        start_b = v.b
+        start_a = v.a
+    end
+    function node:get_start_color_var()
+        return vec4(start_r_var, start_g_var, start_b_var, start_a_var)
+    end
+    function node:set_start_color_var(v)
+        start_r_var = v.r
+        start_g_var = v.g
+        start_b_var = v.b
+        start_a_var = v.a
+    end
+    function node:get_end_color()
+        return vec4(start_r, start_g, start_b, start_a)
+    end
+    function node:set_end_color(v)
+        start_r = v.r
+        start_g = v.g
+        start_b = v.b
+        start_a = v.a
+    end
+    function node:get_end_color_var()
+        return vec4(start_r_var, start_g_var, start_b_var, start_a_var)
+    end
+    function node:set_end_color_var(v)
+        start_r_var = v.r
+        start_g_var = v.g
+        start_b_var = v.b
+        start_a_var = v.a
+    end
+    function node:get_emission_rate()
+        return emission_rate
+    end
+    function node:set_emission_rate(v)
+        emission_rate = v
+    end
+    function node:get_start_particles()
+        return start_particles
+    end
+    function node:set_start_particles(v)
+        start_particles = v
+    end
+    function node:get_max_particles()
+        return max_particles
+    end
+    function node:set_max_particles(v)
+        max_particles = v
+    end
+    function node:get_gravity()
+        return vec2(gravity_x, gravity_y)
+    end
+    function node:set_gravity(v)
+        gravity_x = v.x
+        gravity_y = v.y
+    end
+    function node:get_sprite()
+        return sprite
+    end
+    function node:set_sprite(s)
+        if not sprite then
+            error("cannot set particle system sprite if it was not initialized with a sprite")
+        end
+        sprite = s
+        uv_offset = vec2(sprite.s1, sprite.t1)
+        uv_scale = vec2(sprite.s2 - sprite.s1, sprite.t2 - sprite.t1)
+        node"bind".tex = sprite.texture
+        node"bind".uv_offset = uv_offset
+        node"bind".uv_scale = uv_scale
+    end
+
+    node:tag"particles2d"
 
     return node
 end
