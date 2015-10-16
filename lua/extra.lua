@@ -57,6 +57,14 @@ function table.search(t, elem)
     return nil
 end
 
+function table.remove_all(t, val)
+    for i = #t, 1, -1 do
+        if t[i] == val then
+            table.remove(t, i)
+        end
+    end
+end
+
 function table.append(arr1, arr2)
     local i = #arr1 + 1
     for _, v in ipairs(arr2) do
