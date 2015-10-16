@@ -431,22 +431,22 @@ function am.particles2d(opts)
         start_a_var = v.a
     end
     function node:get_end_color()
-        return vec4(start_r, start_g, start_b, start_a)
+        return vec4(end_r, end_g, end_b, end_a)
     end
     function node:set_end_color(v)
-        start_r = v.r
-        start_g = v.g
-        start_b = v.b
-        start_a = v.a
+        end_r = v.r
+        end_g = v.g
+        end_b = v.b
+        end_a = v.a
     end
     function node:get_end_color_var()
-        return vec4(start_r_var, start_g_var, start_b_var, start_a_var)
+        return vec4(end_r_var, end_g_var, end_b_var, end_a_var)
     end
     function node:set_end_color_var(v)
-        start_r_var = v.r
-        start_g_var = v.g
-        start_b_var = v.b
-        start_a_var = v.a
+        end_r_var = v.r
+        end_g_var = v.g
+        end_b_var = v.b
+        end_a_var = v.a
     end
     function node:get_emission_rate()
         return emission_rate
