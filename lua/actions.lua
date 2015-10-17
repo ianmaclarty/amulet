@@ -193,8 +193,8 @@ function am.parallel(funcs)
 end
 
 function am.wait(func, node)
-    local _, main = coroutine.running()
-    if main then
+    local thread = coroutine.running()
+    if not thread then
         error("wait may only be called from within a coroutine", 2)
     end
     repeat 
