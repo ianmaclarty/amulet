@@ -106,6 +106,7 @@ function cancel_action(node, id)
         for i = #actions, 1, -1 do
             local action = actions[i]
             if action.id == id then
+                action.seq = seq -- make sure action does not execute this frame if it hasn't already
                 table.remove(actions, i)
             end
         end
