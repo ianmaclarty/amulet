@@ -214,20 +214,22 @@ function am.text(font, str, color, halign, valign)
     return node
 end
 
-function am.sprite(image, halign, valign)
+function am.sprite(image, halign, valign, color)
     halign = halign or "center"
     valign = valign or "center"
+    color = color or vec4(1)
     local num_verts = 4
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
     set_sprite_verts(image, verts, uvs, halign, valign)
     local node =
         am.blend("premult")
-        ^am.use_program(am.shaders.texture)
+        ^am.use_program(am.shaders.texturecolor)
         ^am.bind{
             vert = verts,
             uv = uvs,
             tex = image.texture,
+            color = color,
         }
         ^am.draw("triangles", indices)
     function node:get_sprite()
@@ -237,6 +239,14 @@ function am.sprite(image, halign, valign)
         image = img
         set_sprite_verts(image, verts, uvs, halign, valign)
     end
+    function node:get_color()
+        return color
+    end
+    function node:set_color(c)
+        color = c
+        self"bind".color = color
+    end
+        
     node:tag"sprite"
     return node
 end
