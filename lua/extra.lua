@@ -173,18 +173,18 @@ end
 
 table.tostring = table_tostring
 
--- override some maths functions to avoid nans
+-- extra math functions
 
-local acos = math.acos
-local asin = math.asin
-local clamp = math.clamp
-
-function math.acos(x)
-    return acos(math.clamp(x, -1, 1))
+function math.randvec2()
+    return vec2(math.random(), math.random())
 end
 
-function math.asin(x)
-    return asin(math.clamp(x, -1, 1))
+function math.randvec3()
+    return vec3(math.random(), math.random(), math.random())
+end
+
+function math.randvec4()
+    return vec4(math.random(), math.random(), math.random(), math.random())
 end
 
 -- vector/matrix stuff
