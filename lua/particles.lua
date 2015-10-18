@@ -457,14 +457,8 @@ function am.particles2d(opts)
     function node:get_start_particles()
         return start_particles
     end
-    function node:set_start_particles(v)
-        start_particles = v
-    end
     function node:get_max_particles()
         return max_particles
-    end
-    function node:set_max_particles(v)
-        max_particles = v
     end
     function node:get_gravity()
         return vec2(gravity_x, gravity_y)
