@@ -1901,6 +1901,7 @@ static void init_angle() {
     ShInitialize();
 
     ShInitBuiltInResources(&angle_resources);
+    // XXX derive these from opengl 
     angle_resources.MaxVertexAttribs = 16;
     angle_resources.MaxVertexUniformVectors = 128;
     angle_resources.MaxVaryingVectors = 16;
@@ -1909,6 +1910,8 @@ static void init_angle() {
     angle_resources.MaxTextureImageUnits = 16;
     angle_resources.MaxFragmentUniformVectors = 32;
     angle_resources.MaxDrawBuffers = 4;
+    angle_resources.OES_standard_derivatives = 1;
+    angle_resources.FragmentPrecisionHigh = 1;
 
     ShShaderSpec spec = SH_WEBGL_SPEC;
     ShShaderOutput output = SH_GLSL_OUTPUT;
