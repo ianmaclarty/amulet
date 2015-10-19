@@ -49,10 +49,13 @@ void am_open_blending_module(lua_State *L) {
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     am_enum_value blend_mode_enum[] = {
         {"off", AM_BLEND_MODE_OFF},
-        {"normal", AM_BLEND_MODE_NORMAL},
+        {"alpha", AM_BLEND_MODE_ALPHA},
         {"premult", AM_BLEND_MODE_PREMULT},
         {"add", AM_BLEND_MODE_ADD},
         {"subtract", AM_BLEND_MODE_SUBTRACT},
+        {"add_alpha", AM_BLEND_MODE_ADD_ALPHA},
+        {"subtract_alpha", AM_BLEND_MODE_SUBTRACT_ALPHA},
+        {"multiply", AM_BLEND_MODE_MULTIPLY},
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_blend_mode, blend_mode_enum);

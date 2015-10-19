@@ -147,7 +147,7 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             constant_b      = 1.0f;
             constant_a      = 1.0f;
             break;
-        case AM_BLEND_MODE_NORMAL:
+        case AM_BLEND_MODE_ALPHA:
             enabled         = true; 
             equation_rgb    = AM_BLEND_EQUATION_ADD;
             equation_alpha  = AM_BLEND_EQUATION_ADD;
@@ -177,9 +177,9 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             enabled         = true; 
             equation_rgb    = AM_BLEND_EQUATION_ADD;
             equation_alpha  = AM_BLEND_EQUATION_ADD;
-            sfactor_rgb     = AM_BLEND_SFACTOR_SRC_ALPHA;
+            sfactor_rgb     = AM_BLEND_SFACTOR_ONE;
             dfactor_rgb     = AM_BLEND_DFACTOR_ONE;
-            sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
+            sfactor_alpha   = AM_BLEND_SFACTOR_ONE;
             dfactor_alpha   = AM_BLEND_DFACTOR_ONE;
             constant_r      = 1.0f;
             constant_g      = 1.0f;
@@ -190,10 +190,49 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             enabled         = true; 
             equation_rgb    = AM_BLEND_EQUATION_REVERSE_SUBTRACT;
             equation_alpha  = AM_BLEND_EQUATION_REVERSE_SUBTRACT;
+            sfactor_rgb     = AM_BLEND_SFACTOR_ONE;
+            dfactor_rgb     = AM_BLEND_DFACTOR_ONE;
+            sfactor_alpha   = AM_BLEND_SFACTOR_ONE;
+            dfactor_alpha   = AM_BLEND_DFACTOR_ONE;
+            constant_r      = 1.0f;
+            constant_g      = 1.0f;
+            constant_b      = 1.0f;
+            constant_a      = 1.0f;
+            break;
+        case AM_BLEND_MODE_ADD_ALPHA:
+            enabled         = true; 
+            equation_rgb    = AM_BLEND_EQUATION_ADD;
+            equation_alpha  = AM_BLEND_EQUATION_ADD;
             sfactor_rgb     = AM_BLEND_SFACTOR_SRC_ALPHA;
             dfactor_rgb     = AM_BLEND_DFACTOR_ONE;
             sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
             dfactor_alpha   = AM_BLEND_DFACTOR_ONE;
+            constant_r      = 1.0f;
+            constant_g      = 1.0f;
+            constant_b      = 1.0f;
+            constant_a      = 1.0f;
+            break;
+        case AM_BLEND_MODE_SUBTRACT_ALPHA:
+            enabled         = true; 
+            equation_rgb    = AM_BLEND_EQUATION_REVERSE_SUBTRACT;
+            equation_alpha  = AM_BLEND_EQUATION_REVERSE_SUBTRACT;
+            sfactor_rgb     = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_rgb     = AM_BLEND_DFACTOR_ONE;
+            sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
+            dfactor_alpha   = AM_BLEND_DFACTOR_ONE;
+            constant_r      = 1.0f;
+            constant_g      = 1.0f;
+            constant_b      = 1.0f;
+            constant_a      = 1.0f;
+            break;
+        case AM_BLEND_MODE_MULTIPLY:
+            enabled         = true; 
+            equation_rgb    = AM_BLEND_EQUATION_ADD;
+            equation_alpha  = AM_BLEND_EQUATION_ADD;
+            sfactor_rgb     = AM_BLEND_SFACTOR_DST_COLOR;
+            dfactor_rgb     = AM_BLEND_DFACTOR_ZERO;
+            sfactor_alpha   = AM_BLEND_SFACTOR_DST_COLOR;
+            dfactor_alpha   = AM_BLEND_DFACTOR_ZERO;
             constant_r      = 1.0f;
             constant_g      = 1.0f;
             constant_b      = 1.0f;

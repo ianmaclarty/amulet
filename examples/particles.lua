@@ -3,7 +3,7 @@ local win = am.window{
     letterbox = false,
 }
 
-win.scene = am.blend("add")
+win.scene = am.blend("add_alpha")
     ^ am.particles2d{
         source_pos = win:mouse_position(),
         source_pos_var = vec2(20),

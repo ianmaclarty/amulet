@@ -175,7 +175,7 @@ function am.text(font, str, color, halign, valign)
     local indices = make_indices(num_verts)
     set_text_verts(font, str, verts, uvs, halign, valign)
     local node =
-        am.blend(font.is_premult and "premult" or "normal")
+        am.blend(font.is_premult and "premult" or "alpha")
         ^am.use_program(am.shaders.texturecolor)
         ^am.bind{
             vert = verts,
@@ -223,7 +223,7 @@ function am.sprite(image, halign, valign, color)
     local indices = make_indices(num_verts)
     set_sprite_verts(image, verts, uvs, halign, valign)
     local node =
-        am.blend(image.is_premult and "premult" or "normal")
+        am.blend(image.is_premult and "premult" or "alpha")
         ^am.use_program(am.shaders.texturecolor)
         ^am.bind{
             vert = verts,

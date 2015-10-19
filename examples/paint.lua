@@ -32,7 +32,7 @@ end
 win.scene = am.postprocess{
         clear_color = vec4(1),
         auto_clear = false
-    } ^ am.blend("normal") ^ particles
+    } ^ am.blend("alpha") ^ particles
 
 win.scene:action(function()
     add_particle()
