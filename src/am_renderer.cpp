@@ -126,10 +126,10 @@ am_blend_state::am_blend_state() {
     dfactor_rgb     = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
     sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
     dfactor_alpha   = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
-    color_r         = 1.0f;
-    color_g         = 1.0f;
-    color_b         = 1.0f;
-    color_a         = 1.0f;
+    constant_r      = 1.0f;
+    constant_g      = 1.0f;
+    constant_b      = 1.0f;
+    constant_a      = 1.0f;
 }
 
 void am_blend_state::set_mode(am_blend_mode mode) {
@@ -142,10 +142,10 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             dfactor_rgb     = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
             sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
             dfactor_alpha   = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
-            color_r         = 1.0f;
-            color_g         = 1.0f;
-            color_b         = 1.0f;
-            color_a         = 1.0f;
+            constant_r      = 1.0f;
+            constant_g      = 1.0f;
+            constant_b      = 1.0f;
+            constant_a      = 1.0f;
             break;
         case AM_BLEND_MODE_NORMAL:
             enabled         = true; 
@@ -155,10 +155,10 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             dfactor_rgb     = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
             sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
             dfactor_alpha   = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
-            color_r         = 1.0f;
-            color_g         = 1.0f;
-            color_b         = 1.0f;
-            color_a         = 1.0f;
+            constant_r      = 1.0f;
+            constant_g      = 1.0f;
+            constant_b      = 1.0f;
+            constant_a      = 1.0f;
             break;
         case AM_BLEND_MODE_PREMULT:
             enabled         = true; 
@@ -168,10 +168,10 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             dfactor_rgb     = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
             sfactor_alpha   = AM_BLEND_SFACTOR_ONE;
             dfactor_alpha   = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
-            color_r         = 1.0f;
-            color_g         = 1.0f;
-            color_b         = 1.0f;
-            color_a         = 1.0f;
+            constant_r      = 1.0f;
+            constant_g      = 1.0f;
+            constant_b      = 1.0f;
+            constant_a      = 1.0f;
             break;
         case AM_BLEND_MODE_ADD:
             enabled         = true; 
@@ -181,10 +181,10 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             dfactor_rgb     = AM_BLEND_DFACTOR_ONE;
             sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
             dfactor_alpha   = AM_BLEND_DFACTOR_ONE;
-            color_r         = 1.0f;
-            color_g         = 1.0f;
-            color_b         = 1.0f;
-            color_a         = 1.0f;
+            constant_r      = 1.0f;
+            constant_g      = 1.0f;
+            constant_b      = 1.0f;
+            constant_a      = 1.0f;
             break;
         case AM_BLEND_MODE_SUBTRACT:
             enabled         = true; 
@@ -194,10 +194,10 @@ void am_blend_state::set_mode(am_blend_mode mode) {
             dfactor_rgb     = AM_BLEND_DFACTOR_ONE;
             sfactor_alpha   = AM_BLEND_SFACTOR_SRC_ALPHA;
             dfactor_alpha   = AM_BLEND_DFACTOR_ONE;
-            color_r         = 1.0f;
-            color_g         = 1.0f;
-            color_b         = 1.0f;
-            color_a         = 1.0f;
+            constant_r      = 1.0f;
+            constant_g      = 1.0f;
+            constant_b      = 1.0f;
+            constant_a      = 1.0f;
             break;
     }
 }
@@ -210,10 +210,10 @@ void am_blend_state::set(
     am_blend_dfactor  dfactor_rgb,
     am_blend_sfactor  sfactor_alpha,
     am_blend_dfactor  dfactor_alpha,
-    float             color_r,
-    float             color_g,
-    float             color_b,
-    float             color_a)
+    float             constant_r,
+    float             constant_g,
+    float             constant_b,
+    float             constant_a)
 {
     am_blend_state::enabled         = enabled       ;
     am_blend_state::equation_rgb    = equation_rgb  ;
@@ -222,10 +222,10 @@ void am_blend_state::set(
     am_blend_state::dfactor_rgb     = dfactor_rgb   ;
     am_blend_state::sfactor_alpha   = sfactor_alpha ;
     am_blend_state::dfactor_alpha   = dfactor_alpha ;
-    am_blend_state::color_r         = color_r       ;
-    am_blend_state::color_g         = color_g       ;
-    am_blend_state::color_b         = color_b       ;
-    am_blend_state::color_a         = color_a       ;
+    am_blend_state::constant_r      = constant_r       ;
+    am_blend_state::constant_g      = constant_g       ;
+    am_blend_state::constant_b      = constant_b       ;
+    am_blend_state::constant_a      = constant_a       ;
 }
 
 void am_blend_state::restore(am_blend_state *old) {
@@ -237,10 +237,10 @@ void am_blend_state::restore(am_blend_state *old) {
         old->dfactor_rgb   ,
         old->sfactor_alpha ,
         old->dfactor_alpha ,
-        old->color_r       ,
-        old->color_g       ,
-        old->color_b       ,
-        old->color_a
+        old->constant_r    ,
+        old->constant_g    ,
+        old->constant_b    ,
+        old->constant_a
     );
 }
 
@@ -269,16 +269,16 @@ void am_blend_state::bind(am_render_state *rstate) {
         bound->sfactor_alpha = sfactor_alpha;
         bound->dfactor_alpha = dfactor_alpha;
     }
-    if (color_r != bound->color_r ||
-        color_g != bound->color_g ||
-        color_b != bound->color_b ||
-        color_a != bound->color_a)
+    if (constant_r != bound->constant_r ||
+        constant_g != bound->constant_g ||
+        constant_b != bound->constant_b ||
+        constant_a != bound->constant_a)
     {
-        am_set_blend_color(color_r, color_g, color_b, color_a);
-        bound->color_r = color_r;
-        bound->color_g = color_g;
-        bound->color_b = color_b;
-        bound->color_a = color_a;
+        am_set_blend_color(constant_r, constant_g, constant_b, constant_a);
+        bound->constant_r = constant_r;
+        bound->constant_g = constant_g;
+        bound->constant_b = constant_b;
+        bound->constant_a = constant_a;
     }
 }
 

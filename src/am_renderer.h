@@ -65,10 +65,10 @@ struct am_blend_state {
     am_blend_dfactor        dfactor_rgb;
     am_blend_sfactor        sfactor_alpha;
     am_blend_dfactor        dfactor_alpha;
-    float                   color_r;
-    float                   color_g;
-    float                   color_b;
-    float                   color_a;
+    float                   constant_r;
+    float                   constant_g;
+    float                   constant_b;
+    float                   constant_a;
 
     am_blend_state();
     void set_mode(am_blend_mode mode);
@@ -79,10 +79,10 @@ struct am_blend_state {
         am_blend_dfactor  dfactor_rgb,
         am_blend_sfactor  sfactor_alpha,
         am_blend_dfactor  dfactor_alpha,
-        float             color_r,
-        float             color_g,
-        float             color_b,
-        float             color_a);
+        float             constant_r,
+        float             constant_g,
+        float             constant_b,
+        float             constant_a);
     void restore(am_blend_state *old);
     void bind(am_render_state *rstate);
 };
