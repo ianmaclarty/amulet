@@ -1,4 +1,5 @@
 /* OpenGL ES 2.0 reference: http://www.khronos.org/opengles/sdk/docs/man/ */
+/* OpenGL ES 2.0 quick reference card: https://www.khronos.org/opengles/sdk/docs/reference_cards/OpenGL-ES-2_0-Reference-card.pdf */
 /* WebGL 1.0 quick reference: http://www.khronos.org/files/webgl/webgl-reference-card-1_0.pdf */
 
 #include "amulet.h"
