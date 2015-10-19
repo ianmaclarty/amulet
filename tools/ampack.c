@@ -56,6 +56,7 @@ static int bb_bottom = 0;
 static int is_mono = 0;
 static const char* minfilter = "linear";
 static const char* magfilter = "linear";
+static int do_premult = 1;
 
 static void process_args(int argc, char *argv[]);
 static void gen_rects();
@@ -91,7 +92,9 @@ int main(int argc, char *argv[]) {
     atlas_data = malloc(4 * atlas_width * atlas_height);
     memset(atlas_data, 0, 4 * atlas_width * atlas_height);
     write_data();
-    premult();
+    if (do_premult) {
+        premult();
+    }
     write_png();
     free(rects);
     free(atlas_data);
@@ -172,6 +175,7 @@ static void write_data() {
     fprintf(f, "local font_data = {\n");
     fprintf(f, "    minfilter = \"%s\",\n", minfilter);
     fprintf(f, "    magfilter = \"%s\",\n", magfilter);
+    fprintf(f, "    is_premult = %s,\n", do_premult ? "true" : "false");
     for (s = 0; s < num_items; s++) {
         if (items[s].is_font) {
             int sz = items[s].size;
@@ -628,7 +632,7 @@ check_size:
 }
 
 static void usage() {
-    fprintf(stderr, "usage: ampack -png filename.png -lua filename.lua [-mono] [-minfiler <filter>] [-magfilter <filter>] <spec> ...\n");
+    fprintf(stderr, "usage: ampack -png filename.png -lua filename.lua [-mono] [-minfiler <filter>] [-magfilter <filter>] [-no-premult] <spec> ...\n");
     fprintf(stderr, "  where <spec> is either an image file or a font spec of the form:\n");
     fprintf(stderr, "  font.ttf@16[:A-Z,0x20-0x2F]\n");
     exit(EXIT_FAILURE);
@@ -656,6 +660,8 @@ static void process_args(int argc, char *argv[]) {
         } else if (strcmp(arg, "-magfilter") == 0) {
             if (++a >= argc) usage();
             magfilter = argv[a];
+        } else if (strcmp(arg, "-no-premult") == 0) {
+            do_premult = 0;
         } else {
             parse_spec(argv[a], num_items);
             num_items++;

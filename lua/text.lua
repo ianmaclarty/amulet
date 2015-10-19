@@ -175,7 +175,7 @@ function am.text(font, str, color, halign, valign)
     local indices = make_indices(num_verts)
     set_text_verts(font, str, verts, uvs, halign, valign)
     local node =
-        am.blend("premult")
+        am.blend(font.is_premult and "premult" or "normal")
         ^am.use_program(am.shaders.texturecolor)
         ^am.bind{
             vert = verts,
@@ -223,7 +223,7 @@ function am.sprite(image, halign, valign, color)
     local indices = make_indices(num_verts)
     set_sprite_verts(image, verts, uvs, halign, valign)
     local node =
-        am.blend("premult")
+        am.blend(image.is_premult and "premult" or "normal")
         ^am.use_program(am.shaders.texturecolor)
         ^am.bind{
             vert = verts,
@@ -266,6 +266,7 @@ function am._init_fonts(data, imgfile, embedded)
                 error("invalid image filename: "..entry.filename, 3)
             end
         end
+        entry.is_premult = data.is_premult
         data[name] = entry
     end
     local texture
