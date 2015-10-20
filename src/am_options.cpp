@@ -6,12 +6,12 @@
 #endif
 
 enum e_main_command {
-    CMD_UNSET,
+    CMD_NULL,
     CMD_RUN,
     CMD_PAK,
 };
 
-static e_main_command main_command = CMD_UNSET;
+static e_main_command main_command = CMD_NULL;
 static char *pak_dir;
 
 const char *am_opt_main_module = NULL;
@@ -20,7 +20,7 @@ const char *am_opt_data_dir = ".";
 static int handle_non_run_options();
 
 static bool pak(int *argc, char ***argv) {
-    if (main_command == CMD_UNSET) {
+    if (main_command == CMD_NULL) {
         main_command = CMD_PAK;
         if (*argc > 0) {
             pak_dir = (*argv)[0];
@@ -77,11 +77,11 @@ bool am_process_args(int *argc, char ***argv, int *exit_status) {
     while (*argc > 0) {
         bool foundopt = false;
         char *arg = (*argv)[0];
-        (*argc)--;
-        (*argv)++;
         option *o = &options[0];
         while (o->name != NULL) {
             if (strcmp(o->name, arg) == 0) {
+                (*argc)--;
+                (*argv)++;
                 if (!o->func(argc, argv)) {
                     *exit_status = EXIT_FAILURE;
                     return false;
@@ -92,30 +92,23 @@ bool am_process_args(int *argc, char ***argv, int *exit_status) {
             o++;
         }
         if (!foundopt) {
-            if (filename != NULL || main_command != CMD_UNSET) {
-                am_log0("unrecognized option: %s", arg);
-                *exit_status = EXIT_FAILURE;
-                return false;
-            } else {
+            if (filename == NULL && (main_command == CMD_NULL || main_command == CMD_RUN)) {
+                (*argc)--;
+                (*argv)++;
                 main_command = CMD_RUN;
                 filename = arg;
             }
+            break; // pass remaining args to script
         }
     }
 
-    if (main_command == CMD_UNSET) {
+    if (main_command == CMD_NULL) {
         main_command = CMD_RUN;
     }
 
     if (main_command != CMD_RUN) {
-        if (filename != NULL) {
-            am_log0("unrecognized option: %s", filename);
-            *exit_status = EXIT_FAILURE;
-            return false;
-        } else {
-            *exit_status = handle_non_run_options();
-            return false;
-        }
+        *exit_status = handle_non_run_options();
+        return false;
     }
 
     if (filename != NULL) {
@@ -144,7 +137,7 @@ static int handle_non_run_options() {
                 return EXIT_FAILURE;
             }
             break;
-        case CMD_UNSET:
+        case CMD_NULL:
         case CMD_RUN:
             am_log0("%s", "internal command handling error");
             return EXIT_FAILURE;
