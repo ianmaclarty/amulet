@@ -566,6 +566,18 @@ static void set_draw_node_count(lua_State *L, void *obj) {
 
 static am_property draw_node_count_property = {get_draw_node_count, set_draw_node_count};
 
+static void get_draw_node_primitive(lua_State *L, void *obj) {
+    am_draw_node *node = (am_draw_node*)obj;
+    am_push_enum(L, am_draw_mode, node->mode);
+}
+
+static void set_draw_node_primitive(lua_State *L, void *obj) {
+    am_draw_node *node = (am_draw_node*)obj;
+    node->mode = am_get_enum(L, am_draw_mode, 3);
+}
+
+static am_property draw_node_primitive_property = {get_draw_node_primitive, set_draw_node_primitive};
+
 static void set_indices(lua_State *L, am_draw_node *node, int idx) {
     am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, idx);
     switch (indices_view->type) {
@@ -615,6 +627,7 @@ static void register_draw_node_mt(lua_State *L) {
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
 
+    am_register_property(L, "primitive", &draw_node_primitive_property);
     am_register_property(L, "first", &draw_node_first_property);
     am_register_property(L, "count", &draw_node_count_property);
     am_register_property(L, "elements", &draw_node_elements_property);
