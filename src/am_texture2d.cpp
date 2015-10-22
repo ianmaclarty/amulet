@@ -107,6 +107,8 @@ static int create_texture2d(lua_State *L) {
     texture->pixel_size = pixel_size;
     texture->has_mipmap = needs_mipmap;
     texture->last_video_capture_frame = 0;
+    texture->minfilter = min_filter;
+    texture->magfilter = mag_filter;
     am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture->texture_id);
     am_set_texture_min_filter(AM_TEXTURE_BIND_TARGET_2D, min_filter);
     am_set_texture_mag_filter(AM_TEXTURE_BIND_TARGET_2D, mag_filter);
@@ -202,6 +204,33 @@ static am_property texture_width_property = {get_texture_width, NULL};
 static am_property texture_height_property = {get_texture_height, NULL};
 static am_property texture_buffer_property = {get_texture_buffer, NULL};
 
+static void get_texture_minfilter(lua_State *L, void *obj) {
+    am_texture2d *tex = (am_texture2d*)obj;
+    am_push_enum(L, am_texture_min_filter, tex->minfilter);
+}
+
+static void set_texture_minfilter(lua_State *L, void *obj) {
+    am_texture2d *tex = (am_texture2d*)obj;
+    tex->minfilter = am_get_enum(L, am_texture_min_filter, 3);
+    am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, tex->texture_id);
+    am_set_texture_min_filter(AM_TEXTURE_BIND_TARGET_2D, tex->minfilter);
+}
+
+static void get_texture_magfilter(lua_State *L, void *obj) {
+    am_texture2d *tex = (am_texture2d*)obj;
+    am_push_enum(L, am_texture_mag_filter, tex->magfilter);
+}
+
+static void set_texture_magfilter(lua_State *L, void *obj) {
+    am_texture2d *tex = (am_texture2d*)obj;
+    tex->magfilter = am_get_enum(L, am_texture_mag_filter, 3);
+    am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, tex->texture_id);
+    am_set_texture_mag_filter(AM_TEXTURE_BIND_TARGET_2D, tex->magfilter);
+}
+
+static am_property texture_minfilter_property = {get_texture_minfilter, set_texture_minfilter};
+static am_property texture_magfilter_property = {get_texture_magfilter, set_texture_magfilter};
+
 static void register_texture2d_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -217,6 +246,8 @@ static void register_texture2d_mt(lua_State *L) {
     am_register_property(L, "width",  &texture_width_property);
     am_register_property(L, "height", &texture_height_property);
     am_register_property(L, "buffer", &texture_buffer_property);
+    am_register_property(L, "minfilter", &texture_minfilter_property);
+    am_register_property(L, "magfilter", &texture_magfilter_property);
 
     am_register_metatable(L, "texture2d", MT_am_texture2d, 0);
 }

@@ -9,6 +9,8 @@ struct am_texture2d : am_nonatomic_userdata {
     am_buffer               *buffer;
     int                     buffer_ref;
     int                     last_video_capture_frame;
+    am_texture_min_filter   minfilter;
+    am_texture_mag_filter   magfilter;
 
     void update_from_buffer();
 };
