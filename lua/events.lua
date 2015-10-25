@@ -56,12 +56,19 @@ function am._mouse_move(win, x, y)
     u._mouse_delta = vec2(u._mouse_position - u._prev_mouse_position)
 end
 
+function am._mouse_wheel(win, x, y)
+    local u = win._event_data
+    u._mouse_wheel = vec2(x, y)
+    u._mouse_wheel_delta = vec2(u._mouse_wheel - u._prev_mouse_wheel)
+end
+
 local
 function clear_mouse(win)
     local u = win._event_data
     table.clear(u._mouse_pressed)    
     table.clear(u._mouse_released)    
     u._prev_mouse_position = u._mouse_position
+    u._prev_mouse_wheel = u._mouse_wheel
 end
 
 function window_mt.mouse_down(win, button)
@@ -111,6 +118,16 @@ function window_mt.mouse_pixel_delta(win)
     local u = win._event_data
     local sz = vec2(win.width, win.height)
     return u._mouse_delta / sz * vec2(win.pixel_width, win.pixel_height)
+end
+
+function window_mt.mouse_wheel(win)
+    local u = win._event_data
+    return u._mouse_wheel
+end
+
+function window_mt.mouse_wheel_delta(win)
+    local u = win._event_data
+    return u._mouse_wheel_delta
 end
 
 -- touch
@@ -229,6 +246,9 @@ function am._init_window_event_data(window)
     u._mouse_down = {}
     u._mouse_pressed = {}
     u._mouse_released = {}
+    u._prev_mouse_wheel = vec2(0, 0)
+    u._mouse_wheel = vec2(0, 0)
+    u._mouse_wheel_delta = vec2(0, 0)
 
     -- touch
 

@@ -40,6 +40,8 @@ struct win_info {
     bool lock_pointer;
     int mouse_x;
     int mouse_y;
+    int mouse_wheel_x;
+    int mouse_wheel_y;
 };
 
 static bool have_focus = true;
@@ -101,6 +103,8 @@ am_native_window *am_create_native_window(
         winfo.window = main_window;
         winfo.lock_pointer = false;
         SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
+        winfo.mouse_wheel_x = 0;
+        winfo.mouse_wheel_y = 0;
         windows.push_back(winfo);
         return (am_native_window*)main_window;
     }
@@ -185,6 +189,8 @@ am_native_window *am_create_native_window(
     winfo.window = win;
     winfo.lock_pointer = false;
     SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
+    winfo.mouse_wheel_x = 0;
+    winfo.mouse_wheel_y = 0;
     windows.push_back(winfo);
     return (am_native_window*)win;
 }
@@ -647,9 +653,10 @@ static void init_audio_capture() {
     SDL_PauseAudioDevice(capture_device, 0);
 }
 
-static void update_mouse_position(lua_State *L, win_info *info) {
-    am_find_window((am_native_window*)info->window)
-        ->mouse_move(L, (float)info->mouse_x, (float)info->mouse_y);
+static void update_window_mouse_state(lua_State *L, win_info *info) {
+    am_window *win = am_find_window((am_native_window*)info->window);
+    win->mouse_move(L, (double)info->mouse_x, (double)info->mouse_y);
+    win->mouse_wheel(L, (double)info->mouse_wheel_x, (double)info->mouse_wheel_y);
 }
 
 static bool handle_events(lua_State *L) {
@@ -752,10 +759,18 @@ static bool handle_events(lua_State *L) {
                 }
                 break;
             }
+            case SDL_MOUSEWHEEL: {
+                win_info *info = win_from_id(event.motion.windowID);
+                if (info) {
+                    info->mouse_wheel_x += event.wheel.x;
+                    info->mouse_wheel_y += event.wheel.y;
+                }
+                break;
+            }
         }
     }
     for (unsigned i = 0; i < windows.size(); i++) {
-        update_mouse_position(L, &windows[i]);
+        update_window_mouse_state(L, &windows[i]);
     }
     return true;
 }

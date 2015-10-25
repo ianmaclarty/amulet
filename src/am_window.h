@@ -28,9 +28,10 @@ struct am_window : am_nonatomic_userdata {
     am_window_mode      mode;
     bool                dirty;
 
-    void mouse_move(lua_State *L, float x, float y);
+    void mouse_move(lua_State *L, double x, double y);
     void mouse_down(lua_State *L, am_mouse_button button);
     void mouse_up(lua_State *L, am_mouse_button button);
+    void mouse_wheel(lua_State *L, double x, double y);
 };
 
 void am_open_window_module(lua_State *L);

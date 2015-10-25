@@ -133,15 +133,15 @@ static int create_window(lua_State *L) {
     return 1;
 }
 
-void am_window::mouse_move(lua_State *L, float x, float y) {
+void am_window::mouse_move(lua_State *L, double x, double y) {
     // invert y
-    y = (float)screen_height - y;
+    y = (double)screen_height - y;
     // convert from screen units to pixels
-    x *= ((float)pixel_width / (float)screen_width);
-    y *= ((float)pixel_height / (float)screen_height);
+    x *= ((double)pixel_width / (double)screen_width);
+    y *= ((double)pixel_height / (double)screen_height);
     // subtract letterbox bar offsets
-    x -= (float)viewport_x;
-    y -= (float)viewport_y;
+    x -= (double)viewport_x;
+    y -= (double)viewport_y;
     // convert to user window space
     if (user_projection) {
         glm::vec4 p(x * 2.0f / (float)viewport_width - 1.0f,
@@ -151,14 +151,21 @@ void am_window::mouse_move(lua_State *L, float x, float y) {
         y = p.y;
     } else {
         // can avoid a matrix inverse and mult in this case
-        x = x / (float)viewport_width * (user_right - user_left) + user_left;
-        y = y / (float)viewport_height * (user_top - user_bottom) + user_bottom;
+        x = x / (double)viewport_width * (user_right - user_left) + user_left;
+        y = y / (double)viewport_height * (user_top - user_bottom) + user_bottom;
     }
     // finally send to lua
     push(L);
     lua_pushnumber(L, x);
     lua_pushnumber(L, y);
     am_call_amulet(L, "_mouse_move", 3, 0);
+}
+
+void am_window::mouse_wheel(lua_State *L, double x, double y) {
+    push(L);
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+    am_call_amulet(L, "_mouse_wheel", 3, 0);
 }
 
 void am_window::mouse_down(lua_State *L, am_mouse_button button) {
