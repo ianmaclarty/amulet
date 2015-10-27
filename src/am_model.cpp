@@ -43,9 +43,9 @@ static float* read_obj(const char *filename, char *str, int len,
                         str++;
                         // t_vertex
                         glm::vec3 v;
-                        v.x = strtof(str, &str);
-                        v.y = strtof(str, &str);
-                        v.z = strtof(str, &str);
+                        v.x = strtod(str, &str);
+                        v.y = strtod(str, &str);
+                        v.z = strtod(str, &str);
                         vertices.push_back(v);
                         break;
                     }
@@ -53,8 +53,8 @@ static float* read_obj(const char *filename, char *str, int len,
                         str++;
                         // texture coord
                         glm::vec2 t;
-                        t.x = strtof(str, &str);
-                        t.y = strtof(str, &str);
+                        t.x = strtod(str, &str);
+                        t.y = strtod(str, &str);
                         texture_coords.push_back(t);
                         break;
                     }
@@ -62,9 +62,9 @@ static float* read_obj(const char *filename, char *str, int len,
                         str++;
                         // t_normal
                         glm::vec3 n;
-                        n.x = strtof(str, &str);
-                        n.y = strtof(str, &str);
-                        n.z = strtof(str, &str);
+                        n.x = strtod(str, &str);
+                        n.y = strtod(str, &str);
+                        n.z = strtod(str, &str);
                         normals.push_back(n);
                         break;
                     }

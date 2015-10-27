@@ -6,6 +6,7 @@
 #endif
 #if defined(AM_MINGW) || defined(AM_MSVC32)
     #define AM_WINDOWS
+    #define AM_MSVC
 #endif
 #if defined(AM_IOS32) || defined(AM_IOS64) || defined(AM_IOSSIM)
     #define AM_IOS

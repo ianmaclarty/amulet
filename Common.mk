@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 msvc osx ios32 ios64 iossim android html mingw32 mingw64
+TARGET_PLATFORMS = linux32 linux64 msvc32 osx ios32 ios64 iossim android html mingw32 mingw64
 
 DEBUG_TARGETS = $(patsubst %,%.debug,$(TARGET_PLATFORMS))
 RELEASE_TARGETS = $(patsubst %,%.release,$(TARGET_PLATFORMS))
@@ -31,7 +31,7 @@ PATH_SEP = :
 
 UNAME := $(shell uname)
 ifneq (,$(findstring W32,$(UNAME)))
-  HOST_PLATFORM = msvc
+  HOST_PLATFORM = msvc32
   PATH_SEP = ;
 else ifneq (,$(findstring Linux,$(UNAME)))
   UNAME_A := $(shell uname -a)
@@ -200,7 +200,7 @@ else ifeq ($(TARGET_PLATFORM),html)
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
   EXE_OUT_OPT = -o$(SPACE)
   OBJ_OUT_OPT = -o$(SPACE)
-else ifeq ($(TARGET_PLATFORM),msvc)
+else ifeq ($(TARGET_PLATFORM),msvc32)
   VC_CL = cl.exe
   VC_CL_PATH = $(shell which $(VC_CL))
   VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")
@@ -246,7 +246,7 @@ ifeq ($(GRADE),debug)
     GRADE_CFLAGS = -O1 -profiling
     GRADE_LDFLAGS = -profiling
     LUA_CFLAGS += -DLUA_USE_APICHECK
-  else ifeq ($(TARGET_PLATFORM),msvc)
+  else ifeq ($(TARGET_PLATFORM),msvc32)
     GRADE_CFLAGS = -MTd -Zi
     GRADE_LDFLAGS = -DEBUG
     LUA_CFLAGS += -DLUA_USE_APICHECK
@@ -262,7 +262,7 @@ else
     #EM_PROFILING = --profiling
     GRADE_CFLAGS = -O3 $(EM_PROFILING) -DNDEBUG
     GRADE_LDFLAGS = -O3 $(EM_PROFILING) 
-  else ifeq ($(TARGET_PLATFORM),msvc)
+  else ifeq ($(TARGET_PLATFORM),msvc32)
     GRADE_CFLAGS = -Ox -DNDEBUG
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),osx)

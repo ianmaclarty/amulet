@@ -31,7 +31,7 @@ ifeq ($(TARGET_PLATFORM),html)
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft
-else ifeq ($(TARGET_PLATFORM),msvc)
+else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
 else ifeq ($(TARGET_PLATFORM),mingw32)
