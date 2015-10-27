@@ -1,0 +1,7 @@
+version: 1.0.{build}
+skip_tags: true
+shallow_clone: true
+build:
+  verbosity: minimal
+build_script:
+    - appveyor.bat
