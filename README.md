@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet)
-
 <p align="center"><img src="logo.png"/></p>
 
 Amulet is a Lua-based audio-visual toolkit designed for small-scope games and experimentation.
@@ -12,6 +10,8 @@ Here's what Hello World looks like in Amulet:
 am.window{}.scene = am.translate(320, 240) ^ am.text("Hello World!")
 ```
 
+## Supported platforms
+
 It currently runs on the following platforms:
 
 - Windows 7+
@@ -21,17 +21,6 @@ It currently runs on the following platforms:
 - HTML5
 
 Android support will also be added at some point.
-
-Here are some games that have been made with Amulet:
-
-- [City Lights](http://ianmaclarty.itch.io/city-lights)
-- [Doomdream](http://ianmaclarty.itch.io/doomdream)
-- [Southbank Portrait](http://ianmaclarty.itch.io/southbank-portrait)
-- [Episode 6](http://forum.makega.me/t/chain-game-2-schedule-games/1483/66?u=muclorty)
-- [Zero Sum](http://ianmaclarty.itch.io/zero-sum)
-- [Leisurely Sunday Drive IV: the Reckoning](http://gamejolt.com/games/leisurely-sunday-drive-iv-the-reckoning/80716)
-- [Reflection](http://ianmaclarty.itch.io/reflection)
-- [Totem](http://ludumdare.com/compo/ludum-dare-33/?action=preview&uid=20641)
 
 ## Credits
 
@@ -54,3 +43,10 @@ The HTML editor uses code and ideas from:
 - [Codemirror](https://codemirror.net/)
 - [PuzzleScript](https://github.com/increpare/PuzzleScript) and [Zeedonk](https://github.com/increpare/zeedonk)
 - [jQuery](https://jquery.com/)
+
+## Build status
+
+| System |  Status |
+|:-------------|:------------|
+|Travis (Linux, OSX, MinGW) | [![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet) |
+|Appveyor (MSVC) | [![Build Status](https://ci.appveyor.com/api/projects/status/tp1ifjl53cy86gyu?svg=true)](https://ci.appveyor.com/project/ianmaclarty/amulet) |
