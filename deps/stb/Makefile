@@ -11,7 +11,7 @@ $(O_FILES): %$(OBJ_EXT): %.c
 	$(CC) $(CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
 
 libstb$(ALIB_EXT): $(O_FILES)
-	"$(AR)" $(AR_OPTS) $(AR_OUT_OPT)$@ $^
+	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@ $^
 
 .PHONY: clean
 clean:
