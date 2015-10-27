@@ -32,6 +32,7 @@ PATH_SEP = :
 UNAME := $(shell uname)
 ifneq (,$(findstring W32,$(UNAME)))
   HOST_PLATFORM = msvc32
+  IS_WINDOWS = yes
   PATH_SEP = ;
 else ifneq (,$(findstring Linux,$(UNAME)))
   UNAME_A := $(shell uname -a)
@@ -200,6 +201,12 @@ else ifeq ($(TARGET_PLATFORM),html)
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
   EXE_OUT_OPT = -o$(SPACE)
   OBJ_OUT_OPT = -o$(SPACE)
+  ifdef IS_WINDOWS
+    CC = emcc.bat
+    CPP = em++.bat
+    AR = emar.bat
+    LINK = em++.bat
+  endif
 else ifeq ($(TARGET_PLATFORM),msvc32)
   VC_CL = cl.exe
   VC_CL_PATH = $(shell which $(VC_CL))
