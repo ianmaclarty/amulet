@@ -211,8 +211,8 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   VC_CL = cl.exe
   VC_CL_PATH = $(shell which $(VC_CL))
   VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")
-  VC_LINK = $(VC_CL_DIR)/link.exe
-  VC_LIB = $(VC_CL_DIR)/lib.exe
+  VC_LINK = "$(VC_CL_DIR)/link.exe"
+  VC_LIB = "$(VC_CL_DIR)/lib.exe"
   EXE_EXT = .exe
   ALIB_EXT = .lib
   OBJ_EXT = .obj
