@@ -90,7 +90,7 @@ else ifdef IOS
 # but I don't know how to import that into Xcode.
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	rm -f $(AR_OUT_OPT)$@$(ALIB_EXT)
-	"$(AR)" $(AR_OPTS) $(AR_OUT_OPT)$@$(ALIB_EXT) $(AM_OBJ_FILES) 
+	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@$(ALIB_EXT) $(AM_OBJ_FILES) 
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
