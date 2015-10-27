@@ -202,10 +202,10 @@ else ifeq ($(TARGET_PLATFORM),html)
   EXE_OUT_OPT = -o$(SPACE)
   OBJ_OUT_OPT = -o$(SPACE)
   ifdef IS_WINDOWS
-    CC = emcc.bat
-    CPP = em++.bat
-    AR = emar.bat
-    LINK = em++.bat
+    CC = cmd /C emcc.bat
+    CPP = cmd /C em++.bat
+    AR = cmd /C emar.bat
+    LINK = cmd /C em++.bat
   endif
 else ifeq ($(TARGET_PLATFORM),msvc32)
   VC_CL = cl.exe
