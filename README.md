@@ -34,7 +34,7 @@ Amulet uses or borrows code and ideas from the following projects:
 - [Blink](http://www.chromium.org/blink)
 - [ANGLE](https://code.google.com/p/angleproject/)
 - [FreeType](http://www.freetype.org/)
-- [GLM](http://glm.g-truc.net)
+- [GLM](https://github.com/g-truc/glm)
 - [Emscripten](http://emscripten.org)
 - [OpenCV](http://opencv.org/)
 
