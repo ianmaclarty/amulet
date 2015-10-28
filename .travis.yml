@@ -1,49 +1,13 @@
 language: cpp
 
-
-
-matrix:
-    include:
-        - os: osx
-          env:
-            - TARGET=osx.release
-            - MK_TARGET=test
-        - os: osx
-          env:
-            - TARGET=osx.release
-            - LUAVM=luajit
-            - MK_TARGET=test
-        - os: osx
-          env:
-            - TARGET=ios32.release
-            - MK_TARGET=default
-        - os: osx
-          env:
-            - TARGET=ios64.release
-            - MK_TARGET=default
-        - os: linux
-          env:
-            - TARGET=linux64.release
-            - MK_TARGET=test
-        - os: linux
-          env:
-            - TARGET=linux64.release
-            - LUAVM=luajit
-            - MK_TARGET=test
-        - os: linux
-          env:
-            - TARGET=linux64.release
-            - LUAVM=lua52
-            - MK_TARGET=test
-        - os: linux
-          env:
-            - TARGET=mingw32.release
-            - MK_TARGET=default
+os:
+    - linux
+    - osx
 
 before_install:
-    - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get update -qq; fi
-    - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get install -y binutils-mingw-w64-i686; fi
-    - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get install -y gcc-mingw-w64-i686; fi
-    - if [ "$TARGET" = "mingw32.release" ]; then sudo apt-get install -y g++-mingw-w64-i686; fi
+    - sudo apt-get update -qq
+    - sudo apt-get install -y binutils-mingw-w64-i686
+    - sudo apt-get install -y gcc-mingw-w64-i686
+    - sudo apt-get install -y g++-mingw-w64-i686
         
-script: make $MK_TARGET
+script: scripts/travis.sh

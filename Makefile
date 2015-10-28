@@ -7,16 +7,12 @@ MAIN_TARGET = $(AMULET)
 AM_DEFS = AM_$(shell echo $(TARGET_PLATFORM) | tr a-z A-Z) AM_$(shell echo $(GRADE) | tr a-z A-Z)
 
 ifeq ($(LUAVM),luajit)
-  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUAJIT_INCLUDE_DIR)
   AM_DEFS += AM_LUAJIT
 else ifeq ($(LUAVM),lua51)
-  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA51_INCLUDE_DIR)
   AM_DEFS += AM_LUA51
 else ifeq ($(LUAVM),lua52)
-  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA52_INCLUDE_DIR)
   AM_DEFS += AM_LUA52
 else ifeq ($(LUAVM),lua53)
-  BUILD_LUAVM_INCLUDE_DIR=$(BUILD_LUA53_INCLUDE_DIR)
   AM_DEFS += AM_LUA53
 else
   $(error invalid LUAVM: $(LUAVM))
@@ -57,7 +53,7 @@ AM_CPP_FILES = $(sort $(wildcard $(SRC_DIR)/*.cpp) $(EMBEDDED_DATA_CPP_FILE) $(V
 AM_H_FILES = $(wildcard $(SRC_DIR)/*.h)
 AM_OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_OBJ_DIR)/%$(OBJ_EXT),$(AM_CPP_FILES))
 
-AM_INCLUDE_FLAGS = $(INCLUDE_OPT)$(BUILD_INC_DIR) $(INCLUDE_OPT)$(BUILD_LUAVM_INCLUDE_DIR) \
+AM_INCLUDE_FLAGS = $(INCLUDE_OPT)$(BUILD_INC_DIR) \
 	$(INCLUDE_OPT)$(GLM_DIR)
 
 AM_DEF_FLAGS=$(patsubst %,$(DEF_OPT)%,$(AM_DEFS))
@@ -126,24 +122,24 @@ $(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp $(ANGLE_WIN_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
 	touch $@
 
-$(LUA51_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA51_INCLUDE_DIR)
+$(LUA51_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LUA51_DIR) && $(MAKE) -f Makefile.custom clean all
-	cp $(LUA51_DIR)/src/*.h $(BUILD_LUA51_INCLUDE_DIR)/
+	cp $(LUA51_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUA51_DIR)/src/liblua$(ALIB_EXT) $@
 
-$(LUA52_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA52_INCLUDE_DIR)
+$(LUA52_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LUA52_DIR) && $(MAKE) -f Makefile.custom clean all
-	cp $(LUA52_DIR)/src/*.h $(BUILD_LUA52_INCLUDE_DIR)/
+	cp $(LUA52_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUA52_DIR)/src/liblua$(ALIB_EXT) $@
 
-$(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUA53_INCLUDE_DIR)
+$(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LUA53_DIR) && $(MAKE) -f Makefile.custom clean all
-	cp $(LUA53_DIR)/src/*.h $(BUILD_LUA53_INCLUDE_DIR)/
+	cp $(LUA53_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUA53_DIR)/src/liblua$(ALIB_EXT) $@
 
-$(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_LUAJIT_INCLUDE_DIR)
+$(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LUAJIT_DIR) && $(MAKE) clean all $(LUAJIT_FLAGS)
-	cp $(LUAJIT_DIR)/src/*.h $(BUILD_LUAJIT_INCLUDE_DIR)/
+	cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@
 
 $(FT2_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
