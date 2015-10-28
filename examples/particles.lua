@@ -23,8 +23,10 @@ win.scene = am.blend("add_alpha")
         start_size_var = 10,
         end_size = 2,
         end_size_var = 2,
-        gravity = vec2(0, -500),
+        gravity = vec2(0, 2000),
     }
     :action(function(node)
         node.source_pos = win:mouse_position()
     end)
+
+win.scene:action(am.tween(win.scene"particles2d", 10, {gravity = vec2(0, -2000)}))

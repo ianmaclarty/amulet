@@ -466,6 +466,8 @@ function am.particles2d(opts)
     function node:set_gravity(v)
         gravity_x = v.x
         gravity_y = v.y
+        gravity_x_2 = gravity_x / 2
+        gravity_y_2 = gravity_y / 2
     end
     function node:get_sprite()
         return sprite
