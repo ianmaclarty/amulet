@@ -154,7 +154,7 @@ function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
 end
 
 function am.text(font, str, color, halign, valign)
-    if type(font) == "string" then
+    if type(font) ~= "table" then
         str, color, halign, valign = font, str, color, halign
         font = am.default_font.default16
     end
