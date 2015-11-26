@@ -194,14 +194,15 @@ $(VERSION_CPP_FILE): VERSION
 # Font generation tool
 
 tools/ampack$(EXE_EXT): tools/ampack.c $(FT2_ALIB)
-	$(CC) $(COMMON_CFLAGS) $(AM_INCLUDE_FLAGS) $(EXE_OUT_OPT)$@ $< $(FT2_ALIB) $(XLDFLAGS)
+	$(CC) $(COMMON_CFLAGS) $(NOLINK_OPT) $(AM_INCLUDE_FLAGS) $(OBJ_OUT_OPT)tools/ampack$(OBJ_EXT) $<
+	$(LINK) tools/ampack$(OBJ_EXT) $(FT2_ALIB) $(XLDFLAGS) $(EXE_OUT_OPT)$@
 	ln -fs $@ `basename $@`
 
 # runnable gl logs (assumes gllog.cpp exists)
 
 gllog: gllog.cpp $(DEP_ALIBS) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)gllog.o
-	"$(LINK)" gllog.o $(AM_LDFLAGS) -lGL $(EXE_OUT_OPT)$@
+	$(LINK) gllog.o $(AM_LDFLAGS) -lGL $(EXE_OUT_OPT)$@
 
 # Cleanup
 
