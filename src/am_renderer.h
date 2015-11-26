@@ -58,6 +58,7 @@ enum am_blend_mode {
     AM_BLEND_MODE_ADD_ALPHA,
     AM_BLEND_MODE_SUBTRACT_ALPHA,
     AM_BLEND_MODE_MULTIPLY,
+    AM_BLEND_MODE_INVERT,
 };
 
 struct am_blend_state {
