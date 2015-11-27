@@ -40,6 +40,8 @@ struct win_info {
     bool lock_pointer;
     int mouse_x;
     int mouse_y;
+    int mouse_delta_x;
+    int mouse_delta_y;
     int mouse_wheel_x;
     int mouse_wheel_y;
 };
@@ -100,11 +102,9 @@ am_native_window *am_create_native_window(
 {
     if (windows.size() == 0 && main_window != NULL) {
         win_info winfo;
+        memset(&winfo, 0, sizeof(win_info));
         winfo.window = main_window;
-        winfo.lock_pointer = false;
         SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
-        winfo.mouse_wheel_x = 0;
-        winfo.mouse_wheel_y = 0;
         windows.push_back(winfo);
         return (am_native_window*)main_window;
     }
@@ -654,7 +654,21 @@ static void init_audio_capture() {
 }
 
 static void update_window_mouse_state(lua_State *L, win_info *info) {
+#ifdef AM_LINUX
+    // there seems to be a bug on linux where xrel and yrel are always
+    // multiples of 2.
+    info->mouse_x += info->mouse_delta_x / 2;
+    info->mouse_y += info->mouse_delta_y / 2;
+#else
+    info->mouse_x += info->mouse_delta_x;
+    info->mouse_y += info->mouse_delta_y;
+#endif
+
+    info->mouse_delta_x = 0;
+    info->mouse_delta_y = 0;
+
     am_window *win = am_find_window((am_native_window*)info->window);
+    //am_debug("update_window_mouse_state %d %d", info->mouse_x, info->mouse_y);
     win->mouse_move(L, (double)info->mouse_x, (double)info->mouse_y);
     win->mouse_wheel(L, (double)info->mouse_wheel_x, (double)info->mouse_wheel_y);
 }
@@ -730,8 +744,8 @@ static bool handle_events(lua_State *L) {
                 win_info *info = win_from_id(event.motion.windowID);
                 if (info) {
                     if (info->lock_pointer) {
-                        info->mouse_x += event.motion.xrel;
-                        info->mouse_y += event.motion.yrel;
+                        info->mouse_delta_x += event.motion.xrel;
+                        info->mouse_delta_y += event.motion.yrel;
                     } else {
                         info->mouse_x = event.motion.x;
                         info->mouse_y = event.motion.y;
