@@ -77,6 +77,7 @@ var LibrarySDL = {
 
     keyboardState: null,
     keyboardMap: {},
+    keyDown: {},
 
     canRequestFullscreen: false,
     isRequestingFullscreen: false,
@@ -868,9 +869,12 @@ var LibrarySDL = {
             scan = SDL.scanCodes[key] || key;
           }
 
+          var repeat = down && SDL.keyDown[key];
+          SDL.keyDown[key] = down;
+
           {{{ makeSetValue('ptr', C_STRUCTS.SDL_KeyboardEvent.type, 'SDL.DOMEventToSDLEvent[event.type]', 'i32') }}};
           {{{ makeSetValue('ptr', C_STRUCTS.SDL_KeyboardEvent.state, 'down ? 1 : 0', 'i8') }}};
-          {{{ makeSetValue('ptr', C_STRUCTS.SDL_KeyboardEvent.repeat, '0', 'i8') }}}; // TODO
+          {{{ makeSetValue('ptr', C_STRUCTS.SDL_KeyboardEvent.repeat, 'repeat ? 1 : 0', 'i8') }}};
           {{{ makeSetValue('ptr', C_STRUCTS.SDL_KeyboardEvent.keysym + C_STRUCTS.SDL_Keysym.scancode, 'scan', 'i32') }}};
           {{{ makeSetValue('ptr', C_STRUCTS.SDL_KeyboardEvent.keysym + C_STRUCTS.SDL_Keysym.sym, 'key', 'i32') }}};
           {{{ makeSetValue('ptr', C_STRUCTS.SDL_KeyboardEvent.keysym + C_STRUCTS.SDL_Keysym.mod, 'SDL.modState', 'i16') }}};
