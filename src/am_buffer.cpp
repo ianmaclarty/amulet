@@ -245,7 +245,7 @@ static int base64_decode(lua_State *L) {
     uint8_t *data = buf->data;
     int i = 0;
     int j = 0;
-    while (j < b64_sz) {
+    while (j < (int)b64_sz) {
         int triple = 0;
         for (int k = 0; k < 4; k++) {
             triple <<= 6;
