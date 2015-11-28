@@ -183,6 +183,166 @@ static int load_script(lua_State *L) {
     return 1;
 }
 
+static const char *base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static int base64_encode(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    uint8_t *data = buf->data;
+    int buf_sz = buf->size;
+    int b64_sz = (buf_sz + 2) / 3 * 4;
+    char *b64_str = (char*)malloc(b64_sz);
+    int i = 0;
+    int j = 0;
+    int extra = 0;
+    int b1, b2, b3;
+    while (i < buf_sz) {
+        b1 = data[i++];
+        if (i < buf_sz) {
+            b2 = data[i++];
+        } else {
+            b2 = 0;
+            extra++;
+        }
+        if (i < buf_sz) {
+            b3 = data[i++];
+        } else {
+            b3 = 0;
+            extra++;
+        }
+        int triple = b1 << 16 | b2 << 8 | b3;
+        b64_str[j++] = base64[triple >> 18];
+        b64_str[j++] = base64[triple >> 12 & 63];
+        b64_str[j++] = base64[triple >> 6 & 63];
+        b64_str[j++] = base64[triple & 63];
+    }
+    assert(extra <= 2);
+    switch (extra) {
+        case 2:
+            b64_str[b64_sz-2] = '=';
+        case 1:
+            b64_str[b64_sz-1] = '=';
+    }
+    lua_pushlstring(L, b64_str, b64_sz);
+    free(b64_str);
+    return 1;
+}
+
+static int base64_decode(lua_State *L) {
+    am_check_nargs(L, 1);
+    size_t b64_sz;
+    const char *b64_str = (const char*)lua_tolstring(L, 1, &b64_sz);
+    if (b64_str == NULL) return luaL_error(L, "expecting a string in position 1");
+    if (b64_sz % 4 != 0) return luaL_error(L, "string length should be divisble by 4");
+    int buf_sz = b64_sz / 4 * 3;
+    if (buf_sz == 0) {
+        am_new_userdata(L, am_buffer, 0);
+        return 1;
+    }
+    if (b64_str[b64_sz-1] == '=') buf_sz--;
+    if (b64_str[b64_sz-2] == '=') buf_sz--;
+    am_buffer *buf = am_new_userdata(L, am_buffer, buf_sz);
+    uint8_t *data = buf->data;
+    int i = 0;
+    int j = 0;
+    while (j < b64_sz) {
+        int triple = 0;
+        for (int k = 0; k < 4; k++) {
+            triple <<= 6;
+            int c = b64_str[j++];
+            switch (c) {
+                case 'A':
+                case 'B':
+                case 'C':
+                case 'D':
+                case 'E':
+                case 'F':
+                case 'G':
+                case 'H':
+                case 'I':
+                case 'J':
+                case 'K':
+                case 'L':
+                case 'M':
+                case 'N':
+                case 'O':
+                case 'P':
+                case 'Q':
+                case 'R':
+                case 'S':
+                case 'T':
+                case 'U':
+                case 'V':
+                case 'W':
+                case 'X':
+                case 'Y':
+                case 'Z':
+                    triple |= c - 'A';
+                    break;
+                case 'a':
+                case 'b':
+                case 'c':
+                case 'd':
+                case 'e':
+                case 'f':
+                case 'g':
+                case 'h':
+                case 'i':
+                case 'j':
+                case 'k':
+                case 'l':
+                case 'm':
+                case 'n':
+                case 'o':
+                case 'p':
+                case 'q':
+                case 'r':
+                case 's':
+                case 't':
+                case 'u':
+                case 'v':
+                case 'w':
+                case 'x':
+                case 'y':
+                case 'z':
+                    triple |= c - 'a' + 26;
+                    break;
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    triple |= c - '0' + 52;
+                    break;
+                case '+':
+                    triple |= 62;
+                    break;
+                case '/':
+                    triple |= 63;
+                    break;
+                case '=':
+                    break;
+                default:
+                    return luaL_error(L, "unexpected character in base64 string: %c", (char)c);
+            }
+        }
+        assert(i < buf_sz);
+        data[i++] = triple >> 16;
+        if (i < buf_sz) {
+            data[i++] = triple >> 8 & 255;
+        }
+        if (i < buf_sz) {
+            data[i++] = triple & 255;
+        }
+    }
+    return 1;
+}
+
 static int buffer_len(lua_State *L) {
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
     lua_pushinteger(L, buf->size);
@@ -542,6 +702,8 @@ void am_open_buffer_module(lua_State *L) {
         {"load_buffer", load_buffer},
         {"load_string", load_string},
         {"load_script", load_script},
+        {"base64_encode", base64_encode},
+        {"base64_decode", base64_decode},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
