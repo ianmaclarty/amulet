@@ -79,6 +79,8 @@ typedef enum {
     MT_am_mat4,
     MT_am_quat,
 
+    MT_am_http_request,
+
     ENUM_am_buffer_view_type,
     ENUM_am_texture_format,
     ENUM_am_texture_type,
