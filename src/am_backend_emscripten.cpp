@@ -242,9 +242,13 @@ int main( int argc, char *argv[] )
 
 static int mouse_x = 0;
 static int mouse_y = 0;
+static int mouse_wheel_x = 0;
+static int mouse_wheel_y = 0;
 
 static void init_mouse_state() {
     SDL_GetMouseState(&mouse_x, &mouse_y);
+    mouse_wheel_x = 0;
+    mouse_wheel_y = 0;
 }
 
 static void init_sdl() {
@@ -253,8 +257,9 @@ static void init_sdl() {
 }
 
 static void update_mouse_state(lua_State *L) {
-    am_find_window((am_native_window*)sdl_window)
-        ->mouse_move(eng->L, (float)mouse_x, (float)mouse_y);
+    am_window *win = am_find_window((am_native_window*)sdl_window);
+    win->mouse_move(eng->L, (float)mouse_x, (float)mouse_y);
+    win->mouse_wheel(eng->L, (double)mouse_wheel_x, (double)mouse_wheel_y);
 }
 
 static bool handle_events() {
@@ -314,6 +319,10 @@ static bool handle_events() {
                     am_find_window((am_native_window*)sdl_window)
                         ->mouse_up(eng->L, convert_mouse_button(event.button.button));
                 }
+                break;
+            }
+            case SDL_MOUSEWHEEL: {
+                mouse_wheel_y += event.wheel.y > 0 ? 1 : event.wheel.y < 0 ? -1 : 0;
                 break;
             }
             case SDL_VIDEORESIZE: {
