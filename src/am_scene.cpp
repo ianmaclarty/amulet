@@ -524,6 +524,18 @@ static void set_hidden(lua_State *L, void *obj) {
 
 static am_property hidden_property = {get_hidden, set_hidden};
 
+static void get_paused(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    lua_pushboolean(L, am_node_paused(node));
+}
+
+static void set_paused(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    am_set_node_paused(node, lua_toboolean(L, 3));
+}
+
+static am_property paused_property = {get_paused, set_paused};
+
 static void get_num_children(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
     lua_pushinteger(L, node->children.size);
@@ -567,6 +579,7 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "child");
 
     am_register_property(L, "hidden", &hidden_property);
+    am_register_property(L, "paused", &paused_property);
     am_register_property(L, "num_children", &num_children_property);
     am_register_property(L, "_actions", &actions_property);
 
