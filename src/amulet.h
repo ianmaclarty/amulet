@@ -116,6 +116,7 @@ extern "C" {
 #include "am_engine.h"
 #include "am_json.h"
 #include "am_http.h"
+#include "am_browser.h"
 
 #undef near
 #undef far

@@ -22,7 +22,7 @@ static int push_parse_error(lua_State *L, parse_state *state, const char *msg);
  * Expects a string as its only argument.
  * Returns either the parsed value or nil and an error message.
  */
-static int parse_json(lua_State *L) {
+int am_parse_json(lua_State *L) {
     am_check_nargs(L, 1);
     const char *input = lua_tostring(L, 1);
     if (input == NULL) {
@@ -464,7 +464,7 @@ static void append_value(lua_State *L, write_state *state) {
 
 void am_open_json_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        {"parse_json", parse_json},
+        {"parse_json", am_parse_json},
         {"to_json", to_json},
         {NULL, NULL}
     };

@@ -15,4 +15,7 @@ if v > 5.1 then
 
     -- make unpack a global as in 5.1
     rawset(_G, "unpack", table.unpack)
+
+    -- loadstring is missing from 5.2
+    rawset(_G, "loadstring", load)
 end
