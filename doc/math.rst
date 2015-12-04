@@ -492,3 +492,6 @@ Multiplying a quaternion by a vector rotates the vector. For example:
 
 would set ``v2`` to the vector ``vec3(0, 1, 0)``, which is ``v1`` rotated
 90 degrees in the xy plain.
+
+A ``vec2`` can be rotated in a similar way (the z component is assumed to
+be zero and the z component of the result is dropped, yielding another ``vec2``).

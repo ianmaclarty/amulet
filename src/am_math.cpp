@@ -126,6 +126,44 @@ static int vec##D##_mul(lua_State *L) {                                         
     return 1;                                                                   \
 }
 
+#define VEC2_MUL_FUNC                                                           \
+static int vec2_mul(lua_State *L) {                                             \
+    am_vec2 *z = am_new_userdata(L, am_vec2);                                   \
+    if (lua_isnumber(L, 1)) {                                                   \
+        float x = lua_tonumber(L, 1);                                           \
+        am_vec2 *y = am_get_userdata(L, am_vec2, 2);                            \
+        z->v = x * y->v;                                                        \
+    } else {                                                                    \
+        switch (am_get_type(L, 2)) {                                            \
+            case LUA_TNUMBER: {                                                 \
+                am_vec2 *x = am_get_userdata(L, am_vec2, 1);                    \
+                float y = lua_tonumber(L, 2);                                   \
+                z->v = x->v * y;                                                \
+                break;                                                          \
+            }                                                                   \
+            case MT_am_mat2: {                                                  \
+                am_vec2 *x = am_get_userdata(L, am_vec2, 1);                    \
+                am_mat2 *y = am_get_userdata(L, am_mat2, 2);                    \
+                z->v = x->v * y->m;                                             \
+                break;                                                          \
+            }                                                                   \
+            case MT_am_quat: {                                                  \
+                am_vec2 *x = am_get_userdata(L, am_vec2, 1);                    \
+                am_quat *y = am_get_userdata(L, am_quat, 2);                    \
+                glm::vec3 v3 = glm::vec3(x->v.x, x->v.y, 0.0f) * y->q;          \
+                z->v = glm::vec2(v3.x, v3.y);                                   \
+                break;                                                          \
+            }                                                                   \
+            default: {                                                          \
+                am_vec2 *x = am_get_userdata(L, am_vec2, 1);                    \
+                am_vec2 *y = am_get_userdata(L, am_vec2, 2);                    \
+                z->v = x->v * y->v;                                             \
+            }                                                                   \
+        }                                                                       \
+    }                                                                           \
+    return 1;                                                                   \
+}
+
 #define VEC_MUL_FUNC_Q(D)                                                       \
 static int vec##D##_mul(lua_State *L) {                                         \
     am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
@@ -133,22 +171,32 @@ static int vec##D##_mul(lua_State *L) {                                         
         float x = lua_tonumber(L, 1);                                           \
         am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
         z->v = x * y->v;                                                        \
-    } else if (lua_isnumber(L, 2)) {                                            \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        float y = lua_tonumber(L, 2);                                           \
-        z->v = x->v * y;                                                        \
-    } else if (am_get_type(L, 2) == MT_am_mat##D) {                             \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                        \
-        z->v = x->v * y->m;                                                     \
-    } else if (am_get_type(L, 2) == MT_am_quat) {                               \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        am_quat *y = am_get_userdata(L, am_quat, 2);                            \
-        z->v = x->v * y->q;                                                     \
     } else {                                                                    \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
-        z->v = x->v * y->v;                                                     \
+        switch (am_get_type(L, 2)) {                                            \
+            case LUA_TNUMBER: {                                                 \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                float y = lua_tonumber(L, 2);                                   \
+                z->v = x->v * y;                                                \
+                break;                                                          \
+            }                                                                   \
+            case MT_am_mat##D: {                                                \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                \
+                z->v = x->v * y->m;                                             \
+                break;                                                          \
+            }                                                                   \
+            case MT_am_quat: {                                                  \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                am_quat *y = am_get_userdata(L, am_quat, 2);                    \
+                z->v = x->v * y->q;                                             \
+                break;                                                          \
+            }                                                                   \
+            default: {                                                          \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                \
+                z->v = x->v * y->v;                                             \
+            }                                                                   \
+        }                                                                       \
     }                                                                           \
     return 1;                                                                   \
 }
@@ -722,7 +770,7 @@ VEC_INDEX_FUNC(2)
 VEC_CALL_FUNC(2)
 VEC_OP_FUNC(2, add, +)
 VEC_OP_FUNC(2, sub, -)
-VEC_MUL_FUNC(2)
+VEC2_MUL_FUNC
 VEC_DIV_FUNC(2)
 VEC_UNM_FUNC(2)
 VEC_LEN_FUNC(2)
@@ -794,21 +842,35 @@ static int quat_mul(lua_State *L) {
         z->q = x * y->q;
     } else {
         int t = am_get_type(L, 2);
-        if (t == MT_am_vec3) {
-            am_vec3 *z = am_new_userdata(L, am_vec3);
-            am_quat *x = am_get_userdata(L, am_quat, 1);
-            am_vec3 *y = am_get_userdata(L, am_vec3, 2);
-            z->v = x->q * y->v;
-        } else if (t == MT_am_vec4) {
-            am_vec4 *z = am_new_userdata(L, am_vec4);
-            am_quat *x = am_get_userdata(L, am_quat, 1);
-            am_vec4 *y = am_get_userdata(L, am_vec4, 2);
-            z->v = x->q * y->v;
-        } else {
-            am_quat *z = am_new_userdata(L, am_quat);
-            am_quat *x = am_get_userdata(L, am_quat, 1);
-            am_quat *y = am_get_userdata(L, am_quat, 2);
-            z->q = x->q * y->q;
+        switch (t) {
+            case MT_am_vec2: {
+                am_vec2 *z = am_new_userdata(L, am_vec2);
+                am_quat *x = am_get_userdata(L, am_quat, 1);
+                am_vec2 *y = am_get_userdata(L, am_vec2, 2);
+                glm::vec3 v3 = x->q * glm::vec3(y->v.x, y->v.y, 0.0f);
+                z->v = glm::vec2(v3.x, v3.y);
+                break;
+            }
+            case MT_am_vec3: {
+                am_vec3 *z = am_new_userdata(L, am_vec3);
+                am_quat *x = am_get_userdata(L, am_quat, 1);
+                am_vec3 *y = am_get_userdata(L, am_vec3, 2);
+                z->v = x->q * y->v;
+                break;
+            }
+            case MT_am_vec4: {
+                am_vec4 *z = am_new_userdata(L, am_vec4);
+                am_quat *x = am_get_userdata(L, am_quat, 1);
+                am_vec4 *y = am_get_userdata(L, am_vec4, 2);
+                z->v = x->q * y->v;
+                break;
+            }
+            default: {
+                am_quat *z = am_new_userdata(L, am_quat);
+                am_quat *x = am_get_userdata(L, am_quat, 1);
+                am_quat *y = am_get_userdata(L, am_quat, 2);
+                z->q = x->q * y->q;
+            }
         }
     }
     return 1;
