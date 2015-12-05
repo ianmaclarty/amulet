@@ -5,6 +5,7 @@ static unsigned int g_action_seq = 1;
 
 static void add_actions_2(lua_State *L, am_scene_node *node, int actions_tbl) {
     if (am_node_marked(node)) return;
+    if (am_node_paused(node)) return;
     am_mark_node(node);
     // XXX avoid adding the same action multiple times
     // (it will only be run once, but adding actions is expensive)

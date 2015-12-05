@@ -56,6 +56,7 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
 
     -- compute row_widths and height
     local row_widths = {0}
+    local max_width = 0
     local h = font.line_height
     local row = 1
     for p, c in utf8.codes(str) do
@@ -65,7 +66,11 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
             row_widths[row] = 0
         else
             local char_data = chars[c] or chars[0] or chars[space]
-            row_widths[row] = row_widths[row] + char_data.advance
+            local w = row_widths[row] + char_data.advance
+            row_widths[row] = w
+            if w > max_width then
+                max_width = w
+            end
         end
     end
     
@@ -131,6 +136,8 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
     end
     verts_view:set(verts)
     uvs_view:set(uvs)
+
+    return max_width, h
 end
 
 local
@@ -169,11 +176,14 @@ function am.text(font, str, color, halign, valign)
         error("expecting a font in position 1", 2)
     end
     str = type(str) == "string" and str or tostring(str)
+    if #str == 0 then
+        str = " "
+    end
     local len = utf8.len(str)
     local num_verts = len * 4
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
-    set_text_verts(font, str, verts, uvs, halign, valign)
+    local w, h = set_text_verts(font, str, verts, uvs, halign, valign)
     local node =
         am.blend(font.is_premult and "premult" or "alpha")
         ^am.use_program(am.shaders.texturecolor)
@@ -200,7 +210,7 @@ function am.text(font, str, color, halign, valign)
             len = len1
         end
         str = str1
-        set_text_verts(font, str, verts, uvs, halign, valign)
+        w, h = set_text_verts(font, str, verts, uvs, halign, valign)
         self"draw".count = utf8.len(str) * 6
     end
     function node:get_color()
@@ -209,6 +219,12 @@ function am.text(font, str, color, halign, valign)
     function node:set_color(col)
         color = col
         self"bind".color = color
+    end
+    function node:get_width()
+        return w
+    end
+    function node:get_height()
+        return h
     end
     node:tag"text"
     return node
@@ -245,6 +261,12 @@ function am.sprite(image, halign, valign, color)
     function node:set_color(c)
         color = c
         self"bind".color = color
+    end
+    function node:get_width()
+        return image.w
+    end
+    function node:get_height()
+        return image.h
     end
         
     node:tag"sprite"
