@@ -442,6 +442,18 @@ static am_key convert_key(SDL_Keycode key) {
         case SDLK_RCTRL: return AM_KEY_RCTRL;
         case SDLK_LSHIFT: return AM_KEY_LSHIFT;
         case SDLK_RSHIFT: return AM_KEY_RSHIFT;
+        case SDLK_F1: return AM_KEY_F1;
+        case SDLK_F2: return AM_KEY_F2;
+        case SDLK_F3: return AM_KEY_F3;
+        case SDLK_F4: return AM_KEY_F4;
+        case SDLK_F5: return AM_KEY_F5;
+        case SDLK_F6: return AM_KEY_F6;
+        case SDLK_F7: return AM_KEY_F7;
+        case SDLK_F8: return AM_KEY_F8;
+        case SDLK_F9: return AM_KEY_F9;
+        case SDLK_F10: return AM_KEY_F10;
+        case SDLK_F11: return AM_KEY_F11;
+        case SDLK_F12: return AM_KEY_F12;
     }
     return AM_KEY_UNKNOWN;
 }
