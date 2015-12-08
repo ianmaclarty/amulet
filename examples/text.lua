@@ -69,15 +69,22 @@ win.scene =
                 win:close()
             end
         end)
-    ^am.translate("MV", vec3(200, 300, 0))
-    ^am.text(strs[1], "left", "center"):action(coroutine.create(function(node)
-        while true do
-            am.wait(am.delay(2))
-            local str
-            repeat
-                str = strs[math.random(#strs)]
-            until str ~= node.text
-            node.text = str
-            node.color = vec4(math.random(), math.random(), math.random(), 1)
-        end
-    end))
+    ^am.translate("MV", vec3(200, 200, 0))
+    ^{
+        am.rect(0, 0, 0, 0, vec4(1, 0, 0, 1)),
+        am.text(strs[1], "left", "bottom"):action(coroutine.create(function(node)
+            while true do
+                am.wait(am.delay(2))
+                local str
+                repeat
+                    str = strs[math.random(#strs)]
+                until str ~= node.text
+                node.text = str
+                node.color = vec4(math.random(), math.random(), math.random(), 1)
+                local r = win.scene"rect"
+                r.x2 = node.width
+                r.y2 = node.height
+                r.color = 1 - node.color
+            end
+        end))
+    }

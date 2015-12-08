@@ -15,6 +15,8 @@
 #define MAX_TEX_SIZE 4096
 #define ADVANCE_SCALE 0.015625f
 
+#define NUMFMT "%.16g"
+
 typedef struct {
     int is_font;
     int size;
@@ -58,6 +60,7 @@ static int is_mono = 0;
 static const char* minfilter = "linear";
 static const char* magfilter = "linear";
 static int do_premult = 1;
+static int default_font = 0;
 
 static void process_args(int argc, char *argv[]);
 static void gen_rects();
@@ -244,9 +247,9 @@ static void write_data() {
                 s2 = s1 + w;
 
                 x1 = (double)ft_face->glyph->bitmap_left - 1.0;
-                y2 = (double)ft_face->glyph->bitmap_top - 1.0;
-                w = (double)char_bitmap.width;
-                h = (double)char_bitmap.rows;
+                y2 = (double)ft_face->glyph->bitmap_top + 2.0;
+                w = (double)char_bitmap.width + 2.0;
+                h = (double)char_bitmap.rows + 2.0;
                 x2 = x1 + w;
                 y1 = y2 - h;
 
@@ -254,9 +257,9 @@ static void write_data() {
 
                 fprintf(f, 
                        "            [%d] = {\n"
-                       "                x1 = %g, y1 = %g, x2 = %g, y2 = %g,\n"
-                       "                s1 = %g, t1 = %g, s2 = %g, t2 = %g,\n"
-                       "                advance = %g,\n"
+                       "                x1 = " NUMFMT ", y1 = " NUMFMT ", x2 = " NUMFMT ", y2 = " NUMFMT ",\n"
+                       "                s1 = " NUMFMT ", t1 = " NUMFMT ", s2 = " NUMFMT ", t2 = " NUMFMT ",\n"
+                       "                advance = " NUMFMT ",\n"
                        "            },\n",
                     cp, 
                     x1, y1, x2, y2,
@@ -295,10 +298,10 @@ static void write_data() {
             fprintf(f, 
                    "    {\n"
                    "        filename = \"%s\",\n"
-                   "        x1 = %g, y1 = %g, x2 = %g, y2 = %g,\n"
-                   "        s1 = %g, t1 = %g, s2 = %g, t2 = %g,\n"
-                   "        verts = {%g, %g, 0, %g, %g, 0, %g, %g, 0, %g, %g, 0},\n"
-                   "        uvs = {%g, %g, %g, %g, %g, %g, %g, %g},\n"
+                   "        x1 = " NUMFMT ", y1 = " NUMFMT ", x2 = " NUMFMT ", y2 = " NUMFMT ",\n"
+                   "        s1 = " NUMFMT ", t1 = " NUMFMT ", s2 = " NUMFMT ", t2 = " NUMFMT ",\n"
+                   "        verts = {" NUMFMT ", " NUMFMT ", 0, " NUMFMT ", " NUMFMT ", 0, " NUMFMT ", " NUMFMT ", 0, " NUMFMT ", " NUMFMT ", 0},\n"
+                   "        uvs = {" NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT "},\n"
                    "        w = %d, h = %d,\n"
                    "    },\n",
                 items[s].filename, 
@@ -311,7 +314,11 @@ static void write_data() {
         }
     }
     fprintf(f, "}\n\n");
-    fprintf(f, "return am._init_fonts(font_data, \"%s\")", png_filename);
+    if (default_font) {
+        fprintf(f, "am.default_font = am._init_fonts(font_data, \"lua/default_font.png\", true)\n");
+    } else {
+        fprintf(f, "return am._init_fonts(font_data, \"%s\")", png_filename);
+    }
     fclose(f);
 }
 
@@ -655,6 +662,8 @@ static void process_args(int argc, char *argv[]) {
             lua_filename = argv[a];
         } else if (strcmp(arg, "-mono") == 0) {
             is_mono = 1;
+        } else if (strcmp(arg, "-default") == 0) {
+            default_font = 1;
         } else if (strcmp(arg, "-minfilter") == 0) {
             if (++a >= argc) usage();
             minfilter = argv[a];
