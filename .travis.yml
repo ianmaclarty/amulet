@@ -1,13 +1,21 @@
 language: cpp
 
+sudo: false
+
+addons:
+    apt:
+        packages:
+            - binutils-mingw-w64-i686
+            - gcc-mingw-w64-i686
+            - g++-mingw-w64-i686
+
 os:
     - linux
     - osx
 
-before_install:
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get update -qq; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -y binutils-mingw-w64-i686; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -y gcc-mingw-w64-i686; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -y g++-mingw-w64-i686; fi
-        
+branches:
+    only:
+        - /^v[0-9].*$/
+        - master
+
 script: scripts/travis.sh
