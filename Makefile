@@ -191,6 +191,15 @@ VERSION = $(shell cat VERSION)
 $(VERSION_CPP_FILE): VERSION
 	echo "const char *am_version = \"$(VERSION)\";" > $@
 
+VERSION:
+	if [ -n "$$TRAVIS_TAG" ]; then \
+	    echo $$TRAVIS_TAG > $@; \
+	elif [ -n "$$APPVEYOR_REPO_TAG_NAME" ]; then \
+	    echo $$APPVEYOR_REPO_TAG_NAME > $@; \
+	else \
+	    echo DEV > $@; \
+	fi
+
 # Font generation tool
 
 tools/ampack$(EXE_EXT): tools/ampack.c $(FT2_ALIB)

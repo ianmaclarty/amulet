@@ -123,14 +123,16 @@ function upload_build(upload_url, build, cb) {
         type: "nodebuffer",
     });
     var name = "amulet-"+tag+"-"+build.platform+"-"+build.luavm+"-"+build.grade+".zip";
+    log("uploading " + name + "...");
     upload_asset(upload_url, data, name, "application/zip", cb);
 }
+
+log("uploading builds to github...");
 
 get_release(function(id, upload_url) {
     var builds = get_builds();
     function upload(b, cb) {
         if (b < builds.length) {
-            log("uploading " + builds[b].path + "...");
             upload_build(upload_url, builds[b], function() { upload(b+1, cb); });
         } else {
             cb();
