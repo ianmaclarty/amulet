@@ -20,6 +20,8 @@ D.*
 *.swp
 *.dSYM
 
+/VERSION
+
 amulet.exe.manifest
 vc*.pdb
 
@@ -93,3 +95,4 @@ doc/__pycache__
 
 gllog
 gllog.cpp
+
