@@ -123,11 +123,12 @@ function upload_builds(upload_url, cb) {
             var grades = fs.readdirSync("builds/"+platform+"/"+luavm);
             for (var g in grades) {
                 var grade = grades[g];
-                var path = "builds/"+platform+"/"+luavm+"/"+grade+"/bin",
-                var files = fs.readdirSync(path);
+                var dir = "builds/"+platform+"/"+luavm+"/"+grade+"/bin";
+                var files = fs.readdirSync(dir);
                 for (var f in files) {
                     var file = files[f];
-                    zip.file(path+"/"+file, fs.readFileSync(path+"/"+file));
+                    var path = dir + "/" + file;
+                    zip.file(path, fs.readFileSync(path));
                 }
             }
         }
