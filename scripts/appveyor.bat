@@ -1,6 +1,6 @@
 if "%APPVEYOR_REPO_TAG_NAME:~-15%" neq "-distro-trigger" (
     call "%VS140COMNTOOLS%vsvars32.bat"
-    REM SET PATH=C:\emscripten;C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%
+    SET PATH=C:\emscripten;C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%
     REM call "C:\emscripten\emsdk_env.bat"
     REM make TARGET=html.release
     REM if %errorlevel% neq 0 exit /b %errorlevel%
