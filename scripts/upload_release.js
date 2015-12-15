@@ -62,7 +62,19 @@ function create_release(cb) {
     post(host+"/repos/"+owner+"/"+repo+"/releases?"+access, create_req,
         "application/json", function(resp, code)
     {
-        cb(resp.id, resp.upload_url.replace(/\{.*$/, ""));
+        cb(resp);
+    });
+}
+
+function create_package_release(cb) {
+    var create_req = JSON.stringify({
+        tag_name: tag,
+        name: tag,
+    });
+    post(host+"/repos/"+owner+"/"+repo+"/releases?"+access, create_req,
+        "application/json", function(resp, code)
+    {
+        cb(resp);
     });
 }
 
@@ -73,7 +85,7 @@ function get_release(cb) {
             create_release(cb);
         } else {
             // release already exists
-            cb(resp.id, resp.upload_url.replace(/\{.*$/, ""));
+            cb(resp);
         }
     });
 }
@@ -104,6 +116,7 @@ function get_builds() {
                     platform: platform,
                     luavm: luavm,
                     grade: grade,
+                    zipname: "amulet-"+tag+"-"+platform+"-"+luavm+"-"+grade+".zip"
                 });
             }
         }
@@ -122,14 +135,14 @@ function upload_build(upload_url, build, cb) {
         compression: "DEFLATE",
         type: "nodebuffer",
     });
-    var name = "amulet-"+tag+"-"+build.platform+"-"+build.luavm+"-"+build.grade+".zip";
-    log("uploading " + name + "...");
-    upload_asset(upload_url, data, name, "application/zip", cb);
+    log("uploading " + build.zipname + "...");
+    upload_asset(upload_url, data, build.zipname, "application/zip", cb);
 }
 
 log("uploading builds to github...");
 
-get_release(function(id, upload_url) {
+get_release(function(release) {
+    var upload_url = release.upload_url.replace(/\{.*$/, "")
     var builds = get_builds();
     function upload(b, cb) {
         if (b < builds.length) {
@@ -139,6 +152,27 @@ get_release(function(id, upload_url) {
         }
     }
     upload(0, function() {
-        log("done");
+        var list = "";
+        for (var b in builds) {
+            list += builds[b].zipname + "\n"
+        }
+        update_asset(upload_url, list, process.platform + "-builds.txt", "text/plain", function() {
+            get_release(function(release) {
+                var assets = release.assets;
+                var count = 0;
+                for (var a in assets) {
+                    var asset = assets[a];
+                    if (asset.name == "darwin-builds.txt" ||
+                        asset.name == "win32-builds.txt" ||
+                        asset.name == "linux-builds.txt")
+                    {
+                        count++;
+                    }
+                }
+                if (count == 3) {
+                    // all 3 ci builds finished, initiate distribution package builds
+                }
+            });
+        });
     });
 })
