@@ -5,15 +5,15 @@ var jszip = require("./jszip.js");
 var parse_url = require("url").parse;
 var log = console.log;
 
-var tag = process.argv[2]
-if (!tag) throw "no tag"
-var token = process.env.GITHUB_TOKEN
-if (!token) throw "no GITHUB_TOKEN"
+var tag = process.argv[2];
+if (!tag) throw "no tag";
+var token = process.env.GITHUB_TOKEN;
+if (!token) throw "no GITHUB_TOKEN";
 
-var host = "https://api.github.com"
-var owner = "ianmaclarty"
-var repo = "amulet"
-var access = "access_token=" + token
+var host = "https://api.github.com";
+var owner = "ianmaclarty";
+var repo = "amulet";
+var access = "access_token=" + token;
 
 function get(url, cb) {
     var options = parse_url(url);
@@ -50,8 +50,20 @@ function post(url, data, type, cb) {
     req.end();
 }
 
-function query_tag(cb) {
+function query_tag_release(cb) {
     get(host+"/repos/"+owner+"/"+repo+"/releases/tags/"+tag+"?"+access, cb);
+}
+
+function get_tag_ref(tag, cb) {
+    get(host+"/repos/"+owner+"/"+repo+"/git/refs/tags/"+tag+"?"+access, cb);
+}
+
+function create_tag_ref(tag, sha, cb) {
+    var req = {
+        ref: "refs/tags/"+tag,
+        sha: sha,
+    };
+    post(host+"/repos/"+owner+"/"+repo+"/git/refs?"+access, JSON.stringify(req), "application/json", cb);
 }
 
 function create_release(cb) {
@@ -79,7 +91,7 @@ function create_package_release(cb) {
 }
 
 function get_release(cb) {
-    query_tag(function(resp, code) {
+    query_tag_release(function(resp, code) {
         if (code == 404) {
             // release does not exist yet, create it
             create_release(cb);
@@ -100,8 +112,8 @@ function upload_asset(upload_url, data, name, type, cb) {
     });
 }
 
-function get_builds() {
-    var builds = [];
+function upload_builds(upload_url, cb) {
+    var zip = new jszip();
     var platforms = fs.readdirSync("builds");
     for (var p in platforms) {
         var platform = platforms[p];
@@ -111,68 +123,51 @@ function get_builds() {
             var grades = fs.readdirSync("builds/"+platform+"/"+luavm);
             for (var g in grades) {
                 var grade = grades[g];
-                builds.push({
-                    path: "builds/"+platform+"/"+luavm+"/"+grade+"/bin",
-                    platform: platform,
-                    luavm: luavm,
-                    grade: grade,
-                    zipname: "amulet-"+tag+"-"+platform+"-"+luavm+"-"+grade+".zip"
-                });
+                var path = "builds/"+platform+"/"+luavm+"/"+grade+"/bin",
+                var files = fs.readdirSync(path);
+                for (var f in files) {
+                    var file = files[f];
+                    zip.file(path+"/"+file, fs.readFileSync(path+"/"+file));
+                }
             }
         }
-    }
-    return builds;
-}
-
-function upload_build(upload_url, build, cb) {
-    var zip = new jszip();
-    var files = fs.readdirSync(build.path);
-    for (var f in files) {
-        var file = files[f];
-        zip.file(file, fs.readFileSync(build.path+"/"+file));
     }
     var data = zip.generate({
         compression: "DEFLATE",
         type: "nodebuffer",
     });
-    log("uploading " + build.zipname + "...");
-    upload_asset(upload_url, data, build.zipname, "application/zip", cb);
+    var zipname = "builds-" + process.platform + ".zip";
+    log("uploading " + zipname + "...");
+    upload_asset(upload_url, data, zipname, "application/zip", cb);
 }
 
 log("uploading builds to github...");
 
 get_release(function(release) {
     var upload_url = release.upload_url.replace(/\{.*$/, "")
-    var builds = get_builds();
-    function upload(b, cb) {
-        if (b < builds.length) {
-            upload_build(upload_url, builds[b], function() { upload(b+1, cb); });
-        } else {
-            cb();
-        }
-    }
-    upload(0, function() {
-        var list = "";
-        for (var b in builds) {
-            list += builds[b].zipname + "\n"
-        }
-        update_asset(upload_url, list, process.platform + "-builds.txt", "text/plain", function() {
-            get_release(function(release) {
-                var assets = release.assets;
-                var count = 0;
-                for (var a in assets) {
-                    var asset = assets[a];
-                    if (asset.name == "darwin-builds.txt" ||
-                        asset.name == "win32-builds.txt" ||
-                        asset.name == "linux-builds.txt")
-                    {
-                        count++;
-                    }
+    upload_builds(upload_url, function() {
+        get_release(function(release) {
+            var assets = release.assets;
+            var count = 0;
+            for (var a in assets) {
+                var asset = assets[a];
+                if (asset.name == "builds-darwin.zip" ||
+                    asset.name == "builds-win32.zip" ||
+                    asset.name == "builds-linux.zip")
+                {
+                    count++;
                 }
-                if (count == 3) {
-                    // all 3 ci builds finished, initiate distribution package builds
-                }
-            });
+            }
+            if (count == 3) {
+                log("all uploads done, triggering distro builds...");
+                get_tag_ref(tag, function(ref) {
+                    create_tag_ref(tag+"-distro-trigger", ref.object.sha, function() {
+                        log("done");
+                    });
+                });
+            } else {
+                log("done");
+            }
         });
     });
-})
+});

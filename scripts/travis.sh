@@ -1,11 +1,7 @@
 #!/bin/sh
 set -e
-if [[ "$TRAVIS_TAG" == *-staged ]]; then
-    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-        scripts/build_linux_distro.sh
-    else
-        scripts/build_osx_distro.sh
-    fi
+if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
+    scripts/build_distro.js $TRAVIS_TAG
 else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         #make TARGET=linux64.release LUAVM=lua51   test
@@ -19,6 +15,6 @@ else
         make TARGET=ios64.release   LUAVM=lua51
     fi
     if [ -n "$TRAVIS_TAG" ]; then
-        scripts/upload_release.js $TRAVIS_TAG
+        scripts/upload_builds.js $TRAVIS_TAG
     fi
 fi
