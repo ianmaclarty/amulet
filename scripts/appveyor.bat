@@ -1,7 +1,8 @@
-if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
-
 call "%VS140COMNTOOLS%vsvars32.bat"
 set PATH=C:\emscripten;C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%
+
+if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
+
 REM call "C:\emscripten\emsdk_env.bat"
 REM make TARGET=html.release
 REM if %errorlevel% neq 0 exit /b %errorlevel%
@@ -15,6 +16,7 @@ goto end
 set TAG=%APPVEYOR_REPO_TAG_NAME:~0,-15%
 choco install -y InnoSetup
 set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
+mingw-get install zip
 echo step1
 curl -L -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-darwin.zip
 curl -L -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-win32.zip
