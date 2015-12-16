@@ -2,9 +2,9 @@
 set -e
 if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
     TAG=${TRAVIS_TAG%-distro-trigger}
-    curl -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-darwin.zip
-    curl -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-win32.zip
-    curl -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-linux.zip
+    curl -L -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-darwin.zip
+    curl -L -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-win32.zip
+    curl -L -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-linux.zip
     unzip builds-darwin.zip
     unzip builds-win32.zip
     unzip builds-linux.zip

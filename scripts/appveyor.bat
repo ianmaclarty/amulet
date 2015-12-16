@@ -14,9 +14,9 @@ goto end
 :builddistro
 SET TAG=%APPVEYOR_REPO_TAG_NAME:~0,-15%
 echo step1
-curl -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-darwin.zip
-curl -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-win32.zip
-curl -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-linux.zip
+curl -L -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-darwin.zip
+curl -L -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-win32.zip
+curl -L -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-linux.zip
 echo step1b
 unzip builds-darwin.zip
 unzip builds-win32.zip
