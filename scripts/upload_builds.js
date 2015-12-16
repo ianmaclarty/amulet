@@ -70,6 +70,7 @@ function create_release(cb) {
     var create_req = JSON.stringify({
         tag_name: tag,
         name: tag,
+        draft: true,
     });
     post(host+"/repos/"+owner+"/"+repo+"/releases?"+access, create_req,
         "application/json", function(resp, code)
