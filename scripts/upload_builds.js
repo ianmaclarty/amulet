@@ -78,18 +78,6 @@ function create_release(cb) {
     });
 }
 
-function create_package_release(cb) {
-    var create_req = JSON.stringify({
-        tag_name: tag,
-        name: tag,
-    });
-    post(host+"/repos/"+owner+"/"+repo+"/releases?"+access, create_req,
-        "application/json", function(resp, code)
-    {
-        cb(resp);
-    });
-}
-
 function get_release(cb) {
     query_tag_release(function(resp, code) {
         if (code == 404) {
