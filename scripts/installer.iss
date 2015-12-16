@@ -18,7 +18,7 @@ WelcomeLabel2=This will install [name/ver] on your computer.
 Source: "installer-payload\*"; DestDir: "{app}"; Flags: recursesubdirs
 
 [Icons]
-Name: "{group}\Amulet"; Filename: "{sys}\cmd.exe"; Parameters: "/K ""{app}\amcmd.bat"""; IconFilename: "{app}\icon.ico" 
+Name: "{group}\Amulet test"; Filename: "{app}\amulet.exe"; Parameters: """{app}\examples\rgb_triangle.lua"""; IconFilename: "{app}\icon.ico" 
 
 [Tasks]
 Name: modifypath; Description: "Add ""{app}"" to your path"; Flags: unchecked

@@ -25,7 +25,8 @@ unzip builds-win32.zip
 unzip builds-linux.zip
 mkdir scripts\installer-payload
 cp -r builds scripts/installer-payload/
-cp -r builds/msvc/lua51/release/bin/* scripts/installer-payload/
+cp -r builds/msvc32/lua51/release/bin/* scripts/installer-payload/
+cp -r examples scripts/installer-payload/
 cp scripts/icon.ico scripts/installer-payload/
 iscc /DVERSION=%TAG% scripts\installer.iss
 if %errorlevel% neq 0 exit /b %errorlevel%
