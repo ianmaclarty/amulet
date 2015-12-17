@@ -197,7 +197,7 @@ VERSION:
 	elif [ -n "$$APPVEYOR_REPO_TAG_NAME" ]; then \
 	    echo $$APPVEYOR_REPO_TAG_NAME > $@; \
 	else \
-	    echo DEV > $@; \
+	    echo DEV `date '+%Y-%d-%m %H:%M'` > $@; \
 	fi
 
 # Font generation tool
