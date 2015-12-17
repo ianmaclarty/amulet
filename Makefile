@@ -29,13 +29,14 @@ else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft
 else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft
-  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
+  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft
-  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT)
+  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else
   AM_DEPS = $(LUAVM) sdl angle stb kissfft
   AM_DEFS += AM_USE_ANGLE
+  EXTRA_PREREQS = $(SIMPLEGLOB_H)
 endif
 
 DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(AM_DEPS))
@@ -91,7 +92,7 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
-	ln -fs $@ `basename $@`
+	cp $@ `basename $@`
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 
@@ -153,6 +154,9 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
 
+$(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
+	cp $(SIMPLEOPT_DIR)/SimpleGlob.h $@
+
 $(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom clean all
 	cp $(KISSFFT_DIR)/libkissfft$(ALIB_EXT) $@
@@ -205,7 +209,7 @@ VERSION:
 tools/ampack$(EXE_EXT): tools/ampack.c $(FT2_ALIB)
 	$(CC) $(COMMON_CFLAGS) $(NOLINK_OPT) $(AM_INCLUDE_FLAGS) $(OBJ_OUT_OPT)tools/ampack$(OBJ_EXT) $<
 	$(LINK) tools/ampack$(OBJ_EXT) $(FT2_ALIB) $(XLDFLAGS) $(EXE_OUT_OPT)$@
-	ln -fs $@ `basename $@`
+	cp $@ `basename $@`
 
 # runnable gl logs (assumes gllog.cpp exists)
 

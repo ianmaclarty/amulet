@@ -14,7 +14,7 @@ struct option {
     bool stop;
 };
 
-static bool help(int *argc, char ***argv) {
+static bool help_cmd(int *argc, char ***argv) {
     printf(
        /*-------------------------------------------------------------------------------*/
         "Usage: amulet [ <command> ] [ <file> ... ]\n"
@@ -31,29 +31,39 @@ static bool help(int *argc, char ***argv) {
         "Commands:\n"
         "  help            Show help message.\n"
         "  version         Show version.\n"
-      //"  dist [<dir>]    Generate distributions for the project in <dir>.\n"
-      //"                  <dir> should contain main.lua.\n"
-      //"                  If <dir> is omitted, it is assumed to be the\n"
-      //"                  current directory.\n"
+#ifdef AM_EXPORTS_SUPPORTED
+        "  export [<dir>]  Generate packages for the project in <dir>.\n"
+        "                  <dir> should contain main.lua.\n"
+        "                  If <dir> is omitted, it is assumed to be the\n"
+        "                  current directory.\n"
+#endif
        /*-------------------------------------------------------------------------------*/
     );
     return true;
 }
 
-static bool version(int *argc, char ***argv) {
+static bool version_cmd(int *argc, char ***argv) {
     printf("Amulet %s\n", am_version);
     return true;
 }
 
-static bool dist(int *argc, char ***argv) {
-    fprintf(stderr, "NYI\n");
+static bool export_cmd(int *argc, char ***argv) {
+#ifdef AM_EXPORTS_SUPPORTED
+    const char *dir = ".";
+    if (*argc > 0) {
+        dir = (*argv)[0];
+    }
+    return am_build_exports(dir);
+#else
+    fprintf(stderr, "Sorry, the export command is not supported on this platform.\n");
     return false;
+#endif
 }
 
 static option options[] = {
-    {"help", help, true},
-    {"version", version, true},
-    {"dist", dist, true},
+    {"help", help_cmd, true},
+    {"version", version_cmd, true},
+    {"export", export_cmd, true},
 
     {NULL, NULL}
 };

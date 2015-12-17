@@ -505,6 +505,10 @@ static void open_package() {
     }
 }
 
+char *am_get_base_path() {
+    return NULL;
+}
+
 void *am_read_resource(const char *filename, int *len, char **errmsg) {
     if (package) {
         return am_read_package_resource(package, filename, len, errmsg);

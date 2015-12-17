@@ -29,6 +29,10 @@
     #error unsupported target
 #endif
 
+#if defined(AM_WINDOWS) || defined(AM_LINUX) || defined(AM_OSX)
+    #define AM_EXPORTS_SUPPORTED
+#endif
+
 #if defined(AM_GLPROFILE_ES) && defined(AM_WINDOWS) || defined(AM_LINUX)
 #define AM_NEED_GL_FUNC_PTRS
 #endif
@@ -44,6 +48,8 @@
 
 #ifdef AM_WINDOWS
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 #include <assert.h>
@@ -117,6 +123,7 @@ extern "C" {
 #include "am_json.h"
 #include "am_http.h"
 #include "am_browser.h"
+#include "am_export.h"
 
 #undef near
 #undef far

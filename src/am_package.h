@@ -8,5 +8,3 @@ void am_close_package(am_package *pkg);
 
 // free returned pointer with free()
 void *am_read_package_resource(am_package *pkg, const char *filename, int *len, char **errmsg);
-
-bool am_build_package(char *dir);

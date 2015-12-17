@@ -27,3 +27,11 @@ void am_replchr(char *str, char c0, char c) {
         str++;
     }
 }
+
+void am_delete_file(const char *file) {
+#ifdef AM_WINDOWS
+    _unlink(file);
+#else
+    unlink(file);
+#endif
+}

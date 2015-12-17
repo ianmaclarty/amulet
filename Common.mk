@@ -18,6 +18,7 @@ GLM_DIR          = $(DEPS_DIR)/glm-0.9.7.1
 FT2_DIR          = $(DEPS_DIR)/freetype-2.5.5
 STB_DIR		 = $(DEPS_DIR)/stb
 KISSFFT_DIR	 = $(DEPS_DIR)/kiss_fft130
+SIMPLEOPT_DIR    = $(DEPS_DIR)/simpleopt
 
 SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-VC-prebuilt
 ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
@@ -82,6 +83,7 @@ LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 FT2_ALIB = $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
 STB_ALIB = $(BUILD_LIB_DIR)/libstb$(ALIB_EXT)
 KISSFFT_ALIB = $(BUILD_LIB_DIR)/libkissfft$(ALIB_EXT)
+SIMPLEGLOB_H = $(BUILD_INC_DIR)/SimpleGlob.h
 
 SRC_DIR = src
 BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(LUAVM)/$(GRADE)

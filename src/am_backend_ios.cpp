@@ -811,7 +811,9 @@ double am_get_current_time() {
     return (double)t * (double)timebase.numer / (double)timebase.denom / 1e9;
 }
 
-
+char *am_get_base_path() {
+    return NULL;
+}
 
 void *am_read_resource(const char *filename, int *len, char** errmsg) {
     *errmsg = NULL;

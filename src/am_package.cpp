@@ -33,22 +33,3 @@ void *am_read_package_resource(am_package *pkg, const char *filename, int *len, 
     *len = (int)sz;
     return data;
 }
-
-bool am_build_package(char *dir) {
-    /*
-    char *cwd = getcwd(NULL, 0);
-    char *cmd = am_format("cd \"%s\" && rm -f \"%s/data.pak\" && "
-        "zip -r -n .png:.ogg:.jpg \"%s/data.pak\" * -x \\*.pak \\*~",
-        dir, cwd, cwd);
-    am_log0("%s", cmd);
-    int rc = system(cmd);
-    free(cwd);
-    if (rc != 0) {
-        am_log0("unable to build pak file from %s", dir);
-        return false;
-    } else {
-        return true;
-    }
-    */
-    return false;
-}

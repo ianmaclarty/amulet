@@ -292,6 +292,10 @@ double am_get_current_time() {
 
 #define ERR_MSG_SZ 1024
 
+char *am_get_base_path() {
+    return SDL_GetBasePath();
+}
+
 static void *am_read_resource_package(const char *filename, int *len, char **errmsg) {
     *errmsg = NULL;
     return am_read_package_resource(package, filename, len, errmsg);

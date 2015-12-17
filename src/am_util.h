@@ -48,3 +48,5 @@ char *am_format(const char *fmt, ...);
 bool am_file_exists(const char *filename);
 
 void am_replchr(char *str, char c0, char c);
+
+void am_delete_file(const char *file);
