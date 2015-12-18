@@ -37,6 +37,7 @@ Amulet uses or borrows code and ideas from the following projects:
 - [GLM](https://github.com/g-truc/glm)
 - [Emscripten](http://emscripten.org)
 - [OpenCV](http://opencv.org/)
+- [SimpleGlob](https://github.com/brofield/simpleopt)
 
 The HTML editor uses code and ideas from:
 
