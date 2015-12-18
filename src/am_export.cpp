@@ -70,7 +70,7 @@ static bool add_matching_files_to_zip(const char *zipfile, const char *rootdir, 
         size_t len;
         void *buf = read_file(file, &len);
         if (buf == NULL) return false;
-        if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, file + os, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, 0644, platform)) {
+        if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, file + os, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, 0100644, platform)) {
             free(buf);
             fprintf(stderr, "Error: failed to add %s to archive\n", file);
             return false;
@@ -108,7 +108,7 @@ static bool add_files_to_zip_renamed(const char *zipfile, const char *dir, const
         } else {
             snprintf(name, MAX_PATH_SZ, "%s/%s%s", newdir, newname, newext);
         }
-        if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, name, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, executable ? 0755 : 0644, platform)) {
+        if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, name, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, executable ? 0100755 : 0100644, platform)) {
             free(buf);
             fprintf(stderr, "Error: failed to add %s to archive\n", file);
             return false;
@@ -189,9 +189,9 @@ static bool build_windows_export(export_config *conf) {
     char *binpath = get_bin_path(conf, "msvc32");
     if (binpath == NULL) return false;
     bool ok =
-        add_files_to_zip_renamed(zipname, binpath, "amulet.exe", conf->appname, conf->appname, ".exe", true, true, ZIP_PLATFORM_NTFS) &&
-        add_files_to_zip_renamed(zipname, binpath, "*.dll", conf->appname, NULL, NULL, true, true, ZIP_PLATFORM_NTFS) &&
-        add_files_to_zip_renamed(zipname, ".", conf->pakfile, conf->appname, "data.pak", NULL, false, false, ZIP_PLATFORM_NTFS) &&
+        add_files_to_zip_renamed(zipname, binpath, "amulet.exe", conf->appname, conf->appname, ".exe", true, true, ZIP_PLATFORM_DOS) &&
+        add_files_to_zip_renamed(zipname, binpath, "*.dll", conf->appname, NULL, NULL, true, true, ZIP_PLATFORM_DOS) &&
+        add_files_to_zip_renamed(zipname, ".", conf->pakfile, conf->appname, "data.pak", NULL, false, false, ZIP_PLATFORM_DOS) &&
         true;
     printf("%s\n", zipname);
     free(zipname);
@@ -247,9 +247,9 @@ static bool build_mac_export(export_config *conf) {
     if (binpath == NULL) return false;
     if (!create_mac_info_plist(AM_TMP_DIR "/Info.plist", conf)) return false;
     bool ok =
-        add_files_to_zip_renamed(zipname, binpath, "amulet", conf->appname, conf->appname, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_DOS) &&
-        add_files_to_zip_renamed(zipname, ".", conf->pakfile, conf->appname, conf->appname, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_DOS) &&
-        add_files_to_zip_renamed(zipname, AM_TMP_DIR, "Info.plist", conf->appname, conf->appname, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_DOS) &&
+        add_files_to_zip_renamed(zipname, binpath, "amulet", conf->appname, conf->appname, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, ".", conf->pakfile, conf->appname, conf->appname, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, AM_TMP_DIR, "Info.plist", conf->appname, conf->appname, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
         true;
     am_delete_file(AM_TMP_DIR "/Info.plist");
     printf("%s\n", zipname);

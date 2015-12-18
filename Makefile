@@ -190,19 +190,16 @@ $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 
 # Generate version file
 
-VERSION = $(shell cat VERSION)
+ifdef TRAVIS_TAG
+VERSION = $(TRAVIS_TAG)
+else ifdef APPVEYOR_REPO_TAG_NAME
+VERSION = $(APPVEYOR_REPO_TAG_NAME)
+else
+VERSION = $(shell echo DEV `date '+%Y-%d-%m %H:%M'`)
+endif
 
-$(VERSION_CPP_FILE): VERSION
+$(VERSION_CPP_FILE):
 	echo "const char *am_version = \"$(VERSION)\";" > $@
-
-VERSION:
-	if [ -n "$$TRAVIS_TAG" ]; then \
-	    echo $$TRAVIS_TAG > $@; \
-	elif [ -n "$$APPVEYOR_REPO_TAG_NAME" ]; then \
-	    echo $$APPVEYOR_REPO_TAG_NAME > $@; \
-	else \
-	    echo DEV `date '+%Y-%d-%m %H:%M'` > $@; \
-	fi
 
 # Font generation tool
 

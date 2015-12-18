@@ -37,7 +37,7 @@ void am_delete_file(const char *file) {
 }
 
 void am_make_dir(const char* dir) {
-#if defined(LTWINDOWS)
+#if defined(AM_WINDOWS)
     _mkdir(dir);
 #else
     mkdir(dir, S_IRWXU | S_IRWXG);
@@ -45,7 +45,7 @@ void am_make_dir(const char* dir) {
 }
 
 void am_delete_empty_dir(const char* dir) {
-#if defined(LTWINDOWS)
+#if defined(AM_WINDOWS)
     _rmdir(dir);
 #else
     rmdir(dir);

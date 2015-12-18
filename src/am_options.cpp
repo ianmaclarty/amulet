@@ -60,9 +60,13 @@ static bool export_cmd(int *argc, char ***argv) {
 }
 
 static option options[] = {
-    {"help", help_cmd, true},
-    {"version", version_cmd, true},
-    {"export", export_cmd, true},
+    {"help",        help_cmd, true},
+    {"-help",       help_cmd, true},
+    {"--help",      help_cmd, true},
+    {"version",     version_cmd, true},
+    {"-version",    version_cmd, true},
+    {"--version",   version_cmd, true},
+    {"export",      export_cmd, true},
 
     {NULL, NULL}
 };
