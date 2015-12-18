@@ -4,9 +4,11 @@
 #if defined(AM_MINGW32) || defined(AM_MINGW64)
     #define AM_MINGW
 #endif
-#if defined(AM_MINGW) || defined(AM_MSVC32)
-    #define AM_WINDOWS
+#if defined(AM_MSVC64) || defined(AM_MSVC32)
     #define AM_MSVC
+#endif
+#if defined(AM_MINGW) || defined(AM_MSVC)
+    #define AM_WINDOWS
 #endif
 #if defined(AM_IOS32) || defined(AM_IOS64) || defined(AM_IOSSIM)
     #define AM_IOS
@@ -48,6 +50,7 @@
 
 #ifdef AM_WINDOWS
 #include <windows.h>
+#include <direct.h>
 #else
 #include <unistd.h>
 #endif

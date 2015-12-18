@@ -214,12 +214,22 @@ static int load_module(lua_State *L, bool set_env) {
     char tmpbuf2[TMP_BUF_SZ];
     size_t len;
     const char *modname = lua_tolstring(L, 1, &len);
+
+    // check for string argument
     if (modname == NULL) {
-        return luaL_error(L, "require expects a string as its single argument");
+        if (set_env) {
+            return luaL_error(L, "import expects a string as its single argument");
+        } else {
+            return luaL_error(L, "require expects a string as its single argument");
+        }
     }
+
+    // check module name not too long
     if (len > TMP_BUF_SZ - 10) {
         return luaL_error(L, "module name '%s' too long", modname);
     }
+
+    // check if module has already been loaded
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_MODULE_TABLE);
     lua_pushvalue(L, 1); // module name
     lua_rawget(L, -2);
@@ -229,6 +239,7 @@ static int load_module(lua_State *L, bool set_env) {
         return 1;
     }
     lua_pop(L, 1); // nil
+
     // create exports table and add to module table:
     lua_newtable(L);
     lua_pushvalue(L, 1); // module name
@@ -236,6 +247,7 @@ static int load_module(lua_State *L, bool set_env) {
     lua_rawset(L, -4); // set it
     // export table now on top
 
+    // read in the module
     int sz;
     strncpy(tmpbuf1, modname, TMP_BUF_SZ);
     am_replchr(tmpbuf1, '.', AM_PATH_SEP);
@@ -247,10 +259,15 @@ static int load_module(lua_State *L, bool set_env) {
         free(errmsg);
         return lua_error(L);
     }
+
+    // parse and load the module
     snprintf(tmpbuf2, TMP_BUF_SZ, "@%s.lua", tmpbuf1);
     int res = luaL_loadbuffer(L, (const char*)buf, sz, tmpbuf2);
     free(buf);
     if (res != 0) return lua_error(L);
+
+    // set the environment table to the export table if set_env is true
+    // and call the module chunk
     if (set_env) {
         // set export table as chunk's enviroment
         lua_pushvalue(L, -2); // export table
@@ -261,6 +278,7 @@ static int load_module(lua_State *L, bool set_env) {
         lua_pushvalue(L, -2); // export table
         lua_call(L, 1, 1);
     }
+
     if (!lua_isnil(L, -1)) {
         // replace export table with returned value in module table
         lua_pushvalue(L, 1); // module name
