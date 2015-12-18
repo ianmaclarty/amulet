@@ -50,3 +50,5 @@ bool am_file_exists(const char *filename);
 void am_replchr(char *str, char c0, char c);
 
 void am_delete_file(const char *file);
+void am_make_dir(const char* dir);
+void am_delete_empty_dir(const char* dir);

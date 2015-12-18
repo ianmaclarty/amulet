@@ -35,3 +35,19 @@ void am_delete_file(const char *file) {
     unlink(file);
 #endif
 }
+
+void am_make_dir(const char* dir) {
+#if defined(LTWINDOWS)
+    _mkdir(dir);
+#else
+    mkdir(dir, S_IRWXU | S_IRWXG);
+#endif
+}
+
+void am_delete_empty_dir(const char* dir) {
+#if defined(LTWINDOWS)
+    _rmdir(dir);
+#else
+    rmdir(dir);
+#endif
+}
