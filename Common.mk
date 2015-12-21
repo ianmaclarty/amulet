@@ -217,8 +217,9 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
   XCFLAGS = -DLUA_COMPAT_ALL -WX 
-  XLDFLAGS = -SUBSYSTEM:CONSOLE \
+  XLDFLAGS = -SUBSYSTEM:WINDOWS \
 	-NODEFAULTLIB:msvcrt.lib \
+	$(BUILD_LIB_DIR)/SDL2main.lib \
 	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc -fp:fast
 else ifeq ($(TARGET_PLATFORM),mingw32)

@@ -2,7 +2,7 @@
 
 #ifdef AM_BACKEND_SDL
 
-#define SDL_MAIN_HANDLED 1
+//#define SDL_MAIN_HANDLED 1
 #include "SDL.h"
 
 #ifdef AM_OSX
