@@ -208,7 +208,7 @@ void am_init_traceback_func(lua_State *L) {
 
 #define TMP_BUF_SZ 512
 
-static int load_module(lua_State *L, bool set_env) {
+int am_require(lua_State *L) {
     am_check_nargs(L, 1);
     char tmpbuf1[TMP_BUF_SZ];
     char tmpbuf2[TMP_BUF_SZ];
@@ -217,11 +217,7 @@ static int load_module(lua_State *L, bool set_env) {
 
     // check for string argument
     if (modname == NULL) {
-        if (set_env) {
-            return luaL_error(L, "import expects a string as its single argument");
-        } else {
-            return luaL_error(L, "require expects a string as its single argument");
-        }
+        return luaL_error(L, "require expects a string as its single argument");
     }
 
     // check module name not too long
@@ -266,18 +262,9 @@ static int load_module(lua_State *L, bool set_env) {
     free(buf);
     if (res != 0) return lua_error(L);
 
-    // set the environment table to the export table if set_env is true
-    // and call the module chunk
-    if (set_env) {
-        // set export table as chunk's enviroment
-        lua_pushvalue(L, -2); // export table
-        am_setfenv(L, -2);
-        lua_call(L, 0, 1);
-    } else {
-        // pass export table as arg instead
-        lua_pushvalue(L, -2); // export table
-        lua_call(L, 1, 1);
-    }
+    // pass export table as arg
+    lua_pushvalue(L, -2); // export table
+    lua_call(L, 1, 1);
 
     if (!lua_isnil(L, -1)) {
         // replace export table with returned value in module table
@@ -293,14 +280,6 @@ static int load_module(lua_State *L, bool set_env) {
         // export table now on top
     }
     return 1;
-}
-
-int am_require(lua_State *L) {
-    return load_module(L, false);
-}
-
-int am_import(lua_State *L) {
-    return load_module(L, true);
 }
 
 void am_setfenv(lua_State *L, int index) {

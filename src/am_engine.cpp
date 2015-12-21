@@ -142,8 +142,6 @@ static void init_require_func(lua_State *L) {
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_MODULE_TABLE);
     lua_pushcclosure(L, am_require, 0);
     lua_setglobal(L, "require");
-    lua_pushcclosure(L, am_import, 0);
-    lua_setglobal(L, "import");
 }
 
 static void am_set_version(lua_State *L) {
