@@ -92,7 +92,7 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
-	cp $@ `basename $@`
+	rm -f `basename $@` && cp $@ `basename $@`
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 
