@@ -537,7 +537,6 @@ static void init_sdl() {
     }
 #endif
 }
-#endif
 
 #ifdef AM_NEED_GL_FUNC_PTRS
 static void init_gl_func_ptrs() {
