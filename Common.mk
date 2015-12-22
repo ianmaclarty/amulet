@@ -219,8 +219,8 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   XCFLAGS = -DLUA_COMPAT_ALL -WX 
   XLDFLAGS = -SUBSYSTEM:WINDOWS \
 	-NODEFAULTLIB:msvcrt.lib \
-	$(BUILD_LIB_DIR)/SDL2.lib \
-	$(BUILD_LIB_DIR)/SDL2main.lib
+	$(BUILD_LIB_DIR)/SDL2main.lib \
+	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc -fp:fast
 else ifeq ($(TARGET_PLATFORM),mingw32)
   EXE_EXT = .exe
@@ -228,8 +228,8 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   CPP = i686-w64-mingw32-g++
   LINK = $(CPP)
   AR = i686-w64-mingw32-ar
-  XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib $(BUILD_LIB_DIR)/SDL2main.lib
-  XCFLAGS = -Wall -Werror -fno-strict-aliasing
+  XLDFLAGS = -mwindows -static $(BUILD_LIB_DIR)/SDL2main.lib $(BUILD_LIB_DIR)/SDL2.lib 
+  XCFLAGS = -Wall -Werror -fno-strict-aliasing -mwindows
   LUAJIT_FLAGS += HOST_CC="gcc -m32" CROSS=i686-w64-mingw32- TARGET_SYS=Windows
 else ifeq ($(TARGET_PLATFORM),mingw32)
   EXE_EXT = .exe
