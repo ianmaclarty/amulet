@@ -52,3 +52,5 @@ void am_replchr(char *str, char c0, char c);
 void am_delete_file(const char *file);
 void am_make_dir(const char* dir);
 void am_delete_empty_dir(const char* dir);
+
+void *am_read_file(const char *filename, size_t *len);

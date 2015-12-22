@@ -175,12 +175,15 @@ static bool run_embedded_script(lua_State *L, const char *filename) {
 }
 
 static bool run_embedded_scripts(lua_State *L, bool worker) {
-    return
+    bool ok = 
         run_embedded_script(L, "lua/compat.lua") &&
         run_embedded_script(L, "lua/traceback.lua") &&
         run_embedded_script(L, "lua/setup.lua") &&
         run_embedded_script(L, "lua/type.lua") &&
-        run_embedded_script(L, "lua/extra.lua") &&
+        run_embedded_script(L, "lua/extra.lua");
+    if (!ok) return false;
+    if (!worker) {
+        return
         run_embedded_script(L, "lua/config.lua") &&
         run_embedded_script(L, "lua/time.lua") &&
         run_embedded_script(L, "lua/buffer.lua") &&
@@ -195,5 +198,8 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/postprocess.lua") &&
         run_embedded_script(L, "lua/particles.lua") &&
         run_embedded_script(L, "lua/default_font.lua");
+    } else {
+        return true;
+    }
 }
 

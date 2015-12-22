@@ -195,7 +195,8 @@ static bool load_script(lua_State *L, const char *script, const char *name) {
 
 bool am_run_script(lua_State *L, const char *script, const char *name) {
     if (load_script(L, script, name)) {
-        return am_call(L, 0, 0);
+        lua_newtable(L); // module table - discarded afterwards.
+        return am_call(L, 1, 0);
     } else {
         return false;
     }

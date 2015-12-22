@@ -27,7 +27,6 @@ bool am_run_script(lua_State *L, const char *script, const char *name);
 void lua_unsafe_pushuserdata(lua_State *L, void *v);
 
 int am_require(lua_State *L);
-int am_import(lua_State *L);
 
 void am_setfenv(lua_State *L, int index);
 

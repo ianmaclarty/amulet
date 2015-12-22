@@ -51,3 +51,26 @@ void am_delete_empty_dir(const char* dir) {
     rmdir(dir);
 #endif
 }
+
+void *am_read_file(const char *filename, size_t *len) {
+    *len = 0;
+    FILE *f = fopen(filename, "r");
+    if (f == NULL) {
+        fprintf(stderr, "Error: unable to open file %s\n", filename);
+        return NULL;
+    }
+    size_t l = 0;
+    int c;
+    do {
+        c = fgetc(f);
+        if (c == EOF) break;
+        else l++;
+    } while (1);
+    *len = l;
+    unsigned char *buf = (unsigned char*)malloc(l);
+    fseek(f, 0, SEEK_SET);
+    for (size_t i = 0; i < l; i++) {
+        buf[i] = fgetc(f);
+    }
+    return buf;
+}

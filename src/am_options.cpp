@@ -48,10 +48,12 @@ static bool version_cmd(int *argc, char ***argv) {
 
 static bool export_cmd(int *argc, char ***argv) {
 #ifdef AM_EXPORTS_SUPPORTED
-    const char *dir = ".";
+    char *dir = (char*)".";
     if (*argc > 0) {
         dir = (*argv)[0];
     }
+    char last = dir[strlen(dir)-1];
+    if (last == '/' || last == '\\') dir[strlen(dir)-1] = 0;
     return am_build_exports(dir);
 #else
     fprintf(stderr, "Sorry, the export command is not supported on this platform.\n");
@@ -124,21 +126,27 @@ bool am_process_args(int *argc, char ***argv, int *exit_status) {
             am_opt_data_dir = "./data";
             am_opt_main_module = "main";
         } else if (!am_file_exists("data.pak")) {
-            fprintf(stderr, 
-                "No main.lua, data/main.lua or data.pak file found.\n"
-                "Type \"amulet help\" for usage information.\n");
+            if (*argc > 0) {
+                fprintf(stderr, 
+                    "'%s' is not a lua file and no main.lua found in the current directory.\n"
+                    "Type 'amulet help' for usage information.\n", (*argv)[0]);
+            } else {
+                fprintf(stderr, 
+                    "No main.lua found in the current directory.\n"
+                    "Type 'amulet help' for usage information.\n");
+            }
             *exit_status = EXIT_FAILURE;
             return false;
         }
     } else {
         if (!am_file_exists(filename)) {
-            fprintf(stderr, "File '%s' not found.\nType \"amulet help\" for usage information.\n", filename);
+            fprintf(stderr, "File '%s' not found.\nType 'amulet help' for usage information.\n", filename);
             *exit_status = EXIT_FAILURE;
             return false;
         }
         char *lua_ext = strstr(filename, ".lua");
         if (lua_ext == NULL) {
-            fprintf(stderr, "File must end with .lua.\nType \"amulet help\" for usage information.\n");
+            fprintf(stderr, "File must end with .lua.\nType 'amulet help' for usage information.\n");
             *exit_status = EXIT_FAILURE;
             return false;
         }

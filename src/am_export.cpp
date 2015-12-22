@@ -4,7 +4,6 @@
 
 #include "SimpleGlob.h"
 
-#define MAX_PATH_SZ 2048
 #define RECURSE_LIMIT 20
 #define AM_TMP_DIR ".amulet_tmp"
 
@@ -24,53 +23,18 @@ struct export_config {
     char *basepath;
 };
 
-static void *read_file(const char *filename, size_t *len) {
-    *len = 0;
-    FILE *f = fopen(filename, "r");
-    if (f == NULL) {
-        fprintf(stderr, "Error: unable to open file %s\n", filename);
-        return NULL;
-    }
-    size_t l = 0;
-    int c;
-    do {
-        c = fgetc(f);
-        if (c == EOF) break;
-        else l++;
-    } while (1);
-    *len = l;
-    unsigned char *buf = (unsigned char*)malloc(l);
-    fseek(f, 0, SEEK_SET);
-    for (size_t i = 0; i < l; i++) {
-        buf[i] = fgetc(f);
-    }
-    return buf;
-}
-
 static bool add_matching_files_to_zip(const char *zipfile, const char *rootdir, const char *dir, const char *pat, bool compress, uint8_t platform) {
     CSimpleGlobTempl<char> glob(SG_GLOB_ONLYFILE);
-    char pattern[MAX_PATH_SZ];
-    memset(pattern, 0, MAX_PATH_SZ);
-    char last = dir[strlen(dir)-1];
-    if (last == '/' || last == '\\') {
-        snprintf(pattern, MAX_PATH_SZ, "%s%s", dir, pat);
-    } else {
-        snprintf(pattern, MAX_PATH_SZ, "%s/%s", dir, pat);
-    }
+    char *pattern = am_format("%s%c%s", dir, AM_PATH_SEP, pat);
     glob.Add(pattern);
-    int os;
-    last = rootdir[strlen(rootdir)-1];
-    if (last == '/' || last == '\\') {
-        os = strlen(rootdir);
-    } else {
-        os = strlen(rootdir) + 1;
-    }
+    free(pattern);
     for (int n = 0; n < glob.FileCount(); ++n) {
         char *file = glob.File(n);
         size_t len;
-        void *buf = read_file(file, &len);
+        void *buf = am_read_file(file, &len);
         if (buf == NULL) return false;
-        if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, file + os, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, 0100644, platform)) {
+        if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, file + strlen(rootdir) + 1,
+                buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, 0100644, platform)) {
             free(buf);
             fprintf(stderr, "Error: failed to add %s to archive\n", file);
             return false;
@@ -82,37 +46,29 @@ static bool add_matching_files_to_zip(const char *zipfile, const char *rootdir, 
 
 static bool add_files_to_zip_renamed(const char *zipfile, const char *dir, const char *pat, const char *newdir, const char *newname, const char *newext, bool compress, bool executable, uint8_t platform) {
     CSimpleGlobTempl<char> glob(SG_GLOB_ONLYFILE);
-    char pattern[MAX_PATH_SZ];
-    memset(pattern, 0, MAX_PATH_SZ);
-    char last = dir[strlen(dir)-1];
-    int os;
-    if (last == '/' || last == '\\') {
-        snprintf(pattern, MAX_PATH_SZ, "%s%s", dir, pat);
-        os = strlen(dir);
-    } else {
-        snprintf(pattern, MAX_PATH_SZ, "%s/%s", dir, pat);
-        os = strlen(dir) + 1;
-    }
+    char *pattern = am_format("%s%c%s", dir, AM_PATH_SEP, pat);
     glob.Add(pattern);
+    free(pattern);
     for (int n = 0; n < glob.FileCount(); ++n) {
         char *file = glob.File(n);
         size_t len;
-        void *buf = read_file(file, &len);
+        void *buf = am_read_file(file, &len);
         if (buf == NULL) return false;
-        char name[MAX_PATH_SZ];
-        memset(name, 0, MAX_PATH_SZ);
+        char *name;
         if (newname == NULL) {
-            snprintf(name, MAX_PATH_SZ, "%s/%s", newdir, file + os);
+            name = am_format("%s/%s", newdir, file + strlen(dir) + 1);
         } else if (newext == NULL) {
-            snprintf(name, MAX_PATH_SZ, "%s/%s", newdir, newname);
+            name = am_format("%s/%s", newdir, newname);
         } else {
-            snprintf(name, MAX_PATH_SZ, "%s/%s%s", newdir, newname, newext);
+            name = am_format("%s/%s%s", newdir, newname, newext);
         }
         if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, name, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, executable ? 0100755 : 0100644, platform)) {
             free(buf);
+            free(name);
             fprintf(stderr, "Error: failed to add %s to archive\n", file);
             return false;
         }
+        free(name);
         free(buf);
     }
     return true;
@@ -138,15 +94,9 @@ static bool build_data_pak_2(int level, const char *rootdir, const char *dir, co
         return false;
     }
     CSimpleGlobTempl<char> glob(SG_GLOB_ONLYDIR | SG_GLOB_NODOT);
-    char pattern[MAX_PATH_SZ];
-    memset(pattern, 0, MAX_PATH_SZ);
-    char last = dir[strlen(dir)-1];
-    if (last == '/' || last == '\\') {
-        snprintf(pattern, MAX_PATH_SZ, "%s*", dir);
-    } else {
-        snprintf(pattern, MAX_PATH_SZ, "%s/*", dir);
-    }
+    char *pattern = am_format("%s%c*", dir, AM_PATH_SEP);
     glob.Add(pattern);
+    free(pattern);
     for (int n = 0; n < glob.FileCount(); ++n) {
         char *subdir = glob.File(n);
         if (!build_data_pak_2(level + 1, rootdir, subdir, pakfile)) {
@@ -164,9 +114,7 @@ static bool build_data_pak(export_config *conf, const char *dir) {
 }
 
 static char *get_bin_path(export_config *conf, const char *platform) {
-    char *bin_path = (char*)malloc(MAX_PATH_SZ);
-    memset(bin_path, 0, MAX_PATH_SZ);
-    snprintf(bin_path, MAX_PATH_SZ, "%sbuilds/%s/%s/%s/bin", conf->basepath, platform, conf->luavm, conf->grade);
+    char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", conf->basepath, platform, conf->luavm, conf->grade);
     if (!am_file_exists(bin_path)) {
         fprintf(stderr, "Error: export configuration %s/%s/%s not available in your installation.\n", platform, conf->luavm, conf->grade);
         fprintf(stderr, "(the path %s does not exist)\n", bin_path);
@@ -177,10 +125,7 @@ static char *get_bin_path(export_config *conf, const char *platform) {
 }
 
 static char *get_export_zip_name(export_config *conf, const char *platname) {
-    char *name = (char*)malloc(MAX_PATH_SZ);
-    memset(name, 0, MAX_PATH_SZ);
-    snprintf(name, MAX_PATH_SZ, "%s-%s.zip", conf->appname, platname);
-    return name;
+    return am_format("%s-%s.zip", conf->appname, platname);
 }
 
 static bool build_windows_export(export_config *conf) {
@@ -293,15 +238,10 @@ static bool build_html_export(export_config *conf) {
 }
 
 static bool file_exists(const char *dir, const char *filename) {
-    char path[MAX_PATH_SZ];
-    memset(path, 0, MAX_PATH_SZ);
-    char last = dir[strlen(dir)-1];
-    if (last == '/' || last == '\\') {
-        snprintf(path, MAX_PATH_SZ, "%s%s", dir, filename);
-    } else {
-        snprintf(path, MAX_PATH_SZ, "%s/%s", dir, filename);
-    }
-    return am_file_exists(path);
+    char *path = am_format("%s%c%s", dir, AM_PATH_SEP, filename);
+    bool exists = am_file_exists(path);
+    free(path);
+    return exists;
 }
 
 bool am_build_exports(const char *dir) {
