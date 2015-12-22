@@ -49,6 +49,7 @@
 
 
 #ifdef AM_WINDOWS
+#define UNICODE 1
 #include <windows.h>
 #include <direct.h>
 #else

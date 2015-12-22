@@ -520,6 +520,28 @@ quit:
 }
 
 #ifdef AM_WINDOWS
+static void
+UnEscapeQuotes(char *arg)
+{
+    char *last = NULL;
+
+    while (*arg) {
+        if (*arg == '"' && (last != NULL && *last == '\\')) {
+            char *c_curr = arg;
+            char *c_last = last;
+
+            while (*c_curr) {
+                *c_last = *c_curr;
+                c_last = c_curr;
+                c_curr++;
+            }
+            *c_last = '\0';
+        }
+        last = arg;
+        arg++;
+    }
+}
+
 static int
 ParseCommandLine(char *cmdline, char **argv)
 {
