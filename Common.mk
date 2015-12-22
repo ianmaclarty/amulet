@@ -217,21 +217,26 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   AR_OPTS = -nologo
   AR_OUT_OPT = -OUT:
   XCFLAGS = -DLUA_COMPAT_ALL -WX 
-  XLDFLAGS = -SUBSYSTEM:WINDOWS \
-	-NODEFAULTLIB:msvcrt.lib \
+  XLDFLAGS = -NODEFAULTLIB:msvcrt.lib \
 	$(BUILD_LIB_DIR)/SDL2main.lib \
 	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc -fp:fast
+  WINDOWS = 1
+  WINDOWS_SUBSYSTEM_OPT = -SUBSYSTEM:WINDOWS
+  CONSOLE_SUBSYSTEM_OPT = -SUBSYSTEM:CONSOLE
 else ifeq ($(TARGET_PLATFORM),mingw32)
   EXE_EXT = .exe
   CC = i686-w64-mingw32-gcc
   CPP = i686-w64-mingw32-g++
   LINK = $(CPP)
   AR = i686-w64-mingw32-ar
-  XLDFLAGS = -mwindows -static $(BUILD_LIB_DIR)/SDL2main.lib $(BUILD_LIB_DIR)/SDL2.lib 
-  XCFLAGS = -Wall -Werror -fno-strict-aliasing -mwindows
+  XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2main.lib $(BUILD_LIB_DIR)/SDL2.lib 
+  XCFLAGS = -Wall -Werror -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m32" CROSS=i686-w64-mingw32- TARGET_SYS=Windows
-else ifeq ($(TARGET_PLATFORM),mingw32)
+  WINDOWS = 1
+  WINDOWS_SUBSYSTEM_OPT = -mwindows
+  CONSOLE_SUBSYSTEM_OPT =
+else ifeq ($(TARGET_PLATFORM),mingw64)
   EXE_EXT = .exe
   CC = x86_64-w64-mingw32-gcc
   CPP = x86_64-w64-mingw32-g++
@@ -240,6 +245,9 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib $(BUILD_LIB_DIR)/SDL2main.lib
   XCFLAGS = -Wall -Werror -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m64" CROSS=x86_64-w64-mingw32- TARGET_SYS=Windows
+  WINDOWS = 1
+  WINDOWS_SUBSYSTEM_OPT = -mwindows
+  CONSOLE_SUBSYSTEM_OPT =
 else ifeq ($(TARGET_PLATFORM),linux32)
   TARGET_CFLAGS += -m32
   LDFLAGS += -m32
