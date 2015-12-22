@@ -515,14 +515,97 @@ quit:
 #ifdef AM_OSX
     [pool release];
 #endif
+    exit(exit_status);
     return exit_status;
 }
 
 #ifdef AM_WINDOWS
+static int
+ParseCommandLine(char *cmdline, char **argv)
+{
+    char *bufp;
+    char *lastp = NULL;
+    int argc, last_argc;
+
+    argc = last_argc = 0;
+    for (bufp = cmdline; *bufp;) {
+        /* Skip leading whitespace */
+        while (SDL_isspace(*bufp)) {
+            ++bufp;
+        }
+        /* Skip over argument */
+        if (*bufp == '"') {
+            ++bufp;
+            if (*bufp) {
+                if (argv) {
+                    argv[argc] = bufp;
+                }
+                ++argc;
+            }
+            /* Skip over word */
+            lastp = bufp;
+            while (*bufp && (*bufp != '"' || *lastp == '\\')) {
+                lastp = bufp;
+                ++bufp;
+            }
+        } else {
+            if (*bufp) {
+                if (argv) {
+                    argv[argc] = bufp;
+                }
+                ++argc;
+            }
+            /* Skip over word */
+            while (*bufp && !SDL_isspace(*bufp)) {
+                ++bufp;
+            }
+        }
+        if (*bufp) {
+            if (argv) {
+                *bufp = '\0';
+            }
+            ++bufp;
+        }
+
+        /* Strip out \ from \" sequences */
+        if (argv && last_argc != argc) {
+            UnEscapeQuotes(argv[last_argc]);
+        }
+        last_argc = argc;
+    }
+    if (argv) {
+        argv[argc] = NULL;
+    }
+    return (argc);
+}
+
 int WINAPI
 WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 {
-    return main(0, NULL);
+    char **argv;
+    int argc;
+    char *cmdline;
+
+    /* Grab the command line */
+    TCHAR *text = GetCommandLine();
+    cmdline = SDL_iconv_string("UTF-8", "UCS-2-INTERNAL", (char *)(text), (SDL_wcslen(text)+1)*sizeof(WCHAR));
+    if (cmdline == NULL) {
+        fprintf(stderr, "out of memory\n");
+        return EXIT_FAILURE;
+    }
+
+    /* Parse it into argv and argc */
+    argc = ParseCommandLine(cmdline, NULL);
+    argv = SDL_stack_alloc(char *, argc + 1);
+    if (argv == NULL) {
+        fprintf(stderr, "out of memory\n");
+        return EXIT_FAILURE;
+    }
+    ParseCommandLine(cmdline, argv);
+    int res = main(argc, argv);
+    SDL_stack_free(argv);
+    SDL_free(cmdline);
+    return res;
 }
 #endif
 

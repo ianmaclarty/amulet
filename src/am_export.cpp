@@ -292,20 +292,20 @@ static bool build_html_export(export_config *conf) {
     return ok;
 }
 
-static bool main_exists(const char *dir) {
-    char main_path[MAX_PATH_SZ];
-    memset(main_path, 0, MAX_PATH_SZ);
+static bool file_exists(const char *dir, const char *filename) {
+    char path[MAX_PATH_SZ];
+    memset(path, 0, MAX_PATH_SZ);
     char last = dir[strlen(dir)-1];
     if (last == '/' || last == '\\') {
-        snprintf(main_path, MAX_PATH_SZ, "%s%s", dir, "main.lua");
+        snprintf(path, MAX_PATH_SZ, "%s%s", dir, filename);
     } else {
-        snprintf(main_path, MAX_PATH_SZ, "%s/%s", dir, "main.lua");
+        snprintf(path, MAX_PATH_SZ, "%s/%s", dir, filename);
     }
-    return am_file_exists(main_path);
+    return am_file_exists(path);
 }
 
 bool am_build_exports(const char *dir) {
-    if (!main_exists(dir)) {
+    if (!file_exists(dir, "main.lua")) {
         fprintf(stderr, "Error: could not find main.lua in directory %s\n", dir);
         return false;
     }
