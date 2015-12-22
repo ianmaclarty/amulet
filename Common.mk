@@ -218,7 +218,6 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   AR_OUT_OPT = -OUT:
   XCFLAGS = -DLUA_COMPAT_ALL -WX 
   XLDFLAGS = -NODEFAULTLIB:msvcrt.lib \
-	$(BUILD_LIB_DIR)/SDL2main.lib \
 	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc -fp:fast
   WINDOWS = 1
@@ -230,7 +229,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   CPP = i686-w64-mingw32-g++
   LINK = $(CPP)
   AR = i686-w64-mingw32-ar
-  XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2main.lib $(BUILD_LIB_DIR)/SDL2.lib 
+  XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib 
   XCFLAGS = -Wall -Werror -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m32" CROSS=i686-w64-mingw32- TARGET_SYS=Windows
   WINDOWS = 1
@@ -242,7 +241,7 @@ else ifeq ($(TARGET_PLATFORM),mingw64)
   CPP = x86_64-w64-mingw32-g++
   LINK = $(CPP)
   AR = x86_64-w64-mingw32-ar
-  XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib $(BUILD_LIB_DIR)/SDL2main.lib
+  XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib
   XCFLAGS = -Wall -Werror -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m64" CROSS=x86_64-w64-mingw32- TARGET_SYS=Windows
   WINDOWS = 1

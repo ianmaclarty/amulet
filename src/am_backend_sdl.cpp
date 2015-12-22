@@ -2,7 +2,7 @@
 
 #ifdef AM_BACKEND_SDL
 
-//#define SDL_MAIN_HANDLED 1
+#define SDL_MAIN_HANDLED 1
 #include "SDL.h"
 
 #ifdef AM_OSX
@@ -374,6 +374,9 @@ int main( int argc, char *argv[] )
 #ifdef AM_OSX
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 #endif
+#ifdef AM_WINDOWS
+    SDL_SetMainReady();
+#endif
 
     if (!am_process_args(&argc, &argv, &exit_status)) {
         goto quit;
@@ -515,6 +518,14 @@ quit:
     return exit_status;
 }
 
+#ifdef AM_WINDOWS
+int WINAPI
+WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
+{
+    return main(0, NULL);
+}
+#endif
+
 static void init_sdl() {
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
     init_gamepad();
@@ -526,6 +537,7 @@ static void init_sdl() {
     }
 #endif
 }
+#endif
 
 #ifdef AM_NEED_GL_FUNC_PTRS
 static void init_gl_func_ptrs() {
