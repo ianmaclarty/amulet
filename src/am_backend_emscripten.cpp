@@ -191,7 +191,7 @@ static void start_main_loop(bool run_main, bool run_waiting) {
 
     if (run_main) {
         script_loaded = 1;
-        lua_pushcclosure(eng->L, am_conf_main_load_func, 0);
+        lua_pushcclosure(eng->L, am_require, 0);
         lua_pushstring(eng->L, "main");
         if (!am_call(eng->L, 1, 0)) {
             run_loop = false;
@@ -202,8 +202,10 @@ static void start_main_loop(bool run_main, bool run_waiting) {
         }
     } else if (run_waiting) {
         script_loaded = 1;
-        char *waiting_script = (char*)am_get_embedded_file("lua/waiting.lua")->data;
-        if (!am_run_script(eng->L, waiting_script, "main.lua")) {
+        am_embedded_file_record *rec = am_get_embedded_file("lua/waiting.lua");
+        char *waiting_script = (char*)rec->data;
+        int len = (int)rec->len;
+        if (!am_run_script(eng->L, waiting_script, len, "main.lua")) {
             run_loop = false;
             was_error = true;
         }
@@ -574,7 +576,7 @@ void am_emscripten_run(const char *script) {
     script_loaded = 1;
 
     printed_error = false;
-    if (am_run_script(eng->L, script, "main.lua")) {
+    if (am_run_script(eng->L, script, strlen(script), "main.lua")) {
         run_loop = true;
         was_error = false;
     } else {

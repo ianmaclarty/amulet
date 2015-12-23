@@ -397,7 +397,7 @@ restart:
 
     frame_time = am_get_current_time();
 
-    lua_pushcclosure(L, am_conf_main_load_func, 0);
+    lua_pushcclosure(L, am_require, 0);
     lua_pushstring(L, am_opt_main_module);
     if (!am_call(L, 1, 0)) goto quit;
     if (windows.size() == 0) goto quit;

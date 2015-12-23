@@ -54,7 +54,8 @@ static bool export_cmd(int *argc, char ***argv) {
     }
     char last = dir[strlen(dir)-1];
     if (last == '/' || last == '\\') dir[strlen(dir)-1] = 0;
-    return am_build_exports(dir);
+    am_opt_data_dir = dir;
+    return am_build_exports();
 #else
     fprintf(stderr, "Sorry, the export command is not supported on this platform.\n");
     return false;

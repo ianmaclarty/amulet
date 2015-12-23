@@ -33,3 +33,8 @@ void *am_read_package_resource(am_package *pkg, const char *filename, int *len, 
     *len = (int)sz;
     return data;
 }
+
+bool am_package_resource_exists(am_package *pkg, const char *filename) {
+    return -1 !=
+        mz_zip_reader_locate_file((mz_zip_archive*)pkg->handle, filename, NULL, MZ_ZIP_FLAG_CASE_SENSITIVE);
+}

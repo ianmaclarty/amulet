@@ -185,16 +185,16 @@ bool am_call_amulet(lua_State *L, const char *func, int nargs, int nresults) {
     return am_call(L, nargs, nresults);
 }
 
-static bool load_script(lua_State *L, const char *script, const char *name) {
+static bool load_script(lua_State *L, const char *script, int len, const char *name) {
     char lname[128];
     snprintf(lname, 128, "@%s", name);
     lname[127] = 0;
-    int status = luaL_loadbuffer(L, script, strlen(script), lname);
+    int status = luaL_loadbuffer(L, script, len, lname);
     return (check_call_status(L, status) == 0);
 }
 
-bool am_run_script(lua_State *L, const char *script, const char *name) {
-    if (load_script(L, script, name)) {
+bool am_run_script(lua_State *L, const char *script, int len, const char *name) {
+    if (load_script(L, script, len, name)) {
         lua_newtable(L); // module table - discarded afterwards.
         return am_call(L, 1, 0);
     } else {

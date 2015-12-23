@@ -1,3 +1,8 @@
+// app settings
+extern const char *am_conf_app_title;
+extern const char *am_conf_app_id;
+extern const char *am_conf_app_version;
+
 // scene options
 extern int am_conf_default_recursion_limit;
 extern const char *am_conf_default_modelview_matrix_name;
@@ -14,9 +19,6 @@ extern int am_conf_audio_buffer_size;
 extern int am_conf_audio_channels;
 extern int am_conf_audio_sample_rate;
 extern int am_conf_audio_interpolate_samples;
-
-// main module load function
-extern lua_CFunction am_conf_main_load_func;
 
 // dev options
 extern bool am_conf_validate_shader_programs;

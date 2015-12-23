@@ -14,13 +14,13 @@
 #define ZIP_PLATFORM_DOS 0
 
 struct export_config {
-    char *pakfile;
-    char *appname;
-    char *appid;
-    char *appversion;
-    char *luavm;
-    char *grade;
-    char *basepath;
+    const char *pakfile;
+    const char *appname;
+    const char *appid;
+    const char *appversion;
+    const char *luavm;
+    const char *grade;
+    const char *basepath;
 };
 
 static bool add_matching_files_to_zip(const char *zipfile, const char *rootdir, const char *dir, const char *pat, bool compress, uint8_t platform) {
@@ -106,11 +106,11 @@ static bool build_data_pak_2(int level, const char *rootdir, const char *dir, co
     return true;
 }
 
-static bool build_data_pak(export_config *conf, const char *dir) {
+static bool build_data_pak(export_config *conf) {
     if (am_file_exists(conf->pakfile)) {
         am_delete_file(conf->pakfile);
     }
-    return build_data_pak_2(0, dir, dir, conf->pakfile);
+    return build_data_pak_2(0, am_opt_data_dir, am_opt_data_dir, conf->pakfile);
 }
 
 static char *get_bin_path(export_config *conf, const char *platform) {
@@ -237,28 +237,29 @@ static bool build_html_export(export_config *conf) {
     return ok;
 }
 
-static bool file_exists(const char *dir, const char *filename) {
-    char *path = am_format("%s%c%s", dir, AM_PATH_SEP, filename);
+static bool file_exists(const char *filename) {
+    char *path = am_format("%s%c%s", am_opt_data_dir, AM_PATH_SEP, filename);
     bool exists = am_file_exists(path);
     free(path);
     return exists;
 }
 
-bool am_build_exports(const char *dir) {
-    if (!file_exists(dir, "main.lua")) {
-        fprintf(stderr, "Error: could not find main.lua in directory %s\n", dir);
+bool am_build_exports() {
+    if (!file_exists("main.lua")) {
+        fprintf(stderr, "Error: could not find main.lua in directory %s\n", am_opt_data_dir);
         return false;
     }
     am_make_dir(AM_TMP_DIR);
+    if (!am_load_config()) return false;
     export_config conf;
-    conf.basepath = am_get_base_path();
-    conf.appname = (char*)"Untitled";
-    conf.appid = (char*)"xyz.amulet.untitled";
-    conf.appversion = (char*)"1.0";
-    conf.luavm = (char*)"lua51";
-    conf.grade = (char*)"release";
-    conf.pakfile = (char*)".amulet_tmp/data.pak";
-    if (!build_data_pak(&conf, dir)) return false;
+    conf.basepath = (const char*)am_get_base_path();
+    conf.appname = am_conf_app_title;
+    conf.appid = am_conf_app_id;
+    conf.appversion = am_conf_app_version;
+    conf.luavm = "lua51";
+    conf.grade = "release";
+    conf.pakfile = ".amulet_tmp/data.pak";
+    if (!build_data_pak(&conf)) return false;
     bool ok =
         build_windows_export(&conf) &&
         build_mac_export(&conf) &&
@@ -267,7 +268,7 @@ bool am_build_exports(const char *dir) {
         true;
     am_delete_file(conf.pakfile);
     am_delete_empty_dir(AM_TMP_DIR);
-    free(conf.basepath);
+    free((void*)conf.basepath);
     return ok;
 }
 
