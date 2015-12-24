@@ -133,7 +133,9 @@ static int create_window(lua_State *L) {
     return 1;
 }
 
-void am_window::mouse_move(lua_State *L, double x, double y) {
+void am_window::apply_window_projection(double *x_ptr, double *y_ptr) {
+    double x = *x_ptr;
+    double y = *y_ptr;
     // invert y
     y = (double)screen_height - y;
     // convert from screen units to pixels
@@ -154,7 +156,12 @@ void am_window::mouse_move(lua_State *L, double x, double y) {
         x = x / (double)viewport_width * (user_right - user_left) + user_left;
         y = y / (double)viewport_height * (user_top - user_bottom) + user_bottom;
     }
-    // finally send to lua
+    *x_ptr = x;
+    *y_ptr = y;
+}
+
+void am_window::mouse_move(lua_State *L, double x, double y) {
+    apply_window_projection(&x, &y);
     push(L);
     lua_pushnumber(L, x);
     lua_pushnumber(L, y);
@@ -178,6 +185,31 @@ void am_window::mouse_up(lua_State *L, am_mouse_button button) {
     push(L);
     lua_pushstring(L, am_mouse_button_name(button));
     am_call_amulet(L, "_mouse_up", 2, 0);
+}
+
+void am_window::touch_begin(lua_State *L, void* touchid, double x, double y) {
+    apply_window_projection(&x, &y);
+    push(L);
+    lua_pushlightuserdata(L, touchid);
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+    am_call_amulet(L, "_touch_begin", 4, 0);
+}
+
+void am_window::touch_end(lua_State *L, void* touchid, double x, double y) {
+    push(L);
+    lua_pushlightuserdata(L, touchid);
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+    am_call_amulet(L, "_touch_end", 4, 0);
+}
+
+void am_window::touch_move(lua_State *L, void* touchid, double x, double y) {
+    push(L);
+    lua_pushlightuserdata(L, touchid);
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+    am_call_amulet(L, "_touch_move", 4, 0);
 }
 
 am_window* am_find_window(am_native_window *nwin) {

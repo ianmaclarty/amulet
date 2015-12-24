@@ -418,11 +418,7 @@ static void ios_touch_began(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
-        lua_pushlightuserdata(ios_eng->L, touch);
-        lua_pushnumber(ios_eng->L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
-        lua_pushnumber(ios_eng->L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
-        am_call_amulet(ios_eng->L, "_touch_begin", 4, 0);
+        am_find_window((am_native_window*)ios_view)->touch_begin(touch, pos.x, pos.y);
     }
 }
 
@@ -432,11 +428,7 @@ static void ios_touch_moved(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
-        lua_pushlightuserdata(ios_eng->L, touch);
-        lua_pushnumber(ios_eng->L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
-        lua_pushnumber(ios_eng->L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
-        am_call_amulet(ios_eng->L, "_touch_move", 4, 0);
+        am_find_window((am_native_window*)ios_view)->touch_move(touch, pos.x, pos.y);
     }
 }
 
@@ -446,11 +438,7 @@ static void ios_touch_ended(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
-        lua_pushlightuserdata(ios_eng->L, touch);
-        lua_pushnumber(ios_eng->L, pos.x / ios_view.bounds.size.width * 2.0f - 1.0f);
-        lua_pushnumber(ios_eng->L, 1.0f - pos.y / ios_view.bounds.size.height * 2.0f);
-        am_call_amulet(ios_eng->L, "_touch_end", 4, 0);
+        am_find_window((am_native_window*)ios_view)->touch_end(touch, pos.x, pos.y);
     }
 }
 
