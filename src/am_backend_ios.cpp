@@ -318,6 +318,7 @@ static void ios_init_engine() {
     am_opt_data_dir = ios_bundle_path();
     am_opt_main_module = "main";
     if (!open_package()) return;
+    if (!am_load_config()) return;
     ios_eng = am_init_engine(false, 0, NULL);
     if (ios_eng == NULL) return;
 

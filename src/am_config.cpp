@@ -47,12 +47,19 @@ static void read_string_setting(lua_State *L, const char *name, const char **val
     lua_pop(L, 1);
 }
 
+static void free_if_not_null(void **ptr) {
+    if (*ptr != NULL) {
+        free(*ptr);
+        *ptr = NULL;
+    }
+}
+
 static void free_config() {
-    if (am_conf_app_title != NULL) free((void*)am_conf_app_title);
-    if (am_conf_app_id != NULL) free((void*)am_conf_app_id);
-    if (am_conf_app_version != NULL) free((void*)am_conf_app_version);
-    if (am_conf_app_shortname != NULL) free((void*)am_conf_app_shortname);
-    if (am_conf_app_org != NULL) free((void*)am_conf_app_org);
+    free_if_not_null((void**)&am_conf_app_title);
+    free_if_not_null((void**)&am_conf_app_id);
+    free_if_not_null((void**)&am_conf_app_version);
+    free_if_not_null((void**)&am_conf_app_shortname);
+    free_if_not_null((void**)&am_conf_app_org);
 }
 
 bool am_load_config() {

@@ -184,6 +184,7 @@ static void start_main_loop(bool run_main, bool run_waiting) {
         am_log0("%s", "INTERNAL ERROR: eng != NULL");
         return;
     }
+    if (!am_load_config()) return;
     eng = am_init_engine(false, 0, NULL);
     if (eng == NULL) return;
 

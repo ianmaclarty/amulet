@@ -199,7 +199,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
     if (!ok) return false;
     if (!worker) {
         return
-        run_embedded_script(L, "lua/save.lua");
+        run_embedded_script(L, "lua/save.lua") &&
         run_embedded_script(L, "lua/time.lua") &&
         run_embedded_script(L, "lua/buffer.lua") &&
         run_embedded_script(L, "lua/shaders.lua") &&

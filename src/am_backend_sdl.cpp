@@ -397,7 +397,10 @@ int main( int argc, char *argv[] )
         am_opt_main_module = "main";
     }
 
-    am_load_config();
+    if (!am_load_config()) {
+        exit_status = EXIT_FAILURE;
+        goto quit;
+    }
     eng = am_init_engine(false, argc, argv);
     if (eng == NULL) {
         exit_status = EXIT_FAILURE;
