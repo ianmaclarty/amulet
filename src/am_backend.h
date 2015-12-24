@@ -44,3 +44,4 @@ void am_copy_video_frame_to_texture();
 void am_capture_audio(am_audio_bus *bus);
 
 char *am_get_base_path();
+char *am_get_data_path();

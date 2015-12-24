@@ -508,7 +508,11 @@ static void open_package() {
 }
 
 char *am_get_base_path() {
-    return NULL;
+    return am_format("%s", "./");
+}
+
+char *am_get_data_path() {
+    return am_format("%s", "./");
 }
 
 void *am_read_resource(const char *filename, int *len, char **errmsg) {

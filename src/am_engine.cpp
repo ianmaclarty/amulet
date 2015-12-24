@@ -7,6 +7,7 @@ static void init_require_func(lua_State *L);
 static bool run_embedded_scripts(lua_State *L, bool worker);
 static void set_arg_global(lua_State *L, int argc, char** argv);
 static void am_set_version(lua_State *L);
+static void am_set_dirs(lua_State *L);
 
 am_engine *am_init_engine(bool worker, int argc, char** argv) {
 #if defined(AM_LUAJIT) && defined(AM_64BIT)
@@ -59,6 +60,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     }
     am_set_globals_metatable(L);
     am_set_version(L);
+    am_set_dirs(L);
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
         return NULL;
@@ -151,6 +153,19 @@ static void am_set_version(lua_State *L) {
     lua_pop(L, 1); // am table
 }
 
+static void am_set_dirs(lua_State *L) {
+    lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+    char *data_dir = am_get_data_path();
+    char *base_dir = am_get_base_path();
+    lua_pushstring(L, data_dir);
+    lua_setfield(L, -2, "app_data_dir");
+    lua_pushstring(L, base_dir);
+    lua_setfield(L, -2, "app_base_dir");
+    lua_pop(L, 1); // am table
+    free(data_dir);
+    free(base_dir);
+}
+
 #define MAX_CHUNKNAME_SIZE 100
 
 static bool run_embedded_script(lua_State *L, const char *filename) {
@@ -184,7 +199,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
     if (!ok) return false;
     if (!worker) {
         return
-        run_embedded_script(L, "lua/config.lua") &&
+        run_embedded_script(L, "lua/save.lua");
         run_embedded_script(L, "lua/time.lua") &&
         run_embedded_script(L, "lua/buffer.lua") &&
         run_embedded_script(L, "lua/shaders.lua") &&

@@ -15,7 +15,8 @@
 
 struct export_config {
     const char *pakfile;
-    const char *appname;
+    const char *apptitle;
+    const char *appshortname;
     const char *appid;
     const char *appversion;
     const char *luavm;
@@ -125,7 +126,7 @@ static char *get_bin_path(export_config *conf, const char *platform) {
 }
 
 static char *get_export_zip_name(export_config *conf, const char *platname) {
-    return am_format("%s-%s.zip", conf->appname, platname);
+    return am_format("%s-%s.zip", conf->appshortname, platname);
 }
 
 static bool build_windows_export(export_config *conf) {
@@ -133,10 +134,11 @@ static bool build_windows_export(export_config *conf) {
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "msvc32");
     if (binpath == NULL) return false;
+    const char *name = conf->appshortname;
     bool ok =
-        add_files_to_zip_renamed(zipname, binpath, "amulet.exe", conf->appname, conf->appname, ".exe", true, true, ZIP_PLATFORM_DOS) &&
-        add_files_to_zip_renamed(zipname, binpath, "*.dll", conf->appname, NULL, NULL, true, true, ZIP_PLATFORM_DOS) &&
-        add_files_to_zip_renamed(zipname, ".", conf->pakfile, conf->appname, "data.pak", NULL, false, false, ZIP_PLATFORM_DOS) &&
+        add_files_to_zip_renamed(zipname, binpath, "amulet.exe", name, name, ".exe", true, true, ZIP_PLATFORM_DOS) &&
+        add_files_to_zip_renamed(zipname, binpath, "*.dll", name, NULL, NULL, true, true, ZIP_PLATFORM_DOS) &&
+        add_files_to_zip_renamed(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_DOS) &&
         true;
     printf("%s\n", zipname);
     free(zipname);
@@ -177,8 +179,8 @@ static bool create_mac_info_plist(const char *filename, export_config *conf) {
 "  <string>10.6.8</string>\n"
 "</dict>\n"
 "</plist>\n",
-        conf->appname,
-        conf->appname,
+        conf->appshortname,
+        conf->apptitle,
         conf->appid,
         conf->appversion);
     fclose(f);
@@ -191,10 +193,11 @@ static bool build_mac_export(export_config *conf) {
     char *binpath = get_bin_path(conf, "osx");
     if (binpath == NULL) return false;
     if (!create_mac_info_plist(AM_TMP_DIR "/Info.plist", conf)) return false;
+    const char *name = conf->appshortname;
     bool ok =
-        add_files_to_zip_renamed(zipname, binpath, "amulet", conf->appname, conf->appname, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
-        add_files_to_zip_renamed(zipname, ".", conf->pakfile, conf->appname, conf->appname, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_zip_renamed(zipname, AM_TMP_DIR, "Info.plist", conf->appname, conf->appname, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, binpath, "amulet", name, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, ".", conf->pakfile, name, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, AM_TMP_DIR, "Info.plist", name, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
         true;
     am_delete_file(AM_TMP_DIR "/Info.plist");
     printf("%s\n", zipname);
@@ -210,10 +213,11 @@ static bool build_linux_export(export_config *conf) {
     if (binpath64 == NULL) return false;
     char *binpath32 = get_bin_path(conf, "linux32");
     if (binpath32 == NULL) return false;
+    const char *name = conf->appshortname;
     bool ok =
-        add_files_to_zip_renamed(zipname, binpath64, "amulet", conf->appname, conf->appname, ".x86_64", true, true, ZIP_PLATFORM_UNIX) &&
-        add_files_to_zip_renamed(zipname, binpath32, "amulet", conf->appname, conf->appname, ".i686", true, true, ZIP_PLATFORM_UNIX) &&
-        add_files_to_zip_renamed(zipname, ".", conf->pakfile, conf->appname, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
     printf("%s\n", zipname);
     free(zipname);
@@ -227,11 +231,12 @@ static bool build_html_export(export_config *conf) {
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "html");
     if (binpath == NULL) return false;
+    const char *name = conf->appshortname;
     bool ok =
-        add_files_to_zip_renamed(zipname, binpath, "amulet.js", conf->appname, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_zip_renamed(zipname, binpath, "player.html", conf->appname, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_zip_renamed(zipname, binpath, "jquery-2.1.3.min.js", conf->appname, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_zip_renamed(zipname, ".", conf->pakfile, conf->appname, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, binpath, "amulet.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, binpath, "player.html", name, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, binpath, "jquery-2.1.3.min.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
     printf("%s\n", zipname);
     free(zipname);
@@ -255,7 +260,8 @@ bool am_build_exports() {
     if (!am_load_config()) return false;
     export_config conf;
     conf.basepath = (const char*)am_get_base_path();
-    conf.appname = am_conf_app_title;
+    conf.apptitle = am_conf_app_title;
+    conf.appshortname = am_conf_app_shortname;
     conf.appid = am_conf_app_id;
     conf.appversion = am_conf_app_version;
     conf.luavm = "lua51";

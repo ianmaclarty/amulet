@@ -293,7 +293,18 @@ double am_get_current_time() {
 #define ERR_MSG_SZ 1024
 
 char *am_get_base_path() {
-    return SDL_GetBasePath();
+    char *path = SDL_GetBasePath();
+    if (path != NULL) return path;
+    return am_format(".%c", AM_PATH_SEP);
+}
+
+char *am_get_data_path() {
+    if (am_conf_app_org == NULL || am_conf_app_shortname == NULL) {
+        return am_format(".%c", AM_PATH_SEP);
+    }
+    char *path = SDL_GetPrefPath(am_conf_app_org, am_conf_app_shortname);
+    if (path != NULL) return path;
+    return am_format(".%c", AM_PATH_SEP);
 }
 
 static void *am_read_resource_package(const char *filename, int *len, char **errmsg) {
@@ -386,6 +397,7 @@ int main( int argc, char *argv[] )
         am_opt_main_module = "main";
     }
 
+    am_load_config();
     eng = am_init_engine(false, argc, argv);
     if (eng == NULL) {
         exit_status = EXIT_FAILURE;

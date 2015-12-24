@@ -3,6 +3,8 @@
 const char *am_conf_app_title = NULL;
 const char *am_conf_app_id = NULL;
 const char *am_conf_app_version = NULL;
+const char *am_conf_app_shortname = NULL;
+const char *am_conf_app_org = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -45,7 +47,16 @@ static void read_string_setting(lua_State *L, const char *name, const char **val
     lua_pop(L, 1);
 }
 
+static void free_config() {
+    if (am_conf_app_title != NULL) free((void*)am_conf_app_title);
+    if (am_conf_app_id != NULL) free((void*)am_conf_app_id);
+    if (am_conf_app_version != NULL) free((void*)am_conf_app_version);
+    if (am_conf_app_shortname != NULL) free((void*)am_conf_app_shortname);
+    if (am_conf_app_org != NULL) free((void*)am_conf_app_org);
+}
+
 bool am_load_config() {
+    free_config();
     am_engine *eng = am_init_engine(true, 0, NULL);
     if (eng == NULL) return false;
     // remove globals metatable, so we can set conf options as globals
@@ -59,16 +70,18 @@ bool am_load_config() {
     if (data == NULL) {
         // assume conf.lua doesn't exist
         free(errmsg);
-    } else {
-        bool res = am_run_script(eng->L, (char*)data, len, "conf.lua");
-        free(data);
-        if (!res) {
-            return false;
-        }
-        read_string_setting(eng->L, "title", &am_conf_app_title, "Untitled");
-        read_string_setting(eng->L, "appid", &am_conf_app_id, "null");
-        read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");
+        data = am_format("%s", "");
     }
+    bool res = am_run_script(eng->L, (char*)data, len, "conf.lua");
+    free(data);
+    if (!res) {
+        return false;
+    }
+    read_string_setting(eng->L, "title", &am_conf_app_title, "Untitled");
+    read_string_setting(eng->L, "shortname", &am_conf_app_shortname, am_conf_app_title);
+    read_string_setting(eng->L, "org", &am_conf_app_org, "Unknown");
+    read_string_setting(eng->L, "appid", &am_conf_app_id, "null");
+    read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");
     am_destroy_engine(eng);
     return true;
 }

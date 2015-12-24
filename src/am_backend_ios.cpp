@@ -812,8 +812,15 @@ double am_get_current_time() {
 }
 
 char *am_get_base_path() {
-    return NULL;
+    return am_format("%s/", *ios_bundle_path());
 }
+
+char *am_get_data_path() {
+    NSArray *dirs = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    const char *dir = [[dirs objectAtIndex:0] UTF8String];
+    return am_format("%s/", dir);
+}
+
 
 void *am_read_resource(const char *filename, int *len, char** errmsg) {
     *errmsg = NULL;
