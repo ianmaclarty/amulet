@@ -32,7 +32,7 @@
 #endif
 
 #if defined(AM_WINDOWS) || defined(AM_LINUX) || defined(AM_OSX)
-    #define AM_EXPORTS_SUPPORTED
+    #define AM_BUILD_TOOLS
 #endif
 
 #if defined(AM_GLPROFILE_ES) && defined(AM_WINDOWS) || defined(AM_LINUX)
@@ -127,6 +127,7 @@ extern "C" {
 #include "am_json.h"
 #include "am_http.h"
 #include "am_browser.h"
+#include "am_spritepack.h"
 #include "am_export.h"
 
 #undef near

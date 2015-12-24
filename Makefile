@@ -28,13 +28,13 @@ ifeq ($(TARGET_PLATFORM),html)
 else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft
 else ifeq ($(TARGET_PLATFORM),msvc32)
-  AM_DEPS = $(LUAVM) stb kissfft
+  AM_DEPS = $(LUAVM) stb kissfft ft2
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifeq ($(TARGET_PLATFORM),mingw32)
-  AM_DEPS = $(LUAVM) stb kissfft
+  AM_DEPS = $(LUAVM) stb kissfft ft2
   EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else
-  AM_DEPS = $(LUAVM) sdl angle stb kissfft
+  AM_DEPS = $(LUAVM) sdl angle stb kissfft ft2
   AM_DEFS += AM_USE_ANGLE
   EXTRA_PREREQS = $(SIMPLEGLOB_H)
 endif
@@ -94,7 +94,7 @@ else ifdef WINDOWS
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
 	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
-	rm -f `basename $@` && cp $@ `basename $@`
+	cp $(BUILD_BIN_DIR)/* .
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)

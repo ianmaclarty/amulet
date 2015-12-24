@@ -30,11 +30,12 @@ static bool help_cmd(int *argc, char ***argv) {
         "Commands:\n"
         "  help            Show help message.\n"
         "  version         Show version.\n"
-#ifdef AM_EXPORTS_SUPPORTED
+#ifdef AM_BUILD_TOOLS
         "  export [<dir>]  Generate packages for the project in <dir>.\n"
         "                  <dir> should contain main.lua.\n"
         "                  If <dir> is omitted, it is assumed to be the\n"
         "                  current directory.\n"
+        "  pack ...        Generate sprite sheet.\n"
 #endif
        /*-------------------------------------------------------------------------------*/
     );
@@ -47,7 +48,7 @@ static bool version_cmd(int *argc, char ***argv) {
 }
 
 static bool export_cmd(int *argc, char ***argv) {
-#ifdef AM_EXPORTS_SUPPORTED
+#ifdef AM_BUILD_TOOLS
     char *dir = (char*)".";
     if (*argc > 0) {
         dir = (*argv)[0];
@@ -62,6 +63,15 @@ static bool export_cmd(int *argc, char ***argv) {
 #endif
 }
 
+static bool pack_cmd(int *argc, char ***argv) {
+#ifdef AM_BUILD_TOOLS
+    return am_pack_sprites(*argc, *argv);
+#else
+    fprintf(stderr, "Sorry, the pack command is not supported on this platform.\n");
+    return false;
+#endif
+}
+
 static option options[] = {
     {"help",        help_cmd, true},
     {"-help",       help_cmd, true},
@@ -70,6 +80,7 @@ static option options[] = {
     {"-version",    version_cmd, true},
     {"--version",   version_cmd, true},
     {"export",      export_cmd, true},
+    {"pack",        pack_cmd, true},
 
     {NULL, NULL}
 };
