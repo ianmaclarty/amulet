@@ -501,17 +501,6 @@ static int rect_height_compare(const void *a, const void *b)
    return (p->w > q->w) ? -1 : (p->w < q->w);
 }
 
-static int rect_width_compare(const void *a, const void *b)
-{
-   stbrp_rect *p = (stbrp_rect *) a;
-   stbrp_rect *q = (stbrp_rect *) b;
-   if (p->w > q->w)
-      return -1;
-   if (p->w < q->w)
-      return  1;
-   return (p->h > q->h) ? -1 : (p->h < q->h);
-}
-
 static int rect_original_order(const void *a, const void *b)
 {
    stbrp_rect *p = (stbrp_rect *) a;

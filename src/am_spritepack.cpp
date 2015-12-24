@@ -122,7 +122,6 @@ static void gen_rects() {
     r = 0;
     for (s = 0; s < num_items; s++) {
         if (items[s].is_font) {
-            int sz = items[s].size;
             load_font(s);
             c = 0;
             while (items[s].codepoints[c] >= 0) {
@@ -169,7 +168,6 @@ static void write_data() {
     unsigned char *src_ptr;
     unsigned char *dest_ptr;
     double s1, t1, s2, t2, x1, y1, x2, y2;
-    double blx1, bly1, blx2, bly2, bls1, blt1, bls2, blt2;
     double w, h, adv;
     FILE *f = fopen(lua_filename, "w");
     fprintf(f, "local font_data = {\n");
