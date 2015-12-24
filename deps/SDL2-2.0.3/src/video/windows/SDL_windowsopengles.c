@@ -130,7 +130,8 @@ WIN_GLES_SetSwapInterval(_THIS, int interval)
      * from working if we do (the window contents freeze and don't swap properly). So, we ignore
      * the request for now.
      */
-    SDL_Log("WARNING: Ignoring SDL_GL_SetSwapInterval call due to ANGLE bug");
+    //SDL_Log("WARNING: Ignoring SDL_GL_SetSwapInterval call due to ANGLE bug");
+    SDL_EGL_SetSwapInterval(_this, interval);
     return 0;
 }
 
