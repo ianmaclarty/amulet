@@ -26,8 +26,11 @@ unzip builds-linux.zip
 mkdir scripts\installer-payload
 cp -r builds scripts/installer-payload/
 cp -r builds/msvc32/lua51/release/bin/* scripts/installer-payload/
+mv scripts/installer-payload/amulet.exe scripts/installer-payload/amulet-window.exe
+mv scripts/installer-payload/amulet-console.exe scripts/installer-payload/amulet.exe
 cp -r examples scripts/installer-payload/
 cp scripts/icon.ico scripts/installer-payload/
+cp scripts/amulet_env.bat scripts/installer-payload/
 iscc /DVERSION=%TAG% scripts\installer.iss
 if %errorlevel% neq 0 exit /b %errorlevel%
 cp scripts/output/setup.exe amulet-%TAG%-windows.exe

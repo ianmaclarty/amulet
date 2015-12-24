@@ -3,7 +3,7 @@ local win = am.window{
     width = 1200,
     height = 700,
     resizable = true,
-    --lock_pointer = true,
+    lock_pointer = true,
     depth_buffer = true,
 }
 
@@ -46,7 +46,7 @@ function init()
             node.rotation = quat(am.frame_time, vec3(0, 1, 0))
         end)
         ^load_model("torus.obj")
-    for i = 1, 20000 do
+    for i = 1, 5000 do
         objects:append(
             am.translate(vec3((math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
             ^am.rotate(quat(
@@ -102,7 +102,7 @@ function main_action()
         win.lock_pointer = not win.lock_pointer
     end
     update_camera()
-    log(am.perf_stats().avg_fps)
+    --log(am.perf_stats().avg_fps)
 end
 
 local
