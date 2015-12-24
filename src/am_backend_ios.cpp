@@ -418,7 +418,7 @@ static void ios_touch_began(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->touch_begin(touch, pos.x, pos.y);
+        am_find_window((am_native_window*)ios_view)->touch_begin(ios_eng->L, touch, pos.x, pos.y);
     }
 }
 
@@ -428,7 +428,7 @@ static void ios_touch_moved(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->touch_move(touch, pos.x, pos.y);
+        am_find_window((am_native_window*)ios_view)->touch_move(ios_eng->L, touch, pos.x, pos.y);
     }
 }
 
@@ -438,7 +438,7 @@ static void ios_touch_ended(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->touch_end(touch, pos.x, pos.y);
+        am_find_window((am_native_window*)ios_view)->touch_end(ios_eng->L, touch, pos.x, pos.y);
     }
 }
 
