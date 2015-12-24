@@ -60,7 +60,9 @@ bool am_load_config() {
         // assume conf.lua doesn't exist
         free(errmsg);
     } else {
-        if (!am_run_script(eng->L, (char*)data, len, "conf.lua")) {
+        bool res = am_run_script(eng->L, (char*)data, len, "conf.lua");
+        free(data);
+        if (!res) {
             return false;
         }
         read_string_setting(eng->L, "title", &am_conf_app_title, "Untitled");

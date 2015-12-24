@@ -198,6 +198,8 @@ static bool build_mac_export(export_config *conf) {
         true;
     am_delete_file(AM_TMP_DIR "/Info.plist");
     printf("%s\n", zipname);
+    free(zipname);
+    free(binpath);
     return ok;
 }
 

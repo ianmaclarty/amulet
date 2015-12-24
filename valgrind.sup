@@ -206,4 +206,75 @@
    fun:_Z23am_create_native_window14am_window_mode22am_display_orientationiiiiPKcbbbbi
    fun:_ZL13create_windowP9lua_State
 }
-
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:tdefl_compress
+   fun:tdefl_compress_buffer
+   fun:mz_zip_writer_add_mem_ex
+   fun:mz_zip_add_mem_to_archive_file_in_place
+   fun:_ZL24add_files_to_zip_renamedPKcS0_S0_S0_S0_S0_bbh
+   fun:_Z16am_build_exportsv
+   fun:_ZL10export_cmdPiPPPc
+   fun:_Z15am_process_argsPiPPPcS_
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:tdefl_flush_block
+   fun:tdefl_compress
+   fun:tdefl_compress_buffer
+   fun:mz_zip_writer_add_mem_ex
+   fun:mz_zip_add_mem_to_archive_file_in_place
+   fun:_ZL25add_matching_files_to_zipPKcS0_S0_S0_bh
+   fun:_ZL16build_data_pak_2iPKcS0_S0_
+   fun:_Z16am_build_exportsv
+   fun:_ZL10export_cmdPiPPPc
+   fun:_Z15am_process_argsPiPPPcS_
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:tdefl_compress
+   fun:tdefl_compress_buffer
+   fun:mz_zip_writer_add_mem_ex
+   fun:mz_zip_add_mem_to_archive_file_in_place
+   fun:_ZL25add_matching_files_to_zipPKcS0_S0_S0_bh
+   fun:_ZL16build_data_pak_2iPKcS0_S0_
+   fun:_Z16am_build_exportsv
+   fun:_ZL10export_cmdPiPPPc
+   fun:_Z15am_process_argsPiPPPcS_
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:tdefl_compress
+   fun:tdefl_compress_buffer
+   fun:mz_zip_writer_add_mem_ex
+   fun:mz_zip_add_mem_to_archive_file_in_place
+   fun:_ZL25add_matching_files_to_zipPKcS0_S0_S0_bh
+   fun:_ZL16build_data_pak_2iPKcS0_S0_
+   fun:_Z16am_build_exportsv
+   fun:_ZL10export_cmdPiPPPc
+   fun:_Z15am_process_argsPiPPPcS_
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:tdefl_compress_lz_codes
+   fun:tdefl_flush_block
+   fun:tdefl_compress
+   fun:tdefl_compress_buffer
+   fun:mz_zip_writer_add_mem_ex
+   fun:mz_zip_add_mem_to_archive_file_in_place
+   fun:_ZL25add_matching_files_to_zipPKcS0_S0_S0_bh
+   fun:_ZL16build_data_pak_2iPKcS0_S0_
+   fun:_Z16am_build_exportsv
+   fun:_ZL10export_cmdPiPPPc
+   fun:_Z15am_process_argsPiPPPcS_
+   fun:main
+}
