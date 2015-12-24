@@ -66,7 +66,7 @@ bool am_load_config() {
             return false;
         }
         read_string_setting(eng->L, "title", &am_conf_app_title, "Untitled");
-        read_string_setting(eng->L, "id", &am_conf_app_id, "null");
+        read_string_setting(eng->L, "appid", &am_conf_app_id, "null");
         read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");
     }
     am_destroy_engine(eng);
