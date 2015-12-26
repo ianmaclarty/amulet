@@ -230,10 +230,85 @@ function am.text(font, str, color, halign, valign)
     return node
 end
 
-function am.sprite(image, halign, valign, color)
+local sprite_cache = {}
+setmetatable(sprite_cache, {__mode = "v"})
+
+local
+function convert_sprite_image(img)
+    local t = am.type(img)
+    if t == "table" then
+        return t
+    elseif t == "string" then
+        local name = img
+        if sprite_cache[name] then
+            return sprite_cache[name]
+        end
+        img = am.load_image(img)
+        local s1, t1, s2, t2 = 0, 0, 1, 1
+        local x1, y1, x2, y2 = 0, 0, img.width, img.height
+        local sprite = {
+            texture = am.texture2d{image = img},
+            s1 = s1,
+            t1 = t1,
+            s2 = s2,
+            t2 = t2,
+            x1 = x1,
+            y1 = y1,
+            x2 = x2,
+            y2 = y2,
+            verts = {x1, y2, x1, y1, x2, y1, x2, y2},
+            uvs = {s1, t2, s1, t1, s2, t1, s2, t2},
+            w = x2 - x1,
+            h = y2 - y1,
+        }
+        sprite_cache[name] = sprite
+        return sprite
+    elseif t == "image" then
+        local s1, t1, s2, t2 = 0, 0, 1, 1
+        local x1, y1, x2, y2 = 0, 0, img.width, img.height
+        return {
+            texture = am.texture2d{image = img},
+            s1 = s1,
+            t1 = t1,
+            s2 = s2,
+            t2 = t2,
+            x1 = x1,
+            y1 = y1,
+            x2 = x2,
+            y2 = y2,
+            verts = {x1, y2, x1, y1, x2, y1, x2, y2},
+            uvs = {s1, t2, s1, t1, s2, t1, s2, t2},
+            w = x2 - x1,
+            h = y2 - y1,
+        }
+    elseif t == "texture2d" then
+        local s1, t1, s2, t2 = 0, 0, 1, 1
+        local x1, y1, x2, y2 = 0, 0, img.width, img.height
+        return {
+            texture = img,
+            s1 = s1,
+            t1 = t1,
+            s2 = s2,
+            t2 = t2,
+            x1 = x1,
+            y1 = y1,
+            x2 = x2,
+            y2 = y2,
+            verts = {x1, y2, x1, y1, x2, y1, x2, y2},
+            uvs = {s1, t2, s1, t1, s2, t1, s2, t2},
+            w = x2 - x1,
+            h = y2 - y1,
+        }
+    else
+        error("unexpected "..t.." in argument position 1", 3)
+    end
+end
+
+function am.sprite(image0, halign, valign, color)
     halign = halign or "center"
     valign = valign or "center"
     color = color or vec4(1)
+    local image = convert_sprite_image(image0)
     local num_verts = 4
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
@@ -248,12 +323,14 @@ function am.sprite(image, halign, valign, color)
             color = color,
         }
         ^am.draw("triangles", indices)
-    function node:get_sprite()
-        return image
+    function node:get_image()
+        return image0
     end
-    function node:set_sprite(img)
-        image = img
+    function node:set_image(img0)
+        image = convert_sprite_image(img0)
+        image0 = img0
         set_sprite_verts(image, verts, uvs, halign, valign)
+        self"bind".tex = image.texture
     end
     function node:get_color()
         return color
