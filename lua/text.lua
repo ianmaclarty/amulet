@@ -234,7 +234,7 @@ local sprite_cache = {}
 setmetatable(sprite_cache, {__mode = "v"})
 
 local
-function convert_sprite_image(img)
+function convert_sprite_source(img)
     local t = am.type(img)
     if t == "table" then
         return t
@@ -308,7 +308,7 @@ function am.sprite(image0, halign, valign, color)
     halign = halign or "center"
     valign = valign or "center"
     color = color or vec4(1)
-    local image = convert_sprite_image(image0)
+    local image = convert_sprite_source(image0)
     local num_verts = 4
     local buffer, verts, uvs = make_buffer(num_verts)
     local indices = make_indices(num_verts)
@@ -323,11 +323,11 @@ function am.sprite(image0, halign, valign, color)
             color = color,
         }
         ^am.draw("triangles", indices)
-    function node:get_image()
+    function node:get_source()
         return image0
     end
-    function node:set_image(img0)
-        image = convert_sprite_image(img0)
+    function node:set_source(img0)
+        image = convert_sprite_source(img0)
         image0 = img0
         set_sprite_verts(image, verts, uvs, halign, valign)
         self"bind".tex = image.texture
