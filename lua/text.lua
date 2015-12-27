@@ -143,8 +143,9 @@ end
 local
 function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
     local x1, y1, x2, y2 = img.x1, img.y1, img.x2, img.y2
-    local w = img.w
-    local h = img.h
+    local s1, t1, s2, t2 = img.s1, img.t1, img.s2, img.t2
+    local w = img.width
+    local h = img.height
     local x_os, y_os = 0, 0
     if halign == "center" then
         x_os = -w/2
@@ -157,7 +158,7 @@ function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
         y_os = -h
     end
     verts_view:set{x1 + x_os, y2 + y_os, 0, x1 + x_os, y1 + y_os, 0, x2 + x_os, y1 + y_os, 0, x2 + x_os, y2 + y_os, 0}
-    uvs_view:set(img.uvs)
+    uvs_view:set{s1, t2, s1, t1, s2, t1, s2, t2}
 end
 
 function am.text(font, str, color, halign, valign)
@@ -237,7 +238,7 @@ local
 function convert_sprite_source(img)
     local t = am.type(img)
     if t == "table" then
-        return t
+        return img
     elseif t == "string" then
         local name = img
         if sprite_cache[name] then
@@ -256,10 +257,8 @@ function convert_sprite_source(img)
             y1 = y1,
             x2 = x2,
             y2 = y2,
-            verts = {x1, y2, x1, y1, x2, y1, x2, y2},
-            uvs = {s1, t2, s1, t1, s2, t1, s2, t2},
-            w = x2 - x1,
-            h = y2 - y1,
+            width = x2 - x1,
+            height = y2 - y1,
         }
         sprite_cache[name] = sprite
         return sprite
@@ -276,10 +275,8 @@ function convert_sprite_source(img)
             y1 = y1,
             x2 = x2,
             y2 = y2,
-            verts = {x1, y2, x1, y1, x2, y1, x2, y2},
-            uvs = {s1, t2, s1, t1, s2, t1, s2, t2},
-            w = x2 - x1,
-            h = y2 - y1,
+            width = x2 - x1,
+            height = y2 - y1,
         }
     elseif t == "texture2d" then
         local s1, t1, s2, t2 = 0, 0, 1, 1
@@ -294,10 +291,8 @@ function convert_sprite_source(img)
             y1 = y1,
             x2 = x2,
             y2 = y2,
-            verts = {x1, y2, x1, y1, x2, y1, x2, y2},
-            uvs = {s1, t2, s1, t1, s2, t1, s2, t2},
-            w = x2 - x1,
-            h = y2 - y1,
+            width = x2 - x1,
+            height = y2 - y1,
         }
     else
         error("unexpected "..t.." in argument position 1", 3)
@@ -340,10 +335,10 @@ function am.sprite(image0, halign, valign, color)
         self"bind".color = color
     end
     function node:get_width()
-        return image.w
+        return image.width
     end
     function node:get_height()
-        return image.h
+        return image.height
     end
         
     node:tag"sprite"
@@ -378,7 +373,7 @@ function am._init_fonts(data, imgfile, embedded)
             else
                 img = am.load_image(imgfile);
             end
-            texture = am.texture2d{buffer = img.buffer, width = img.width, height = img.height,
+            texture = am.texture2d{image = img,
                 minfilter = data.minfilter, magfilter = data.magfilter}
         end
     end

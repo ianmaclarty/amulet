@@ -294,15 +294,11 @@ static void write_data() {
                    "        filename = \"%s\",\n"
                    "        x1 = " NUMFMT ", y1 = " NUMFMT ", x2 = " NUMFMT ", y2 = " NUMFMT ",\n"
                    "        s1 = " NUMFMT ", t1 = " NUMFMT ", s2 = " NUMFMT ", t2 = " NUMFMT ",\n"
-                   "        verts = {" NUMFMT ", " NUMFMT ", 0, " NUMFMT ", " NUMFMT ", 0, " NUMFMT ", " NUMFMT ", 0, " NUMFMT ", " NUMFMT ", 0},\n"
-                   "        uvs = {" NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT ", " NUMFMT "},\n"
-                   "        w = %d, h = %d,\n"
+                   "        width = %d, height = %d,\n"
                    "    },\n",
                 items[s].filename, 
                 x1, y1, x2, y2,
                 s1, t1, s2, t2,
-                x1, y2, x1, y1, x2, y1, x2, y2,
-                s1, t2, s1, t1, s2, t1, s2, t2,
                 image_width, image_height);
             r++;
         }
