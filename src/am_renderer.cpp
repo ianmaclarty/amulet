@@ -31,6 +31,41 @@ void am_viewport_state::bind(am_render_state *rstate) {
     }
 }
 
+am_scissor_test_state::am_scissor_test_state() {
+    enabled = false;
+    x = 0;
+    y = 0;
+    w = 0;
+    h = 0;
+}
+
+void am_scissor_test_state::set(bool enabled, int x, int y, int w, int h) {
+    am_scissor_test_state::enabled = enabled;
+    am_scissor_test_state::x = x;
+    am_scissor_test_state::y = y;
+    am_scissor_test_state::w = w;
+    am_scissor_test_state::h = h;
+}
+
+void am_scissor_test_state::restore(am_scissor_test_state *old) {
+    set(old->enabled, old->x, old->y, old->w, old->h);
+}
+
+void am_scissor_test_state::bind(am_render_state *rstate) {
+    if (enabled != rstate->bound_scissor_test_state.enabled ||
+        x != rstate->bound_scissor_test_state.x ||
+        y != rstate->bound_scissor_test_state.y ||
+        w != rstate->bound_scissor_test_state.w ||
+        h != rstate->bound_scissor_test_state.h)
+    {
+        am_set_scissor_test_enabled(enabled);
+        if (enabled) {
+            am_set_scissor(x, y, w, h);
+        }
+        rstate->bound_scissor_test_state = *this;
+    }
+}
+
 am_color_mask_state::am_color_mask_state() {
     r = true;
     g = true;
@@ -350,6 +385,7 @@ void am_render_state::enable_vaas(int n) {
 bool am_render_state::update_state() {
     assert(active_program != NULL);
     active_viewport_state.bind(this);
+    active_scissor_test_state.bind(this);
     active_color_mask_state.bind(this);
     active_depth_test_state.bind(this);
     active_cull_face_state.bind(this);
@@ -364,7 +400,7 @@ bool am_render_state::update_state() {
 
 static void setup(am_render_state *rstate, am_framebuffer_id fb,
     bool clear, glm::vec4 clear_color,
-    int x, int y, int w, int h, glm::mat4 proj,
+    int x, int y, int w, int h, int fbw, int fbh, glm::mat4 proj,
     bool has_depthbuffer)
 {
     if (fb != 0) {
@@ -372,7 +408,15 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
         // in am_native_window_pre_render
         am_bind_framebuffer(fb);
     }
+
     rstate->active_viewport_state.set(x, y, w, h);
+    bool scissor_enabled = true;
+    if (x == 0 && y == 0 && w == fbw && h == fbh) scissor_enabled = false;
+    rstate->active_scissor_test_state.set(scissor_enabled, x, y, w, h);
+
+    // bind these now so clear affects desired area.
+    rstate->active_viewport_state.bind(rstate);
+    rstate->active_scissor_test_state.bind(rstate);
 
     rstate->active_depth_test_state.set(has_depthbuffer, has_depthbuffer,
         has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
@@ -391,10 +435,10 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
 }
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
-    bool clear, glm::vec4 clear_color, int x, int y, int w, int h,
+    bool clear, glm::vec4 clear_color, int x, int y, int w, int h, int fbw, int fbh,
     glm::mat4 proj, bool has_depthbuffer)
 {
-    setup(this, fb, clear, clear_color, x, y, w, h, proj, has_depthbuffer);
+    setup(this, fb, clear, clear_color, x, y, w, h, fbw, fbh, proj, has_depthbuffer);
     if (root != NULL) {
         next_pass = 1;
         do {

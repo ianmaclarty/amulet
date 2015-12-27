@@ -113,6 +113,10 @@ struct am_scissor_test_state {
     int                     y;
     int                     w;
     int                     h;
+    am_scissor_test_state();
+    void set(bool enabled, int x, int y, int w, int h);
+    void restore(am_scissor_test_state *old);
+    void bind(am_render_state *rstate);
 };
 
 struct am_sample_coverage_state {
@@ -143,6 +147,8 @@ struct am_render_state {
 
     am_viewport_state       bound_viewport_state;
     am_viewport_state       active_viewport_state;
+    am_scissor_test_state   bound_scissor_test_state;
+    am_scissor_test_state   active_scissor_test_state;
     am_color_mask_state     bound_color_mask_state;
     am_color_mask_state     active_color_mask_state;
     am_depth_test_state     bound_depth_test_state;
@@ -176,7 +182,7 @@ struct am_render_state {
     bool update_state();
     void enable_vaas(int n);
     void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, glm::vec4 clear_color,
-        int x, int y, int w, int h, glm::mat4 proj, bool has_depthbuffer);
+        int x, int y, int w, int h, int fbw, int fbh, glm::mat4 proj, bool has_depthbuffer);
 };
 
 struct am_draw_node : am_scene_node {

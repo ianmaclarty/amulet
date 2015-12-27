@@ -363,6 +363,7 @@ static void draw_windows() {
             am_render_state *rstate = &am_global_render_state;
             rstate->do_render(win->scene, 0, true, win->clear_color,
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
+                win->pixel_width, win->pixel_height,
                 win->projection, win->has_depth_buffer);
             am_native_window_swap_buffers(win->native_win);
         }
