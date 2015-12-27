@@ -76,14 +76,14 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
     
     row = 1
     if halign == "center" then
-        x = -row_widths[row] / 2
+        x = -math.floor(row_widths[row] / 2)
     elseif halign == "right" then
         x = -row_widths[row]
     else
         x = 0
     end
     if valign == "center" then
-        y = h / 2 - font.line_height
+        y = math.floor(h / 2) - font.line_height
     elseif valign == "bottom" then
         y = h - font.line_height
     else
@@ -98,7 +98,7 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
             advance = 0
             row = row + 1
             if halign == "center" then
-                x = -row_widths[row] / 2
+                x = -math.floor(row_widths[row] / 2)
             elseif halign == "right" then
                 x = -row_widths[row]
             else

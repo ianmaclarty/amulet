@@ -319,29 +319,29 @@ static void compute_viewport(am_window *win) {
                 win->viewport_height = win->pixel_height;
             }
         }
-        win->user_left = 0.0f;
-        win->user_right = (float)am_max(1, win->requested_width);
-        win->user_bottom = 0.0f;
-        win->user_top = (float)am_max(1, win->requested_height);
+        win->user_left = floorf(-((float)win->requested_width) / 2.0f);
+        win->user_right = ceilf(((float)win->requested_width) / 2.0f);
+        win->user_bottom = floorf(-((float)win->requested_height) / 2.0f);
+        win->user_top = ceilf(((float)win->requested_height) / 2.0f);
     } else {
         float sy = h1 / h0;
         float dx = (w1 - w0 * sy) / (2.0f * w0 * sy);
         float sx = w1 / w0;
         float dy = (h1 - h0 * sx) / (2.0f * h0 * sx);
         if (dx > 0.01f) {
-            win->user_left = 0.0f - (float)win->requested_width * dx;
-            win->user_right = (float)win->requested_width + (float)win->requested_width * dx;
-            win->user_top = (float)win->requested_height;
-            win->user_bottom = 0.0f;
+            win->user_left = floorf(-((float)win->requested_width) / 2.0f) - (float)win->requested_width * dx;
+            win->user_right = ceilf(((float)win->requested_width) / 2.0f) + (float)win->requested_width * dx;
+            win->user_bottom = floorf(-((float)win->requested_height) / 2.0f);
+            win->user_top = ceilf(((float)win->requested_height) / 2.0f);
         } else {
-            win->user_left = 0.0f;
-            win->user_right = (float)win->requested_width;
+            win->user_left = floorf(-((float)win->requested_width) / 2.0f);
+            win->user_right = ceilf(((float)win->requested_width) / 2.0f);
             if (dy > 0.01f) {
-                win->user_bottom = 0.0f - (float)win->requested_height * dy;
-                win->user_top = (float)win->requested_height + (float)win->requested_height * dy;
+                win->user_bottom = floorf(-((float)win->requested_height) / 2.0f) - (float)win->requested_height * dy;
+                win->user_top = ceilf(((float)win->requested_height) / 2.0f) + (float)win->requested_height * dy;
             } else {
-                win->user_bottom = 0.0f;
-                win->user_top = (float)win->requested_height;
+                win->user_bottom = floorf(-((float)win->requested_height) / 2.0f);
+                win->user_top = ceilf(((float)win->requested_height) / 2.0f);
             }
         }
         win->viewport_x = 0;
