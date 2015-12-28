@@ -3,13 +3,15 @@ digraph {
     win [label="win"]
     group [label="group()"]
     translate1 [label="translate(-150, 0)"]
-    translate3 [label="translate(150, 0)"]
     translate2 [label="translate(0, 0)"]
-    circle1 [label="circle(...)"]
-    circle2 [label="circle(...)"]
+    translate3 [label="translate(150, 0)"]
+    circle [label="circle(...)"]
     rect [label="rect(...)"]
     win -> group
-    group -> translate1 -> circle1
-    group -> translate3 -> circle2
-    group -> translate2 -> rect
+    group -> translate1
+    group -> translate2
+    group -> translate3
+    translate1->circle
+    translate2->rect
+    translate3->circle
 }

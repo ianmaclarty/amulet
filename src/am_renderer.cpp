@@ -405,7 +405,6 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
 {
     if (fb != 0) {
         // default framebuffer should be bound by backend-specific code
-        // in am_native_window_pre_render
         am_bind_framebuffer(fb);
     }
 

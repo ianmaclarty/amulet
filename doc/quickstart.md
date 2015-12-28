@@ -5,19 +5,19 @@ Quickstart tutorial {#quickstart}
 Install Amulet
 --------------
 
-### Windows
+**Windows:**
 
 [Download](http://www.amulet.xyz) the Windows installer and run it.
 Or, if you prefer, download the Windows zip archive,
 extract it to a directory of your choice and add that folder
 to your PATH.
 
-### Mac
+**Mac:**
 
 [Download](http://www.amulet.xyz) and extract the Mac zip archive to a
 directory of your choice. Then add the directory to your PATH.
 
-### Linux
+**Linux:**
 
 [Download](http://www.amulet.xyz) and extract the Linux zip archive to a
 directory of your choice. Then add the directory to your PATH.
@@ -73,7 +73,7 @@ win.scene = am.text("Hello!")
 This assigns a *scene graph* to the window. The scene has a single
 text node. The window will render its scene graph each frame.
 
-![](screenshots/hello1.png)
+![](images/hello1.png)
 
 Transform the text
 ------------------
@@ -102,7 +102,7 @@ Finally the text node renders some text to the screen.
 
 When you run the program you should see something like this:
 
-![](screenshots/hello2.png)
+![](images/hello2.png)
 
 Animate!
 --------
@@ -132,7 +132,8 @@ scene"rotate".angle = am.frame_time * 4
 first finds a node with the *tag* `"rotate"` in the scene graph.
 By default nodes have tags that correspond to their names, so
 this returns the rotate node. You can also add your own tags
-to nodes using the `tag` method.
+to nodes using the `tag` method which we'll discuss in more detail
+in the next section.
 
 Then we set the `angle` property
 of the rotate node to the current frame time (the time at the
@@ -159,16 +160,14 @@ win.scene:action(function(scene)
 end)
 ~~~
 
-
 Draw some shapes
 ----------------
 
-Here is a simple program that draws a red circle,
-a yellow square and a green ellipse on a blue background:
+Here is a simple program that draws 2 red circles
+on either side of a yellow square on a blue background.
 
 ~~~ {.lua}
 local red = vec4(1, 0, 0, 1)
-local green = vec4(0, 1, 0, 1)
 local blue = vec4(0, 0, 1, 1)
 local yellow = vec4(1, 1, 0, 1)
 
@@ -185,15 +184,15 @@ win.scene =
         am.translate(-150, 0)
         ^ am.circle(vec2(0, 0), 50, red)
         ,
-        am.translate(0, 0)
-        ^ am.rect(-50, -50, 50, 50, yellow)
-        ,
         am.translate(150, 0)
-        ^ am.ellipse(vec2(0, 0), 20, 50, green)
+        ^ am.circle(vec2(0, 0), 50, red)
+        ,
+        am.translate(0, -25)
+        ^ am.rect(-50, -50, 50, 50, yellow)
     }
 ~~~
 
-![](screenshots/shapes.png)
+![](images/shapes.png)
 
 This time, we've created variables for the different
 colours we'll need. In Amulet colours are 4-dimensional
@@ -204,7 +203,7 @@ and ranges from 0 to 1.
 The scene graph has a `group` node at the top. `group`
 nodes don't have any effect on the rendering and are
 only used to group other nodes together. The group
-nodes has 3 children, each of which is a `translate`
+node has 3 children, each of which is a `translate`
 node with a shape child. The scene graph looks like this:
 
 ![](graphs/scene2.png)
@@ -215,19 +214,19 @@ as we've done above, we can also do it step-by-step using the
 node:
 
 ~~~ {.lua}
-local circle_node = am.translate(-150, 0)
-circle_node:append(am.circle(vec2(0, 0), 50, red))
+local circle1_node = am.translate(-150, 0)
+circle1_node:append(am.circle(vec2(0, 0), 50, red))
+
+local circle2_node = am.translate(150, 0)
+circle2_node:append(am.circle(vec2(0, 0), 50, red))
 
 local rect_node = am.translate(0, 0)
 rect_node:append(am.rect(-50, -50, 50, 50, yellow))
 
-local ellipse_node = am.translate(150, 0)
-ellipse_node:append(am.ellipse(vec2(0, 0), 20, 50, green))
-
 local group_node = am.group()
-group_node:append(circle_node)
+group_node:append(circle1_node)
+group_node:append(circle2_node)
 group_node:append(rect_node)
-group_node:append(ellipse_node)
 
 win.scene = group_node
 ~~~
@@ -237,55 +236,71 @@ This results in the exact same scene graph.
 Respond to key presses
 ----------------------
 
-Let's change the above program so that the 3 shapes only appear
-if the A, B or C keys are being held down.
+Let's change the above program so that the left circle
+only appears while the A key is down and the right
+circle only appears while the B key is down.
 
-Add the following to the end of the program:
+In order to distinguish the two circles in the scene
+graph we'll give them different tags.
+
+Change the scene setup code to look like this:
+
+~~~ {.lua}
+win.scene =
+    am.group()
+    ^ {
+        am.translate(-150, 0):tag"left_eye"
+        ^ am.circle(vec2(0, 0), 50, red)
+        ,
+        am.translate(150, 0):tag"right_eye"
+        ^ am.circle(vec2(0, 0), 50, red)
+        ,
+        am.translate(0, -25)
+        ^ am.rect(-50, -50, 50, 50, yellow)
+    }
+~~~
+
+The only difference is the addition of
+`:tag"left_eye"` and `:tag"right_eye"`. These
+add the tag `"left_eye"` to the translate node
+which is the parent of the left circle node
+and `"right_eye"` to the right translate
+node which is the parent of the right
+circle node.
+
+Now add the following action:
 
 ~~~ {.lua}
 win.scene:action(function(scene)
-    scene"circle".hidden = not win:key_down"a"
-    scene"rect".hidden = not win:key_down"b"
-    scene"ellipse".hidden = not win:key_down"c"
-    if win:key_pressed"escape" then
-        win:close()
-    end
+    scene"left_eye".hidden = not win:key_down"a"
+    scene"right_eye".hidden = not win:key_down"b"
 end)
 ~~~
 
 The `hidden` field of a node determines whether it is drawn
 or not. Each frame we set the `hidden` field of the
-circle, rect and ellipse nodes to whether the
-A, B or C keys are being pressed. `win:key_down(X)` 
+left and right translate nodes to whether the
+A or B keys are being pressed. `win:key_down(X)` 
 returns true if key `X` was being held down at the start
 of the frame.
-
-We also check if the escape key was pressed and if
-it was we close the window. `win:key_pressed(X)`
-returns true if the key was pressed down before the
-start of the current frame, but after the start of the
-previous frame (i.e. it will only return true
-in the frame immediately after the one in which the key was pressed).
 
 You may notice that the three shapes appear briefly
 when the window is first shown and then disappear
 immediately. This is because actions only
 start running in the next frame, so the shapes are only hidden
 on the second frame. To fix this we can add the following
-three lines either before or after we add the action
+lines either before or after we add the action
 (it doesn't matter where):
 
 ~~~ {.lua}
-win.scene"circle".hidden = true
-win.scene"rect".hidden = true
-win.scene"ellipse".hidden = true
+win.scene"left_eye".hidden = true
+win.scene"right_eye".hidden = true
 ~~~
 
-The complete program is:
+Here is the complete code listing:
 
 ~~~ {.lua}
 local red = vec4(1, 0, 0, 1)
-local green = vec4(0, 1, 0, 1)
 local blue = vec4(0, 0, 1, 1)
 local yellow = vec4(1, 1, 0, 1)
 
@@ -299,29 +314,204 @@ local win = am.window{
 win.scene =
     am.group()
     ^ {
-        am.translate(-150, 0)
+        am.translate(-150, 0):tag"left_eye"
         ^ am.circle(vec2(0, 0), 50, red)
         ,
-        am.translate(0, 0)
-        ^ am.rect(-50, -50, 50, 50, yellow)
+        am.translate(150, 0):tag"right_eye"
+        ^ am.circle(vec2(0, 0), 50, red)
         ,
-        am.translate(150, 0)
-        ^ am.ellipse(vec2(0, 0), 20, 50, green)
+        am.translate(0, -25)
+        ^ am.rect(-50, -50, 50, 50, yellow)
     }
 
 win.scene:action(function(scene)
-    scene"circle".hidden = not win:key_down"a"
-    scene"rect".hidden = not win:key_down"b"
-    scene"ellipse".hidden = not win:key_down"c"
+    scene"left_eye".hidden = not win:key_down"a"
+    scene"right_eye".hidden = not win:key_down"b"
+end)
+
+win.scene"left_eye".hidden = true
+win.scene"right_eye".hidden = true
+~~~
+
+Draw sprites
+------------
+
+Sprites can be drawn using sprite nodes. To create a sprite node, pass the name
+of a .png or .jpg file to the `am.sprite()` function and add it to your scene
+graph.
+
+Let's create a beach scene using the following two images:
+
+![beach.jpg](images/beach.jpg)
+
+![beachball.png](images/beachball.png)
+
+Download these images and copy them to the same directory
+as your `main.lua` file. Then copy the following into `main.lua`:
+
+~~~ {.lua}
+local win = am.window{
+    title = "Beach",
+    width = 400,
+    height = 300
+}
+
+win.scene = 
+    am.group()
+    ^ {
+        am.sprite"beach.jpg"
+        ,
+        am.translate(0, -60)
+        ^ am.sprite"beachball.png"
+    }
+~~~
+
+Run the program and you should get something like this:
+
+![](images/beach1.png)
+
+The children of any scene node are always drawn in order,
+so first the beach.jpg sprite node 
+is drawn and then the beachball.png sprite, with it's 
+corresponding translation, is drawn.  This ensures the ball
+is visible on the beach. If we draw the beach second
+it would obscure the ball.
+
+Respond to mouse clicks
+------------------------
+
+
+
+----------------------------------
+
+
+
+
+
+
+Another thing to note is that the two circle nodes
+are completely identical. It's only their parent translate
+nodes that determine their position. They both have the same
+centre point (`vec2(0, 0)`), radius (50) and colour (red). In fact we can
+replace these two nodes with just one node, by first creating the node:
+
+~~~ {.lua}
+local eye = am.circle(vec2(0, 0), 50, red)
+~~~
+
+and then using this node in the scene graph:
+
+~~~ {.lua}
+win.scene =
+    am.group()
+    ^ {
+        am.translate(-150, 0):tag"left_eye"
+        ^ eye
+        ,
+        am.translate(150, 0):tag"right_eye"
+        ^ eye
+        ,
+        am.translate(0, -25)
+        ^ am.rect(-50, -50, 50, 50, yellow)
+    }
+~~~
+
+The scene graph now looks like this:
+
+![](graphs/scene3.png)
+
+Now if we wanted to change both circle's colour 
+to a random colour, we could do it with one
+line instead of two, since there's only
+one node to update.
+
+Here's the complete program listing:
+
+~~~ {.lua}
+local red = vec4(1, 0, 0, 1)
+local blue = vec4(0, 0, 1, 1)
+local yellow = vec4(1, 1, 0, 1)
+
+local win = am.window{
+    title = "Hi",
+    width = 400,
+    height = 300,
+    clear_color = blue,
+}
+
+win.scene =
+    am.group()
+    ^ {
+        am.translate(-150, 0):tag"left_eye"
+        ^ am.circle(vec2(0, 0), 50, red)
+        ,
+        am.translate(150, 0):tag"right_eye"
+        ^ am.circle(vec2(0, 0), 50, red)
+        ,
+        am.translate(0, -25)
+        ^ am.rect(-50, -50, 50, 50, yellow)
+    }
+
+win.scene:action(function(scene)
+    scene"left_eye".hidden = not win:key_down"a"
+    scene"right_eye".hidden = not win:key_down"b"
+end)
+
+win.scene"left_eye".hidden = true
+win.scene"right_eye".hidden = true
+~~~
+
+~~~ {.lua}
+eye.color = vec4(math.randvec3(), 1)
+~~~
+
+Here's the complete program listing:
+
+~~~ {.lua}
+local red = vec4(1, 0, 0, 1)
+local blue = vec4(0, 0, 1, 1)
+local yellow = vec4(1, 1, 0, 1)
+
+local win = am.window{
+    title = "Hi",
+    width = 400,
+    height = 300,
+    clear_color = blue,
+}
+
+local eye = am.circle(vec2(0, 0), 50, red)
+
+win.scene =
+    am.group()
+    ^ {
+        am.translate(-150, 0):tag"left_eye"
+        ^ eye
+        ,
+        am.translate(150, 0):tag"right_eye"
+        ^ eye
+        ,
+        am.translate(0, -25)
+        ^ am.rect(-50, -50, 50, 50, yellow)
+    }
+
+win.scene:action(function(scene)
+    scene"left_eye".hidden = not win:key_down"a"
+    scene"right_eye".hidden = not win:key_down"b"
+    eye.color = vec4(math.randvec3(), 1)
     if win:key_pressed"escape" then
         win:close()
     end
 end)
 
-win.scene"circle".hidden = true
-win.scene"rect".hidden = true
-win.scene"ellipse".hidden = true
+win.scene"left_eye".hidden = true
+win.scene"right_eye".hidden = true
 ~~~
+
+In the complete listing we also check if the escape key was pressed and if it
+was we close the window. `win:key_pressed(X)` returns true if the key was
+pressed down before the start of the current frame, but after the start of the
+previous frame (i.e. it will only return true in the frame immediately after
+the one in which the key was pressed).
 
 Draw images
 -----------

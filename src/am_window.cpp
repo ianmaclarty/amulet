@@ -7,7 +7,7 @@ static std::vector<am_window*> windows;
 
 static void compute_viewport(am_window *win);
 
-static void update_size(am_window *win);
+static bool update_size(am_window *win);
 
 static int create_window(lua_State *L) {
     am_check_nargs(L, 1);
@@ -282,7 +282,7 @@ static void resize_windows() {
     }
 }
 
-static void update_size(am_window *win) {
+static bool update_size(am_window *win) {
     int old_width = win->pixel_width;
     int old_height = win->pixel_height;
     am_get_native_window_size(win->native_win,
@@ -290,7 +290,9 @@ static void update_size(am_window *win) {
         &win->screen_width, &win->screen_height);
     if (old_width != win->pixel_width || old_height != win->pixel_height) {
         compute_viewport(win);
+        return true;
     }
+    return false;
 }
 
 static void compute_viewport(am_window *win) {
@@ -391,7 +393,15 @@ bool am_execute_actions(lua_State *L, double dt) {
         if (!win->needs_closing && win->scene != NULL) {
             // make sure window size properties are up-to-date before running 
             // actions.
-            update_size(win);
+            bool size_changed = update_size(win);
+            if (size_changed && win->letterbox) {
+                // clear the window if the size changes to remove anything that
+                // might be in the letterbox margins.
+                am_native_window_bind_framebuffer(win->native_win);
+                am_set_framebuffer_clear_color(0, 0, 0, 1);
+                am_set_scissor_test_enabled(false);
+                am_clear_framebuffer(true, true, true);
+            }
             if (!am_execute_node_actions(L, win->scene)) {
                 res = false;
                 break;

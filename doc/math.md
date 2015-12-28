@@ -2,7 +2,7 @@
 Maths
 =====
 
-![](screenshots/screenshot1.jpg)
+![](images/screenshot1.jpg)
 
 Vectors
 -------
@@ -170,7 +170,7 @@ vec3(10, 3, 6)
 vec4(2, 4, 6, 8)
 ```
 
-![](screenshots/screenshot4.jpg)
+![](images/screenshot4.jpg)
 
 Matrices
 --------
@@ -349,7 +349,7 @@ The `/` operator also works when both arguments are matrices and is
 equivalent to multiplying by the first matrix by the inverse of the
 second.
 
-![](screenshots/screenshot2.jpg)
+![](images/screenshot2.jpg)
 
 Quaternions
 -----------

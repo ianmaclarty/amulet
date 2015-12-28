@@ -87,7 +87,7 @@ This scene graph has 3 nodes:
 
 The produced image looks like this:
 
-![](screenshots/rgb_triangle.png)
+![](images/rgb_triangle.png)
 
 And here's what the corresponding code looks like:
 
