@@ -9,68 +9,68 @@ Maths
 Vector functions
 ~~~~~~~~~~~~~~~~
 
-..  function:: vec2(...)
+### vec2(...) {.func-def}
 
-    Constructs a 2 dimensional vector. See :ref:`vec-cons` for more details.
+Constructs a 2 dimensional vector. See :ref:`vec-cons` for more details.
 
-..  function:: vec3(...)
+### vec3(...) {.func-def}
 
     Constructs a 3 dimensional vector. See :ref:`vec-cons` for more details.
 
-..  function:: vec4(...)
+### vec4(...) {.func-def}
 
-    Constructs a 4 dimensional vector. See :ref:`vec-cons` for more details.
+Constructs a 4 dimensional vector. See :ref:`vec-cons` for more details.
 
-..  function:: math.dot (vector1, vector2)
+### math.dot (vector1, vector2) {.func-def}
 
-    Returns the dot product of two vectors. The vectors must have the same
-    size.
+Returns the dot product of two vectors. The vectors must have the same
+size.
 
-..  function:: math.cross(vector1, vector2)
+### math.cross(vector1, vector2) {.func-def}
 
-    Returns the cross product of two 3 dimensional vectors.
+Returns the cross product of two 3 dimensional vectors.
 
-..  function:: math.normalize(vector)
+### math.normalize(vector) {.func-def}
 
-    Returns the normalized form of a vector (i.e. the vector that points
-    in the same direction, but whose length is 1). If the given vector has
-    zero length, then a vector of the same size is returned whose first
-    component is 1 and whose remaining components are 0.
+Returns the normalized form of a vector (i.e. the vector that points
+in the same direction, but whose length is 1). If the given vector has
+zero length, then a vector of the same size is returned whose first
+component is 1 and whose remaining components are 0.
 
-..  function:: math.length(vector)
+### math.length(vector) {.func-def}
 
-    Returns the length of a vector.
+Returns the length of a vector.
 
-..  function:: math.distance(vector1, vector2)
+### math.distance(vector1, vector2) {.func-def}
 
-    Returns the distance between two vectors.
+Returns the distance between two vectors.
 
 Matrix functions
 ~~~~~~~~~~~~~~~~
 
-..  function:: mat2(...)
+### mat2(...) {.func-def}
 
     Constructs a 2x2 matrix. See :ref:`mat-cons` for more details.
 
-..  function:: mat3(...)
+### mat3(...) {.func-def}
 
     Constructs a 3x3 matrix. See :ref:`mat-cons` for more details.
 
-..  function:: mat4(...)
+### mat4(...) {.func-def}
 
     Constructs a 4x4 matrix. See :ref:`mat-cons` for more details.
 
-..  function:: math.inverse(matrix)
+### math.inverse(matrix) {.func-def}
 
     Returns the inverse of a matrix.
 
-..  function:: math.lookat(eye, center, up)
+### math.lookat(eye, center, up) {.func-def}
 
     Creates a 4x4 view matrix at ``eye``, looking in the direction of
     ``center`` with the y axis of the camera pointing in the direction same
     direction as ``up``.
 
-..  function:: math.perspective(fovy, aspect, near, far)
+### math.perspective(fovy, aspect, near, far) {.func-def}
 
     Creates a 4x4 matrix for a symetric perspective-view frustum.
 
@@ -78,21 +78,21 @@ Matrix functions
     -  ``aspect`` is typically the window width divided by its height.
     -  ``near`` and ``far`` are the distances of the near and far clipping plains from the camera (these should be positive).
 
-..  function:: math.ortho(left, right, bottom, top [, near, far])
+### math.ortho(left, right, bottom, top [, near, far]) {.func-def}
 
     Creates a 4x4 orthographic projection marix.
 
 Quaternion functions
 ~~~~~~~~~~~~~~~~~~~~
 
-..  function:: quat(...)
+### quat(...) {.func-def}
 
     Constructs a quaternion. See :ref:`quat-cons` for more details.
 
 Noise functions
 ~~~~~~~~~~~~~~~
 
-..  function:: math.perlin(pos [, period])
+### math.perlin(pos [, period]) {.func-def}
 
     Generate perlin noise. ``pos`` can be a 2, 3, or 4 dimensional vector, or a number.
     If the second argument is supplied then the noise will be periodic with the given
@@ -103,7 +103,7 @@ Noise functions
 
     The returned value is between -1 and 1.
 
-..  function:: math.simplex(pos)
+### math.simplex(pos) {.func-def}
 
     Generate simplex noise. ``pos`` can be a 2, 3, or 4 dimensional vector, or a number.
 
@@ -112,7 +112,7 @@ Noise functions
 Interpolation functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-..  function:: math.mix(from, top, t)
+### math.mix(from, top, t) {.func-def}
 
     Returns the linear interpolation between ``from`` and ``to`` determined by ``t``.
     ``from`` and ``to`` can be numbers or vectors, and must be the same
@@ -126,7 +126,7 @@ Video
 Window functions
 ~~~~~~~~~~~~~~~~
 
-..  function:: am.window(settings)
+### am.window(settings) {.func-def}
 
     Creates a new window, and returns the window object.
     ``settings`` is a table of window settings.

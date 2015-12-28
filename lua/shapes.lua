@@ -134,10 +134,10 @@ function am.ellipse(center, xrad, yrad, color, sides)
         color = c
         node"bind".color = color
     end
-    node:tag("ellipse")
+    node:tag"ellipse"
     return node
 end
 
 function am.circle(center, rad, color, sides)
-    return am.ellipse(center, rad, rad, color, sides):tag("circle")
+    return am.ellipse(center, rad, rad, color, sides):untag"ellipse":tag"circle"
 end

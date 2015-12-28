@@ -1,0 +1,9 @@
+digraph {
+    node [fontname="Courier bold", fontsize="12"];
+    win [label="win"]
+    translate [label="translate(150, 100)"]
+    scale [label="scale(2)"]
+    rot [label="rotate(math.rad(90))"]
+    text [label="text(\"Hello!\")"]
+    win -> translate -> scale -> rot -> text
+}

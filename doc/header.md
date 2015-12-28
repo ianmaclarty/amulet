@@ -1,0 +1,2 @@
+% Amulet Manual
+% Ian MacLarty

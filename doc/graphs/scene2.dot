@@ -1,0 +1,14 @@
+digraph {
+    node [fontname="Courier bold", fontsize="12"];
+    win [label="win"]
+    group [label="group()"]
+    translate1 [label="translate(-150, 0)"]
+    translate2 [label="translate(0, 0)"]
+    translate3 [label="translate(150, 0)"]
+    circle [label="circle(...)"]
+    rect [label="rect(...)"]
+    ellipse [label="ellipse(...)"]
+    win -> group -> translate1 -> circle
+    group -> translate2 -> rect
+    group -> translate3 -> ellipse
+}

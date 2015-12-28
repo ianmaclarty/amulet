@@ -90,8 +90,7 @@ tests/*.res
 tests/*.time
 
 doc/manual.html
-doc/_build
-doc/__pycache__
+doc/graphs/*.png
 
 gllog
 gllog.cpp
