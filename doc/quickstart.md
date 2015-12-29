@@ -344,7 +344,7 @@ Let's create a beach scene using the following two images:
 
 ![beach.jpg](images/beach.jpg)
 
-![beachball.png](images/beachball.png)
+![ball.png](images/ball.png)
 
 Download these images and copy them to the same directory
 as your `main.lua` file. Then copy the following into `main.lua`:
@@ -353,7 +353,7 @@ as your `main.lua` file. Then copy the following into `main.lua`:
 local win = am.window{
     title = "Beach",
     width = 400,
-    height = 300
+    height = 300,
 }
 
 win.scene = 
@@ -362,7 +362,7 @@ win.scene =
         am.sprite"beach.jpg"
         ,
         am.translate(0, -60)
-        ^ am.sprite"beachball.png"
+        ^ am.sprite"ball.png"
     }
 ~~~
 
@@ -372,7 +372,7 @@ Run the program and you should get something like this:
 
 The children of any scene node are always drawn in order,
 so first the beach.jpg sprite node 
-is drawn and then the beachball.png sprite, with it's 
+is drawn and then the ball.png sprite, with it's 
 corresponding translation, is drawn.  This ensures the ball
 is visible on the beach. If we draw the beach second
 it would obscure the ball.
@@ -380,9 +380,125 @@ it would obscure the ball.
 Respond to mouse clicks
 ------------------------
 
+Let's make the ball bounce when we click it.
+We'll add a rotate node so we can make the ball
+spin when it's in the air.
+We'll also tag the ball's translate and
+rotate nodes so we can easily access them:
+
+~~~ {.lua}
+win.scene = 
+    am.group()
+    ^ {
+        am.sprite"beach.jpg"
+        ,
+        am.translate(0, -60):tag"ballt"
+        ^ am.rotate(0):tag"ballr"
+        ^ am.sprite"ball.png"
+    }
+~~~
+
+Now add an action to animate the ball when it's clicked:
+
+~~~ {.lua}
+-- ball state variables:
+local ball_pos = vec2(0, -60)
+local ball_angle = 0
+local velocity = vec2(0)
+local spin = 0
+
+-- constants:
+local min_pos = vec2(-180, -60)
+local max_pos = vec2(180, 500)
+-- min and max impulse velocity:
+local min_v = vec2(-50, 150)
+local max_v = vec2(50, 300)
+local gravity = vec2(0, -500)
+
+win.scene:action(function(scene)
+    -- check if the left mouse button was pressed
+    if win:mouse_pressed"left" then
+        local mouse_pos = win:mouse_position()
+        -- check if the mouse click is on the ball
+        if math.distance(mouse_pos, ball_pos) < 50 then
+            -- compute a velocity based on click position
+            local dir = math.normalize(ball_pos - mouse_pos)
+            velocity = dir * 300
+            velocity = math.clamp(velocity, min_v, max_v)
+            -- set a random spin
+            spin = math.random() * 4 - 2
+        end
+    end
+
+    -- update the ball position
+    ball_pos = ball_pos + velocity * am.delta_time
+
+    -- if the ball is on the ground, set the
+    -- velocity and spin to zero.
+    if ball_pos.y <= -60 then
+        velocity = vec2(0)
+        spin = 0
+    end
+
+    -- clamp the ball position so it doesn't dissapear
+    -- off the edge of the screen
+    ball_pos = math.clamp(ball_pos, min_pos, max_pos)
+
+    -- update the ball angle
+    ball_angle = ball_angle + spin * am.delta_time
+
+    -- update the ball translate and rotate nodes
+    scene"ballt".position2d = ball_pos
+    scene"ballr".angle = ball_angle
+
+    -- apply gravity to the velocity
+    velocity = velocity + gravity * am.delta_time
+end)
+~~~
+
+First we create some variables to keep track of the ball's
+state. We need to track its position, angle, velocity
+and spin (angular velocity). The `ball_pos` and `velocity`
+variables are 2 dimensional vectors, since we want to
+track position and velocity along both the x and y axes.
+We could have made separate variables for the x and y
+components, but using a `vec2` is more concise.
+Note that if the values of the x and y components of the
+vector are the same, we only need to give the value once,
+so we just need to write `vec2(0)` when initializing the
+velocity instead of `vec2(0, 0)`.
+
+We also create some constants that we'll need. We define
+the minimum and maximum positions of the ball (`min_pos`,
+`max_pos`). We also define the minimum and maximum 
+impulse velocity to apply to the ball when it's clicked
+(`min_v`, `max_v`). And finally we create a constant for gravity.
+
+Next comes the action itself. The comments in the body of
+the action should help you work out what's going on, but here
+are some things to node:
+
+- `win:mouse_pressed(button)` can be used to check whether a mouse
+  button was pressed in the last frame. `button` can be `"left"`,
+  `"right"` or `"middle"`.
+- `win:mouse_position()` returns the current mouse position as
+  a `vec2` value.
+- `math.distance` computes the distance between two vectors.
+- `math.clamp` clamps a value between two other values.
+  It works with both numbers and vectors.
+- `math.random()` returns a random number between 0 and 1.
+- `am.delta_time` is the time since the last frame.
+- Vector values can be added, subtracted and multiplied just
+  like numbers.  You can also combine numbers and vectors,
+  for example when we multiply `gravity` by `am.delta_time`.
+  The result of `vec2(x, y) * c` is `vec2(x*c, y*c)`.
+
+Play sounds
+-----------
 
 
-----------------------------------
+
+---------------------------------
 
 
 
@@ -514,7 +630,4 @@ previous frame (i.e. it will only return true in the frame immediately after
 the one in which the key was pressed).
 
 Draw images
------------
-
-Play sounds
 -----------
