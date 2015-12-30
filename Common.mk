@@ -20,7 +20,7 @@ STB_DIR		 = $(DEPS_DIR)/stb
 KISSFFT_DIR	 = $(DEPS_DIR)/kiss_fft130
 SIMPLEOPT_DIR    = $(DEPS_DIR)/simpleopt
 
-SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-VC-prebuilt
+SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-prebuilt/win32
 ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
 
 # Host settings (this is the *build* host, not the host we want to run on)
