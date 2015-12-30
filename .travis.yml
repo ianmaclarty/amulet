@@ -9,7 +9,7 @@ addons:
             - gcc-mingw-w64-i686
             - g++-mingw-w64-i686
             - gcc-multilib
-            - g++-4.6-multilib
+            - g++-multilib
 
 os:
     - linux
