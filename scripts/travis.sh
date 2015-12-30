@@ -2,6 +2,7 @@
 set -e
 if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
     TAG=${TRAVIS_TAG%-distro-trigger}
+    VERSION=`echo $TAG | tr -d v`
     curl -L -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-darwin.zip
     curl -L -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-win32.zip
     curl -L -O https://github.com/ianmaclarty/amulet/releases/download/${TAG}/builds-linux.zip
@@ -17,7 +18,14 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
     fi
     mv builds amulet-${TAG}/
     zip -r amulet-${TAG}-${TRAVIS_OS_NAME}.zip amulet-${TAG}
-    scripts/upload_distros.js $TAG amulet-${TAG}-${TRAVIS_OS_NAME}.zip
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+        mkdir -p pkg_payload/usr/local/bin
+        mkdir -p pkg_payload/usr/local/share/amulet
+        mv amulet-${TAG}/builds pkg_payload/usr/local/share/amulet/
+        mv amulet-${TAG}/amulet pkg_payload/usr/local/bin/
+        pkgbuild --identifier xyz.amulet.pkg --version $VERSION --root pkg_payload/ --install-location / amulet-${TAG}-${TRAVIS_OS_NAME}.pkg
+    fi
+    scripts/upload_distros.js $TAG amulet-${TAG}-${TRAVIS_OS_NAME}.zip amulet-${TAG}-${TRAVIS_OS_NAME}.pkg
 else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         make TARGET=linux64.release LUAVM=lua51   test

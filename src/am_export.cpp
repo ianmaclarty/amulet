@@ -115,7 +115,13 @@ static bool build_data_pak(export_config *conf) {
 }
 
 static char *get_bin_path(export_config *conf, const char *platform) {
-    char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", conf->basepath, platform, conf->luavm, conf->grade);
+    const char *builds_path = conf->basepath;
+    if (strcmp(conf->basepath, "/usr/local/bin/") == 0) {
+        builds_path = "/usr/local/share/amulet/";
+    } else if (strcmp(conf->basepath, "/usr/bin/") == 0) {
+        builds_path = "/usr/share/amulet/";
+    }
+    char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", builds_path, platform, conf->luavm, conf->grade);
     if (!am_file_exists(bin_path)) {
         fprintf(stderr, "Error: export configuration %s/%s/%s not available in your installation.\n", platform, conf->luavm, conf->grade);
         fprintf(stderr, "(the path %s does not exist)\n", bin_path);
