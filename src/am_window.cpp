@@ -133,39 +133,53 @@ static int create_window(lua_State *L) {
     return 1;
 }
 
-void am_window::apply_window_projection(double *x_ptr, double *y_ptr) {
-    double x = *x_ptr;
-    double y = *y_ptr;
+void am_window::compute_position(double x, double y, double *usr_x, double *usr_y, double *norm_x, double *norm_y, double *px_x, double *px_y) {
     // invert y
     y = (double)screen_height - y;
-    // convert from screen units to pixels
-    x *= ((double)pixel_width / (double)screen_width);
-    y *= ((double)pixel_height / (double)screen_height);
-    // subtract letterbox bar offsets
-    x -= (double)viewport_x;
-    y -= (double)viewport_y;
+
+    // ----- compute pixel x y -----
+    double px = x * ((double)pixel_width / (double)screen_width) - (double)viewport_x;
+    double py = y * ((double)pixel_height / (double)screen_height) - (double)viewport_y;
+
+    // ----- compute user x y -----
+    double ux = px;
+    double uy = py;
     // convert to user window space
     if (user_projection) {
-        glm::vec4 p(x * 2.0f / (float)viewport_width - 1.0f,
-            y * 2.0f / (float)viewport_height - 1.0f, 0.0f, 1.0f);
+        glm::vec4 p(ux * 2.0f / (float)viewport_width - 1.0f,
+            uy * 2.0f / (float)viewport_height - 1.0f, 0.0f, 1.0f);
         p = glm::inverse(projection) * p;
-        x = p.x;
-        y = p.y;
+        ux = p.x;
+        uy = p.y;
     } else {
         // can avoid a matrix inverse and mult in this case
-        x = x / (double)viewport_width * (user_right - user_left) + user_left;
-        y = y / (double)viewport_height * (user_top - user_bottom) + user_bottom;
+        ux = ux / (double)viewport_width * (user_right - user_left) + user_left;
+        uy = uy / (double)viewport_height * (user_top - user_bottom) + user_bottom;
     }
-    *x_ptr = x;
-    *y_ptr = y;
+
+    // ----- compute norm x y -----
+    double nx = px / (double)viewport_width * 2.0 - 1.0;
+    double ny = py / (double)viewport_height * 2.0 - 1.0;
+
+    *usr_x = ux;
+    *usr_y = uy;
+    *norm_x = nx;
+    *norm_y = ny;
+    *px_x = px;
+    *px_y = py;
 }
 
 void am_window::mouse_move(lua_State *L, double x, double y) {
-    apply_window_projection(&x, &y);
+    double ux, uy, nx, ny, px, py;
+    compute_position(x, y, &ux, &uy, &nx, &ny, &px, &py);
     push(L);
-    lua_pushnumber(L, x);
-    lua_pushnumber(L, y);
-    am_call_amulet(L, "_mouse_move", 3, 0);
+    lua_pushnumber(L, ux);
+    lua_pushnumber(L, uy);
+    lua_pushnumber(L, nx);
+    lua_pushnumber(L, ny);
+    lua_pushnumber(L, px);
+    lua_pushnumber(L, py);
+    am_call_amulet(L, "_mouse_move", 7, 0);
 }
 
 void am_window::mouse_wheel(lua_State *L, double x, double y) {
@@ -188,28 +202,45 @@ void am_window::mouse_up(lua_State *L, am_mouse_button button) {
 }
 
 void am_window::touch_begin(lua_State *L, void* touchid, double x, double y) {
-    apply_window_projection(&x, &y);
+    double ux, uy, nx, ny, px, py;
+    compute_position(x, y, &ux, &uy, &nx, &ny, &px, &py);
     push(L);
     lua_pushlightuserdata(L, touchid);
-    lua_pushnumber(L, x);
-    lua_pushnumber(L, y);
-    am_call_amulet(L, "_touch_begin", 4, 0);
+    lua_pushnumber(L, ux);
+    lua_pushnumber(L, uy);
+    lua_pushnumber(L, nx);
+    lua_pushnumber(L, ny);
+    lua_pushnumber(L, px);
+    lua_pushnumber(L, py);
+    am_call_amulet(L, "_touch_begin", 8, 0);
 }
 
 void am_window::touch_end(lua_State *L, void* touchid, double x, double y) {
+    double ux, uy, nx, ny, px, py;
+    compute_position(x, y, &ux, &uy, &nx, &ny, &px, &py);
     push(L);
     lua_pushlightuserdata(L, touchid);
-    lua_pushnumber(L, x);
-    lua_pushnumber(L, y);
-    am_call_amulet(L, "_touch_end", 4, 0);
+    lua_pushnumber(L, ux);
+    lua_pushnumber(L, uy);
+    lua_pushnumber(L, nx);
+    lua_pushnumber(L, ny);
+    lua_pushnumber(L, px);
+    lua_pushnumber(L, py);
+    am_call_amulet(L, "_touch_end", 8, 0);
 }
 
 void am_window::touch_move(lua_State *L, void* touchid, double x, double y) {
+    double ux, uy, nx, ny, px, py;
+    compute_position(x, y, &ux, &uy, &nx, &ny, &px, &py);
     push(L);
     lua_pushlightuserdata(L, touchid);
-    lua_pushnumber(L, x);
-    lua_pushnumber(L, y);
-    am_call_amulet(L, "_touch_move", 4, 0);
+    lua_pushnumber(L, ux);
+    lua_pushnumber(L, uy);
+    lua_pushnumber(L, nx);
+    lua_pushnumber(L, ny);
+    lua_pushnumber(L, px);
+    lua_pushnumber(L, py);
+    am_call_amulet(L, "_touch_move", 8, 0);
 }
 
 am_window* am_find_window(am_native_window *nwin) {

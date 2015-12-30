@@ -162,9 +162,9 @@ function main_action()
 
     update_kaleidoscope_node()
 
-    facing = win:mouse_position_norm().x * math.pi
+    facing = win:mouse_norm_position().x * math.pi
     facing_node.rotation = quat(facing, vec3(0, 1, 0))
-    pitch_node.rotation = quat(win:mouse_position_norm().y * math.pi - 1, vec3(-1, 0, 0))
+    pitch_node.rotation = quat(win:mouse_norm_position().y * math.pi - 1, vec3(-1, 0, 0))
 
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)
@@ -504,7 +504,7 @@ function init_audio()
     end
     local primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73 }
     win.scene:action(function()
-        local pos = win:mouse_position_norm()
+        local pos = win:mouse_norm_position()
         for i = 1, num_active_chimes do
             local z = math.cos(pos.x * pos.y + i) * 0.4 + 0.6
             chimes[i].value = (math.sin(am.frame_time * primes[i]) * 0.4 + 0.6) * math.min(0.4, 1/num_active_chimes)

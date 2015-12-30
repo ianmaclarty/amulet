@@ -28,7 +28,7 @@ struct am_window : am_nonatomic_userdata {
     am_window_mode      mode;
     bool                dirty;
 
-    void apply_window_projection(double *x, double *y);
+    void compute_position(double x, double y, double *usr_x, double *usr_y, double *norm_x, double *norm_y, double *px_x, double *px_y);
     void mouse_move(lua_State *L, double x, double y);
     void mouse_down(lua_State *L, am_mouse_button button);
     void mouse_up(lua_State *L, am_mouse_button button);

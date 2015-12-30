@@ -1001,6 +1001,33 @@ static am_key convert_key(SDL_Keycode key) {
         case SDLK_F10: return AM_KEY_F10;
         case SDLK_F11: return AM_KEY_F11;
         case SDLK_F12: return AM_KEY_F12;
+        case SDLK_CAPSLOCK    : return AM_KEY_CAPSLOCK;
+        case SDLK_PRINTSCREEN : return AM_KEY_PRINTSCREEN;
+        case SDLK_SCROLLLOCK  : return AM_KEY_SCROLLLOCK;
+        case SDLK_PAUSE       : return AM_KEY_PAUSE;
+        case SDLK_INSERT      : return AM_KEY_INSERT;
+        case SDLK_HOME        : return AM_KEY_HOME;
+        case SDLK_PAGEUP      : return AM_KEY_PAGEUP;
+        case SDLK_END         : return AM_KEY_END;
+        case SDLK_PAGEDOWN    : return AM_KEY_PAGEDOWN;
+        case SDLK_KP_DIVIDE   : return AM_KEY_KP_DIVIDE;
+        case SDLK_KP_MULTIPLY : return AM_KEY_KP_MULTIPLY;
+        case SDLK_KP_MINUS    : return AM_KEY_KP_MINUS;
+        case SDLK_KP_PLUS     : return AM_KEY_KP_PLUS;
+        case SDLK_KP_ENTER    : return AM_KEY_KP_ENTER;
+        case SDLK_KP_1        : return AM_KEY_KP_1;
+        case SDLK_KP_2        : return AM_KEY_KP_2;
+        case SDLK_KP_3        : return AM_KEY_KP_3;
+        case SDLK_KP_4        : return AM_KEY_KP_4;
+        case SDLK_KP_5        : return AM_KEY_KP_5;
+        case SDLK_KP_6        : return AM_KEY_KP_6;
+        case SDLK_KP_7        : return AM_KEY_KP_7;
+        case SDLK_KP_8        : return AM_KEY_KP_8;
+        case SDLK_KP_9        : return AM_KEY_KP_9;
+        case SDLK_KP_0        : return AM_KEY_KP_0;
+        case SDLK_KP_PERIOD   : return AM_KEY_KP_PERIOD;
+        case SDLK_LGUI        : return AM_KEY_LGUI;
+        case SDLK_RGUI        : return AM_KEY_RGUI;
     }
     return AM_KEY_UNKNOWN;
 }
