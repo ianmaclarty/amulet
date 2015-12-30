@@ -18,7 +18,7 @@ function load_and_play(file, loop)
         buf = am.load_buffer(file)
         buffer_cache[file] = buf
     end
-    local audio_node = am.steam(buffer, loop)
+    local audio_node = am.stream(buf, loop)
     am.schedule_audio(audio_node)
     return function()
         if not audio_node.finished then

@@ -2,8 +2,8 @@
 Quickstart tutorial {#quickstart}
 ===================
 
-Install Amulet
---------------
+Installing Amulet
+-----------------
 
 **Windows:**
 
@@ -24,8 +24,8 @@ directory of your choice. Then add the directory to your PATH.
 The `amulet` executable is for x86_64. If you're running a 32 bit system,
 rename the file `amulet.i686` to `amulet`.
 
-Run a script
-------------
+Running a script
+----------------
 
 Create a text file called `main.lua` containing the following:
 
@@ -44,8 +44,8 @@ main.lua:1: It works!
 If you see the text "`main.lua:1: It works!`", Amulet is installed and
 working.
 
-Create a window
----------------
+Creating a window
+-----------------
 
 Type the following into `main.lua`:
 
@@ -60,8 +60,8 @@ local win = am.window{
 
 and run it as before. This time a bright pink window should appear.
 
-Render some text
-----------------
+Rendering text
+--------------
 
 Add the following line to main.lua after the line that creates the
 window:
@@ -75,8 +75,8 @@ text node. The window will render its scene graph each frame.
 
 ![](images/hello1.png)
 
-Transform the text
-------------------
+Transformation nodes
+--------------------
 
 Change the previous line to:
 
@@ -104,8 +104,8 @@ When you run the program you should see something like this:
 
 ![](images/hello2.png)
 
-Animate!
---------
+Actions
+-------
 
 Add the following to the end of main.lua:
 
@@ -160,8 +160,8 @@ win.scene:action(function(scene)
 end)
 ~~~
 
-Draw some shapes
-----------------
+Drawing shapes
+--------------
 
 Here is a simple program that draws 2 red circles
 on either side of a yellow square on a blue background.
@@ -233,8 +233,8 @@ win.scene = group_node
 
 This results in the exact same scene graph.
 
-Respond to key presses
-----------------------
+Responding to key presses
+-------------------------
 
 Let's change the above program so that the left circle
 only appears while the A key is down and the right
@@ -333,8 +333,8 @@ win.scene"left_eye".hidden = true
 win.scene"right_eye".hidden = true
 ~~~
 
-Draw sprites
-------------
+Drawing sprites
+---------------
 
 Sprites can be drawn using sprite nodes. To create a sprite node, pass the name
 of a .png or .jpg file to the `am.sprite()` function and add it to your scene
@@ -377,8 +377,8 @@ corresponding translation, is drawn.  This ensures the ball
 is visible on the beach. If we draw the beach second
 it would obscure the ball.
 
-Respond to mouse clicks
-------------------------
+Responding to mouse clicks
+--------------------------
 
 Let's make the ball bounce when we click it.
 We'll add a rotate node so we can make the ball
@@ -493,141 +493,116 @@ are some things to node:
   for example when we multiply `gravity` by `am.delta_time`.
   The result of `vec2(x, y) * c` is `vec2(x*c, y*c)`.
 
-Play sounds
------------
+Playing audio
+-------------
 
-
-
----------------------------------
-
-
-
-
-
-
-Another thing to note is that the two circle nodes
-are completely identical. It's only their parent translate
-nodes that determine their position. They both have the same
-centre point (`vec2(0, 0)`), radius (50) and colour (red). In fact we can
-replace these two nodes with just one node, by first creating the node:
+To play a sound, attach a `play` action to a scene node
+in the current scene. For example to play a sound 
+file `bounce.ogg` we could do the following:
 
 ~~~ {.lua}
-local eye = am.circle(vec2(0, 0), 50, red)
+scene:action(am.play("bounce.ogg"))
 ~~~
 
-and then using this node in the scene graph:
+The file `bounce.ogg` must exist in the same directory as
+the script.
+
+To have a sound loop, pass in a second argument of `true`,
+like so:
 
 ~~~ {.lua}
-win.scene =
-    am.group()
-    ^ {
-        am.translate(-150, 0):tag"left_eye"
-        ^ eye
-        ,
-        am.translate(150, 0):tag"right_eye"
-        ^ eye
-        ,
-        am.translate(0, -25)
-        ^ am.rect(-50, -50, 50, 50, yellow)
-    }
+win.scene:action(am.play("ocean.ogg", true))
 ~~~
 
-The scene graph now looks like this:
+Note that Amulet only reads Ogg Vorbis audio files.
 
-![](graphs/scene3.png)
+Here are some audio files you can try out with the beach
+ball game we made previously:
 
-Now if we wanted to change both circle's colour 
-to a random colour, we could do it with one
-line instead of two, since there's only
-one node to update.
+- [`sounds/bounce.ogg`](sounds/bounce.ogg)
+- [`sounds/ocean.ogg`](sounds/ocean.ogg)
+- [`sounds/land.ogg`](sounds/land.ogg)
 
-Here's the complete program listing:
+And here is the complete code listing for the beach ball
+game with sounds included. Note that we need an extra
+variable `on_ground` to keep track of whether the ball
+was on the ground, so we don't play the landing sound every
+frame.
 
 ~~~ {.lua}
-local red = vec4(1, 0, 0, 1)
-local blue = vec4(0, 0, 1, 1)
-local yellow = vec4(1, 1, 0, 1)
-
 local win = am.window{
-    title = "Hi",
+    title = "Beach",
     width = 400,
     height = 300,
-    clear_color = blue,
 }
 
-win.scene =
+win.scene = 
     am.group()
     ^ {
-        am.translate(-150, 0):tag"left_eye"
-        ^ am.circle(vec2(0, 0), 50, red)
+        am.sprite"beach.jpg"
         ,
-        am.translate(150, 0):tag"right_eye"
-        ^ am.circle(vec2(0, 0), 50, red)
-        ,
-        am.translate(0, -25)
-        ^ am.rect(-50, -50, 50, 50, yellow)
+        am.translate(0, -60):tag"ballt"
+        ^ am.rotate(0):tag"ballr"
+        ^ am.sprite"ball.png"
     }
 
-win.scene:action(function(scene)
-    scene"left_eye".hidden = not win:key_down"a"
-    scene"right_eye".hidden = not win:key_down"b"
-end)
-
-win.scene"left_eye".hidden = true
-win.scene"right_eye".hidden = true
-~~~
-
-~~~ {.lua}
-eye.color = vec4(math.randvec3(), 1)
-~~~
-
-Here's the complete program listing:
-
-~~~ {.lua}
-local red = vec4(1, 0, 0, 1)
-local blue = vec4(0, 0, 1, 1)
-local yellow = vec4(1, 1, 0, 1)
-
-local win = am.window{
-    title = "Hi",
-    width = 400,
-    height = 300,
-    clear_color = blue,
-}
-
-local eye = am.circle(vec2(0, 0), 50, red)
-
-win.scene =
-    am.group()
-    ^ {
-        am.translate(-150, 0):tag"left_eye"
-        ^ eye
-        ,
-        am.translate(150, 0):tag"right_eye"
-        ^ eye
-        ,
-        am.translate(0, -25)
-        ^ am.rect(-50, -50, 50, 50, yellow)
-    }
+local ball_pos = vec2(0, -60)
+local ball_angle = 0
+local velocity = vec2(0)
+local spin = 0
+local min_pos = vec2(-180, -60)
+local max_pos = vec2(180, 500)
+local min_v = vec2(-50, 150)
+local max_v = vec2(50, 300)
+local gravity = vec2(0, -500)
+local on_ground = true
 
 win.scene:action(function(scene)
-    scene"left_eye".hidden = not win:key_down"a"
-    scene"right_eye".hidden = not win:key_down"b"
-    eye.color = vec4(math.randvec3(), 1)
-    if win:key_pressed"escape" then
-        win:close()
+    -- check if the left mouse button was pressed
+    if win:mouse_pressed"left" then
+        local mouse_pos = win:mouse_position()
+        -- check if the mouse click is on the ball
+        if math.distance(mouse_pos, ball_pos) < 50 then
+            -- compute a velocity based on click position
+            local dir = math.normalize(ball_pos - mouse_pos)
+            velocity = dir * 300
+            velocity = math.clamp(velocity, min_v, max_v)
+            -- set a random spin
+            spin = math.random() * 4 - 2
+            -- play bounce sound
+            scene:action(am.play("bounce.ogg"))
+            on_ground = false
+        end
     end
+
+    -- update the ball position
+    ball_pos = ball_pos + velocity * am.delta_time
+
+    -- if the ball lands on the ground, set the
+    -- velocity and spin to zero.
+    if ball_pos.y <= -60 and not on_ground then
+        velocity = vec2(0)
+        spin = 0
+        -- play land sound
+        scene:action(am.play("land.ogg"))
+        on_ground = true
+    end
+
+    -- clamp the ball position so it doesn't dissapear
+    -- off the edge of the screen
+    ball_pos = math.clamp(ball_pos, min_pos, max_pos)
+
+    -- update the ball angle
+    ball_angle = ball_angle + spin * am.delta_time
+
+    -- update the ball translate and rotate nodes
+    scene"ballt".position2d = ball_pos
+    scene"ballr".angle = ball_angle
+
+    -- apply gravity to the velocity
+    velocity = velocity + gravity * am.delta_time
 end)
 
-win.scene"left_eye".hidden = true
-win.scene"right_eye".hidden = true
+-- play ocean sound in a loop
+win.scene:action(am.play("ocean.ogg", true))
 ~~~
-
-In the complete listing we also check if the escape key was pressed and if it
-was we close the window. `win:key_pressed(X)` returns true if the key was
-pressed down before the start of the current frame, but after the start of the
-previous frame (i.e. it will only return true in the frame immediately after
-the one in which the key was pressed).
-
-Draw images
------------
