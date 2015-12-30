@@ -9,6 +9,7 @@ addons:
             - gcc-mingw-w64-i686
             - g++-mingw-w64-i686
             - gcc-multilib
+            - lib32stdc++6
 
 os:
     - linux
