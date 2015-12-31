@@ -292,7 +292,7 @@ void am_biquad_filter_node::set_lowpass_params(double cutoff, double resonance) 
     // normalize cutoff 0->1
     double nyquist = (double)am_conf_audio_sample_rate * 0.5;
     cutoff = cutoff / nyquist;
-    cutoff = am_max(0, am_min(1, cutoff));
+    cutoff = am_clamp(cutoff, 0.0, 1.0);
     if (cutoff == 1) {
         // When cutoff is 1, the z-transform is 1.
         set_normalized_coeffs(1, 0, 0,
@@ -328,7 +328,7 @@ void am_biquad_filter_node::set_highpass_params(double cutoff, double resonance)
     // normalize cutoff 0->1
     double nyquist = (double)am_conf_audio_sample_rate * 0.5;
     cutoff = cutoff / nyquist;
-    cutoff = am_max(0, am_min(1, cutoff));
+    cutoff = am_clamp(cutoff, 0.0, 1.0);
     if (cutoff == 1) {
         // The z-transform is 0.
         set_normalized_coeffs(0, 0, 0,

@@ -14,10 +14,6 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #define AM_PATH_SEP '/'
 #endif
 
-#define am_min(x, y) ((x) < (y) ? (x) : (y))
-#define am_max(x, y) ((x) > (y) ? (x) : (y))
-#define am_clamp(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
-
 #define AM_PI 3.14159265358979323846
 #define AM_2PI (2.0 * 3.14159265358979323846)
 
@@ -41,6 +37,30 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 #else
 #define AM_RESTRICT __restrict
 #endif
+
+template<typename T>
+static inline T am_min(T x, T y) {
+    return x < y ? x : y;
+}
+
+template<typename T>
+static inline T am_max(T x, T y) {
+    return x > y ? x : y;
+}
+
+template<typename T>
+static inline T am_clamp(T x, T lo, T hi) {
+    return x < lo ? lo : (x > hi ? hi : x);
+}
+
+template<typename T>
+static inline T am_clamp_norm(T x, T lo, T hi) {
+    if (x < 0.0) {
+        return am_clamp(x * -lo, lo, hi);
+    } else {
+        return am_clamp(x * hi, lo, hi);
+    }
+}
 
 // returned string should be freed with free()
 char *am_format(const char *fmt, ...);

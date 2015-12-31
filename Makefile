@@ -22,6 +22,8 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
 EXTRA_PREREQS = 
 
+SDL_PREBUILT = $(SDL_PREBUILT_DIR)/sdl-prebuilt.date
+
 ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = $(LUAVM) stb kissfft
   AMULET = $(BUILD_BIN_DIR)/amulet.html
@@ -29,10 +31,10 @@ else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft
 else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft ft2
-  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+  EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft ft2
-  EXTRA_PREREQS = $(SDL_WIN_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+  EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else
   AM_DEPS = $(LUAVM) sdl angle stb kissfft ft2
   AM_DEFS += AM_USE_ANGLE
@@ -109,14 +111,21 @@ $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | 
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE)
-	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
-	cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@
+	if [ -d $(SDL_PREBUILT_DIR) ]; then \
+	    cp $(SDL_PREBUILT_DIR)/lib/*.a $(BUILD_LIB_DIR)/; \
+	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
+	    cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/; \
+	else \
+	    cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE); \
+	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
+	    cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@; \
+	fi
 
-$(SDL_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
-	cp -r $(SDL_WIN_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
-	cp $(SDL_WIN_PREBUILT_DIR)/lib/x86/*.lib $(BUILD_LIB_DIR)/
-	cp $(SDL_WIN_PREBUILT_DIR)/lib/x86/*.dll $(BUILD_BIN_DIR)/
+$(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
+	cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
+	-cp $(SDL_PREBUILT_DIR)/lib/*.lib $(BUILD_LIB_DIR)/
+	-cp $(SDL_PREBUILT_DIR)/lib/*.dll $(BUILD_LIB_DIR)/
+	-cp $(SDL_PREBUILT_DIR)/lib/*.a $(BUILD_LIB_DIR)/
 	touch $@
 
 $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)

@@ -20,9 +20,6 @@ STB_DIR		 = $(DEPS_DIR)/stb
 KISSFFT_DIR	 = $(DEPS_DIR)/kiss_fft130
 SIMPLEOPT_DIR    = $(DEPS_DIR)/simpleopt
 
-SDL_WIN_PREBUILT_DIR = $(SDL_DIR)-prebuilt/win32
-ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
-
 # Host settings (this is the *build* host, not the host we want to run on)
 
 PATH_SEP = :
@@ -72,7 +69,6 @@ ifndef LUAVM
 endif
 
 SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
-SDL_WIN_PREBUILT = $(BUILD_LIB_DIR)/sdl-win-prebuilt.date
 ANGLE_ALIB = $(BUILD_LIB_DIR)/libangle$(ALIB_EXT)
 ANGLE_WIN_PREBUILT = $(BUILD_LIB_DIR)/angle-win-prebuilt.date
 LUA51_ALIB = $(BUILD_LIB_DIR)/liblua51$(ALIB_EXT)
@@ -119,6 +115,8 @@ EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
 EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_run_waiting', '_am_emscripten_pause', '_am_emscripten_resume', '_am_emscripten_resize']"
 
 TARGET_CFLAGS=-ffast-math
+
+SDL_PREBUILT_SUBDIR=$(TARGET_PLATFORM)
 
 # Adjust flags for target
 ifeq ($(TARGET_PLATFORM),osx)
@@ -223,6 +221,7 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   WINDOWS = 1
   WINDOWS_SUBSYSTEM_OPT = -SUBSYSTEM:WINDOWS
   CONSOLE_SUBSYSTEM_OPT = -SUBSYSTEM:CONSOLE
+  SDL_PREBUILT_SUBDIR=win32
 else ifeq ($(TARGET_PLATFORM),mingw32)
   EXE_EXT = .exe
   CC = i686-w64-mingw32-gcc
@@ -235,6 +234,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   WINDOWS = 1
   WINDOWS_SUBSYSTEM_OPT = -mwindows
   CONSOLE_SUBSYSTEM_OPT =
+  SDL_PREBUILT_SUBDIR=win32
 else ifeq ($(TARGET_PLATFORM),mingw64)
   EXE_EXT = .exe
   CC = x86_64-w64-mingw32-gcc
@@ -291,3 +291,6 @@ else
 endif
 
 COMMON_CFLAGS := $(TARGET_CFLAGS) $(GRADE_CFLAGS) $(CFLAGS)
+
+SDL_PREBUILT_DIR = $(SDL_DIR)-prebuilt/$(SDL_PREBUILT_SUBDIR)
+ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
