@@ -116,8 +116,9 @@ $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
 	    cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/; \
 	else \
-	    pushd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE); \
-	    popd; \
+	    BASE_DIR=`pwd`; \
+	    cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE); \
+	    cd $$BASE_DIR; \
 	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
 	    cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@; \
 	fi
