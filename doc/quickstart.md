@@ -9,13 +9,15 @@ Installing Amulet
 
 [Download](http://www.amulet.xyz) the Windows installer and run it.
 Or, if you prefer, download the Windows zip archive,
-extract it to a directory of your choice and add that folder
+extract it to a directory of your choice and add that directory
 to your PATH.
 
 **Mac:**
 
-[Download](http://www.amulet.xyz) and extract the Mac zip archive to a
-directory of your choice. Then add the directory to your PATH.
+[Download](http://www.amulet.xyz) the OSX pkg file and run it.
+Or, if you prefer, download the OSX zip archive,
+extract it to a directory of your choice and add that directory
+to your PATH.
 
 **Linux:**
 
