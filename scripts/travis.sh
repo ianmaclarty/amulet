@@ -28,16 +28,16 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
     scripts/upload_distros.js $TAG amulet-${TAG}-${TRAVIS_OS_NAME}.zip amulet-${TAG}-${TRAVIS_OS_NAME}.pkg
 else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-        make TARGET=linux32.release LUAVM=lua51   test
-        make TARGET=linux64.release LUAVM=lua51   test
+        make -j2 TARGET=linux32.release LUAVM=lua51   test
+        make -j2 TARGET=linux64.release LUAVM=lua51   test
         #make TARGET=linux64.release LUAVM=lua52   test
         #make TARGET=linux64.release LUAVM=luajit  test
-        make TARGET=mingw32.release
+        make -j2 TARGET=mingw32.release
     else
-        make TARGET=osx.release     LUAVM=lua51   test
+        make -j2 TARGET=osx.release     LUAVM=lua51   test
         #make TARGET=osx.release     LUAVM=luajit  test
-        make TARGET=ios32.release   LUAVM=lua51
-        make TARGET=ios64.release   LUAVM=lua51
+        make -j2 TARGET=ios32.release   LUAVM=lua51
+        make -j2 TARGET=ios64.release   LUAVM=lua51
     fi
     if [ -n "$TRAVIS_TAG" ]; then
         scripts/upload_builds.js $TRAVIS_TAG
