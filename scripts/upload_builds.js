@@ -97,7 +97,7 @@ function upload_asset(upload_url, data, name, type, cb) {
         if (Math.floor(code / 100) == 2) {
             cb();
         } else {
-            throw "unable to upload file " + file + ": " + JSON.stringify(resp);
+            throw "unable to upload file " + name + ": " + code + ": " + JSON.stringify(resp);
         }
     });
 }
