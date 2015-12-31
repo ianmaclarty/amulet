@@ -129,7 +129,8 @@ $(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	touch $@
 
 $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(ANGLE_DIR) && $(MAKE) clean all
+	cd $(ANGLE_DIR) && $(MAKE) clean
+	cd $(ANGLE_DIR) && $(MAKE) all
 	cp $(ANGLE_DIR)/libangle$(ALIB_EXT) $@
 	cp -r $(ANGLE_DIR)/include/GLSLANG $(BUILD_INC_DIR)/
 	cp -r $(ANGLE_DIR)/include/KHR $(BUILD_INC_DIR)/
@@ -140,32 +141,38 @@ $(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	touch $@
 
 $(LUA51_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(LUA51_DIR) && $(MAKE) -f Makefile.custom clean all
+	cd $(LUA51_DIR) && $(MAKE) -f Makefile.custom clean
+	cd $(LUA51_DIR) && $(MAKE) -f Makefile.custom all
 	cp $(LUA51_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUA51_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUA52_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(LUA52_DIR) && $(MAKE) -f Makefile.custom clean all
+	cd $(LUA52_DIR) && $(MAKE) -f Makefile.custom clean
+	cd $(LUA52_DIR) && $(MAKE) -f Makefile.custom all
 	cp $(LUA52_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUA52_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(LUA53_DIR) && $(MAKE) -f Makefile.custom clean all
+	cd $(LUA53_DIR) && $(MAKE) -f Makefile.custom clean
+	cd $(LUA53_DIR) && $(MAKE) -f Makefile.custom all
 	cp $(LUA53_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUA53_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(LUAJIT_DIR) && $(MAKE) clean all $(LUAJIT_FLAGS)
+	cd $(LUAJIT_DIR) && $(MAKE) clean $(LUAJIT_FLAGS)
+	cd $(LUAJIT_DIR) && $(MAKE) all $(LUAJIT_FLAGS)
 	cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@
 
 $(FT2_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom clean all
+	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom clean
+	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom all
 	cp $(FT2_DIR)/libft2$(ALIB_EXT) $@
 	cp -r $(FT2_DIR)/include/* $(BUILD_INC_DIR)/
 
 $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(STB_DIR) && $(MAKE) clean all
+	cd $(STB_DIR) && $(MAKE) clean
+	cd $(STB_DIR) && $(MAKE) all
 	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
 	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
@@ -174,7 +181,8 @@ $(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
 	cp $(SIMPLEOPT_DIR)/SimpleGlob.h $@
 
 $(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom clean all
+	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom clean
+	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom all
 	cp $(KISSFFT_DIR)/libkissfft$(ALIB_EXT) $@
 	cp $(KISSFFT_DIR)/kiss_fft.h $(BUILD_INC_DIR)/
 	cp $(KISSFFT_DIR)/kiss_fftr.h $(BUILD_INC_DIR)/
