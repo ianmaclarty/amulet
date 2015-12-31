@@ -71,6 +71,7 @@ function create_release(cb) {
         tag_name: tag,
         name: tag,
         draft: false,
+        prerelease: true,
     });
     post(host+"/repos/"+owner+"/"+repo+"/releases?"+access, create_req,
         "application/json", function(resp, code)
