@@ -105,7 +105,7 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 
-$(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
+$(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) $(DEP_ALIBS) $(EXTRA_PREREQS) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
 	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
 
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
@@ -133,9 +133,9 @@ $(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(ANGLE_DIR) && $(MAKE) clean
 	cd $(ANGLE_DIR) && $(MAKE) all
-	cp $(ANGLE_DIR)/libangle$(ALIB_EXT) $@
 	cp -r $(ANGLE_DIR)/include/GLSLANG $(BUILD_INC_DIR)/
 	cp -r $(ANGLE_DIR)/include/KHR $(BUILD_INC_DIR)/
+	cp $(ANGLE_DIR)/libangle$(ALIB_EXT) $@
 
 $(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp -r $(ANGLE_WIN_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
@@ -169,15 +169,15 @@ $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 $(FT2_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom clean
 	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom all
-	cp $(FT2_DIR)/libft2$(ALIB_EXT) $@
 	cp -r $(FT2_DIR)/include/* $(BUILD_INC_DIR)/
+	cp $(FT2_DIR)/libft2$(ALIB_EXT) $@
 
 $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(STB_DIR) && $(MAKE) clean
 	cd $(STB_DIR) && $(MAKE) all
-	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
 	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
+	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
 
 $(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
 	cp $(SIMPLEOPT_DIR)/SimpleGlob.h $@
@@ -185,9 +185,9 @@ $(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
 $(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom clean
 	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom all
-	cp $(KISSFFT_DIR)/libkissfft$(ALIB_EXT) $@
 	cp $(KISSFFT_DIR)/kiss_fft.h $(BUILD_INC_DIR)/
 	cp $(KISSFFT_DIR)/kiss_fftr.h $(BUILD_INC_DIR)/
+	cp $(KISSFFT_DIR)/libkissfft$(ALIB_EXT) $@
 
 $(BUILD_DIRS): %:
 	mkdir -p $@
