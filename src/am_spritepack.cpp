@@ -56,6 +56,7 @@ static int is_mono = 0;
 static const char* minfilter = "linear";
 static const char* magfilter = "linear";
 static int do_premult = 1;
+static int keep_padding = 0;
 static int default_font = 0;
 
 static void process_args(int argc, char *argv[]);
@@ -437,37 +438,44 @@ static void compute_bbox() {
     int w = image_width;
     int h = image_height;
     unsigned char alpha = 0;
-    bb_top = h - 1;
-    bb_left = w - 1;
-    bb_right = 0;
-    bb_bottom = 0;
-    for (row = 0; row < h; row++) {
-        row_clear = 1;
-        for (col = 0; col < w; col++) {
-            alpha = image_data[row * image_width * 4 + col * 4 + 3];
-            if (alpha > 0) {
-                row_clear = 0;
-                if (col < bb_left) {
-                    bb_left = col;
-                }
-                if (col > bb_right) {
-                    bb_right = col;
+    if (keep_padding) {
+        bb_top = 0;
+        bb_left = 0;
+        bb_right = w - 1;
+        bb_bottom = h - 1;
+    } else {
+        bb_top = h - 1;
+        bb_left = w - 1;
+        bb_right = 0;
+        bb_bottom = 0;
+        for (row = 0; row < h; row++) {
+            row_clear = 1;
+            for (col = 0; col < w; col++) {
+                alpha = image_data[row * image_width * 4 + col * 4 + 3];
+                if (alpha > 0) {
+                    row_clear = 0;
+                    if (col < bb_left) {
+                        bb_left = col;
+                    }
+                    if (col > bb_right) {
+                        bb_right = col;
+                    }
                 }
             }
-        }
-        if (!row_clear) {
-            if (!found_bb_top) {
-                bb_top = row;
-                found_bb_top = 1;
+            if (!row_clear) {
+                if (!found_bb_top) {
+                    bb_top = row;
+                    found_bb_top = 1;
+                }
+                bb_bottom = row;
             }
-            bb_bottom = row;
         }
-    }
-    if (bb_left > bb_right) {
-        bb_right = bb_left;
-    }
-    if (bb_top > bb_bottom) {
-        bb_top = bb_bottom;
+        if (bb_left > bb_right) {
+            bb_right = bb_left;
+        }
+        if (bb_top > bb_bottom) {
+            bb_top = bb_bottom;
+        }
     }
 
     // make sure we have a 1 pixel transparent border, if possible
@@ -641,7 +649,7 @@ check_size:
 }
 
 static void usage() {
-    fprintf(stderr, "Usage: amulet pack -png filename.png -lua filename.lua [-mono] [-minfiler <filter>] [-magfilter <filter>] [-no-premult] <spec> ...\n");
+    fprintf(stderr, "Usage: amulet pack -png filename.png -lua filename.lua [-mono] [-minfiler <filter>] [-magfilter <filter>] [-no-premult] [-keep-padding] <spec> ...\n");
     fprintf(stderr, "  where <spec> is either an image file or a font spec of the form:\n");
     fprintf(stderr, "  font.ttf@16[:A-Z,0x20-0x2F]\n");
     exit(EXIT_FAILURE);
@@ -673,6 +681,8 @@ static void process_args(int argc, char *argv[]) {
             magfilter = argv[a];
         } else if (strcmp(arg, "-no-premult") == 0) {
             do_premult = 0;
+        } else if (strcmp(arg, "-keep-padding") == 0) {
+            keep_padding = 1;
         } else {
             parse_spec(argv[a], num_items);
             num_items++;
