@@ -131,7 +131,7 @@ static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "table",     luaopen_table);
     am_requiref(L, "os",        luaopen_os);
     am_requiref(L, "io",        luaopen_io);
-    //am_requiref(L, "debug",     luaopen_debug);
+    am_requiref(L, "debug",     luaopen_debug); // needed for custom traceback
 
 #ifdef AM_LUAJIT
     am_requiref(L, "ffi",       luaopen_ffi);

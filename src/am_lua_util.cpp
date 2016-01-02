@@ -257,6 +257,13 @@ int am_require(lua_State *L) {
         return lua_error(L);
     }
 
+    // replace "#!" at start with "--"
+    char *cbuf = (char*)buf;
+    if (sz >= 2 && cbuf[0] == '#' && cbuf[1] == '!') {
+        cbuf[0] = '-';
+        cbuf[1] = '-';
+    }
+
     // parse and load the module
     snprintf(tmpbuf2, TMP_BUF_SZ, "@%s.lua", tmpbuf1);
     int res = luaL_loadbuffer(L, (const char*)buf, sz, tmpbuf2);
