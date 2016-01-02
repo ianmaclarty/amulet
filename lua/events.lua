@@ -5,11 +5,13 @@ local window_mt = _metatable_registry.window
 function am._key_down(win, key)
     local u = win._event_data
     u._key_presses[key] = (u._key_presses[key] or 0) + 1
+    --log("down: "..key.."("..u._key_presses[key]..", "..tostring(u._key_state0[key])..")")
 end
 
 function am._key_up(win, key)
     local u = win._event_data
     u._key_releases[key] = (u._key_releases[key] or 0) + 1
+    --log("up: "..key.."("..u._key_releases[key]..", "..tostring(u._key_state0[key])..")")
 end
 
 local

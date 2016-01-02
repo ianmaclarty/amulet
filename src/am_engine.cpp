@@ -121,7 +121,7 @@ static void set_arg_global(lua_State *L, int argc, char** argv) {
 
 static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "base",      luaopen_base);
-    am_requiref(L, "package",   luaopen_package);
+    //am_requiref(L, "package",   luaopen_package);
     am_requiref(L, "math",      luaopen_math);
 #if defined(AM_LUA52) || defined(AM_LUA53)
     // luajit and lua51 open coroutine in luaopen_base
@@ -131,7 +131,7 @@ static void open_stdlualibs(lua_State *L) {
     am_requiref(L, "table",     luaopen_table);
     am_requiref(L, "os",        luaopen_os);
     am_requiref(L, "io",        luaopen_io);
-    am_requiref(L, "debug",     luaopen_debug);
+    //am_requiref(L, "debug",     luaopen_debug);
 
 #ifdef AM_LUAJIT
     am_requiref(L, "ffi",       luaopen_ffi);
