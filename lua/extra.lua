@@ -202,7 +202,7 @@ function format_vec(v)
     local n = #v
     local str = "vec"..n.."("
     for i = 1, n do
-        str = str..string.format("%g", v[i])
+        str = str..string.format("%.16g", v[i])
         if i == n then
             str = str..")"
         else
