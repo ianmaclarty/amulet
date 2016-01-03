@@ -1,11 +1,28 @@
 local win = am.window{}
-
+local prog = am.program([[
+    precision highp float;
+    attribute vec2 vert;
+    attribute vec4 color;
+    uniform mat4 MV;
+    uniform mat4 P;
+    varying vec4 v_color;
+    void main() {
+        v_color = color;
+        gl_Position = P * MV * vec4(vert, 0.0, 1.0);
+    }
+]], [[
+    precision mediump float;
+    varying vec4 v_color;
+    void main() {
+        gl_FragColor = v_color;
+    }
+]])
 win.scene =
-    am.use_program(am.shaders.colors2d)
-    ^am.bind{
+    am.use_program(prog)
+    ^ am.bind{
         P = mat4(1),
         MV = mat4(1),
         color = am.vec4_array{vec4(1, 0, 0, 1), vec4(0, 1, 0, 1), vec4(0, 0, 1, 1)},
         vert = am.vec2_array{vec2(-1, -1), vec2(0, 1), vec2(1, -1)}
     }
-    ^am.draw"triangles"
+    ^ am.draw"triangles"

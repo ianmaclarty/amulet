@@ -32,5 +32,5 @@ It is suggested that new users go through the tutorial first.
 The rest of the document can then be used as a reference,
 dipping into sections as needed.
 
-Note that if you see a function argument with brackets around it
+If you see a function argument with brackets around it
 in a function signature, then that argument is optional.

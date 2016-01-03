@@ -1,5 +1,5 @@
 
-Buffers and views
+Buffers and views {#buffers-and-views}
 =================
 
 Buffers

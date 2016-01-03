@@ -1,0 +1,9 @@
+digraph {
+    node [fontname="Courier bold", fontsize="12"];
+    node1 [label="node1"]
+    node2 [label="node2"]
+    node3 [label="node3"]
+    node4 [label="node4"]
+    node1 -> node2 -> node4
+    node1 -> node3 -> node4
+}

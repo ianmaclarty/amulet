@@ -8,7 +8,7 @@ GRAPHS = $(wildcard graphs/*.dot)
 GRAPH_PNGS = $(patsubst %.dot,%.png,$(GRAPHS))
 
 manual.html: $(SECTIONS) $(GRAPH_PNGS) writer.lua style.css template.html Makefile 
-	cat $(SECTIONS) | pandoc -s --template template.html -c style.css --toc -f markdown -o $@
+	cat $(SECTIONS) | pandoc -s --template template.html -c style.css --toc --toc-depth=4 -f markdown -o $@
 
 $(GRAPH_PNGS): %.png: %.dot
 	dot -Tpng $< -o $@

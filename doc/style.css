@@ -49,6 +49,13 @@ h3 {
     width: 713px;
 }
 
+h4 {
+    font-weight: normal;
+    font-size: 18px;
+    padding: 2px 2px 2px 5px;
+    width: 713px;
+}
+
 code {
     /*color: #01c0c7;*/
 }
@@ -132,13 +139,17 @@ pre.output:before {
 }
 */
 
-.func-def {
+.func-def, .field-def, .method-def {
     font-family: monospace;
     font-weight: bold;
     font-size: 18px;
     margin-left: 5px;
     margin-top: 30px;
     margin-bottom: 10px;
+}
+
+h4.func-def, h4.field-def, h4.method-def {
+    font-size: 16px;
 }
 
 .matrix {
