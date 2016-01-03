@@ -71,22 +71,21 @@ Creates a 4x4 matrix for a symetric perspective-view frustum.
 -   `near` and `far` are the distances of the near and far clipping
     plains from the camera (these should be positive).
 
-### math.ortho(left, right, bottom, top \[, near, far\]) {.func-def}
+### math.ortho(left, right, bottom, top [, near, far]) {.func-def}
 
 Creates a 4x4 orthographic projection marix.
+The default values for `near` and `far` are `1` and `-1`.
 
 ### quat(...) {.func-def}
 
 Constructs a quaternion. See quat-cons for more details.
 
-### math.perlin(pos \[, period\]) {.func-def}
+### math.perlin(pos [, period]) {.func-def}
 
 Generate perlin noise. `pos` can be a 2, 3, or 4 dimensional vector,
 or a number. If the second argument is supplied then the noise will be
 periodic with the given period. `period` should be of the same type as
-`pos` and its components should be integers greater than 1 (I'm not
-sure exactly why, but using non-integer values doesn't seem to work
-with the implementation of perlin noise Amulet currently uses).
+`pos` and its components should be integers greater than 1.
 
 The returned value is between -1 and 1.
 

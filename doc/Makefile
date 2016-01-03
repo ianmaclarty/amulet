@@ -2,7 +2,7 @@ include ../Common.mk
 
 LUA_HTML_MANUAL = ../$(LUA51_DIR)/doc/manual.html
 
-SECTIONS = header.md intro.md lua.md quickstart.md math.md buffers.md graphics.md actions.md input.md audio.md conf.md api_ref.md
+SECTIONS = header.md intro.md lua.md quickstart.md math.md buffers.md scene_nodes.md graphics.md actions.md input.md audio.md conf.md api_ref.md
 
 GRAPHS = $(wildcard graphs/*.dot)
 GRAPH_PNGS = $(patsubst %.dot,%.png,$(GRAPHS))

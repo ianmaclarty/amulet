@@ -34,7 +34,7 @@ function init()
     objects = am.group()
     objects:append(create_floor())
     local torus = 
-        am.cull_sphere("P", "MV", 1.5)
+        am.cull_sphere(1.5)
         ^am.scale(vec3(0.5)) 
         ^am.rotate(quat(0, vec3(0, 0, 1))):action(function(node)
             node.rotation = quat(am.frame_time * 0.7, vec3(0, 0, 1))
@@ -46,7 +46,7 @@ function init()
             node.rotation = quat(am.frame_time, vec3(0, 1, 0))
         end)
         ^load_model("torus.obj")
-    for i = 1, 5000 do
+    for i = 1, 50000 do
         objects:append(
             am.translate(vec3((math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
             ^am.rotate(quat(

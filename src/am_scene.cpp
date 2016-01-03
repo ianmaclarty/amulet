@@ -543,6 +543,18 @@ static void get_num_children(lua_State *L, void *obj) {
 
 static am_property num_children_property = {get_num_children, NULL};
 
+static void get_recursion_limit(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    lua_pushinteger(L, node->recursion_limit);
+}
+
+static void set_recursion_limit(lua_State *L, void *obj) {
+    am_scene_node *node = (am_scene_node*)obj;
+    node->recursion_limit = lua_tointeger(L, 3);
+}
+
+static am_property recursion_limit_property = {get_recursion_limit, set_recursion_limit};
+
 static void get_actions(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
     if (node->actions_ref == LUA_NOREF) {
@@ -581,6 +593,7 @@ static void register_scene_node_mt(lua_State *L) {
     am_register_property(L, "hidden", &hidden_property);
     am_register_property(L, "paused", &paused_property);
     am_register_property(L, "num_children", &num_children_property);
+    am_register_property(L, "recursion_limit", &recursion_limit_property);
     am_register_property(L, "_actions", &actions_property);
 
     lua_pushcclosure(L, append_child, 0);

@@ -57,6 +57,12 @@ void am_cull_sphere_node::render(am_render_state *rstate) {
 }
 
 static int create_cull_sphere_node(lua_State *L) {
+    if (lua_gettop(L) >= 1 && lua_type(L, 1) != LUA_TSTRING) {
+        lua_pushstring(L, am_conf_default_modelview_matrix_name);
+        lua_insert(L, 1);
+        lua_pushstring(L, am_conf_default_projection_matrix_name);
+        lua_insert(L, 1);
+    }
     int nargs = am_check_nargs(L, 2);
     if (lua_type(L, 1) != LUA_TSTRING) return luaL_error(L, "expecting a string in position 1");
     am_cull_sphere_node *node = am_new_userdata(L, am_cull_sphere_node);

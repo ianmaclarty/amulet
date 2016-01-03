@@ -15,21 +15,22 @@ Amulet currently runs on the following platforms:
 -   Windows 7+ (32 bit)
 -   Mac OS X 10.6+ (64 bit)
 -   Linux (32 and 64 bit)
--   iOS (armv7 and arm64)
 -   HTML5
+-   iOS (armv7 and arm64)
 
 Support for Android will be added at some point as well.
 
 How to use this document
 ========================
 
-If you're mainly interested in drawing simple 2D graphics, playing audio
-and reacting to keyboard and mouse input then the [quickstart tutorial](#quickstart)
-should be enough to get you going.
+The [quickstart tutorial](#quickstart) introduces basic
+concepts and walks you through
+drawing things on screen, playing audio and responding to user
+input.
 
-The sections after the tutorial go into more detail about
-advanced usage and may require a bit of knowledge about modern
-computer graphics.
+It is suggested that new users go through the tutorial first.
+The rest of the document can then be used as a reference,
+dipping into sections as needed.
 
-The [API reference](#api-reference) contains detailed documentation
-for all the Lua functions available in Amulet.
+Note that if you see a function argument with brackets around it
+in a function signature, then that argument is optional.
