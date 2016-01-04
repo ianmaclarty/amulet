@@ -42,6 +42,8 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     am_open_utf8_module(L);
     am_open_http_module(L);
     am_open_browser_module(L);
+    am_open_rand_module(L);
+    am_open_sfxr_module(L);
     if (!worker) {
         am_open_actions_module(L);
         am_open_window_module(L);
@@ -208,6 +210,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/events.lua") &&
         run_embedded_script(L, "lua/actions.lua") &&
         run_embedded_script(L, "lua/audio.lua") &&
+        run_embedded_script(L, "lua/sfxr.lua") &&
         run_embedded_script(L, "lua/tweens.lua") &&
         run_embedded_script(L, "lua/cameras.lua") &&
         run_embedded_script(L, "lua/postprocess.lua") &&

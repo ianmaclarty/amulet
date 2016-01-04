@@ -86,6 +86,8 @@ extern "C" {
 
 #include "kiss_fftr.h"
 
+#include "SFMT.h"
+
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
@@ -129,6 +131,8 @@ extern "C" {
 #include "am_browser.h"
 #include "am_spritepack.h"
 #include "am_export.h"
+#include "am_rand.h"
+#include "am_sfxr.h"
 
 #undef near
 #undef far
