@@ -101,14 +101,15 @@ function am.particles2d(opts)
     local source_pos_y_var = opts.source_pos_var and opts.source_pos_var.y or 0
     local start_size = (opts.start_size or 20) / 2
     local start_size_var = (opts.start_size_var or 0) / 2
+    local size_changes = not not opts.end_size
     local end_size = opts.end_size and opts.end_size / 2
     local end_size_var = (opts.end_size_var or 0) / 2
     local angle = opts.angle or 0
-    local angle_var = opts.angle_var or math.rad(30)
+    local angle_var = opts.angle_var or 0
     local speed = opts.speed or 100
-    local speed_var = opts.speed_var or 10
+    local speed_var = opts.speed_var or 0
     local life = opts.life or 1
-    local life_var = opts.life_var or 0.1
+    local life_var = opts.life_var or 0
     if life_var >= life then
         life_var = life - 0.001 -- prevent zero time-to-live
     end
@@ -120,10 +121,11 @@ function am.particles2d(opts)
     local start_g_var = opts.start_color_var and opts.start_color_var.g or 0
     local start_b_var = opts.start_color_var and opts.start_color_var.b or 0
     local start_a_var = opts.start_color_var and opts.start_color_var.a or 0
-    local end_r = opts.end_color and opts.end_color.r or 1
-    local end_g = opts.end_color and opts.end_color.g or 1
-    local end_b = opts.end_color and opts.end_color.b or 1
-    local end_a = opts.end_color and opts.end_color.a or 1
+    local color_changes = not not opts.end_color
+    local end_r = opts.end_color and opts.end_color.r
+    local end_g = opts.end_color and opts.end_color.g
+    local end_b = opts.end_color and opts.end_color.b
+    local end_a = opts.end_color and opts.end_color.a
     local end_r_var = opts.end_color_var and opts.end_color_var.r or 0
     local end_g_var = opts.end_color_var and opts.end_color_var.g or 0
     local end_b_var = opts.end_color_var and opts.end_color_var.b or 0
@@ -134,7 +136,7 @@ function am.particles2d(opts)
     local gravity_x_2 = gravity_x / 2
     local gravity_y_2 = gravity_y / 2
     local sprite = opts.sprite
-    local warmup_time = opts.warmup_time
+    local warmup_time = opts.warmup_time or 0
 
     local n = 0  -- num active particles
     local emit_counter = 0
@@ -264,15 +266,26 @@ function am.particles2d(opts)
         x[n] = source_pos_x + (rnd() * 2 - 1) * source_pos_x_var
         y[n] = source_pos_y + (rnd() * 2 - 1) * source_pos_y_var
         z[n] = start_size + (rnd() * 2 - 1) * start_size_var
-        dz[n] = end_size and ((end_size + (rnd() * 2 - 1) * end_size_var - z[n]) / time_to_live[n]) or 0
+        if size_changes then
+            dz[n] = (end_size + (rnd() * 2 - 1) * end_size_var - z[n]) / time_to_live[n]
+        else
+            dz[n] = 0
+        end
         r[n] = start_r + (rnd() * 2 - 1) * start_r_var
         g[n] = start_g + (rnd() * 2 - 1) * start_g_var
         b[n] = start_b + (rnd() * 2 - 1) * start_b_var
         a[n] = start_a + (rnd() * 2 - 1) * start_a_var
-        dr[n] = (end_r + (rnd() * 2 - 1) * end_r_var - r[n]) / time_to_live[n]
-        dg[n] = (end_g + (rnd() * 2 - 1) * end_g_var - g[n]) / time_to_live[n]
-        db[n] = (end_b + (rnd() * 2 - 1) * end_b_var - b[n]) / time_to_live[n]
-        da[n] = (end_a + (rnd() * 2 - 1) * end_a_var - a[n]) / time_to_live[n]
+        if color_changes then
+            dr[n] = (end_r + (rnd() * 2 - 1) * end_r_var - r[n]) / time_to_live[n]
+            dg[n] = (end_g + (rnd() * 2 - 1) * end_g_var - g[n]) / time_to_live[n]
+            db[n] = (end_b + (rnd() * 2 - 1) * end_b_var - b[n]) / time_to_live[n]
+            da[n] = (end_a + (rnd() * 2 - 1) * end_a_var - a[n]) / time_to_live[n]
+        else
+            dr[n] = 0
+            dg[n] = 0
+            db[n] = 0
+            da[n] = 0
+        end
         local speed = speed + (rnd() * 2 - 1) * speed_var
         local angle = angle + (rnd() * 2 - 1) * angle_var
         speed_x[n] = cos(angle) * speed
@@ -488,6 +501,9 @@ function am.particles2d(opts)
         node"bind".tex = sprite.texture
         node"bind".uv_offset = uv_offset
         node"bind".uv_scale = uv_scale
+    end
+    function node:get_active_particles()
+        return n
     end
 
     node:tag"particles2d"

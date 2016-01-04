@@ -372,7 +372,7 @@ function am.ascii_sprite(key, str)
             row = row + 1
             curr_width = 0
         elseif not bkey[b] then
-            error("character '"..str(pos, pos).."' on row "..row.." not in key", 2)
+            error("character '"..str:sub(pos, pos).."' on row "..row.." not in key", 2)
         else
             if not colors[row] then
                 colors[row] = {}
