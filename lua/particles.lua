@@ -88,6 +88,7 @@ end
 --      max_particles
 --      gravity
 --      sprite
+--      warmup_time
 function am.particles2d(opts)
     local max_particles = opts.max_particles or 100
     local start_particles = opts.start_particles or 0
@@ -100,7 +101,7 @@ function am.particles2d(opts)
     local source_pos_y_var = opts.source_pos_var and opts.source_pos_var.y or 0
     local start_size = (opts.start_size or 20) / 2
     local start_size_var = (opts.start_size_var or 0) / 2
-    local end_size = (opts.end_size or 20) / 2
+    local end_size = opts.end_size and opts.end_size / 2
     local end_size_var = (opts.end_size_var or 0) / 2
     local angle = opts.angle or 0
     local angle_var = opts.angle_var or math.rad(30)
@@ -133,6 +134,7 @@ function am.particles2d(opts)
     local gravity_x_2 = gravity_x / 2
     local gravity_y_2 = gravity_y / 2
     local sprite = opts.sprite
+    local warmup_time = opts.warmup_time
 
     local n = 0  -- num active particles
     local emit_counter = 0
@@ -262,7 +264,7 @@ function am.particles2d(opts)
         x[n] = source_pos_x + (rnd() * 2 - 1) * source_pos_x_var
         y[n] = source_pos_y + (rnd() * 2 - 1) * source_pos_y_var
         z[n] = start_size + (rnd() * 2 - 1) * start_size_var
-        dz[n] = (end_size + (rnd() * 2 - 1) * end_size_var - z[n]) / time_to_live[n]
+        dz[n] = end_size and ((end_size + (rnd() * 2 - 1) * end_size_var - z[n]) / time_to_live[n]) or 0
         r[n] = start_r + (rnd() * 2 - 1) * start_r_var
         g[n] = start_g + (rnd() * 2 - 1) * start_g_var
         b[n] = start_b + (rnd() * 2 - 1) * start_b_var
@@ -283,9 +285,7 @@ function am.particles2d(opts)
     set_verts()
 
     local
-    function update()
-        local dt = am.delta_time
-
+    function update(dt)
         -- update existing particles
         local i = 1
         while i <= n do
@@ -336,7 +336,13 @@ function am.particles2d(opts)
         set_verts()
     end
     
-    node:action(update)
+    node:action(function() update(am.delta_time) end)
+
+    local dt = 1/60
+    while warmup_time > 0 do
+        update(dt)
+        warmup_time = warmup_time - dt
+    end
 
     function node:get_source_pos()
         return vec2(source_pos_x, source_pos_y)

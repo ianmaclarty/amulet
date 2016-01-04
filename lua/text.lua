@@ -345,6 +345,94 @@ function am.sprite(image0, halign, valign, color)
     return node
 end
 
+function am.ascii_sprite(key, str)
+    local lf = string.byte("\n")
+    local cr = string.byte("\r")
+    local sp = string.byte(" ")
+    local tb = string.byte("\t")
+    local width = 0
+    local height
+    local curr_width = 0
+    local colors = {}
+    local row = 1
+    local bkey = {}
+    for chr, color in pairs(key) do
+        bkey[chr:byte()] = color
+    end
+    for pos = 1, #str do
+        local b = str:byte(pos)
+        if b == cr or b == sp or b == tb then
+            -- skip 
+        elseif b == lf then
+            if row == 1 then
+                width = curr_width
+            elseif row > 1 and curr_width ~= width then
+                error("all rows must have the same width", 2)
+            end
+            row = row + 1
+            curr_width = 0
+        elseif not bkey[b] then
+            error("character '"..str(pos, pos).."' on row "..row.." not in key", 2)
+        else
+            if not colors[row] then
+                colors[row] = {}
+            end
+            table.insert(colors[row], bkey[b])
+            curr_width = curr_width + 1
+        end
+    end
+    if curr_width > 0 then
+        if curr_width ~= width then
+            error("all rows must have the same width", 2)
+        end
+        height = row
+    else
+        height = row - 1
+    end
+
+    local buf = am.buffer(4 * width * height)
+    local rview = buf:view("ubyte", 0, 4)
+    local gview = buf:view("ubyte", 1, 4)
+    local bview = buf:view("ubyte", 2, 4)
+    local aview = buf:view("ubyte", 3, 4)
+    local i = 1
+    for row = height, 1, -1 do
+        for col = 1, width do
+            local val = colors[row][col]
+            local r, g, b, a
+            if type(val) == "number" then
+                r = math.floor(val / 2^24)
+                g = math.floor((val - r * 2^24) / 2^16)
+                b = math.floor((val - r * 2^24 - g * 2^16) / 2^8)
+                a = val - r * 2^24 - g * 2^16 - b * 2^8
+            else
+                r = val.r * 255
+                g = val.g * 255
+                b = val.b * 255
+                a = val.a * 255
+            end
+            rview[i] = r
+            gview[i] = g
+            bview[i] = b
+            aview[i] = a
+            i = i + 1
+        end
+    end
+
+    local tex = am.texture2d{
+        width = width,
+        height = height,
+        buffer = buf,
+    }
+
+    return {
+        texture = tex,
+        s1 = 0, t1 = 0, s2 = 1, t2 = 1,
+        x1 = 0, y1 = 0, x2 = width, y2 = height,
+        width = width, height = height,
+    }
+end
+
 function am._init_fonts(data, imgfile, embedded)
     local fonts = {}
     for _, entry in ipairs(data) do
