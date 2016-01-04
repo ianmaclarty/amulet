@@ -4,10 +4,10 @@ Amulet is a Lua-based audio-visual toolkit designed for small-scope games and ex
 
 **NOTE**: Amulet is not ready yet, but a initial release is planned for the end of 2015.
 
-Here's what Hello World looks like in Amulet:
+Here's what a minimal Hello World! looks like in Amulet:
 
 ```lua
-am.window{}.scene = am.translate(320, 240) ^ am.text("Hello World!")
+am.window{}.scene = am.text("Hello World!")
 ```
 
 ## Supported platforms
@@ -21,6 +21,53 @@ It currently runs on the following platforms:
 - HTML5
 
 Android support will also be added at some point.
+
+## Building from source
+
+### Linux
+
+Make sure you have gcc and g++ installed, then do:
+
+```
+make
+```
+
+### OSX
+
+Install the command line developer tools (clang, clang++), then do:
+
+```
+make
+```
+
+### Windows
+
+You will need to install [MinGW and MSYS](http://www.mingw.org/)
+as well as a MicroSoft Visual C compiler.
+
+You will need to create your own version of msys.bat with something
+like the following at the top:
+
+```
+call "%VS120COMNTOOLS%vsvars32.bat" >NUL:
+```
+
+(VS120COMNTOOLS may be different depending on which version
+of Visual Studio you're using.)
+
+This set's up the Visual Studio command line environment.
+
+Then, from the msys shell, do:
+
+```
+make
+```
+
+### Cross compiling
+
+It's also possible to cross-compile to various platforms (e.g. HTML5, iOS).
+See the files appveyor.bat and travis.sh in the scripts directory
+for examples of how to do this.
 
 ## Credits
 
