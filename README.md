@@ -55,7 +55,7 @@ call "%VS120COMNTOOLS%vsvars32.bat" >NUL:
 (VS120COMNTOOLS may be different depending on which version
 of Visual Studio you're using.)
 
-This set's up the Visual Studio command line environment.
+This sets up the Visual Studio command line environment.
 
 Then, from the msys shell, do:
 
