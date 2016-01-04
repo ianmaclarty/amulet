@@ -2,8 +2,6 @@
 
 Amulet is a Lua-based audio-visual toolkit designed for small-scope games and experimentation.
 
-**NOTE**: Amulet is not ready yet, but a initial release is planned for the end of 2015.
-
 Here's what a minimal Hello World! looks like in Amulet:
 
 ```lua
@@ -31,6 +29,10 @@ Make sure you have gcc and g++ installed, then do:
 ```
 make
 ```
+
+If you get errors, you may also need to install additional dev packages,
+such as as libgl1-mesa-dev (for OpenGL headers) or libasound2-dev
+(for audio support in SDL).
 
 ### OSX
 
@@ -65,9 +67,9 @@ make
 
 ### Cross compiling
 
-It's also possible to cross-compile to various platforms (e.g. HTML5, iOS).
-See the files appveyor.bat and travis.sh in the scripts directory
-for examples of how to do this.
+It's also possible to cross-compile to various platforms (e.g. HTML5, iOS, MinGW).
+See the files .travis.yml, scripts/appveyor.bat and scripts/travis.sh for
+examples of how to do this.
 
 ## Credits
 
