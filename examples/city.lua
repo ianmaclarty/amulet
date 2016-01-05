@@ -162,9 +162,10 @@ function main_action()
 
     update_kaleidoscope_node()
 
-    facing = win:mouse_norm_position().x * math.pi
+    local mouse_pos = win:mouse_norm_position()
+    facing = mouse_pos.x * 1.5
     facing_node.rotation = quat(facing, vec3(0, 1, 0))
-    pitch_node.rotation = quat(win:mouse_norm_position().y * math.pi - 1, vec3(-1, 0, 0))
+    pitch_node.rotation = quat(mouse_pos.y * 1.5 - 1, vec3(-1, 0, 0))
 
     kaleidoscope_fb:clear(true, true)
     kaleidoscope_fb:render(buildings_node)

@@ -36,6 +36,7 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, b
 }
 
 void am_framebuffer::clear(bool clear_colorbuf, bool clear_depth, bool clear_stencil) {
+    am_set_scissor_test_enabled(false);
     if (clear_colorbuf) {
         am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
     }

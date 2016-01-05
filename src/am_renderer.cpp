@@ -408,14 +408,18 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
         am_bind_framebuffer(fb);
     }
 
+    am_set_viewport(x, y, w, h);
     rstate->active_viewport_state.set(x, y, w, h);
+    rstate->bound_viewport_state.set(x, y, w, h);
+
     bool scissor_enabled = true;
     if (x == 0 && y == 0 && w == fbw && h == fbh) scissor_enabled = false;
+    am_set_scissor_test_enabled(scissor_enabled);
+    if (scissor_enabled) {
+        am_set_scissor(x, y, w, h);
+    }
     rstate->active_scissor_test_state.set(scissor_enabled, x, y, w, h);
-
-    // bind these now so clear affects desired area.
-    rstate->active_viewport_state.bind(rstate);
-    rstate->active_scissor_test_state.bind(rstate);
+    rstate->bound_scissor_test_state.set(scissor_enabled, x, y, w, h);
 
     rstate->active_depth_test_state.set(has_depthbuffer, has_depthbuffer,
         has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);

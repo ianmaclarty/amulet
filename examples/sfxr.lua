@@ -82,3 +82,9 @@ win.scene = am.group{
     button(-30, -80, "RANDOM",      true, 9),
     list,
 }
+
+win.scene:action(function()
+    if win:key_pressed"escape" then
+        win:close()
+    end
+end)
