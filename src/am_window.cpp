@@ -262,8 +262,7 @@ void am_handle_window_close(am_native_window *nwin) {
 
 static int close_window(lua_State *L) {
 #if defined(AM_BACKEND_EMSCRIPTEN)
-    // closing the window only stops the program running, which
-    // just looks like it's crashed to the user.
+    // ignore window close in HTML5 apps
     return 0;
 #else
     am_check_nargs(L, 1);

@@ -234,9 +234,112 @@ end
 local sprite_cache = {}
 setmetatable(sprite_cache, {__mode = "v"})
 
+am.ascii_color_map = {
+    W = vec4(1, 1, 1, 1),
+    w = vec4(0.5, 0.5, 0.5, 1),
+    K = vec4(0, 0, 0, 1),
+    R = vec4(1, 0, 0, 1),
+    r = vec4(0.5, 0, 0, 1),
+    Y = vec4(1, 1, 0, 1),
+    y = vec4(0.5, 0.5, 0, 1),
+    G = vec4(0, 1, 0, 1),
+    g = vec4(0, 0.5, 0, 1),
+    C = vec4(0, 1, 1, 1),
+    c = vec4(0, 0.5, 0.5, 1),
+    B = vec4(0, 0, 1, 1),
+    b = vec4(0, 0, 0.5, 1),
+    M = vec4(1, 0, 1, 1),
+    m = vec4(0.5, 0, 0.5, 1),
+    O = vec4(1, 0.5, 0, 1),
+    o = vec4(0.5, 0.25, 0, 1),
+}
+
+local
+function parse_ascii_sprite(str)
+    local key = am.ascii_color_map
+    local lf = string.byte("\n")
+    local cr = string.byte("\r")
+    local sp = string.byte(" ")
+    local tb = string.byte("\t")
+    local width = 0
+    local height
+    local curr_width = 0
+    local colors = {}
+    local row = 1
+    local rkey = {}
+    local gkey = {}
+    local bkey = {}
+    local akey = {}
+    for chr, color in pairs(key) do
+        local bt = chr:byte()
+        rkey[bt] = color.r * 255
+        gkey[bt] = color.g * 255
+        bkey[bt] = color.b * 255
+        akey[bt] = color.a * 255
+    end
+    for pos = 1, #str do
+        local b = str:byte(pos)
+        if b == cr or b == sp or b == tb then
+            -- skip 
+        elseif b == lf then
+            if row == 1 then
+                width = curr_width
+            elseif row > 1 and curr_width ~= width then
+                error("all rows must have the same width", 4)
+            end
+            row = row + 1
+            curr_width = 0
+        else
+            if not colors[row] then
+                colors[row] = {}
+            end
+            table.insert(colors[row], b)
+            curr_width = curr_width + 1
+        end
+    end
+    if curr_width > 0 then
+        if curr_width ~= width then
+            error("all rows must have the same width", 4)
+        end
+        height = row
+    else
+        height = row - 1
+    end
+
+    local buf = am.buffer(4 * width * height)
+    local rview = buf:view("ubyte", 0, 4)
+    local gview = buf:view("ubyte", 1, 4)
+    local bview = buf:view("ubyte", 2, 4)
+    local aview = buf:view("ubyte", 3, 4)
+    local i = 1
+    for row = height, 1, -1 do
+        for col = 1, width do
+            local bt = colors[row][col]
+            rview[i] = rkey[bt] or 0
+            gview[i] = gkey[bt] or 0
+            bview[i] = bkey[bt] or 0
+            aview[i] = akey[bt] or 0
+            i = i + 1
+        end
+    end
+
+    local tex = am.texture2d{
+        width = width,
+        height = height,
+        buffer = buf,
+    }
+
+    return {
+        texture = tex,
+        s1 = 0, t1 = 0, s2 = 1, t2 = 1,
+        x1 = 0, y1 = 0, x2 = width, y2 = height,
+        width = width, height = height,
+    }
+end
+
 local
 function convert_sprite_source(img)
-    local t = am.type(img)
+    local t = type(img)
     if t == "table" then
         return img
     elseif t == "string" then
@@ -244,60 +347,35 @@ function convert_sprite_source(img)
         if sprite_cache[name] then
             return sprite_cache[name]
         end
-        img = am.load_image(img)
-        local s1, t1, s2, t2 = 0, 0, 1, 1
-        local x1, y1, x2, y2 = 0, 0, img.width, img.height
-        local sprite = {
-            texture = am.texture2d{image = img},
-            s1 = s1,
-            t1 = t1,
-            s2 = s2,
-            t2 = t2,
-            x1 = x1,
-            y1 = y1,
-            x2 = x2,
-            y2 = y2,
-            width = x2 - x1,
-            height = y2 - y1,
-        }
+        local sprite
+        if img:match("%\n") then
+            sprite = parse_ascii_sprite(img)
+        else
+            img = am.load_image(img)
+            local s1, t1, s2, t2 = 0, 0, 1, 1
+            local x1, y1, x2, y2 = 0, 0, img.width, img.height
+            sprite = {
+                texture = am.texture2d{image = img},
+                s1 = s1,
+                t1 = t1,
+                s2 = s2,
+                t2 = t2,
+                x1 = x1,
+                y1 = y1,
+                x2 = x2,
+                y2 = y2,
+                width = x2 - x1,
+                height = y2 - y1,
+            }
+        end
         sprite_cache[name] = sprite
         return sprite
-    elseif t == "image" then
-        local s1, t1, s2, t2 = 0, 0, 1, 1
-        local x1, y1, x2, y2 = 0, 0, img.width, img.height
-        return {
-            texture = am.texture2d{image = img},
-            s1 = s1,
-            t1 = t1,
-            s2 = s2,
-            t2 = t2,
-            x1 = x1,
-            y1 = y1,
-            x2 = x2,
-            y2 = y2,
-            width = x2 - x1,
-            height = y2 - y1,
-        }
-    elseif t == "texture2d" then
-        local s1, t1, s2, t2 = 0, 0, 1, 1
-        local x1, y1, x2, y2 = 0, 0, img.width, img.height
-        return {
-            texture = img,
-            s1 = s1,
-            t1 = t1,
-            s2 = s2,
-            t2 = t2,
-            x1 = x1,
-            y1 = y1,
-            x2 = x2,
-            y2 = y2,
-            width = x2 - x1,
-            height = y2 - y1,
-        }
     else
         error("unexpected "..t.." in argument position 1", 3)
     end
 end
+
+am._convert_sprite_source = convert_sprite_source
 
 function am.sprite(image0, halign, valign, color)
     halign = halign or "center"
@@ -343,94 +421,6 @@ function am.sprite(image0, halign, valign, color)
         
     node:tag"sprite"
     return node
-end
-
-function am.ascii_sprite(key, str)
-    local lf = string.byte("\n")
-    local cr = string.byte("\r")
-    local sp = string.byte(" ")
-    local tb = string.byte("\t")
-    local width = 0
-    local height
-    local curr_width = 0
-    local colors = {}
-    local row = 1
-    local bkey = {}
-    for chr, color in pairs(key) do
-        bkey[chr:byte()] = color
-    end
-    for pos = 1, #str do
-        local b = str:byte(pos)
-        if b == cr or b == sp or b == tb then
-            -- skip 
-        elseif b == lf then
-            if row == 1 then
-                width = curr_width
-            elseif row > 1 and curr_width ~= width then
-                error("all rows must have the same width", 2)
-            end
-            row = row + 1
-            curr_width = 0
-        elseif not bkey[b] then
-            error("character '"..str:sub(pos, pos).."' on row "..row.." not in key", 2)
-        else
-            if not colors[row] then
-                colors[row] = {}
-            end
-            table.insert(colors[row], bkey[b])
-            curr_width = curr_width + 1
-        end
-    end
-    if curr_width > 0 then
-        if curr_width ~= width then
-            error("all rows must have the same width", 2)
-        end
-        height = row
-    else
-        height = row - 1
-    end
-
-    local buf = am.buffer(4 * width * height)
-    local rview = buf:view("ubyte", 0, 4)
-    local gview = buf:view("ubyte", 1, 4)
-    local bview = buf:view("ubyte", 2, 4)
-    local aview = buf:view("ubyte", 3, 4)
-    local i = 1
-    for row = height, 1, -1 do
-        for col = 1, width do
-            local val = colors[row][col]
-            local r, g, b, a
-            if type(val) == "number" then
-                r = math.floor(val / 2^24)
-                g = math.floor((val - r * 2^24) / 2^16)
-                b = math.floor((val - r * 2^24 - g * 2^16) / 2^8)
-                a = val - r * 2^24 - g * 2^16 - b * 2^8
-            else
-                r = val.r * 255
-                g = val.g * 255
-                b = val.b * 255
-                a = val.a * 255
-            end
-            rview[i] = r
-            gview[i] = g
-            bview[i] = b
-            aview[i] = a
-            i = i + 1
-        end
-    end
-
-    local tex = am.texture2d{
-        width = width,
-        height = height,
-        buffer = buf,
-    }
-
-    return {
-        texture = tex,
-        s1 = 0, t1 = 0, s2 = 1, t2 = 1,
-        x1 = 0, y1 = 0, x2 = width, y2 = height,
-        width = width, height = height,
-    }
 end
 
 function am._init_fonts(data, imgfile, embedded)

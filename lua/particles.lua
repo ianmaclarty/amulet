@@ -135,7 +135,10 @@ function am.particles2d(opts)
     local gravity_y = opts.gravity and opts.gravity.y or 0
     local gravity_x_2 = gravity_x / 2
     local gravity_y_2 = gravity_y / 2
-    local sprite = opts.sprite
+    local sprite
+    if opts.sprite_source then
+        sprite = am._convert_sprite_source(opts.sprite_source)
+    end
     local warmup_time = opts.warmup_time or 0
 
     local n = 0  -- num active particles
