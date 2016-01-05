@@ -115,7 +115,7 @@ int fileacc;
 
 am_sfxr() {
     master_vol=0.05f;
-    sound_vol=0.5f;
+    sound_vol=1.0f; //0.5f;
     playing_sample=false;
     filesample=0.0f;
     fileacc=0;

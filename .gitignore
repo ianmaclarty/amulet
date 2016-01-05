@@ -84,6 +84,9 @@ deps/freetype-*/*.lib
 deps/freetype-*/*.a
 deps/freetype-*/*.pdb
 
+deps/sfmt-*/*.lib
+deps/sfmt-*/*.a
+
 tests/*.out
 tests/*.err
 tests/*.res
