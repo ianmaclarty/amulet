@@ -497,16 +497,15 @@ quit:
             SDL_CloseAudioDevice(capture_device);
         }
     }
+    // destroy lua state before window, so gl context not
+    // destroyed before textures and vbos deleted.
     if (eng != NULL) am_destroy_engine(eng);
     for (unsigned int i = 0; i < windows.size(); i++) {
+        // XXX why not destroy main window here?
         if (windows[i].window != main_window) {
             SDL_DestroyWindow(windows[i].window);
         }
     }
-    // We need to make sure we destroy the main window after
-    // destroying the lua state, so that the context is not
-    // destroyed before the __gc metamethods of objects like
-    // textures and buffers are called.
     if (main_window != NULL) {
         SDL_DestroyWindow(main_window);
     }
@@ -1065,6 +1064,12 @@ static bool check_for_package() {
 static win_info *win_from_id(Uint32 winid) {
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (SDL_GetWindowID(windows[i].window) == winid) {
+            return &windows[i];
+        }
+    }
+    // return window with focus
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (SDL_GetWindowFlags(windows[i].window) & SDL_WINDOW_INPUT_FOCUS) {
             return &windows[i];
         }
     }

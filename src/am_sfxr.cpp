@@ -115,7 +115,7 @@ int fileacc;
 
 am_sfxr() {
     master_vol=0.05f;
-    sound_vol=1.0f; //0.5f;
+    sound_vol=0.5f;
     playing_sample=false;
     filesample=0.0f;
     fileacc=0;
@@ -422,11 +422,15 @@ static int gen_sfxr_buffer(lua_State *L) {
     sfxr.p_arp_speed = lua_tonumber(L, 24);
     sfxr.p_arp_mod = lua_tonumber(L, 25);
     int len;
-    float *channel1 = sfxr.gen_buffer(&len);
-    am_buffer *buf = am_new_userdata(L, am_buffer, sizeof(float) * len * 2);
-    memcpy(&buf->data[0], channel1, sizeof(float) * len); // left channel
-    memcpy(&buf->data[len * sizeof(float)], channel1, sizeof(float) * len); // right channel
-    free(channel1);
+    am_buffer *buf = am_new_userdata(L, am_buffer);
+    buf->data = (uint8_t*)sfxr.gen_buffer(&len);
+    buf->size = len * sizeof(float);
+    am_audio_buffer *audio_buffer = am_new_userdata(L, am_audio_buffer);
+    audio_buffer->sample_rate = 44100;
+    audio_buffer->num_channels = 1;
+    audio_buffer->buffer = buf;
+    audio_buffer->buffer_ref = audio_buffer->ref(L, -2);
+    lua_remove(L, -2); // buf
     return 1;
 }
 

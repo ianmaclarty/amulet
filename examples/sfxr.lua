@@ -43,8 +43,7 @@ function button(x, y, label, gen, n)
                 else
                     seed = n
                 end
-                local buf = am.gen_sfx_buffer(seed)
-                node:action(am.play(am.track(buf, false, 1)))
+                node:action(am.play(seed))
                 print("seed: "..seed)
                 if gen then
                     add_to_list(seed)

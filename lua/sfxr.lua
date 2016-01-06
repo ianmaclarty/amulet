@@ -356,7 +356,7 @@ local generators = {
     randomg,
 }
 
-function am.gen_sfx_buffer(arg)
+function am.sfxr_synth(arg)
     local settings = base_settings()
     local t = type(arg)
     if t == "table" then

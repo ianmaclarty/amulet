@@ -364,7 +364,7 @@ static int release_vbo(lua_State *L) {
     return 0;
 }
 
-static am_buffer_view* new_buffer_view(lua_State *L, am_buffer_view_type type) {
+am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type) {
     int mtid = (int)MT_am_buffer_view + (int)type + 1;
     assert(mtid < (int)MT_VIEW_TYPE_END_MARKER);
     // use the element-type specific metatable
@@ -445,7 +445,7 @@ static int create_buffer_view(lua_State *L) {
         size = max_size;
     }
 
-    am_buffer_view *view = new_buffer_view(L, type);
+    am_buffer_view *view = am_new_buffer_view(L, type);
 
     view->buffer = buf;
     view->buffer_ref = view->ref(L, 1);
@@ -479,7 +479,7 @@ static int view_slice(lua_State *L) {
     } else {
         size = view->size - start + 1;
     }
-    am_buffer_view *slice = new_buffer_view(L, view->type);
+    am_buffer_view *slice = am_new_buffer_view(L, view->type);
     slice->buffer = view->buffer;
     view->pushref(L, view->buffer_ref);
     slice->buffer_ref = slice->ref(L, -1);

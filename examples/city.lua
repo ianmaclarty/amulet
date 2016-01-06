@@ -499,7 +499,7 @@ function init_audio()
             left_channel[i+1] = sample 
             right_channel[i+1] = sample
         end
-        chimes[i] = am.track(audio_buf, true, 1)
+        chimes[i] = am.track(am.audio_buffer(audio_buf, 2, rate), true, 1)
         chimes[i].playback_speed = 1
         chimes[i] = chimes[i]:gain(0.1)
     end

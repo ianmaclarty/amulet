@@ -24,17 +24,18 @@ function create_audio_buffer()
     local rate = 44100
     local freq = 440
     num_samples = math.floor(rate / freq)
-    audio_buffer = am.buffer(num_samples * 4)
-    audio_data_view = audio_buffer:view("float", 0, 4)
+    local raw_buffer = am.buffer(num_samples * 4)
+    audio_data_view = raw_buffer:view("float", 0, 4)
     for i = 1, num_samples do
         local val = math.sin(((i-1)/num_samples) * 2 * math.pi)
         audio_data_view[i] = val
     end
+    audio_buffer = am.audio_buffer(raw_buffer, 1, rate)
 end
 
 local
 function create_audio_node()
-    track_node = am.track(audio_buffer, true, 1, 1)
+    track_node = am.track(audio_buffer, true)
     lowpass_filter_node = track_node:lowpass_filter(2000, 0)
     highpass_filter_node = lowpass_filter_node:highpass_filter(20, 0)
     scene:action(am.play(highpass_filter_node))
@@ -218,7 +219,7 @@ end
 local
 function assemble_ui()
     local dy = 0.15
-    local x = 0
+    local x = 0.25
     scene:append(
         am.use_program(shader_program)
             :action(function()
@@ -229,28 +230,40 @@ function assemble_ui()
         ^am.bind{MVP = mat4(1)}
         ^{
             am.translate("MVP", vec3(x, -0.43, 0))
-            ^am.scale("MVP", vec3(0.8, 0.45, 1))
+            ^am.scale("MVP", vec3(0.7, 0.45, 1))
             ^wave_editor_node
             ,
             am.translate("MVP", vec3(x, 0.2, 0))
-            ^am.scale("MVP", vec3(0.8, 0.5, 1))
+            ^am.scale("MVP", vec3(0.7, 0.5, 1))
             ^pitch_editor_node
             ,
             am.translate("MVP", vec3(x, 0.2+dy, 0))
-            ^am.scale("MVP", vec3(0.8, 0.5, 1))
+            ^am.scale("MVP", vec3(0.7, 0.5, 1))
             ^lowpass_cutoff_editor_node
             ,
             am.translate("MVP", vec3(x, 0.2+2*dy, 0))
-            ^am.scale("MVP", vec3(0.8, 0.5, 1))
+            ^am.scale("MVP", vec3(0.7, 0.5, 1))
             ^lowpass_resonance_editor_node
             ,
             am.translate("MVP", vec3(x, 0.2+3*dy, 0))
-            ^am.scale("MVP", vec3(0.8, 0.5, 1))
+            ^am.scale("MVP", vec3(0.7, 0.5, 1))
             ^highpass_cutoff_editor_node
             ,
             am.translate("MVP", vec3(x, 0.2+4*dy, 0))
-            ^am.scale("MVP", vec3(0.8, 0.5, 1))
+            ^am.scale("MVP", vec3(0.7, 0.5, 1))
             ^highpass_resonance_editor_node
+            ,
+            am.translate(-310, -10) ^ am.text("WAVE:\n(CLICK TO EDIT)", "left")
+            ,
+            am.translate(-310, 50) ^ am.text("PITCH:", "left")
+            ,
+            am.translate(-310, 90) ^ am.text("LOW PASS FREQ:", "left")
+            ,
+            am.translate(-310, 122) ^ am.text("LOW PASS RES:", "left")
+            ,
+            am.translate(-310, 160) ^ am.text("HIGH PASS FREQ:", "left")
+            ,
+            am.translate(-310, 195) ^ am.text("HIGH PASS RES:", "left")
         }
     )
 end

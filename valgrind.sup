@@ -278,3 +278,115 @@
    fun:_Z15am_process_argsPiPPPcS_
    fun:main
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.96
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XimSetICValueData
+   fun:_XimLocalCreateIC
+   fun:XCreateIC
+   fun:SetupWindowData
+   fun:X11_CreateWindow
+   fun:ShouldUseTextureFramebuffer
+   fun:SDL_VideoInit_REAL
+   fun:SDL_InitSubSystem_REAL
+   fun:init_sdl
+   fun:_Z23am_create_native_window14am_window_mode22am_display_orientationiiiiPKcbbbbbi
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XimSetICValueData
+   fun:_XimLocalCreateIC
+   fun:XCreateIC
+   fun:SetupWindowData
+   fun:X11_CreateWindow
+   fun:SDL_CreateWindow_REAL
+   fun:_Z23am_create_native_window14am_window_mode22am_display_orientationiiiiPKcbbbbbi
+   fun:_ZL13create_windowP9lua_State
+   fun:luaD_precall
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:XGetWindowProperty
+   fun:X11_DispatchEvent
+   fun:X11_PumpEvents
+   fun:SDL_WaitEventTimeout_REAL
+   fun:handle_events
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:glXChooseFBConfig
+   fun:X11_GL_CreateContext
+   fun:SDL_GL_CreateContext_REAL
+   fun:_Z23am_create_native_window14am_window_mode22am_display_orientationiiiiPKcbbbbbi
+   fun:_ZL13create_windowP9lua_State
+   fun:luaD_precall
+   fun:luaV_execute
+   fun:luaD_call
+   fun:lua_call
+   fun:_Z10am_requireP9lua_State
+   fun:luaD_precall
+}

@@ -155,4 +155,7 @@ struct am_buffer_view : am_nonatomic_userdata {
     void update_max_elem_if_required();
 };
 
+// use this instead of am_new_userdata to create a view
+am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type);
+
 void am_open_buffer_module(lua_State *L);

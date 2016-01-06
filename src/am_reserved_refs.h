@@ -37,6 +37,7 @@ typedef enum {
     MT_am_draw_node,
     MT_am_pass_filter_node,
 
+    MT_am_audio_buffer,
     MT_am_audio_node,
     MT_am_gain_node,
     MT_am_lowpass_filter_node,

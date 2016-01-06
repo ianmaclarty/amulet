@@ -79,6 +79,13 @@ struct am_audio_param {
     }
 };
 
+struct am_audio_buffer : am_nonatomic_userdata {
+    int num_channels;
+    int sample_rate;
+    am_buffer *buffer;
+    int buffer_ref;
+};
+
 struct am_audio_node : am_nonatomic_userdata {
     am_lua_array<am_audio_node_child> pending_children;
     am_lua_array<am_audio_node_child> live_children;
@@ -166,12 +173,11 @@ struct am_highpass_filter_node : am_biquad_filter_node {
 };
 
 struct am_audio_track_node : am_audio_node {
-    am_buffer *buffer;
-    int buffer_ref;
-    int num_channels;
-    int sample_rate;
+    am_audio_buffer *audio_buffer;
+    int audio_buffer_ref;
     float sample_rate_ratio;
     am_audio_param<float> playback_speed;
+    am_audio_param<float> gain;
     bool loop;
     bool needs_reset;
     bool done_server;

@@ -1,6 +1,6 @@
 local win = am.window{}
 
-local track = am.stream(am.load_buffer("handstand.ogg"), true)
+local track = am.stream(am.load_buffer("killing.ogg"), true)
 
 local n = 64
 local show = 64

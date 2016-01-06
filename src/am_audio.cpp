@@ -404,12 +404,10 @@ void am_highpass_filter_node::sync_params() {
 // Audio track node
 
 am_audio_track_node::am_audio_track_node() 
-    : playback_speed(1.0f)
+    : playback_speed(1.0f), gain(1.0f)
 {
-    buffer = NULL;
-    buffer_ref = LUA_NOREF;
-    num_channels = 2;
-    sample_rate = 44100;
+    audio_buffer = NULL;
+    audio_buffer_ref = LUA_NOREF;
     current_position = 0.0;
     next_position = 0.0;
     loop = false;
@@ -420,6 +418,7 @@ am_audio_track_node::am_audio_track_node()
 
 void am_audio_track_node::sync_params() {
     playback_speed.update_target();
+    gain.update_target();
     if (needs_reset) {
         current_position = 0.0;
         next_position = 0.0;
@@ -430,7 +429,7 @@ void am_audio_track_node::sync_params() {
 }
 
 static bool track_resample_required(am_audio_track_node *node) {
-    return (node->sample_rate != am_conf_audio_sample_rate)
+    return (node->audio_buffer->sample_rate != am_conf_audio_sample_rate)
         || (node->playback_speed.current_value != node->playback_speed.target_value)
         || (fabs(node->playback_speed.current_value - 1.0f) > 0.00001f);
 }
@@ -442,20 +441,20 @@ static bool is_too_slow(float playback_speed) {
 void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     if (done_server) return;
     if (is_too_slow(playback_speed.current_value)) return;
-    int buf_num_channels = num_channels;
-    int buf_num_samples = buffer->size / (buf_num_channels * sizeof(float));
+    int buf_num_channels = audio_buffer->num_channels;
+    int buf_num_samples = audio_buffer->buffer->size / (buf_num_channels * sizeof(float));
     int bus_num_samples = bus->num_samples;
     int bus_num_channels = bus->num_channels;
     if (!track_resample_required(this)) {
         // optimise common case where no resampling is required
         for (int c = 0; c < bus_num_channels; c++) {
             float *bus_data = bus->channel_data[c];
-            float *buf_data = ((float*)buffer->data) + c * buf_num_samples;
+            float *buf_data = ((float*)audio_buffer->buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
                 int buf_pos = (int)floor(current_position);
                 assert(buf_pos < buf_num_samples);
                 for (int bus_pos = 0; bus_pos < bus_num_samples; bus_pos++) {
-                    bus_data[bus_pos] += buf_data[buf_pos++];
+                    bus_data[bus_pos] += buf_data[buf_pos++] * gain.interpolate_linear(bus_pos);
                     if (buf_pos >= buf_num_samples) {
                         if (loop) {
                             buf_pos = 0;
@@ -479,7 +478,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
         // resample
         for (int c = 0; c < bus_num_channels; c++) {
             float *bus_data = bus->channel_data[c];
-            float *buf_data = ((float*)buffer->data) + c * buf_num_samples;
+            float *buf_data = ((float*)audio_buffer->buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
                 double pos = current_position;
                 for (int write_index = 0; write_index < bus_num_samples; write_index++) {
@@ -497,7 +496,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
                     float sample1 = buf_data[read_index1];
                     float sample2 = buf_data[read_index2];
                     float interpolated_sample = (1.0 - interpolation_factor) * sample1 + interpolation_factor * sample2;
-                    bus_data[write_index] += interpolated_sample;
+                    bus_data[write_index] += interpolated_sample * gain.interpolate_linear(write_index);
                     pos += playback_speed.interpolate_linear(write_index) * sample_rate_ratio;
                     if (pos >= (double)buf_num_samples) {
                         if (loop) {
@@ -520,6 +519,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
 
 void am_audio_track_node::post_render(am_audio_context *context, int num_samples) {
     playback_speed.update_current();
+    gain.update_current();
     current_position = next_position;
 }
 
@@ -1073,8 +1073,8 @@ static void register_highpass_filter_node_mt(lua_State *L) {
 static int create_audio_track_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_audio_track_node *node = am_new_userdata(L, am_audio_track_node);
-    node->buffer = am_get_userdata(L, am_buffer, 1);
-    node->buffer_ref = node->ref(L, 1);
+    node->audio_buffer = am_get_userdata(L, am_audio_buffer, 1);
+    node->audio_buffer_ref = node->ref(L, 1);
     if (nargs > 1) {
         node->loop = lua_toboolean(L, 2);
     }
@@ -1082,12 +1082,9 @@ static int create_audio_track_node(lua_State *L) {
         node->playback_speed.set_immediate(luaL_checknumber(L, 3));
     }
     if (nargs > 3) {
-        node->num_channels = luaL_checkinteger(L, 4);
-        if (node->num_channels < 1) {
-            return luaL_error(L, "audio must have at least one channel");
-        }
+        node->gain.set_immediate(luaL_checknumber(L, 4));
     }
-    node->sample_rate_ratio = (float)node->sample_rate / (float)am_conf_audio_sample_rate;
+    node->sample_rate_ratio = (float)node->audio_buffer->sample_rate / (float)am_conf_audio_sample_rate;
     return 1;
 }
 
@@ -1404,6 +1401,77 @@ static void register_audio_node_mt(lua_State *L) {
 
 //-------------------------------------------------------------------------
 
+static int create_audio_buffer(lua_State *L) {
+    am_check_nargs(L, 3);
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    int channels = lua_tointeger(L, 2);
+    int sample_rate = lua_tointeger(L, 3);
+    luaL_argcheck(L, channels >= 1, 2, "channels must be a positive integer");
+    luaL_argcheck(L, buf->size / sizeof(float) / channels >= 1, 2, "not enough data for that many channels");
+    luaL_argcheck(L, (buf->size / sizeof(float)) % channels == 0, 2, "buffer has invalid size for that many channels");
+    luaL_argcheck(L, sample_rate >= 1, 3, "sample rate must be a positive integer");
+    am_audio_buffer *audio_buffer = am_new_userdata(L, am_audio_buffer);
+    audio_buffer->buffer = buf;
+    audio_buffer->buffer_ref = audio_buffer->ref(L, 1);
+    audio_buffer->num_channels = channels;
+    audio_buffer->sample_rate = sample_rate;
+    return 1;
+}
+
+static void get_channels(lua_State *L, void *obj) {
+    am_audio_buffer *buf = (am_audio_buffer*)obj;
+    lua_pushinteger(L, buf->num_channels);
+}
+
+static am_property channels_property = {get_channels, NULL};
+
+static void get_sample_rate(lua_State *L, void *obj) {
+    am_audio_buffer *buf = (am_audio_buffer*)obj;
+    lua_pushinteger(L, buf->sample_rate);
+}
+
+static am_property sample_rate_property = {get_sample_rate, NULL};
+
+static void get_samples_per_channel(lua_State *L, void *obj) {
+    am_audio_buffer *buf = (am_audio_buffer*)obj;
+    lua_pushinteger(L, buf->buffer->size / sizeof(float) / buf->num_channels);
+}
+
+static am_property samples_per_channel_property = {get_samples_per_channel, NULL};
+
+static void get_audio_buf_length(lua_State *L, void *obj) {
+    am_audio_buffer *buf = (am_audio_buffer*)obj;
+    double samples = (double)(buf->buffer->size / sizeof(float) / buf->num_channels);
+    double len = samples / (double)buf->sample_rate;
+    lua_pushnumber(L, len);
+}
+
+static am_property audio_buf_length_property = {get_audio_buf_length, NULL};
+
+static void get_audio_buf_buffer(lua_State *L, void *obj) {
+    am_audio_buffer *buf = (am_audio_buffer*)obj;
+    buf->buffer->push(L);
+}
+
+static am_property audio_buf_buffer_property = {get_audio_buf_buffer, NULL};
+
+static void register_audio_buffer_mt(lua_State *L) {
+    lua_newtable(L);
+
+    lua_pushcclosure(L, am_default_index_func, 0);
+    lua_setfield(L, -2, "__index");
+
+    am_register_property(L, "channels", &channels_property);
+    am_register_property(L, "sample_rate", &sample_rate_property);
+    am_register_property(L, "samples_per_channel", &samples_per_channel_property);
+    am_register_property(L, "length", &audio_buf_length_property);
+    am_register_property(L, "buffer", &audio_buf_buffer_property);
+
+    am_register_metatable(L, "audio_buffer", MT_am_audio_buffer, 0);
+}
+
+//-------------------------------------------------------------------------
+
 static int load_audio(lua_State *L) {
     char *errmsg;
     int len;
@@ -1419,12 +1487,13 @@ static int load_audio(lua_State *L) {
     short *tmp_data;
     int num_samples = stb_vorbis_decode_memory((unsigned char*)data,
         len, &num_channels, &sample_rate, &tmp_data);
+    free(data);
     if (num_samples <= 0) {
         return luaL_error(L, "error loading audio '%s'", filename);
     }
     am_buffer *dest_buf;
     float *dest_data;
-    int copy_channels = num_channels > am_conf_audio_channels ? am_conf_audio_channels : num_channels;
+    num_channels = am_min(num_channels, am_conf_audio_channels);
     int dest_samples;
     if (sample_rate != am_conf_audio_sample_rate) {
         // resample required
@@ -1432,9 +1501,9 @@ static int load_audio(lua_State *L) {
             filename, sample_rate, am_conf_audio_sample_rate);
         double sample_rate_ratio = (double)sample_rate / (double)am_conf_audio_sample_rate;
         dest_samples = floor((double)num_samples / sample_rate_ratio);
-        dest_buf = am_new_userdata(L, am_buffer, dest_samples * am_conf_audio_channels * 4);
+        dest_buf = am_new_userdata(L, am_buffer, dest_samples * num_channels * 4);
         dest_data = (float*)dest_buf->data;
-        for (int c = 0; c < copy_channels; c++) {
+        for (int c = 0; c < num_channels; c++) {
             double pos = 0.0f;
             for (int write_index = 0; write_index < dest_samples; write_index++) {
                 int read_index1 = (int)floor(pos);
@@ -1455,22 +1524,22 @@ static int load_audio(lua_State *L) {
         }
     } else {
         // no resample required
-        dest_buf = am_new_userdata(L, am_buffer, num_samples * am_conf_audio_channels * 4);
+        dest_buf = am_new_userdata(L, am_buffer, num_samples * num_channels * 4);
         dest_data = (float*)dest_buf->data;
         dest_samples = num_samples;
-        for (int c = 0; c < copy_channels; c++) {
+        for (int c = 0; c < num_channels; c++) {
             for (int s = 0; s < num_samples; s++) {
                 dest_data[c * num_samples + s] = (float)tmp_data[s * num_channels + c] / (float)INT16_MAX;
             }
         }
     }
     free(tmp_data);
-    // if less than required channels in decoded stream, then duplicate channels.
-    if (copy_channels < am_conf_audio_channels) {
-        for (int c = copy_channels; c < am_conf_audio_channels; c++) {
-            memcpy(&dest_data[c * dest_samples], &dest_data[0], dest_samples * 4);
-        }
-    }
+    am_audio_buffer *audio_buffer = am_new_userdata(L, am_audio_buffer);
+    audio_buffer->num_channels = num_channels;
+    audio_buffer->sample_rate = am_conf_audio_sample_rate;
+    audio_buffer->buffer = dest_buf;
+    audio_buffer->buffer_ref = audio_buffer->ref(L, -2);
+    lua_remove(L, -2); // remove dest buf
     return 1;
 }
 
@@ -1638,6 +1707,7 @@ void am_uninterleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
 
 void am_open_audio_module(lua_State *L) {
     luaL_Reg funcs[] = {
+        {"audio_buffer", create_audio_buffer},
         {"audio_node", create_audio_node},
         {"oscillator", create_oscillator_node},
         {"capture_audio", create_capture_node},
@@ -1648,6 +1718,7 @@ void am_open_audio_module(lua_State *L) {
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+    register_audio_buffer_mt(L);
     register_audio_node_mt(L);
     register_gain_node_mt(L);
     register_lowpass_filter_node_mt(L);
