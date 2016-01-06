@@ -37,12 +37,22 @@ function play_seed(seed, loop, pitch, gain)
     return am.play(audio_node)
 end
 
+local
+function play_buf(buf, loop, pitch, gain)
+    pitch = pitch or 1
+    gain = gain or 1
+    local audio_node = am.track(buf, loop, pitch, gain)
+    return am.play(audio_node)
+end
+
 function am.play(arg1, arg2, arg3, arg4)
-    local t = type(arg1)
+    local t = am.type(arg1)
     if t == "string" then
         return play_file(arg1, arg2, arg3, arg4)
     elseif t == "number" then
         return play_seed(arg1, arg2, arg3, arg4)
+    elseif t == "audio_buffer" then
+        return play_buf(arg1, arg2, arg3, arg4)
     else
         local audio_node = arg1
         local keep = arg2
