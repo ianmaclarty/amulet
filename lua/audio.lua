@@ -9,7 +9,6 @@ function am.schedule_audio(audio_node)
 end
 
 local buffer_cache = {}
-setmetatable(buffer_cache, {__mode = "v"})
 
 local
 function play_file(file, loop, pitch, gain)

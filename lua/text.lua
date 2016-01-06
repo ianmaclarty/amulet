@@ -232,7 +232,6 @@ function am.text(font, str, color, halign, valign)
 end
 
 local sprite_cache = {}
-setmetatable(sprite_cache, {__mode = "v"})
 
 am.ascii_color_map = {
     W = vec4(1, 1, 1, 1),
