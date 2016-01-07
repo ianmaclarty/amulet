@@ -390,6 +390,7 @@ function am.particles2d(opts)
         return end_size
     end
     function node:set_end_size(v)
+        size_changes = true
         end_size = v
     end
     function node:get_end_size_var()
@@ -456,6 +457,7 @@ function am.particles2d(opts)
         return vec4(end_r, end_g, end_b, end_a)
     end
     function node:set_end_color(v)
+        color_changes = true
         end_r = v.r
         end_g = v.g
         end_b = v.b
