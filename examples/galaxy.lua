@@ -1,63 +1,33 @@
-local win = am.window{
-    title = "Hello, Galaxy!",
+win = am.window{
+    title = "Defenders of the Weeping Quasar",
     width = 640, height = 480
 }
 
--- constants:
-local ship_start_pos = vec2(0, -100)
-local ship_min_position = vec2(-310, -230)
-local ship_max_position = -ship_min_position
-local ship_speed = 340
-local ship_radius = 5
-local laser_velocity = vec2(0, 600)
-local laser_interval = 0.1
+-- constants
+ship_start_pos = vec2(0, -100)
+ship_min_position = vec2(-310, -230)
+ship_max_position = -ship_min_position
+ship_speed = 340
+ship_radius = 5
+laser_velocity = vec2(0, 600)
+laser_interval = 0.1
 
-local ship_sprite = am.sprite[[
-...W...
-R.WWW.R
-W.WBW.W
-WWWBWWW
-..WWW..
-]]
-
-local laser_sprite = am.sprite[[
-.YYYYY.
-YOOOOOY
-ORRRRRO
-R.....R
-.......
-R.....R
-]]
-
-local bullet_sprite = am.sprite[[
-.mmm.
-mmMmm
-mMWMm
-mmMmm
-.mmm.
-]]
-
-local star_img = [[
-...
-.W.
-...]]
-
+-- sounds
 laser_sound = 86572901
 explode_sound = 9975402
 ship_explode_sound = 20755502
-hit_sound = 49813604
-shoot_sound = 72114809
+hit_sound = 40570404
 boss_sound = 49915809
 boss_shoot_sound = 90380302
 start_sound = 81207502
 
 win_base_color = vec4(0, 0, 0, 1)
 
-local spawn_bullet
+-- state variables
+high_score = 0
 
--- animation 
+-- utility functions
 
-local
 function animated_sprite(frames, delay)
     local frame = 1
     local t = am.frame_time
@@ -70,9 +40,6 @@ function animated_sprite(frames, delay)
     end)
 end
 
--- screen shake
-
-local
 function shake_screen(amount, duration)
     local last_shake_t = 0
     local start_t = am.frame_time
@@ -90,12 +57,16 @@ end
 
 -- explosions 
 
-local
+explosion_img = [[
+...
+.W.
+...]]
+
 function spawn_explosion(state, position, size, color, color_var, sound)
     local explosion =
         am.blend("add")
         ^ am.particles2d{
-            sprite_source = star_img,           
+            sprite_source = explosion_img,           
             source_pos = position,
             source_pos_var = vec2(5, 5) * size,
             max_particles = 200 * size,
@@ -120,13 +91,14 @@ function spawn_explosion(state, position, size, color, color_var, sound)
             state.explosions_group:remove(explosion)
         end
     end)
-    local circle = am.circle(position, size * 30, vec4(1))
-    local circle2 = am.circle(position - vec2(size * 5, 0), size * 25, vec4(0, 0, 0, 1))
+    local radius = size * 20 + math.random() * 10
+    local circle = am.circle(position, radius, vec4(1))
+    local circle2 = am.circle(position - vec2(radius * 0.2, 0), radius * 0.8, vec4(0, 0, 0, 1))
     state.explosions_group:append(circle)
     state.explosions_group:action(am.series{
         am.delay(0.1),
         function()
-            win.clear_color = color * vec4(0.1, 0.1, 0.1, 1)
+            win.clear_color = color * vec4(0.15, 0.15, 0.15, 1)
             circle.color = color + vec4(0.5)
             state.explosions_group:append(circle2)
             return true
@@ -140,13 +112,13 @@ function spawn_explosion(state, position, size, color, color_var, sound)
         end,
         })
     local pitch = math.random() * 0.8 + 0.4
-    win.scene:action(am.play(explode_sound, false, pitch))
+    main_scene:action(am.play(explode_sound, false, pitch))
     shake_screen(size * 8, size * 0.1)
 end
 
 -- slug enemy
 
-local slug_frame1 = [[
+slug_frame1 = [[
 GGGGGGGG
 GggggggG
 GgGGGGgG
@@ -157,7 +129,7 @@ GggggggG
 GGGGGGGG
 ]]
 
-local slug_frame2 = [[
+slug_frame2 = [[
 gggggggg
 gGGGGGGg
 gGggggGg
@@ -168,13 +140,12 @@ gGGGGGGg
 gggggggg
 ]]
 
-local slug_hit_frame = slug_frame1:gsub("[^%.%s]", "W")
+slug_hit_frame = slug_frame1:gsub("[^%.%s]", "W")
 
-local slug_sprite = animated_sprite({slug_frame1, slug_frame2}, 0.5)
+slug_sprite = animated_sprite({slug_frame1, slug_frame2}, 0.5)
 
-local slug_hit_sprite = am.sprite(slug_hit_frame)
+slug_hit_sprite = am.sprite(slug_hit_frame)
 
-local
 function slug_update(enemy, state)
     local dt = am.delta_time
     local pos = enemy.position
@@ -191,7 +162,6 @@ function slug_update(enemy, state)
     end
 end
 
-local
 function slug_hit(enemy)
     local node = enemy.node
     node"scale":remove_all()
@@ -204,7 +174,6 @@ function slug_hit(enemy)
     end})
 end
 
-local
 function slug(state, x)
     local position = vec2(x, win.top + 25)
     local node = am.translate(position)
@@ -226,9 +195,9 @@ function slug(state, x)
     }
 end
 
--- wraith enemy
+-- tank enemy
 
-local wraith_frame1 = [[
+tank_frame1 = [[
 ...r.r.r...
 .rrrrrrrrr.
 .rRrrrrrRr.
@@ -242,7 +211,7 @@ rrrrMMMrrrr
 ...r.r.r...
 ]]
 
-local wraith_frame2 = [[
+tank_frame2 = [[
 ...r.r.r...
 .rrrrrrrrr.
 .rrrrRrrrr.
@@ -256,13 +225,13 @@ rrrrmmmrrrr
 ...r.r.r...
 ]]
 
-local wraith_hit_frame = wraith_frame1:gsub("[^%.%s]", "W")
+tank_hit_frame = tank_frame1:gsub("[^%.%s]", "W")
 
-local wraith_sprite = animated_sprite({wraith_frame1, wraith_frame2}, 0.5)
-local wraith_hit_sprite = am.sprite(wraith_hit_frame)
+tank_sprite = animated_sprite({tank_frame1, tank_frame2}, 0.5)
 
-local
-function wraith_update(enemy, state)
+tank_hit_sprite = am.sprite(tank_hit_frame)
+
+function tank_update(enemy, state)
     local dt = am.delta_time
     local pos = enemy.position
     local t = am.frame_time - enemy.t
@@ -289,29 +258,27 @@ function wraith_update(enemy, state)
     end
 end
 
-local
-function wraith_hit(enemy)
+function tank_hit(enemy)
     local node = enemy.node
     node"scale":remove_all()
-    node"scale":append(wraith_hit_sprite)
+    node"scale":append(tank_hit_sprite)
     node:action(am.play(hit_sound))
     node:action(am.series{am.delay(0.1), function()
         node"scale":remove_all()
-        node"scale":append(wraith_sprite)
+        node"scale":append(tank_sprite)
         return true
     end})
     enemy.position = enemy.position + vec2(0, 10)
 end
 
-local
-function wraith(state, x)
+function tank(state, x)
     local position = vec2(x, win.top + 30)
     local node = am.translate(position)
         ^ am.scale(4)
-        ^ wraith_sprite
+        ^ tank_sprite
     return {
         node = node,
-        update = wraith_update,
+        update = tank_update,
         position = position,
         last_fire_time = am.frame_time,
         hp = 6,
@@ -321,13 +288,13 @@ function wraith(state, x)
         explosion_size = 1.5,
         explosion_color = vec4(1, 0.1, 0.1, 1),
         explosion_color_var = vec4(0.2, 0.2, 0.2, 0),
-        hit = wraith_hit,
+        hit = tank_hit,
     }
 end
 
 -- worm enemy
 
-local worm_frame1 = [[
+worm_frame1 = [[
 ...b...
 ..bBb..
 .bBCBb.
@@ -337,7 +304,7 @@ bBCCCBb
 ...b...
 ]]
 
-local worm_frame2 = [[
+worm_frame2 = [[
 ...C...
 ..CBC..
 .CBbBC.
@@ -347,12 +314,12 @@ CBbbbBC
 ...C...
 ]]
 
-local worm_hit_frame = worm_frame1:gsub("[^%.%s]", "W")
+worm_hit_frame = worm_frame1:gsub("[^%.%s]", "W")
 
-local worm_sprite = animated_sprite({worm_frame1, worm_frame2}, 0.5)
-local worm_hit_sprite = am.sprite(worm_hit_frame)
+worm_sprite = animated_sprite({worm_frame1, worm_frame2}, 0.5)
 
-local
+worm_hit_sprite = am.sprite(worm_hit_frame)
+
 function worm_update(enemy, state)
     local dt = am.delta_time
     local pos = enemy.position
@@ -368,7 +335,6 @@ function worm_update(enemy, state)
     enemy.node.position2d = pos
 end
 
-local
 function worm_hit(enemy)
     local node = enemy.node
     node"scale":remove_all()
@@ -381,7 +347,6 @@ function worm_hit(enemy)
     end})
 end
 
-local
 function worm(state, x, dir)
     local position = vec2(x, win.top+20)
     local node = am.translate(position)
@@ -407,7 +372,7 @@ end
 
 -- boss
 
-local boss_frame1 = [[
+boss_frame1 = [[
 ...............w...............
 ....kwkkkwkwwkwww...k...w......
 ....w.....k...kmkkkkwwwkk......
@@ -441,7 +406,7 @@ wwmMmMmMmMmMmMMWMMmMmMmMmMmMmww
 ...............w...............
 ]]
 
-local boss_frame2 = [[
+boss_frame2 = [[
 ...............w...............
 ....kwkkkwkwwkwww...k...w......
 ....w.....k...kMkkkkwwwkk......
@@ -475,12 +440,12 @@ wwMmMmMmMmMmMmMWMmMmMmMmMmMmMww
 ...............w...............
 ]]
 
-local boss_hit_frame = boss_frame1:gsub("[^%.%s]", "Y")
+boss_hit_frame = boss_frame1:gsub("[^%.%s]", "C")
 
-local boss_sprite = animated_sprite({boss_frame1, boss_frame2}, 0.5)
-local boss_hit_sprite = am.sprite(boss_hit_frame)
+boss_sprite = animated_sprite({boss_frame1, boss_frame2}, 0.5)
 
-local
+boss_hit_sprite = am.sprite(boss_hit_frame)
+
 function boss_update(enemy, state)
     local dt = am.delta_time
     local pos = enemy.position
@@ -517,7 +482,6 @@ function boss_update(enemy, state)
     end
 end
 
-local
 function boss_hit(enemy)
     local node = enemy.node
     node"scale":remove_all()
@@ -532,26 +496,22 @@ function boss_hit(enemy)
     enemy.health_bar.x2 = enemy.hp / enemy.max_hp * 200 - 100
 end
 
-local bg
-
-local
 function boss_kill(state)
     state.no_new_enemies = false
-    win.scene:action("bg_color_tween", am.tween(win, 2, {clear_color = vec4(0, 0, 0, 1)}))
+    main_scene:action("bg_color_tween", am.tween(win, 2, {clear_color = vec4(0, 0, 0, 1)}))
     win_base_color = vec4(0, 0, 0, 1)
     bg"particles2d".start_color = vec4(0, 0, 1, 1)
     bg"particles2d".speed = 600
 end
 
-local
 function boss(state)
     state.no_new_enemies = true
     local position = vec2(0, win.top + 70)
-    win.scene:action("bg_color_tween", am.tween(win, 2, {clear_color = vec4(0.3, 0, 0, 1)}))
+    main_scene:action("bg_color_tween", am.tween(win, 2, {clear_color = vec4(0.3, 0, 0, 1)}))
     win_base_color = vec4(0.3, 0, 0, 1)
     bg"particles2d".start_color = vec4(1, 0.5, 0.5, 1)
     bg"particles2d".speed = 1200
-    local health_bar = am.rect(-100, 210, 100, 220, vec4(1, 1, 0, 1))
+    local health_bar = am.rect(-100, 210, 100, 220, vec4(1, 0, 1, 1))
     local health_bar_bg = am.rect(-102, 208, 102, 222, vec4(0.5, 0.5, 0.5, 1))
     local node =
         am.group{
@@ -588,7 +548,7 @@ end
 
 -- enemy patterns
 
-local enemy_spawn_patterns = {
+enemy_spawn_patterns = {
     {
         {enemy = slug, args = {-200}, delay = 0.6},
         {enemy = slug, args = {-200}, delay = 0.4},
@@ -618,16 +578,16 @@ local enemy_spawn_patterns = {
         {enemy = slug, args = {-200}, delay = 0.4},
     },
     {
-        {enemy = wraith, args = {50}, delay = 1},
-        {enemy = wraith, args = {50}, delay = 1},
-        {enemy = wraith, args = {50}, delay = 1},
-        {enemy = wraith, args = {50}, delay = 1},
+        {enemy = tank, args = {50}, delay = 1},
+        {enemy = tank, args = {50}, delay = 1},
+        {enemy = tank, args = {50}, delay = 1},
+        {enemy = tank, args = {50}, delay = 1},
     },
     {
-        {enemy = wraith, args = {-120}, delay = 1},
-        {enemy = wraith, args = {-120}, delay = 1},
-        {enemy = wraith, args = {-120}, delay = 1},
-        {enemy = wraith, args = {-120}, delay = 1},
+        {enemy = tank, args = {-120}, delay = 1},
+        {enemy = tank, args = {-120}, delay = 1},
+        {enemy = tank, args = {-120}, delay = 1},
+        {enemy = tank, args = {-120}, delay = 1},
     },
     {
         {enemy = worm, args = {-220, 1}, delay = 0.3},
@@ -653,7 +613,7 @@ local enemy_spawn_patterns = {
     }
 }
 
-local pattern_sets = {
+pattern_sets = {
     { 1, 2, 5, 5, },
     { 1, 2, 3, 4, 5, 5, 5, 5, },
     { 1, 2, 5, 5, },
@@ -666,6 +626,14 @@ local pattern_sets = {
 }
 
 -- enemy bullets
+
+bullet_sprite = am.sprite[[
+.mmm.
+mmMmm
+mMWMm
+mmMmm
+.mmm.
+]]
 
 function spawn_bullet(state, position, velocity)
     local node = am.translate(position)
@@ -681,7 +649,6 @@ function spawn_bullet(state, position, velocity)
     state.bullets_group:append(node)
 end
 
-local
 function update_bullets(state)
     local dt = am.delta_time
     local bullets = state.bullets
@@ -706,7 +673,6 @@ end
 
 -- enemy logic
 
-local
 function update_enemies(state)
     local dt = am.delta_time
     local enemies = state.enemies
@@ -751,7 +717,6 @@ function update_enemies(state)
     end
 end
 
-local
 function spawn_enemies(state)
     if state.no_new_enemies then
         return
@@ -785,9 +750,14 @@ end
 
 -- player ship
 
-local end_game
+ship_sprite = am.sprite[[
+...W...
+R.WWW.R
+W.WBW.W
+WWWBWWW
+..WWW..
+]]
 
-local
 function init_ship()
     local node = 
         am.translate(vec2(0, -260))
@@ -800,7 +770,6 @@ function init_ship()
     return ship
 end
 
-local
 function update_ship(state)
     if state.dead then
         return
@@ -846,7 +815,15 @@ function update_ship(state)
     end
 end
 
-local
+laser_sprite = am.sprite[[
+.YYYYY.
+YOOOOOY
+ORRRRRO
+R.....R
+.......
+R.....R
+]]
+
 function update_lasers(state)
     local dt = am.delta_time
     local lasers = state.lasers
@@ -903,12 +880,16 @@ end
 
 -- score
 
-local
 function update_score(state)
     state.score_node"text".text = state.score
 end
 
 -- background stars
+
+star_img = [[
+...
+.W.
+...]]
 
 bg = am.blend("add")
     ^ am.particles2d{
@@ -929,19 +910,43 @@ bg = am.blend("add")
 
 -- title screen
 
-local start_game
-local title_scene = am.text("DEMO SHMUP\nPRESS X TO START")
-title_scene:action(function()
-    if win:key_pressed"x" then
-        win.scene:remove(title_scene)
-        start_game()
-    end
-end)
+function create_title()
+    local line1 = am.text("DEFENDERS", vec4(1, 0, 1, 1))
+    local line2 = am.text("OF THE", vec4(1, 0, 1, 1))
+    local line3 = am.text("WEEPING QUASAR", vec4(1, 0, 1, 1))
+    local line4 = am.text("by Ian MacLarty", vec4(0.5, 0, 1, 1))
+    local title = am.group{
+        am.translate(0, 150) ^ am.scale(5) ^ line1,
+        am.translate(0, 80) ^ am.scale(3) ^ line2,
+        am.translate(0, 20) ^ am.scale(4) ^ line3,
+        am.translate(0, -50) ^ am.scale(2) ^ line4,
+    }
+    local score = 
+        am.translate(0, -100)
+        ^ am.text("HI SCORE: "..high_score, vec4(0, 1, 1, 1))
+    local instructions =
+        am.translate(0, -150)
+        ^ am.text("ARROW KEYS: MOVE\nX: FIRE\nPRESS X TO START", vec4(0.75, 0.75, 0.75, 1))
+    return am.group{
+        title,
+        score,
+        instructions
+    }:action(function()
+        if win:key_pressed"x" then
+            main_scene:remove(title_scene)
+            start_game()
+        end
+    end)
+end
+title_scene = create_title()
 
 -- game star/end logic
 
 function end_game(state)
-    win.scene:cancel"bg_color_tween"
+    if state.score > high_score then
+        high_score = state.score
+    end
+    main_scene:cancel"bg_color_tween"
     bg"particles2d".start_color = vec4(0, 0, 1, 1)
     bg"particles2d".speed = 600
     -- pause briefly
@@ -949,7 +954,7 @@ function end_game(state)
     bg.paused = true
     win.clear_color = vec4(0, 1, 1, 1)
     win_base_color = win.clear_color
-    win.scene:action(am.series{
+    main_scene:action(am.series{
         am.delay(0.3),
         function()
             state.scene.paused = false
@@ -963,7 +968,7 @@ function end_game(state)
             return true
         end
     })
-    win.scene:action(am.play(ship_explode_sound))
+    main_scene:action(am.play(ship_explode_sound))
 end
 
 function start_game()
@@ -1011,19 +1016,23 @@ function start_game()
         update_bullets(state)
         update_score(state)
         if state.dead and am.frame_time - state.death_time > 2 then
-            win.scene:remove(scene)
-            win.scene:append(title_scene)
+            main_scene:remove(scene)
+            title_scene = create_title()
+            main_scene:append(title_scene)
         end
     end
     scene:action(am.series{
         am.tween(ship.node"translate", 0.5, {position2d = vec2(ship_start_pos)}),
         main_action
     })
-    win.scene:append(scene)
-    win.scene:action(am.play(start_sound))
+    main_scene:append(scene)
+    main_scene:action(am.play(start_sound))
 end
 
-win.scene = am.translate(0, 0) ^ {bg, title_scene}
+-- set up the scene
+
+main_scene = am.translate(0, 0) ^ {bg, title_scene}
+win.scene = main_scene
 
 win.scene:action(function()
     if win:key_pressed"escape" then

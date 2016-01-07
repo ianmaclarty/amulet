@@ -22,7 +22,7 @@ a multi-line
 comment ]]
 ~~~
 
-**Variables:**
+**Local variables (block scope):**
 
 ~~~ {.lua}
 local x = 3.14 -- a number
@@ -33,6 +33,13 @@ multi-line
 string]]
 local bool = true -- a bool, can also be false
 local y = nil -- nil value
+~~~
+
+**Global variables:**
+
+~~~ {.lua}
+score = 0
+title = "My Game"
 ~~~
 
 **If-then-else:**
@@ -171,11 +178,9 @@ end
 -- prints 1:a 2:b 3:c
 ~~~
 
-
 **Functions:**
 
 ~~~ {.lua}
-local
 function factorial(n)
     if n <= 1 then
         return 1

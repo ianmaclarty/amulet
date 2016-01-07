@@ -43,8 +43,8 @@ end
 
 function am.rect(x1, y1, x2, y2, color)
     color = color or vec4(1)
-    local verts = am.rect_verts_3d(x1, y1, x2, y2)
-    local node = am.use_program(am.shaders.color)
+    local verts = am.rect_verts_2d(x1, y1, x2, y2)
+    local node = am.use_program(am.shaders.color2d)
         ^am.bind{
             vert = verts,
             color = color,
@@ -58,12 +58,12 @@ function am.rect(x1, y1, x2, y2, color)
     return node
 end
 
--- ellipse:
+-- circle:
 
-local default_ellipse_sides = 255
+local default_circle_sides = 255
 
-function am.ellipse_indices(sides)
-    sides = sides or default_ellipse_sides
+function am.circle_indices(sides)
+    sides = sides or default_circle_sides
     local t = {}
     local i = 1
     for s = 2, sides + 1 do
@@ -79,53 +79,42 @@ function am.ellipse_indices(sides)
     end
 end
 
-function am.ellipse_verts_2d(center, xrad, yrad, sides)
-    sides = sides or default_ellipse_sides
-    local x = center.x
-    local y = center.y
-    local t = {x, y}
+local cached_unit_circle_verts_2d = {}
+
+function am.unit_circle_verts_2d(sides)
+    sides = sides or default_circle_sides
+    if cached_unit_circle_verts_2d[sides] then
+        return cached_unit_circle_verts_2d[sides]
+    end
+    local t = {0, 0}
     local angle = 0
     local dangle = 2 * math.pi / sides
     local cos, sin = math.cos, math.sin
     local i = 3
     for s = 0, sides - 1 do
-        t[i] = cos(angle) * xrad + x
-        t[i + 1] = sin(angle) * yrad + y
+        t[i] = cos(angle)
+        t[i + 1] = sin(angle)
         i = i + 2
         angle = angle + dangle
     end
-    return am.vec2_array(t)
+    local verts = am.vec2_array(t)
+    cached_unit_circle_verts_2d[sides] = verts
+    return verts
 end
 
-function am.ellipse_verts_3d(center, xrad, yrad, sides)
-    sides = sides or default_ellipse_sides
-    local x = center.x
-    local y = center.y
-    local t = {x, y, 0}
-    local angle = 0
-    local dangle = 2 * math.pi / sides
-    local cos, sin = math.cos, math.sin
-    local i = 4
-    for s = 0, sides - 1 do
-        t[i] = cos(angle) * xrad + x
-        t[i + 1] = sin(angle) * yrad + y
-        t[i + 2] = 0
-        i = i + 3
-        angle = angle + dangle
-    end
-    return am.vec3_array(t)
-end
-
-function am.ellipse(center, xrad, yrad, color, sides)
-    sides = sides or default_ellipse_sides
+function am.circle(center, radius, color, sides)
+    sides = sides or default_circle_sides
     color = color or vec4(1)
-    local verts = am.ellipse_verts_3d(center, xrad, yrad, sides)
-    local node = am.use_program(am.shaders.color)
+    local verts = am.unit_circle_verts_2d(sides)
+    local node = 
+        am.translate(center)
+        ^am.scale(radius)
+        ^am.use_program(am.shaders.color2d)
         ^am.bind{
             vert = verts,
             color = color,
         }
-        ^am.draw("triangles", am.ellipse_indices(sides))
+        ^am.draw("triangles", am.circle_indices(sides))
     node.verts = verts
     function node:get_color()
         return color
@@ -134,10 +123,13 @@ function am.ellipse(center, xrad, yrad, color, sides)
         color = c
         node"bind".color = color
     end
-    node:tag"ellipse"
+    function node:get_radius()
+        return radius
+    end
+    function node:set_radius(r)
+        radius = r
+        node"scale".scale2d = vec2(radius)
+    end
+    node:tag"circle"
     return node
-end
-
-function am.circle(center, rad, color, sides)
-    return am.ellipse(center, rad, rad, color, sides):untag"ellipse":tag"circle"
 end

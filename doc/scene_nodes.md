@@ -604,7 +604,6 @@ TODO
 ### am.sprite {#am.sprite .func-def}
 ### am.rect {#am.rect .func-def}
 ### am.circle {#am.circle .func-def}
-### am.ellipse {#am.ellipse .func-def}
 ### am.particles2d {#am.particles2d .func-def}
 ### am.postprocess {#am.postprocess .func-def}
 
