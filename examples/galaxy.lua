@@ -42,10 +42,16 @@ local star_img = [[
 .W.
 ...]]
 
-local laser_sound = 86572901
-local explode_sound = 9975402
-local ship_explode_sound = 20755502
-local hit_sound = 14120204
+laser_sound = 86572901
+explode_sound = 9975402
+ship_explode_sound = 20755502
+hit_sound = 49813604
+shoot_sound = 72114809
+boss_sound = 49915809
+boss_shoot_sound = 90380302
+start_sound = 81207502
+
+win_base_color = vec4(0, 0, 0, 1)
 
 local spawn_bullet
 
@@ -108,15 +114,34 @@ function spawn_explosion(state, position, size, color, color_var, sound)
             end_size_var = 5,
             warmup_time = 0.05,
         }
-     state.explosions_group:append(explosion)
-     state.explosions_group:action(function()
-         if explosion"particles2d".active_particles == 0 then
-             state.explosions_group:remove(explosion)
-         end
-     end)
-     local pitch = math.random() * 0.8 + 0.4
-     win.scene:action(am.play(explode_sound, false, pitch))
-     shake_screen(size * 8, size * 0.1)
+    state.explosions_group:append(explosion)
+    state.explosions_group:action(function()
+        if explosion"particles2d".active_particles == 0 then
+            state.explosions_group:remove(explosion)
+        end
+    end)
+    local circle = am.circle(position, size * 30, vec4(1))
+    local circle2 = am.circle(position - vec2(size * 5, 0), size * 25, vec4(0, 0, 0, 1))
+    state.explosions_group:append(circle)
+    state.explosions_group:action(am.series{
+        am.delay(0.1),
+        function()
+            win.clear_color = color * vec4(0.1, 0.1, 0.1, 1)
+            circle.color = color + vec4(0.5)
+            state.explosions_group:append(circle2)
+            return true
+        end,
+        am.delay(0.1),
+        function()
+            win.clear_color = win_base_color
+            state.explosions_group:remove(circle)
+            state.explosions_group:remove(circle2)
+            return true
+        end,
+        })
+    local pitch = math.random() * 0.8 + 0.4
+    win.scene:action(am.play(explode_sound, false, pitch))
+    shake_screen(size * 8, size * 0.1)
 end
 
 -- slug enemy
@@ -373,7 +398,7 @@ function worm(state, x, dir)
         points = 100,
         t = am.frame_time,
         radius = 15,
-        explosion_size = 0.5,
+        explosion_size = 0.8,
         explosion_color = vec4(0.2, 1, 1, 1),
         explosion_color_var = vec4(0.2, 0.2, 0.2, 0),
         hit = worm_hit,
@@ -450,7 +475,7 @@ wwMmMmMmMmMmMmMWMmMmMmMmMmMmMww
 ...............w...............
 ]]
 
-local boss_hit_frame = boss_frame1:gsub("[^%.%s]", "W")
+local boss_hit_frame = boss_frame1:gsub("[^%.%s]", "Y")
 
 local boss_sprite = animated_sprite({boss_frame1, boss_frame2}, 0.5)
 local boss_hit_sprite = am.sprite(boss_hit_frame)
@@ -461,15 +486,13 @@ function boss_update(enemy, state)
     local pos = enemy.position
     local t = am.frame_time - enemy.t
     local vx, vy = 0, 0
-    if t < 3 then
-        -- wait
+    if t < 4 then
+        return
     else
         if pos.y > 140 then
             vy = -120
         elseif pos.y > 0 then
             vy = -30
-        --elseif pos.y > -100 then
-        --    vy = -20
         end
         local phase = math.floor((t - 3) / 1) % 8
         if phase == 1 or phase == 7 then
@@ -481,7 +504,7 @@ function boss_update(enemy, state)
     pos = pos + vec2(vx, vy) * dt
     enemy.position = pos
     enemy.node"translate".position2d = pos
-    if am.frame_time > enemy.last_fire_time + 1 then
+    if am.frame_time > enemy.last_fire_time + 1 and t > 5 then
         local n = 16
         local speed = (100 * math.random() + 200)
         for i = 0, n-1 do
@@ -489,6 +512,7 @@ function boss_update(enemy, state)
             local vel = vec2(math.cos(angle), math.sin(angle)) * speed
             spawn_bullet(state, pos, vel)
         end
+        enemy.node:action(am.play(boss_shoot_sound, false, 0.5, 2))
         enemy.last_fire_time = am.frame_time - math.random() * 0.5
     end
 end
@@ -514,6 +538,7 @@ local
 function boss_kill(state)
     state.no_new_enemies = false
     win.scene:action("bg_color_tween", am.tween(win, 2, {clear_color = vec4(0, 0, 0, 1)}))
+    win_base_color = vec4(0, 0, 0, 1)
     bg"particles2d".start_color = vec4(0, 0, 1, 1)
     bg"particles2d".speed = 600
 end
@@ -523,6 +548,7 @@ function boss(state)
     state.no_new_enemies = true
     local position = vec2(0, win.top + 70)
     win.scene:action("bg_color_tween", am.tween(win, 2, {clear_color = vec4(0.3, 0, 0, 1)}))
+    win_base_color = vec4(0.3, 0, 0, 1)
     bg"particles2d".start_color = vec4(1, 0.5, 0.5, 1)
     bg"particles2d".speed = 1200
     local health_bar = am.rect(-100, 210, 100, 220, vec4(1, 1, 0, 1))
@@ -539,6 +565,7 @@ function boss(state)
             }
         }
     local max_hp = 100
+    node:action(am.play(boss_sound))
     return {
         node = node,
         update = boss_update,
@@ -552,6 +579,7 @@ function boss(state)
         explosion_size = 3,
         explosion_color = vec4(1, 1, 1, 1),
         explosion_color_var = vec4(0.5, 0.5, 0.5, 0),
+        num_explosions = 10,
         hit = boss_hit,
         kill = boss_kill,
         health_bar = health_bar,
@@ -562,30 +590,30 @@ end
 
 local enemy_spawn_patterns = {
     {
-        {enemy = slug, args = {-200}, delay = 1},
+        {enemy = slug, args = {-200}, delay = 0.6},
         {enemy = slug, args = {-200}, delay = 0.4},
         {enemy = slug, args = {-200}, delay = 0.4},
         {enemy = slug, args = {-200}, delay = 0.4},
-        {enemy = slug, args = {0,  }, delay = 1},
         {enemy = slug, args = {0,  }, delay = 0.4},
         {enemy = slug, args = {0,  }, delay = 0.4},
         {enemy = slug, args = {0,  }, delay = 0.4},
-        {enemy = slug, args = {200 }, delay = 1},
+        {enemy = slug, args = {0,  }, delay = 0.4},
+        {enemy = slug, args = {200 }, delay = 0.4},
         {enemy = slug, args = {200 }, delay = 0.4},
         {enemy = slug, args = {200 }, delay = 0.4},
         {enemy = slug, args = {200 }, delay = 0.4},
     },
     {
-        {enemy = slug, args = {200},  delay = 1},
+        {enemy = slug, args = {200},  delay = 0.6},
         {enemy = slug, args = {200},  delay = 0.4},
         {enemy = slug, args = {200},  delay = 0.4},
         {enemy = slug, args = {200},  delay = 0.4},
-        {enemy = slug, args = {0},    delay = 1},
         {enemy = slug, args = {0},    delay = 0.4},
         {enemy = slug, args = {0},    delay = 0.4},
         {enemy = slug, args = {0},    delay = 0.4},
-        {enemy = slug, args = {-200}, delay = 1},
-        {enemy = slug, args = {-200}, delay = 1},
+        {enemy = slug, args = {0},    delay = 0.4},
+        {enemy = slug, args = {-200}, delay = 0.4},
+        {enemy = slug, args = {-200}, delay = 0.4},
         {enemy = slug, args = {-200}, delay = 0.4},
         {enemy = slug, args = {-200}, delay = 0.4},
     },
@@ -602,7 +630,7 @@ local enemy_spawn_patterns = {
         {enemy = wraith, args = {-120}, delay = 1},
     },
     {
-        {enemy = worm, args = {-220, 1}, delay = 1},
+        {enemy = worm, args = {-220, 1}, delay = 0.3},
         {enemy = worm, args = {220, -1}, delay = 0.05},
         {enemy = worm, args = {-220, 1}, delay = 0.05},
         {enemy = worm, args = {220, -1}, delay = 0.05},
@@ -618,16 +646,23 @@ local enemy_spawn_patterns = {
         {enemy = worm, args = {220, -1}, delay = 0.05},
     },
     {
-        {enemy = boss, args = {0}, delay = 5},
+        {enemy = worm, args = {220, -1}, delay = 2},
+    },
+    {
+        {enemy = boss, args = {0}, delay = 4},
     }
 }
 
-local pattern_frequencies = {
-    1, 1,
-    2, 2,
-    3, 4,
-    5, 5, 5,
-    6,
+local pattern_sets = {
+    { 1, 2, 5, 5, },
+    { 1, 2, 3, 4, 5, 5, 5, 5, },
+    { 1, 2, 5, 5, },
+    { 7 },
+    { 6 },
+    { 1, 1, 1, 5, 5, 5, 5, 5},
+    { 2, 2, 3, 3, 3, 4, 4, 4},
+    { 7 },
+    { 6 },
 }
 
 -- enemy bullets
@@ -689,6 +724,17 @@ function update_enemies(state)
             if enemy.kill then
                 enemy.kill(state)
             end
+            if (enemy.num_explosions or 1) > 1 then
+                state.explosions_group:action(coroutine.create(function()
+                    for i = 2, enemy.num_explosions do
+                        local explosion_pos = pos + 
+                            vec2(math.random() * 2 - 1, math.random() * 2 - 1)
+                            * enemy.radius
+                        spawn_explosion(state, explosion_pos, size, color, color_var)
+                        am.wait(am.delay(math.random() * 0.2 + 0.05))
+                    end
+                end))
+            end
         end
         if enemy.hp <= 0 or
             pos.y < win.bottom - 100 or
@@ -724,12 +770,11 @@ function spawn_enemies(state)
             -- choose new pattern
             local pool = state.pattern_pool
             if #pool == 0 then
-                table.append(pool, pattern_frequencies)
+                -- next patt
+                state.pattern_set = state.pattern_set % #pattern_sets + 1
+                table.append(pool, pattern_sets[state.pattern_set])
             end
-            local r
-            repeat 
-                r = math.random(#pool)
-            until #pool == 1 or r ~= 6 -- leave boss for last
+            local r = math.random(#pool)
             state.current_pattern = pool[r]
             table.remove(pool, r)
             phase = 1
@@ -903,12 +948,14 @@ function end_game(state)
     state.scene.paused = true
     bg.paused = true
     win.clear_color = vec4(0, 1, 1, 1)
+    win_base_color = win.clear_color
     win.scene:action(am.series{
         am.delay(0.3),
         function()
             state.scene.paused = false
             bg.paused = false
             win.clear_color = vec4(0, 0, 0, 1)
+            win_base_color = win.clear_color
             state.dead = true
             state.death_time = am.frame_time
             state.scene:remove(state.ship.node)
@@ -949,8 +996,9 @@ function start_game()
         enemies = {},
         enemies_group = enemies_group,
         explosions_group = explosions_group,
-        current_pattern = pattern_frequencies[1],
+        current_pattern = pattern_sets[1][1],
         pattern_phase = 1,
+        pattern_set = 1,
         last_enemy_spawn_time = 0,
         pattern_pool = {},
     }
@@ -962,7 +1010,7 @@ function start_game()
         spawn_enemies(state)
         update_bullets(state)
         update_score(state)
-        if state.dead and am.frame_time - state.death_time > 1.1 then
+        if state.dead and am.frame_time - state.death_time > 2 then
             win.scene:remove(scene)
             win.scene:append(title_scene)
         end
@@ -972,6 +1020,7 @@ function start_game()
         main_action
     })
     win.scene:append(scene)
+    win.scene:action(am.play(start_sound))
 end
 
 win.scene = am.translate(0, 0) ^ {bg, title_scene}

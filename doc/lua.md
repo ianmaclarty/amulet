@@ -233,19 +233,12 @@ end
 print(sum{3, 1, 6}) -- prints 10
 ~~~
 
-Amulet Lua differences
-----------------------
+Amulet require function
+-----------------------
 
-There are a couple of changes Amulet makes to the default Lua
-configuration that you should be aware of.
-
-The first is that the creation of new global variables is disallowed.
-If you really want to create a global variable you can either do
-`rawset(_G, "variable_name", value)` or if you want the default Lua
-behaviour back you can do `setmetatable(_G, nil)`.
-
-The second difference is in the way the `require` function works. The
-default Lua package loaders have been removed and replaced with a custom
+The `require` function in Amulet is slightly different from
+the default one.
+The default Lua package loaders have been removed and replaced with a custom
 loader. The loader passes a new empty table into each module it loads.
 All exported functions can be added to this table, instead of creating a
 new table. If no other value is returned by the module, the passed in
@@ -281,5 +274,5 @@ will be available in B. This does mean that B can't call any of A's
 functions while its initializing, but after initialization all of A's
 functions will be available.
 
-Note that you can still return your own values from modules and they will
-be returned by `require` as usual.
+Of course you can still return your own values from modules and they will
+be returned by `require` as with the default Lua `require` function.

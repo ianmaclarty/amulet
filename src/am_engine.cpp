@@ -60,7 +60,6 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_renderer_module(L);
         am_open_audio_module(L);
     }
-    am_set_globals_metatable(L);
     am_set_version(L);
     am_set_dirs(L);
     if (!run_embedded_scripts(L, worker)) {
