@@ -43,6 +43,7 @@ print(node[[nodeC]].fc)
 
 print("")
 print_graph(node)
+
 local nodeD = am.group()
 nodeD.name = "D"
 node"base":append(nodeD)
@@ -61,6 +62,11 @@ print("")
 print(node"nodeA".A.x)
 print(node"nodeB".B.rgb.rg.r)
 print(node"nodeC".C.pq[2])
+
+node:replace("nodeA", nodeD)
+print_graph(node)
+node:remove("nodeB")
+print_graph(node)
 
 local cycle = 
     am.bind{C = vec3(3)}:tag"nodeC"

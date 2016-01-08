@@ -191,6 +191,12 @@ Adds `child` to the start of `node`'s child list and returns `node`.
 Removes the first occurance of `child` from `node`'s child list
 and returns `node`.
 
+### node:remove(tagname) {.func-def}
+
+Searches for a node with tag `tagname` in the descendents
+of `node` and removes the first one it finds and
+returns `node`.
+
 ### node:remove_all() {.func-def}
 
 Removes all of `node`'s children and returns `node`.
@@ -199,6 +205,12 @@ Removes all of `node`'s children and returns `node`.
 
 Replaces the first occurance of `child` with `replacement`
 in `node`'s child list and returns `node`.
+
+### node:replace(tagname, replacement) {.func-def}
+
+Searches for a node with tag `tagname` in the descendents
+of `node` and replaces the first one it finds with
+`replacement` and returns `node`.
 
 ### node:child(n) {.func-def}
 

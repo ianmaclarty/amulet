@@ -13,6 +13,9 @@ am_tag AM_TAG_DRAW;
 am_tag AM_TAG_VIEWPORT;
 am_tag AM_TAG_COLOR_MASK;
 
+static am_tag lookup_tag(lua_State *L, int name_idx);
+static am_scene_node *find_tag(am_scene_node *node, am_tag tag, am_scene_node **parent);
+
 am_scene_node::am_scene_node() {
     children.owner = this;
     tags.owner = this;
@@ -70,10 +73,19 @@ static int prepend_child(lua_State *L) {
     return 1;
 }
 
-static int remove_child(lua_State *L) {
+static int remove(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *parent = am_get_userdata(L, am_scene_node, 1);
-    am_scene_node *child = am_get_userdata(L, am_scene_node, 2);
+    am_scene_node *child;
+    if (lua_type(L, 2) == LUA_TSTRING) {
+        am_tag tag = lookup_tag(L, 2);
+        child = find_tag(parent, tag, &parent);
+        if (child == NULL || parent == NULL) {
+            goto end;
+        }
+    } else {
+        child = am_get_userdata(L, am_scene_node, 2);
+    }
     for (int i = 0; i < parent->children.size; i++) {
         if (parent->children.arr[i].child == child) {
             parent->unref(L, parent->children.arr[i].ref);
@@ -81,15 +93,26 @@ static int remove_child(lua_State *L) {
             break;
         }
     }
+end:
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
-static int replace_child(lua_State *L) {
+static int replace(lua_State *L) {
     am_check_nargs(L, 3);
     am_scene_node *parent = am_get_userdata(L, am_scene_node, 1);
-    am_scene_node *old_child = am_get_userdata(L, am_scene_node, 2);
-    am_scene_node *new_child = am_get_userdata(L, am_scene_node, 3);
+    am_scene_node *old_child;
+    am_scene_node *new_child;
+    if (lua_type(L, 2) == LUA_TSTRING) {
+        am_tag tag = lookup_tag(L, 2);
+        old_child = find_tag(parent, tag, &parent);
+        if (old_child == NULL || parent == NULL) {
+            goto end;
+        }
+    } else {
+        old_child = am_get_userdata(L, am_scene_node, 2);
+    }
+    new_child = am_get_userdata(L, am_scene_node, 3);
     for (int i = 0; i < parent->children.size; i++) {
         if (parent->children.arr[i].child == old_child) {
             parent->unref(L, parent->children.arr[i].ref);
@@ -101,11 +124,12 @@ static int replace_child(lua_State *L) {
             break;
         }
     }
+end:
     lua_pushvalue(L, 1); // for chaining
     return 1;
 }
 
-static int remove_all_children(lua_State *L) {
+static int remove_all(lua_State *L) {
     am_check_nargs(L, 1);
     am_scene_node *parent = am_get_userdata(L, am_scene_node, 1);
     for (int i = parent->children.size-1; i >= 0; i--) {
@@ -331,7 +355,7 @@ static am_tag lookup_tag(lua_State *L, int name_idx) {
 static int tag(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    if (!lua_isstring(L, 2)) {
+    if (lua_type(L, 2) != LUA_TSTRING) {
         return luaL_error(L, "expecting a string in position 2");
     }
     node->tags.push_back(L, lookup_tag(L, 2));
@@ -342,7 +366,7 @@ static int tag(lua_State *L) {
 static int untag(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    if (!lua_isstring(L, 2)) {
+    if (lua_type(L, 2) != LUA_TSTRING) {
         return luaL_error(L, "expecting a string in position 2");
     }
     am_tag tag = lookup_tag(L, 2);
@@ -360,16 +384,20 @@ static bool node_has_tag(am_scene_node *node, am_tag tag) {
     return false;
 }
 
-static am_scene_node *find_tag(am_scene_node *node, am_tag tag) {
+static am_scene_node *find_tag(am_scene_node *node, am_tag tag, am_scene_node **parent) {
     if (am_node_marked(node)) return NULL;
     am_mark_node(node);
     am_scene_node *found = NULL;
     if (node_has_tag(node, tag)) {
         found = node;
+        *parent = NULL;
     } else {
         for (int i = 0; i < node->children.size; i++) {
-            found = find_tag(node->children.arr[i].child, tag);
-            if (found != NULL) break;
+            found = find_tag(node->children.arr[i].child, tag, parent);
+            if (found != NULL) {
+                if (*parent == NULL) *parent = node;
+                break;
+            }
         }
     }
     am_unmark_node(node);
@@ -379,17 +407,20 @@ static am_scene_node *find_tag(am_scene_node *node, am_tag tag) {
 static int search_tag(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    if (!lua_isstring(L, 2)) {
+    if (lua_type(L, 2) != LUA_TSTRING) {
         return luaL_error(L, "expecting a string in position 2");
     }
     am_tag tag = lookup_tag(L, 2);
-    am_scene_node *found = find_tag(node, tag);
+    am_scene_node *parent;
+    am_scene_node *found = find_tag(node, tag, &parent);
     if (found == NULL) {
+        lua_pushnil(L);
         lua_pushnil(L);
     } else {
         found->push(L);
+        parent->push(L);
     }
-    return 1;
+    return 2;
 }
 
 static void find_all_tags(lua_State *L, am_scene_node *node, am_tag tag, int *i, int t, bool recurse) {
@@ -413,7 +444,7 @@ static void find_all_tags(lua_State *L, am_scene_node *node, am_tag tag, int *i,
 static int search_all_tags(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    if (!lua_isstring(L, 2)) {
+    if (lua_type(L, 2) != LUA_TSTRING) {
         return luaL_error(L, "expecting a string in position 2");
     }
     bool recurse = false;
@@ -600,11 +631,11 @@ static void register_scene_node_mt(lua_State *L) {
     lua_setfield(L, -2, "append");
     lua_pushcclosure(L, prepend_child, 0);
     lua_setfield(L, -2, "prepend");
-    lua_pushcclosure(L, remove_child, 0);
+    lua_pushcclosure(L, remove, 0);
     lua_setfield(L, -2, "remove");
-    lua_pushcclosure(L, replace_child, 0);
+    lua_pushcclosure(L, replace, 0);
     lua_setfield(L, -2, "replace");
-    lua_pushcclosure(L, remove_all_children, 0);
+    lua_pushcclosure(L, remove_all, 0);
     lua_setfield(L, -2, "remove_all");
 
     lua_pushcclosure(L, search_tag, 0);

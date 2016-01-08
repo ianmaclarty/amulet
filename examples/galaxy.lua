@@ -4,6 +4,7 @@ win = am.window{
 }
 
 -- constants
+
 ship_start_pos = vec2(0, -100)
 ship_min_position = vec2(-310, -230)
 ship_max_position = -ship_min_position
@@ -13,6 +14,7 @@ laser_velocity = vec2(0, 600)
 laser_interval = 0.1
 
 -- sounds
+
 laser_sound = 86572901
 explode_sound = 9975402
 ship_explode_sound = 20755502
@@ -20,10 +22,10 @@ hit_sound = 40570404
 boss_sound = 49915809
 boss_shoot_sound = 90380302
 start_sound = 81207502
+title_sound = 24802409
 
-win_base_color = vec4(0, 0, 0, 1)
+-- global state
 
--- state variables
 high_score = 0
 
 -- utility functions
@@ -40,10 +42,10 @@ function animated_sprite(frames, delay)
     end)
 end
 
-function shake_screen(amount, duration)
+function shake_screen(state, amount, duration)
     local last_shake_t = 0
     local start_t = am.frame_time
-    win.scene:action("shake", function(scene)
+    state.camera:action("shake", function(scene)
         if am.frame_time - start_t > duration then
             scene.position2d = vec2(0)
             return true
@@ -63,7 +65,7 @@ explosion_img = [[
 ...]]
 
 function spawn_explosion(state, position, size, color, color_var, sound)
-    local explosion =
+    local explosion_particles =
         am.blend("add")
         ^ am.particles2d{
             sprite_source = explosion_img,           
@@ -85,35 +87,39 @@ function spawn_explosion(state, position, size, color, color_var, sound)
             end_size_var = 5,
             warmup_time = 0.05,
         }
-    state.explosions_group:append(explosion)
-    state.explosions_group:action(function()
-        if explosion"particles2d".active_particles == 0 then
-            state.explosions_group:remove(explosion)
-        end
-    end)
     local radius = size * 20 + math.random() * 10
-    local circle = am.circle(position, radius, vec4(1))
+    local circle1 = am.circle(position, radius, vec4(1))
     local circle2 = am.circle(position - vec2(radius * 0.2, 0), radius * 0.8, vec4(0, 0, 0, 1))
-    state.explosions_group:append(circle)
-    state.explosions_group:action(am.series{
+    local flash = am.rect(
+        win.left - 50, win.bottom - 50, win.right + 50, win.top + 50,
+        color * vec4(0.15, 0.15, 0.15, 1))
+    state.explosions_group:append(explosion_particles)
+    state.explosions_group:append(circle1)
+    state.scene:action(am.series{
         am.delay(0.1),
         function()
-            win.clear_color = color * vec4(0.15, 0.15, 0.15, 1)
-            circle.color = color + vec4(0.5)
+            state.explosions_flash_group:append(flash)
+            circle1.color = color + vec4(0.5)
             state.explosions_group:append(circle2)
             return true
         end,
         am.delay(0.1),
         function()
-            win.clear_color = win_base_color
-            state.explosions_group:remove(circle)
+            state.explosions_flash_group:remove(flash)
+            state.explosions_group:remove(circle1)
             state.explosions_group:remove(circle2)
             return true
         end,
-        })
+        function()
+            if explosion_particles"particles2d".active_particles == 0 then
+                state.explosions_group:remove(explosion_particles)
+                return true
+            end
+        end
+    })
     local pitch = math.random() * 0.8 + 0.4
     main_scene:action(am.play(explode_sound, false, pitch))
-    shake_screen(size * 8, size * 0.1)
+    shake_screen(state, size * 8, size * 0.1)
 end
 
 -- slug enemy
@@ -155,7 +161,7 @@ function slug_update(enemy, state)
     pos = pos + vec2(vx, vy) * dt
     enemy.position = pos
     enemy.node.position2d = pos
-    if am.frame_time > enemy.last_fire_time + 1 then
+    if am.frame_time > enemy.last_fire_time + 1.1 then
         local vel = math.normalize(state.ship.position - pos) * 150
         spawn_bullet(state, pos, vel)
         enemy.last_fire_time = am.frame_time
@@ -260,12 +266,10 @@ end
 
 function tank_hit(enemy)
     local node = enemy.node
-    node"scale":remove_all()
-    node"scale":append(tank_hit_sprite)
+    node:replace("sprite", tank_hit_sprite)
     node:action(am.play(hit_sound))
     node:action(am.series{am.delay(0.1), function()
-        node"scale":remove_all()
-        node"scale":append(tank_sprite)
+        node:replace("sprite", tank_sprite)
         return true
     end})
     enemy.position = enemy.position + vec2(0, 10)
@@ -482,7 +486,7 @@ function boss_update(enemy, state)
     end
 end
 
-function boss_hit(enemy)
+function boss_hit(enemy, state)
     local node = enemy.node
     node"scale":remove_all()
     node"scale":append(boss_hit_sprite)
@@ -496,23 +500,33 @@ function boss_hit(enemy)
     enemy.health_bar.x2 = enemy.hp / enemy.max_hp * 200 - 100
 end
 
-function boss_kill(state)
+function boss_kill(enemy, state)
     state.no_new_enemies = false
-    main_scene:action("bg_color_tween", am.tween(win, 2, {clear_color = vec4(0, 0, 0, 1)}))
-    win_base_color = vec4(0, 0, 0, 1)
-    bg"particles2d".start_color = vec4(0, 0, 1, 1)
-    bg"particles2d".speed = 600
+    state.scene:action(am.series{
+        am.tween(enemy.bg_color, 2, {color = vec4(0.3, 0, 0, 0)}),
+        function()
+            state.scene:remove(enemy.bg_color)
+            return true
+        end
+    })
+    bg_stars"particles2d".start_color = vec4(0, 0, 1, 1)
+    bg_stars"particles2d".speed = 600
 end
 
 function boss(state)
     state.no_new_enemies = true
+
+    local bg_color = am.rect(win.left - 50, win.bottom - 50, win.right + 50, win.top + 50,
+        vec4(0.3, 0, 0, 0))
+    state.scene:prepend(bg_color)
+    state.scene:action(am.tween(bg_color, 2, {clear_color = vec4(0.3, 0, 0, 1)}))
+    bg_stars"particles2d".start_color = vec4(1, 0.5, 0.5, 1)
+    bg_stars"particles2d".speed = 1200
+
     local position = vec2(0, win.top + 70)
-    main_scene:action("bg_color_tween", am.tween(win, 2, {clear_color = vec4(0.3, 0, 0, 1)}))
-    win_base_color = vec4(0.3, 0, 0, 1)
-    bg"particles2d".start_color = vec4(1, 0.5, 0.5, 1)
-    bg"particles2d".speed = 1200
     local health_bar = am.rect(-100, 210, 100, 220, vec4(1, 0, 1, 1))
     local health_bar_bg = am.rect(-102, 208, 102, 222, vec4(0.5, 0.5, 0.5, 1))
+
     local node =
         am.group{
             am.translate(position)
@@ -528,6 +542,7 @@ function boss(state)
     node:action(am.play(boss_sound))
     return {
         node = node,
+        bg_color = bg_color,
         update = boss_update,
         position = position,
         last_fire_time = am.frame_time,
@@ -619,10 +634,6 @@ pattern_sets = {
     { 1, 2, 5, 5, },
     { 7 },
     { 6 },
-    { 1, 1, 1, 5, 5, 5, 5, 5},
-    { 2, 2, 3, 3, 3, 4, 4, 4},
-    { 7 },
-    { 6 },
 }
 
 -- enemy bullets
@@ -671,7 +682,7 @@ function update_bullets(state)
     end
 end
 
--- enemy logic
+-- general enemy logic
 
 function update_enemies(state)
     local dt = am.delta_time
@@ -688,7 +699,7 @@ function update_enemies(state)
             spawn_explosion(state, pos, size, color, color_var)
             state.score = state.score + enemy.points
             if enemy.kill then
-                enemy.kill(state)
+                enemy:kill(state)
             end
             if (enemy.num_explosions or 1) > 1 then
                 state.explosions_group:action(coroutine.create(function()
@@ -843,7 +854,7 @@ function update_lasers(state)
             then
                 enemy.hp = enemy.hp - 1
                 if enemy.hit then
-                    enemy:hit()
+                    enemy:hit(state)
                 end
                 hit = true
                 break
@@ -892,7 +903,7 @@ star_img = [[
 .W.
 ...]]
 
-bg = am.blend("add")
+bg_stars = am.blend("add")
     ^ am.particles2d{
         sprite_source = star_img,           
         source_pos = vec2(0, 250),
@@ -911,7 +922,7 @@ bg = am.blend("add")
 
 -- title screen
 
-function create_title()
+function create_title_scene()
     local line1 = am.text("DEFENDERS", vec4(1, 0, 1, 1))
     local line2 = am.text("OF THE", vec4(1, 0, 1, 1))
     local line3 = am.text("WEEPING QUASAR", vec4(1, 0, 1, 1))
@@ -939,48 +950,19 @@ function create_title()
         am.translate(0, -150)
         ^ am.text("ARROW KEYS: MOVE\nX: FIRE\nPRESS X TO START", vec4(0.75, 0.75, 0.75, 1))
     return am.group{
+        bg_stars,
         title,
         score,
         instructions
     }:action(function()
         if win:key_pressed"x" then
-            main_scene:remove(title_scene)
             start_game()
         end
     end)
+    :action(am.play(title_sound))
 end
-title_scene = create_title()
 
--- game star/end logic
-
-function end_game(state)
-    if state.score > high_score then
-        high_score = state.score
-    end
-    main_scene:cancel"bg_color_tween"
-    bg"particles2d".start_color = vec4(0, 0, 1, 1)
-    bg"particles2d".speed = 600
-    -- pause briefly
-    state.scene.paused = true
-    bg.paused = true
-    win.clear_color = vec4(0, 1, 1, 1)
-    win_base_color = win.clear_color
-    main_scene:action(am.series{
-        am.delay(0.3),
-        function()
-            state.scene.paused = false
-            bg.paused = false
-            win.clear_color = vec4(0, 0, 0, 1)
-            win_base_color = win.clear_color
-            state.dead = true
-            state.death_time = am.frame_time
-            state.scene:remove(state.ship.node)
-            spawn_explosion(state, state.ship.position, 2, vec4(1, 0.7, 0.3, 1), vec4(0.2, 0.4, 0.1, 0))
-            return true
-        end
-    })
-    main_scene:action(am.play(ship_explode_sound))
-end
+-- game start/end logic
 
 function start_game()
     local ship = init_ship()
@@ -988,10 +970,13 @@ function start_game()
     local bullets_group = am.group()
     local enemies_group = am.group()
     local explosions_group = am.group()
+    local explosions_flash_group = am.group()
     local score_node = am.translate(300, 230)
         ^ am.scale(2)
         ^ am.text("0", "right", "top")
     local scene = am.group{
+        explosions_flash_group,
+        bg_stars,
         lasers_group,
         enemies_group,
         explosions_group,
@@ -999,10 +984,12 @@ function start_game()
         bullets_group,
         score_node,
     }
+    local camera = am.translate(0, 0) ^ scene
     local state = {
         score = 0,
         score_node = score_node,
         scene = scene,
+        camera = camera,
         ship = ship,
         lasers = {},
         lasers_group = lasers_group,
@@ -1012,6 +999,7 @@ function start_game()
         enemies = {},
         enemies_group = enemies_group,
         explosions_group = explosions_group,
+        explosions_flash_group = explosions_flash_group,
         current_pattern = pattern_sets[1][1],
         pattern_phase = 1,
         pattern_set = 1,
@@ -1027,27 +1015,53 @@ function start_game()
         update_bullets(state)
         update_score(state)
         if state.dead and am.frame_time - state.death_time > 2 then
-            main_scene:remove(scene)
-            title_scene = create_title()
-            main_scene:append(title_scene)
+            main_scene:remove_all()
+            if state.score > high_score then
+                high_score = state.score
+            end
+            main_scene:append(create_title_scene())
         end
     end
     scene:action(am.series{
         am.tween(ship.node"translate", 0.5, {position2d = vec2(ship_start_pos)}),
         main_action
     })
-    main_scene:append(scene)
+    main_scene:remove_all()
+    main_scene:append(camera)
     main_scene:action(am.play(start_sound))
+end
+
+function end_game(state)
+    bg_stars"particles2d".start_color = vec4(0, 0, 1, 1)
+    bg_stars"particles2d".speed = 600
+    local flash = am.rect(
+        win.left - 50, win.bottom - 50, win.right + 50, win.top + 50,
+        vec4(0, 1, 1, 1))
+    state.explosions_flash_group:append(flash)
+    -- pause briefly
+    state.scene.paused = true
+    main_scene:action(am.series{
+        am.delay(0.3),
+        function()
+            state.scene.paused = false
+            state.explosions_flash_group:remove(flash)
+            state.dead = true
+            state.death_time = am.frame_time
+            state.scene:remove(state.ship.node)
+            spawn_explosion(state, state.ship.position, 2, vec4(1, 0.7, 0.3, 1), vec4(0.2, 0.4, 0.1, 0))
+            return true
+        end
+    })
+    main_scene:action(am.play(ship_explode_sound))
 end
 
 -- set up the scene
 
-main_scene = am.translate(0, 0) ^ {bg, title_scene}
+main_scene = am.group{create_title_scene()}
 win.scene = main_scene
 
 win.scene:action(function()
     if win:key_pressed"escape" then
-        -- close is ignored in HTML5 build
         win:close()
     end
 end)
