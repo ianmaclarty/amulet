@@ -1,8 +1,8 @@
 local
 function make_buffer(num_verts)
-    local buffer = am.buffer(num_verts * 20)
-    local verts = buffer:view("vec3", 0, 20)
-    local uvs = buffer:view("vec2", 12, 20)
+    local buffer = am.buffer(num_verts * 16)
+    local verts = buffer:view("vec2", 0, 16)
+    local uvs = buffer:view("vec2", 8, 16)
     return buffer, verts, uvs
 end
 
@@ -111,17 +111,13 @@ function set_text_verts(font, str, verts_view, uvs_view, halign, valign)
         end
         verts[v]     = x + x1
         verts[v + 1] = y + y2
-        verts[v + 2] = 0
-        verts[v + 3] = x + x1
-        verts[v + 4] = y + y1
-        verts[v + 5] = 0
+        verts[v + 2] = x + x1
+        verts[v + 3] = y + y1
+        verts[v + 4] = x + x2
+        verts[v + 5] = y + y1
         verts[v + 6] = x + x2
-        verts[v + 7] = y + y1
-        verts[v + 8] = 0
-        verts[v + 9] = x + x2
-        verts[v + 10] = y + y2
-        verts[v + 11] = 0
-        v = v + 12
+        verts[v + 7] = y + y2
+        v = v + 8
         local s1, t1, s2, t2 = char_data.s1, char_data.t1, char_data.s2, char_data.t2
         uvs[u]     = s1
         uvs[u + 1] = t2
@@ -157,7 +153,7 @@ function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
     elseif valign == "top" then
         y_os = -h
     end
-    verts_view:set{x1 + x_os, y2 + y_os, 0, x1 + x_os, y1 + y_os, 0, x2 + x_os, y1 + y_os, 0, x2 + x_os, y2 + y_os, 0}
+    verts_view:set{x1 + x_os, y2 + y_os, x1 + x_os, y1 + y_os, x2 + x_os, y1 + y_os, x2 + x_os, y2 + y_os}
     uvs_view:set{s1, t2, s1, t1, s2, t1, s2, t2}
 end
 
@@ -187,7 +183,7 @@ function am.text(font, str, color, halign, valign)
     local w, h = set_text_verts(font, str, verts, uvs, halign, valign)
     local node =
         am.blend(font.is_premult and "premult" or "alpha")
-        ^am.use_program(am.shaders.texturecolor)
+        ^am.use_program(am.shaders.texturecolor2d)
         ^am.bind{
             vert = verts,
             uv = uvs,
@@ -388,7 +384,7 @@ function am.sprite(image0, halign, valign, color)
     set_sprite_verts(image, verts, uvs, halign, valign)
     local node =
         am.blend(image.is_premult and "premult" or "alpha")
-        ^am.use_program(am.shaders.texturecolor)
+        ^am.use_program(am.shaders.texturecolor2d)
         ^am.bind{
             vert = verts,
             uv = uvs,

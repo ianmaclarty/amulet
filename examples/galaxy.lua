@@ -719,6 +719,7 @@ end
 
 function spawn_enemies(state)
     if state.no_new_enemies then
+        state.last_enemy_spawn_time = am.frame_time
         return
     end
     local pat = enemy_spawn_patterns[state.current_pattern]
@@ -920,7 +921,17 @@ function create_title()
         am.translate(0, 80) ^ am.scale(3) ^ line2,
         am.translate(0, 20) ^ am.scale(4) ^ line3,
         am.translate(0, -50) ^ am.scale(2) ^ line4,
-    }
+    }:action(coroutine.create(function()
+        local colors = {vec4(1, 0, 1, 1), vec4(0, 1, 1, 1), vec4(1, 1, 0, 1), vec4(0, 1, 0, 1)}
+        local i = 1
+        while true do
+            line1.color = colors[i]
+            line2.color = colors[i]
+            line3.color = colors[i]
+            am.wait(am.delay(0.1))
+            i = i % #colors + 1
+        end
+    end))
     local score = 
         am.translate(0, -100)
         ^ am.text("HI SCORE: "..high_score, vec4(0, 1, 1, 1))
