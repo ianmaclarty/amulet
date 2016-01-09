@@ -1,11 +1,11 @@
 #include "amulet.h"
 
 void am_rand::init(int seed) {
-    sfmt_init_gen_rand(&state, (uint32_t)seed);
+    tinymt32_init(&state, (uint32_t)seed);
 }
 
 double am_rand::get_rand() {
-    return sfmt_genrand_real2(&state);
+    return tinymt32_generate_32double(&state);
 }
 
 static int create_rand(lua_State *L) {

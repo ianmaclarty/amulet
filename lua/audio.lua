@@ -45,6 +45,9 @@ function play_buf(buf, loop, pitch, gain)
 end
 
 function am.play(arg1, arg2, arg3, arg4)
+    if not arg1 then
+        error("argument 1 is nil", 2)
+    end
     local t = am.type(arg1)
     if t == "string" then
         return play_file(arg1, arg2, arg3, arg4)

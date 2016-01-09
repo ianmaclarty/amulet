@@ -18,8 +18,9 @@ GLM_DIR          = $(DEPS_DIR)/glm-0.9.7.1
 FT2_DIR          = $(DEPS_DIR)/freetype-2.5.5
 STB_DIR		 = $(DEPS_DIR)/stb
 KISSFFT_DIR	 = $(DEPS_DIR)/kiss_fft130
-SFMT_DIR	 = $(DEPS_DIR)/sfmt-1.4.1
+TINYMT_DIR	 = $(DEPS_DIR)/tinymt-1.0.3
 SIMPLEOPT_DIR    = $(DEPS_DIR)/simpleopt
+MSINTTYPES_DIR	 = $(DEPS_DIR)/msinttypes
 
 # Host settings (this is the *build* host, not the host we want to run on)
 
@@ -80,8 +81,9 @@ LUAVM_ALIB = $(BUILD_LIB_DIR)/lib$(LUAVM)$(ALIB_EXT)
 FT2_ALIB = $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
 STB_ALIB = $(BUILD_LIB_DIR)/libstb$(ALIB_EXT)
 KISSFFT_ALIB = $(BUILD_LIB_DIR)/libkissfft$(ALIB_EXT)
-SFMT_ALIB = $(BUILD_LIB_DIR)/libsfmt$(ALIB_EXT)
+TINYMT_ALIB = $(BUILD_LIB_DIR)/libtinymt$(ALIB_EXT)
 SIMPLEGLOB_H = $(BUILD_INC_DIR)/SimpleGlob.h
+MSINTTYPES_H = $(BUILD_INC_DIR)/inttypes.h
 
 SRC_DIR = src
 BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(LUAVM)/$(GRADE)

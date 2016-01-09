@@ -4,8 +4,7 @@ MAIN_TARGET = $(AMULET)
 
 # Build settings
 
-AM_DEFS = AM_$(shell echo $(TARGET_PLATFORM) | tr a-z A-Z) AM_$(shell echo $(GRADE) | tr a-z A-Z) \
-	SFMT_MEXP=19937
+AM_DEFS = AM_$(shell echo $(TARGET_PLATFORM) | tr a-z A-Z) AM_$(shell echo $(GRADE) | tr a-z A-Z)
 
 ifeq ($(LUAVM),luajit)
   AM_DEFS += AM_LUAJIT
@@ -26,18 +25,19 @@ EXTRA_PREREQS =
 SDL_PREBUILT = $(SDL_PREBUILT_DIR)/sdl-prebuilt.date
 
 ifeq ($(TARGET_PLATFORM),html)
-  AM_DEPS = $(LUAVM) stb kissfft sfmt
+  AM_DEPS = $(LUAVM) stb kissfft tinymt
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifdef IOS
-  AM_DEPS = $(LUAVM) stb kissfft sfmt
+  AM_DEPS = $(LUAVM) stb kissfft tinymt
 else ifeq ($(TARGET_PLATFORM),msvc32)
-  AM_DEPS = $(LUAVM) stb kissfft sfmt ft2
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+  TINYMT_PREREQS = $(MSINTTYPES_H)
 else ifeq ($(TARGET_PLATFORM),mingw32)
-  AM_DEPS = $(LUAVM) stb kissfft sfmt ft2
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else
-  AM_DEPS = $(LUAVM) sdl angle stb kissfft sfmt ft2
+  AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
   AM_DEFS += AM_USE_ANGLE
   EXTRA_PREREQS = $(SIMPLEGLOB_H)
 endif
@@ -183,6 +183,9 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 $(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
 	cp $(SIMPLEOPT_DIR)/SimpleGlob.h $@
 
+$(MSINTTYPES_H): | $(BUILD_INC_DIR)
+	cp $(MSINTTYPES_DIR)/*.h $(BUILD_INC_DIR)/
+
 $(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom clean
 	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom all
@@ -190,11 +193,11 @@ $(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(KISSFFT_DIR)/kiss_fftr.h $(BUILD_INC_DIR)/
 	cp $(KISSFFT_DIR)/libkissfft$(ALIB_EXT) $@
 
-$(SFMT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(SFMT_DIR) && $(MAKE) clean
-	cd $(SFMT_DIR) && $(MAKE) all
-	cp $(SFMT_DIR)/*.h $(BUILD_INC_DIR)/
-	cp $(SFMT_DIR)/libsfmt$(ALIB_EXT) $@
+$(TINYMT_ALIB): $(TINYMT_PREREQS) | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(TINYMT_DIR) && $(MAKE) -f Makefile.custom clean
+	cd $(TINYMT_DIR) && $(MAKE) -f Makefile.custom all
+	cp $(TINYMT_DIR)/tinymt32.h $(BUILD_INC_DIR)/
+	cp $(TINYMT_DIR)/libtinymt$(ALIB_EXT) $@
 
 $(BUILD_DIRS): %:
 	mkdir -p $@

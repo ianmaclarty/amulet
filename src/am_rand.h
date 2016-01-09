@@ -3,7 +3,7 @@
 #define AM_RAND_QUALITY 1009
 
 struct am_rand {
-    sfmt_t state;
+    tinymt32_t state;
     
     void init(int seed);
 

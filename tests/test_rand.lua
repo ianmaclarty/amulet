@@ -1,4 +1,4 @@
-local rand = am.rand(5321111)
+local rand = am.rand(5321112)
 print(rand())
 print(rand())
 print(rand())

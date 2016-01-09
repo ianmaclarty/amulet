@@ -87,7 +87,7 @@ Amulet uses or borrows code and ideas from the following projects:
 - [Emscripten](http://emscripten.org)
 - [OpenCV](http://opencv.org/)
 - [SimpleGlob](https://github.com/brofield/simpleopt)
-- [SFMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/index.html)
+- [TinyMT](https://github.com/MersenneTwister-Lab/TinyMT)
 - [sfxr](http://www.drpetter.se/project_sfxr.html)
 
 The HTML editor uses code and ideas from:

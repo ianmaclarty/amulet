@@ -8,7 +8,7 @@ win = am.window{
 ship_start_pos = vec2(0, -100)
 ship_min_position = vec2(-310, -230)
 ship_max_position = -ship_min_position
-ship_speed = 340
+ship_speed = 300
 ship_radius = 5
 laser_velocity = vec2(0, 600)
 laser_interval = 0.1
@@ -16,13 +16,21 @@ laser_interval = 0.1
 -- sounds
 
 laser_sound = 86572901
-explode_sound = 9975402
-ship_explode_sound = 20755502
-hit_sound = 40570404
-boss_sound = 49915809
+explode_sound_slug = 54429702
+explode_sound_tank = 71980902
+explode_sound_worm = 6816502--64989002
+explode_sound_boss = 83275102
+spawn_sound_slug = 90404206
+spawn_sound_tank = 48219003
+spawn_sound_worm = 56680800
+spawn_sound_boss = 42319309
+ship_explode_sound = 80020902
+ship_explode_sound2 = 11085802
+hit_sound = 9975402
+boss_sound = 31642009
 boss_shoot_sound = 90380302
-start_sound = 81207502
-title_sound = 24802409
+start_sound = 24012402
+title_sound = 5548109
 
 -- global state
 
@@ -117,8 +125,8 @@ function spawn_explosion(state, position, size, color, color_var, sound)
             end
         end
     })
-    local pitch = math.random() * 0.8 + 0.4
-    main_scene:action(am.play(explode_sound, false, pitch))
+    local pitch = math.random() * 0.5 + 0.75
+    main_scene:action(am.play(sound, false, pitch))
     shake_screen(state, size * 8, size * 0.1)
 end
 
@@ -195,6 +203,8 @@ function slug(state, x)
         t = am.frame_time,
         radius = 20,
         explosion_size = 1,
+        explosion_sound = explode_sound_slug,
+        spawn_sound = spawn_sound_slug,
         explosion_color = vec4(0.1, 1, 0.1, 1),
         explosion_color_var = vec4(0.2, 0.2, 0.2, 0),
         hit = slug_hit,
@@ -290,6 +300,8 @@ function tank(state, x)
         t = am.frame_time,
         radius = 25,
         explosion_size = 1.5,
+        explosion_sound = explode_sound_tank,
+        spawn_sound = spawn_sound_tank,
         explosion_color = vec4(1, 0.1, 0.1, 1),
         explosion_color_var = vec4(0.2, 0.2, 0.2, 0),
         hit = tank_hit,
@@ -368,6 +380,8 @@ function worm(state, x, dir)
         t = am.frame_time,
         radius = 15,
         explosion_size = 0.8,
+        explosion_sound = explode_sound_worm,
+        spawn_sound = spawn_sound_worm,
         explosion_color = vec4(0.2, 1, 1, 1),
         explosion_color_var = vec4(0.2, 0.2, 0.2, 0),
         hit = worm_hit,
@@ -552,6 +566,8 @@ function boss(state)
         t = am.frame_time,
         radius = 62,
         explosion_size = 3,
+        explosion_sound = explode_sound_boss,
+        spawn_sound = spawn_sound_boss,
         explosion_color = vec4(1, 1, 1, 1),
         explosion_color_var = vec4(0.5, 0.5, 0.5, 0),
         num_explosions = 10,
@@ -569,28 +585,18 @@ enemy_spawn_patterns = {
         {enemy = slug, args = {-200}, delay = 0.4},
         {enemy = slug, args = {-200}, delay = 0.4},
         {enemy = slug, args = {-200}, delay = 0.4},
-        {enemy = slug, args = {0,  }, delay = 0.4},
-        {enemy = slug, args = {0,  }, delay = 0.4},
-        {enemy = slug, args = {0,  }, delay = 0.4},
-        {enemy = slug, args = {0,  }, delay = 0.4},
+    },
+    {
         {enemy = slug, args = {200 }, delay = 0.4},
         {enemy = slug, args = {200 }, delay = 0.4},
         {enemy = slug, args = {200 }, delay = 0.4},
         {enemy = slug, args = {200 }, delay = 0.4},
     },
     {
-        {enemy = slug, args = {200},  delay = 0.6},
-        {enemy = slug, args = {200},  delay = 0.4},
-        {enemy = slug, args = {200},  delay = 0.4},
-        {enemy = slug, args = {200},  delay = 0.4},
         {enemy = slug, args = {0},    delay = 0.4},
         {enemy = slug, args = {0},    delay = 0.4},
         {enemy = slug, args = {0},    delay = 0.4},
         {enemy = slug, args = {0},    delay = 0.4},
-        {enemy = slug, args = {-200}, delay = 0.4},
-        {enemy = slug, args = {-200}, delay = 0.4},
-        {enemy = slug, args = {-200}, delay = 0.4},
-        {enemy = slug, args = {-200}, delay = 0.4},
     },
     {
         {enemy = tank, args = {50}, delay = 1},
@@ -606,34 +612,36 @@ enemy_spawn_patterns = {
     },
     {
         {enemy = worm, args = {-220, 1}, delay = 0.3},
-        {enemy = worm, args = {220, -1}, delay = 0.05},
-        {enemy = worm, args = {-220, 1}, delay = 0.05},
-        {enemy = worm, args = {220, -1}, delay = 0.05},
-        {enemy = worm, args = {-220, 1}, delay = 0.05},
-        {enemy = worm, args = {220, -1}, delay = 0.05},
-        {enemy = worm, args = {-220, 1}, delay = 0.05},
-        {enemy = worm, args = {220, -1}, delay = 0.05},
-        {enemy = worm, args = {-220, 1}, delay = 0.05},
-        {enemy = worm, args = {220, -1}, delay = 0.05},
-        {enemy = worm, args = {-220, 1}, delay = 0.05},
-        {enemy = worm, args = {220, -1}, delay = 0.05},
-        {enemy = worm, args = {-220, 1}, delay = 0.05},
-        {enemy = worm, args = {220, -1}, delay = 0.05},
+        {enemy = worm, args = {-220, 1}, delay = 0.1},
+        {enemy = worm, args = {-220, 1}, delay = 0.1},
+        {enemy = worm, args = {-220, 1}, delay = 0.1},
+        {enemy = worm, args = {-220, 1}, delay = 0.1},
+        {enemy = worm, args = {-220, 1}, delay = 0.1},
+        {enemy = worm, args = {-220, 1}, delay = 0.1},
     },
     {
-        {enemy = worm, args = {220, -1}, delay = 2},
+        {enemy = worm, args = {220, -1}, delay = 0.3},
+        {enemy = worm, args = {220, -1}, delay = 0.1},
+        {enemy = worm, args = {220, -1}, delay = 0.1},
+        {enemy = worm, args = {220, -1}, delay = 0.1},
+        {enemy = worm, args = {220, -1}, delay = 0.1},
+        {enemy = worm, args = {220, -1}, delay = 0.1},
+        {enemy = worm, args = {220, -1}, delay = 0.1},
     },
     {
-        {enemy = boss, args = {0}, delay = 4},
+        {enemy = worm, args = {220, -1}, delay = 3},
+    },
+    {
+        {enemy = boss, args = {0}, delay = 3},
     }
 }
 
 pattern_sets = {
-    { 1, 2, 5, 5, },
-    { 1, 2, 3, 4, 5, 5, 5, 5, },
-    { 1, 2, 5, 5, },
-    { 7 },
-    { 6 },
+    { 1, 2, 3, 1, 6, 7, 6, 7, },
+    { 1, 2, 3, 3, 4, 5, 4, 5, 6, 7, },
+    { 1, 2, 3, 1, 2, 6, 7, 6, 7, },
+    { 9 },
+    { 8 },
 }
 
 -- enemy bullets
@@ -696,7 +704,8 @@ function update_enemies(state)
             local size = enemy.explosion_size
             local color = enemy.explosion_color
             local color_var = enemy.explosion_color_var
-            spawn_explosion(state, pos, size, color, color_var)
+            local sound = enemy.explosion_sound
+            spawn_explosion(state, pos, size, color, color_var, sound)
             state.score = state.score + enemy.points
             if enemy.kill then
                 enemy:kill(state)
@@ -707,7 +716,7 @@ function update_enemies(state)
                         local explosion_pos = pos + 
                             vec2(math.random() * 2 - 1, math.random() * 2 - 1)
                             * enemy.radius
-                        spawn_explosion(state, explosion_pos, size, color, color_var)
+                        spawn_explosion(state, explosion_pos, size, color, color_var, sound)
                         am.wait(am.delay(math.random() * 0.2 + 0.05))
                     end
                 end))
@@ -729,7 +738,7 @@ function update_enemies(state)
 end
 
 function spawn_enemies(state)
-    if state.no_new_enemies then
+    if state.no_new_enemies or state.dead then
         state.last_enemy_spawn_time = am.frame_time
         return
     end
@@ -741,6 +750,7 @@ function spawn_enemies(state)
         local enemy = pat[phase].enemy(state, unpack(pat[phase].args))
         state.enemies_group:append(enemy.node)
         table.insert(state.enemies, enemy)
+        state.enemies_group:action(am.play(enemy.spawn_sound, false, 2 ^ (math.random(8) / 12)))
         state.last_enemy_spawn_time = am.frame_time
         phase = phase + 1
         if phase > #pat then
@@ -959,7 +969,14 @@ function create_title_scene()
             start_game()
         end
     end)
-    :action(am.play(title_sound))
+    :action(coroutine.create(function()
+        while true do
+            am.wait(am.play(title_sound, false, 1, 1))
+            am.wait(am.play(title_sound, false, 2^(-1/12), 1))
+            am.wait(am.play(title_sound, false, 2^(-2/12), 1))
+            am.wait(am.play(title_sound, false, 2^(-1/12), 1))
+        end
+    end))
 end
 
 -- game start/end logic
@@ -1006,6 +1023,8 @@ function start_game()
         last_enemy_spawn_time = 0,
         pattern_pool = {},
     }
+    table.append(state.pattern_pool, pattern_sets[1])
+    table.remove(state.pattern_pool, 1)
     local
     function main_action()
         update_ship(state)
@@ -1014,7 +1033,7 @@ function start_game()
         spawn_enemies(state)
         update_bullets(state)
         update_score(state)
-        if state.dead and am.frame_time - state.death_time > 2 then
+        if state.dead and am.frame_time - state.death_time > 2.5 then
             main_scene:remove_all()
             if state.score > high_score then
                 high_score = state.score
@@ -1038,6 +1057,8 @@ function end_game(state)
         win.left - 50, win.bottom - 50, win.right + 50, win.top + 50,
         vec4(0, 1, 1, 1))
     state.explosions_flash_group:append(flash)
+    state.dead = true
+    state.death_time = am.frame_time
     -- pause briefly
     state.scene.paused = true
     main_scene:action(am.series{
@@ -1045,10 +1066,8 @@ function end_game(state)
         function()
             state.scene.paused = false
             state.explosions_flash_group:remove(flash)
-            state.dead = true
-            state.death_time = am.frame_time
             state.scene:remove(state.ship.node)
-            spawn_explosion(state, state.ship.position, 2, vec4(1, 0.7, 0.3, 1), vec4(0.2, 0.4, 0.1, 0))
+            spawn_explosion(state, state.ship.position, 2, vec4(1, 0.7, 0.3, 1), vec4(0.2, 0.4, 0.1, 0), ship_explode_sound2)
             return true
         end
     })

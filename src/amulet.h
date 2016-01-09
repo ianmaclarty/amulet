@@ -86,7 +86,7 @@ extern "C" {
 
 #include "kiss_fftr.h"
 
-#include "SFMT.h"
+#include "tinymt32.h"
 
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
