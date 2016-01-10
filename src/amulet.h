@@ -63,6 +63,8 @@
 #include <string.h>
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
+#include <inttypes.h>
+#undef __STDC_LIMIT_MACROS
 #include <math.h>
 
 #include <new>
