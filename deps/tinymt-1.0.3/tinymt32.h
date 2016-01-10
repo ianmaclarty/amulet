@@ -17,13 +17,12 @@
  */
 
 #include <stdint.h>
-#include <inttypes.h>
 
 #define TINYMT32_MEXP 127
 #define TINYMT32_SH0 1
 #define TINYMT32_SH1 10
 #define TINYMT32_SH8 8
-#define TINYMT32_MASK UINT32_C(0x7fffffff)
+#define TINYMT32_MASK ((uint32_t)(0x7fffffff))
 #define TINYMT32_MUL (1.0f / 16777216.0f)
 
 #if defined(__cplusplus)
@@ -129,7 +128,7 @@ inline static float tinymt32_temper_conv(tinymt32_t * random) {
 #endif
     t0 ^= t1;
     conv.u = ((t0 ^ (-((int32_t)(t1 & 1)) & random->tmat)) >> 9)
-	      | UINT32_C(0x3f800000);
+	      | ((uint32_t)(0x3f800000));
     return conv.f;
 }
 
@@ -156,7 +155,7 @@ inline static float tinymt32_temper_conv_open(tinymt32_t * random) {
 #endif
     t0 ^= t1;
     conv.u = ((t0 ^ (-((int32_t)(t1 & 1)) & random->tmat)) >> 9)
-	      | UINT32_C(0x3f800001);
+	      | ((uint32_t)(0x3f800001));
     return conv.f;
 }
 

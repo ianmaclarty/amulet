@@ -5,7 +5,7 @@ all: libtinymt$(ALIB_EXT)
 C_FILES:=tinymt32.c
 O_FILES:=$(patsubst %.c,%$(OBJ_EXT),$(C_FILES))
 
-CFLAGS = $(COMMON_CFLAGS) -I. -I../../$(BUILD_INC_DIR) $(C99_OPT)
+CFLAGS = $(COMMON_CFLAGS) -I. -I../../$(BUILD_INC_DIR)
 
 $(O_FILES): %$(OBJ_EXT): %.c
 	$(CC) $(CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@

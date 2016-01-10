@@ -24,7 +24,7 @@
  * @return 32-bit integer
  */
 static uint32_t ini_func1(uint32_t x) {
-    return (x ^ (x >> 27)) * UINT32_C(1664525);
+    return (x ^ (x >> 27)) * ((uint32_t)(1664525));
 }
 
 /**
@@ -34,7 +34,7 @@ static uint32_t ini_func1(uint32_t x) {
  * @return 32-bit integer
  */
 static uint32_t ini_func2(uint32_t x) {
-    return (x ^ (x >> 27)) * UINT32_C(1566083941);
+    return (x ^ (x >> 27)) * ((uint32_t)(1566083941));
 }
 
 /**
@@ -65,7 +65,7 @@ void tinymt32_init(tinymt32_t * random, uint32_t seed) {
     random->status[2] = random->mat2;
     random->status[3] = random->tmat;
     for (int i = 1; i < MIN_LOOP; i++) {
-	random->status[i & 3] ^= i + UINT32_C(1812433253)
+	random->status[i & 3] ^= i + ((uint32_t)(1812433253))
 	    * (random->status[(i - 1) & 3]
 	       ^ (random->status[(i - 1) & 3] >> 30));
     }
