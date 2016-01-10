@@ -6,9 +6,9 @@ if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
 curl -L -O https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-1.34.1-full-64bit.exe
 emsdk-1.34.1-full-64bit.exe /S /D=C:\emscripten
 call "C:\emscripten\emsdk_env.bat"
-make TARGET=html.release
+make TARGET=html.release LUAVM=lua51
 if %errorlevel% neq 0 exit /b %errorlevel%
-make TARGET=msvc32.release
+make TARGET=msvc32.release LUAVM=lua51 test
 if %errorlevel% neq 0 exit /b %errorlevel%
 if defined APPVEYOR_REPO_TAG_NAME (node scripts\upload_builds.js %APPVEYOR_REPO_TAG_NAME%)
 if %errorlevel% neq 0 exit /b %errorlevel%
