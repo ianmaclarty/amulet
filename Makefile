@@ -285,7 +285,7 @@ run_lua_tests: $(AMULET)
 	    fout=tests/$$t.out; \
 	    fres=tests/$$t.res; \
 	    haswindow=`grep "am\.window" $$flua`; \
-	    if [ -n "$(TRAVIS)" -a -n "$$haswindow" ]; then \
+	    if [ -n "$(TRAVIS)$(APPVEYOR)" -a -n "$$haswindow" ]; then \
 		printf "%-30s%s       %s\n" "$$t" "skipped"; \
 	    else \
 		$(AMULET) $$flua > $$fout 2>&1 ; \
