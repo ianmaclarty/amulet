@@ -32,7 +32,6 @@ else ifdef IOS
 else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
-  #TINYMT_PREREQS = $(MSINTTYPES_H)
 else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
@@ -183,9 +182,6 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 $(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
 	cp $(SIMPLEOPT_DIR)/SimpleGlob.h $@
 
-$(MSINTTYPES_H): | $(BUILD_INC_DIR)
-	cp $(MSINTTYPES_DIR)/*.h $(BUILD_INC_DIR)/
-
 $(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom clean
 	cd $(KISSFFT_DIR) && $(MAKE) -f Makefile.custom all
@@ -193,7 +189,7 @@ $(KISSFFT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(KISSFFT_DIR)/kiss_fftr.h $(BUILD_INC_DIR)/
 	cp $(KISSFFT_DIR)/libkissfft$(ALIB_EXT) $@
 
-$(TINYMT_ALIB): $(TINYMT_PREREQS) | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+$(TINYMT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(TINYMT_DIR) && $(MAKE) -f Makefile.custom clean
 	cd $(TINYMT_DIR) && $(MAKE) -f Makefile.custom all
 	cp $(TINYMT_DIR)/tinymt32.h $(BUILD_INC_DIR)/

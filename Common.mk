@@ -20,7 +20,6 @@ STB_DIR		 = $(DEPS_DIR)/stb
 KISSFFT_DIR	 = $(DEPS_DIR)/kiss_fft130
 TINYMT_DIR	 = $(DEPS_DIR)/tinymt-1.0.3
 SIMPLEOPT_DIR    = $(DEPS_DIR)/simpleopt
-MSINTTYPES_DIR	 = $(DEPS_DIR)/msinttypes
 
 # Host settings (this is the *build* host, not the host we want to run on)
 
@@ -83,7 +82,6 @@ STB_ALIB = $(BUILD_LIB_DIR)/libstb$(ALIB_EXT)
 KISSFFT_ALIB = $(BUILD_LIB_DIR)/libkissfft$(ALIB_EXT)
 TINYMT_ALIB = $(BUILD_LIB_DIR)/libtinymt$(ALIB_EXT)
 SIMPLEGLOB_H = $(BUILD_INC_DIR)/SimpleGlob.h
-MSINTTYPES_H = $(BUILD_INC_DIR)/inttypes.h
 
 SRC_DIR = src
 BUILD_BASE_DIR = builds/$(TARGET_PLATFORM)/$(LUAVM)/$(GRADE)
