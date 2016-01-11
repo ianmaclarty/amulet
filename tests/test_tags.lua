@@ -41,6 +41,10 @@ print(node'nodeA'.fa)
 print(node"nodeB".fb)
 print(node[[nodeC]].fc)
 
+local child, parent = node"nodeB"
+print(child.name)
+print(parent.name)
+
 print("")
 print_graph(node)
 

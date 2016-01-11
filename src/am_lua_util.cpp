@@ -341,6 +341,7 @@ lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum) {
 #include "lj_state.h"
 
 void lua_unsafe_pushuserdata(lua_State *L, void *v) {
+    assert(v != NULL);
     GCudata *ud = ((GCudata*)v)-1;
     // push nil to advance stack top
     // (we don't have access to incr_top here)
@@ -360,6 +361,7 @@ void lua_unsafe_pushuserdata(lua_State *L, void *v) {
 #endif
 
 void lua_unsafe_pushuserdata(lua_State *L, void *v) {
+    assert(v != NULL);
     Udata *u = ((Udata*)v)-1;
     lua_lock(L);
     setuvalue(L, L->top, u);

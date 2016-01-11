@@ -418,7 +418,11 @@ static int search_tag(lua_State *L) {
         lua_pushnil(L);
     } else {
         found->push(L);
-        parent->push(L);
+        if (parent != NULL) {
+            parent->push(L);
+        } else {
+            lua_pushnil(L);
+        }
     }
     return 2;
 }
