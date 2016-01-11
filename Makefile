@@ -22,7 +22,7 @@ AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
 EXTRA_PREREQS = 
 
-SDL_PREBUILT = $(SDL_PREBUILT_DIR)/sdl-prebuilt.date
+SDL_PREBUILT = $(BUILD_LIB_DIR)/sdl-prebuilt.date
 
 ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = $(LUAVM) stb kissfft tinymt
@@ -126,7 +126,7 @@ $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 $(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
 	-cp $(SDL_PREBUILT_DIR)/lib/*.lib $(BUILD_LIB_DIR)/
-	-cp $(SDL_PREBUILT_DIR)/lib/*.dll $(BUILD_LIB_DIR)/
+	-cp $(SDL_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
 	-cp $(SDL_PREBUILT_DIR)/lib/*.a $(BUILD_LIB_DIR)/
 	touch $@
 
