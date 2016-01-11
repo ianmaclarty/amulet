@@ -36,56 +36,56 @@ ampack
 
 xcode/*
 
-deps/SDL2-2.0.3/Makefile
-deps/SDL2-2.0.3/Makefile.rules
-deps/SDL2-2.0.3/libtool
-deps/SDL2-2.0.3/sdl2-config
-deps/SDL2-2.0.3/sdl2.pc
-deps/SDL2-2.0.3/build/*
-deps/SDL2-2.0.3/include/SDL_config.h
+third_party/SDL2-2.0.3/Makefile
+third_party/SDL2-2.0.3/Makefile.rules
+third_party/SDL2-2.0.3/libtool
+third_party/SDL2-2.0.3/sdl2-config
+third_party/SDL2-2.0.3/sdl2.pc
+third_party/SDL2-2.0.3/build/*
+third_party/SDL2-2.0.3/include/SDL_config.h
 
-deps/lua-*/src/lua
-deps/lua-*/src/luac
-deps/lua-*/src/*.lib
-deps/lua-*/src/*.a
-deps/lua-*/liblua
+third_party/lua-*/src/lua
+third_party/lua-*/src/luac
+third_party/lua-*/src/*.lib
+third_party/lua-*/src/*.a
+third_party/lua-*/liblua
 
-deps/stb/*.lib
-deps/stb/*.a
-deps/stb/*.obj
-deps/stb/*.o-*
+third_party/stb/*.lib
+third_party/stb/*.a
+third_party/stb/*.obj
+third_party/stb/*.o-*
 
-deps/kiss_fft*/*.lib
-deps/kiss_fft*/*.a
-deps/kiss_fft*/*.obj
-deps/kiss_fft*/*.o-*
+third_party/kiss_fft*/*.lib
+third_party/kiss_fft*/*.a
+third_party/kiss_fft*/*.obj
+third_party/kiss_fft*/*.o-*
 
-deps/LuaJIT-*/src/host/buildvm
-deps/LuaJIT-*/src/host/buildvm_arch.h
-deps/LuaJIT-*/src/host/minilua
-deps/LuaJIT-*/src/jit/vmdef.lua
-deps/LuaJIT-*/src/libluajit.a
-deps/LuaJIT-*/src/libluajit.so
-deps/LuaJIT-*/src/lj_bcdef.h
-deps/LuaJIT-*/src/lj_ffdef.h
-deps/LuaJIT-*/src/lj_folddef.h
-deps/LuaJIT-*/src/lj_libdef.h
-deps/LuaJIT-*/src/lj_recdef.h
-deps/LuaJIT-*/src/lj_vm.s
-deps/LuaJIT-*/src/luajit
-deps/LuaJIT-*/src/*.dll
-deps/LuaJIT-*/src/*.so
-deps/LuaJIT-*/src/*.a
+third_party/LuaJIT-*/src/host/buildvm
+third_party/LuaJIT-*/src/host/buildvm_arch.h
+third_party/LuaJIT-*/src/host/minilua
+third_party/LuaJIT-*/src/jit/vmdef.lua
+third_party/LuaJIT-*/src/libluajit.a
+third_party/LuaJIT-*/src/libluajit.so
+third_party/LuaJIT-*/src/lj_bcdef.h
+third_party/LuaJIT-*/src/lj_ffdef.h
+third_party/LuaJIT-*/src/lj_folddef.h
+third_party/LuaJIT-*/src/lj_libdef.h
+third_party/LuaJIT-*/src/lj_recdef.h
+third_party/LuaJIT-*/src/lj_vm.s
+third_party/LuaJIT-*/src/luajit
+third_party/LuaJIT-*/src/*.dll
+third_party/LuaJIT-*/src/*.so
+third_party/LuaJIT-*/src/*.a
 
-deps/angle-chrome*/*.a
-deps/angle-chrome*/*.lib
+third_party/angle-chrome*/*.a
+third_party/angle-chrome*/*.lib
 
-deps/freetype-*/*.lib
-deps/freetype-*/*.a
-deps/freetype-*/*.pdb
+third_party/freetype-*/*.lib
+third_party/freetype-*/*.a
+third_party/freetype-*/*.pdb
 
-deps/sfmt-*/*.lib
-deps/sfmt-*/*.a
+third_party/sfmt-*/*.lib
+third_party/sfmt-*/*.a
 
 tests/*.out
 tests/*.err
