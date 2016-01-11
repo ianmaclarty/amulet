@@ -294,7 +294,12 @@ double am_get_current_time() {
 
 char *am_get_base_path() {
     char *path = SDL_GetBasePath();
-    if (path != NULL) return path;
+    if (path != NULL) {
+        // copy so calling code can just use free
+        char *path2 = am_format("%s", path);
+        SDL_free(path);
+        return path2;
+    }
     return am_format(".%c", AM_PATH_SEP);
 }
 
@@ -303,7 +308,12 @@ char *am_get_data_path() {
         return am_format(".%c", AM_PATH_SEP);
     }
     char *path = SDL_GetPrefPath(am_conf_app_org, am_conf_app_shortname);
-    if (path != NULL) return path;
+    if (path != NULL) {
+        // copy so calling code can just use free
+        char *path2 = am_format("%s", path);
+        SDL_free(path);
+        return path2;
+    }
     return am_format(".%c", AM_PATH_SEP);
 }
 

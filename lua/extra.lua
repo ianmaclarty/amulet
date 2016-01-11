@@ -198,11 +198,20 @@ rawset(_G, "mat4", math.mat4)
 rawset(_G, "quat", math.quat)
 
 local
+function format_num(n)
+    local str = string.format("%.16g", n)
+    if str == "-0" then
+        return "0"
+    end
+    return str
+end
+
+local
 function format_vec(v)
     local n = #v
     local str = "vec"..n.."("
     for i = 1, n do
-        str = str..string.format("%.16g", v[i])
+        str = str..format_num(v[i])
         if i == n then
             str = str..")"
         else
@@ -232,7 +241,7 @@ function format_mat(m)
     for col = 1, n do
         for row = 1, n do
             local fmt = "%"..rowwidth[row].."s"
-            str = str..string.format(fmt, tostring(m[col][row]))
+            str = str..string.format(fmt, format_num(m[col][row]))
             if row ~= n then
                 str = str..", "
             end

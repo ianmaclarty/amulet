@@ -285,11 +285,11 @@ run_lua_tests: $(AMULET)
 	    fout=tests/$$t.out; \
 	    fres=tests/$$t.res; \
 	    haswindow=`grep "am\.window" $$flua`; \
-	    if [ -n "$(TRAVIS)$(APPVEYOR)" -a -n "$$haswindow" ]; then \
+	    if [ "$(TRAVIS_OS_NAME)" == "linux" -a -n "$$haswindow" ]; then \
 		printf "%-30s%s       %s\n" "$$t" "skipped"; \
 	    else \
 		$(AMULET) $$flua > $$fout 2>&1 ; \
-		if ( diff -u $$fexp $$fout > $$fres ) || ( [ -e $$fexp2 ] && ( diff -u $$fexp2 $$fout > $$fres ) ); then \
+		if ( diff --strip-trailing-cr -u $$fexp $$fout > $$fres ) || ( [ -e $$fexp2 ] && ( diff -u $$fexp2 $$fout > $$fres ) ); then \
 		    printf "%-30s%s       %s\n" "$$t" "pass"; \
 		else \
 		    cat $$fres;	\
