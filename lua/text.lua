@@ -319,11 +319,7 @@ function parse_ascii_sprite(str)
         end
     end
 
-    local tex = am.texture2d{
-        width = width,
-        height = height,
-        buffer = buf,
-    }
+    local tex = am.texture2d(am.image_buffer(buf, width, height))
 
     return {
         texture = tex,
@@ -351,7 +347,7 @@ function convert_sprite_source(img)
             local s1, t1, s2, t2 = 0, 0, 1, 1
             local x1, y1, x2, y2 = 0, 0, img.width, img.height
             sprite = {
-                texture = am.texture2d{image = img},
+                texture = am.texture2d(img),
                 s1 = s1,
                 t1 = t1,
                 s2 = s2,
@@ -447,8 +443,9 @@ function am._init_fonts(data, imgfile, embedded)
             else
                 img = am.load_image(imgfile);
             end
-            texture = am.texture2d{image = img,
-                minfilter = data.minfilter, magfilter = data.magfilter}
+            texture = am.texture2d(img)
+            texture.minfilter = data.minfilter
+            texture.magfilter = data.magfilter
         end
     end
     setmetatable(fonts, {__index = function(fonts, name)

@@ -13,7 +13,7 @@ local fshader = [[
     void main() {
         float scale = 0.3;
         vec2 uv = vec2(gl_FragCoord.x / 640.0, gl_FragCoord.y / 480.0) / scale;
-        gl_FragColor = texture2D(tex1, uv);
+        gl_FragColor = texture2D(tex1, uv).rrra;
     }
 ]]
 
@@ -32,19 +32,14 @@ yview[2] = 0.7
 yview[3] = -0.7
 
 local n = 16
-local tbuf = am.buffer(n^2)
-local tview = tbuf:view("ubyte", 0, 1)
+local tbuf = am.buffer(n^2 * 4)
+local tview = tbuf:view("ubyte", 0, 4)
 for i = 1, n^2 do
     tview[i] = math.random() * 255
 end
-local texture = am.texture2d{
-    width = n,
-    height = n,
-    swrap = "repeat",
-    twrap = "repeat",
-    format = "luminance",
-    buffer = tbuf
-}
+local img = am.image_buffer(tbuf, n)
+local texture = am.texture2d(img)
+texture.wrap = "repeat"
 
 local MVP = math.mat4(1)
 

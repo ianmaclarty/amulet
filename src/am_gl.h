@@ -304,10 +304,10 @@ enum am_texture_format {
 };
 
 enum am_texture_type {
-    AM_PIXEL_TYPE_UBYTE,
-    AM_PIXEL_TYPE_USHORT_5_6_5,
-    AM_PIXEL_TYPE_USHORT_4_4_4_4,
-    AM_PIXEL_TYPE_USHORT_5_5_5_1,
+    AM_TEXTURE_TYPE_UBYTE,
+    AM_TEXTURE_TYPE_USHORT_5_6_5,
+    AM_TEXTURE_TYPE_USHORT_4_4_4_4,
+    AM_TEXTURE_TYPE_USHORT_5_5_5_1,
 };
 
 enum am_texture_min_filter {

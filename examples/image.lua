@@ -31,16 +31,8 @@ yview[1] = -0.7
 yview[2] = 0.7
 yview[3] = -0.7
 
-local image = am.load_image("face.jpg")
-
-local texture = am.texture2d{
-    width = image.width,
-    height = image.height,
-    swrap = "repeat",
-    twrap = "repeat",
-    format = "rgba",
-    buffer = image.buffer
-}
+local texture = am.texture2d("face.jpg")
+texture.wrap = "repeat"
 
 local MVP = math.mat4(1)
 

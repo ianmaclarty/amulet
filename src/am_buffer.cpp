@@ -34,10 +34,12 @@ am_buffer::am_buffer(int sz) {
 void am_buffer::destroy() {
     free(data);
     if (arraybuf_id != 0) {
+        am_bind_buffer(AM_ARRAY_BUFFER, 0);
         am_delete_buffer(arraybuf_id);
         arraybuf_id = 0;
     }
     if (elembuf_id != 0) {
+        am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, 0);
         am_delete_buffer(elembuf_id);
         elembuf_id = 0;
     }
@@ -54,7 +56,7 @@ void am_buffer::update_if_dirty() {
             am_set_buffer_sub_data(AM_ELEMENT_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
         } 
         if (texture2d != NULL) {
-            texture2d->update_from_buffer();
+            texture2d->update_from_image_buffer();
         }
         dirty_start = INT_MAX;
         dirty_end = 0;

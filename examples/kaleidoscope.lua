@@ -79,20 +79,14 @@ end
 
 -- create pattern texture
 local pattern_tex_size = 8
-local pattern_tex_buf = am.buffer(pattern_tex_size^2*2)
-local pattern_tex_view = pattern_tex_buf:view("ushort", 0, 2)
+local pattern_tex_buf = am.buffer(pattern_tex_size^2*4)
+local pattern_tex_view = pattern_tex_buf:view("uint", 0, 4)
 for i = 1, pattern_tex_size^2 do
-    pattern_tex_view[i] = math.random(2^16)
+    pattern_tex_view[i] = 255 * 2^24 + math.random(2^24)
 end
-local pattern_texture = am.texture2d{
-    buffer = pattern_tex_buf,
-    width = pattern_tex_size,
-    height = pattern_tex_size,
-    swrap = "mirrored_repeat",
-    twrap = "mirrored_repeat",
-    format = "rgb",
-    type = "565"
-}
+local pattern_img_buf = am.image_buffer(pattern_tex_size, pattern_tex_size, pattern_tex_buf)
+local pattern_texture = am.texture2d(pattern_img_buf)
+pattern_texture.wrap = "mirrored_repeat"
 
 -- create node that will render the kaleidoscope vertices using
 -- the program and texture we created earlier
@@ -111,7 +105,8 @@ local node1 =
     ^rotation_node
 
 -- create texture for post-processing (applying blur)
-local pptexture = am.texture2d{width = 512, height = 512, magfilter = "linear"}
+local pptexture = am.texture2d(512)
+pptexture.filter = "linear"
 
 -- create framebuffer so we can draw into pptexture
 local ppfb = am.framebuffer(pptexture)
@@ -150,7 +145,7 @@ win.scene = node2
 -- which then gets automatically drawn to the window using the
 -- blur shader (since it's the scene).
 win.scene:action(function()
-    pattern_tex_view[math.random(pattern_tex_size^2)] = math.random(2^16)
+    pattern_tex_view[math.random(pattern_tex_size^2)] = 255 * 2^24 + math.random(2^24)
     rotation_node.rotation = quat(am.frame_time)
     t_node.t = am.frame_time
     ppfb:render(node1)

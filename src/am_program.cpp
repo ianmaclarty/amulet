@@ -16,8 +16,8 @@ static void bind_attribute_array(am_render_state *rstate,
 static void bind_sampler2d(am_render_state *rstate,
     am_gluint location, int texture_unit, am_texture2d *texture)
 {
-    if (texture->buffer != NULL) {
-        texture->buffer->update_if_dirty();
+    if (texture->image_buffer != NULL) {
+        texture->image_buffer->buffer->update_if_dirty();
     }
     am_set_active_texture_unit(texture_unit);
     am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture->texture_id);
@@ -363,6 +363,7 @@ static int create_program(lua_State *L) {
 
 static int gc_program(lua_State *L) {
     am_program *prog = (am_program*)lua_touserdata(L, 1);
+    am_use_program(0);
     am_delete_program(prog->program_id);
     free(prog->params);
     return 0;

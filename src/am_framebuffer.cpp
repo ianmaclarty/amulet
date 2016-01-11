@@ -2,8 +2,8 @@
 
 void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, bool stencil_buf, glm::vec4 clear_color) {
     framebuffer_id = am_create_framebuffer();
-    if (texture->buffer != NULL) {
-        texture->buffer->update_if_dirty();
+    if (texture->image_buffer != NULL) {
+        texture->image_buffer->buffer->update_if_dirty();
     }
     color_attachment0 = texture;
     color_attachment0_ref = ref(L, 1);
@@ -74,8 +74,8 @@ static int render_node_to_framebuffer(lua_State *L) {
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 2);
     am_render_state *rstate = &am_global_render_state;
-    if (fb->color_attachment0->buffer != NULL) {
-        fb->color_attachment0->buffer->update_if_dirty();
+    if (fb->color_attachment0->image_buffer != NULL) {
+        fb->color_attachment0->image_buffer->buffer->update_if_dirty();
     }
     rstate->do_render(node, fb->framebuffer_id, false, fb->clear_color,
         0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
@@ -86,8 +86,8 @@ static int render_children_to_framebuffer(lua_State *L) {
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 2);
     am_render_state *rstate = &am_global_render_state;
-    if (fb->color_attachment0->buffer != NULL) {
-        fb->color_attachment0->buffer->update_if_dirty();
+    if (fb->color_attachment0->image_buffer != NULL) {
+        fb->color_attachment0->image_buffer->buffer->update_if_dirty();
     }
     am_scene_node tmpnode;
     tmpnode.children = node->children;
@@ -130,7 +130,7 @@ static int resize(lua_State *L) {
     if (w <= 0) return luaL_error(L, "width must be positive");
     if (h <= 0) return luaL_error(L, "height must be positive");
     am_texture2d *color_at = fb->color_attachment0;
-    if (color_at->buffer != NULL) {
+    if (color_at->image_buffer != NULL) {
         return luaL_error(L, "cannot resize a framebuffer whose color attachment has a backing buffer");
     }
     if (color_at->has_mipmap) {
@@ -161,13 +161,13 @@ static int resize(lua_State *L) {
 static int read_back(lua_State *L) {
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
     am_texture2d *color_tex = fb->color_attachment0;
-    if (color_tex->format != AM_TEXTURE_FORMAT_RGBA || color_tex->type != AM_PIXEL_TYPE_UBYTE) {
-        return luaL_error(L, "sorry, read_back is only supported for textures with format/type rgba/8");
+    if (color_tex->format != AM_TEXTURE_FORMAT_RGBA || color_tex->type != AM_TEXTURE_TYPE_UBYTE) {
+        return luaL_error(L, "sorry, read_back is only supported for textures with format RGBA8");
     }
-    am_buffer *color_buffer = color_tex->buffer;
-    if (color_buffer == NULL) {
-        return luaL_error(L, "framebuffer texture has no backing buffer to write to");
+    if (color_tex->image_buffer == NULL) {
+        return luaL_error(L, "framebuffer texture has no backing image buffer to write to");
     }
+    am_buffer *color_buffer = color_tex->image_buffer->buffer;
     color_buffer->update_if_dirty();
     am_bind_framebuffer(fb->framebuffer_id);
     am_read_pixels(0, 0, color_tex->width, color_tex->height, (void*)color_buffer->data);

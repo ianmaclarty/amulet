@@ -22,7 +22,9 @@ function am.postprocess(opts)
         error("no width and height given and no window created", 2)
     end
     local minfilter, magfilter = opts.minfilter or "nearest", opts.magfilter or "nearest"
-    local tex = am.texture2d{width = w, height = w, minfilter = minfilter, magfilter = magfilter}
+    local tex = am.texture2d(w, h)
+    tex.minfilter = minfilter
+    tex.magfilter = magfilter
     local fb = am.framebuffer(tex, opts.depth_buffer, opts.stencil_buffer)
     if opts.clear_color then
         fb.clear_color = opts.clear_color

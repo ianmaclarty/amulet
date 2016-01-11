@@ -46,7 +46,7 @@ function init()
             node.rotation = quat(am.frame_time, vec3(0, 1, 0))
         end)
         ^load_model("torus.obj")
-    for i = 1, 50000 do
+    for i = 1, 5000 do
         objects:append(
             am.translate(vec3((math.random() - 0.5) * 100, math.random() * 50, (math.random() - 0.5) * 100))
             ^am.rotate(quat(
@@ -114,16 +114,11 @@ function load_texture(name, swrap, twrap, minfilter, magfilter)
     twrap = twrap or "repeat"
     minfilter = minfilter or "linear_mipmap_linear"
     magfilter = magfilter or "linear"
-    local img = am.load_image(name)
-    local texture = am.texture2d{
-        buffer = img.buffer,
-        width = img.width,
-        height = img.height,
-        swrap = swrap,
-        twrap = twrap,
-        minfilter = minfilter,
-        magfilter = magfilter,
-    }
+    local texture = am.texture2d(name)
+    texture.minfilter = minfilter
+    texture.magfilter = magfilter
+    texture.swrap = swrap
+    texture.twrap = twrap
     texture_cache[name] = texture
     return texture
 end

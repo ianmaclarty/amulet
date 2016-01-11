@@ -1051,7 +1051,7 @@ void am_generate_mipmap(am_texture_bind_target target) {
 
 int am_compute_pixel_size(am_texture_format format, am_texture_type type) {
     switch (type) {
-        case AM_PIXEL_TYPE_UBYTE:
+        case AM_TEXTURE_TYPE_UBYTE:
             switch (format) {
                 case AM_TEXTURE_FORMAT_ALPHA:
                 case AM_TEXTURE_FORMAT_LUMINANCE:
@@ -1063,9 +1063,9 @@ int am_compute_pixel_size(am_texture_format format, am_texture_type type) {
                 case AM_TEXTURE_FORMAT_RGBA:
                     return 4;
             }
-        case AM_PIXEL_TYPE_USHORT_5_6_5:
-        case AM_PIXEL_TYPE_USHORT_4_4_4_4:
-        case AM_PIXEL_TYPE_USHORT_5_5_5_1:
+        case AM_TEXTURE_TYPE_USHORT_5_6_5:
+        case AM_TEXTURE_TYPE_USHORT_4_4_4_4:
+        case AM_TEXTURE_TYPE_USHORT_5_5_5_1:
             return 2;
     }
     assert(false);
@@ -1443,10 +1443,10 @@ static GLenum to_gl_texture_format(am_texture_format f) {
 
 static GLenum to_gl_texture_type(am_texture_type t) {
     switch (t) {
-        case AM_PIXEL_TYPE_UBYTE: return GL_UNSIGNED_BYTE;
-        case AM_PIXEL_TYPE_USHORT_5_6_5: return GL_UNSIGNED_SHORT_5_6_5;
-        case AM_PIXEL_TYPE_USHORT_4_4_4_4: return GL_UNSIGNED_SHORT_4_4_4_4;
-        case AM_PIXEL_TYPE_USHORT_5_5_5_1: return GL_UNSIGNED_SHORT_5_5_5_1;
+        case AM_TEXTURE_TYPE_UBYTE: return GL_UNSIGNED_BYTE;
+        case AM_TEXTURE_TYPE_USHORT_5_6_5: return GL_UNSIGNED_SHORT_5_6_5;
+        case AM_TEXTURE_TYPE_USHORT_4_4_4_4: return GL_UNSIGNED_SHORT_4_4_4_4;
+        case AM_TEXTURE_TYPE_USHORT_5_5_5_1: return GL_UNSIGNED_SHORT_5_5_5_1;
     }
     return 0;
 }

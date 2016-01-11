@@ -41,13 +41,10 @@ function init()
 
     buildings_group:append(create_floor(0))
 
-    kaleidoscope_tex = am.texture2d{
-        width = 1024,
-        height = 1024,
-        magfilter = "linear",
-        swrap = "mirrored_repeat",
-        twrap = "mirrored_repeat",
-    }
+    kaleidoscope_tex = am.texture2d(1024, 1024)
+    kaleidoscope_tex.magfilter = "linear"
+    kaleidoscope_tex.swrap = "mirrored_repeat"
+    kaleidoscope_tex.twrap = "mirrored_repeat"
 
     kaleidoscope_fb = am.framebuffer(kaleidoscope_tex, true)
 
@@ -355,10 +352,8 @@ function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
 end
 
 function create_blur_node() 
-    local pptexture = am.texture2d{
-        width = 1024,
-        height = 1024,
-        magfilter = "linear"}
+    local pptexture = am.texture2d(1024)
+    pptexture.magfilter = "linear"
     local ppfb = am.framebuffer(pptexture)
     local buf2 = am.buffer(4 * 4 * 6)
     local verts2 = buf2:view("vec2", 0, 16)

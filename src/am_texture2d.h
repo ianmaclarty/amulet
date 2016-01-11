@@ -6,13 +6,15 @@ struct am_texture2d : am_nonatomic_userdata {
     am_texture_type         type;
     int                     pixel_size;
     bool                    has_mipmap;
-    am_buffer               *buffer;
-    int                     buffer_ref;
+    am_image_buffer         *image_buffer;
+    int                     image_buffer_ref;
     int                     last_video_capture_frame;
     am_texture_min_filter   minfilter;
     am_texture_mag_filter   magfilter;
+    am_texture_wrap         swrap;
+    am_texture_wrap         twrap;
 
-    void update_from_buffer();
+    void update_from_image_buffer();
 };
 
 void am_open_texture2d_module(lua_State *L);
