@@ -270,15 +270,15 @@ doc: $(AMULET)
 
 # Tests
 
-LUA_TESTS = $(patsubst tests/test_%.lua,test_%,$(wildcard tests/test_*.lua))
+TESTS = $(patsubst tests/test_%.lua,test_%,$(wildcard tests/test_*.lua))
 
 .PHONY: test
-test: run_lua_tests
+test: run_tests
 
-.PHONY: run_lua_tests
-run_lua_tests: $(AMULET)
-	@echo Running Lua tests...
-	@for t in $(LUA_TESTS); do \
+.PHONY: run_tests
+run_tests: $(AMULET)
+	@echo Running tests...
+	@for t in $(TESTS); do \
 	    flua=tests/$$t.lua; \
 	    fexp=tests/$$t.exp; \
 	    fexp2=tests/$$t.exp2; \
@@ -316,9 +316,9 @@ PRINT_BUILD_DONE_MSG = \
   echo TARGET_PLATFORM:    $(TARGET_PLATFORM); \
   echo HOST_PLATFORM:      $(HOST_PLATFORM); \
   echo GRADE:              $(GRADE); \
+  echo LUAVM:              $(LUAVM); \
   echo CC:                 $(CC); \
   echo CPP:                $(CPP); \
-  echo DEPS:               $(AM_DEPS); \
   echo ---------------------------------------;
 
 # Tags

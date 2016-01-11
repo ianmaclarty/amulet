@@ -7,19 +7,19 @@ TARGET_PLATFORMS = linux32 linux64 msvc32 osx ios32 ios64 iossim android html mi
 
 # Directories
 
-DEPS_DIR         = deps
-SDL_DIR          = $(DEPS_DIR)/SDL2-2.0.3
-LUA51_DIR        = $(DEPS_DIR)/lua-5.1.5
-LUA52_DIR        = $(DEPS_DIR)/lua-5.2.4
-LUA53_DIR        = $(DEPS_DIR)/lua-5.3.1
-LUAJIT_DIR       = $(DEPS_DIR)/LuaJIT-2.0.4
-ANGLE_DIR        = $(DEPS_DIR)/angle-chrome_m34
-GLM_DIR          = $(DEPS_DIR)/glm-0.9.7.1
-FT2_DIR          = $(DEPS_DIR)/freetype-2.5.5
-STB_DIR		 = $(DEPS_DIR)/stb
-KISSFFT_DIR	 = $(DEPS_DIR)/kiss_fft130
-TINYMT_DIR	 = $(DEPS_DIR)/tinymt-1.0.3
-SIMPLEOPT_DIR    = $(DEPS_DIR)/simpleopt
+THIRD_PARTY_DIR         = third_party
+SDL_DIR          = $(THIRD_PARTY_DIR)/SDL2-2.0.3
+LUA51_DIR        = $(THIRD_PARTY_DIR)/lua-5.1.5
+LUA52_DIR        = $(THIRD_PARTY_DIR)/lua-5.2.4
+LUA53_DIR        = $(THIRD_PARTY_DIR)/lua-5.3.1
+LUAJIT_DIR       = $(THIRD_PARTY_DIR)/LuaJIT-2.0.4
+ANGLE_DIR        = $(THIRD_PARTY_DIR)/angle-chrome_m34
+GLM_DIR          = $(THIRD_PARTY_DIR)/glm-0.9.7.1
+FT2_DIR          = $(THIRD_PARTY_DIR)/freetype-2.5.5
+STB_DIR		 = $(THIRD_PARTY_DIR)/stb
+KISSFFT_DIR	 = $(THIRD_PARTY_DIR)/kiss_fft130
+TINYMT_DIR	 = $(THIRD_PARTY_DIR)/tinymt-1.0.3
+SIMPLEOPT_DIR    = $(THIRD_PARTY_DIR)/simpleopt
 
 # Host settings (this is the *build* host, not the host we want to run on)
 
@@ -297,4 +297,4 @@ endif
 COMMON_CFLAGS := $(TARGET_CFLAGS) $(GRADE_CFLAGS) $(CFLAGS)
 
 SDL_PREBUILT_DIR = $(SDL_DIR)-prebuilt/$(SDL_PREBUILT_SUBDIR)
-ANGLE_WIN_PREBUILT_DIR = $(DEPS_DIR)/angle-win-prebuilt
+ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt
