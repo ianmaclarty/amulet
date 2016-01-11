@@ -30,7 +30,7 @@ hit_sound = 9975402
 boss_sound = 31642009
 boss_shoot_sound = 90380302
 start_sound = 24012402
-title_sound = 5548109
+title_sound = 35270309
 
 -- global state
 
@@ -972,9 +972,7 @@ function create_title_scene()
     :action(coroutine.create(function()
         while true do
             am.wait(am.play(title_sound, false, 1, 1))
-            am.wait(am.play(title_sound, false, 2^(-1/12), 1))
             am.wait(am.play(title_sound, false, 2^(-2/12), 1))
-            am.wait(am.play(title_sound, false, 2^(-1/12), 1))
         end
     end))
 end
