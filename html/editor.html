@@ -222,8 +222,13 @@ function init_controls() {
             log_output("Share successful!", "success", true);
             log_output("Play at: <a target=\"_blank\" href=\"" + playurl + "\">" + playurl + "</a>", null, true);
             log_output("Edit at: <a href=\"" + editurl + "\">" + editurl + "</a>", null, true);
-        }, "text").fail(function() {
-            log_output("Share failed :(", "error");
+        }, "text").fail(function(xhr) {
+            var res = JSON.parse(xhr.responseText);
+            var msg = "";
+            if (res.message) {
+                msg = res.message;
+            }
+            log_output("Share failed: " + msg, "error");
         });
     });
     $("#load").change(function() {
