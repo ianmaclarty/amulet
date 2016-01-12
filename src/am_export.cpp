@@ -241,7 +241,6 @@ static bool build_html_export(export_config *conf) {
     bool ok =
         add_files_to_zip_renamed(zipname, binpath, "amulet.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath, "player.html", name, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_zip_renamed(zipname, binpath, "jquery-2.1.3.min.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
     printf("%s\n", zipname);
