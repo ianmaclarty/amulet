@@ -18,14 +18,16 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
     fi
     mv builds amulet-${TAG}/
     zip -r amulet-${TAG}-${TRAVIS_OS_NAME}.zip amulet-${TAG}
+    FILE_LIST=amulet-${TAG}-${TRAVIS_OS_NAME}.zip
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
         mkdir -p pkg_payload/usr/local/bin
         mkdir -p pkg_payload/usr/local/share/amulet
         mv amulet-${TAG}/builds pkg_payload/usr/local/share/amulet/
         mv amulet-${TAG}/amulet pkg_payload/usr/local/bin/
         pkgbuild --identifier xyz.amulet.pkg --version $VERSION --root pkg_payload/ --install-location / amulet-${TAG}-${TRAVIS_OS_NAME}.pkg
+        FILE_LIST="$FILE_LIST amulet-${TAG}-${TRAVIS_OS_NAME}.pkg"
     fi
-    scripts/upload_distros.js $TAG amulet-${TAG}-${TRAVIS_OS_NAME}.zip amulet-${TAG}-${TRAVIS_OS_NAME}.pkg
+    scripts/upload_distros.js $TAG $FILE_LIST
 else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         make -j2 TARGET=linux32.release LUAVM=lua51   test
