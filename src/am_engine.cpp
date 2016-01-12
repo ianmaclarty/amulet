@@ -8,6 +8,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker);
 static void set_arg_global(lua_State *L, int argc, char** argv);
 static void am_set_version(lua_State *L);
 static void am_set_dirs(lua_State *L);
+static void am_set_platform(lua_State *L);
 
 am_engine *am_init_engine(bool worker, int argc, char** argv) {
 #if defined(AM_LUAJIT) && defined(AM_64BIT)
@@ -62,6 +63,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     }
     am_set_version(L);
     am_set_dirs(L);
+    am_set_platform(L);
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
         return NULL;
@@ -165,6 +167,27 @@ static void am_set_dirs(lua_State *L) {
     lua_pop(L, 1); // am table
     free(data_dir);
     free(base_dir);
+}
+
+static void am_set_platform(lua_State *L) {
+    lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+#if defined(AM_LINUX)
+    lua_pushstring(L, "linux");
+#elif defined(AM_WINDOWS)
+    lua_pushstring(L, "windows");
+#elif defined(AM_OSX)
+    lua_pushstring(L, "osx");
+#elif defined(AM_IOS)
+    lua_pushstring(L, "ios");
+#elif defined(AM_ANDROID)
+    lua_pushstring(L, "android");
+#elif defined(AM_HTML)
+    lua_pushstring(L, "html");
+#else
+#error unknown platform
+#endif
+    lua_setfield(L, -2, "platform");
+    lua_pop(L, 1); // am table
 }
 
 #define MAX_CHUNKNAME_SIZE 100

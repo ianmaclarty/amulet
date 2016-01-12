@@ -126,46 +126,53 @@ function table_tostring(t, indent)
         local prefix = string.rep(tab, indent)
         local str = "{\n"
         local keys = {}
+        local array_test = 1
         for key, _ in pairs(t) do
             table.insert(keys, key)
-        end
-        table.sort(keys, function(k1, k2) 
-            local t1 = type(k1)
-            local t2 = type(k2)
-            if t1 == "string" and t2 == "string" then
-                return k1 < k2
-            end
-            if t1 == "number" and t2 == "number" then
-                return k1 < k2
-            end
-            if t1 == "string" then
-                return true
-            end
-            if t2 == "string" then
-                return false
-            end
-            if t1 == "number" then
-                return true
-            end
-            if t2 == "number" then
-                return false
-            end
-            return tostring(k1) < tostring(k2)
-        end)
-        for _, key in ipairs(keys) do
-            local value = t[key]
-            local keystr
-            if type(key) == "string" then
-                keystr = key
+            if key ~= array_test then
+                array_test = nil
             else
-                keystr = "[" .. tostring(key) .. "]"
+                array_test = array_test + 1
             end
-            str = str .. prefix .. tab .. keystr .. " = " .. table_tostring(value, indent + 1) .. ",\n"
+        end
+        if array_test then
+            for i = 1, array_test - 1 do
+                str = str .. prefix .. tab .. table.tostring(t[i], indent + 1) .. ",\n"
+            end
+        else
+            table.sort(keys, function(k1, k2) 
+                local t1 = type(k1)
+                local t2 = type(k2)
+                if t1 == "string" and t2 == "string" then
+                    return k1 < k2
+                end
+                if t1 == "number" and t2 == "number" then
+                    return k1 < k2
+                end
+                if t1 == "string" and t2 == "number" then
+                    return true
+                end
+                if t1 == "number" and t2 == "string" then
+                    return false
+                end
+                return tostring(k1) < tostring(k2)
+            end)
+            for _, key in ipairs(keys) do
+                local value = t[key]
+                local keystr
+                if type(key) == "string" and key:match"^[A-Za-z_][A-Za-z0-9_]*$" then
+                    keystr = key
+                else
+                    keystr = "["..table.tostring(key).."]"
+                end
+                local valstr = table_tostring(value, indent + 1)
+                str = str .. prefix .. tab .. keystr .. " = " .. valstr .. ",\n"
+            end
         end
         str = str .. prefix .. "}"
         return str
     elseif tp == "string" then
-        return '"' .. t:gsub("\"", "\\\"") .. '"'
+        return '"' .. t:gsub("\"", "\\\""):gsub("%\n", "\\n") .. '"'
     else
         return tostring(t)
     end

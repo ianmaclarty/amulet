@@ -27,6 +27,7 @@ spawn_sound_boss = 42319309
 ship_explode_sound = 80020902
 ship_explode_sound2 = 11085802
 hit_sound = 9975402
+boss_hit_sound = 5734004
 boss_sound = 31642009
 boss_shoot_sound = 90380302
 start_sound = 24012402
@@ -34,7 +35,9 @@ title_sound = 35270309
 
 -- global state
 
-high_score = 0
+global_state = am.load_state("defenders_state") or {
+    high_score = 0
+}
 
 -- utility functions
 
@@ -504,7 +507,7 @@ function boss_hit(enemy, state)
     local node = enemy.node
     node"scale":remove_all()
     node"scale":append(boss_hit_sprite)
-    node:action(am.play(hit_sound))
+    node:action(am.play(boss_hit_sound))
     node:action("flash", am.series{am.delay(0.05), function()
         node"scale":remove_all()
         node"scale":append(boss_sprite)
@@ -955,7 +958,7 @@ function create_title_scene()
     end))
     local score = 
         am.translate(0, -100)
-        ^ am.text("HI SCORE: "..high_score, vec4(0, 1, 1, 1))
+        ^ am.text("HI SCORE: "..global_state.high_score, vec4(0, 1, 1, 1))
     local instructions =
         am.translate(0, -150)
         ^ am.text("ARROW KEYS: MOVE\nX: FIRE\nPRESS X TO START", vec4(0.75, 0.75, 0.75, 1))
@@ -1032,10 +1035,11 @@ function start_game()
         update_bullets(state)
         update_score(state)
         if state.dead and am.frame_time - state.death_time > 2.5 then
-            main_scene:remove_all()
-            if state.score > high_score then
-                high_score = state.score
+            if state.score > global_state.high_score then
+                global_state.high_score = state.score
+                am.save_state("defenders_state", global_state)
             end
+            main_scene:remove_all()
             main_scene:append(create_title_scene())
         end
     end
