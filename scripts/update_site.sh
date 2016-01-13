@@ -9,9 +9,8 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
 
     if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
         TAG=${TRAVIS_TAG%-distro-trigger}
-        echo generating ${TAG} docs...
+        echo copying ${TAG} docs...
         mkdir -p gh-pages/doc
-        make doc VERSION=${TAG}
         cp doc/index.html gh-pages/doc/
         cp doc/favicon.png gh-pages/doc/
         cp doc/style.css gh-pages/doc/

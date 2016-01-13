@@ -10,8 +10,6 @@ addons:
             - g++-mingw-w64-i686
             - gcc-multilib
             - g++-multilib
-            - pandoc
-            - graphviz
 
 os:
     - linux

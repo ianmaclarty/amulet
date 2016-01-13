@@ -151,7 +151,11 @@ static void init_require_func(lua_State *L) {
 
 static void am_set_version(lua_State *L) {
     lua_getglobal(L, AMULET_LUA_MODULE_NAME);
-    lua_pushstring(L, am_version);
+    if (am_version[0] == 'v') {
+        lua_pushstring(L, am_version + 1);
+    } else {
+        lua_pushstring(L, am_version);
+    }
     lua_setfield(L, -2, "version");
     lua_pop(L, 1); // am table
 }
