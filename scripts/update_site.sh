@@ -20,7 +20,7 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         mkdir -p gh-pages/doc/graphs
         cp doc/graphs/*.png gh-pages/doc/graphs/
         echo copying ${TAG} web player...
-        cp -r builds/html/lua51/release/bin/* gh-pages/
+        cp -r amulet-${TAG}/builds/html/lua51/release/bin/* gh-pages/
     fi
 
     cp -r site/* gh-pages/
