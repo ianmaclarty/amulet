@@ -76,7 +76,8 @@ am_native_window *am_create_native_window(
     }
     init_mouse_state();
     EM_ASM_INT({
-        document.getElementById("title").innerHTML = Module.Pointer_stringify($0);
+        var title_el = document.getElementById("title");
+        if (title_el) title_el.innerHTML = Module.Pointer_stringify($0);
     }, title);
     return (am_native_window*)sdl_window;
 }

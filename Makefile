@@ -66,7 +66,7 @@ AM_LDFLAGS = $(GRADE_LDFLAGS) $(DEP_ALIBS) $(XLDFLAGS) $(LDFLAGS)
 
 EXAMPLE_FILES := $(wildcard examples/*.lua)
 BUILD_EXAMPLE_FILES := $(patsubst examples/%,$(BUILD_BIN_DIR)/%,$(EXAMPLE_FILES))
-HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html html/*.ico)
+HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html html/*.png)
 BUILD_HTML_EDITOR_FILES := $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 
 # Rules
@@ -81,7 +81,7 @@ all: $(AMULET)
 endif
 
 ifeq ($(TARGET_PLATFORM),html)
-$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EMSCRIPTEN_LIBS) | $(BUILD_BIN_DIR) 
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EMSCRIPTEN_LIBS) $(EMSCRIPTEN_PREJS) | $(BUILD_BIN_DIR) 
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	@$(PRINT_BUILD_DONE_MSG)
 else ifdef IOS
@@ -267,7 +267,7 @@ clean-all: clean-tests
 # Docs
 
 .PHONY: doc
-doc: $(AMULET)
+doc:
 	cd doc && $(MAKE) VERSION="$(VERSION)"
 
 # Tests

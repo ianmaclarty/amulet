@@ -45,8 +45,17 @@
     <div id="vsplitter">
     </div>
     <div id="right-panel">
-        <div id="player-panel">
-            <iframe allowfullscreen id="player-frame" src="player.html?run_waiting=1"></iframe>
+        <div id="player-panel" tabindex="0">
+            <video id="video" autoplay></video>
+            <div id="status-overlay">
+                <div id="status-positioner">
+                    <div id="status"></div>
+                    <div id="status-box">
+                        <div id="status-bar"></div>
+                    </div>
+                </div>
+            </div>
+            <canvas id="canvas" width="100" height="100"></canvas>
         </div>
         <div id="hsplitter">
         </div>
@@ -58,6 +67,7 @@
     <script src="jquery-2.1.3.min.js" type="text/javascript"></script>
     <script type='text/javascript'>
 
+var in_editor = true;
 var editor;
 var editor_dirty = false;
 
@@ -108,10 +118,7 @@ function load_new() {
     var name = pick_new_name();
     editor.getDoc().setValue(
         'local win = am.window{title = "'+name+'"}\n\n' +
-        'win.scene = am.camera2d(200, 150, vec2(0))\n' +
-        '    ^ am.scale(vec3(0, 0, 1))\n' +
-        '        :action(am.tween(0.8, {scale = vec3(2, 2, 1)}, am.ease.out(am.ease.windup)))\n' +
-        '    ^ am.text("Hello!")');
+        'win.scene = am.scale(2) ^ am.text("Hello, World!")');
     reset_save();
 }
 
@@ -153,25 +160,23 @@ function run_current() {
     is_running = true;
     $("#pause-resume").text("Pause").parent().removeClass("disabled");
     $("#stop").parent().removeClass("disabled");
-    var win = document.getElementById("player-frame").contentWindow;
-    win.postMessage({run: code}, "*");
+    load(code);
 }
 
-function run_waiting() {
+function run_waiting_anim() {
     was_error = false;
     is_paused = false;
     is_running = false;
     $("#pause-resume").text("Pause").parent().addClass("disabled");
     $("#stop").parent().addClass("disabled");
-    var win = document.getElementById("player-frame").contentWindow;
-    win.postMessage({run_waiting: true}, "*");
+    run_waiting();
 }
 
 function init_controls() {
     $("#new").click(function() {
         if (!editor_dirty || confirm("Loose current changes?")) {
             load_new();
-            run_waiting();
+            run_waiting_anim();
         }
     });
     $("#save").click(function() {
@@ -189,13 +194,12 @@ function init_controls() {
     });
     $("#pause-resume").click(function() {
         if (was_error) return;
-        var win = document.getElementById("player-frame").contentWindow;
         if (is_paused) {
-            win.postMessage({resume: true}, "*");
+            resume();
             log_output("Resumed...", "running");
             $("#pause-resume").text("Pause");
         } else {
-            win.postMessage({pause: true}, "*");
+            pause();
             $("#pause-resume").text("Resume");
             log_output("Paused.", "running");
         }
@@ -204,20 +208,20 @@ function init_controls() {
     $("#stop").click(function() {
         if (is_running) {
             log_output("Stopped.", "running");
-            run_waiting();
+            run_waiting_anim();
         }
     });
     $("#share").click(function() {
         var code = editor.getDoc().getValue();
         var req = {
-            description: "amulet share",
+            description: "Amulet shared game. See http://www.amulet.xyz for more info.",
             "public": true,
             files: {"main.lua": {content: code}}
         };
         $.post("https://api.github.com/gists", JSON.stringify(req), function(resp) {
             var res = JSON.parse(resp);
             var id = res.id;
-            var playurl = qualifyURL("standalone.html?gist="+id);
+            var playurl = qualifyURL("player.html?gist="+id);
             var editurl = qualifyURL("editor.html?gist="+id);
             log_output("Share successful!", "success", true);
             log_output("Play at: <a target=\"_blank\" href=\"" + playurl + "\">" + playurl + "</a>", null, true);
@@ -258,7 +262,7 @@ function init_controls() {
                 return;
             }
             load_new();
-            run_waiting();
+            run_waiting_anim();
         }
     });
     init_load_options();
@@ -352,7 +356,6 @@ function init_vsplitter() {
     var dragging = false;
     $("#vsplitter").on("mousedown", function(evt) {
         if (evt.which == 1 && !dragging) {
-            $("#player-frame").hide();
             var start_page_x = evt.pageX;
             var splitter = $(this);
             var left = $(this).prev();
@@ -377,7 +380,6 @@ function init_vsplitter() {
             function m_up(evt) {
                 $(document).off("mousemove", m_move);
                 $(document).off("mouseup", m_up);
-                $("#player-frame").show();
                 save_layout();
                 dragging = false;
             }
@@ -392,7 +394,6 @@ function init_hsplitter() {
     var dragging = false;
     $("#hsplitter").on("mousedown", function(evt) {
         if (evt.which == 1 && !dragging) {
-            $("#player-frame").hide();
             var start_page_y = evt.pageY;
             var splitter = $(this);
             var above = $(this).prev();
@@ -423,7 +424,6 @@ function init_hsplitter() {
             function m_up(evt) {
                 $(document).off("mousemove", m_move);
                 $(document).off("mouseup", m_up);
-                $("#player-frame").show();
                 save_layout();
                 dragging = false;
             }
@@ -480,17 +480,10 @@ function clear_output() {
     document.getElementById("output-panel").innerHTML = "";
 }
 
-function set_message_handler() {
-    window.addEventListener("message", function(event) {
-        if (event.data.error) {
-            was_error = true;
-            $("#pause-resume").parent().addClass("disabled");
-        } else if (event.data.print) {
-            log_output(event.data.print);
-        }
-    }, false);
+function handle_error() {
+    was_error = true;
+    $("#pause-resume").parent().addClass("disabled");
 }
-set_message_handler();
 
 function set_unload_handler() {
     window.addEventListener("beforeunload", function(event) {
@@ -516,5 +509,6 @@ function setup() {
 
 $(setup);
     </script>
+    <script async type="text/javascript" src="amulet.js"></script>
   </body>
 </html>

@@ -11,7 +11,7 @@ ifndef VERSION
 VERSION=DEV
 endif
 
-index.html: $(SECTIONS) $(GRAPH_PNGS) writer.lua style.css template.html Makefile 
+index.html: $(SECTIONS) $(GRAPH_PNGS) style.css template.html Makefile 
 	cat $(SECTIONS) | pandoc --template template.html -V amulet-version="$(VERSION)" -c style.css --toc -f markdown -o $@
 
 $(GRAPH_PNGS): %.png: %.dot
