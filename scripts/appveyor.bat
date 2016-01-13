@@ -4,7 +4,7 @@ set PATH=C:\emscripten;C:\MinGW\bin;C:\MinGW\msys\1.0\bin;"C:\Program Files (x86
 if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
 
 curl -L -O https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-1.35.0-full-64bit.exe
-emsdk-1.34.1-full-64bit.exe /S /D=C:\emscripten
+emsdk-1.35.0-full-64bit.exe /S /D=C:\emscripten
 call "C:\emscripten\emsdk_env.bat"
 make TARGET=html.release LUAVM=lua51
 if %errorlevel% neq 0 exit /b %errorlevel%
