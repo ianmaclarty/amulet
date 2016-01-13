@@ -28,6 +28,7 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
         FILE_LIST="$FILE_LIST amulet-${TAG}-${TRAVIS_OS_NAME}.pkg"
     fi
     scripts/upload_distros.js $TAG $FILE_LIST
+    scripts/update_site.sh
 else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         make -j2 TARGET=linux32.release LUAVM=lua51   test
@@ -44,4 +45,5 @@ else
     if [ -n "$TRAVIS_TAG" ]; then
         scripts/upload_builds.js $TRAVIS_TAG
     fi
+    scripts/update_site.sh
 fi

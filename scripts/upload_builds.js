@@ -10,7 +10,7 @@ if (!tag) throw "no tag";
 var token = process.env.GITHUB_TOKEN;
 if (!token) throw "no GITHUB_TOKEN";
 if (!tag.match(/^v[0-9]/)) {
-    console.log("not uploading non-release tag " + tag);
+    log("not uploading non-release tag " + tag);
     process.exit();
 }
 

@@ -222,12 +222,14 @@ $(EMBEDDED_DATA_CPP_FILE): $(EMBEDDED_FILES) tools/embed$(EXE_EXT)
 
 # Generate version file
 
+ifndef VERSION
 ifdef TRAVIS_TAG
 VERSION = $(TRAVIS_TAG)
 else ifdef APPVEYOR_REPO_TAG_NAME
 VERSION = $(APPVEYOR_REPO_TAG_NAME)
 else
 VERSION = $(shell echo DEV `date '+%Y-%d-%m %H:%M'`)
+endif
 endif
 
 $(VERSION_CPP_FILE):
@@ -266,7 +268,7 @@ clean-all: clean-tests
 
 .PHONY: doc
 doc: $(AMULET)
-	cd doc && $(MAKE)
+	cd doc && $(MAKE) VERSION="$(VERSION)"
 
 # Tests
 

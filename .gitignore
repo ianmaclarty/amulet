@@ -84,17 +84,18 @@ third_party/freetype-*/*.lib
 third_party/freetype-*/*.a
 third_party/freetype-*/*.pdb
 
-third_party/sfmt-*/*.lib
-third_party/sfmt-*/*.a
+third_party/tinymt-*/*.lib
+third_party/tinymt-*/*.a
 
 tests/*.out
 tests/*.err
 tests/*.res
 tests/*.time
 
-doc/manual.html
+doc/index.html
 doc/graphs/*.png
 
 gllog
 gllog.cpp
 
+valgrind.log

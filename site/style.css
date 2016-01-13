@@ -1,0 +1,48 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    background-color: #ffffff;
+} 
+
+#header {
+    width: 720px;
+    margin: 0 auto 0 auto;
+    width: 720px;
+    height: 350px;
+    background-image: url('logo.png');
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#content {
+    width: 720px;
+    margin: 0 auto 0 auto;
+    padding: 0;
+}
+
+#download-links {
+    display: none;
+    background-color: #04f3ce;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+#download-links ul {
+    width: 220px;
+    float: left;
+    margin: 0 10px 0 10px;
+    padding: 10px;
+    list-style-type: none;
+}
+
+.clear {
+    clear: both;
+}
