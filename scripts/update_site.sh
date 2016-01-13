@@ -4,7 +4,7 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     echo updating site...
 
     rm -rf gh-pages
-    git clone . --branch gh-pages --single-branch gh-pages
+    git clone https://github.com/ianmaclarty/amulet.git --branch gh-pages --single-branch gh-pages
     rm -rf gh-pages/.git
 
     if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
