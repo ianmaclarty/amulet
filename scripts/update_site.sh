@@ -23,9 +23,9 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     
     echo pushing to gh-pages...
     cd gh-pages
+    git init
     git config user.name "Ian MacLarty"
     git config user.email "ian@ianmaclarty.com"
-    git init
     git add .
     git commit -m 'deploy site'
     git push --force --quiet "https://${GITHUB_TOKEN}@github.com/ianmaclarty/amulet.git" master:gh-pages > /dev/null 2>&1
