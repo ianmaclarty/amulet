@@ -11,6 +11,7 @@ addons:
             - gcc-multilib
             - g++-multilib
             - pandoc
+            - graphviz
 
 os:
     - linux

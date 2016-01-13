@@ -2,9 +2,11 @@
 set -e
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     echo updating site...
+
     rm -rf gh-pages
-    mkdir -p gh-pages
-    cp -r site/* gh-pages/
+    git clone . --branch gh-pages --single-branch gh-pages
+    rm -rf gh-pages/.git
+
     if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
         TAG=${TRAVIS_TAG%-distro-trigger}
         echo generating ${TAG} docs...
@@ -20,6 +22,8 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         echo copying ${TAG} web player...
         cp -r builds/html/lua51/release/bin/* gh-pages/
     fi
+
+    cp -r site/* gh-pages/
     
     echo pushing to gh-pages...
     cd gh-pages
