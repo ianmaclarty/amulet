@@ -84,7 +84,7 @@ local pattern_tex_view = pattern_tex_buf:view("uint", 0, 4)
 for i = 1, pattern_tex_size^2 do
     pattern_tex_view[i] = 255 * 2^24 + math.random(2^24)
 end
-local pattern_img_buf = am.image_buffer(pattern_tex_size, pattern_tex_size, pattern_tex_buf)
+local pattern_img_buf = am.image_buffer(pattern_tex_buf, pattern_tex_size, pattern_tex_size)
 local pattern_texture = am.texture2d(pattern_img_buf)
 pattern_texture.wrap = "mirrored_repeat"
 
