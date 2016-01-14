@@ -47,6 +47,8 @@ function get_latest_release() {
             '<li><a href="' + links.osx_zip + '">zip</a></li>');
         $("#linux-download-links").append(
             '<li><a href="' + links.lin_zip + '">zip</a></li>');
+        $("#release-notes").append(
+            '<a href="' + res.html_url + '">release notes</a>');
 
         $("#download-links").show();
     });
@@ -64,21 +66,69 @@ $(function() {
 </div>
 <div id="content">
     <p>
-Amulet is a Lua-based audio/visual toolkit suitable
+Amulet is a free Lua-based audio/visual toolkit suitable
 for small-scope games and experimentation.
+It runs on Windows, Mac, Linux, HTML5 and iOS.
     </p>
-    <div id="download-links">
-        <h2>Download Amulet <span id="latest-release-tag"></span> (released <span id="latest-release-date"></span>)</h2>
-        <ul id="windows-download-links">
-            <li><b>Windows 7+</b></li>
-        </ul>
-        <ul id="osx-download-links">
-            <li><b>Mac OS X 10.6+</b></li>
-        </ul>
-        <ul id="linux-download-links">
-            <li><b>Linux</b></li>
-        </ul>
-        <div class="clear"></div>
+    <div id="download-links" class="info-box-full">
+        <div class="info-box-header">
+            Download Amulet <span id="latest-release-tag"></span> (released <span id="latest-release-date"></span>)
+            <span class="notes">
+                <a href="https://github.com/ianmaclarty/amulet/releases">previous releases</a>
+            </span>
+            <span id="release-notes" class="notes"></span>
+        </div>
+        <div class="info-box-body">
+            <ul id="windows-download-links">
+                <li class="header"><b>Windows 7+</b></li>
+            </ul>
+            <ul id="osx-download-links">
+                <li class="header"><b>Mac OS X 10.6+</b></li>
+            </ul>
+            <ul id="linux-download-links">
+                <li class="header"><b>Linux</b></li>
+            </ul>
+        </div>
+    </div>
+    <div class="info-box-small">
+        <div class="info-box-header">
+            Documentation
+        </div>
+        <div class="info-box-body">
+            Amulet comes with a decent amount of <a href="doc">documentation</a>
+            including an introductory tutorial
+            and complete API reference.
+        </div>
+    </div>
+    <div class="info-box-small">
+        <div class="info-box-header">
+            Online editor
+        </div>
+        <div class="info-box-body">
+            Make something right in your browser or
+            explore examples
+            using the <a href="editor.html">online editor</a>.
+        </div>
+    </div>
+    <div class="info-box-small">
+        <div class="info-box-header">
+            Open source
+        </div>
+        <div class="info-box-body">
+            Amulet is licensed under the
+            MIT license, which means you can freely
+            modify and use it for whatever you like,
+            including commercial projects.
+            The source code is available on
+            <a href="https://github.com/ianmaclarty/amulet">GitHub</a>.
+        </div>
+    </div>
+
+    <div class="footer">
+    Amulet is made by <a href="http://ianmaclarty.com">Ian MacLarty</a>.
+    The Linux logo is copyright <a href="http://www.home.unix-ag.org/simon/penguin/">Larry Ewing, Simon Budig and Anja Gerwinski</a>.
+    The Apple and Windows logos are trademarks of Apple and Microsoft respectively,
+    used without permission. Amulet is in no way endorsed by Apple or Microsoft.
     </div>
 </div>
 
