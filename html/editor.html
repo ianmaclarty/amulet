@@ -149,16 +149,16 @@ function load_file(name) {
     set_storate_object("lastopen", name);
 }
 
-function load_gist(id) {
+function ed_load_gist(id) {
     console.log("loading gist " + id);
-    log_output("Loading gist " + id + "...");
+    log_output("Loading gist " + id + "...", "info");
     var url = 'https://api.github.com/gists/'+id;
     $.get(url, function(data) {
         var res = JSON.parse(data);
         editor.getDoc().setValue(res.files["main.lua"].content);
         pick_new_name();
         reset_save();
-        log_output("Done. Click Run to start it.");
+        log_output("Done. Click Run to start it.", "success");
     }, "text");
 }
 
@@ -228,6 +228,7 @@ function init_controls() {
             "public": true,
             files: {"main.lua": {content: code}}
         };
+        log_output("Sharing...", "info");
         $.post("https://api.github.com/gists", JSON.stringify(req), function(resp) {
             var res = JSON.parse(resp);
             var id = res.id;
@@ -235,7 +236,7 @@ function init_controls() {
             var editurl = qualifyURL("editor.html?gist="+id);
             log_output("Share successful!", "success", true);
             log_output("Play at: <a target=\"_blank\" href=\"" + playurl + "\">" + playurl + "</a>", null, true);
-            log_output("Edit at: <a href=\"" + editurl + "\">" + editurl + "</a>", null, true);
+            log_output("Edit at: <a target=\"_blank\" href=\"" + editurl + "\">" + editurl + "</a>", null, true);
         }, "text").fail(function(xhr) {
             var res = JSON.parse(xhr.responseText);
             var msg = "";
@@ -305,7 +306,7 @@ function init_editor() {
     });
     var gist = getParameterByName("gist");
     if (gist) {
-        load_gist(gist);
+        ed_load_gist(gist);
     } else {
         var last = get_storage_object("lastopen");
         if (last) {

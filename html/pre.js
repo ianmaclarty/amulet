@@ -1,4 +1,5 @@
 var status_timer;
+var is_in_editor = typeof in_editor !== "undefined";
 
 function getParameterByName(name) {
     name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -148,7 +149,7 @@ window.amulet.ready = function() {
     var gist = getParameterByName("gist");
     try {
         init_canvas();
-        if (!gist) {
+        if (!gist || is_in_editor) {
             remove_status_overlay();
         }
     } catch (e) {
@@ -157,7 +158,7 @@ window.amulet.ready = function() {
         throw e;
     }
     started = true;
-    if (gist) {
+    if (gist && !is_in_editor) {
         pending_load = null;
         load_gist(gist);
     } else if (pending_load) {
@@ -204,7 +205,7 @@ function resume() {
     Module.ccall('am_emscripten_resume', null, [], []);
 }
 
-window.amulet.run_waiting = typeof in_editor !== "undefined" ? 1 : 0;
+window.amulet.run_waiting = is_in_editor ? 1 : 0;
 window.amulet.no_load_data = getParameterByName("gist") ? 1 : 0;
 
 //------------------------------------------------------------------------
