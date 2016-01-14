@@ -12,9 +12,16 @@ html, body {
     background-image: url("bg.png");
 } 
 
+#wrapper {
+    min-height: 100%;
+    position: relative;
+    width: 780px;
+    margin: 0 auto 0 auto;
+}
+
 #header {
     width: 760px;
-    margin: 0 auto 0 auto;
+    margin: 0 auto 30px auto;
     height: 350px;
     background-image: url('logo.png');
     background-position: center;
@@ -23,9 +30,18 @@ html, body {
 
 #content {
     width: 780px;
-    margin: 0 auto 0 auto;
-    padding: 0;
+    margin: 0;
+    padding: 0 0 70px 0;
     color: #494149;
+}
+
+#footer {
+    position: absolute;
+    bottom: 0;
+    width: 760px;
+    font-size: 12px;
+    color: #999;
+    margin: 0 10px 0 10px;
 }
 
 #content p {
@@ -61,7 +77,7 @@ html, body {
     border-bottom-right-radius: 3px;
     background-color: #e2dedf;
     padding: 5px 10px 0 10px;
-    height: 120px;
+    height: 140px;
 }
 
 #download-links {
@@ -91,9 +107,8 @@ html, body {
 
 #osx-download-links {
     background-image: url("apple.png");
-    background-position: 45px 0;
+    background-position: 35px 0;
     background-repeat: no-repeat;
-    padding-left: 110px !important;
 }
 
 #linux-download-links {
@@ -127,17 +142,8 @@ a:visited {
     color: #ff00ff;
 }
 
-.footer {
-    position: fixed;
-    bottom: 0;
-    width: 760px;
-    font-size: 12px;
-    color: #999;
-    margin: 0 10px 0 10px;
-}
-
-.footer a,
-.footer a:visited {
+#footer a,
+#footer a:visited {
     color: #ff66ff;
 }
 

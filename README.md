@@ -96,6 +96,8 @@ The HTML editor uses code and ideas from:
 - [PuzzleScript](https://github.com/increpare/PuzzleScript) and [Zeedonk](https://github.com/increpare/zeedonk)
 - [jQuery](https://jquery.com/)
 
+The Amulet logo was designed by [Bethany Wilksch](http://www.plumb-bob.com.au).
+
 ## Build status
 
 | System |  Status |
