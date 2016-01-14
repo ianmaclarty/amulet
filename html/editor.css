@@ -41,7 +41,7 @@ div {
     font-size: 14px;
     padding: 3px 5px 3px 5px;
     font-weight: bold;
-    background-color: #96c0d2;
+    background-color: #66cce2;
     height: 20px;
     margin-right: 5px;
     float: left;
@@ -62,7 +62,7 @@ div {
 
 #top-panel .button input {
     width: 100px;
-    background-color: #7b9dac;
+    background-color: #29a3c8;
     border: none;
     font-size: 12px;
     color: #fff;
@@ -72,7 +72,7 @@ div {
 
 #top-panel .button select {
     width: 120px;
-    background-color: #7b9dac;
+    background-color: #29a3c8;
     border: none;
     font-size: 12px;
     color: #fff;
