@@ -159,6 +159,10 @@ window.amulet.ready = function() {
     }
     started = true;
     if (gist && !is_in_editor) {
+        document.getElementById("container").classList.remove("undecorated-container");
+        document.getElementById("container").classList.add("decorated-container");
+        document.getElementById("footer").style.display = "block";
+        document.getElementById("hacklink").href = "http://www.amulet.xyz/editor.html?gist=" + gist;
         pending_load = null;
         load_gist(gist);
     } else if (pending_load) {

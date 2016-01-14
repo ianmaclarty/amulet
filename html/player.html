@@ -14,11 +14,11 @@ html, body {
     overflow-x: hidden;
     overflow-y: hidden;
     background-color: #000;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAAECAIAAAArjXluAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AEOFx8uD8pZBQAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAfSURBVAjXY1RUVGRgYGBiYGBgYGBgZmFh+fXrF5QHACWWA2ZdfnF2AAAAAElFTkSuQmCC');
 } 
 #status-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
+    margin: 0;
+    padding: 0;
     width: 100%;
     height: 100%;
     background-color: #000;
@@ -50,9 +50,8 @@ html, body {
     border: 2px solid #f00;
 }
 #canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
+    margin: 0;
+    padding: 0;
     width: 100%;
     height: 100%;
 }
@@ -65,20 +64,56 @@ html, body {
     font-size: 16px;
     font-weight: bold;
 }
+.undecorated-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.decorated-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 24px;
+}
+#footer {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 20px;
+    text-align: center;
+    font-size: 15px;
+    color: #e2dedf;
+    padding: 4px 0 0 0;
+}
+#footer a,
+#footer a:visited {
+    color: #ff00ff;
+}
+#hacklink,
+#hacklink:visited {
+    color: #29a3c8 !important;
+}
     </style>
   </head>
   <body>
-    <video id="video" autoplay></video>
-    <div id="status-overlay">
-        <div id="status-positioner">
-            <div id="status"></div>
-            <div id="status-box">
-                <div id="status-bar"></div>
+    <div id="container" class="undecorated-container">
+        <video id="video" autoplay></video>
+        <div id="status-overlay">
+            <div id="status-positioner">
+                <div id="status"></div>
+                <div id="status-box">
+                    <div id="status-bar"></div>
+                </div>
             </div>
         </div>
+        <canvas id="canvas" width="100" height="100"></canvas>
     </div>
-    <canvas id="canvas" width="100" height="100"></canvas>
-
+    <div id="footer">Made with <a href="http://www.amulet.xyz">Amulet</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a id="hacklink" href="">Hack</a></div>
     <script async type="text/javascript" src="amulet.js"></script>
   </body>
 </html>
