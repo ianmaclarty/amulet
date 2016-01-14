@@ -182,7 +182,8 @@ div {
     margin-left: 3px;
 }
 
-#output-panel .running {
+#output-panel .running,
+#output-panel .info {
     color: #21eddc;
 }
 

@@ -20,6 +20,14 @@ It currently runs on the following platforms:
 
 Android support will also be added at some point.
 
+## Binary distributions
+
+These are available from <http://www.amulet.xyz>.
+
+## Documentation
+
+See <http://www.amulet.xyz/doc>.
+
 ## Building from source
 
 ### Linux
@@ -95,6 +103,8 @@ The HTML editor uses code and ideas from:
 - [Codemirror](https://codemirror.net/)
 - [PuzzleScript](https://github.com/increpare/PuzzleScript) and [Zeedonk](https://github.com/increpare/zeedonk)
 - [jQuery](https://jquery.com/)
+- [JSZip](https://stuk.github.io/jszip/)
+- [FileSaver.js](https://github.com/eligrey/FileSaver.js/)
 
 The Amulet logo was designed by [Bethany Wilksch](http://www.plumb-bob.com.au).
 
