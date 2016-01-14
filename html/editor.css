@@ -49,6 +49,12 @@ div {
     border-radius: 2px;
 }
 
+#top-panel div.button a,
+#top-panel div.button a:visited {
+    color: #fff;
+    text-decoration: none;
+}
+
 #top-panel div.button * {
     vertical-align: top;
 }
