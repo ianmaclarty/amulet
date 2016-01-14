@@ -208,27 +208,6 @@ div {
     background-color: #ff1111;
 }
 
-/* CodeMirror theme */
-
-.cm-s-amulet.CodeMirror {background-image: url("editor_bg.png"); color: #ffffec;}
-.cm-s-amulet div.CodeMirror-selected {background: #444 !important;}
-.cm-s-amulet .CodeMirror-gutters {background: #4e4e4e; border-right: 0px;}
-.cm-s-amulet .CodeMirror-guttermarker { color: white; }
-.cm-s-amulet .CodeMirror-guttermarker-subtle { color: grey; }
-.cm-s-amulet .CodeMirror-linenumber {color: #dadada;}
-.cm-s-amulet .CodeMirror-cursor {border-left: 2px solid #ffffec !important;}
-
-.cm-s-amulet span.cm-comment {color: #ff77ff; font-style: italic;}
-.cm-s-amulet span.cm-number {color: #ff1111;}
-.cm-s-amulet span.cm-keyword {color: #33ff33;}
-.cm-s-amulet span.cm-string {color: #ff8400;}
-.cm-s-amulet span.cm-variable {color: #ffffec;}
-.cm-s-amulet span.cm-variable-2 {color: #ffffec;} /* specials */
-.cm-s-amulet span.cm-builtin {color: #ffffec;}
-
-.cm-s-amulet .CodeMirror-activeline-background {background: #494b41 !important;}
-.cm-s-amulet .CodeMirror-matchingbracket {color: #222 !important;}
-
 #status-overlay {
     position: absolute;
     top: 0;
@@ -279,3 +258,24 @@ div {
     font-size: 16px;
     font-weight: bold;
 }
+
+/* CodeMirror theme */
+
+.cm-s-amulet.CodeMirror {background-image: url("editor_bg.png"); color: #ffffec;}
+.cm-s-amulet div.CodeMirror-selected {background: #444 !important;}
+.cm-s-amulet .CodeMirror-gutters {background: #4e4e4e; border-right: 0px;}
+.cm-s-amulet .CodeMirror-guttermarker { color: white; }
+.cm-s-amulet .CodeMirror-guttermarker-subtle { color: grey; }
+.cm-s-amulet .CodeMirror-linenumber {color: #dadada;}
+.cm-s-amulet .CodeMirror-cursor {border-left: 2px solid #ffffec !important;}
+
+.cm-s-amulet span.cm-comment {color: #ff77ff; font-style: italic;}
+.cm-s-amulet span.cm-number {color: #ff1111;}
+.cm-s-amulet span.cm-keyword {color: #33ff33;}
+.cm-s-amulet span.cm-string {color: #ff8400;}
+.cm-s-amulet span.cm-variable {color: #ffffec;}
+.cm-s-amulet span.cm-variable-2 {color: #ffffec;} /* specials */
+.cm-s-amulet span.cm-builtin {color: #ffffec;}
+
+.cm-s-amulet .CodeMirror-activeline-background {background: #494b41 !important;}
+.cm-s-amulet .CodeMirror-matchingbracket {color: #ff00ff !important; background-color: #00f !important;}
