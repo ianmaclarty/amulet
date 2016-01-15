@@ -75,7 +75,7 @@ default: all
 
 .PHONY: all
 ifeq ($(TARGET_PLATFORM),html)
-all: $(BUILD_HTML_EDITOR_FILES) $(BUILD_EXAMPLE_FILES) $(AMULET) 
+all: $(BUILD_HTML_EDITOR_FILES) $(BUILD_BIN_DIR)/player.html $(BUILD_EXAMPLE_FILES) $(AMULET) 
 else
 all: $(AMULET)
 endif
@@ -200,6 +200,9 @@ $(BUILD_DIRS): %:
 
 $(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: html/% | $(BUILD_BIN_DIR)
 	cp $< $@
+
+$(BUILD_BIN_DIR)/player.html: html/player.html.1 html/player.html.2
+	cat html/player.html.1 html/player.js html/player.html.2 > $@
 
 $(BUILD_EXAMPLE_FILES): $(BUILD_BIN_DIR)/%: examples/% | $(BUILD_BIN_DIR)
 	cp $< $@

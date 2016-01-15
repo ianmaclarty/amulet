@@ -114,7 +114,6 @@ NOLINK_OPT = -c
 C99_OPT = -std=c99
 
 EMSCRIPTEN_LIBS = html/library_sdl.js
-EMSCRIPTEN_PREJS = html/pre.js
 EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
 EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_run_waiting', '_am_emscripten_pause', '_am_emscripten_resume', '_am_emscripten_resize']"
 
@@ -190,7 +189,7 @@ else ifeq ($(TARGET_PLATFORM),html)
   CPP = em++
   AR = emar
   LINK = em++
-  XLDFLAGS = --memory-init-file 0 -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 --pre-js $(EMSCRIPTEN_PREJS) $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS_OPTS)
+  XLDFLAGS = --memory-init-file 0 -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 $(EMSCRIPTEN_EXPORTS_OPT) $(EMSCRIPTEN_LIBS_OPTS)
   #XLDFLAGS += -s DEMANGLE_SUPPORT=1
   XCFLAGS += -Wno-unneeded-internal-declaration $(EMSCRIPTEN_EXPORTS_OPT)
   EXE_OUT_OPT = -o$(SPACE)
