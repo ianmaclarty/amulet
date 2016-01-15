@@ -4,7 +4,7 @@ html, body {
     padding: 0;
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: 15px;
-    background-color: #4e4e4e;
+    background-color: #494149;
 } 
 
 .clear {
@@ -32,13 +32,13 @@ div {
     color: #ff00ff;
     font-size: 20px;
     text-decoration: underline;
-    margin-right: 20px;
+    margin-right: 10px;
     float: left;
 }
 
 #top-panel div.button {
     color: #fff;
-    font-size: 14px;
+    font-size: 12px;
     padding: 3px 5px 3px 5px;
     font-weight: bold;
     background-color: #66cce2;
@@ -63,7 +63,7 @@ div {
     cursor: pointer;
     display: inline-block;
     padding: 0;
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
 #top-panel .button input {
@@ -92,7 +92,7 @@ div {
 }
 
 #top-panel div.separator {
-    width: 20px;
+    width: 12px;
     height: 26px;
     background-color: none;
     float: left;
@@ -123,13 +123,13 @@ div {
     height: 7px;
     cursor: row-resize;
     z-index: 10;
-    background-color: #4e4e4e;
+    background-color: #494149;
 }
 
 #vsplitter:hover,
 #hsplitter:hover
 {
-    background-color: #888;
+    background-color: #66cce2;
 }
 
 #editor-panel {
@@ -269,8 +269,8 @@ div {
 /* CodeMirror theme */
 
 .cm-s-amulet.CodeMirror {background-image: url("editor_bg.png"); color: #ffffec;}
-.cm-s-amulet div.CodeMirror-selected {background: #444 !important;}
-.cm-s-amulet .CodeMirror-gutters {background: #4e4e4e; border-right: 0px;}
+.cm-s-amulet div.CodeMirror-selected {background: #0000ff !important;}
+.cm-s-amulet .CodeMirror-gutters {background: #494149; border-right: 0px;}
 .cm-s-amulet .CodeMirror-guttermarker { color: white; }
 .cm-s-amulet .CodeMirror-guttermarker-subtle { color: grey; }
 .cm-s-amulet .CodeMirror-linenumber {color: #dadada;}
@@ -284,5 +284,5 @@ div {
 .cm-s-amulet span.cm-variable-2 {color: #ffffec;} /* specials */
 .cm-s-amulet span.cm-builtin {color: #ffffec;}
 
-.cm-s-amulet .CodeMirror-activeline-background {background: #494b41 !important;}
-.cm-s-amulet .CodeMirror-matchingbracket {color: #ff00ff !important; background-color: #00f !important;}
+.cm-s-amulet .CodeMirror-activeline-background {background: #494149 !important;}
+.cm-s-amulet .CodeMirror-matchingbracket {color: #000 !important; background-color: #00ffff !important;}
