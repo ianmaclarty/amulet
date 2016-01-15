@@ -104,7 +104,7 @@ function spawn_explosion(state, position, size, color, color_var, sound)
     local circle2 = am.circle(position - vec2(radius * 0.2, 0), radius * 0.8, vec4(0, 0, 0, 1))
     local flash = am.rect(
         win.left - 50, win.bottom - 50, win.right + 50, win.top + 50,
-        color * vec4(0.15, 0.15, 0.15, 1))
+        color * vec4(0.25, 0.25, 0.25, 1))
     state.explosions_group:append(explosion_particles)
     state.explosions_group:append(circle1)
     state.scene:action(am.series{
