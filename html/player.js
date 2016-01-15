@@ -74,8 +74,18 @@ function set_error_text(text) {
     document.getElementById("status-bar").classList.add("error");
 }
 
+var progress_bar_colors = [
+    '#ff00ff',
+    '#00ffff',
+    '#00ff00',
+    '#ffff00',
+    '#ff0000',
+    '#0000ff',
+];
+
 function set_progress(perc) {
     document.getElementById("status-bar").style.width = perc + "%";
+    document.getElementById("status-bar").style["background-color"] = progress_bar_colors[Math.floor(Math.random() * progress_bar_colors.length)];
 }
 
 var perc = 1;

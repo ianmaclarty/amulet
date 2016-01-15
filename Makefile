@@ -201,7 +201,7 @@ $(BUILD_DIRS): %:
 $(BUILD_HTML_EDITOR_FILES): $(BUILD_BIN_DIR)/%: html/% | $(BUILD_BIN_DIR)
 	cp $< $@
 
-$(BUILD_BIN_DIR)/player.html: html/player.html.1 html/player.html.2
+$(BUILD_BIN_DIR)/player.html: html/player.html.1 html/player.html.2 html/player.js
 	cat html/player.html.1 html/player.js html/player.html.2 > $@
 
 $(BUILD_EXAMPLE_FILES): $(BUILD_BIN_DIR)/%: examples/% | $(BUILD_BIN_DIR)
