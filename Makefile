@@ -69,15 +69,17 @@ BUILD_EXAMPLE_FILES := $(patsubst examples/%,$(BUILD_BIN_DIR)/%,$(EXAMPLE_FILES)
 HTML_EDITOR_FILES := $(wildcard html/*.js html/*.css html/*.html html/*.png)
 BUILD_HTML_EDITOR_FILES := $(patsubst html/%,$(BUILD_BIN_DIR)/%,$(HTML_EDITOR_FILES))
 
+DIST_LICENSE = $(BUILD_BIN_DIR)/amulet_license.txt
+
 # Rules
 
 default: all
 
 .PHONY: all
 ifeq ($(TARGET_PLATFORM),html)
-all: $(BUILD_HTML_EDITOR_FILES) $(BUILD_BIN_DIR)/player.html $(BUILD_EXAMPLE_FILES) $(AMULET) 
+all: $(BUILD_HTML_EDITOR_FILES) $(BUILD_BIN_DIR)/player.html $(BUILD_EXAMPLE_FILES) $(AMULET) $(DIST_LICENSE)
 else
-all: $(AMULET)
+all: $(AMULET) $(DIST_LICENSE)
 endif
 
 ifeq ($(TARGET_PLATFORM),html)
@@ -272,6 +274,18 @@ clean-all: clean-tests
 .PHONY: doc
 doc:
 	cd doc && $(MAKE) VERSION="$(VERSION)"
+
+# Binary distribution license
+
+$(DIST_LICENSE): LICENSE
+	echo This work uses the Amulet engine \(http://www.amulet.xyz\). > $@
+	echo >> $@
+	echo THE FOLLOWING LICENSE APPLIES ONLY TO THE >> $@
+	echo AMULET ENGINE EXECUTABLE DISTRIBUTED WITH THIS WORK! >> $@
+	echo IT DOES NOT APPLY TO ANY OTHER FILES, INCLUDING >> $@
+	echo ANY SCRIPTS, IMAGES OR AUDIO ASSETS USED IN THE WORK. >> $@
+	echo >> $@
+	tail -n +4 LICENSE >> $@
 
 # Tests
 
