@@ -1,6 +1,7 @@
 win = am.window{
     title = "Defenders of the Weeping Quasar",
-    width = 640, height = 480
+    width = 640, height = 480,
+    clear_color = vec4(0, 0, 0.2, 1),
 }
 
 -- constants
@@ -520,7 +521,7 @@ end
 function boss_kill(enemy, state)
     state.no_new_enemies = false
     state.scene:action(am.series{
-        am.tween(enemy.bg_color, 2, {color = vec4(0.3, 0, 0, 0)}),
+        am.tween(enemy.bg_color"rect", 2, {color = vec4(0.3, 0, 0, 0)}),
         function()
             state.scene:remove(enemy.bg_color)
             return true
@@ -533,10 +534,11 @@ end
 function boss(state)
     state.no_new_enemies = true
 
-    local bg_color = am.rect(win.left - 50, win.bottom - 50, win.right + 50, win.top + 50,
-        vec4(0.3, 0, 0, 0))
+    local bg_color = am.blend"alpha"
+        ^ am.rect(win.left - 50, win.bottom - 50, win.right + 50, win.top + 50,
+            vec4(0.3, 0, 0, 0))
     state.scene:prepend(bg_color)
-    state.scene:action(am.tween(bg_color, 2, {clear_color = vec4(0.3, 0, 0, 1)}))
+    state.scene:action(am.tween(bg_color"rect", 2, {color = vec4(0.3, 0, 0, 1)}))
     bg_stars"particles2d".start_color = vec4(1, 0.5, 0.5, 1)
     bg_stars"particles2d".speed = 1200
 
