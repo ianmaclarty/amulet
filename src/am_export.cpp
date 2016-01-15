@@ -223,7 +223,7 @@ static bool build_linux_export(export_config *conf) {
     if (binpath32 == NULL) return false;
     const char *name = conf->appshortname;
     bool ok =
-        add_files_to_zip_renamed(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_zip_renamed(zipname, binpath64, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&

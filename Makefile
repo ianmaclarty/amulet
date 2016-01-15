@@ -278,14 +278,14 @@ doc:
 # Binary distribution license
 
 $(DIST_LICENSE): LICENSE
-	echo This work uses the Amulet engine \(http://www.amulet.xyz\). > $@
-	echo >> $@
-	echo THE FOLLOWING LICENSE APPLIES ONLY TO THE >> $@
-	echo AMULET ENGINE EXECUTABLE DISTRIBUTED WITH THIS WORK! >> $@
-	echo IT DOES NOT APPLY TO ANY OTHER FILES, INCLUDING >> $@
-	echo ANY SCRIPTS, IMAGES OR AUDIO ASSETS USED IN THE WORK. >> $@
-	echo >> $@
-	tail -n +4 LICENSE >> $@
+	@echo This work uses the Amulet engine \(http://www.amulet.xyz\). > $@
+	@echo >> $@
+	@echo THE FOLLOWING LICENSE APPLIES ONLY TO THE >> $@
+	@echo AMULET ENGINE EXECUTABLE DISTRIBUTED WITH THIS WORK! >> $@
+	@echo IT DOES NOT APPLY TO ANY OTHER FILES, INCLUDING >> $@
+	@echo ANY SCRIPTS, IMAGES OR AUDIO ASSETS USED IN THE WORK. >> $@
+	@echo >> $@
+	@tail -n +4 LICENSE >> $@
 
 # Tests
 
