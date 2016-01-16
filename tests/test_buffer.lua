@@ -146,6 +146,8 @@ for i = 1, 4 do
 end
 
 local setvec = am.vec3_array({1, 2, 3, 4, 5, 6})
+printvec(setvec[1])
+printvec(setvec[2])
 setvec:set(vec3(6, 7, 8))
 printvec(setvec[1])
 printvec(setvec[2])

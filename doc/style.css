@@ -189,3 +189,13 @@ p {
     margin-left: 20px;
 }
 
+table {
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+}
+table td,
+table th {
+    border: 1px solid #494149;
+    padding: 2px 10px 2px 10px;
+}

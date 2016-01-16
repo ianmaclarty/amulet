@@ -99,16 +99,10 @@ function vec_array(values, name, components)
             error("number of elements should be divisible by "..components, 2)
         end
         len = len / components
-        local view = am.buffer(len * stride):view(name, 0, stride)
-        view:set(values)
-        return view
-    else
-        local view = am.buffer(len * stride):view(name, 0, stride)
-        for i = 1, len do
-            view[i] = values[i]
-        end
-        return view
     end
+    local view = am.buffer(len * stride):view(name, 0, stride)
+    view:set(values)
+    return view
 end
 
 function am.vec2_array(values)
