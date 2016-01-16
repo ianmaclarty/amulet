@@ -145,4 +145,9 @@ for i = 1, 4 do
     print(settest1[i])
 end
 
+local setvec = am.vec3_array({1, 2, 3, 4, 5, 6})
+setvec:set(vec3(6, 7, 8))
+printvec(setvec[1])
+printvec(setvec[2])
+
 print("ok")

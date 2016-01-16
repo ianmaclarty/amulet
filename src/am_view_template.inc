@@ -210,6 +210,9 @@ static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
             AM_CONCAT(TNAME,_view_set_from_table)(L, view, 2, sz);
             break;
         case LUA_TNUMBER:
+        case MT_am_vec2:
+        case MT_am_vec3:
+        case MT_am_vec4:
             AM_CONCAT(TNAME,_view_set_from_single)(L, view, 2, sz);
             break;
         case MT_am_buffer_view:
