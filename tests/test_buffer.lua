@@ -89,7 +89,7 @@ viewbyte[1] = -123
 print(viewbyte[1])
 
 local viewbyten = buf2:view("byte_norm", 0, 1, 2)
-viewbyten[2] = -123/127
+viewbyten[2] = -1
 print(math.floor(viewbyten[2]*127))
 
 local viewushort = buf2:view("ushort", 0, 2, 5)
