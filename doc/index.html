@@ -49,13 +49,10 @@ code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* Com
 code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
   </style>
   <link rel="stylesheet" href="style.css">
+<script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
 </head>
 <body>
 <div id="content">
-<header>
-<h1 class="title">Amulet Manual</h1>
-<h2 class="author">Ian MacLarty</h2>
-</header>
 <nav id="TOC">
 <ul>
 <li><a href="#introduction">Introduction</a></li>
@@ -77,7 +74,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#responding-to-mouse-clicks">Responding to mouse clicks</a></li>
 <li><a href="#playing-audio">Playing audio</a></li>
 </ul></li>
-<li><a href="#maths">Maths</a><ul>
+<li><a href="#math">Math</a><ul>
 <li><a href="#vectors">Vectors</a><ul>
 <li><a href="#constructing-vectors">Constructing vectors</a></li>
 <li><a href="#accessing-vector-components">Accessing vector components</a></li>
@@ -94,6 +91,20 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#constructing-quaternions">Constructing quaternions</a></li>
 <li><a href="#quaternion-fields">Quaternion fields</a></li>
 <li><a href="#quaternion-operations">Quaternion operations</a></li>
+</ul></li>
+<li><a href="#math-functions">Math functions</a><ul>
+<li><a href="#math.dotvector1-vector2">math.dot(vector1, vector2)</a></li>
+<li><a href="#math.crossvector1-vector2">math.cross(vector1, vector2)</a></li>
+<li><a href="#math.normalizevector">math.normalize(vector)</a></li>
+<li><a href="#math.lengthvector">math.length(vector)</a></li>
+<li><a href="#math.distancevector1-vector2">math.distance(vector1, vector2)</a></li>
+<li><a href="#math.inversematrix">math.inverse(matrix)</a></li>
+<li><a href="#math.lookateye-center-up">math.lookat(eye, center, up)</a></li>
+<li><a href="#math.perspectivefovy-aspect-near-far">math.perspective(fovy, aspect, near, far)</a></li>
+<li><a href="#math.ortholeft-right-bottom-top-near-far">math.ortho(left, right, bottom, top [, near, far])</a></li>
+<li><a href="#math.perlinpos-period">math.perlin(pos [, period])</a></li>
+<li><a href="#math.simplexpos">math.simplex(pos)</a></li>
+<li><a href="#math.mixfrom-top-t">math.mix(from, top, t)</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#buffers-and-views">Buffers and views</a><ul>
@@ -128,114 +139,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.vec4_array">am.vec4_array(table)</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#scene-graphs">Scene graphs</a><ul>
-<li><a href="#scene-graph-construction-syntax">Scene graph construction syntax</a></li>
-<li><a href="#scene-node-common-methods">Scene node common methods</a><ul>
-<li><a href="#node:tag">node:tag(tagname)</a></li>
-<li><a href="#node:untag">node:untag(tagname)</a></li>
-<li><a href="#node:all">node:all(tagname)</a></li>
-<li><a href="#node:tagsearch">node(tagname)</a></li>
-<li><a href="#node:action">node:action([id,] action)</a></li>
-<li><a href="#node:late_action">node:late_action([id,] action)</a></li>
-<li><a href="#node:cancel">node:cancel(id)</a></li>
-<li><a href="#nodeappendchild">node:append(child)</a></li>
-<li><a href="#nodeprependchild">node:prepend(child)</a></li>
-<li><a href="#noderemovechild">node:remove(child)</a></li>
-<li><a href="#noderemovetagname">node:remove(tagname)</a></li>
-<li><a href="#noderemove_all">node:remove_all()</a></li>
-<li><a href="#nodereplacechild-replacement">node:replace(child, replacement)</a></li>
-<li><a href="#nodereplacetagname-replacement">node:replace(tagname, replacement)</a></li>
-<li><a href="#nodechildn">node:child(n)</a></li>
-<li><a href="#nodechild_pairs">node:child_pairs()</a></li>
-</ul></li>
-<li><a href="#scene-node-common-fields">Scene node common fields</a><ul>
-<li><a href="#node.hidden">node.hidden</a></li>
-<li><a href="#node.paused">node.paused</a></li>
-<li><a href="#node.num_children">node.num_children</a></li>
-<li><a href="#node.recursion_limit">node.recursion_limit</a></li>
-</ul></li>
-<li><a href="#core-scene-nodes">Core scene nodes</a><ul>
-<li><a href="#am.groupchildren">am.group(children)</a></li>
-<li><a href="#am.use_program">am.use_program(program)</a></li>
-<li><a href="#am.bind">am.bind(bindings)</a></li>
-<li><a href="#am.draw">am.draw(primitive [, elements] [, first [, count]])</a></li>
-<li><a href="#am.translate">am.translate([uniform,] position)</a></li>
-<li><a href="#am.scale">am.scale([uniform,] scaling)</a></li>
-<li><a href="#am.rotate">am.rotate([uniform,] rotation)</a></li>
-<li><a href="#am.blendmode">am.blend(mode)</a></li>
-<li><a href="#am.cull_faceface">am.cull_face(face)</a></li>
-<li><a href="#am.depth_test">am.depth_test(test [, mask])</a></li>
-<li><a href="#am.viewport">am.viewport(x, y, width, height)</a></li>
-<li><a href="#am.lookatuniform-eye-center-up">am.lookat([uniform,] eye, center, up)</a></li>
-<li><a href="#am.cull_sphereuniforms...-radius-center">am.cull_sphere([uniforms...,] radius, center)</a></li>
-<li><a href="#am.billboarduniform-preserve_scaling">am.billboard([uniform,] [preserve_scaling])</a></li>
-<li><a href="#am.read_mat2uniform">am.read_mat2(uniform)</a></li>
-<li><a href="#am.read_mat3uniform">am.read_mat3(uniform)</a></li>
-<li><a href="#am.read_mat4uniform">am.read_mat4(uniform)</a></li>
-<li><a href="#am.color_maskred-green-blue-alpha">am.color_mask(red, green, blue, alpha)</a></li>
-</ul></li>
-<li><a href="#derived-scene-nodes">Derived scene nodes</a><ul>
-<li><a href="#am.text">am.text</a></li>
-<li><a href="#am.sprite">am.sprite</a></li>
-<li><a href="#am.rect">am.rect</a></li>
-<li><a href="#am.circle">am.circle</a></li>
-<li><a href="#am.particles2d">am.particles2d</a></li>
-<li><a href="#am.postprocess">am.postprocess</a></li>
-</ul></li>
-<li><a href="#creating-custom-scene-nodes">Creating custom scene nodes</a></li>
-</ul></li>
-<li><a href="#graphics">Graphics</a><ul>
-<li><a href="#overview">Overview</a></li>
-<li><a href="#creating-a-window-1">Creating a window</a></li>
-<li><a href="#shaders">Shaders</a></li>
-<li><a href="#scene-graphs-1">Scene graphs</a></li>
-<li><a href="#binding-shader-inputs">Binding shader inputs</a></li>
-<li><a href="#drawing-primitives">Drawing primitives</a></li>
-<li><a href="#transforms">Transforms</a></li>
-<li><a href="#textures">Textures</a></li>
-<li><a href="#framebuffers">Framebuffers</a></li>
-<li><a href="#graphics-api-reference">Graphics API reference</a></li>
-</ul></li>
-<li><a href="#actions-1">Actions</a><ul>
-<li><a href="#overview-1">Overview</a></li>
-<li><a href="#creating-actions">Creating actions</a></li>
-<li><a href="#cancelling-actions">Cancelling actions</a></li>
-<li><a href="#composing-actions">Composing actions</a></li>
-</ul></li>
-<li><a href="#input">Input</a><ul>
-<li><a href="#keyboard">Keyboard</a></li>
-<li><a href="#mouse">Mouse</a></li>
-</ul></li>
-<li><a href="#audio">Audio</a><ul>
-<li><a href="#audio-graphs">Audio graphs</a></li>
-<li><a href="#playing-audio-1">Playing audio</a></li>
-<li><a href="#analysing-audio">Analysing audio</a></li>
-<li><a href="#audio-node-reference">Audio node reference</a></li>
-</ul></li>
-<li><a href="#project-settings">Project settings</a></li>
-<li><a href="#api-reference">API reference</a><ul>
-<li><a href="#maths-functions">Maths functions</a><ul>
-<li><a href="#vec2...">vec2(...)</a></li>
-<li><a href="#vec3...">vec3(...)</a></li>
-<li><a href="#vec4...">vec4(...)</a></li>
-<li><a href="#math.dot-vector1-vector2">math.dot (vector1, vector2)</a></li>
-<li><a href="#math.crossvector1-vector2">math.cross(vector1, vector2)</a></li>
-<li><a href="#math.normalizevector">math.normalize(vector)</a></li>
-<li><a href="#math.lengthvector">math.length(vector)</a></li>
-<li><a href="#math.distancevector1-vector2">math.distance(vector1, vector2)</a></li>
-<li><a href="#mat2...">mat2(...)</a></li>
-<li><a href="#mat3...">mat3(...)</a></li>
-<li><a href="#mat4...">mat4(...)</a></li>
-<li><a href="#math.inversematrix">math.inverse(matrix)</a></li>
-<li><a href="#math.lookateye-center-up">math.lookat(eye, center, up)</a></li>
-<li><a href="#math.perspectivefovy-aspect-near-far">math.perspective(fovy, aspect, near, far)</a></li>
-<li><a href="#math.ortholeft-right-bottom-top-near-far">math.ortho(left, right, bottom, top [, near, far])</a></li>
-<li><a href="#quat...">quat(...)</a></li>
-<li><a href="#math.perlinpos-period">math.perlin(pos [, period])</a></li>
-<li><a href="#math.simplexpos">math.simplex(pos)</a></li>
-<li><a href="#math.mixfrom-top-t">math.mix(from, top, t)</a></li>
-</ul></li>
-<li><a href="#window-functions">Window functions</a><ul>
+<li><a href="#windows-and-input">Windows and input</a><ul>
+<li><a href="#creating-a-window-1">Creating a window</a><ul>
 <li><a href="#window_func">am.window(settings)</a></li>
 </ul></li>
 <li><a href="#window-fields">Window fields</a><ul>
@@ -254,12 +159,19 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#window.scene">window.scene</a></li>
 <li><a href="#window.projection">window.projection</a></li>
 </ul></li>
-<li><a href="#window-methods">Window methods</a><ul>
+<li><a href="#closing-a-window">Closing a window</a><ul>
 <li><a href="#windowclose">window:close()</a></li>
+</ul></li>
+<li><a href="#detecting-when-a-window-resizes">Detecting when a window resizes</a><ul>
+<li><a href="#windowresized">window:resized()</a></li>
+</ul></li>
+<li><a href="#detecting-key-presses">Detecting key presses</a><ul>
 <li><a href="#key_down">window:key_down(key)</a></li>
 <li><a href="#windowkeys_down">window:keys_down()</a></li>
 <li><a href="#windowkey_pressedkey">window:key_pressed(key)</a></li>
 <li><a href="#windowkey_releasedkey">window:key_released(key)</a></li>
+</ul></li>
+<li><a href="#detecting-mouse-events">Detecting mouse events</a><ul>
 <li><a href="#windowmouse_position">window:mouse_position()</a></li>
 <li><a href="#windowmouse_norm_position">window:mouse_norm_position()</a></li>
 <li><a href="#windowmouse_pixel_position">window:mouse_pixel_position()</a></li>
@@ -271,6 +183,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#windowmouse_releasedbutton">window:mouse_released(button)</a></li>
 <li><a href="#windowmouse_wheel">window:mouse_wheel()</a></li>
 <li><a href="#windowmouse_wheel_delta">window:mouse_wheel_delta()</a></li>
+</ul></li>
+<li><a href="#detecting-touch-events">Detecting touch events</a><ul>
 <li><a href="#touches_began">window:touches_began()</a></li>
 <li><a href="#windowtouches_ended">window:touches_ended()</a></li>
 <li><a href="#windowactive_touches">window:active_touches()</a></li>
@@ -282,11 +196,118 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#windowtouch_deltatouch">window:touch_delta(touch)</a></li>
 <li><a href="#windowtouch_norm_deltatouch">window:touch_norm_delta(touch)</a></li>
 <li><a href="#windowtouch_pixel_deltatouch">window:touch_pixel_delta(touch)</a></li>
-<li><a href="#windowresized">window:resized()</a></li>
 </ul></li>
 </ul></li>
+<li><a href="#scenes">Scenes</a><ul>
+<li><a href="#scene-graph-construction-syntax">Scene graph construction syntax</a></li>
+<li><a href="#scene-node-common-fields-and-methods">Scene node common fields and methods</a><ul>
+<li><a href="#node.hidden">node.hidden</a></li>
+<li><a href="#node.paused">node.paused</a></li>
+<li><a href="#node.num_children">node.num_children</a></li>
+<li><a href="#node.recursion_limit">node.recursion_limit</a></li>
+<li><a href="#node:tag">node:tag(tagname)</a></li>
+<li><a href="#node:untag">node:untag(tagname)</a></li>
+<li><a href="#node:all">node:all(tagname)</a></li>
+<li><a href="#node:tagsearch">node(tagname)</a></li>
+<li><a href="#node:action">node:action([id,] action)</a></li>
+<li><a href="#node:late_action">node:late_action([id,] action)</a></li>
+<li><a href="#node:cancel">node:cancel(id)</a></li>
+<li><a href="#nodeappendchild">node:append(child)</a></li>
+<li><a href="#nodeprependchild">node:prepend(child)</a></li>
+<li><a href="#noderemovechild">node:remove(child)</a></li>
+<li><a href="#noderemovetagname">node:remove(tagname)</a></li>
+<li><a href="#noderemove_all">node:remove_all()</a></li>
+<li><a href="#nodereplacechild-replacement">node:replace(child, replacement)</a></li>
+<li><a href="#nodereplacetagname-replacement">node:replace(tagname, replacement)</a></li>
+<li><a href="#nodechildn">node:child(n)</a></li>
+<li><a href="#nodechild_pairs">node:child_pairs()</a></li>
+</ul></li>
+<li><a href="#basic-nodes">Basic nodes</a><ul>
+<li><a href="#am.groupchildren">am.group(children)</a></li>
+<li><a href="#am.text">am.text</a></li>
+<li><a href="#am.sprite">am.sprite</a></li>
+<li><a href="#am.rect">am.rect</a></li>
+<li><a href="#am.circle">am.circle</a></li>
+<li><a href="#am.particles2d">am.particles2d</a></li>
+</ul></li>
+<li><a href="#transformation-nodes-1">Transformation nodes</a><ul>
+<li><a href="#am.translate">am.translate([uniform,] position)</a></li>
+<li><a href="#am.scale">am.scale([uniform,] scaling)</a></li>
+<li><a href="#am.rotate">am.rotate([uniform,] rotation)</a></li>
+</ul></li>
+<li><a href="#advanced-nodes">Advanced nodes</a><ul>
+<li><a href="#am.use_program">am.use_program(program)</a></li>
+<li><a href="#am.bind">am.bind(bindings)</a></li>
+<li><a href="#am.draw">am.draw(primitive [, elements] [, first [, count]])</a></li>
+<li><a href="#am.blendmode">am.blend(mode)</a></li>
+<li><a href="#am.color_maskred-green-blue-alpha">am.color_mask(red, green, blue, alpha)</a></li>
+<li><a href="#am.cull_faceface">am.cull_face(face)</a></li>
+<li><a href="#am.depth_test">am.depth_test(test [, mask])</a></li>
+<li><a href="#am.viewport">am.viewport(x, y, width, height)</a></li>
+<li><a href="#am.lookatuniform-eye-center-up">am.lookat([uniform,] eye, center, up)</a></li>
+<li><a href="#am.cull_sphereuniforms...-radius-center">am.cull_sphere([uniforms...,] radius, center)</a></li>
+<li><a href="#am.billboarduniform-preserve_scaling">am.billboard([uniform,] [preserve_scaling])</a></li>
+<li><a href="#am.read_mat2uniform">am.read_mat2(uniform)</a></li>
+<li><a href="#am.read_mat3uniform">am.read_mat3(uniform)</a></li>
+<li><a href="#am.read_mat4uniform">am.read_mat4(uniform)</a></li>
+<li><a href="#am.postprocess">am.postprocess</a></li>
+</ul></li>
+<li><a href="#creating-custom-scene-nodes">Creating custom scene nodes</a></li>
+</ul></li>
+<li><a href="#shader-programs">Shader programs</a><ul>
+<li><a href="#compiling-a-shader-program">Compiling a shader program</a><ul>
+<li><a href="#am.program">am.program(vertex_shader, fragment_shader)</a></li>
+</ul></li>
+<li><a href="#pre-defined-shader-programs">Pre-defined shader programs</a></li>
+</ul></li>
+<li><a href="#image-buffers">Image buffers</a></li>
+<li><a href="#textures">Textures</a><ul>
+<li><a href="#creating-a-texture">Creating a texture</a><ul>
+<li><a href="#am.texture2d">am.texture2d(width [, height])</a></li>
+<li><a href="#am.texture2dimage_buffer">am.texture2d(image_buffer)</a></li>
+<li><a href="#am.texture2dfilename">am.texture2d(filename)</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#framebuffers">Framebuffers</a></li>
+<li><a href="#actions-1">Actions</a><ul>
+<li><a href="#combining-actions">Combining actions</a></li>
+<li><a href="#tweens">Tweens</a></li>
+<li><a href="#tween-ease-functions">Tween ease functions</a></li>
+<li><a href="#coroutine-actions">Coroutine actions</a></li>
+</ul></li>
+<li><a href="#time">Time</a><ul>
+<li><a href="#frame-time">Frame time</a></li>
+<li><a href="#delta-time">Delta time</a></li>
+<li><a href="#real-time">Real time</a></li>
+</ul></li>
+<li><a href="#saving-and-loading-state">Saving and loading state</a><ul>
+<li><a href="#saving">Saving</a></li>
+<li><a href="#loading">Loading</a></li>
+</ul></li>
+<li><a href="#audio">Audio</a><ul>
+<li><a href="#audio-graphs">Audio graphs</a></li>
+<li><a href="#playing-audio-1">Playing audio</a></li>
+<li><a href="#analysing-audio">Analysing audio</a></li>
+<li><a href="#audio-node-reference">Audio node reference</a></li>
+</ul></li>
+<li><a href="#extra-table-functions">Extra table functions</a></li>
+<li><a href="#logging">Logging</a></li>
+<li><a href="#running-javascript">Running Javascript</a></li>
+<li><a href="#converting-tofrom-json">Converting to/from JSON</a></li>
+<li><a href="#loading-scripts">Loading scripts</a></li>
+<li><a href="#performance-stats">Performance stats</a></li>
+<li><a href="#amulet-version">Amulet version</a></li>
+<li><a href="#useful-directories">Useful directories</a></li>
+<li><a href="#packing-sprites">Packing sprites</a></li>
+<li><a href="#exporting">Exporting</a></li>
 </ul>
 </nav>
+<div id="content-inner">
+<header>
+<img src="logo.png" alt="Amulet Logo">
+<h1 class="title">Amulet Manual</h1>
+<h2 class="author">Ian MacLarty</h2>
+</header>
 <h1 id="introduction">Introduction</h1>
 <p>Amulet is a Lua-based toolkit for experimenting with interactive graphics and audio. It provides a cross-platform API for drawing graphics, playing audio and responding to user input, and a command-line interpretter for running Amulet scripts.</p>
 <p>It tries to be simple to use, but without making too many assumptions about how you want to use it.</p>
@@ -465,6 +486,10 @@ mymodule<span class="ot">.</span>message <span class="ot">=</span> <span class="
 mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span class="co">-- prints hello</span></code></pre></div>
 <p>This scheme allows cyclic module imports, e.g. module A requires module B which in turn requires module A. Amulet will detect the recursion and return A's (incomplete) export table in B. Then when A has finished initializing, all its functions will be available in B. This does mean that B can't call any of A's functions while its initializing, but after initialization all of A's functions will be available.</p>
 <p>Of course you can still return your own values from modules and they will be returned by <code>require</code> as with the default Lua <code>require</code> function.</p>
+<div class="figure">
+<img src="images/screenshot6.jpg" alt="" />
+
+</div>
 <h1 id="quickstart">Quickstart tutorial</h1>
 <h2 id="installing-amulet">Installing Amulet</h2>
 <p><strong>Windows:</strong></p>
@@ -850,7 +875,7 @@ win<span class="ot">.</span>scene:action<span class="ot">(</span><span class="kw
 
 <span class="co">-- play ocean sound in a loop</span>
 win<span class="ot">.</span>scene:action<span class="ot">(</span>am<span class="ot">.</span>play<span class="ot">(</span><span class="st">&quot;ocean.ogg&quot;</span><span class="ot">,</span> <span class="kw">true</span><span class="ot">))</span></code></pre></div>
-<h1 id="maths">Maths</h1>
+<h1 id="math">Math</h1>
 <div class="figure">
 <img src="images/screenshot1.jpg" alt="" />
 
@@ -889,7 +914,7 @@ win<span class="ot">.</span>scene:action<span class="ot">(</span>am<span class="
 <span class="fu">print</span><span class="ot">(</span>dir<span class="ot">.</span>rggb<span class="ot">)</span>
 <span class="fu">print</span><span class="ot">(</span>dir<span class="ot">.</span>zzys<span class="ot">)</span></code></pre></div>
 <p>Running the above code results in the following output:</p>
-<pre class="sourceCode text"><code>vec2(1, 2)
+<pre class="console"><code>vec2(1, 2)
 vec4(1, 2, 2, 3)
 vec4(3, 3, 2, 1)</code></pre>
 <p><strong>Note:</strong> You can pass vectors, matrices and quaternions directly to <code>print</code> or other functions that expect strings and they will be formatted appropriately.</p>
@@ -910,7 +935,7 @@ v <span class="ot">=</span> v<span class="ot">{</span>x <span class="ot">=</span
 <span class="fu">print</span><span class="ot">(</span>vec3<span class="ot">(</span><span class="dv">30</span><span class="ot">)</span> <span class="ot">/</span> vec3<span class="ot">(</span><span class="dv">3</span><span class="ot">,</span> <span class="dv">10</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">))</span>
 <span class="fu">print</span><span class="ot">(</span><span class="dv">2</span> <span class="ot">*</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">))</span></code></pre></div>
 <p>produces the following output:</p>
-<pre class="sourceCode text"><code>vec2(4, 5)
+<pre class="console"><code>vec2(4, 5)
 vec3(10, 3, 6)
 vec4(2, 4, 6, 8)</code></pre>
 <div class="figure">
@@ -923,43 +948,51 @@ vec4(2, 4, 6, 8)</code></pre>
 <h3 id="constructing-matrices">Constructing matrices</h3>
 <p>Use one of the functions <code>mat2</code>, <code>mat3</code> or <code>mat4</code> to contruct a 2x2, 3x3 or 4x4 matrix.</p>
 <p>Passing a single number argument to one of the matrix constructors generates a matrix with all diagonal elements equal to the number and all other elements equal to zero. For example <code>mat3(1)</code> constructs the 3x3 identity matrix:</p>
-<p><br /><span class="math display">$$\begin{bmatrix}
+<div class="math">
+\begin{bmatrix}
     1 &amp; 0 &amp; 0 \\
     0 &amp; 1 &amp; 0 \\
     0 &amp; 0 &amp; 1
-\end{bmatrix}$$</span><br /></p>
+\end{bmatrix}
+</div>
 <p>You can also pass the individual elements of the matrix as arguments to one of the constructors. These can either be numbers or vectors or a mix of the two. As the constructor arguments are consumed from left to right, the matrix is filled in column by column. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m <span class="ot">=</span> mat3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span>
                <span class="dv">4</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">,</span>
                <span class="dv">7</span><span class="ot">,</span> <span class="dv">8</span><span class="ot">,</span> <span class="dv">9</span><span class="ot">)</span></code></pre></div>
 <p>sets <code>m</code> to the matrix:</p>
-<p><br /><span class="math display">$$\begin{bmatrix}
+<div class="math">
+\begin{bmatrix}
     1 &amp; 4 &amp; 7 \\
     2 &amp; 5 &amp; 8 \\
     3 &amp; 6 &amp; 9
-\end{bmatrix}$$</span><br /></p>
+\end{bmatrix}
+</div>
 <p>Here's another example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m <span class="ot">=</span> mat4<span class="ot">(</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">),</span> <span class="dv">4</span><span class="ot">,</span>
                vec4<span class="ot">(</span><span class="dv">5</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">,</span> <span class="dv">7</span><span class="ot">,</span> <span class="dv">8</span><span class="ot">),</span>
                vec2<span class="ot">(</span><span class="dv">9</span><span class="ot">,</span> <span class="dv">10</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">11</span><span class="ot">,</span> <span class="dv">12</span><span class="ot">),</span>
                <span class="dv">13</span><span class="ot">,</span> <span class="dv">14</span><span class="ot">,</span> <span class="dv">15</span><span class="ot">,</span> <span class="dv">16</span><span class="ot">)</span></code></pre></div>
 <p>This sets <code>m</code> to the matrix:</p>
-<p><br /><span class="math display">$$\begin{bmatrix}
+<div class="math">
+\begin{bmatrix}
     1 &amp;  5 &amp;  9 &amp; 13 \\ 
     2 &amp;  6 &amp; 10 &amp; 14 \\ 
     3 &amp;  7 &amp; 11 &amp; 15 \\ 
     4 &amp;  8 &amp; 12 &amp; 16
-\end{bmatrix}$$</span><br /></p>
+\end{bmatrix}
+</div>
 <p><strong>Note</strong>: Matrix constructors are admittedly somewhat confusing, because when you write the matrix constructor in code the columns are layed out horizontally. This is however the convention used in the OpenGL Shader Language (GLSL).</p>
 <p>A matrix can also be constructed by passing an existing matrix to one of the matrix construction functions. If the existing matrix is larger than the construction function, the new matrix's elements come from the top-left corner of the existing matrix. Otherwise the top-left corner of the new matrix is filled with the contents of the existing matrix and the rest from the identity matrix. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m <span class="ot">=</span> mat4<span class="ot">(</span>mat2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">))</span></code></pre></div>
 <p>will set <code>m</code> to the matrix:</p>
-<p><br /><span class="math display">$$\begin{bmatrix}
+<div class="math">
+\begin{bmatrix}
     1 &amp; 3 &amp; 0 &amp; 0 \\
     2 &amp; 4 &amp; 0 &amp; 0 \\
     0 &amp; 0 &amp; 1 &amp; 0 \\
     0 &amp; 0 &amp; 0 &amp; 1
-\end{bmatrix}$$</span><br /></p>
+\end{bmatrix}
+</div>
 <p>Finally a 3x3 or 4x4 rotation matrix can be constructed from a quaternion by passing the quaternion as the single argument to <code>mat3</code> or <code>mat4</code> (see quaternions).</p>
 <h3 id="accessing-matrix-components">Accessing matrix components</h3>
 <p>The columns of a matrix can be accessed as vectors using 1-based integer indices. The Lua length operator can be used to determine the number of columns. For example:</p>
@@ -968,35 +1001,41 @@ vec4(2, 4, 6, 8)</code></pre>
     <span class="fu">print</span><span class="ot">(</span>matrix<span class="ot">[</span>i<span class="ot">])</span>
 <span class="kw">end</span></code></pre></div>
 <p>This would produce the following output:</p>
-<pre class="sourceCode text"><code>vec2(1, 0)
+<pre class="console"><code>vec2(1, 0)
 vec2(0, 2)</code></pre>
 <h3 id="matrix-arithmetic">Matrix arithmetic</h3>
 <p>As with vectors the <code>+</code>, <code>-</code>, <code>*</code> and <code>/</code> operators work with matrices too. When one operand is a number, the result is a new matrix of the same size with the operator applied to each element of the matrix. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m1 <span class="ot">=</span> <span class="dv">2</span> <span class="ot">*</span> mat2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">)</span></code></pre></div>
 <p>sets <code>m1</code> to the matrix:</p>
-<p><br /><span class="math display">$$\begin{bmatrix}
+<div class="math">
+\begin{bmatrix}
     2 &amp; 6 \\
     4 &amp; 8
-\end{bmatrix}$$</span><br /></p>
+\end{bmatrix}
+</div>
 <p>and:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m2 <span class="ot">=</span> mat3<span class="ot">(</span><span class="dv">3</span><span class="ot">)</span> <span class="ot">-</span> <span class="dv">1</span></code></pre></div>
 <p>sets <code>m2</code> to the matrix:</p>
-<p><br /><span class="math display">$$\begin{bmatrix}
+<div class="math">
+\begin{bmatrix}
     2 &amp; -1 &amp; -1 \\
     -1 &amp; 2 &amp; -1 \\
     -1 &amp; -1 &amp; 2
-\end{bmatrix}$$</span><br /></p>
+\end{bmatrix}
+</div>
 <p>When both operands are matrices, the <code>+</code> and <code>-</code> operators work in a similar way to vectors, with the operations applied component-wise. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m3 <span class="ot">=</span> mat2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">)</span> <span class="ot">+</span> mat2<span class="ot">(</span><span class="dv">0.1</span><span class="ot">,</span> <span class="dv">0.2</span><span class="ot">,</span> <span class="dv">0.3</span><span class="ot">,</span> <span class="dv">0.4</span><span class="ot">)</span></code></pre></div>
 <p>sets <code>m3</code> to the matrix:</p>
-<p><br /><span class="math display">$$\begin{bmatrix}
+<div class="math">
+\begin{bmatrix}
     1.1 &amp; 3.3 \\
     2.2 &amp; 4.4
-\end{bmatrix}$$</span><br /></p>
+\end{bmatrix}
+</div>
 <p>However, when both operands are matrices, the <code>*</code> operator computes the <a href="http://en.wikipedia.org/wiki/Matrix_multiplication">matrix product</a>.</p>
 <p>If the first operand is a vector and the second is a matrix, then the first operand is taken to be a row vector (a matrix with one row) and should have the same number of columns as the matrix. The result is the matrix product of the row vector and the matrix (another row vector).</p>
 <p>Similarly if the first argument is a matrix and the second a vector, the vector is taken to be a column vector (a matrix with one column) and the result is the matrix product of the matrix and column vector, which is another column vector.</p>
-<p>The <code>/</code> operator also works when both arguments are matrices and is equivalent to multiplying by the first matrix by the inverse of the second.</p>
+<p>The <code>/</code> operator also works when both arguments are matrices and is equivalent to multiplying the first matrix by the inverse of the second.</p>
 <div class="figure">
 <img src="images/screenshot2.jpg" alt="" />
 
@@ -1021,7 +1060,7 @@ vec2(0, 2)</code></pre>
 <p>A quaternion can also be converted to a 3x3 or 4x4 matrix by passing it as the single argument to the <code>mat3</code> or <code>mat4</code> functions (see mat-cons).</p>
 <p>Finally a quaternion can be contructed from the coefficients of its real and imaginary parts:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> q <span class="ot">=</span> quat<span class="ot">(</span>w<span class="ot">,</span> x<span class="ot">,</span> y<span class="ot">,</span> z<span class="ot">)</span></code></pre></div>
-<p><code>w</code> is the real part and <code>x</code>, <code>y</code> and <code>z</code> are the coeffients of the imaginary numbers <span class="math inline"><em>i</em></span>, <span class="math inline"><em>j</em></span> and <span class="math inline"><em>k</em></span>.</p>
+<p><code>w</code> is the real part and <code>x</code>, <code>y</code> and <code>z</code> are the coeffients of the imaginary numbers <span class="math inline">\(i\)</span>, <span class="math inline">\(j\)</span> and <span class="math inline">\(k\)</span>.</p>
 <h3 id="quaternion-fields">Quaternion fields</h3>
 <p>The <code>angle</code>, <code>axis</code>, <code>pitch</code>, <code>roll</code>, <code>yaw</code>, <code>w</code>, <code>x</code>, <code>y</code> and <code>z</code> fields can be used to read the corresponding attributes of a quaternion.</p>
 <p><strong>Note</strong>: Quaternions use a normalized internal representation, so the value returned by a field might be different from the value used to construct the quaternion. Though the quaternion as a whole represents the equivalent rotatation.</p>
@@ -1033,7 +1072,44 @@ vec2(0, 2)</code></pre>
 <span class="kw">local</span> v2 <span class="ot">=</span> q <span class="ot">*</span> v1</code></pre></div>
 <p>would set <code>v2</code> to the vector <code>vec3(0, 1, 0)</code>, which is <code>v1</code> rotated 90 degrees in the xy plain.</p>
 <p>A <code>vec2</code> can be rotated in a similar way (the z component is assumed to be zero and the z component of the result is dropped, yielding another <code>vec2</code>).</p>
+<h2 id="math-functions">Math functions</h2>
+<p>The following functions supplement the standard Lua math functions.</p>
+<h3 id="math.dotvector1-vector2" class="func-def">math.dot(vector1, vector2)</h3>
+<p>Returns the dot product of two vectors. The vectors must have the same size.</p>
+<h3 id="math.crossvector1-vector2" class="func-def">math.cross(vector1, vector2)</h3>
+<p>Returns the cross product of two 3 dimensional vectors.</p>
+<h3 id="math.normalizevector" class="func-def">math.normalize(vector)</h3>
+<p>Returns the normalized form of a vector (i.e. the vector that points in the same direction, but whose length is 1). If the given vector has zero length, then a vector of the same size is returned whose first component is 1 and whose remaining components are 0.</p>
+<h3 id="math.lengthvector" class="func-def">math.length(vector)</h3>
+<p>Returns the length of a vector.</p>
+<h3 id="math.distancevector1-vector2" class="func-def">math.distance(vector1, vector2)</h3>
+<p>Returns the distance between two vectors.</p>
+<h3 id="math.inversematrix" class="func-def">math.inverse(matrix)</h3>
+<p>Returns the inverse of a matrix.</p>
+<h3 id="math.lookateye-center-up" class="func-def">math.lookat(eye, center, up)</h3>
+<p>Creates a 4x4 view matrix at <code>eye</code>, looking in the direction of <code>center</code> with the y axis of the camera pointing in the direction same direction as <code>up</code>.</p>
+<h3 id="math.perspectivefovy-aspect-near-far" class="func-def">math.perspective(fovy, aspect, near, far)</h3>
+<p>Creates a 4x4 matrix for a symetric perspective-view frustum.</p>
+<ul>
+<li><code>fovy</code> is the field of view in the y plain, in radians.</li>
+<li><code>aspect</code> is typically the window width divided by its height.</li>
+<li><code>near</code> and <code>far</code> are the distances of the near and far clipping plains from the camera (these should be positive).</li>
+</ul>
+<h3 id="math.ortholeft-right-bottom-top-near-far" class="func-def">math.ortho(left, right, bottom, top [, near, far])</h3>
+<p>Creates a 4x4 orthographic projection marix. The default values for <code>near</code> and <code>far</code> are <code>1</code> and <code>-1</code>.</p>
+<h3 id="math.perlinpos-period" class="func-def">math.perlin(pos [, period])</h3>
+<p>Generate perlin noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number. If the second argument is supplied then the noise will be periodic with the given period. <code>period</code> should be of the same type as <code>pos</code> and its components should be integers greater than 1.</p>
+<p>The returned value is between -1 and 1.</p>
+<h3 id="math.simplexpos" class="func-def">math.simplex(pos)</h3>
+<p>Generate simplex noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number.</p>
+<p>The returned value is between -1 and 1.</p>
+<h3 id="math.mixfrom-top-t" class="func-def">math.mix(from, top, t)</h3>
+<p>Returns the linear interpolation between <code>from</code> and <code>to</code> determined by <code>t</code>. <code>from</code> and <code>to</code> can be numbers or vectors, and must be the same type. <code>t</code> should be a number between 0 and 1. <code>from</code> and <code>to</code> can also be quaternions. In that case <code>math.mix</code> returns the spherical linear interpolation of the two quaternions.</p>
 <h1 id="buffers-and-views">Buffers and views</h1>
+<div class="figure">
+<img src="images/screenshot5.jpg" alt="" />
+
+</div>
 <p>Buffers are contiguous blocks of memory. They are used for storing images, audio and vertex data, or anything else you like.</p>
 <p>You can't access a buffer's memory directly. Instead you access a buffer through a <em>view</em>. Views provide a typed array-like interface to the buffer.</p>
 <h2 id="buffers">Buffers</h2>
@@ -1243,462 +1319,12 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <h3 id="am.vec4_array" class="func-def">am.vec4_array(table)</h3>
 <p>Returns a <code>vec4</code> view to a newly created buffer containing the values in the given table.</p>
 <p>The table may contain either <code>vec4</code>s or numbers (though not a mix). If the table contains numbers they are used for the vector components and the resulting view will have a quarter the number of elements as there are numbers in the table.</p>
-<h1 id="scene-graphs">Scene graphs</h1>
-<p>Scene graphs are how you draw graphics in Amulet. <em>Scene nodes</em> are connected together to form a scene graph which is attached to a window. The window will then render the scene graph each frame.</p>
-<p>Scene nodes correspond to graphics commands. They either change the rendering state in some way, for example by applying a transformation or changing the blend mode, or execute a draw command, which renders something to the screen.</p>
-<p>Each scene node has a list of children, which are rendered in order.</p>
-<p>A scene node may be the child of multiple other scene nodes, so in general a scene node does not have a unique parent. Cycles are also allowed and are handled by imposing a limit to the number of times a node can be recursively rendered.</p>
-<h2 id="scene-graph-construction-syntax">Scene graph construction syntax</h2>
-<p>Special syntax is provided for constructing scene graphs from nodes. The expression:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> node2</code></pre></div>
-<p>adds <code>node2</code> as a child of <code>node1</code> and returns <code>node1</code>. The resulting scene graph looks like this:</p>
 <div class="figure">
-<img src="graphs/scene4.png" alt="" />
+<img src="images/screenshot3.jpg" alt="" />
 
 </div>
-<p>The expression:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> <span class="ot">{</span> node2<span class="ot">,</span> node3 <span class="ot">}</span></code></pre></div>
-<p>adds both <code>node2</code> and <code>node3</code> as children of <code>node1</code> and returns <code>node1</code>:</p>
-<div class="figure">
-<img src="graphs/scene5.png" alt="" />
-
-</div>
-<p>The expression:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> <span class="ot">{</span> node2<span class="ot">,</span> node3 <span class="ot">}</span> <span class="ot">^</span> node4</code></pre></div>
-<p>does the same as the previous expression, except <code>node4</code> is added as a child of both <code>node2</code> and <code>node3</code>:</p>
-<div class="figure">
-<img src="graphs/scene6.png" alt="" />
-
-</div>
-<p>If <code>node2</code> or <code>node3</code> were graphs with multiple nodes, then <code>node4</code> would be added to the leaf nodes of those graphs.</p>
-<p>Here is a more complex example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 
-    <span class="ot">^</span> node2
-    <span class="ot">^</span> <span class="ot">{</span>
-        node3
-        <span class="ot">^</span> node4
-        <span class="ot">,</span>
-        node5
-        <span class="ot">^</span> <span class="ot">{</span>node6<span class="ot">,</span> node7<span class="ot">,</span> node8<span class="ot">}</span>
-    <span class="ot">}</span>
-    <span class="ot">^</span> node9
-    <span class="ot">^</span> node10</code></pre></div>
-<p>The above expression results in the following graph:</p>
-<div class="figure">
-<img src="graphs/scene7.png" alt="" />
-
-</div>
-<h2 id="scene-node-common-methods">Scene node common methods</h2>
-<p>The following methods are common to all scene nodes.</p>
-<h3 id="node:tag" class="method-def">node:tag(tagname)</h3>
-<p>Adds a tag to a node and returns the node. <code>tagname</code> should be a string.</p>
-<p>Note that most scene nodes receive a default tag name when they are created. See the documentation of the different nodes below for what these default tags are.</p>
-<p>No more than 65535 unique tag names may be created in a single application.</p>
-<h3 id="node:untag" class="method-def">node:untag(tagname)</h3>
-<p>Removes a tag from a node and returns the node.</p>
-<h3 id="node:all" class="method-def">node:all(tagname)</h3>
-<p>Searches <code>node</code> and all its descendents for any nodes with the tag <code>tagname</code> and returns them as a table.</p>
-<h3 id="node:tagsearch" class="method-def">node(tagname)</h3>
-<p>Searches <code>node</code> and its descendents for <code>tagname</code> and returns the first matching node found, or <code>nil</code> if no matching nodes were found. The search is depth-first left-to-right.</p>
-<h3 id="node:action" class="method-def">node:action([id,] action)</h3>
-<p>Attaches an action to a node and returns the node.</p>
-<p><code>action</code> may be a function or a coroutine.</p>
-<p>The action function will be called exactly once per frame as long as the node is part of a scene graph that is attached to a window. If a coroutine is used, it will be run until it yields or finishes. The action will be run for the first time on the frame after it was attached to the node.</p>
-<p>The action function may accept a single argument which is the node to which it is attached. If a coroutine is used, then the node is returned by <code>coroutine.yield()</code>.</p>
-<p>If the action function returns <code>true</code> then the action will be removed from the node and not run again. Similarly if a coroutine yields <code>true</code> or finishes.</p>
-<p>Each action has an ID. If the <code>id</code> argument is omitted, then its ID is the value of the <code>action</code> argument. If present, <code>id</code> may be a value of any type besides nil, a function or coroutine (typically it's a string).</p>
-<p>Multiple actions may be attached to a scene node, but they must all have unique ids. If you attempt to attach an action with an ID that is already used by another action on the same node, then the other action will be removed before the new one is attached.</p>
-<p>The order that actions are run is determined by the node's position in the scene graph. Each node is visited in depth-first, left-to-right order and the actions on each node are run in the order they were added to the node. Each action is never run more than once, even if the node occurs multiple times in the graph or is part of a cycle. For example, given the following scene graph:</p>
-<div class="figure">
-<img src="graphs/scene8.png" alt="" />
-
-</div>
-<p>The nodes will be visited in this order:</p>
-<ul>
-<li><code>node1</code></li>
-<li><code>node2</code></li>
-<li><code>node4</code></li>
-<li><code>node5</code></li>
-<li><code>node7</code></li>
-<li><code>node6</code></li>
-<li><code>node3</code></li>
-</ul>
-<p>Note that the action execution order is determined before the first action runs and is not affected by any modifications actions make to the scene graph (these modifications will only affect the order of actions in subsequent frames).</p>
-<h3 id="node:late_action" class="method-def">node:late_action([id,] action)</h3>
-<p>Attach a <em>late action</em> to a scene node. Late actions are the same as normal actions, except they are run after all normal actions are finished.</p>
-<p>See also <a href="#node:action">node:action</a>.</p>
-<h3 id="node:cancel" class="method-def">node:cancel(id)</h3>
-<p>Cancels an action.</p>
-<h3 id="nodeappendchild" class="func-def">node:append(child)</h3>
-<p>Appends <code>child</code> to the end of <code>node</code>'s child list and returns <code>node</code>.</p>
-<h3 id="nodeprependchild" class="func-def">node:prepend(child)</h3>
-<p>Adds <code>child</code> to the start of <code>node</code>'s child list and returns <code>node</code>.</p>
-<h3 id="noderemovechild" class="func-def">node:remove(child)</h3>
-<p>Removes the first occurance of <code>child</code> from <code>node</code>'s child list and returns <code>node</code>.</p>
-<h3 id="noderemovetagname" class="func-def">node:remove(tagname)</h3>
-<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and removes the first one it finds and returns <code>node</code>.</p>
-<h3 id="noderemove_all" class="func-def">node:remove_all()</h3>
-<p>Removes all of <code>node</code>'s children and returns <code>node</code>.</p>
-<h3 id="nodereplacechild-replacement" class="func-def">node:replace(child, replacement)</h3>
-<p>Replaces the first occurance of <code>child</code> with <code>replacement</code> in <code>node</code>'s child list and returns <code>node</code>.</p>
-<h3 id="nodereplacetagname-replacement" class="func-def">node:replace(tagname, replacement)</h3>
-<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and replaces the first one it finds with <code>replacement</code> and returns <code>node</code>.</p>
-<h3 id="nodechildn" class="func-def">node:child(n)</h3>
-<p>Returns the nth child of <code>node</code> (or <code>nil</code> if there is no such child).</p>
-<h3 id="nodechild_pairs" class="func-def">node:child_pairs()</h3>
-<p>Returns an iterator over all <code>node</code>'s children. For example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">for</span> i<span class="ot">,</span> child <span class="kw">in</span> node:child_pairs<span class="ot">()</span> <span class="kw">do</span>
-    <span class="co">-- do something with child</span>
-<span class="kw">end</span></code></pre></div>
-<h2 id="scene-node-common-fields">Scene node common fields</h2>
-<p>The following fields are common to all scene nodes.</p>
-<h3 id="node.hidden" class="func-def">node.hidden</h3>
-<p>Determines whether the node and its children are rendered. The default is <code>false</code>, meaning that the node is rendered.</p>
-<p>Updatable.</p>
-<h3 id="node.paused" class="func-def">node.paused</h3>
-<p>Determines whether the node and its children's actions are executed. The default is <code>false</code>, meaning the actions are executed.</p>
-<p>Note that a descendent node's actions might still be executed if it is has another, non-paused, parent.</p>
-<p>Updatable.</p>
-<h3 id="node.num_children" class="func-def">node.num_children</h3>
-<p>Returns the node's child count.</p>
-<p>Readonly.</p>
-<h3 id="node.recursion_limit" class="func-def">node.recursion_limit</h3>
-<p>This determines the number of times the node will be rendered recursively when part of a cycle in the scene graph. The default is 8.</p>
-<p>Updatable.</p>
-<h2 id="core-scene-nodes">Core scene nodes</h2>
-<h3 id="am.groupchildren" class="func-def">am.group(children)</h3>
-<p>Group nodes are only for grouping child nodes under a common parent. They have no other effect. The children can be passed in as a table.</p>
-<p>Default tag: <code>&quot;group&quot;</code>.</p>
-<p>Example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> group_node <span class="ot">=</span> am<span class="ot">.</span>group<span class="ot">{</span>node1<span class="ot">,</span> node2<span class="ot">,</span> node3<span class="ot">}</span></code></pre></div>
-<h3 id="am.use_program" class="func-def">am.use_program(program)</h3>
-<p>Sets the shader program to use when rendering descendents. A <code>program</code> object can be created using the <a href="#am.program"><code>am.program</code></a> function.</p>
-<p>Fields:</p>
-<ul>
-<li><code>program</code>: The shader program to use. Updatable.</li>
-</ul>
-<p>Default tag: <code>&quot;use_program&quot;</code>.</p>
-<h3 id="am.bind" class="func-def">am.bind(bindings)</h3>
-<p>Binds shader program parameters (uniforms and attributes). <code>bindings</code> is a table mapping shader parameters names to values.</p>
-<p>The named parameters are matched with the uniforms and attributes in the shader program just before a <a href="#am.draw"><code>am.draw</code></a> node is encountered. Any bound parameters not in the program are ignored, but all program parameters must have been bound before the draw node is encountered.</p>
-<p>Attributes should be bound to buffer views of the required type.</p>
-<p>The name parameters are available as updatable fields on the bind node. The fields have the same names as their corresponding parameters.</p>
-<p>Default tag: <code>&quot;bind&quot;</code>.</p>
-<p>Example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> bind_node <span class="ot">=</span> am<span class="ot">.</span>bind<span class="ot">{</span>
-    P <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
-    MV <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
-    color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
-    vert <span class="ot">=</span> am<span class="ot">.</span>vec2_array<span class="ot">{</span>
-        vec2<span class="ot">(-</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">),</span>
-        vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
-        vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">)</span>
-    <span class="ot">}</span>
-<span class="ot">}</span>
-<span class="co">-- update a parameter</span>
-bind_node<span class="ot">.</span>color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span></code></pre></div>
-<h3 id="am.draw" class="func-def">am.draw(primitive [, elements] [, first [, count]])</h3>
-<p>Draws the currently bound vertices using the current shader program with the currently bound parameter values.</p>
-<p><code>primitive</code> can be one of the following:</p>
-<ul>
-<li><code>&quot;points&quot;</code></li>
-<li><code>&quot;lines&quot;</code></li>
-<li><code>&quot;line_strip&quot;</code></li>
-<li><code>&quot;line_loop&quot;</code></li>
-<li><code>&quot;triangles&quot;</code></li>
-<li><code>&quot;triangle_strip&quot;</code></li>
-<li><code>&quot;triangle_fan&quot;</code></li>
-</ul>
-<p>Note that <code>&quot;line_loop&quot;</code> and <code>&quot;triangle_fan&quot;</code> may be slow on some systems.</p>
-<p><code>elements</code>, if supplied, should be a <code>ushort_elem</code> or <code>uint_elem</code> view containing 1-based attribute indices. If omitted the attributes are rendered in order as if <code>elements</code> were 1, 2, 3, 4, 5, ... etc. See also <a href="#buffers-and-views">buffers and views</a>.</p>
-<p><code>first</code> specifies where in the list of vertices to start drawing (starting from 1). The default is 1.</p>
-<p><code>count</code> specifies how many vertices to draw. The default is as many as are supplied through bound vertex attributes and the <code>elements</code> view if present.</p>
-<p>Fields:</p>
-<ul>
-<li><code>primitive</code>: The primitive to draw. Updatable.</li>
-<li><code>elements</code>: The elements view. Updatable.</li>
-<li><code>first</code>: The first vertex to draw. Updatable.</li>
-<li><code>count</code>: The number of vertices to draw. Updatable.</li>
-</ul>
-<p>Default tag: <code>&quot;draw&quot;</code>.</p>
-<p>Here is a complete example that draws a triangle with red, green and blue corners using <a href="#am.use_progam"><code>am.use_program</code></a>, <a href="#am.bind"><code>am.bind</code></a> and <a href="#am.draw"><code>am.draw</code></a> nodes:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> win <span class="ot">=</span> am<span class="ot">.</span>window<span class="ot">{}</span>
-<span class="kw">local</span> prog <span class="ot">=</span> am<span class="ot">.</span>program<span class="ot">(</span><span class="st">[[</span>
-<span class="st">    precision highp float;</span>
-<span class="st">    attribute vec2 vert;</span>
-<span class="st">    attribute vec4 color;</span>
-<span class="st">    uniform mat4 MV;</span>
-<span class="st">    uniform mat4 P;</span>
-<span class="st">    varying vec4 v_color;</span>
-<span class="st">    void main() {</span>
-<span class="st">        v_color = color;</span>
-<span class="st">        gl_Position = P * MV * vec4(vert, 0.0, 1.0);</span>
-<span class="st">    }</span>
-<span class="st">]]</span><span class="ot">,</span> <span class="st">[[</span>
-<span class="st">    precision mediump float;</span>
-<span class="st">    varying vec4 v_color;</span>
-<span class="st">    void main() {</span>
-<span class="st">        gl_FragColor = v_color;</span>
-<span class="st">    }</span>
-<span class="st">]]</span><span class="ot">)</span>
-win<span class="ot">.</span>scene <span class="ot">=</span>
-    am<span class="ot">.</span>use_program<span class="ot">(</span>prog<span class="ot">)</span>
-    <span class="ot">^</span> am<span class="ot">.</span>bind<span class="ot">{</span>
-        P <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
-        MV <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
-        color <span class="ot">=</span> am<span class="ot">.</span>vec4_array<span class="ot">{</span>
-            vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
-            vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
-            vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span>
-        <span class="ot">},</span>
-        vert <span class="ot">=</span> am<span class="ot">.</span>vec2_array<span class="ot">{</span>
-            vec2<span class="ot">(-</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">),</span>
-            vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
-            vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">)</span>
-        <span class="ot">}</span>
-    <span class="ot">}</span>
-    <span class="ot">^</span> am<span class="ot">.</span>draw<span class="st">&quot;triangles&quot;</span></code></pre></div>
-<p>The resulting image looks like this:</p>
-<div class="figure">
-<img src="images/rgb_triangle.png" alt="" />
-
-</div>
-<h3 id="am.translate" class="func-def">am.translate([uniform,] position)</h3>
-<p>Apply a translation to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
-<p><code>position</code> may be either 2 or 3 numbers (the x, y and z components) or a <code>vec2</code> or <code>vec3</code>.</p>
-<p>If the z component is omitted it is assumed to be 0.</p>
-<p>Fields:</p>
-<ul>
-<li><code>position</code>: The translation position as <code>vec3</code>. Updatable.</li>
-<li><code>position2d</code>: The translation position as <code>vec2</code>. Updatable.</li>
-</ul>
-<p>Default tag: <code>&quot;translate&quot;</code>.</p>
-<p>Example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">)</span>
-<span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span>vec2<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">))</span>
-<span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3.5</span><span class="ot">)</span>
-<span class="kw">local</span> node4 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">))</span>
-<span class="kw">local</span> node1<span class="ot">.</span>position2d <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">30</span><span class="ot">,</span> <span class="dv">40</span><span class="ot">)</span>
-<span class="kw">local</span> node3<span class="ot">.</span>position <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3</span><span class="ot">)</span></code></pre></div>
-<h3 id="am.scale" class="func-def">am.scale([uniform,] scaling)</h3>
-<p>Apply a scale transform to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
-<p><code>scaling</code> may be 1, 2 or 3 numbers or a <code>vec2</code> or <code>vec3'. If 1 number is provided it is assume to be the x and y components of the scaling and the z scaling is assumed to be 1. If 2 numbers or a</code>vec2` is provided, they are the scaling for the x and y components and z is assumed to be 1.</p>
-<p>Fields:</p>
-<ul>
-<li><code>scale</code>: The scale as a <code>vec3</code>. Updatable.</li>
-<li><code>scale2d</code>: The scale as a <code>vec2</code>. Updatable.</li>
-</ul>
-<p>Default tag: <code>&quot;scale&quot;</code>.</p>
-<p>Example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="dv">2</span><span class="ot">)</span>
-<span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="dv">2</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span>
-<span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span>vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">))</span>
-<span class="kw">local</span> node4 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> vec3<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">))</span>
-node1<span class="ot">.</span>scale2d <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">)</span>
-node4<span class="ot">.</span>scale <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">)</span></code></pre></div>
-<h3 id="am.rotate" class="func-def">am.rotate([uniform,] rotation)</h3>
-<p>Apply a rotation to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
-<p><code>rotation</code> can be either a quaternion, or an angle (in radians) followed by an optional <code>vec3</code> axis. If the axis is omitted it is assumed to be <code>vec3(0, 0, 1)</code> so the rotation becomes a 2D rotation in the xy plane.</p>
-<p>Fields:</p>
-<ul>
-<li><code>rotation</code>: The rotation as a <code>quat</code>. Updatable.</li>
-<li><code>angle</code>: The rotation angle in radians. Updatable.</li>
-<li><code>axis</code>: The rotation axis as a <code>vec3</code>. Updatable.</li>
-</ul>
-<p>Default tag: <code>&quot;rotate&quot;</code>.</p>
-<p>Example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">45</span><span class="ot">))</span>
-<span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span>math<span class="ot">.</span>pi<span class="ot">/</span><span class="dv">4</span><span class="ot">,</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">))</span>
-<span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> 
-    quat<span class="ot">(</span>math<span class="ot">.</span>pi<span class="ot">/</span><span class="dv">6</span><span class="ot">,</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">)))</span>
-node1<span class="ot">.</span>angle <span class="ot">=</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">)</span>
-node2<span class="ot">.</span>axis <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span>
-node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span></code></pre></div>
-<h3 id="am.blendmode" class="func-def">am.blend(mode)</h3>
-<p>Set the blending mode.</p>
-<p>The possible values for <code>mode</code> are:</p>
-<ul>
-<li><code>&quot;off&quot;</code></li>
-<li><code>&quot;alpha&quot;</code></li>
-<li><code>&quot;premult&quot;</code></li>
-<li><code>&quot;add&quot;</code></li>
-<li><code>&quot;subtract&quot;</code></li>
-<li><code>&quot;add_alpha&quot;</code></li>
-<li><code>&quot;subtract_alpha&quot;</code></li>
-<li><code>&quot;multiply&quot;</code></li>
-<li><code>&quot;invert&quot;</code></li>
-</ul>
-<p>Fields:</p>
-<ul>
-<li><code>mode</code>: Updatable.</li>
-</ul>
-<h3 id="am.cull_faceface" class="func-def">am.cull_face(face)</h3>
-<p>Culls triangles with a specific winding.</p>
-<p>The possible values for <code>face</code> are:</p>
-<ul>
-<li><code>&quot;cw&quot;</code>: Cull clockwise wound triangles.</li>
-<li>`&quot;ccw&quot;: Cull counter-clockwise wound triangles.</li>
-<li>`&quot;none&quot;: Do not cull any triangles.</li>
-</ul>
-<p>Fields:</p>
-<ul>
-<li><code>face</code>: Updatable.</li>
-</ul>
-<h3 id="am.depth_test" class="method-def">am.depth_test(test [, mask])</h3>
-<p>Sets the depth test and mask. The window or framebuffer being rendered to needs to have a depth buffer for this to have any effect.</p>
-<p><code>test</code> is used to determine whether a fragment is rendered by comparing the depth value of the fragment to value in the depth buffer. The possible values for <code>test</code> are:</p>
-<ul>
-<li><code>&quot;never&quot;</code></li>
-<li><code>&quot;always&quot;</code></li>
-<li><code>&quot;equal&quot;</code></li>
-<li><code>&quot;notequal&quot;</code></li>
-<li><code>&quot;less&quot;</code></li>
-<li><code>&quot;lequal&quot;</code></li>
-<li><code>&quot;greater&quot;</code></li>
-<li><code>&quot;gequal&quot;</code></li>
-</ul>
-<p>Mask determines whether the fragment depth is written to the depth buffer. The possible values are <code>true</code> and <code>false</code>. The default is <code>true</code>.</p>
-<h3 id="am.viewport" class="func-def">am.viewport(x, y, width, height)</h3>
-<p>Set the viewport, which is the rectangular area of the window into which rendering will occur.</p>
-<p><code>x</code> and <code>y</code> is the bottom-left corner of the viewport in pixels, where the bottom-left corner of the window is (0, 0). <code>width</code> and <code>height</code> are also in pixels.</p>
-<p>Fields:</p>
-<ul>
-<li><code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>: Updatable.</li>
-</ul>
-<p>Default tag: <code>&quot;viewport&quot;</code>.</p>
-<h3 id="am.lookatuniform-eye-center-up" class="func-def">am.lookat([uniform,] eye, center, up)</h3>
-<p>TODO</p>
-<h3 id="am.cull_sphereuniforms...-radius-center" class="func-def">am.cull_sphere([uniforms...,] radius, center)</h3>
-<p>TODO</p>
-<h3 id="am.billboarduniform-preserve_scaling" class="func-def">am.billboard([uniform,] [preserve_scaling])</h3>
-<p>TODO</p>
-<h3 id="am.read_mat2uniform" class="func-def">am.read_mat2(uniform)</h3>
-<p>TODO</p>
-<h3 id="am.read_mat3uniform" class="func-def">am.read_mat3(uniform)</h3>
-<p>TODO</p>
-<h3 id="am.read_mat4uniform" class="func-def">am.read_mat4(uniform)</h3>
-<p>TODO</p>
-<h3 id="am.color_maskred-green-blue-alpha" class="func-def">am.color_mask(red, green, blue, alpha)</h3>
-<p>TODO</p>
-<h2 id="derived-scene-nodes">Derived scene nodes</h2>
-<h3 id="am.text" class="func-def">am.text</h3>
-<h3 id="am.sprite" class="func-def">am.sprite</h3>
-<h3 id="am.rect" class="func-def">am.rect</h3>
-<h3 id="am.circle" class="func-def">am.circle</h3>
-<h3 id="am.particles2d" class="func-def">am.particles2d</h3>
-<h3 id="am.postprocess" class="func-def">am.postprocess</h3>
-<h2 id="creating-custom-scene-nodes">Creating custom scene nodes</h2>
-<p>am.wrap</p>
-<h1 id="graphics">Graphics</h1>
-<h2 id="overview">Overview</h2>
-<p>This section goes into detail about Amulets low-level graphics features. Some knowledge of how shaders and the modern graphics pipeline work is recommended before reading this section. If you're just interested in drawing simple sprites and shapes then you can probably skip this section, but if you're interested in experimenting with shaders and 3D rendering then read on.</p>
+<h1 id="windows-and-input">Windows and input</h1>
 <h2 id="creating-a-window-1">Creating a window</h2>
-<p>To create a window use the <code>am.window</code> function. This function accepts a table of window settings, all of which are optional. (For a full list of settings see am.window in the API reference.)</p>
-<p>Here's how to create a 800x600 window:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> win <span class="ot">=</span> am<span class="ot">.</span>window<span class="ot">{</span>
-    title <span class="ot">=</span> <span class="st">&quot;My Window&quot;</span><span class="ot">,</span>
-    width <span class="ot">=</span> <span class="dv">800</span><span class="ot">,</span>
-    height <span class="ot">=</span> <span class="dv">600</span><span class="ot">,</span>
-<span class="ot">}</span></code></pre></div>
-<p>The <code>width</code> and <code>height</code> settings are just hints to the operating system. It may create a bigger or smaller window.</p>
-<p>Once a window is created you can obtain its actual pixel dimensions using the <code>width</code> and <code>height</code> fields of the window object. Don't assume these will be the same as the width and height you requested when creating the window.</p>
-<p>Also don't expect these values to remain constant, even if you request a fullscreen window. On some platforms the operating system will perform an animation when transitioning to fullscreen mode and the width and height fields will only be updated once the animation has finished.</p>
-<p>The window:resized method can be used to detect if a window's size changed since the last frame.</p>
-<p>To close a window call its window:close method. This also quits the application if there was only one window open.</p>
-<p>Note: while it's possible to create multiple windows, this isn't recommended at the moment.</p>
-<h2 id="shaders">Shaders</h2>
-<h2 id="scene-graphs-1">Scene graphs</h2>
-<p>In Amulet, all drawing is done by building a <em>scene graph</em> that is then rendered to a window or offscreen framebuffer. Each node in the scene graph either configures some part of the graphics system (for example setting the blend mode or shader program), or draws some graphics primitives, such as triangles or lines.</p>
-<p>Here is an example scene graph that draws a colored triangle:</p>
-<p>This scene graph has 3 nodes:</p>
-<ol style="list-style-type: decimal">
-<li>The root node, <code>am.use_program</code>, sets up the shader program to use for subsequent rendering. Here we use the built-in shader program <code>am.shaders.colors2d</code> which is a simple shader that renders 2D vertices with a separate color per vertex.</li>
-<li>The <code>am.bind</code> node binds values to the shader's uniforms and attributes -- it supplies data to the shader. The <code>am.shaders.colors2d</code> shader expects perspective and modelview matrix uniforms called <code>P</code> and <code>MV</code> respectively. We bind these to the identity matrices. It expects a vec4 attribute called <code>color</code> which we bind to an array of 3 colors (red, green and blue). The shader also expects a vec2 attribute called <code>vert</code>. We bind this to a vec2 array containing 3 vertices: (-1, -1), (1, -1) and (0, 1). Since we're using the identity perspective and modelview matrices these will correspond to the bottom left, bottom right and top middle points of the window we're drawing to.</li>
-<li>Finally the <code>am.draw</code> node draws triangle primitives using the previously set up shader and data.</li>
-</ol>
-<p>The produced image looks like this:</p>
-<div class="figure">
-<img src="images/rgb_triangle.png" alt="" />
-
-</div>
-<p>And here's what the corresponding code looks like:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">am<span class="ot">.</span>window<span class="ot">{}.</span>root <span class="ot">=</span>
-    am<span class="ot">.</span>use_program<span class="ot">(</span>am<span class="ot">.</span>shaders<span class="ot">.</span>colors2d<span class="ot">)</span>
-    <span class="ot">^</span> am<span class="ot">.</span>bind<span class="ot">{</span>
-        P <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
-        MV <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
-        color <span class="ot">=</span> am<span class="ot">.</span>vec4_array<span class="ot">{</span>vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)},</span>
-        vert <span class="ot">=</span> am<span class="ot">.</span>vec2_array<span class="ot">{</span>vec2<span class="ot">(-</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">)}</span>
-    <span class="ot">}</span>
-    <span class="ot">^</span> am<span class="ot">.</span>draw<span class="ot">(</span><span class="st">&quot;triangles&quot;</span><span class="ot">)</span></code></pre></div>
-<h2 id="binding-shader-inputs">Binding shader inputs</h2>
-<h2 id="drawing-primitives">Drawing primitives</h2>
-<h2 id="transforms">Transforms</h2>
-<h2 id="textures">Textures</h2>
-<h2 id="framebuffers">Framebuffers</h2>
-<h2 id="graphics-api-reference">Graphics API reference</h2>
-<h1 id="actions-1">Actions</h1>
-<h2 id="overview-1">Overview</h2>
-<h2 id="creating-actions">Creating actions</h2>
-<h2 id="cancelling-actions">Cancelling actions</h2>
-<h2 id="composing-actions">Composing actions</h2>
-<h1 id="input">Input</h1>
-<h2 id="keyboard">Keyboard</h2>
-<h2 id="mouse">Mouse</h2>
-<h1 id="audio">Audio</h1>
-<h2 id="audio-graphs">Audio graphs</h2>
-<h2 id="playing-audio-1">Playing audio</h2>
-<h2 id="analysing-audio">Analysing audio</h2>
-<h2 id="audio-node-reference">Audio node reference</h2>
-<h1 id="project-settings">Project settings</h1>
-<h1 id="api-reference">API reference</h1>
-<h2 id="maths-functions">Maths functions</h2>
-<h3 id="vec2..." class="func-def">vec2(...)</h3>
-<p>Constructs a 2 dimensional vector. See vec-cons for more details.</p>
-<h3 id="vec3..." class="func-def">vec3(...)</h3>
-<p>Constructs a 3 dimensional vector. See vec-cons for more details.</p>
-<h3 id="vec4..." class="func-def">vec4(...)</h3>
-<p>Constructs a 4 dimensional vector. See vec-cons for more details.</p>
-<h3 id="math.dot-vector1-vector2" class="func-def">math.dot (vector1, vector2)</h3>
-<p>Returns the dot product of two vectors. The vectors must have the same size.</p>
-<h3 id="math.crossvector1-vector2" class="func-def">math.cross(vector1, vector2)</h3>
-<p>Returns the cross product of two 3 dimensional vectors.</p>
-<h3 id="math.normalizevector" class="func-def">math.normalize(vector)</h3>
-<p>Returns the normalized form of a vector (i.e. the vector that points in the same direction, but whose length is 1). If the given vector has zero length, then a vector of the same size is returned whose first component is 1 and whose remaining components are 0.</p>
-<h3 id="math.lengthvector" class="func-def">math.length(vector)</h3>
-<p>Returns the length of a vector.</p>
-<h3 id="math.distancevector1-vector2" class="func-def">math.distance(vector1, vector2)</h3>
-<p>Returns the distance between two vectors.</p>
-<h3 id="mat2..." class="func-def">mat2(...)</h3>
-<p>Constructs a 2x2 matrix. See mat-cons for more details.</p>
-<h3 id="mat3..." class="func-def">mat3(...)</h3>
-<p>Constructs a 3x3 matrix. See mat-cons for more details.</p>
-<h3 id="mat4..." class="func-def">mat4(...)</h3>
-<p>Constructs a 4x4 matrix. See mat-cons for more details.</p>
-<h3 id="math.inversematrix" class="func-def">math.inverse(matrix)</h3>
-<p>Returns the inverse of a matrix.</p>
-<h3 id="math.lookateye-center-up" class="func-def">math.lookat(eye, center, up)</h3>
-<p>Creates a 4x4 view matrix at <code>eye</code>, looking in the direction of <code>center</code> with the y axis of the camera pointing in the direction same direction as <code>up</code>.</p>
-<h3 id="math.perspectivefovy-aspect-near-far" class="func-def">math.perspective(fovy, aspect, near, far)</h3>
-<p>Creates a 4x4 matrix for a symetric perspective-view frustum.</p>
-<ul>
-<li><code>fovy</code> is the field of view in the y plain, in radians.</li>
-<li><code>aspect</code> is typically the window width divided by its height.</li>
-<li><code>near</code> and <code>far</code> are the distances of the near and far clipping plains from the camera (these should be positive).</li>
-</ul>
-<h3 id="math.ortholeft-right-bottom-top-near-far" class="func-def">math.ortho(left, right, bottom, top [, near, far])</h3>
-<p>Creates a 4x4 orthographic projection marix. The default values for <code>near</code> and <code>far</code> are <code>1</code> and <code>-1</code>.</p>
-<h3 id="quat..." class="func-def">quat(...)</h3>
-<p>Constructs a quaternion. See quat-cons for more details.</p>
-<h3 id="math.perlinpos-period" class="func-def">math.perlin(pos [, period])</h3>
-<p>Generate perlin noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number. If the second argument is supplied then the noise will be periodic with the given period. <code>period</code> should be of the same type as <code>pos</code> and its components should be integers greater than 1.</p>
-<p>The returned value is between -1 and 1.</p>
-<h3 id="math.simplexpos" class="func-def">math.simplex(pos)</h3>
-<p>Generate simplex noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number.</p>
-<p>The returned value is between -1 and 1.</p>
-<h3 id="math.mixfrom-top-t" class="func-def">math.mix(from, top, t)</h3>
-<p>Returns the linear interpolation between <code>from</code> and <code>to</code> determined by <code>t</code>. <code>from</code> and <code>to</code> can be numbers or vectors, and must be the same type. <code>t</code> should be a number between 0 and 1. <code>from</code> and <code>to</code> can also be quaternions. In that case <code>math.mix</code> returns the spherical linear interpolation of the two quaternions.</p>
-<h2 id="window-functions">Window functions</h2>
 <h3 id="window_func" class="func-def">am.window(settings)</h3>
 <p>Creates a new window, returning a window object. <code>settings</code> is a table with any of the following fields:</p>
 <ul>
@@ -1754,14 +1380,18 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
 <p>See <a href="#window_func">window settings</a>.</p>
 <p>Updatable.</p>
 <h3 id="window.scene" class="func-def">window.scene</h3>
-<p>The scene node currently attached to the window. This scene will be rendered to the window each frame.</p>
+<p>The <a href="#scenes">scene node</a> currently attached to the window. This scene will be rendered to the window each frame.</p>
 <p>Updatable.</p>
 <h3 id="window.projection" class="func-def">window.projection</h3>
 <p>See <a href="#window_func">window settings</a>.</p>
 <p>Updatable.</p>
-<h2 id="window-methods">Window methods</h2>
+<h2 id="closing-a-window">Closing a window</h2>
 <h3 id="windowclose" class="func-def">window:close()</h3>
 <p>Closes the window and quits the application if this was the only window.</p>
+<h2 id="detecting-when-a-window-resizes">Detecting when a window resizes</h2>
+<h3 id="windowresized" class="func-def">window:resized()</h3>
+<p>Returns true if the window's size changed since the last frame. ## Detecting key presses</p>
+<h2 id="detecting-key-presses">Detecting key presses</h2>
 <h3 id="key_down" class="func-def">window:key_down(key)</h3>
 <p>Returns true if the given key was down at the start of the current frame.</p>
 <p>The possible values for <code>key</code> are:</p>
@@ -1877,6 +1507,7 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
 <h3 id="windowkey_releasedkey" class="func-def">window:key_released(key)</h3>
 <p>Returns true if the given key's state changed from down to up since the last frame. See <a href="#key_down">window:key_down</a> for possible values for <code>key</code>.</p>
 <p>Note that if <code>key_released</code> returns true, then <code>key_down</code> will also return <code>false</code>. Also if <code>key_released</code> returns <code>true</code> then <code>key_pressed</code> will always return <code>false</code>. (If necessary, Amulet will postpone key press events to the next frame to ensure this.)</p>
+<h2 id="detecting-mouse-events">Detecting mouse events</h2>
 <h3 id="windowmouse_position" class="func-def">window:mouse_position()</h3>
 <p>Returns the position of the mouse cursor, as a <code>vec2</code>, in the window's coordinate system.</p>
 <h3 id="windowmouse_norm_position" class="func-def">window:mouse_norm_position()</h3>
@@ -1901,6 +1532,7 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
 <p>Returns the mouse scroll wheel position (a <code>vec2</code>).</p>
 <h3 id="windowmouse_wheel_delta" class="func-def">window:mouse_wheel_delta()</h3>
 <p>Returns the change in mouse scroll wheel position since the last frame (a <code>vec2</code>).</p>
+<h2 id="detecting-touch-events">Detecting touch events</h2>
 <h3 id="touches_began" class="func-def">window:touches_began()</h3>
 <p>Returns an array of the touches that began since the last frame.</p>
 <p>Each touch is an integer and each time a new touch occurs the lowest available integer greater than or equal to 1 is assigned to the touch.</p>
@@ -1933,8 +1565,472 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
 <h3 id="windowtouch_pixel_deltatouch" class="func-def">window:touch_pixel_delta(touch)</h3>
 <p>Returns the change in touch position since the last frame in pixels (a <code>vec2</code>).</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowresized" class="func-def">window:resized()</h3>
-<p>Returns true if the window's size changed since the last frame.</p>
+<h1 id="scenes">Scenes</h1>
+<p>Scene graphs are how you draw graphics in Amulet. <em>Scene nodes</em> are connected together to form a scene graph which is attached to a window. The window will then render the scene graph each frame.</p>
+<p>Scene nodes correspond to graphics commands. They either change the rendering state in some way, for example by applying a transformation or changing the blend mode, or execute a draw command, which renders something to the screen.</p>
+<p>Each scene node has a list of children, which are rendered in order.</p>
+<p>A scene node may be the child of multiple other scene nodes, so in general a scene node does not have a unique parent. Cycles are also allowed and are handled by imposing a limit to the number of times a node can be recursively rendered.</p>
+<h2 id="scene-graph-construction-syntax">Scene graph construction syntax</h2>
+<p>Special syntax is provided for constructing scene graphs from nodes. The expression:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> node2</code></pre></div>
+<p>adds <code>node2</code> as a child of <code>node1</code> and returns <code>node1</code>. The resulting scene graph looks like this:</p>
+<div class="figure">
+<img src="graphs/scene4.png" alt="" />
+
+</div>
+<p>The expression:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> <span class="ot">{</span> node2<span class="ot">,</span> node3 <span class="ot">}</span></code></pre></div>
+<p>adds both <code>node2</code> and <code>node3</code> as children of <code>node1</code> and returns <code>node1</code>:</p>
+<div class="figure">
+<img src="graphs/scene5.png" alt="" />
+
+</div>
+<p>The expression:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> <span class="ot">{</span> node2<span class="ot">,</span> node3 <span class="ot">}</span> <span class="ot">^</span> node4</code></pre></div>
+<p>does the same as the previous expression, except <code>node4</code> is added as a child of both <code>node2</code> and <code>node3</code>:</p>
+<div class="figure">
+<img src="graphs/scene6.png" alt="" />
+
+</div>
+<p>If <code>node2</code> or <code>node3</code> were graphs with multiple nodes, then <code>node4</code> would be added to the leaf nodes of those graphs.</p>
+<p>Here is a more complex example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 
+    <span class="ot">^</span> node2
+    <span class="ot">^</span> <span class="ot">{</span>
+        node3
+        <span class="ot">^</span> node4
+        <span class="ot">,</span>
+        node5
+        <span class="ot">^</span> <span class="ot">{</span>node6<span class="ot">,</span> node7<span class="ot">,</span> node8<span class="ot">}</span>
+    <span class="ot">}</span>
+    <span class="ot">^</span> node9
+    <span class="ot">^</span> node10</code></pre></div>
+<p>The above expression results in the following graph:</p>
+<div class="figure">
+<img src="graphs/scene7.png" alt="" />
+
+</div>
+<h2 id="scene-node-common-fields-and-methods">Scene node common fields and methods</h2>
+<p>The following fields and methods are common to all scene nodes.</p>
+<h3 id="node.hidden" class="func-def">node.hidden</h3>
+<p>Determines whether the node and its children are rendered. The default is <code>false</code>, meaning that the node is rendered.</p>
+<p>Updatable.</p>
+<h3 id="node.paused" class="func-def">node.paused</h3>
+<p>Determines whether the node and its children's actions are executed. The default is <code>false</code>, meaning the actions are executed.</p>
+<p>Note that a descendent node's actions might still be executed if it is has another, non-paused, parent.</p>
+<p>Updatable.</p>
+<h3 id="node.num_children" class="func-def">node.num_children</h3>
+<p>Returns the node's child count.</p>
+<p>Readonly.</p>
+<h3 id="node.recursion_limit" class="func-def">node.recursion_limit</h3>
+<p>This determines the number of times the node will be rendered recursively when part of a cycle in the scene graph. The default is 8.</p>
+<p>Updatable.</p>
+<h3 id="node:tag" class="method-def">node:tag(tagname)</h3>
+<p>Adds a tag to a node and returns the node. <code>tagname</code> should be a string.</p>
+<p>Note that most scene nodes receive a default tag name when they are created. See the documentation of the different nodes below for what these default tags are.</p>
+<p>No more than 65535 unique tag names may be created in a single application.</p>
+<h3 id="node:untag" class="method-def">node:untag(tagname)</h3>
+<p>Removes a tag from a node and returns the node.</p>
+<h3 id="node:all" class="method-def">node:all(tagname)</h3>
+<p>Searches <code>node</code> and all its descendents for any nodes with the tag <code>tagname</code> and returns them as a table.</p>
+<h3 id="node:tagsearch" class="method-def">node(tagname)</h3>
+<p>Searches <code>node</code> and its descendents for <code>tagname</code> and returns the first matching node found, or <code>nil</code> if no matching nodes were found. The search is depth-first left-to-right.</p>
+<h3 id="node:action" class="method-def">node:action([id,] action)</h3>
+<p>Attaches an action to a node and returns the node.</p>
+<p><code>action</code> may be a function or a coroutine.</p>
+<p>The action function will be called exactly once per frame as long as the node is part of a scene graph that is attached to a window. If a coroutine is used, it will be run until it yields or finishes. The action will be run for the first time on the frame after it was attached to the node.</p>
+<p>The action function may accept a single argument which is the node to which it is attached. If a coroutine is used, then the node is returned by <code>coroutine.yield()</code>.</p>
+<p>If the action function returns <code>true</code> then the action will be removed from the node and not run again. Similarly if a coroutine yields <code>true</code> or finishes.</p>
+<p>Each action has an ID. If the <code>id</code> argument is omitted, then its ID is the value of the <code>action</code> argument. If present, <code>id</code> may be a value of any type besides nil, a function or coroutine (typically it's a string).</p>
+<p>Multiple actions may be attached to a scene node, but they must all have unique ids. If you attempt to attach an action with an ID that is already used by another action on the same node, then the other action will be removed before the new one is attached.</p>
+<p>The order that actions are run is determined by the node's position in the scene graph. Each node is visited in depth-first, left-to-right order and the actions on each node are run in the order they were added to the node. Each action is never run more than once, even if the node occurs multiple times in the graph or is part of a cycle. For example, given the following scene graph:</p>
+<div class="figure">
+<img src="graphs/scene8.png" alt="" />
+
+</div>
+<p>The nodes will be visited in this order:</p>
+<ul>
+<li><code>node1</code></li>
+<li><code>node2</code></li>
+<li><code>node4</code></li>
+<li><code>node5</code></li>
+<li><code>node7</code></li>
+<li><code>node6</code></li>
+<li><code>node3</code></li>
+</ul>
+<p>Note that the action execution order is determined before the first action runs and is not affected by any modifications actions make to the scene graph (these modifications will only affect the order of actions in subsequent frames).</p>
+<h3 id="node:late_action" class="method-def">node:late_action([id,] action)</h3>
+<p>Attach a <em>late action</em> to a scene node. Late actions are the same as normal actions, except they are run after all normal actions are finished.</p>
+<p>See also <a href="#node:action">node:action</a>.</p>
+<h3 id="node:cancel" class="method-def">node:cancel(id)</h3>
+<p>Cancels an action.</p>
+<h3 id="nodeappendchild" class="func-def">node:append(child)</h3>
+<p>Appends <code>child</code> to the end of <code>node</code>'s child list and returns <code>node</code>.</p>
+<h3 id="nodeprependchild" class="func-def">node:prepend(child)</h3>
+<p>Adds <code>child</code> to the start of <code>node</code>'s child list and returns <code>node</code>.</p>
+<h3 id="noderemovechild" class="func-def">node:remove(child)</h3>
+<p>Removes the first occurance of <code>child</code> from <code>node</code>'s child list and returns <code>node</code>.</p>
+<h3 id="noderemovetagname" class="func-def">node:remove(tagname)</h3>
+<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and removes the first one it finds and returns <code>node</code>.</p>
+<h3 id="noderemove_all" class="func-def">node:remove_all()</h3>
+<p>Removes all of <code>node</code>'s children and returns <code>node</code>.</p>
+<h3 id="nodereplacechild-replacement" class="func-def">node:replace(child, replacement)</h3>
+<p>Replaces the first occurance of <code>child</code> with <code>replacement</code> in <code>node</code>'s child list and returns <code>node</code>.</p>
+<h3 id="nodereplacetagname-replacement" class="func-def">node:replace(tagname, replacement)</h3>
+<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and replaces the first one it finds with <code>replacement</code> and returns <code>node</code>.</p>
+<h3 id="nodechildn" class="func-def">node:child(n)</h3>
+<p>Returns the nth child of <code>node</code> (or <code>nil</code> if there is no such child).</p>
+<h3 id="nodechild_pairs" class="func-def">node:child_pairs()</h3>
+<p>Returns an iterator over all <code>node</code>'s children. For example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">for</span> i<span class="ot">,</span> child <span class="kw">in</span> node:child_pairs<span class="ot">()</span> <span class="kw">do</span>
+    <span class="co">-- do something with child</span>
+<span class="kw">end</span></code></pre></div>
+<h2 id="basic-nodes">Basic nodes</h2>
+<h3 id="am.groupchildren" class="func-def">am.group(children)</h3>
+<p>Group nodes are only for grouping child nodes under a common parent. They have no other effect. The children can be passed in as a table.</p>
+<p>Default tag: <code>&quot;group&quot;</code>.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> group_node <span class="ot">=</span> am<span class="ot">.</span>group<span class="ot">{</span>node1<span class="ot">,</span> node2<span class="ot">,</span> node3<span class="ot">}</span></code></pre></div>
+<h3 id="am.text" class="func-def">am.text</h3>
+<h3 id="am.sprite" class="func-def">am.sprite</h3>
+<h3 id="am.rect" class="func-def">am.rect</h3>
+<h3 id="am.circle" class="func-def">am.circle</h3>
+<h3 id="am.particles2d" class="func-def">am.particles2d</h3>
+<h2 id="transformation-nodes-1">Transformation nodes</h2>
+<p>The following nodes apply transformations to all their descendents.</p>
+<p><strong>Note</strong>: These nodes have an optional <code>uniform</code> argument in the first position of their construction functions. This argument is only relevant if you're writing your own shader programs. Otherwise you can ignore it.</p>
+<h3 id="am.translate" class="func-def">am.translate([uniform,] position)</h3>
+<p>Apply a translation to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
+<p><code>position</code> may be either 2 or 3 numbers (the x, y and z components) or a <code>vec2</code> or <code>vec3</code>.</p>
+<p>If the z component is omitted it is assumed to be 0.</p>
+<p>Fields:</p>
+<ul>
+<li><code>position</code>: The translation position as <code>vec3</code>. Updatable.</li>
+<li><code>position2d</code>: The translation position as <code>vec2</code>. Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;translate&quot;</code>.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">)</span>
+<span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span>vec2<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">))</span>
+<span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3.5</span><span class="ot">)</span>
+<span class="kw">local</span> node4 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">))</span>
+<span class="kw">local</span> node1<span class="ot">.</span>position2d <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">30</span><span class="ot">,</span> <span class="dv">40</span><span class="ot">)</span>
+<span class="kw">local</span> node3<span class="ot">.</span>position <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3</span><span class="ot">)</span></code></pre></div>
+<h3 id="am.scale" class="func-def">am.scale([uniform,] scaling)</h3>
+<p>Apply a scale transform to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
+<p><code>scaling</code> may be 1, 2 or 3 numbers or a <code>vec2</code> or <code>vec3'. If 1 number is provided it is assume to be the x and y components of the scaling and the z scaling is assumed to be 1. If 2 numbers or a</code>vec2` is provided, they are the scaling for the x and y components and z is assumed to be 1.</p>
+<p>Fields:</p>
+<ul>
+<li><code>scale</code>: The scale as a <code>vec3</code>. Updatable.</li>
+<li><code>scale2d</code>: The scale as a <code>vec2</code>. Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;scale&quot;</code>.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="dv">2</span><span class="ot">)</span>
+<span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="dv">2</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span>
+<span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span>vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">))</span>
+<span class="kw">local</span> node4 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> vec3<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">))</span>
+node1<span class="ot">.</span>scale2d <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">)</span>
+node4<span class="ot">.</span>scale <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">)</span></code></pre></div>
+<h3 id="am.rotate" class="func-def">am.rotate([uniform,] rotation)</h3>
+<p>Apply a rotation to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
+<p><code>rotation</code> can be either a quaternion, or an angle (in radians) followed by an optional <code>vec3</code> axis. If the axis is omitted it is assumed to be <code>vec3(0, 0, 1)</code> so the rotation becomes a 2D rotation in the xy plane.</p>
+<p>Fields:</p>
+<ul>
+<li><code>rotation</code>: The rotation as a <code>quat</code>. Updatable.</li>
+<li><code>angle</code>: The rotation angle in radians. Updatable.</li>
+<li><code>axis</code>: The rotation axis as a <code>vec3</code>. Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;rotate&quot;</code>.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">45</span><span class="ot">))</span>
+<span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span>math<span class="ot">.</span>pi<span class="ot">/</span><span class="dv">4</span><span class="ot">,</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">))</span>
+<span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> 
+    quat<span class="ot">(</span>math<span class="ot">.</span>pi<span class="ot">/</span><span class="dv">6</span><span class="ot">,</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">)))</span>
+node1<span class="ot">.</span>angle <span class="ot">=</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">)</span>
+node2<span class="ot">.</span>axis <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span>
+node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span></code></pre></div>
+<h2 id="advanced-nodes">Advanced nodes</h2>
+<h3 id="am.use_program" class="func-def">am.use_program(program)</h3>
+<p>Sets the <a href="#shader-programs">shader program</a> to use when rendering descendents. A <code>program</code> object can be created using the <a href="#am.program"><code>am.program</code></a> function.</p>
+<p>Fields:</p>
+<ul>
+<li><code>program</code>: The shader program to use. Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;use_program&quot;</code>.</p>
+<h3 id="am.bind" class="func-def">am.bind(bindings)</h3>
+<p>Binds <a href="#shader-programs">shader program</a> parameters (uniforms and attributes) to values. <code>bindings</code> is a table mapping shader parameter names to values.</p>
+<p>The named parameters are matched with the uniforms and attributes in the shader program just before a <a href="#am.draw"><code>am.draw</code></a> node is encountered.</p>
+<p>Program parameter types are mapped to the following Lua types:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Program parameter type</th>
+<th align="left">Lua type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>float</code> uniform</td>
+<td align="left"><code>number</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>vec2</code> uniform</td>
+<td align="left"><a href="#vectors"><code>vec2</code></a></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>vec3</code> uniform</td>
+<td align="left"><a href="#vectors"><code>vec3</code></a></td>
+</tr>
+<tr class="even">
+<td align="left"><code>vec4</code> uniform</td>
+<td align="left"><a href="#vectors"><code>vec4</code></a></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>mat2</code> uniform</td>
+<td align="left"><a href="#matrices"><code>mat2</code></a></td>
+</tr>
+<tr class="even">
+<td align="left"><code>mat3</code> uniform</td>
+<td align="left"><a href="#matrices"><code>mat3</code></a></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>mat4</code> uniform</td>
+<td align="left"><a href="#matrices"><code>mat4</code></a></td>
+</tr>
+<tr class="even">
+<td align="left"><code>sampler2D</code> uniform</td>
+<td align="left"><a href="#am.texture2d"><code>texture2d</code></a></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>float</code> attribute</td>
+<td align="left"><a href="#buffers-and-views"><code>view(&quot;float&quot;)</code></a></td>
+</tr>
+<tr class="even">
+<td align="left"><code>vec2</code> attribute</td>
+<td align="left"><a href="#buffers-and-views"><code>view(&quot;vec2&quot;)</code></a></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>vec3</code> attribute</td>
+<td align="left"><a href="#buffers-and-views"><code>view(&quot;vec3&quot;)</code></a></td>
+</tr>
+<tr class="even">
+<td align="left"><code>vec4</code> attribute</td>
+<td align="left"><a href="#buffers-and-views"><code>view(&quot;vec4&quot;)</code></a></td>
+</tr>
+</tbody>
+</table>
+<p>Any bound parameters not in the program are ignored, but all program parameters must have been bound before a <code>draw</code> node is encountered.</p>
+<p><strong>Note</strong>: The parameter <code>P</code> is initially bound to a 4x4 projection matrix defined by the window's coordinate system, while the parameter <code>MV</code> (the default model view matrix) is initially bound to the 4x4 identity matrix.</p>
+<p>The bound parameters are available as updatable fields on the bind node. The fields have the same names as their corresponding parameters.</p>
+<p>Default tag: <code>&quot;bind&quot;</code>.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> bind_node <span class="ot">=</span> am<span class="ot">.</span>bind<span class="ot">{</span>
+    P <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
+    MV <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
+    color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+    vert <span class="ot">=</span> am<span class="ot">.</span>vec2_array<span class="ot">{</span>
+        vec2<span class="ot">(-</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">),</span>
+        vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+        vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">)</span>
+    <span class="ot">}</span>
+<span class="ot">}</span>
+<span class="co">-- update a parameter</span>
+bind_node<span class="ot">.</span>color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span></code></pre></div>
+<h3 id="am.draw" class="func-def">am.draw(primitive [, elements] [, first [, count]])</h3>
+<p>Draws the currently bound vertices using the current shader program with the currently bound parameter values.</p>
+<p><code>primitive</code> can be one of the following:</p>
+<ul>
+<li><code>&quot;points&quot;</code></li>
+<li><code>&quot;lines&quot;</code></li>
+<li><code>&quot;line_strip&quot;</code></li>
+<li><code>&quot;line_loop&quot;</code></li>
+<li><code>&quot;triangles&quot;</code></li>
+<li><code>&quot;triangle_strip&quot;</code></li>
+<li><code>&quot;triangle_fan&quot;</code></li>
+</ul>
+<p>Note that <code>&quot;line_loop&quot;</code> and <code>&quot;triangle_fan&quot;</code> may be slow on some systems.</p>
+<p><code>elements</code>, if supplied, should be a <code>ushort_elem</code> or <code>uint_elem</code> view containing 1-based attribute indices. If omitted the attributes are rendered in order as if <code>elements</code> were 1, 2, 3, 4, 5, ... etc. See also <a href="#buffers-and-views">buffers and views</a>.</p>
+<p><code>first</code> specifies where in the list of vertices to start drawing (starting from 1). The default is 1.</p>
+<p><code>count</code> specifies how many vertices to draw. The default is as many as are supplied through bound vertex attributes and the <code>elements</code> view if present.</p>
+<p>Fields:</p>
+<ul>
+<li><code>primitive</code>: The primitive to draw. Updatable.</li>
+<li><code>elements</code>: The elements view. Updatable.</li>
+<li><code>first</code>: The first vertex to draw. Updatable.</li>
+<li><code>count</code>: The number of vertices to draw. Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;draw&quot;</code>.</p>
+<p>Here is a complete example that draws a triangle with red, green and blue corners using <a href="#am.use_program"><code>am.use_program</code></a>, <a href="#am.bind"><code>am.bind</code></a> and <a href="#am.draw"><code>am.draw</code></a> nodes:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> win <span class="ot">=</span> am<span class="ot">.</span>window<span class="ot">{}</span>
+<span class="kw">local</span> prog <span class="ot">=</span> am<span class="ot">.</span>program<span class="ot">(</span><span class="st">[[</span>
+<span class="st">    precision highp float;</span>
+<span class="st">    attribute vec2 vert;</span>
+<span class="st">    attribute vec4 color;</span>
+<span class="st">    uniform mat4 MV;</span>
+<span class="st">    uniform mat4 P;</span>
+<span class="st">    varying vec4 v_color;</span>
+<span class="st">    void main() {</span>
+<span class="st">        v_color = color;</span>
+<span class="st">        gl_Position = P * MV * vec4(vert, 0.0, 1.0);</span>
+<span class="st">    }</span>
+<span class="st">]]</span><span class="ot">,</span> <span class="st">[[</span>
+<span class="st">    precision mediump float;</span>
+<span class="st">    varying vec4 v_color;</span>
+<span class="st">    void main() {</span>
+<span class="st">        gl_FragColor = v_color;</span>
+<span class="st">    }</span>
+<span class="st">]]</span><span class="ot">)</span>
+win<span class="ot">.</span>scene <span class="ot">=</span>
+    am<span class="ot">.</span>use_program<span class="ot">(</span>prog<span class="ot">)</span>
+    <span class="ot">^</span> am<span class="ot">.</span>bind<span class="ot">{</span>
+        P <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
+        MV <span class="ot">=</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">),</span>
+        color <span class="ot">=</span> am<span class="ot">.</span>vec4_array<span class="ot">{</span>
+            vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+            vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+            vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span>
+        <span class="ot">},</span>
+        vert <span class="ot">=</span> am<span class="ot">.</span>vec2_array<span class="ot">{</span>
+            vec2<span class="ot">(-</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">),</span>
+            vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+            vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">)</span>
+        <span class="ot">}</span>
+    <span class="ot">}</span>
+    <span class="ot">^</span> am<span class="ot">.</span>draw<span class="st">&quot;triangles&quot;</span></code></pre></div>
+<p>The resulting image looks like this:</p>
+<div class="figure">
+<img src="images/rgb_triangle.png" alt="" />
+
+</div>
+<h3 id="am.blendmode" class="func-def">am.blend(mode)</h3>
+<p>Set the blending mode.</p>
+<p>The possible values for <code>mode</code> are:</p>
+<ul>
+<li><code>&quot;off&quot;</code></li>
+<li><code>&quot;alpha&quot;</code></li>
+<li><code>&quot;premult&quot;</code></li>
+<li><code>&quot;add&quot;</code></li>
+<li><code>&quot;subtract&quot;</code></li>
+<li><code>&quot;add_alpha&quot;</code></li>
+<li><code>&quot;subtract_alpha&quot;</code></li>
+<li><code>&quot;multiply&quot;</code></li>
+<li><code>&quot;invert&quot;</code></li>
+</ul>
+<p>Fields:</p>
+<ul>
+<li><code>mode</code>: Updatable.</li>
+</ul>
+<h3 id="am.color_maskred-green-blue-alpha" class="func-def">am.color_mask(red, green, blue, alpha)</h3>
+<p>TODO</p>
+<h3 id="am.cull_faceface" class="func-def">am.cull_face(face)</h3>
+<p>Culls triangles with a specific winding.</p>
+<p>The possible values for <code>face</code> are:</p>
+<ul>
+<li><code>&quot;cw&quot;</code>: Cull clockwise wound triangles.</li>
+<li>`&quot;ccw&quot;: Cull counter-clockwise wound triangles.</li>
+<li>`&quot;none&quot;: Do not cull any triangles.</li>
+</ul>
+<p>Fields:</p>
+<ul>
+<li><code>face</code>: Updatable.</li>
+</ul>
+<h3 id="am.depth_test" class="method-def">am.depth_test(test [, mask])</h3>
+<p>Sets the depth test and mask. The window or framebuffer being rendered to needs to have a depth buffer for this to have any effect.</p>
+<p><code>test</code> is used to determine whether a fragment is rendered by comparing the depth value of the fragment to value in the depth buffer. The possible values for <code>test</code> are:</p>
+<ul>
+<li><code>&quot;never&quot;</code></li>
+<li><code>&quot;always&quot;</code></li>
+<li><code>&quot;equal&quot;</code></li>
+<li><code>&quot;notequal&quot;</code></li>
+<li><code>&quot;less&quot;</code></li>
+<li><code>&quot;lequal&quot;</code></li>
+<li><code>&quot;greater&quot;</code></li>
+<li><code>&quot;gequal&quot;</code></li>
+</ul>
+<p>Mask determines whether the fragment depth is written to the depth buffer. The possible values are <code>true</code> and <code>false</code>. The default is <code>true</code>.</p>
+<h3 id="am.viewport" class="func-def">am.viewport(x, y, width, height)</h3>
+<p>Set the viewport, which is the rectangular area of the window into which rendering will occur.</p>
+<p><code>x</code> and <code>y</code> is the bottom-left corner of the viewport in pixels, where the bottom-left corner of the window is (0, 0). <code>width</code> and <code>height</code> are also in pixels.</p>
+<p>Fields:</p>
+<ul>
+<li><code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>: Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;viewport&quot;</code>.</p>
+<h3 id="am.lookatuniform-eye-center-up" class="func-def">am.lookat([uniform,] eye, center, up)</h3>
+<p>TODO</p>
+<h3 id="am.cull_sphereuniforms...-radius-center" class="func-def">am.cull_sphere([uniforms...,] radius, center)</h3>
+<p>TODO</p>
+<h3 id="am.billboarduniform-preserve_scaling" class="func-def">am.billboard([uniform,] [preserve_scaling])</h3>
+<p>TODO</p>
+<h3 id="am.read_mat2uniform" class="func-def">am.read_mat2(uniform)</h3>
+<p>TODO</p>
+<h3 id="am.read_mat3uniform" class="func-def">am.read_mat3(uniform)</h3>
+<p>TODO</p>
+<h3 id="am.read_mat4uniform" class="func-def">am.read_mat4(uniform)</h3>
+<p>TODO</p>
+<h3 id="am.postprocess" class="func-def">am.postprocess</h3>
+<p>TODO</p>
+<h2 id="creating-custom-scene-nodes">Creating custom scene nodes</h2>
+<p>am.wrap</p>
+<h1 id="shader-programs">Shader programs</h1>
+<h2 id="compiling-a-shader-program">Compiling a shader program</h2>
+<h3 id="am.program" class="func-def">am.program(vertex_shader, fragment_shader)</h3>
+<p>Compiles and returns a shader program for use with <a href="#am.use_program"><code>am.use_program</code></a> nodes.</p>
+<p><code>vertex_shader</code> and <code>fragment_shader</code> should be the sources for the vertex and fragment shaders in the OpenGL ES shader language version 1. This is the same shader language supported by WebGL 1.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> vert_shader <span class="ot">=</span> <span class="st">[[</span>
+<span class="st">    precision highp float;</span>
+<span class="st">    attribute vec3 vert;</span>
+<span class="st">    uniform mat4 MV;</span>
+<span class="st">    uniform mat4 P;</span>
+<span class="st">    void main() {</span>
+<span class="st">        gl_Position = P * MV * vec4(vert, 1);</span>
+<span class="st">    }</span>
+<span class="st">]]</span>
+<span class="kw">local</span> frag_shader <span class="ot">=</span> <span class="st">[[</span>
+<span class="st">    precision mediump float;</span>
+<span class="st">    void main() {</span>
+<span class="st">        gl_FragColor = vec4(1.0, 0, 0.5, 1.0);</span>
+<span class="st">    }</span>
+<span class="st">]]</span>
+<span class="kw">local</span> prog <span class="ot">=</span> am<span class="ot">.</span>program<span class="ot">(</span>vert_shader<span class="ot">,</span> frag_shader<span class="ot">)</span></code></pre></div>
+<h2 id="pre-defined-shader-programs">Pre-defined shader programs</h2>
+<h1 id="image-buffers">Image buffers</h1>
+<h1 id="textures">Textures</h1>
+<h2 id="creating-a-texture">Creating a texture</h2>
+<h3 id="am.texture2d" class="func-def">am.texture2d(width [, height])</h3>
+<h3 id="am.texture2dimage_buffer" class="func-def">am.texture2d(image_buffer)</h3>
+<h3 id="am.texture2dfilename" class="func-def">am.texture2d(filename)</h3>
+<h1 id="framebuffers">Framebuffers</h1>
+<h1 id="actions-1">Actions</h1>
+<h2 id="combining-actions">Combining actions</h2>
+<h2 id="tweens">Tweens</h2>
+<h2 id="tween-ease-functions">Tween ease functions</h2>
+<h2 id="coroutine-actions">Coroutine actions</h2>
+<h1 id="time">Time</h1>
+<h2 id="frame-time">Frame time</h2>
+<h2 id="delta-time">Delta time</h2>
+<h2 id="real-time">Real time</h2>
+<h1 id="saving-and-loading-state">Saving and loading state</h1>
+<h2 id="saving">Saving</h2>
+<h2 id="loading">Loading</h2>
+<h1 id="audio">Audio</h1>
+<h2 id="audio-graphs">Audio graphs</h2>
+<h2 id="playing-audio-1">Playing audio</h2>
+<h2 id="analysing-audio">Analysing audio</h2>
+<h2 id="audio-node-reference">Audio node reference</h2>
+<h1 id="extra-table-functions">Extra table functions</h1>
+<h1 id="logging">Logging</h1>
+<h1 id="running-javascript">Running Javascript</h1>
+<h1 id="converting-tofrom-json">Converting to/from JSON</h1>
+<h1 id="loading-scripts">Loading scripts</h1>
+<h1 id="performance-stats">Performance stats</h1>
+<h1 id="amulet-version">Amulet version</h1>
+<h1 id="useful-directories">Useful directories</h1>
+<h1 id="packing-sprites">Packing sprites</h1>
+<h1 id="exporting">Exporting</h1>
+</div>
 </div>
 </body>
 </html>

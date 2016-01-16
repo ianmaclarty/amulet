@@ -1,15 +1,10 @@
 
-Actions
-=======
+# Actions
 
-Overview
---------
+## Combining actions
 
-Creating actions
-----------------
+## Tweens
 
-Cancelling actions
-------------------
+## Tween ease functions
 
-Composing actions
------------------
+## Coroutine actions

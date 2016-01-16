@@ -1,7 +1,9 @@
 
-# Shader programs
+# Shader programs {#shader-programs}
 
-## am.program(vertex_shader, fragment_shader) {#am.program .func-def}
+## Compiling a shader program
+
+### am.program(vertex_shader, fragment_shader) {#am.program .func-def}
 
 Compiles and returns a shader program for use with
 [`am.use_program`](#am.use_program) nodes.
@@ -30,3 +32,5 @@ local frag_shader = [[
 ]]
 local prog = am.program(vert_shader, frag_shader)
 ~~~
+
+## Pre-defined shader programs

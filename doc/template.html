@@ -27,9 +27,7 @@ $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$">
 $endfor$
-$if(math)$
-  $math$
-$endif$
+<script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
 $for(header-includes)$
   $header-includes$
 $endfor$
@@ -40,7 +38,15 @@ $for(include-before)$
 $include-before$
 $endfor$
 $if(title)$
+$endif$
+$if(toc)$
+<nav id="$idprefix$TOC">
+$toc$
+</nav>
+$endif$
+<div id="content-inner">
 <header>
+<img src="logo.png" alt="Amulet Logo">
 <h1 class="title">$title$</h1>
 $if(subtitle)$
 <h1 class="subtitle">$subtitle$</h1>
@@ -52,13 +58,8 @@ $if(date)$
 <h3 class="date">$date$</h3>
 $endif$
 </header>
-$endif$
-$if(toc)$
-<nav id="$idprefix$TOC">
-$toc$
-</nav>
-$endif$
 $body$
+</div>
 $for(include-after)$
 $include-after$
 $endfor$

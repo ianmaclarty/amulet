@@ -1,5 +1,5 @@
 
-# Scene graphs
+# Scenes {#scenes}
 
 Scene graphs are how you draw graphics in Amulet.
 *Scene nodes* are connected together to form a scene graph
@@ -80,9 +80,41 @@ The above expression results in the following graph:
 
 ![](graphs/scene7.png)
 
-## Scene node common methods
+## Scene node common fields and methods
 
-The following methods are common to all scene nodes.
+The following fields and methods are common to all scene nodes.
+
+### node.hidden {.func-def}
+
+Determines whether the node and its children are rendered.
+The default is `false`, meaning that the node is rendered.
+
+Updatable.
+
+### node.paused {.func-def}
+
+Determines whether the node and its children's actions
+are executed. The default is `false`, meaning the actions
+are executed.
+
+Note that a descendent node's actions might still be executed
+if it is has another, non-paused, parent.
+
+Updatable.
+
+### node.num_children {.func-def}
+
+Returns the node's child count.
+
+Readonly.
+
+### node.recursion_limit {.func-def}
+
+This determines the number of times the node will be rendered
+recursively when part of a cycle in the scene graph.
+The default is 8.
+
+Updatable.
 
 ### node:tag(tagname) {#node:tag .method-def}
 
@@ -226,43 +258,7 @@ for i, child in node:child_pairs() do
 end
 ~~~
 
-## Scene node common fields
-
-The following fields are common to all scene nodes.
-
-### node.hidden {.func-def}
-
-Determines whether the node and its children are rendered.
-The default is `false`, meaning that the node is rendered.
-
-Updatable.
-
-### node.paused {.func-def}
-
-Determines whether the node and its children's actions
-are executed. The default is `false`, meaning the actions
-are executed.
-
-Note that a descendent node's actions might still be executed
-if it is has another, non-paused, parent.
-
-Updatable.
-
-### node.num_children {.func-def}
-
-Returns the node's child count.
-
-Readonly.
-
-### node.recursion_limit {.func-def}
-
-This determines the number of times the node will be rendered
-recursively when part of a cycle in the scene graph.
-The default is 8.
-
-Updatable.
-
-## Core scene nodes
+## Basic nodes
 
 ### am.group(children) {.func-def}
 
@@ -278,142 +274,22 @@ Example:
 local group_node = am.group{node1, node2, node3}
 ~~~
 
-### am.use_program(program) {#am.use_program .func-def}
+### am.text {#am.text .func-def}
+### am.sprite {#am.sprite .func-def}
+### am.rect {#am.rect .func-def}
+### am.circle {#am.circle .func-def}
+### am.particles2d {#am.particles2d .func-def}
 
-Sets the shader program to use when
-rendering descendents. A `program` object can be
-created using the [`am.program`](#am.program) function.
+## Transformation nodes
 
-Fields:
+The following nodes apply transformations to all
+their descendents.
 
-- `program`: The shader program to use. Updatable.
-
-Default tag: `"use_program"`.
-
-### am.bind(bindings) {#am.bind .func-def}
-
-Binds shader program parameters (uniforms and attributes).
-`bindings` is a table mapping shader parameters names
-to values.
-
-The named parameters are matched with the
-uniforms and attributes in the shader program just before 
-a [`am.draw`](#am.draw) node is
-encountered.
-Any bound parameters not in the program are ignored,
-but all program parameters must have been bound before
-the draw node is encountered.
-
-Attributes should be bound to buffer views of the
-required type.
-
-The name parameters are available as updatable fields on the bind node.
-The fields have the same names as their corresponding parameters.
-
-Default tag: `"bind"`.
-
-Example:
-
-~~~ {.lua}
-local bind_node = am.bind{
-    P = mat4(1),
-    MV = mat4(1),
-    color = vec4(1, 0, 0, 1),
-    vert = am.vec2_array{
-        vec2(-1, -1),
-        vec2(0, 1),
-        vec2(1, -1)
-    }
-}
--- update a parameter
-bind_node.color = vec4(0, 1, 1, 1)
-~~~
-
-### am.draw(primitive [, elements] [, first [, count]]) {#am.draw .func-def}
-
-Draws the currently bound vertices using
-the current shader program with the
-currently bound parameter values.
-
-`primitive` can be one of the following:
-
-- `"points"`
-- `"lines"`
-- `"line_strip"`
-- `"line_loop"`
-- `"triangles"`
-- `"triangle_strip"`
-- `"triangle_fan"`
-
-Note that `"line_loop"` and `"triangle_fan"` may be slow on some systems.
-
-`elements`, if supplied, should be a `ushort_elem` or `uint_elem`
-view containing 1-based attribute indices. If omitted the attributes
-are rendered in order as if `elements` were 
-1, 2, 3, 4, 5, ... etc. See also [buffers and views](#buffers-and-views).
-
-`first` specifies where in the list of vertices to start drawing
-(starting from 1).  The default is 1.
-
-`count` specifies how many vertices to draw. The default is as
-many as are supplied through bound vertex attributes
-and the `elements` view if present.
-
-Fields:
-
-- `primitive`: The primitive to draw. Updatable.
-- `elements`: The elements view. Updatable.
-- `first`: The first vertex to draw. Updatable.
-- `count`: The number of vertices to draw. Updatable.
-
-Default tag: `"draw"`.
-
-Here is a complete example that draws a triangle with
-red, green and blue corners using [`am.use_program`](#am.use_progam),
-[`am.bind`](#am.bind) and [`am.draw`](#am.draw) nodes:
-
-~~~ {.lua}
-local win = am.window{}
-local prog = am.program([[
-    precision highp float;
-    attribute vec2 vert;
-    attribute vec4 color;
-    uniform mat4 MV;
-    uniform mat4 P;
-    varying vec4 v_color;
-    void main() {
-        v_color = color;
-        gl_Position = P * MV * vec4(vert, 0.0, 1.0);
-    }
-]], [[
-    precision mediump float;
-    varying vec4 v_color;
-    void main() {
-        gl_FragColor = v_color;
-    }
-]])
-win.scene =
-    am.use_program(prog)
-    ^ am.bind{
-        P = mat4(1),
-        MV = mat4(1),
-        color = am.vec4_array{
-            vec4(1, 0, 0, 1),
-            vec4(0, 1, 0, 1),
-            vec4(0, 0, 1, 1)
-        },
-        vert = am.vec2_array{
-            vec2(-1, -1),
-            vec2(0, 1),
-            vec2(1, -1)
-        }
-    }
-    ^ am.draw"triangles"
-~~~
-
-The resulting image looks like this:
-
-![](images/rgb_triangle.png)
+**Note**:
+These nodes have an optional `uniform` argument in the
+first position of their construction functions. This
+argument is only relevant if you're writing your own shader
+programs. Otherwise you can ignore it.
 
 ### am.translate([uniform,] position) {#am.translate .func-def}
 
@@ -508,6 +384,166 @@ node2.axis = vec3(0, 0, 1)
 node3.rotation = quat(math.rad(60), vec3(0, 0, 1))
 ~~~
 
+## Advanced nodes
+
+### am.use_program(program) {#am.use_program .func-def}
+
+Sets the [shader program](#shader-programs) to use when
+rendering descendents. A `program` object can be
+created using the [`am.program`](#am.program) function.
+
+Fields:
+
+- `program`: The shader program to use. Updatable.
+
+Default tag: `"use_program"`.
+
+### am.bind(bindings) {#am.bind .func-def}
+
+Binds [shader program](#shader-programs) parameters (uniforms and attributes)
+to values.
+`bindings` is a table mapping shader parameter names
+to values.
+
+The named parameters are matched with the
+uniforms and attributes in the shader program just before 
+a [`am.draw`](#am.draw) node is
+encountered.
+
+Program parameter types are mapped to the following Lua types:
+
+Program parameter type      Lua type
+-----------------------     ---------------------------------------
+`float` uniform             `number`
+`vec2` uniform              [`vec2`](#vectors)
+`vec3` uniform              [`vec3`](#vectors)
+`vec4` uniform              [`vec4`](#vectors)
+`mat2` uniform              [`mat2`](#matrices)
+`mat3` uniform              [`mat3`](#matrices)
+`mat4` uniform              [`mat4`](#matrices)
+`sampler2D` uniform         [`texture2d`](#am.texture2d)
+`float` attribute           [`view("float")`](#buffers-and-views)
+`vec2` attribute            [`view("vec2")`](#buffers-and-views)
+`vec3` attribute            [`view("vec3")`](#buffers-and-views)
+`vec4` attribute            [`view("vec4")`](#buffers-and-views)
+
+Any bound parameters not in the program are ignored,
+but all program parameters must have been bound before
+a `draw` node is encountered.
+
+**Note**:
+The parameter `P` is initially bound to a 4x4 projection
+matrix defined by the window's coordinate system, while the parameter `MV`
+(the default model view matrix) is initially bound to the 4x4 identity matrix.
+
+The bound parameters are available as updatable fields on the bind node.
+The fields have the same names as their corresponding parameters.
+
+Default tag: `"bind"`.
+
+Example:
+
+~~~ {.lua}
+local bind_node = am.bind{
+    P = mat4(1),
+    MV = mat4(1),
+    color = vec4(1, 0, 0, 1),
+    vert = am.vec2_array{
+        vec2(-1, -1),
+        vec2(0, 1),
+        vec2(1, -1)
+    }
+}
+-- update a parameter
+bind_node.color = vec4(0, 1, 1, 1)
+~~~
+
+### am.draw(primitive [, elements] [, first [, count]]) {#am.draw .func-def}
+
+Draws the currently bound vertices using
+the current shader program with the
+currently bound parameter values.
+
+`primitive` can be one of the following:
+
+- `"points"`
+- `"lines"`
+- `"line_strip"`
+- `"line_loop"`
+- `"triangles"`
+- `"triangle_strip"`
+- `"triangle_fan"`
+
+Note that `"line_loop"` and `"triangle_fan"` may be slow on some systems.
+
+`elements`, if supplied, should be a `ushort_elem` or `uint_elem`
+view containing 1-based attribute indices. If omitted the attributes
+are rendered in order as if `elements` were 
+1, 2, 3, 4, 5, ... etc. See also [buffers and views](#buffers-and-views).
+
+`first` specifies where in the list of vertices to start drawing
+(starting from 1).  The default is 1.
+
+`count` specifies how many vertices to draw. The default is as
+many as are supplied through bound vertex attributes
+and the `elements` view if present.
+
+Fields:
+
+- `primitive`: The primitive to draw. Updatable.
+- `elements`: The elements view. Updatable.
+- `first`: The first vertex to draw. Updatable.
+- `count`: The number of vertices to draw. Updatable.
+
+Default tag: `"draw"`.
+
+Here is a complete example that draws a triangle with
+red, green and blue corners using [`am.use_program`](#am.use_program),
+[`am.bind`](#am.bind) and [`am.draw`](#am.draw) nodes:
+
+~~~ {.lua}
+local win = am.window{}
+local prog = am.program([[
+    precision highp float;
+    attribute vec2 vert;
+    attribute vec4 color;
+    uniform mat4 MV;
+    uniform mat4 P;
+    varying vec4 v_color;
+    void main() {
+        v_color = color;
+        gl_Position = P * MV * vec4(vert, 0.0, 1.0);
+    }
+]], [[
+    precision mediump float;
+    varying vec4 v_color;
+    void main() {
+        gl_FragColor = v_color;
+    }
+]])
+win.scene =
+    am.use_program(prog)
+    ^ am.bind{
+        P = mat4(1),
+        MV = mat4(1),
+        color = am.vec4_array{
+            vec4(1, 0, 0, 1),
+            vec4(0, 1, 0, 1),
+            vec4(0, 0, 1, 1)
+        },
+        vert = am.vec2_array{
+            vec2(-1, -1),
+            vec2(0, 1),
+            vec2(1, -1)
+        }
+    }
+    ^ am.draw"triangles"
+~~~
+
+The resulting image looks like this:
+
+![](images/rgb_triangle.png)
+
 ### am.blend(mode) {.func-def}
 
 Set the blending mode.
@@ -527,6 +563,10 @@ The possible values for `mode` are:
 Fields:
 
 - `mode`: Updatable.
+
+### am.color_mask(red, green, blue, alpha) {.func-def}
+
+TODO
 
 ### am.cull_face(face) {.func-def}
 
@@ -606,18 +646,9 @@ TODO
 
 TODO
 
-### am.color_mask(red, green, blue, alpha) {.func-def}
+### am.postprocess {#am.postprocess .func-def}
 
 TODO
-
-## Derived scene nodes
-
-### am.text {#am.text .func-def}
-### am.sprite {#am.sprite .func-def}
-### am.rect {#am.rect .func-def}
-### am.circle {#am.circle .func-def}
-### am.particles2d {#am.particles2d .func-def}
-### am.postprocess {#am.postprocess .func-def}
 
 ## Creating custom scene nodes
 

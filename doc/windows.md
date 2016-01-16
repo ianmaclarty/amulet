@@ -1,8 +1,7 @@
 
-API reference
-=============
+# Windows and input
 
-## Window functions
+## Creating a window
 
 ### am.window(settings) {#window_func .func-def}
 
@@ -170,7 +169,7 @@ Updatable.
 
 ### window.scene {.func-def}
 
-The scene node currently attached to the window.
+The [scene node](#scenes) currently attached to the window.
 This scene will be rendered to the window each frame.
 
 Updatable.
@@ -181,12 +180,21 @@ See [window settings](#window_func).
 
 Updatable.
 
-## Window methods
+## Closing a window
 
 ### window:close() {.func-def}
 
 Closes the window and quits the application if this was
 the only window.
+
+## Detecting when a window resizes
+
+### window:resized() {.func-def}
+
+Returns true if the window's size changed since the last frame.
+## Detecting key presses
+
+## Detecting key presses
 
 ### window:key_down(key) {#key_down .func-def}
 
@@ -331,6 +339,8 @@ returns `true` then `key_pressed` will always return `false`.
 (If necessary, Amulet will postpone key press events to the
 next frame to ensure this.)
 
+## Detecting mouse events
+
 ### window:mouse_position() {.func-def}
 
 Returns the position of the mouse cursor, as a `vec2`,
@@ -400,6 +410,8 @@ Returns the mouse scroll wheel position (a `vec2`).
 
 Returns the change in mouse scroll wheel position since the
 last frame (a `vec2`).
+
+## Detecting touch events
 
 ### window:touches_began() {.func-def #touches_began}
 
@@ -484,7 +496,3 @@ last frame in pixels (a `vec2`).
 
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
-
-### window:resized() {.func-def}
-
-Returns true if the window's size changed since the last frame.

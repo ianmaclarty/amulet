@@ -1,6 +1,8 @@
 
 # Buffers and views {#buffers-and-views}
 
+![](images/screenshot5.jpg)
+
 Buffers are contiguous blocks of memory. They are used for storing images,
 audio and vertex data, or anything else you like.
 
@@ -240,4 +242,7 @@ The table may contain either `vec4`s or numbers (though not a mix). If the
 table contains numbers they are used for the vector components and the
 resulting view will have a quarter the number of elements as there are
 numbers in the table.
+
+![](images/screenshot3.jpg)
+
 

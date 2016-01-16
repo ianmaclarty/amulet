@@ -281,3 +281,6 @@ functions will be available.
 
 Of course you can still return your own values from modules and they will
 be returned by `require` as with the default Lua `require` function.
+
+![](images/screenshot6.jpg)
+
