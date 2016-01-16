@@ -117,23 +117,27 @@ static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *
     uint8_t *ptr = buf->data + start_offset;
     uint8_t *end = buf->data + end_offset;
     int j = 1;
+    int t;
     while (ptr < end) {
         lua_rawgeti(L, idx, j);
-        int t = lua_type(L, -1);
-        if (t != LUA_TYPE) {
-            if (lua_isnil(L, -1)) {
-                lua_pop(L, 1);
-                break;
-            } else {
-                luaL_error(L, "unexpected %s in table at index %d (expecting only %ss)",
-                    am_get_typename(L, t), j, am_get_typename(L, LUA_TYPE));
-                return;
-            }
+#ifdef VEC_SZ
+        t = am_get_type(L, -1);
+#else
+        t = lua_type(L, -1);
+#endif
+        if (t == LUA_TYPE) {
+            *((CTYPE*)ptr) = GET_CTYPE(L, -1);
+            lua_pop(L, 1);
+            ptr += stride;
+            j++;
+        } else if (t == LUA_TNIL) {
+            lua_pop(L, 1);
+            break;
+        } else {
+            luaL_error(L, "unexpected %s in table at index %d (expecting only %ss)",
+                am_get_typename(L, t), j, am_get_typename(L, LUA_TYPE));
+            return;
         }
-        *((CTYPE*)ptr) = GET_CTYPE(L, -1);
-        lua_pop(L, 1);
-        ptr += stride;
-        j++;
     }
     buf->mark_dirty(start_offset, start_offset + (j-2) * stride + sizeof(CTYPE));
 }

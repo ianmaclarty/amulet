@@ -150,4 +150,8 @@ setvec:set(vec3(6, 7, 8))
 printvec(setvec[1])
 printvec(setvec[2])
 
+local vec3view = am.vec3_array{vec3(1, 2, 3), vec3(4, 5, 6)}
+printvec(vec3view[1])
+printvec(vec3view[2])
+
 print("ok")

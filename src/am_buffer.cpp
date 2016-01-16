@@ -567,7 +567,7 @@ static lua_Number read_num_ubyte_norm(uint8_t *ptr) {
 }
 
 static lua_Number read_num_byte_norm(uint8_t *ptr) {
-    return ((lua_Number)(*((int8_t*)ptr))) / 127.0;
+    return am_max(((lua_Number)(*((int8_t*)ptr))) / 127.0, -1.0);
 }
 
 static lua_Number read_num_ushort(uint8_t *ptr) {
@@ -587,7 +587,7 @@ static lua_Number read_num_ushort_norm(uint8_t *ptr) {
 }
 
 static lua_Number read_num_short_norm(uint8_t *ptr) {
-    return ((lua_Number)(*((int16_t*)ptr))) / 32767.0;
+    return am_max(((lua_Number)(*((int16_t*)ptr))) / 32767.0, -1.0);
 }
 
 static lua_Number read_num_uint(uint8_t *ptr) {
