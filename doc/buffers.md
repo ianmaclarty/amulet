@@ -1,12 +1,13 @@
 
-Buffers and views {#buffers-and-views}
-=================
+# Buffers and views {#buffers-and-views}
 
 Buffers are contiguous blocks of memory. They are used for storing images,
 audio and vertex data, or anything else you like.
 
 You can't access a buffer's memory directly.  Instead you access a buffer
 through a *view*.  Views provide a typed array-like interface to the buffer.
+
+## Buffers
 
 ### am.buffer(size) {#am.buffer .func-def}
 
@@ -15,6 +16,21 @@ Returns a new buffer of the given size in bytes.
 The buffer's memory will zeroed.
 
 The `#` operator can be used to retrieve the size of a buffer in bytes.
+
+### am.load_buffer(filename) {#am.load_buffer .func-def}
+
+Loads the given file and returns a buffer containing the
+file's data.
+
+### am.base64_encode(buffer) {#am.base64_encode .func-def}
+
+Returns a base64 encoding of a buffer as a string.
+
+### am.base64_decode(string) {#am.base64_decode .func-def}
+
+Converts a base64 string to a buffer.
+
+## Views
 
 ### buffer:view(type [, offset [, stride [, count]]]) {#buffer:view .func-def}
 
@@ -77,14 +93,20 @@ will return nil.
 
 You can retrieve the number of elements in a view using the `#` operator.
 
-### view:slice(n [, count]) {#view:slice .func-def}
+### view.buffer {#view.buffer .field-def}
+
+The buffer associated with the view.
+
+Readonly.
+
+### view:slice(n [, count]) {#view:slice .method-def}
 
 Returns a new view of the same type as `view` that references the same buffer,
 but which starts at the `n`th element of `view` and continues for
 `count` elements. If `count` is ommitted it is `#view - n + 1` (i.e.
 it covers all the elements of `view` after and including the `n`th).
 
-### view:set(val [, count]) {#view:set .func-def}
+### view:set(val [, count]) {#view:set .method-def}
 
 Bulk sets values in a view. This is faster than setting them
 one at a time.
@@ -116,27 +138,106 @@ vice versa.
 
 ### am.float_array(table) {#am.float_array .func-def}
 
-Returns a float view to a newly created buffer containing
-all the given values. `values` 
+Returns a `float` view to a newly created buffer and fills
+it with the values in the given table.
 
-### am.byte_array(values) {#am.byte_array .func-def}
-### am.ubyte_array(values) {#am.ubyte_array .func-def}
-### am.byte_norm_array(values) {#am.byte_norm_array .func-def}
-### am.ubyte_norm_array(values) {#am.ubyte_norm_array .func-def}
-### am.short_array(values) {#am.short_array .func-def}
-### am.ushort_array(values) {#am.ushort_array .func-def}
-### am.short_norm_array(values) {#am.short_norm_array .func-def}
-### am.ushort_norm_array(values) {#am.ushort_norm_array .func-def}
-### am.int_array(values) {#am.int_array .func-def}
-### am.uint_array(values) {#am.uint_array .func-def}
-### am.int_norm_array(values) {#am.int_norm_array .func-def}
-### am.uint_norm_array(values) {#am.uint_norm_array .func-def}
-### am.ushort_elem_array(values) {#am.ushort_elem_array .func-def}
-### am.uint_elem_array(values) {#am.uint_elem_array .func-def}
-### am.vec2_array(values) {#am.vec2_array .func-def}
-### am.vec3_array(values) {#am.vec3_array .func-def}
-### am.vec4_array(values) {#am.vec4_array .func-def}
+### am.byte_array(table) {#am.byte_array .func-def}
 
-### am.load_buffer(filename) {#am.load_buffer .func-def}
-### am.base64_encode(buffer) {#am.base64_encode .func-def}
-### am.base64_decode(string) {#am.base64_decode .func-def}
+Returns a `byte` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.ubyte_array(table) {#am.ubyte_array .func-def}
+
+Returns a `ubyte` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.byte_norm_array(table) {#am.byte_norm_array .func-def}
+
+Returns a `byte_norm` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.ubyte_norm_array(table) {#am.ubyte_norm_array .func-def}
+
+Returns a `ubyte_norm` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.short_array(table) {#am.short_array .func-def}
+
+Returns a `short` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.ushort_array(table) {#am.ushort_array .func-def}
+
+Returns a `ushort` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.short_norm_array(table) {#am.short_norm_array .func-def}
+
+Returns a `short_norm` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.ushort_norm_array(table) {#am.ushort_norm_array .func-def}
+
+Returns a `ushort_norm` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.int_array(table) {#am.int_array .func-def}
+
+Returns an `int` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.uint_array(table) {#am.uint_array .func-def}
+
+Returns a `uint` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.int_norm_array(table) {#am.int_norm_array .func-def}
+
+Returns an `int_norm` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.uint_norm_array(table) {#am.uint_norm_array .func-def}
+
+Returns a `uint_norm` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.ushort_elem_array(table) {#am.ushort_elem_array .func-def}
+
+Returns a `ushort_elem` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.uint_elem_array(table) {#am.uint_elem_array .func-def}
+
+Returns a `uint_elem` view to a newly created buffer and fills
+it with the values in the given table.
+
+### am.vec2_array(table) {#am.vec2_array .func-def}
+
+Returns a `vec2` view to a newly created buffer and fills
+it with the values in the given table.
+
+The table may contain either `vec2`s or numbers (though not a mix). If the
+table contains numbers they are used for the vector components and the
+resulting view will have half the number of elements as there are
+numbers in the table.
+
+### am.vec3_array(table) {#am.vec3_array .func-def}
+
+Returns a `vec3` view to a newly created buffer and fills
+it with the values in the given table.
+
+The table may contain either `vec3`s or numbers (though not a mix). If the
+table contains numbers they are used for the vector components and the
+resulting view will have a third the number of elements as there are
+numbers in the table.
+
+### am.vec4_array(table) {#am.vec4_array .func-def}
+
+Returns a `vec4` view to a newly created buffer containing
+the values in the given table.
+
+The table may contain either `vec4`s or numbers (though not a mix). If the
+table contains numbers they are used for the vector components and the
+resulting view will have a quarter the number of elements as there are
+numbers in the table.
+

@@ -32,6 +32,11 @@ for i = 1, n*4 do
     tn4[i] = i
 end
 
+local sview1 = am.buffer(n * 4):view("float")
+local sview2 = am.buffer(n * 8):view("vec2")
+local sview3 = am.buffer(n * 12):view("vec3")
+local sview4 = am.buffer(n * 16):view("vec4")
+
 local view1 = am.buffer(n * 4):view("float")
 local view2 = am.buffer(n * 8):view("vec2")
 local view3 = am.buffer(n * 12):view("vec3")
@@ -49,7 +54,12 @@ time("view1 one-at-a-time")
 for i = 1, m do
     view1:set(tn)
 end
-time("view1 bulk")
+time("view1 bulk from table")
+
+for i = 1, m do
+    view1:set(sview1)
+end
+time("view1 bulk from view")
 
 for i = 1, m do
     for j = 1, n do
@@ -61,12 +71,17 @@ time("view2 one-at-a-time")
 for i = 1, m do
     view2:set(tv2)
 end
-time("view2 bulk")
+time("view2 bulk from vec table")
 
 for i = 1, m do
     view2:set(tn2)
 end
-time("view2 bulk num")
+time("view2 bulk from num table")
+
+for i = 1, m do
+    view2:set(sview2)
+end
+time("view2 bulk from view")
 
 for i = 1, m do
     for j = 1, n do
@@ -78,12 +93,17 @@ time("view3 one-at-a-time")
 for i = 1, m do
     view3:set(tv3)
 end
-time("view3 bulk")
+time("view3 bulk from vec table")
 
 for i = 1, m do
     view3:set(tn3)
 end
-time("view3 bulk num")
+time("view3 bulk from num table")
+
+for i = 1, m do
+    view3:set(sview3)
+end
+time("view3 bulk from view")
 
 for i = 1, m do
     for j = 1, n do
@@ -95,10 +115,15 @@ time("view4 one-at-a-time")
 for i = 1, m do
     view4:set(tv4)
 end
-time("view4 bulk")
+time("view4 bulk from vec table")
 
 for i = 1, m do
     view4:set(tn4)
 end
-time("view4 bulk num")
+time("view4 bulk from num table")
+
+for i = 1, m do
+    view4:set(sview4)
+end
+time("view4 bulk from view")
 

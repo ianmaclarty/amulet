@@ -97,31 +97,36 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul></li>
 <li><a href="#buffers-and-views">Buffers and views</a><ul>
+<li><a href="#buffers">Buffers</a><ul>
 <li><a href="#am.buffer">am.buffer(size)</a></li>
-<li><a href="#buffer:view">buffer:view(type [, offset [, stride [, count]]])</a></li>
-<li><a href="#view:slice">view:slice(n [, count])</a></li>
-<li><a href="#view:set">view:set(val [, count])</a></li>
-<li><a href="#am.float_array">am.float_array(values)</a></li>
-<li><a href="#am.byte_array">am.byte_array(values)</a></li>
-<li><a href="#am.ubyte_array">am.ubyte_array(values)</a></li>
-<li><a href="#am.byte_norm_array">am.byte_norm_array(values)</a></li>
-<li><a href="#am.ubyte_norm_array">am.ubyte_norm_array(values)</a></li>
-<li><a href="#am.short_array">am.short_array(values)</a></li>
-<li><a href="#am.ushort_array">am.ushort_array(values)</a></li>
-<li><a href="#am.short_norm_array">am.short_norm_array(values)</a></li>
-<li><a href="#am.ushort_norm_array">am.ushort_norm_array(values)</a></li>
-<li><a href="#am.int_array">am.int_array(values)</a></li>
-<li><a href="#am.uint_array">am.uint_array(values)</a></li>
-<li><a href="#am.int_norm_array">am.int_norm_array(values)</a></li>
-<li><a href="#am.uint_norm_array">am.uint_norm_array(values)</a></li>
-<li><a href="#am.ushort_elem_array">am.ushort_elem_array(values)</a></li>
-<li><a href="#am.uint_elem_array">am.uint_elem_array(values)</a></li>
-<li><a href="#am.vec2_array">am.vec2_array(values)</a></li>
-<li><a href="#am.vec3_array">am.vec3_array(values)</a></li>
-<li><a href="#am.vec4_array">am.vec4_array(values)</a></li>
 <li><a href="#am.load_buffer">am.load_buffer(filename)</a></li>
 <li><a href="#am.base64_encode">am.base64_encode(buffer)</a></li>
 <li><a href="#am.base64_decode">am.base64_decode(string)</a></li>
+</ul></li>
+<li><a href="#views">Views</a><ul>
+<li><a href="#buffer:view">buffer:view(type [, offset [, stride [, count]]])</a></li>
+<li><a href="#view.buffer">view.buffer</a></li>
+<li><a href="#view:slice">view:slice(n [, count])</a></li>
+<li><a href="#view:set">view:set(val [, count])</a></li>
+<li><a href="#am.float_array">am.float_array(table)</a></li>
+<li><a href="#am.byte_array">am.byte_array(table)</a></li>
+<li><a href="#am.ubyte_array">am.ubyte_array(table)</a></li>
+<li><a href="#am.byte_norm_array">am.byte_norm_array(table)</a></li>
+<li><a href="#am.ubyte_norm_array">am.ubyte_norm_array(table)</a></li>
+<li><a href="#am.short_array">am.short_array(table)</a></li>
+<li><a href="#am.ushort_array">am.ushort_array(table)</a></li>
+<li><a href="#am.short_norm_array">am.short_norm_array(table)</a></li>
+<li><a href="#am.ushort_norm_array">am.ushort_norm_array(table)</a></li>
+<li><a href="#am.int_array">am.int_array(table)</a></li>
+<li><a href="#am.uint_array">am.uint_array(table)</a></li>
+<li><a href="#am.int_norm_array">am.int_norm_array(table)</a></li>
+<li><a href="#am.uint_norm_array">am.uint_norm_array(table)</a></li>
+<li><a href="#am.ushort_elem_array">am.ushort_elem_array(table)</a></li>
+<li><a href="#am.uint_elem_array">am.uint_elem_array(table)</a></li>
+<li><a href="#am.vec2_array">am.vec2_array(table)</a></li>
+<li><a href="#am.vec3_array">am.vec3_array(table)</a></li>
+<li><a href="#am.vec4_array">am.vec4_array(table)</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#scene-graphs">Scene graphs</a><ul>
 <li><a href="#scene-graph-construction-syntax">Scene graph construction syntax</a></li>
@@ -1031,10 +1036,18 @@ vec2(0, 2)</code></pre>
 <h1 id="buffers-and-views">Buffers and views</h1>
 <p>Buffers are contiguous blocks of memory. They are used for storing images, audio and vertex data, or anything else you like.</p>
 <p>You can't access a buffer's memory directly. Instead you access a buffer through a <em>view</em>. Views provide a typed array-like interface to the buffer.</p>
+<h2 id="buffers">Buffers</h2>
 <h3 id="am.buffer" class="func-def">am.buffer(size)</h3>
 <p>Returns a new buffer of the given size in bytes.</p>
 <p>The buffer's memory will zeroed.</p>
 <p>The <code>#</code> operator can be used to retrieve the size of a buffer in bytes.</p>
+<h3 id="am.load_buffer" class="func-def">am.load_buffer(filename)</h3>
+<p>Loads the given file and returns a buffer containing the file's data.</p>
+<h3 id="am.base64_encode" class="func-def">am.base64_encode(buffer)</h3>
+<p>Returns a base64 encoding of a buffer as a string.</p>
+<h3 id="am.base64_decode" class="func-def">am.base64_decode(string)</h3>
+<p>Converts a base64 string to a buffer.</p>
+<h2 id="views">Views</h2>
 <h3 id="buffer:view" class="func-def">buffer:view(type [, offset [, stride [, count]]])</h3>
 <p>Returns a view into <code>buffer</code>.</p>
 <p><code>type</code> can be one of the following:</p>
@@ -1176,10 +1189,13 @@ view<span class="ot">[</span><span class="dv">1</span><span class="ot">]</span> 
 view<span class="ot">[</span><span class="dv">2</span><span class="ot">]</span> <span class="ot">=</span> view<span class="ot">[</span><span class="dv">1</span><span class="ot">]</span> <span class="ot">+</span> <span class="dv">2</span></code></pre></div>
 <p>Attempting to read an index less than 1 or larger than the number of elements will return nil.</p>
 <p>You can retrieve the number of elements in a view using the <code>#</code> operator.</p>
-<h3 id="view:slice" class="func-def">view:slice(n [, count])</h3>
+<h3 id="view.buffer" class="field-def">view.buffer</h3>
+<p>The buffer associated with the view.</p>
+<p>Readonly.</p>
+<h3 id="view:slice" class="method-def">view:slice(n [, count])</h3>
 <p>Returns a new view of the same type as <code>view</code> that references the same buffer, but which starts at the <code>n</code>th element of <code>view</code> and continues for <code>count</code> elements. If <code>count</code> is ommitted it is <code>#view - n + 1</code> (i.e. it covers all the elements of <code>view</code> after and including the <code>n</code>th).</p>
-<h3 id="view:set" class="func-def">view:set(val [, count])</h3>
-<p>Sets values in the view.</p>
+<h3 id="view:set" class="method-def">view:set(val [, count])</h3>
+<p>Bulk sets values in a view. This is faster than setting them one at a time.</p>
 <p>If <code>val</code> is a number or vector then this sets up to <code>count</code> elements of <code>view</code> to <code>val</code>. If <code>count</code> is ommitted all the elements are set.</p>
 <p>If <code>val</code> is a table then the elements are set to their corresponding values from the table. If <code>count</code> is given then at most <code>count</code> elements are set (fewer may be set if the table has less than <code>count</code> elements).</p>
 <p>As a special case, if <code>val</code> is a table of numbers and the view's type is a vector, then the elements of the table will be used to set the components of the vectors in the view. For example:</p>
@@ -1187,28 +1203,46 @@ view<span class="ot">[</span><span class="dv">2</span><span class="ot">]</span> 
 verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">}</span>
 <span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">1</span><span class="ot">])</span> <span class="co">-- vec3(1, 2, 3)</span>
 <span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">2</span><span class="ot">])</span> <span class="co">-- vec3(4, 5, 6)</span></code></pre></div>
-<p>Finally if <code>val</code> is another view then the elements are set to the corresponding values from that view. The views may be of different types as long as they are &quot;compatible&quot;. The types are converted as if each element were set using the Lua code <code>view1[i] = view2[i]</code>. (This means you can't set a number view to a vector view or vice versa).</p>
-<h3 id="am.float_array" class="func-def">am.float_array(values)</h3>
-<h3 id="am.byte_array" class="func-def">am.byte_array(values)</h3>
-<h3 id="am.ubyte_array" class="func-def">am.ubyte_array(values)</h3>
-<h3 id="am.byte_norm_array" class="func-def">am.byte_norm_array(values)</h3>
-<h3 id="am.ubyte_norm_array" class="func-def">am.ubyte_norm_array(values)</h3>
-<h3 id="am.short_array" class="func-def">am.short_array(values)</h3>
-<h3 id="am.ushort_array" class="func-def">am.ushort_array(values)</h3>
-<h3 id="am.short_norm_array" class="func-def">am.short_norm_array(values)</h3>
-<h3 id="am.ushort_norm_array" class="func-def">am.ushort_norm_array(values)</h3>
-<h3 id="am.int_array" class="func-def">am.int_array(values)</h3>
-<h3 id="am.uint_array" class="func-def">am.uint_array(values)</h3>
-<h3 id="am.int_norm_array" class="func-def">am.int_norm_array(values)</h3>
-<h3 id="am.uint_norm_array" class="func-def">am.uint_norm_array(values)</h3>
-<h3 id="am.ushort_elem_array" class="func-def">am.ushort_elem_array(values)</h3>
-<h3 id="am.uint_elem_array" class="func-def">am.uint_elem_array(values)</h3>
-<h3 id="am.vec2_array" class="func-def">am.vec2_array(values)</h3>
-<h3 id="am.vec3_array" class="func-def">am.vec3_array(values)</h3>
-<h3 id="am.vec4_array" class="func-def">am.vec4_array(values)</h3>
-<h3 id="am.load_buffer" class="func-def">am.load_buffer(filename)</h3>
-<h3 id="am.base64_encode" class="func-def">am.base64_encode(buffer)</h3>
-<h3 id="am.base64_decode" class="func-def">am.base64_decode(string)</h3>
+<p>Finally if <code>val</code> is another view then the elements are set to the corresponding values from that view. The views may be of different types as long as they are &quot;compatible&quot;. The types are converted as if each element were set using the Lua code <code>view1[i] = view2[i]</code>. This means you can't set a number view to a vector view or vice versa.</p>
+<h3 id="am.float_array" class="func-def">am.float_array(table)</h3>
+<p>Returns a <code>float</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.byte_array" class="func-def">am.byte_array(table)</h3>
+<p>Returns a <code>byte</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.ubyte_array" class="func-def">am.ubyte_array(table)</h3>
+<p>Returns a <code>ubyte</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.byte_norm_array" class="func-def">am.byte_norm_array(table)</h3>
+<p>Returns a <code>byte_norm</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.ubyte_norm_array" class="func-def">am.ubyte_norm_array(table)</h3>
+<p>Returns a <code>ubyte_norm</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.short_array" class="func-def">am.short_array(table)</h3>
+<p>Returns a <code>short</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.ushort_array" class="func-def">am.ushort_array(table)</h3>
+<p>Returns a <code>ushort</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.short_norm_array" class="func-def">am.short_norm_array(table)</h3>
+<p>Returns a <code>short_norm</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.ushort_norm_array" class="func-def">am.ushort_norm_array(table)</h3>
+<p>Returns a <code>ushort_norm</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.int_array" class="func-def">am.int_array(table)</h3>
+<p>Returns an <code>int</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.uint_array" class="func-def">am.uint_array(table)</h3>
+<p>Returns a <code>uint</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.int_norm_array" class="func-def">am.int_norm_array(table)</h3>
+<p>Returns an <code>int_norm</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.uint_norm_array" class="func-def">am.uint_norm_array(table)</h3>
+<p>Returns a <code>uint_norm</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.ushort_elem_array" class="func-def">am.ushort_elem_array(table)</h3>
+<p>Returns a <code>ushort_elem</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.uint_elem_array" class="func-def">am.uint_elem_array(table)</h3>
+<p>Returns a <code>uint_elem</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<h3 id="am.vec2_array" class="func-def">am.vec2_array(table)</h3>
+<p>Returns a <code>vec2</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<p>The table may contain either <code>vec2</code>s or numbers (though not a mix). If the table contains numbers they are used for the vector components and the resulting view will have half the number of elements as there are numbers in the table.</p>
+<h3 id="am.vec3_array" class="func-def">am.vec3_array(table)</h3>
+<p>Returns a <code>vec3</code> view to a newly created buffer and fills it with the values in the given table.</p>
+<p>The table may contain either <code>vec3</code>s or numbers (though not a mix). If the table contains numbers they are used for the vector components and the resulting view will have a third the number of elements as there are numbers in the table.</p>
+<h3 id="am.vec4_array" class="func-def">am.vec4_array(table)</h3>
+<p>Returns a <code>vec4</code> view to a newly created buffer containing the values in the given table.</p>
+<p>The table may contain either <code>vec4</code>s or numbers (though not a mix). If the table contains numbers they are used for the vector components and the resulting view will have a quarter the number of elements as there are numbers in the table.</p>
 <h1 id="scene-graphs">Scene graphs</h1>
 <p>Scene graphs are how you draw graphics in Amulet. <em>Scene nodes</em> are connected together to form a scene graph which is attached to a window. The window will then render the scene graph each frame.</p>
 <p>Scene nodes correspond to graphics commands. They either change the rendering state in some way, for example by applying a transformation or changing the blend mode, or execute a draw command, which renders something to the screen.</p>
