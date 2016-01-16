@@ -23,6 +23,10 @@ Support for Android will be added at some point as well.
 How to use this document
 ========================
 
+If you have some programming experience, but are
+new to Lua then the [Lua primer](#lua-primer) should
+bring you up to speed.
+
 The [quickstart tutorial](#quickstart) introduces basic
 concepts and walks you through
 drawing things on screen, playing audio and responding to user

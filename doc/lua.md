@@ -5,7 +5,7 @@ Lua
 Amulet code is written in [Lua](http://www.lua.org).
 The version of Lua used by default is Lua-5.1.
 
-Lua primer
+Lua primer {#lua-primer}
 ----------
 
 Here is a quick Lua syntax primer. For more detail please

@@ -273,7 +273,7 @@ clean-all: clean-tests
 
 .PHONY: doc
 doc:
-	cd doc && $(MAKE) VERSION="$(VERSION)"
+	cd doc && $(MAKE)
 
 # Binary distribution license
 
