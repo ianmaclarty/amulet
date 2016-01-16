@@ -13,7 +13,7 @@ end
 
 local n = 10000
 local buf = am.buffer(4 * n)
-local view = buf:view("float", 0, 4)
+local view = buf:view("float")
 
 for i = 1, n do
     view[i] = i

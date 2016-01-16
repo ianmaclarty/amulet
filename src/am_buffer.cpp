@@ -378,13 +378,10 @@ am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type) {
 }
 
 static int create_buffer_view(lua_State *L) {
-    int nargs = am_check_nargs(L, 4);
+    int nargs = am_check_nargs(L, 2);
 
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
     am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 2);
-
-    int offset = luaL_checkinteger(L, 3);
-    int stride = luaL_checkinteger(L, 4);
 
     int type_size = 0;
     bool normalized = false;
@@ -430,6 +427,15 @@ static int create_buffer_view(lua_State *L) {
             break;
     }
     assert(type_size > 0);
+
+    int offset = 0;
+    if (nargs > 2) {
+        offset = luaL_checkinteger(L, 3);
+    }
+    int stride = type_size;
+    if (nargs > 3) {
+        stride = luaL_checkinteger(L, 4);
+    }
 
     int max_size = 0;
     if (buf->size - offset - type_size >= 0) {
