@@ -53,15 +53,6 @@ static inline T am_clamp(T x, T lo, T hi) {
     return x < lo ? lo : (x > hi ? hi : x);
 }
 
-template<typename T>
-static inline T am_clamp_norm(T x, T lo, T hi) {
-    if (x < 0.0) {
-        return am_clamp(x * -lo, lo, hi);
-    } else {
-        return am_clamp(x * hi, lo, hi);
-    }
-}
-
 // returned string should be freed with free()
 char *am_format(const char *fmt, ...);
 

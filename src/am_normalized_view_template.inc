@@ -12,8 +12,8 @@
 #endif
 
 #define LUA_TYPE LUA_TNUMBER
-#define GET_CTYPE(L, idx) ((CTYPE)am_clamp_norm(lua_tonumber(L, idx), (lua_Number)MINVAL, (lua_Number)MAXVAL))
-#define PUSH_CTYPE(L, x) lua_pushnumber(L, x < (CTYPE)0 ? ((lua_Number)(x) / (lua_Number)(-(MINVAL))) : ((lua_Number)(x) / (lua_Number)MAXVAL))
+#define GET_CTYPE(L, idx) (CTYPE)(lua_tonumber(L, idx) * (lua_Number)MAXVAL)
+#define PUSH_CTYPE(L, x) lua_pushnumber(L, am_max(((lua_Number)(x)) / (lua_Number)MAXVAL, -1.0))
 
 #include "am_view_template.inc"
 

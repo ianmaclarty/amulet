@@ -80,7 +80,7 @@ print(viewub[3])
 local viewubn = buf2:view("ubyte_norm", 0, 1, 10)
 print(viewubn[1] * 255)
 print(viewubn[10] * 255)
-viewubn[2] = 0.5
+viewubn[2] = 127/255
 print(viewubn[2] * 255)
 print(viewub[2])
 
@@ -121,11 +121,11 @@ viewint[1] = -9999999
 print(viewint[1])
 
 local viewushortn = buf2:view("ushort_norm", 0, 2, 5)
-viewushortn[1] = 0.5
+viewushortn[1] = 32767/65535
 print(string.format("%0.2f", viewushortn[1]))
 
 local viewshortn = buf2:view("short_norm", 0, 2, 5)
-viewshortn[1] = -0.5
+viewshortn[1] = -32767/65535
 print(string.format("%0.2f", viewshortn[1]))
 
 for _, vs in ipairs({{viewub, viewubn}, {viewushort, viewushortn}, {viewshort, viewshortn}, {viewuint}, {viewint}}) do
