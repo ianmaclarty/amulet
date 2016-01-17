@@ -87,7 +87,7 @@ end
 --      start_particles
 --      max_particles
 --      gravity
---      sprite
+--      sprite_source
 --      warmup_time
 function am.particles2d(opts)
     local max_particles = opts.max_particles or 100
