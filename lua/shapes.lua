@@ -116,12 +116,12 @@ function am.circle(center, radius, color, sides)
         }
         ^am.draw("triangles", am.circle_indices(sides))
     node.verts = verts
-    function node:get_color()
-        return color
+    function node:get_center()
+        return center
     end
-    function node:set_color(c)
-        color = c
-        node"bind".color = color
+    function node:set_center(c)
+        center = c
+        node"translate".position2d = c
     end
     function node:get_radius()
         return radius
@@ -129,6 +129,13 @@ function am.circle(center, radius, color, sides)
     function node:set_radius(r)
         radius = r
         node"scale".scale2d = vec2(radius)
+    end
+    function node:get_color()
+        return color
+    end
+    function node:set_color(c)
+        color = c
+        node"bind".color = color
     end
     node:tag"circle"
     return node
