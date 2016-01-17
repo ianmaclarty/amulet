@@ -141,7 +141,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#windows-and-input">Windows and input</a><ul>
 <li><a href="#creating-a-window-1">Creating a window</a><ul>
-<li><a href="#window_func">am.window(settings)</a></li>
+<li><a href="#am.window">am.window(settings)</a></li>
 </ul></li>
 <li><a href="#window-fields">Window fields</a><ul>
 <li><a href="#window.left">window.left</a></li>
@@ -224,11 +224,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#basic-nodes">Basic nodes</a><ul>
 <li><a href="#am.groupchildren">am.group(children)</a></li>
-<li><a href="#am.text">am.text</a></li>
-<li><a href="#am.sprite">am.sprite</a></li>
-<li><a href="#am.rect">am.rect</a></li>
-<li><a href="#am.circle">am.circle</a></li>
-<li><a href="#am.particles2d">am.particles2d</a></li>
+<li><a href="#am.text">am.text([font, ] string [, color] [, halign [, valign]])</a></li>
+<li><a href="#am.sprite">am.sprite(source [, color] [, halign [, valign]])</a></li>
+<li><a href="#am.rect">am.rect(x1, y1, x2, y2 [, color])</a></li>
+<li><a href="#am.circle">am.circle(center, radius [, color [, sides]])</a></li>
+<li><a href="#am.particles2d">am.particles2d(settings)</a></li>
 </ul></li>
 <li><a href="#transformation-nodes-1">Transformation nodes</a><ul>
 <li><a href="#am.translate">am.translate([uniform,] position)</a></li>
@@ -244,13 +244,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.cull_faceface">am.cull_face(face)</a></li>
 <li><a href="#am.depth_test">am.depth_test(test [, mask])</a></li>
 <li><a href="#am.viewport">am.viewport(x, y, width, height)</a></li>
-<li><a href="#am.lookatuniform-eye-center-up">am.lookat([uniform,] eye, center, up)</a></li>
-<li><a href="#am.cull_sphereuniforms...-radius-center">am.cull_sphere([uniforms...,] radius, center)</a></li>
-<li><a href="#am.billboarduniform-preserve_scaling">am.billboard([uniform,] [preserve_scaling])</a></li>
-<li><a href="#am.read_mat2uniform">am.read_mat2(uniform)</a></li>
-<li><a href="#am.read_mat3uniform">am.read_mat3(uniform)</a></li>
-<li><a href="#am.read_mat4uniform">am.read_mat4(uniform)</a></li>
-<li><a href="#am.postprocess">am.postprocess</a></li>
+<li><a href="#am.lookat">am.lookat([uniform,] eye, center, up)</a></li>
+<li><a href="#am.cull_sphere">am.cull_sphere([uniforms...,] radius [, center])</a></li>
+<li><a href="#am.billboard">am.billboard([uniform,] [preserve_scaling])</a></li>
+<li><a href="#am.read_param">am.read_param(name)</a></li>
+<li><a href="#am.postprocess">am.postprocess(settings)</a></li>
 </ul></li>
 <li><a href="#creating-custom-scene-nodes">Creating custom scene nodes</a></li>
 </ul></li>
@@ -266,6 +264,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.texture2d">am.texture2d(width [, height])</a></li>
 <li><a href="#am.texture2dimage_buffer">am.texture2d(image_buffer)</a></li>
 <li><a href="#am.texture2dfilename">am.texture2d(filename)</a></li>
+<li><a href="#texture.minfilter">texture.minfilter</a></li>
+<li><a href="#texture.magfilter">texture.magfilter</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#framebuffers">Framebuffers</a></li>
@@ -298,7 +298,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#performance-stats">Performance stats</a></li>
 <li><a href="#amulet-version">Amulet version</a></li>
 <li><a href="#useful-directories">Useful directories</a></li>
-<li><a href="#packing-sprites">Packing sprites</a></li>
+<li><a href="#spritepack">Packing sprites and generating fonts</a></li>
 <li><a href="#exporting">Exporting</a></li>
 </ul>
 </nav>
@@ -1326,7 +1326,7 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 </div>
 <h1 id="windows-and-input">Windows and input</h1>
 <h2 id="creating-a-window-1">Creating a window</h2>
-<h3 id="window_func" class="func-def">am.window(settings)</h3>
+<h3 id="am.window" class="func-def">am.window(settings)</h3>
 <p>Creates a new window, returning a window object. <code>settings</code> is a table with any of the following fields:</p>
 <ul>
 <li><p><strong><code>mode</code></strong>: Either <code>&quot;windowed&quot;</code> or <code>&quot;fullscreen&quot;</code>. A fullscreen window will have the same resolution as the user's desktop. The default is <code>&quot;windowed&quot;</code>. Not all platforms support windowed mode (e.g. iOS). On these platforms this setting is ignored.</p></li>
@@ -1359,41 +1359,41 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <h3 id="window.width" class="func-def">window.width</h3>
 <p>The width of the window in the window's default coordinate system. This will always be equal to the <code>width</code> setting supplied when the window was created if the <code>letterbox</code> setting is enabled. Otherwise it may be larger, but it will never be smaller than the <code>width</code> setting.</p>
 <p>Readonly.</p>
-<h3 id="window.height" class="func-def">window.height</h3>
+<h3 id="window.height" class="field-def">window.height</h3>
 <p>The height of the window in the window's default coordinate space. This will always be equal to the <code>height</code> setting supplied when the window was created if the <code>letterbox</code> setting is enabled. Otherwise it may be larger, but it will never be smaller than the <code>height</code> setting.</p>
 <p>Readonly.</p>
-<h3 id="window.pixel_width" class="func-def">window.pixel_width</h3>
+<h3 id="window.pixel_width" class="field-def">window.pixel_width</h3>
 <p>The real width of the window in pixels.</p>
 <p>Readonly.</p>
-<h3 id="window.pixel_height" class="func-def">window.pixel_height</h3>
+<h3 id="window.pixel_height" class="field-def">window.pixel_height</h3>
 <p>The real height of the window in pixels</p>
 <p>Readonly.</p>
-<h3 id="window.mode" class="func-def">window.mode</h3>
-<p>See <a href="#window_func">window settings</a>.</p>
+<h3 id="window.mode" class="field-def">window.mode</h3>
+<p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
-<h3 id="window.clear_color" class="func-def">window.clear_color</h3>
-<p>See <a href="#window_func">window settings</a>.</p>
+<h3 id="window.clear_color" class="field-def">window.clear_color</h3>
+<p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
-<h3 id="window.letterbox" class="func-def">window.letterbox</h3>
-<p>See <a href="#window_func">window settings</a>.</p>
+<h3 id="window.letterbox" class="field-def">window.letterbox</h3>
+<p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
-<h3 id="window.lock_pointer" class="func-def">window.lock_pointer</h3>
-<p>See <a href="#window_func">window settings</a>.</p>
+<h3 id="window.lock_pointer" class="field-def">window.lock_pointer</h3>
+<p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
-<h3 id="window.scene" class="func-def">window.scene</h3>
+<h3 id="window.scene" class="field-def">window.scene</h3>
 <p>The <a href="#scenes">scene node</a> currently attached to the window. This scene will be rendered to the window each frame.</p>
 <p>Updatable.</p>
-<h3 id="window.projection" class="func-def">window.projection</h3>
-<p>See <a href="#window_func">window settings</a>.</p>
+<h3 id="window.projection" class="field-def">window.projection</h3>
+<p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
 <h2 id="closing-a-window">Closing a window</h2>
-<h3 id="windowclose" class="func-def">window:close()</h3>
+<h3 id="windowclose" class="method-def">window:close()</h3>
 <p>Closes the window and quits the application if this was the only window.</p>
 <h2 id="detecting-when-a-window-resizes">Detecting when a window resizes</h2>
-<h3 id="windowresized" class="func-def">window:resized()</h3>
+<h3 id="windowresized" class="method-def">window:resized()</h3>
 <p>Returns true if the window's size changed since the last frame. ## Detecting key presses</p>
 <h2 id="detecting-key-presses">Detecting key presses</h2>
-<h3 id="key_down" class="func-def">window:key_down(key)</h3>
+<h3 id="key_down" class="method-def">window:key_down(key)</h3>
 <p>Returns true if the given key was down at the start of the current frame.</p>
 <p>The possible values for <code>key</code> are:</p>
 <ul>
@@ -1500,74 +1500,74 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <li><code>&quot;ralt&quot;</code></li>
 <li><code>&quot;rgui&quot;</code></li>
 </ul>
-<h3 id="windowkeys_down" class="func-def">window:keys_down()</h3>
+<h3 id="windowkeys_down" class="method-def">window:keys_down()</h3>
 <p>Returns an array of the keys that were down at the start of the current frame. See <a href="#key_down">window:key_down</a> for a list of possible key values.</p>
-<h3 id="windowkey_pressedkey" class="func-def">window:key_pressed(key)</h3>
+<h3 id="windowkey_pressedkey" class="method-def">window:key_pressed(key)</h3>
 <p>Returns true if the given key's state changed from up to down since the last frame. See <a href="#key_down">window:key_down</a> for possible values for <code>key</code>.</p>
 <p>Note that if <code>key_pressed</code> returns true, then <code>key_down</code> will also return <code>true</code>. Also if <code>key_pressed</code> returns <code>true</code> then <code>key_released</code> will always return <code>false</code>. (If necessary, Amulet will postpone key release events to the next frame to ensure this.)</p>
-<h3 id="windowkey_releasedkey" class="func-def">window:key_released(key)</h3>
+<h3 id="windowkey_releasedkey" class="method-def">window:key_released(key)</h3>
 <p>Returns true if the given key's state changed from down to up since the last frame. See <a href="#key_down">window:key_down</a> for possible values for <code>key</code>.</p>
 <p>Note that if <code>key_released</code> returns true, then <code>key_down</code> will also return <code>false</code>. Also if <code>key_released</code> returns <code>true</code> then <code>key_pressed</code> will always return <code>false</code>. (If necessary, Amulet will postpone key press events to the next frame to ensure this.)</p>
 <h2 id="detecting-mouse-events">Detecting mouse events</h2>
-<h3 id="windowmouse_position" class="func-def">window:mouse_position()</h3>
+<h3 id="windowmouse_position" class="method-def">window:mouse_position()</h3>
 <p>Returns the position of the mouse cursor, as a <code>vec2</code>, in the window's coordinate system.</p>
-<h3 id="windowmouse_norm_position" class="func-def">window:mouse_norm_position()</h3>
+<h3 id="windowmouse_norm_position" class="method-def">window:mouse_norm_position()</h3>
 <p>Returns the position of the mouse cursor in normalized device coordinates, as a <code>vec2</code>.</p>
-<h3 id="windowmouse_pixel_position" class="func-def">window:mouse_pixel_position()</h3>
+<h3 id="windowmouse_pixel_position" class="method-def">window:mouse_pixel_position()</h3>
 <p>Returns the position of the mouse cursor in pixels where the bottom left corner of the window has coordinate (0, 0), as a <code>vec2</code>.</p>
 <h3 id="windowmouse_delta" class="func-def">window:mouse_delta()</h3>
 <p>Returns the change in mouse position since the last frame, in the window's coordinate system (a <code>vec2</code>).</p>
-<h3 id="windowmouse_norm_delta" class="func-def">window:mouse_norm_delta()</h3>
+<h3 id="windowmouse_norm_delta" class="method-def">window:mouse_norm_delta()</h3>
 <p>Returns the change in mouse position since the last frame, in normalized device coordinates (a <code>vec2</code>).</p>
-<h3 id="windowmouse_pixel_delta" class="func-def">window:mouse_pixel_delta()</h3>
+<h3 id="windowmouse_pixel_delta" class="method-def">window:mouse_pixel_delta()</h3>
 <p>Returns the change in mouse position since the last frame, in pixels (a <code>vec2</code>).</p>
-<h3 id="windowmouse_downbutton" class="func-def">window:mouse_down(button)</h3>
+<h3 id="windowmouse_downbutton" class="method-def">window:mouse_down(button)</h3>
 <p>Returns <code>true</code> if the given button was down at the start of the frame. <code>button</code> may be <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> or <code>&quot;middle&quot;</code>.</p>
-<h3 id="windowmouse_pressedbutton" class="func-def">window:mouse_pressed(button)</h3>
+<h3 id="windowmouse_pressedbutton" class="method-def">window:mouse_pressed(button)</h3>
 <p>Returns <code>true</code> if the given mouse button's state changed from up to down since the last frame. <code>button</code> may be <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> or <code>&quot;middle&quot;</code>.</p>
 <p>Note that if <code>mouse_pressed</code> returns <code>true</code> then <code>mouse_down</code> will also return <code>true</code>. Also if <code>mouse_pressed</code> returns <code>true</code> then <code>mouse_released</code> will always return <code>false</code>. (If necessary, Amulet will postpone button release events to the next frame to ensure this.)</p>
-<h3 id="windowmouse_releasedbutton" class="func-def">window:mouse_released(button)</h3>
+<h3 id="windowmouse_releasedbutton" class="method-def">window:mouse_released(button)</h3>
 <p>Returns true if the given mouse button's state changed from down to up since the last frame. <code>button</code> may be <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> or <code>&quot;middle&quot;</code>.</p>
 <p>Note that if <code>mouse_released</code> returns <code>true</code> then <code>mouse_down</code> will also return <code>false</code>. Also if <code>mouse_released</code> returns <code>true</code> then <code>mouse_pressed</code> will always return <code>false</code>. (If necessary, Amulet will postpone button press events to the next frame to ensure this.)</p>
-<h3 id="windowmouse_wheel" class="func-def">window:mouse_wheel()</h3>
+<h3 id="windowmouse_wheel" class="method-def">window:mouse_wheel()</h3>
 <p>Returns the mouse scroll wheel position (a <code>vec2</code>).</p>
-<h3 id="windowmouse_wheel_delta" class="func-def">window:mouse_wheel_delta()</h3>
+<h3 id="windowmouse_wheel_delta" class="method-def">window:mouse_wheel_delta()</h3>
 <p>Returns the change in mouse scroll wheel position since the last frame (a <code>vec2</code>).</p>
 <h2 id="detecting-touch-events">Detecting touch events</h2>
-<h3 id="touches_began" class="func-def">window:touches_began()</h3>
+<h3 id="touches_began" class="method-def">window:touches_began()</h3>
 <p>Returns an array of the touches that began since the last frame.</p>
 <p>Each touch is an integer and each time a new touch occurs the lowest available integer greater than or equal to 1 is assigned to the touch.</p>
 <p>If there are no other active touches then the next touch will always be 1, so if your interface only expects a single touch at a time, you can just use 1 for all touch functions that take a touch argument and any additional touches will be ignored.</p>
-<h3 id="windowtouches_ended" class="func-def">window:touches_ended()</h3>
+<h3 id="windowtouches_ended" class="method-def">window:touches_ended()</h3>
 <p>Returns an array of the touches that ended since the last frame.</p>
-<h3 id="windowactive_touches" class="func-def">window:active_touches()</h3>
+<h3 id="windowactive_touches" class="method-def">window:active_touches()</h3>
 <p>Returns an array of the currently active touches.</p>
-<h3 id="windowtouch_begantouch" class="func-def">window:touch_began(touch)</h3>
+<h3 id="windowtouch_begantouch" class="method-def">window:touch_began(touch)</h3>
 <p>Returns true if the specific touch began since the last frame.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_endedtouch" class="func-def">window:touch_ended(touch)</h3>
+<h3 id="windowtouch_endedtouch" class="method-def">window:touch_ended(touch)</h3>
 <p>Returns true if the specific touch ended since the last frame.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_positiontouch" class="func-def">window:touch_position(touch)</h3>
+<h3 id="windowtouch_positiontouch" class="method-def">window:touch_position(touch)</h3>
 <p>Returns the last touch position in the window's coordinate system (a <code>vec2</code>).</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_norm_positiontouch" class="func-def">window:touch_norm_position(touch)</h3>
+<h3 id="windowtouch_norm_positiontouch" class="method-def">window:touch_norm_position(touch)</h3>
 <p>Returns the last touch position in normalized device coordinates (a <code>vec2</code>).</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_pixel_positiontouch" class="func-def">window:touch_pixel_position(touch)</h3>
+<h3 id="windowtouch_pixel_positiontouch" class="method-def">window:touch_pixel_position(touch)</h3>
 <p>Returns the last touch position in pixels, where the bottom left corner of the window is (0, 0) (a <code>vec2</code>).</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_deltatouch" class="func-def">window:touch_delta(touch)</h3>
+<h3 id="windowtouch_deltatouch" class="method-def">window:touch_delta(touch)</h3>
 <p>Returns the change in touch position since the last frame in the window's coordinate system (a <code>vec2</code>).</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_norm_deltatouch" class="func-def">window:touch_norm_delta(touch)</h3>
+<h3 id="windowtouch_norm_deltatouch" class="method-def">window:touch_norm_delta(touch)</h3>
 <p>Returns the change in touch position since the last frame in normalized device coordinates (a <code>vec2</code>).</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_pixel_deltatouch" class="func-def">window:touch_pixel_delta(touch)</h3>
+<h3 id="windowtouch_pixel_deltatouch" class="method-def">window:touch_pixel_delta(touch)</h3>
 <p>Returns the change in touch position since the last frame in pixels (a <code>vec2</code>).</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
 <h1 id="scenes">Scenes</h1>
-<p>Scene graphs are how you draw graphics in Amulet. <em>Scene nodes</em> are connected together to form a scene graph which is attached to a window. The window will then render the scene graph each frame.</p>
+<p>Scene graphs are how you draw graphics in Amulet. <em>Scene nodes</em> are connected together to form a graph which is attached to a window (via the window's <a href="#window.scene"><code>scene</code></a> field). The window will then render the scene graph each frame.</p>
 <p>Scene nodes correspond to graphics commands. They either change the rendering state in some way, for example by applying a transformation or changing the blend mode, or execute a draw command, which renders something to the screen.</p>
 <p>Each scene node has a list of children, which are rendered in order.</p>
 <p>A scene node may be the child of multiple other scene nodes, so in general a scene node does not have a unique parent. Cycles are also allowed and are handled by imposing a limit to the number of times a node can be recursively rendered.</p>
@@ -1692,11 +1692,144 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>Default tag: <code>&quot;group&quot;</code>.</p>
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> group_node <span class="ot">=</span> am<span class="ot">.</span>group<span class="ot">{</span>node1<span class="ot">,</span> node2<span class="ot">,</span> node3<span class="ot">}</span></code></pre></div>
-<h3 id="am.text" class="func-def">am.text</h3>
-<h3 id="am.sprite" class="func-def">am.sprite</h3>
-<h3 id="am.rect" class="func-def">am.rect</h3>
-<h3 id="am.circle" class="func-def">am.circle</h3>
-<h3 id="am.particles2d" class="func-def">am.particles2d</h3>
+<h3 id="am.text" class="func-def">am.text([font, ] string [, color] [, halign [, valign]])</h3>
+<p>Renders some text.</p>
+<p><code>font</code> is an object generated using the <a href="#spritepack">sprite packing tool</a>. If omitted, the default font will be used, which is a monospace font of size 16px.</p>
+<p><code>color</code> should be a <code>vec4</code>. The default color is white.</p>
+<p><code>halign</code> and <code>valign</code> specify horizontal and vertical alignment. The allowed values for <code>halign</code> are <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> and <code>&quot;center&quot;</code>. The allowed values for <code>valign</code> are <code>&quot;bottom&quot;</code>, <code>&quot;top&quot;</code> and <code>&quot;center&quot;</code>. The default in both cases is <code>&quot;center&quot;</code>.</p>
+<p>Fields:</p>
+<ul>
+<li><code>text</code>: The text to display. Updatable.</li>
+<li><code>color</code>: The color of the text. Updatable.</li>
+<li><code>width</code>: The width of the displayed text in pixels. Readonly.</li>
+<li><code>height</code>: The height of the displayed text in pixels. Readonly.</li>
+</ul>
+<p>Default tag: <code>&quot;sprite&quot;</code>.</p>
+<h3 id="am.sprite" class="func-def">am.sprite(source [, color] [, halign [, valign]])</h3>
+<p>Renders a sprite (an image).</p>
+<p><code>source</code> can be either a filename, an ASCII art string or a <em>sprite spec</em>.</p>
+<p>When <code>source</code> is a filename, that file is loaded and displayed as the sprite. Currently only <code>.png</code> and <code>.jpg</code> files are supported. Note that loaded files are cached, so each file will only be loaded once.</p>
+<p><code>source</code> may also be an ASCII art string. This is a string with at least one newline character. Each row in the string represents a row of pixels. Here's an example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> face <span class="ot">=</span> <span class="st">[[</span>
+<span class="st">..YYYYY..</span>
+<span class="st">.Y.....Y.</span>
+<span class="st">Y..B.B..Y</span>
+<span class="st">Y.......Y</span>
+<span class="st">Y.R...R.Y</span>
+<span class="st">Y..RRR..Y</span>
+<span class="st">.Y.....Y.</span>
+<span class="st">..YYYYY..</span>
+<span class="st">]]</span>
+am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="dv">20</span><span class="ot">)</span> <span class="ot">^</span> am<span class="ot">.</span>sprite<span class="ot">(</span>face<span class="ot">)</span></code></pre></div>
+<p>The resulting image looks like this:</p>
+<div class="figure">
+<img src="images/face.png" alt="face" />
+<p class="caption">face</p>
+</div>
+<p>The mapping from characters to colors is determined by the <code>am.ascii_color_map</code> table. By default this is defined as:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">am<span class="ot">.</span>ascii_color_map <span class="ot">=</span> <span class="ot">{</span>
+    W <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full white</span>
+    w <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.75</span><span class="ot">,</span> <span class="dv">0.75</span><span class="ot">,</span> <span class="dv">0.75</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span> <span class="co">-- silver</span>
+    K <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full black</span>
+    k <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>    <span class="co">-- dark grey</span>
+    R <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full red</span>
+    r <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="co">-- half red (maroon)</span>
+    Y <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full yellow</span>
+    y <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="co">-- half yellow (olive)</span>
+    G <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full green</span>
+    g <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="co">-- half green</span>
+    C <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full cyan</span>
+    c <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="co">-- half cyan (teal)</span>
+    B <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full blue</span>
+    b <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="co">-- half blue (navy)</span>
+    M <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full magenta</span>
+    m <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="co">-- half magenta</span>
+    O <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="co">-- full orange</span>
+    o <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.25</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>     <span class="co">-- half orange (brown)</span>
+<span class="ot">}</span></code></pre></div>
+<p>but you can modify it as you please (though this must be done before creating a sprite).</p>
+<p>Any characters not in the color map will come out as transparent pixels, except for space characters which are ignored.</p>
+<p>The third kind of source is a <em>sprite spec</em>. Sprite specs are usually generated using the <a href="#spritepack">sprite packing tool</a>, though you can create them manually as well if you like.</p>
+<p>You can define your own sprite spec by supplying a table with all of the following fields:</p>
+<ul>
+<li><code>texture</code>: the <a href="#am.texture2d">texture</a> containing the sprite.</li>
+<li><code>s1</code>: the left texture coordinate (0 to 1)</li>
+<li><code>t1</code>: the bottom texture coordinate (0 to 1)</li>
+<li><code>s2</code>: the right texture coordinate (0 to 1)</li>
+<li><code>t2</code>: the top texture coordinate (0 to 1)</li>
+<li><code>x1</code>: the left offset of the sprite (in pixels)</li>
+<li><code>y1</code>: the bottom offset of the sprite (in pixels)</li>
+<li><code>x2</code>: the right offset of the sprite (in pixels)</li>
+<li><code>y2</code>: the top offset of the sprite (in pixels)</li>
+<li><code>width</code>: the width of the sprite (in pixels)</li>
+<li><code>height</code>: the height of the sprite (in pixels)</li>
+</ul>
+<p>Typically <code>x1</code> and <code>y1</code> would both be zero and <code>x2</code> and <code>y2</code> would be equal to <code>width</code> and <code>height</code>, though they may be different when transparent pixel are removed from the edges of sprites when packing them. The <code>width</code> and <code>height</code> fields are used for adjusting sprite position based on the requested alignment.</p>
+<p>The <code>color</code> argument is a <code>vec4</code> that applies a tinting color to the sprite. The default is white (no tinting).</p>
+<p>The <code>halign</code> and <code>valign</code> arguments determine the alignment of the sprite. The allowed values for <code>halign</code> are <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> and <code>&quot;center&quot;</code>. The allowed values for <code>valign</code> are <code>&quot;bottom&quot;</code>, <code>&quot;top&quot;</code> and <code>&quot;center&quot;</code>. The default in both cases is <code>&quot;center&quot;</code>.</p>
+<p>Fields:</p>
+<ul>
+<li><code>source</code>: The sprite source (filename, ascii art string or sprite spec). Updatable.</li>
+<li><code>color</code>: The sprite tint color as a <code>vec4</code>. Updatable.</li>
+<li><code>width</code>: The width of the sprite in pixels.</li>
+<li><code>height</code>: The height of the sprite in pixels.</li>
+<li><code>spec</code>: The sprite spec table, from which you can retrieve the texture, texture coordinates and vertices. This is available even if the sprite wasn't created with a sprite spec. Readonly.</li>
+</ul>
+<p>Default tag: <code>&quot;sprite&quot;</code>.</p>
+<h3 id="am.rect" class="func-def">am.rect(x1, y1, x2, y2 [, color])</h3>
+<p>Draws a rectable from (<code>x1</code>, <code>y1</code>) to (<code>x2</code>, <code>y2</code>).</p>
+<p><code>color</code> should be a <code>vec4</code> and defaults to white.</p>
+<p>Fields:</p>
+<ul>
+<li><code>x1</code>: The left coordinate of the rectangle. Updatable.</li>
+<li><code>y1</code>: The bottom coordinate of the rectangle. Updatable.</li>
+<li><code>x2</code>: The right coordinate of the rectangle. Updatable.</li>
+<li><code>y2</code>: The top coordinate of the rectangle. Updatable.</li>
+<li><code>color</code>: The color of the rectangle as a <code>vec4</code>. Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;rect&quot;</code>.</p>
+<h3 id="am.circle" class="func-def">am.circle(center, radius [, color [, sides]])</h3>
+<p>Draws a circle.</p>
+<p><code>center</code> should be a <code>vec2</code>.</p>
+<p><code>color</code> should be a <code>vec4</code>. The default is white.</p>
+<p><code>sides</code> is the number of sides to use when rendering the circle. The default is 255. You can change this to make other regular polygones. For example change it to 6 to draw a hexagon.</p>
+<p>Fields:</p>
+<ul>
+<li><code>center</code>: The circle center as a <code>vec2</code>. Updatable.</li>
+<li><code>radius</code>: The circle radius. Updatable.</li>
+<li><code>color</code>: The circle color as a <code>vec4</code>. Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;circle&quot;</code>.</p>
+<h3 id="am.particles2d" class="func-def">am.particles2d(settings)</h3>
+<p>Renders a simple 2D particle system.</p>
+<p><code>settings</code> should be a table with any of the following fields:</p>
+<ul>
+<li><code>source_pos</code>: The position where the particles emit from (<code>vec2</code>)</li>
+<li><code>source_pos_var</code>: The variation in source position (<code>vec2</code>)</li>
+<li><code>start_size</code>: The start size of the particles (number)</li>
+<li><code>start_size_var</code>: The start size variation of the particles (number)</li>
+<li><code>end_size</code>: The end size of the particles (number)</li>
+<li><code>end_size_var</code>: The end size variation of the particles (number)</li>
+<li><code>angle</code>: The angle the particles emit at (radians)</li>
+<li><code>angle_var</code>: The variation in the angle the particles emit at (radians)</li>
+<li><code>speed</code>: The speed of the particles (number)</li>
+<li><code>speed_var</code>: The variation in the speed of the particles (number)</li>
+<li><code>life</code>: The lifetime of the particles (seconds)</li>
+<li><code>life_var</code>: The variation in lifetime of the particles (seconds)</li>
+<li><code>start_color</code>: The start color of the particles (<code>vec4</code>)</li>
+<li><code>start_color_var</code>: The variation in the start color of the particles (<code>vec4</code>)</li>
+<li><code>end_color</code>: The end color of the particles (<code>vec4</code>)</li>
+<li><code>end_color_var</code>: The variation in the end color of the particles (<code>vec4</code>)</li>
+<li><code>emission_rate</code>: Number of particles to emit per second</li>
+<li><code>start_particles</code>: The initial number of particles</li>
+<li><code>max_particles</code>: The maximum number of particles</li>
+<li><code>gravity</code>: Gravity to apply to the particles (<code>vec2</code>)</li>
+<li><code>sprite_source</code>: The particle sprite source (see <a href="#am.sprite">am.sprite</a>). If this is omitted the particles will be colored squares.</li>
+<li><code>warmup_time</code>: Simulate running the particle system for this number of seconds before showing it for the first time.</li>
+</ul>
+<p>In the able the <code>_var</code> fields are an amount that is added to and subtracted from the field without <code>_var</code> to get the range of values from which one is randomly choses. For example if <code>source_pos</code> is <code>vec2(1, 0)</code> and <code>source_pos_var</code> is <code>vec2(3, 2)</code>, then source positions will be choses in the range <code>vec2(-2, -2)</code> to <code>vec2(4, 2)</code>.</p>
+<p>All of the sprite settings are exposed as updatable fields on the particles node.</p>
+<p>Default tag: <code>&quot;particles2d&quot;</code>.</p>
 <h2 id="transformation-nodes-1">Transformation nodes</h2>
 <p>The following nodes apply transformations to all their descendents.</p>
 <p><strong>Note</strong>: These nodes have an optional <code>uniform</code> argument in the first position of their construction functions. This argument is only relevant if you're writing your own shader programs. Otherwise you can ignore it.</p>
@@ -1923,7 +2056,8 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>mode</code>: Updatable.</li>
 </ul>
 <h3 id="am.color_maskred-green-blue-alpha" class="func-def">am.color_mask(red, green, blue, alpha)</h3>
-<p>TODO</p>
+<p>Apply a color mask. The four arguments can be <code>true</code> or <code>false</code> and determine whether the corresponding color channel is updated in the rendering target (either the current window to framebuffer being rendered to).</p>
+<p>For example using a mask of <code>am.color_mask(false, true, false, true)</code> will cause only the green and alpha channels to be updated.</p>
 <h3 id="am.cull_faceface" class="func-def">am.cull_face(face)</h3>
 <p>Culls triangles with a specific winding.</p>
 <p>The possible values for <code>face</code> are:</p>
@@ -1958,20 +2092,65 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>: Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;viewport&quot;</code>.</p>
-<h3 id="am.lookatuniform-eye-center-up" class="func-def">am.lookat([uniform,] eye, center, up)</h3>
-<p>TODO</p>
-<h3 id="am.cull_sphereuniforms...-radius-center" class="func-def">am.cull_sphere([uniforms...,] radius, center)</h3>
-<p>TODO</p>
-<h3 id="am.billboarduniform-preserve_scaling" class="func-def">am.billboard([uniform,] [preserve_scaling])</h3>
-<p>TODO</p>
-<h3 id="am.read_mat2uniform" class="func-def">am.read_mat2(uniform)</h3>
-<p>TODO</p>
-<h3 id="am.read_mat3uniform" class="func-def">am.read_mat3(uniform)</h3>
-<p>TODO</p>
-<h3 id="am.read_mat4uniform" class="func-def">am.read_mat4(uniform)</h3>
-<p>TODO</p>
-<h3 id="am.postprocess" class="func-def">am.postprocess</h3>
-<p>TODO</p>
+<h3 id="am.lookat" class="func-def">am.lookat([uniform,] eye, center, up)</h3>
+<p>Sets <code>uniform</code> to the &quot;lookat matrix&quot; which looks from <code>eye</code> (a <code>vec3</code>) to <code>center</code> (a <code>vec3</code>), with <code>up</code> (a unit <code>vec3</code>) as the up direction.</p>
+<p>This node can be thought of a camera positioned at <code>eye</code> and facing the point <code>center</code>.</p>
+<p>The default value for <code>uniform</code> is <code>&quot;MV&quot;</code>.</p>
+<p>Fields:</p>
+<ul>
+<li><code>eye</code>: The camera position (<code>vec3</code>). Updatable.</li>
+<li><code>center</code>: A point the camera is facing (<code>vec3</code>). Updatable.</li>
+<li><code>up</code>: The up direction of the camera (<code>vec3</code>). Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;lookat&quot;</code>.</p>
+<h3 id="am.cull_sphere" class="func-def">am.cull_sphere([uniforms...,] radius [, center])</h3>
+<p>This first takes the matrix product of the given uniforms (which should be <code>mat4</code>s). Then it determines whether the sphere with the given center and radius would be visible using the previously computed matrix product as the model-view-projection matrix. If it wouldn't be visible then none of this node's children are rendered (i.e. they are culled).</p>
+<p>The default value for <code>uniforms...</code> is <code>&quot;P&quot;, &quot;MV&quot;</code> and the default value for <code>center</code> is <code>vec3(0)</code>.</p>
+<p>Fields:</p>
+<ul>
+<li><code>radius</code>: Updatable.</li>
+<li><code>center</code>: Updatable.</li>
+</ul>
+<h3 id="am.billboard" class="func-def">am.billboard([uniform,] [preserve_scaling])</h3>
+<p>Removes rotation from <code>uniform</code>, which should be a <code>mat4</code>. By default <code>uniform</code> is <code>&quot;MV&quot;</code>.</p>
+<p>If <code>preserve_scaling</code> is <code>false</code> or omitted then any scaling will also be removed from the matrix. If it is <code>true</code>, then scaling will be preserved, as long as it's uniform across all 3 axes.</p>
+<p>Default tag: <code>&quot;billboard&quot;</code></p>
+<h3 id="am.read_param" class="func-def">am.read_param(name)</h3>
+<p>This node has no effect on rendering. Instead it records the value of the named uniform or attribute when rendering occurs.</p>
+<p>One use-case for this is to find the value of the model-view matrix (<code>MV</code>) at a specifc node without having to keep track of all the ancestor transforms. This could then be used to, for example, determine the position of a mouse click in a node's coordinate space, by taking the inverse of the matrix.</p>
+<p>Fields:</p>
+<ul>
+<li><code>value</code>: The value of the uniform or attribute, or nil if this node hasn't recorded the value yet (because it hasn't been rendered), or if the named parameter wasn't set.</li>
+</ul>
+<h3 id="am.postprocess" class="func-def">am.postprocess(settings)</h3>
+<p>Allows for post-processing of a scene. First the children of the <code>postprocess</code> node are rendered into a texture, then the texture is rendered to the entire window using a user-supplied shader program.</p>
+<p><code>settings</code> is a table containing any number of the following fields:</p>
+<ul>
+<li><code>width</code>: the width of the texture to render the children into. If omitted the window width is used.</li>
+<li><code>height</code>: the height of the texture to render the children into. If omitted the window height is used.</li>
+<li><code>minfilter</code>: the <a href="#texture.minfilter">minfilter</a> of the texture. The default is <code>&quot;nearest&quot;</code>.</li>
+<li><code>magfilter</code>: the <a href="#texture.magfilter">magfilter</a> of the texture. The default is <code>&quot;nearest&quot;</code>.</li>
+<li><code>depth_buffer</code>: whether there should be a depth buffer when rendering the scene. The default is false.</li>
+<li><code>stencil_buffer</code>: whether there should be a stencil buffer when rendering the scene. The default is false.</li>
+<li><code>clear_color</code>: The color to clear the texture to before rendering each frame (a <code>vec4</code>). The default is black.</li>
+<li><code>auto_clear</code>: Whether to automatically clear the texture before rendering each frame. The default is true.</li>
+<li><code>program</code>: The shader program to use to render the texture.</li>
+</ul>
+<p>The shader program should expect the following uniforms and attributes:</p>
+<div class="sourceCode"><pre class="sourceCode glsl"><code class="sourceCode glsl"><span class="dt">uniform</span> <span class="dt">sampler2D</span> tex;
+<span class="dt">attribute</span> <span class="dt">vec2</span> vert;
+<span class="dt">attribute</span> <span class="dt">vec2</span> uv;</code></pre></div>
+<p>Note that if either <code>width</code> or <code>height</code> are set then they must both be set.</p>
+<p>Fields:</p>
+<ul>
+<li><code>clear_color</code>: The color to clear the texture to before rendering each frame (a <code>vec4</code>). Updatable.</li>
+<li><code>auto_clear</code>: Whether to automatically clear the texture before rendering each frame. Updatable.</li>
+<li><code>program</code>: The shader program to use to render the texture. Updatable.</li>
+</ul>
+<p>Methods:</p>
+<ul>
+<li><code>clear()</code>: Clear the texture manually.</li>
+</ul>
 <h2 id="creating-custom-scene-nodes">Creating custom scene nodes</h2>
 <p>am.wrap</p>
 <h1 id="shader-programs">Shader programs</h1>
@@ -2003,6 +2182,8 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <h3 id="am.texture2d" class="func-def">am.texture2d(width [, height])</h3>
 <h3 id="am.texture2dimage_buffer" class="func-def">am.texture2d(image_buffer)</h3>
 <h3 id="am.texture2dfilename" class="func-def">am.texture2d(filename)</h3>
+<h3 id="texture.minfilter" class="field-def">texture.minfilter</h3>
+<h3 id="texture.magfilter" class="field-def">texture.magfilter</h3>
 <h1 id="framebuffers">Framebuffers</h1>
 <h1 id="actions-1">Actions</h1>
 <h2 id="combining-actions">Combining actions</h2>
@@ -2029,7 +2210,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <h1 id="performance-stats">Performance stats</h1>
 <h1 id="amulet-version">Amulet version</h1>
 <h1 id="useful-directories">Useful directories</h1>
-<h1 id="packing-sprites">Packing sprites</h1>
+<h1 id="spritepack">Packing sprites and generating fonts</h1>
 <h1 id="exporting">Exporting</h1>
 </div>
 </div>

@@ -3,7 +3,7 @@
 
 ## Creating a window
 
-### am.window(settings) {#window_func .func-def}
+### am.window(settings) {#am.window .func-def}
 
 Creates a new window, returning a window object. `settings` is a
 table with any of the following fields:
@@ -121,7 +121,7 @@ smaller than the `width` setting.
 
 Readonly.
 
-### window.height {.func-def}
+### window.height {.field-def}
 
 The height of the window in the window's default coordinate space.
 This will always be equal to the `height` setting supplied
@@ -131,72 +131,72 @@ smaller than the `height` setting.
 
 Readonly.
 
-### window.pixel_width {.func-def}
+### window.pixel_width {.field-def}
 
 The real width of the window in pixels.
 
 Readonly.
 
-### window.pixel_height {.func-def}
+### window.pixel_height {.field-def}
 
 The real height of the window in pixels
 
 Readonly.
 
-### window.mode {.func-def}
+### window.mode {.field-def}
 
-See [window settings](#window_func).
-
-Updatable.
-
-### window.clear_color {.func-def}
-
-See [window settings](#window_func).
+See [window settings](#am.window).
 
 Updatable.
 
-### window.letterbox {.func-def}
+### window.clear_color {.field-def}
 
-See [window settings](#window_func).
-
-Updatable.
-
-### window.lock_pointer {.func-def}
-
-See [window settings](#window_func).
+See [window settings](#am.window).
 
 Updatable.
 
-### window.scene {.func-def}
+### window.letterbox {.field-def}
+
+See [window settings](#am.window).
+
+Updatable.
+
+### window.lock_pointer {.field-def}
+
+See [window settings](#am.window).
+
+Updatable.
+
+### window.scene {#window.scene .field-def}
 
 The [scene node](#scenes) currently attached to the window.
 This scene will be rendered to the window each frame.
 
 Updatable.
 
-### window.projection {.func-def}
+### window.projection {.field-def}
 
-See [window settings](#window_func).
+See [window settings](#am.window).
 
 Updatable.
 
 ## Closing a window
 
-### window:close() {.func-def}
+### window:close() {.method-def}
 
 Closes the window and quits the application if this was
 the only window.
 
 ## Detecting when a window resizes
 
-### window:resized() {.func-def}
+### window:resized() {.method-def}
 
 Returns true if the window's size changed since the last frame.
 ## Detecting key presses
 
 ## Detecting key presses
 
-### window:key_down(key) {#key_down .func-def}
+### window:key_down(key) {#key_down .method-def}
 
 Returns true if the given key was down at the start of the
 current frame.
@@ -306,14 +306,14 @@ The possible values for `key` are:
 - `"ralt"`
 - `"rgui"`
 
-### window:keys_down() {.func-def}
+### window:keys_down() {.method-def}
 
 Returns an array of the keys that were down at the
 start of the current frame.
 See [window:key_down](#key_down) for a list of possible
 key values.
 
-### window:key_pressed(key) {.func-def}
+### window:key_pressed(key) {.method-def}
 
 Returns true if the given key's state changed from up
 to down since the last frame.
@@ -326,7 +326,7 @@ returns `true` then `key_released` will always return `false`.
 (If necessary, Amulet will postpone key release events to the
 next frame to ensure this.)
 
-### window:key_released(key) {.func-def}
+### window:key_released(key) {.method-def}
 
 Returns true if the given key's state changed from down
 to up since the last frame.
@@ -341,17 +341,17 @@ next frame to ensure this.)
 
 ## Detecting mouse events
 
-### window:mouse_position() {.func-def}
+### window:mouse_position() {.method-def}
 
 Returns the position of the mouse cursor, as a `vec2`,
 in the window's coordinate system.
 
-### window:mouse_norm_position() {.func-def}
+### window:mouse_norm_position() {.method-def}
 
 Returns the position of the mouse cursor in normalized device coordinates,
 as a `vec2`.
 
-### window:mouse_pixel_position() {.func-def}
+### window:mouse_pixel_position() {.method-def}
 
 Returns the position of the mouse cursor in pixels where the bottom left
 corner of the window has coordinate (0, 0), as a `vec2`.
@@ -361,23 +361,23 @@ corner of the window has coordinate (0, 0), as a `vec2`.
 Returns the change in mouse position since the last frame, in
 the window's coordinate system (a `vec2`).
 
-### window:mouse_norm_delta() {.func-def}
+### window:mouse_norm_delta() {.method-def}
 
 Returns the change in mouse position since the last frame, in
 normalized device coordinates (a `vec2`).
 
-### window:mouse_pixel_delta() {.func-def}
+### window:mouse_pixel_delta() {.method-def}
 
 Returns the change in mouse position since the last frame, in
 pixels (a `vec2`).
 
-### window:mouse_down(button) {.func-def}
+### window:mouse_down(button) {.method-def}
 
 Returns `true` if the given button was down
 at the start of the frame. `button` may be `"left"`,
 `"right"` or `"middle"`.
 
-### window:mouse_pressed(button) {.func-def}
+### window:mouse_pressed(button) {.method-def}
 
 Returns `true` if the given mouse button's state changed
 from up to down since the
@@ -390,7 +390,7 @@ if `mouse_pressed` returns `true` then `mouse_released`
 will always return `false`. (If necessary, Amulet will
 postpone button release events to the next frame to ensure this.)
 
-### window:mouse_released(button) {.func-def}
+### window:mouse_released(button) {.method-def}
 
 Returns true if the given mouse button's state changed
 from down to up since the last frame.
@@ -402,18 +402,18 @@ if `mouse_released` returns `true` then `mouse_pressed`
 will always return `false`. (If necessary, Amulet will
 postpone button press events to the next frame to ensure this.)
 
-### window:mouse_wheel() {.func-def}
+### window:mouse_wheel() {.method-def}
 
 Returns the mouse scroll wheel position (a `vec2`).
 
-### window:mouse_wheel_delta() {.func-def}
+### window:mouse_wheel_delta() {.method-def}
 
 Returns the change in mouse scroll wheel position since the
 last frame (a `vec2`).
 
 ## Detecting touch events
 
-### window:touches_began() {.func-def #touches_began}
+### window:touches_began() {.method-def #touches_began}
 
 Returns an array of the touches that began since the last frame.
 
@@ -427,29 +427,29 @@ touch at a time, you can just use 1 for all touch functions
 that take a touch argument and any additional touches will be
 ignored.
 
-### window:touches_ended() {.func-def}
+### window:touches_ended() {.method-def}
 
 Returns an array of the touches that ended since the last frame.
 
-### window:active_touches() {.func-def}
+### window:active_touches() {.method-def}
 
 Returns an array of the currently active touches.
 
-### window:touch_began(touch) {.func-def}
+### window:touch_began(touch) {.method-def}
 
 Returns true if the specific touch began since the last frame.
 
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_ended(touch) {.func-def}
+### window:touch_ended(touch) {.method-def}
 
 Returns true if the specific touch ended since the last frame.
 
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_position(touch) {.func-def}
+### window:touch_position(touch) {.method-def}
 
 Returns the last touch position in the window's coordinate system
 (a `vec2`).
@@ -457,7 +457,7 @@ Returns the last touch position in the window's coordinate system
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_norm_position(touch) {.func-def}
+### window:touch_norm_position(touch) {.method-def}
 
 Returns the last touch position in normalized device coordinates
 (a `vec2`).
@@ -465,7 +465,7 @@ Returns the last touch position in normalized device coordinates
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_pixel_position(touch) {.func-def}
+### window:touch_pixel_position(touch) {.method-def}
 
 Returns the last touch position in pixels, where the bottom left
 corner of the window is (0, 0) (a `vec2`).
@@ -473,7 +473,7 @@ corner of the window is (0, 0) (a `vec2`).
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_delta(touch) {.func-def}
+### window:touch_delta(touch) {.method-def}
 
 Returns the change in touch position since the
 last frame in the window's coordinate system (a `vec2`).
@@ -481,7 +481,7 @@ last frame in the window's coordinate system (a `vec2`).
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_norm_delta(touch) {.func-def}
+### window:touch_norm_delta(touch) {.method-def}
 
 Returns the change in touch position since the
 last frame in normalized device coordinates (a `vec2`).
@@ -489,7 +489,7 @@ last frame in normalized device coordinates (a `vec2`).
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_pixel_delta(touch) {.func-def}
+### window:touch_pixel_delta(touch) {.method-def}
 
 Returns the change in touch position since the
 last frame in pixels (a `vec2`).

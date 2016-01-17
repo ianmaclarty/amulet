@@ -2,9 +2,9 @@
 # Scenes {#scenes}
 
 Scene graphs are how you draw graphics in Amulet.
-*Scene nodes* are connected together to form a scene graph
-which is attached to a window. The window will then
-render the scene graph each frame.
+*Scene nodes* are connected together to form a graph
+which is attached to a window (via the window's [`scene`](#window.scene) field).
+The window will then render the scene graph each frame.
 
 Scene nodes correspond to graphics commands.
 They either change the rendering
@@ -274,11 +274,219 @@ Example:
 local group_node = am.group{node1, node2, node3}
 ~~~
 
-### am.text {#am.text .func-def}
-### am.sprite {#am.sprite .func-def}
-### am.rect {#am.rect .func-def}
-### am.circle {#am.circle .func-def}
-### am.particles2d {#am.particles2d .func-def}
+### am.text([font, ] string [, color] [, halign [, valign]]) {#am.text .func-def}
+
+Renders some text.
+
+`font` is an object generated using the [sprite packing tool](#spritepack).
+If omitted, the default font will be used, which is a monospace font
+of size 16px.
+
+`color` should be a `vec4`. The default color is white.
+
+`halign` and `valign` specify horizontal and vertical alignment.
+The allowed values for `halign` are `"left"`, `"right"` and `"center"`.
+The allowed values for `valign` are `"bottom"`, `"top"` and `"center"`.
+The default in both cases is `"center"`.
+
+Fields:
+
+- `text`: The text to display. Updatable.
+- `color`: The color of the text. Updatable.
+- `width`: The width of the displayed text in pixels. Readonly.
+- `height`: The height of the displayed text in pixels. Readonly.
+
+Default tag: `"sprite"`.
+
+### am.sprite(source [, color] [, halign [, valign]]) {#am.sprite .func-def}
+
+Renders a sprite (an image).
+
+`source` can be either a filename, an ASCII art string or a *sprite spec*.
+
+When `source` is a filename, that file is loaded and displayed as the
+sprite. Currently only `.png` and `.jpg` files are supported. Note that
+loaded files are cached, so each file will only be loaded once.
+
+`source` may also be an ASCII art string. This is a string with at least
+one newline character. Each row in the string represents a row of pixels.
+Here's an example:
+
+~~~ {.lua}
+local face = [[
+..YYYYY..
+.Y.....Y.
+Y..B.B..Y
+Y.......Y
+Y.R...R.Y
+Y..RRR..Y
+.Y.....Y.
+..YYYYY..
+]]
+am.window{}.scene = am.scale(20) ^ am.sprite(face)
+~~~
+
+The resulting image looks like this:
+
+![face](images/face.png)
+
+The mapping from characters to colors is determined by the
+`am.ascii_color_map` table. By default this is defined as:
+
+~~~ {.lua}
+am.ascii_color_map = {
+    W = vec4(1, 1, 1, 1),          -- full white
+    w = vec4(0.75, 0.75, 0.75, 1), -- silver
+    K = vec4(0, 0, 0, 1),          -- full black
+    k = vec4(0.5, 0.5, 0.5, 1),    -- dark grey
+    R = vec4(1, 0, 0, 1),          -- full red
+    r = vec4(0.5, 0, 0, 1),        -- half red (maroon)
+    Y = vec4(1, 1, 0, 1),          -- full yellow
+    y = vec4(0.5, 0.5, 0, 1),      -- half yellow (olive)
+    G = vec4(0, 1, 0, 1),          -- full green
+    g = vec4(0, 0.5, 0, 1),        -- half green
+    C = vec4(0, 1, 1, 1),          -- full cyan
+    c = vec4(0, 0.5, 0.5, 1),      -- half cyan (teal)
+    B = vec4(0, 0, 1, 1),          -- full blue
+    b = vec4(0, 0, 0.5, 1),        -- half blue (navy)
+    M = vec4(1, 0, 1, 1),          -- full magenta
+    m = vec4(0.5, 0, 0.5, 1),      -- half magenta
+    O = vec4(1, 0.5, 0, 1),        -- full orange
+    o = vec4(0.5, 0.25, 0, 1),     -- half orange (brown)
+}
+~~~
+
+but you can modify it as you please (though this must be
+done before creating a sprite).
+
+Any characters not in the color map will come out as
+transparent pixels, except for space characters which are
+ignored.
+
+The third kind of source is a *sprite spec*.
+Sprite specs are usually generated using the [sprite packing tool](#spritepack),
+though you can create them manually as well if you like.
+
+You can define your own sprite spec by supplying a
+table with all of the following fields:
+
+- `texture`: the [texture](#am.texture2d) containing the sprite.
+- `s1`: the left texture coordinate (0 to 1)
+- `t1`: the bottom texture coordinate (0 to 1)
+- `s2`: the right texture coordinate (0 to 1)
+- `t2`: the top texture coordinate (0 to 1)
+- `x1`: the left offset of the sprite (in pixels)
+- `y1`: the bottom offset of the sprite (in pixels)
+- `x2`: the right offset of the sprite (in pixels)
+- `y2`: the top offset of the sprite (in pixels)
+- `width`: the width of the sprite (in pixels)
+- `height`: the height of the sprite (in pixels)
+
+Typically `x1` and `y1` would both be zero
+and `x2` and `y2` would be equal to `width` and `height`,
+though they may be different when transparent pixel
+are removed from the edges of sprites when packing them.
+The `width` and `height` fields are used for adjusting sprite
+position based on the requested alignment.
+
+The `color` argument is a `vec4` that applies a tinting color to the sprite.
+The default is white (no tinting).
+
+The `halign` and `valign` arguments determine the alignment
+of the sprite.
+The allowed values for `halign` are `"left"`, `"right"` and `"center"`.
+The allowed values for `valign` are `"bottom"`, `"top"` and `"center"`.
+The default in both cases is `"center"`.
+
+Fields:
+
+- `source`: The sprite source (filename, ascii art string or sprite spec). Updatable.
+- `color`: The sprite tint color as a `vec4`. Updatable.
+- `width`: The width of the sprite in pixels.
+- `height`: The height of the sprite in pixels.
+- `spec`: The sprite spec table, from which you can retrieve the texture,
+  texture coordinates and vertices. This is available even if the
+  sprite wasn't created with a sprite spec. Readonly.
+
+Default tag: `"sprite"`.
+
+### am.rect(x1, y1, x2, y2 [, color]) {#am.rect .func-def}
+
+Draws a rectable from (`x1`, `y1`) to (`x2`, `y2`).
+
+`color` should be a `vec4` and defaults to white.
+
+Fields:
+
+- `x1`: The left coordinate of the rectangle. Updatable.
+- `y1`: The bottom coordinate of the rectangle. Updatable.
+- `x2`: The right coordinate of the rectangle. Updatable.
+- `y2`: The top coordinate of the rectangle. Updatable.
+- `color`: The color of the rectangle as a `vec4`. Updatable.
+
+Default tag: `"rect"`.
+
+### am.circle(center, radius [, color [, sides]]) {#am.circle .func-def}
+
+Draws a circle.
+
+`center` should be a `vec2`.
+
+`color` should be a `vec4`. The default is white.
+
+`sides` is the number of sides to use when rendering the
+circle. The default is 255. You can change this to make
+other regular polygones. For example change it to 6 to
+draw a hexagon.
+
+Fields:
+
+- `center`: The circle center as a `vec2`. Updatable.
+- `radius`: The circle radius. Updatable.
+- `color`: The circle color as a `vec4`. Updatable.
+
+Default tag: `"circle"`.
+
+### am.particles2d(settings) {#am.particles2d .func-def}
+
+Renders a simple 2D particle system.
+
+`settings` should be a table with any of the following fields:
+
+- `source_pos`: The position where the particles emit from (`vec2`)
+- `source_pos_var`: The variation in source position (`vec2`)
+- `start_size`: The start size of the particles (number)
+- `start_size_var`: The start size variation of the particles (number)
+- `end_size`: The end size of the particles (number)
+- `end_size_var`: The end size variation of the particles (number)
+- `angle`: The angle the particles emit at (radians)
+- `angle_var`: The variation in the angle the particles emit at (radians)
+- `speed`: The speed of the particles (number)
+- `speed_var`: The variation in the speed of the particles (number)
+- `life`: The lifetime of the particles (seconds)
+- `life_var`: The variation in lifetime of the particles (seconds)
+- `start_color`: The start color of the particles (`vec4`)
+- `start_color_var`: The variation in the start color of the particles (`vec4`)
+- `end_color`: The end color of the particles (`vec4`)
+- `end_color_var`: The variation in the end color of the particles (`vec4`)
+- `emission_rate`: Number of particles to emit per second
+- `start_particles`: The initial number of particles
+- `max_particles`: The maximum number of particles
+- `gravity`: Gravity to apply to the particles (`vec2`)
+- `sprite_source`: The particle sprite source (see [am.sprite](#am.sprite)). If this is omitted the particles will be colored squares.
+- `warmup_time`: Simulate running the particle system for this number of seconds before showing it for the first time.
+
+In the able the `_var` fields are an amount that is added to
+and subtracted from the field without `_var` to get the range of values from
+which one is randomly choses.
+For example if `source_pos` is `vec2(1, 0)` and `source_pos_var` is
+`vec2(3, 2)`, then source positions will be choses in the
+range `vec2(-2, -2)` to `vec2(4, 2)`.
+
+All of the sprite settings are exposed as updatable fields on
+the particles node.
+
+Default tag: `"particles2d"`.
 
 ## Transformation nodes
 
@@ -566,7 +774,13 @@ Fields:
 
 ### am.color_mask(red, green, blue, alpha) {.func-def}
 
-TODO
+Apply a color mask. The four arguments can be `true` or `false`
+and determine whether the corresponding color channel
+is updated in the rendering target (either the current window
+to framebuffer being rendered to).
+
+For example using a mask of `am.color_mask(false, true, false, true)`
+will cause only the green and alpha channels to be updated.
 
 ### am.cull_face(face) {.func-def}
 
@@ -622,33 +836,107 @@ Fields:
 
 Default tag: `"viewport"`.
 
-### am.lookat([uniform,] eye, center, up) {.func-def}
+### am.lookat([uniform,] eye, center, up) {#am.lookat .func-def}
 
-TODO
+Sets `uniform` to the "lookat matrix" which looks from `eye` (a `vec3`)
+to `center` (a `vec3`), with `up` (a unit `vec3`) as the up direction.
 
-### am.cull_sphere([uniforms...,] radius, center) {.func-def}
+This node can be thought of a camera positioned at `eye` and
+facing the point `center`.
 
-TODO
+The default value for `uniform` is `"MV"`.
 
-### am.billboard([uniform,] [preserve_scaling]) {.func-def}
+Fields:
 
-TODO
+- `eye`: The camera position (`vec3`). Updatable.
+- `center`: A point the camera is facing (`vec3`). Updatable.
+- `up`: The up direction of the camera (`vec3`). Updatable.
 
-### am.read_mat2(uniform) {.func-def}
+Default tag: `"lookat"`.
 
-TODO
+### am.cull_sphere([uniforms...,] radius [, center]) {#am.cull_sphere .func-def}
 
-### am.read_mat3(uniform) {.func-def}
+This first takes the matrix product of the given uniforms (which should be
+`mat4`s). Then it determines whether the sphere with the given center
+and radius would be visible using the previously computed matrix
+product as the model-view-projection matrix. If it wouldn't be visible then
+none of this node's children are rendered (i.e. they are culled).
 
-TODO
+The default value for `uniforms...` is `"P", "MV"` and the default
+value for `center` is `vec3(0)`.
 
-### am.read_mat4(uniform) {.func-def}
+Fields:
 
-TODO
+- `radius`: Updatable.
+- `center`: Updatable.
 
-### am.postprocess {#am.postprocess .func-def}
+### am.billboard([uniform,] [preserve_scaling]) {#am.billboard .func-def}
 
-TODO
+Removes rotation from `uniform`, which should be a `mat4`.
+By default `uniform` is `"MV"`.
+
+If `preserve_scaling` is `false` or omitted then any scaling
+will also be removed from the matrix. If it is `true`, then
+scaling will be preserved, as long as it's uniform across
+all 3 axes.
+
+Default tag: `"billboard"`
+
+### am.read_param(name) {#am.read_param .func-def}
+
+This node has no effect on rendering. Instead it records the
+value of the named uniform or attribute when rendering occurs.
+
+One use-case for this is to find the value of the model-view matrix (`MV`) at a
+specifc node without having to keep track of all the ancestor transforms. This
+could then be used to, for example, determine the position of a mouse click
+in a node's coordinate space, by taking the inverse of the matrix.
+
+Fields:
+
+- `value`: The value of the uniform or attribute, or nil if
+  this node hasn't recorded the value yet (because it hasn't been
+  rendered), or if the named parameter wasn't set.
+
+### am.postprocess(settings) {#am.postprocess .func-def}
+
+Allows for post-processing of a scene. First the children
+of the `postprocess` node are rendered into a texture, then
+the texture is rendered to the entire window using a user-supplied
+shader program.
+
+`settings` is a table containing any number of the following fields:
+
+- `width`: the width of the texture to render the children into. If omitted the window width is used.
+- `height`: the height of the texture to render the children into. If omitted the window height is used.
+- `minfilter`: the [minfilter](#texture.minfilter) of the texture. The default is `"nearest"`.
+- `magfilter`: the [magfilter](#texture.magfilter) of the texture. The default is `"nearest"`.
+- `depth_buffer`: whether there should be a depth buffer when rendering the scene. The default is false.
+- `stencil_buffer`: whether there should be a stencil buffer when rendering the scene. The default is false.
+- `clear_color`: The color to clear the texture to before rendering each frame (a `vec4`). The default is black.
+- `auto_clear`: Whether to automatically clear the texture before rendering each frame. The default is true.
+- `program`: The shader program to use to render the texture.
+
+The shader program should expect the following uniforms and attributes:
+
+~~~ {.glsl}
+uniform sampler2D tex;
+attribute vec2 vert;
+attribute vec2 uv;
+~~~
+
+Note that if either `width` or `height` are set then they must both
+be set.
+
+Fields:
+
+- `clear_color`: The color to clear the texture to before rendering each frame (a `vec4`). Updatable.
+- `auto_clear`: Whether to automatically clear the texture before rendering each frame. Updatable.
+- `program`: The shader program to use to render the texture. Updatable.
+
+Methods:
+
+- `clear()`: Clear the texture manually.
 
 ## Creating custom scene nodes
 
