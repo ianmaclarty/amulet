@@ -7,13 +7,13 @@
 --      stencil_buffer
 --      clear_color
 --      auto_clear
---      shader
+--      program
 function am.postprocess(opts)
     local main_window = am._main_window
     local w, h
     local track_window = false
     if opts.width and opts.height then
-        w, h = opts.pixel_width, opts.pixel_height
+        w, h = opts.width, opts.height
         track_window = false
     elseif main_window then
         w, h = main_window.pixel_width, main_window.pixel_height
@@ -34,28 +34,26 @@ function am.postprocess(opts)
     if opts.auto_clear == false then
         auto_clear = false
     end
+    local program = opts.program or am.shaders.texture2d
     local node =
-        am.use_program(opts.shader or am.shaders.texture)
+        am.use_program(program)
         ^ am.bind{
             P = mat4(1),
             uv = am.rect_verts_2d(0, 0, 1, 1),
-            vert = am.rect_verts_3d(-1, -1, 1, 1),
+            vert = am.rect_verts_2d(-1, -1, 1, 1),
             tex = tex,
         }
         ^ am.draw("triangles", am.rect_indices())
     local wrap = am.wrap(node)
-    if track_window then
-        fb.projection = main_window.projection
-    else
-        fb.projection = math.ortho(0, w, 0, h)
-    end
+    fb.projection = main_window.projection
     wrap:action(function()
         if track_window then
             if main_window:resized() then
-                fb:resize(main_window.pixel_width, main_window.pixel_height)
+                w, h = main_window.pixel_width, main_window.pixel_height
+                fb:resize(w, h)
             end
-            fb.projection = main_window.projection
         end
+        fb.projection = main_window.projection
         if auto_clear then
             fb:clear()
         end
@@ -72,6 +70,13 @@ function am.postprocess(opts)
     end
     function wrap:set_auto_clear(ac)
         auto_clear = ac
+    end
+    function wrap:get_program()
+        return program
+    end
+    function wrap:set_program(p)
+        program = p
+        node"use_program".program = p
     end
     function wrap:clear()
         fb:clear()
