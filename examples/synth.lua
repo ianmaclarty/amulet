@@ -71,7 +71,7 @@ function create_wave_editor()
     local prev_index
     local prev_y
     local graph = 
-        am.read_param("MVP")
+        am.read_uniform("MVP")
             :action(function(node)
                 if win:mouse_down("left") then
                     local pos = math.inverse(node.value) * vec4(win:mouse_norm_position(), 0, 1)
@@ -158,7 +158,7 @@ function create_slider(min, max, initial_value, onchange)
     local prev_pos
     local inv
     return 
-        am.read_param("MVP")
+        am.read_uniform("MVP")
             :action(function(node)
                 if not prev_pos and win:mouse_pressed("left") then
                     inv = math.inverse(node.value)

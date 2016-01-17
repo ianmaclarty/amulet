@@ -247,7 +247,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.lookat">am.lookat([uniform,] eye, center, up)</a></li>
 <li><a href="#am.cull_sphere">am.cull_sphere([uniforms...,] radius [, center])</a></li>
 <li><a href="#am.billboard">am.billboard([uniform,] [preserve_scaling])</a></li>
-<li><a href="#am.read_param">am.read_param(name)</a></li>
+<li><a href="#am.read_param">am.read_uniform(uniform)</a></li>
 <li><a href="#am.postprocess">am.postprocess(settings)</a></li>
 </ul></li>
 <li><a href="#creating-custom-scene-nodes">Creating custom scene nodes</a></li>
@@ -2115,12 +2115,12 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <p>Removes rotation from <code>uniform</code>, which should be a <code>mat4</code>. By default <code>uniform</code> is <code>&quot;MV&quot;</code>.</p>
 <p>If <code>preserve_scaling</code> is <code>false</code> or omitted then any scaling will also be removed from the matrix. If it is <code>true</code>, then scaling will be preserved, as long as it's uniform across all 3 axes.</p>
 <p>Default tag: <code>&quot;billboard&quot;</code></p>
-<h3 id="am.read_param" class="func-def">am.read_param(name)</h3>
-<p>This node has no effect on rendering. Instead it records the value of the named uniform or attribute when rendering occurs.</p>
+<h3 id="am.read_param" class="func-def">am.read_uniform(uniform)</h3>
+<p>This node has no effect on rendering. Instead it records the value of the named uniform when rendering occurs.</p>
 <p>One use-case for this is to find the value of the model-view matrix (<code>MV</code>) at a specifc node without having to keep track of all the ancestor transforms. This could then be used to, for example, determine the position of a mouse click in a node's coordinate space, by taking the inverse of the matrix.</p>
 <p>Fields:</p>
 <ul>
-<li><code>value</code>: The value of the uniform or attribute, or nil if this node hasn't recorded the value yet (because it hasn't been rendered), or if the named parameter wasn't set.</li>
+<li><code>value</code>: The value of the uniform, or nil if the node hasn't been rendered yet, or the named uniform wasn't set in an ancestor node.</li>
 </ul>
 <h3 id="am.postprocess" class="func-def">am.postprocess(settings)</h3>
 <p>Allows for post-processing of a scene. First the children of the <code>postprocess</code> node are rendered into a texture, then the texture is rendered to the entire window using a user-supplied shader program.</p>

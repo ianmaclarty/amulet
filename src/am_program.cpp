@@ -659,37 +659,53 @@ static void register_bind_node_mt(lua_State *L) {
     am_register_metatable(L, "bind", MT_am_bind_node, MT_am_scene_node);
 }
 
-void am_read_param_node::render(am_render_state *rstate) {
-    value = rstate->param_name_map[name].value;
+void am_read_uniform_node::render(am_render_state *rstate) {
+    am_program_param_value *param = &rstate->param_name_map[name].value;
+    switch (param->type) {
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_1F:
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_2F:
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_3F:
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_4F:
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2:
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3:
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4:
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED:
+            value = *param;
+            break;
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY:
+        case AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D:
+            value.type = AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED;
+            break;
+    }
     render_children(rstate);
 }
 
-static int create_read_param_node(lua_State *L) {
+static int create_read_uniform_node(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_isstring(L, 1)) return luaL_error(L, "expecting a string in position 2");
-    am_read_param_node *node = am_new_userdata(L, am_read_param_node);
+    am_read_uniform_node *node = am_new_userdata(L, am_read_uniform_node);
     node->name = am_lookup_param_name(L, 1);
     return 1;
 }
 
-static void get_read_param_node_value(lua_State *L, void *obj) {
-    am_read_param_node *node = (am_read_param_node*)obj;
+static void get_read_uniform_node_value(lua_State *L, void *obj) {
+    am_read_uniform_node *node = (am_read_uniform_node*)obj;
     push_program_param_value(L, &node->value);
 }
 
-static am_property read_param_node_value_property =
-    {get_read_param_node_value, NULL};
+static am_property read_uniform_node_value_property =
+    {get_read_uniform_node_value, NULL};
 
-static void register_read_param_node_mt(lua_State *L) {
+static void register_read_uniform_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
     lua_setfield(L, -2, "__index");
     lua_pushcclosure(L, am_scene_node_newindex, 0);
     lua_setfield(L, -2, "__newindex");
 
-    am_register_property(L, "value", &read_param_node_value_property);
+    am_register_property(L, "value", &read_uniform_node_value_property);
 
-    am_register_metatable(L, "read_param", MT_am_read_param_node, MT_am_scene_node);
+    am_register_metatable(L, "read_uniform", MT_am_read_uniform_node, MT_am_scene_node);
 }
 
 const char *am_program_param_type_name(am_program_param_type t) {
@@ -752,12 +768,12 @@ void am_open_program_module(lua_State *L) {
         {"program", create_program},
         {"bind", create_bind_node},
         {"use_program", create_program_node},
-        {"read_param", create_read_param_node},
+        {"read_uniform", create_read_uniform_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_program_mt(L);
     register_program_node_mt(L);
     register_bind_node_mt(L);
-    register_read_param_node_mt(L);
+    register_read_uniform_node_mt(L);
 }

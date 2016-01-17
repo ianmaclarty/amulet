@@ -882,10 +882,10 @@ all 3 axes.
 
 Default tag: `"billboard"`
 
-### am.read_param(name) {#am.read_param .func-def}
+### am.read_uniform(uniform) {#am.read_param .func-def}
 
 This node has no effect on rendering. Instead it records the
-value of the named uniform or attribute when rendering occurs.
+value of the named uniform when rendering occurs.
 
 One use-case for this is to find the value of the model-view matrix (`MV`) at a
 specifc node without having to keep track of all the ancestor transforms. This
@@ -894,9 +894,9 @@ in a node's coordinate space, by taking the inverse of the matrix.
 
 Fields:
 
-- `value`: The value of the uniform or attribute, or nil if
-  this node hasn't recorded the value yet (because it hasn't been
-  rendered), or if the named parameter wasn't set.
+- `value`: The value of the uniform, or nil if
+  the node hasn't been rendered yet,
+  or the named uniform wasn't set in an ancestor node.
 
 ### am.postprocess(settings) {#am.postprocess .func-def}
 

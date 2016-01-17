@@ -19,7 +19,7 @@ typedef enum {
     MT_am_wrap_node,
     MT_am_program_node,
     MT_am_bind_node,
-    MT_am_read_param_node,
+    MT_am_read_uniform_node,
     MT_am_translate_node,
     MT_am_scale_node,
     MT_am_rotate_node,
