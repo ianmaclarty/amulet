@@ -32,5 +32,3 @@ local frag_shader = [[
 ]]
 local prog = am.program(vert_shader, frag_shader)
 ~~~
-
-## Pre-defined shader programs

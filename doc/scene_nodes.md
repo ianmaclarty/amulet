@@ -940,4 +940,141 @@ Methods:
 
 ## Creating custom scene nodes
 
-am.wrap
+Creating a custom leaf node is relatively simple: just create
+a function that constructs the graph you want and return it.
+
+You can add custom methods by setting the appropriate fields on
+the root node of the returned graph  (any node can have any number
+of custom fields set on it, as long as they don't clash with
+pre-defined fields).
+
+If you define methods of the form:
+
+~~~ {.lua}
+function node:get_FIELD()
+    ...
+end
+
+function node:set_FIELD(val)
+    ...
+end
+~~~
+
+Then you will be able to access `FIELD` as if it's a regular field
+and the appropriate access method will be called.
+
+For example:
+
+~~~ {.lua}
+node.FIELD = val
+~~~
+
+will be equivalent to:
+
+~~~ {.lua}
+node:set_FIELD(val)
+~~~
+
+If you want a readonly field, just define the `get_FIELD` method
+and not the `set_FIELD` method.
+
+The [`am.text`](#am.text), [`am.sprite`](#am.sprite) and
+[`am.particles2d`](#am.particles2d) nodes are all implemented this
+way. Their source is [here](https://github.com/ianmaclarty/amulet/blob/master/lua/text.lua)
+and [here](https://github.com/ianmaclarty/amulet/blob/master/lua/particles.lua).
+
+If you want to create a non-leaf node, then you need to use the `am.wrap` function:
+
+### am.wrap(node) {#am.wrap .func-def}
+
+This "wraps" `node` inside a special type of node called
+a *wrap node*.
+
+When a wrap node is rendered it renders the inner node.
+However any nodes added as children of a wrap node are also
+added to the leaf node(s) of the inner node.
+
+For example suppose we want to create a tranformation node
+called `move_and_rotate` that does both a tranlation and a rotation:
+
+~~~ {.lua}
+function move_and_rotate(x, y, degrees)
+    return am.translate(x, y) ^ am.rotate(math.rad(degrees))
+end
+~~~
+
+We would like to be able to create such a node and
+add children to it. Like so:
+
+~~~ {.lua}
+local mvrot = move_and_rotate(10, 20, 60)
+mvrot:append(am.rect(-10, -10, 10, 10))
+~~~
+
+However what this will do is add the `rect` node as a
+child of the `translate` node returned by `move_and_rotate`.
+
+Instead we need to do:
+
+~~~ {.lua}
+mvrot"rotate":append(am.rect(-10, -10, 10, 10))
+~~~
+
+which is a bit clunky.
+
+A wrap node solves this problem:
+
+~~~ {.lua}
+function move_and_rotate(x, y, degrees)
+    return am.wrap(am.translate(x, y) ^ am.rotate(math.rad(degrees)))
+end
+local mvrot = move_and_rotate(10, 20, 60)
+mvrot:append(am.rect(-10, -10, 10, 10))
+~~~
+
+For completeness here we add some fields to set the x, y and degrees properties
+of our new node:
+
+~~~ {.lua}
+function move_and_rotate(x, y, degrees)
+    local inner = am.translate(x, y) ^ am.rotate(math.rad(degrees))
+    local wrapped = am.wrap(inner)
+    function wrapped:get_x()
+        return x
+    end
+    function wrapped:set_x(v)
+        x = v
+        inner.position2d = vec2(x, y)
+    end
+    function wrapped:get_y()
+        return y
+    end
+    function wrapped:set_y(v)
+        y = v
+        inner.position2d = vec2(x, y)
+    end
+    function wrapped:get_degrees()
+        return degrees
+    end
+    function wrapped:set_degrees(v)
+        degrees = v
+        inner"rotate".angle = math.rad(degrees)
+    end
+    return wrapped
+end
+local mvrot = move_and_rotate(-100, -100, 0)
+mvrot:append(am.rect(-50, -50, 50, 50))
+mvrot.x = 100
+mvrot.y = 100
+mvrot.degrees = 45
+~~~
+
+There are some caveats when using wrap nodes:
+
+- The inner node is not considered part of the scene
+  graph for the purpose of running actions. So any actions
+  need to be attached to the wrap node, not the inner node.
+- Tag search functions do not search the inner node.
+
+The [`am.postprocess`](#am.postprocess) node is implemented using
+a wrap node. You can view it's implementation [here](https://github.com/ianmaclarty/amulet/blob/master/lua/postprocess.lua).

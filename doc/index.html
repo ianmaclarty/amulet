@@ -104,7 +104,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#math.ortholeft-right-bottom-top-near-far">math.ortho(left, right, bottom, top [, near, far])</a></li>
 <li><a href="#math.perlinpos-period">math.perlin(pos [, period])</a></li>
 <li><a href="#math.simplexpos">math.simplex(pos)</a></li>
-<li><a href="#math.mixfrom-top-t">math.mix(from, top, t)</a></li>
+<li><a href="#math.mix">math.mix(from, top, t)</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#buffers-and-views">Buffers and views</a><ul>
@@ -250,43 +250,104 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.read_param">am.read_uniform(uniform)</a></li>
 <li><a href="#am.postprocess">am.postprocess(settings)</a></li>
 </ul></li>
-<li><a href="#creating-custom-scene-nodes">Creating custom scene nodes</a></li>
+<li><a href="#creating-custom-scene-nodes">Creating custom scene nodes</a><ul>
+<li><a href="#am.wrap">am.wrap(node)</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#shader-programs">Shader programs</a><ul>
 <li><a href="#compiling-a-shader-program">Compiling a shader program</a><ul>
 <li><a href="#am.program">am.program(vertex_shader, fragment_shader)</a></li>
 </ul></li>
-<li><a href="#pre-defined-shader-programs">Pre-defined shader programs</a></li>
 </ul></li>
-<li><a href="#image-buffers">Image buffers</a></li>
+<li><a href="#image-buffers">Image buffers</a><ul>
+<li><a href="#creating-image-buffers">Creating image buffers</a><ul>
+<li><a href="#am.image_buffer">am.image_buffer([buffer, ] width [, height])</a></li>
+<li><a href="#am.load_image">am.load_image(filename)</a></li>
+</ul></li>
+<li><a href="#saving-images.">Saving images.</a><ul>
+<li><a href="#am.save_image_as_png">am.save_image_as_png(image_buffer, filename)</a></li>
+</ul></li>
+<li><a href="#decodingencoding-pngs">Decoding/encoding PNGs</a><ul>
+<li><a href="#am.encode_png">am.encode_png(image_buffer)</a></li>
+<li><a href="#am.decode_png">am.decode_png(buffer)</a></li>
+</ul></li>
+</ul></li>
 <li><a href="#textures">Textures</a><ul>
 <li><a href="#creating-a-texture">Creating a texture</a><ul>
 <li><a href="#am.texture2d">am.texture2d(width [, height])</a></li>
 <li><a href="#am.texture2dimage_buffer">am.texture2d(image_buffer)</a></li>
 <li><a href="#am.texture2dfilename">am.texture2d(filename)</a></li>
+</ul></li>
+<li><a href="#texture-fields">Texture fields</a><ul>
+<li><a href="#texture.width">texture.width</a></li>
+<li><a href="#texture.height">texture.height</a></li>
+<li><a href="#texture.image_buffer">texture.image_buffer</a></li>
 <li><a href="#texture.minfilter">texture.minfilter</a></li>
 <li><a href="#texture.magfilter">texture.magfilter</a></li>
+<li><a href="#texture.filter">texture.filter</a></li>
+<li><a href="#texture.swrap">texture.swrap</a></li>
+<li><a href="#texture.twrap">texture.twrap</a></li>
+<li><a href="#texture.wrap">texture.wrap</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#framebuffers">Framebuffers</a></li>
+<li><a href="#framebuffers">Framebuffers</a><ul>
+<li><a href="#creating-a-framebuffer">Creating a framebuffer</a><ul>
+<li><a href="#am.framebuffer">am.framebuffer(texture [, has_depth_buffer [, has_stencil_buffer]])</a></li>
+</ul></li>
+<li><a href="#framebuffer-fields">Framebuffer fields</a><ul>
+<li><a href="#framebuffer.clear_color">framebuffer.clear_color</a></li>
+<li><a href="#framebuffer.projection">framebuffer.projection</a></li>
+<li><a href="#framebuffer.pixel_width">framebuffer.pixel_width</a></li>
+<li><a href="#framebuffer.pixel_height">framebuffer.pixel_height</a></li>
+</ul></li>
+<li><a href="#framebuffer-methods">Framebuffer methods</a><ul>
+<li><a href="#framebuffer:render">framebuffer:render(node)</a></li>
+<li><a href="#framebuffer:render_children">framebuffer:render_children(node)</a></li>
+<li><a href="#framebuffer:clear">framebuffer:clear()</a></li>
+<li><a href="#framebufferread_back">framebuffer:read_back()</a></li>
+<li><a href="#framebufferresizewidth-height">framebuffer:resize(width, height)</a></li>
+</ul></li>
+</ul></li>
 <li><a href="#actions-1">Actions</a><ul>
-<li><a href="#combining-actions">Combining actions</a></li>
-<li><a href="#tweens">Tweens</a></li>
-<li><a href="#tween-ease-functions">Tween ease functions</a></li>
-<li><a href="#coroutine-actions">Coroutine actions</a></li>
+<li><a href="#delay-action">Delay action</a><ul>
+<li><a href="#am.delay">am.delay(seconds)</a></li>
+</ul></li>
+<li><a href="#combining-actions">Combining actions</a><ul>
+<li><a href="#am.series">am.series(actions)</a></li>
+<li><a href="#am.parallel">am.parallel(actions)</a></li>
+<li><a href="#am.loop">am.loop(func)</a></li>
+</ul></li>
+<li><a href="#tweens">Tweens</a><ul>
+<li><a href="#am.tween">am.tween([target,] time, values [, ease])</a></li>
+</ul></li>
+<li><a href="#coroutine-actions">Coroutine actions</a><ul>
+<li><a href="#am.wait">am.wait(action)</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#time">Time</a><ul>
-<li><a href="#frame-time">Frame time</a></li>
-<li><a href="#delta-time">Delta time</a></li>
-<li><a href="#real-time">Real time</a></li>
+<li><a href="#frame-time">Frame time</a><ul>
+<li><a href="#am.frame_time">am.frame_time</a></li>
+</ul></li>
+<li><a href="#delta-time">Delta time</a><ul>
+<li><a href="#am.delta_time">am.delta_time</a></li>
+</ul></li>
+<li><a href="#real-time">Real time</a><ul>
+<li><a href="#am.current_time">am.current_time()</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#saving-and-loading-state">Saving and loading state</a><ul>
-<li><a href="#saving">Saving</a></li>
-<li><a href="#loading">Loading</a></li>
+<li><a href="#saving">Saving</a><ul>
+<li><a href="#am.save_state">am.save_state(name, state)</a></li>
+</ul></li>
+<li><a href="#loading">Loading</a><ul>
+<li><a href="#am.load_state">am.load_state(name)</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#audio">Audio</a><ul>
+<li><a href="#playing-audio-1">Playing audio</a><ul>
+<li><a href="#am.playsource-loop-pitch-gain">am.play(source, loop, pitch, gain)</a></li>
+</ul></li>
 <li><a href="#audio-graphs">Audio graphs</a></li>
-<li><a href="#playing-audio-1">Playing audio</a></li>
 <li><a href="#analysing-audio">Analysing audio</a></li>
 <li><a href="#audio-node-reference">Audio node reference</a></li>
 </ul></li>
@@ -1104,7 +1165,7 @@ vec2(0, 2)</code></pre>
 <h3 id="math.simplexpos" class="func-def">math.simplex(pos)</h3>
 <p>Generate simplex noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number.</p>
 <p>The returned value is between -1 and 1.</p>
-<h3 id="math.mixfrom-top-t" class="func-def">math.mix(from, top, t)</h3>
+<h3 id="math.mix" class="func-def">math.mix(from, top, t)</h3>
 <p>Returns the linear interpolation between <code>from</code> and <code>to</code> determined by <code>t</code>. <code>from</code> and <code>to</code> can be numbers or vectors, and must be the same type. <code>t</code> should be a number between 0 and 1. <code>from</code> and <code>to</code> can also be quaternions. In that case <code>math.mix</code> returns the spherical linear interpolation of the two quaternions.</p>
 <h1 id="buffers-and-views">Buffers and views</h1>
 <div class="figure">
@@ -2152,7 +2213,82 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>clear()</code>: Clear the texture manually.</li>
 </ul>
 <h2 id="creating-custom-scene-nodes">Creating custom scene nodes</h2>
-<p>am.wrap</p>
+<p>Creating a custom leaf node is relatively simple: just create a function that constructs the graph you want and return it.</p>
+<p>You can add custom methods by setting the appropriate fields on the root node of the returned graph (any node can have any number of custom fields set on it, as long as they don't clash with pre-defined fields).</p>
+<p>If you define methods of the form:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> node:get_FIELD<span class="ot">()</span>
+    <span class="ot">...</span>
+<span class="kw">end</span>
+
+<span class="kw">function</span> node:set_FIELD<span class="ot">(</span>val<span class="ot">)</span>
+    <span class="ot">...</span>
+<span class="kw">end</span></code></pre></div>
+<p>Then you will be able to access <code>FIELD</code> as if it's a regular field and the appropriate access method will be called.</p>
+<p>For example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node<span class="ot">.</span>FIELD <span class="ot">=</span> val</code></pre></div>
+<p>will be equivalent to:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node:set_FIELD<span class="ot">(</span>val<span class="ot">)</span></code></pre></div>
+<p>If you want a readonly field, just define the <code>get_FIELD</code> method and not the <code>set_FIELD</code> method.</p>
+<p>The <a href="#am.text"><code>am.text</code></a>, <a href="#am.sprite"><code>am.sprite</code></a> and <a href="#am.particles2d"><code>am.particles2d</code></a> nodes are all implemented this way. Their source is <a href="https://github.com/ianmaclarty/amulet/blob/master/lua/text.lua">here</a> and <a href="https://github.com/ianmaclarty/amulet/blob/master/lua/particles.lua">here</a>.</p>
+<p>If you want to create a non-leaf node, then you need to use the <code>am.wrap</code> function:</p>
+<h3 id="am.wrap" class="func-def">am.wrap(node)</h3>
+<p>This &quot;wraps&quot; <code>node</code> inside a special type of node called a <em>wrap node</em>.</p>
+<p>When a wrap node is rendered it renders the inner node. However any nodes added as children of a wrap node are also added to the leaf node(s) of the inner node.</p>
+<p>For example suppose we want to create a tranformation node called <code>move_and_rotate</code> that does both a tranlation and a rotation:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> move_and_rotate<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">,</span> degrees<span class="ot">)</span>
+    <span class="kw">return</span> am<span class="ot">.</span>translate<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">)</span> <span class="ot">^</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span>degrees<span class="ot">))</span>
+<span class="kw">end</span></code></pre></div>
+<p>We would like to be able to create such a node and add children to it. Like so:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> mvrot <span class="ot">=</span> move_and_rotate<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">,</span> <span class="dv">60</span><span class="ot">)</span>
+mvrot:append<span class="ot">(</span>am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">10</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">10</span><span class="ot">,</span> <span class="dv">10</span><span class="ot">))</span></code></pre></div>
+<p>However what this will do is add the <code>rect</code> node as a child of the <code>translate</code> node returned by <code>move_and_rotate</code>.</p>
+<p>Instead we need to do:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">mvrot<span class="st">&quot;rotate&quot;</span>:append<span class="ot">(</span>am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">10</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">10</span><span class="ot">,</span> <span class="dv">10</span><span class="ot">))</span></code></pre></div>
+<p>which is a bit clunky.</p>
+<p>A wrap node solves this problem:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> move_and_rotate<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">,</span> degrees<span class="ot">)</span>
+    <span class="kw">return</span> am<span class="ot">.</span>wrap<span class="ot">(</span>am<span class="ot">.</span>translate<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">)</span> <span class="ot">^</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span>degrees<span class="ot">)))</span>
+<span class="kw">end</span>
+<span class="kw">local</span> mvrot <span class="ot">=</span> move_and_rotate<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">,</span> <span class="dv">60</span><span class="ot">)</span>
+mvrot:append<span class="ot">(</span>am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">10</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">10</span><span class="ot">,</span> <span class="dv">10</span><span class="ot">))</span></code></pre></div>
+<p>For completeness here we add some fields to set the x, y and degrees properties of our new node:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> move_and_rotate<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">,</span> degrees<span class="ot">)</span>
+    <span class="kw">local</span> inner <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">)</span> <span class="ot">^</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span>degrees<span class="ot">))</span>
+    <span class="kw">local</span> wrapped <span class="ot">=</span> am<span class="ot">.</span>wrap<span class="ot">(</span>inner<span class="ot">)</span>
+    <span class="kw">function</span> wrapped:get_x<span class="ot">()</span>
+        <span class="kw">return</span> x
+    <span class="kw">end</span>
+    <span class="kw">function</span> wrapped:set_x<span class="ot">(</span>v<span class="ot">)</span>
+        x <span class="ot">=</span> v
+        inner<span class="ot">.</span>position2d <span class="ot">=</span> vec2<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">)</span>
+    <span class="kw">end</span>
+    <span class="kw">function</span> wrapped:get_y<span class="ot">()</span>
+        <span class="kw">return</span> y
+    <span class="kw">end</span>
+    <span class="kw">function</span> wrapped:set_y<span class="ot">(</span>v<span class="ot">)</span>
+        y <span class="ot">=</span> v
+        inner<span class="ot">.</span>position2d <span class="ot">=</span> vec2<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">)</span>
+    <span class="kw">end</span>
+    <span class="kw">function</span> wrapped:get_degrees<span class="ot">()</span>
+        <span class="kw">return</span> degrees
+    <span class="kw">end</span>
+    <span class="kw">function</span> wrapped:set_degrees<span class="ot">(</span>v<span class="ot">)</span>
+        degrees <span class="ot">=</span> v
+        inner<span class="st">&quot;rotate&quot;</span><span class="ot">.</span>angle <span class="ot">=</span> <span class="fu">math.rad</span><span class="ot">(</span>degrees<span class="ot">)</span>
+    <span class="kw">end</span>
+    <span class="kw">return</span> wrapped
+<span class="kw">end</span>
+<span class="kw">local</span> mvrot <span class="ot">=</span> move_and_rotate<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">)</span>
+mvrot:append<span class="ot">(</span>am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">50</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">50</span><span class="ot">,</span> <span class="dv">50</span><span class="ot">,</span> <span class="dv">50</span><span class="ot">))</span>
+mvrot<span class="ot">.</span>x <span class="ot">=</span> <span class="dv">100</span>
+mvrot<span class="ot">.</span>y <span class="ot">=</span> <span class="dv">100</span>
+mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv">45</span></code></pre></div>
+<p>There are some caveats when using wrap nodes:</p>
+<ul>
+<li>The inner node is not considered part of the scene graph for the purpose of running actions. So any actions need to be attached to the wrap node, not the inner node.</li>
+<li>Tag search functions do not search the inner node.</li>
+</ul>
+<p>The <a href="#am.postprocess"><code>am.postprocess</code></a> node is implemented using a wrap node. You can view it's implementation <a href="https://github.com/ianmaclarty/amulet/blob/master/lua/postprocess.lua">here</a>.</p>
 <h1 id="shader-programs">Shader programs</h1>
 <h2 id="compiling-a-shader-program">Compiling a shader program</h2>
 <h3 id="am.program" class="func-def">am.program(vertex_shader, fragment_shader)</h3>
@@ -2175,43 +2311,246 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <span class="st">    }</span>
 <span class="st">]]</span>
 <span class="kw">local</span> prog <span class="ot">=</span> am<span class="ot">.</span>program<span class="ot">(</span>vert_shader<span class="ot">,</span> frag_shader<span class="ot">)</span></code></pre></div>
-<h2 id="pre-defined-shader-programs">Pre-defined shader programs</h2>
 <h1 id="image-buffers">Image buffers</h1>
+<p>An image buffer represents a 2D image in memory. Each pixel occupies 4 bytes with 1 byte per channel (RGBA). The data for the image buffer is stored in an <a href="#am.buffer"><code>am.buffer</code></a>.</p>
+<h2 id="creating-image-buffers">Creating image buffers</h2>
+<h3 id="am.image_buffer" class="func-def">am.image_buffer([buffer, ] width [, height])</h3>
+<p>Creates an image buffer of the given width and height. If <code>height</code> is omitted it is the same as <code>width</code> (the image is square).</p>
+<p>If a <code>buffer</code> (created using <a href="#am.buffer"><code>am.buffer</code></a>) if given, it is used as the image buffer. It must have the correct size, which is <span class="math inline">\(4 \times\)</span> <code>width</code> <span class="math inline">\(\times\)</span> <code>height</code>. If <code>buffer</code> is omitted a new one is created.</p>
+<p>Fields:</p>
+<ul>
+<li><code>width</code>: the image width.</li>
+<li><code>height</code>: the image height.</li>
+<li><code>buffer</code>: the raw data buffer.</li>
+</ul>
+<h3 id="am.load_image" class="func-def">am.load_image(filename)</h3>
+<p>Loads the given image file and returns a new image buffer. Only <code>.png</code> and <code>.jpg</code> files are supported.</p>
+<h2 id="saving-images.">Saving images.</h2>
+<h3 id="am.save_image_as_png" class="func-def">am.save_image_as_png(image_buffer, filename)</h3>
+<p>Saves the given image as a png in <code>filename</code>.</p>
+<h2 id="decodingencoding-pngs">Decoding/encoding PNGs</h2>
+<h3 id="am.encode_png" class="func-def">am.encode_png(image_buffer)</h3>
+<p>Returns a buffer containing the png encoding of the given image.</p>
+<h3 id="am.decode_png" class="func-def">am.decode_png(buffer)</h3>
+<p>Converts the raw buffer, which should be a png encoding of an image, into an image buffer.</p>
 <h1 id="textures">Textures</h1>
+<p>Textures are 2D images that can be used as input to shader programs (bound to a <code>sampler2D</code> uniform).</p>
+<p>The can also be rendered to via <a href="#am.framebuffer">framebuffers</a>.</p>
+<p>A texture may optionally have a backing <a href="#image-buffers">image buffer</a>. If a texture has a backing image buffer, then any changes to the image buffer will be automatically transferred to the texture.</p>
+<p>Textures always have 4 channels (RGBA) with 1 byte per channel.</p>
 <h2 id="creating-a-texture">Creating a texture</h2>
 <h3 id="am.texture2d" class="func-def">am.texture2d(width [, height])</h3>
+<p>Creates a texture of the given width and height without a backing image buffer.</p>
 <h3 id="am.texture2dimage_buffer" class="func-def">am.texture2d(image_buffer)</h3>
+<p>Creates a texture using the given image buffer as the backing image buffer.</p>
 <h3 id="am.texture2dfilename" class="func-def">am.texture2d(filename)</h3>
+<p>This is shorthand for <code>am.texture2d(am.load_image(filename))</code>.</p>
+<h2 id="texture-fields">Texture fields</h2>
+<h3 id="texture.width" class="field-def">texture.width</h3>
+<p>Readonly.</p>
+<h3 id="texture.height" class="field-def">texture.height</h3>
+<p>Readonly.</p>
+<h3 id="texture.image_buffer" class="field-def">texture.image_buffer</h3>
+<p>The backing image buffer or <code>nil</code> if there isn't one.</p>
+<p>Readonly.</p>
 <h3 id="texture.minfilter" class="field-def">texture.minfilter</h3>
+<p>Defines the minification filter which is applied when the texture's pixels are smaller that the screen's pixels.</p>
+<p>The allowed values are:</p>
+<ul>
+<li><code>&quot;nearest&quot;</code> (the default)</li>
+<li><code>&quot;linear&quot;</code></li>
+<li><code>&quot;nearest_mipmap_nearest&quot;</code></li>
+<li><code>&quot;linear_mipmap_nearest&quot;</code></li>
+<li><code>&quot;nearest_mipmap_linear&quot;</code></li>
+<li><code>&quot;linear_mipmap_linear&quot;</code></li>
+</ul>
+<p>If one of the mipmap filters is used a mipmap will be automatically generated.</p>
+<p>Updatable.</p>
 <h3 id="texture.magfilter" class="field-def">texture.magfilter</h3>
+<p>Defines the magnification filter which is applied when the texture's pixels are larger that the screen's pixels.</p>
+<p>The allowed values are:</p>
+<ul>
+<li><code>&quot;nearest&quot;</code> (the default)</li>
+<li><code>&quot;linear&quot;</code></li>
+</ul>
+<p>Updatable.</p>
+<h3 id="texture.filter" class="field-def">texture.filter</h3>
+<p>This field can be used to set both the minification and magnification fields. The allowed values are:</p>
+<ul>
+<li><code>&quot;nearest&quot;</code></li>
+<li><code>&quot;linear&quot;</code></li>
+</ul>
+<p>Updatable.</p>
+<h3 id="texture.swrap" class="field-def">texture.swrap</h3>
+<p>Sets the wrapping mode in the x direction. The allowed values are:</p>
+<ul>
+<li><code>&quot;clamp_to_edge&quot;</code> (the default)</li>
+<li><code>&quot;repeat&quot;</code></li>
+<li><code>&quot;mirrored_repeat&quot;</code></li>
+</ul>
+<p>Note that the texture width must be a power of 2 if either <code>&quot;repeat&quot;</code> or <code>&quot;mirrored_repeat&quot;</code> is used.</p>
+<p>Updatable.</p>
+<h3 id="texture.twrap" class="field-def">texture.twrap</h3>
+<p>Sets the wrapping mode in the y direction. The allowed values are:</p>
+<ul>
+<li><code>&quot;clamp_to_edge&quot;</code> (the default)</li>
+<li><code>&quot;repeat&quot;</code></li>
+<li><code>&quot;mirrored_repeat&quot;</code></li>
+</ul>
+<p>Note that the texture height must be a power of 2 if either <code>&quot;repeat&quot;</code> or <code>&quot;mirrored_repeat&quot;</code> is used.</p>
+<p>Updatable.</p>
+<h3 id="texture.wrap" class="field-def">texture.wrap</h3>
+<p>This field can be used to set the wrap mode in both the x and y directions at the same time.</p>
+<p>The allowed values are:</p>
+<ul>
+<li><code>&quot;clamp_to_edge&quot;</code></li>
+<li><code>&quot;repeat&quot;</code></li>
+<li><code>&quot;mirrored_repeat&quot;</code></li>
+</ul>
+<p>Updatable.</p>
 <h1 id="framebuffers">Framebuffers</h1>
+<p>A framebuffer is like an off-screen window you can draw too. It has a texture associated with it that gets updated when you draw to the framebuffer. The texture can then be used as input to further rendering.</p>
+<h2 id="creating-a-framebuffer">Creating a framebuffer</h2>
+<h3 id="am.framebuffer" class="func-def">am.framebuffer(texture [, has_depth_buffer [, has_stencil_buffer]])</h3>
+<p>Creates framebuffer with the given texture attached.</p>
+<p><code>has_depth_buffer</code> and <code>has_stencil_buffer</code> determine whether the framebuffer has a depth and/or stencil buffer. These should be <code>true</code> or <code>false</code>.</p>
+<h2 id="framebuffer-fields">Framebuffer fields</h2>
+<h3 id="framebuffer.clear_color" class="field-def">framebuffer.clear_color</h3>
+<p>The color to use when clearing the framebuffer (a <code>vec4</code>).</p>
+<p>Updatable.</p>
+<h3 id="framebuffer.projection" class="field-def">framebuffer.projection</h3>
+<p>A <code>mat4</code> projection matrix to use when rendering nodes into this framebuffer. The <code>&quot;P&quot;</code> uniform will be set to this. If this is not specified then the projection <code>math.ortho(-width/2, -height/2, width/2, height/2)</code> is used.</p>
+<p>Updatable.</p>
+<h3 id="framebuffer.pixel_width" class="field-def">framebuffer.pixel_width</h3>
+<p>The width of the framebuffer, in pixels.</p>
+<p>Readonly.</p>
+<h3 id="framebuffer.pixel_height" class="field-def">framebuffer.pixel_height</h3>
+<p>The height of the framebuffer, in pixels.</p>
+<p>Readonly.</p>
+<h2 id="framebuffer-methods">Framebuffer methods</h2>
+<h3 id="framebuffer:render" class="method-def">framebuffer:render(node)</h3>
+<p>Renders <code>node</code> into the framebuffer.</p>
+<h3 id="framebuffer:render_children" class="method-def">framebuffer:render_children(node)</h3>
+<p>Renders <code>node</code>'s children into the framebuffer (but not <code>node</code> itself).</p>
+<h3 id="framebuffer:clear" class="method-def">framebuffer:clear()</h3>
+<p>Clears the framebuffer, using the current <a href="#framebuffer.clear_color"><code>clear_color</code></a>.</p>
+<h3 id="framebufferread_back">framebuffer:read_back()</h3>
+<p>Reads the pixels from the framebuffer into the texture's backing image buffer. This is a relatively slow operation, so use it sparingly.</p>
+<h3 id="framebufferresizewidth-height">framebuffer:resize(width, height)</h3>
+<p>Resize the framebuffer. Only framebuffers with textures that have no backing image buffers can be resized. Also the texture must not use a filter that requires a mipmap.</p>
 <h1 id="actions-1">Actions</h1>
+<p>This section covers useful action utility functions. For information on the action mechanism see the description of the <a href="#node:action"><code>action</code></a> method.</p>
+<h2 id="delay-action">Delay action</h2>
+<h3 id="am.delay" class="func-def">am.delay(seconds)</h3>
+<p>Returns an action that does nothing for the given number of seconds.</p>
 <h2 id="combining-actions">Combining actions</h2>
+<h3 id="am.series" class="func-def">am.series(actions)</h3>
+<p>Returns an action that runs the given array of actions one after another.</p>
+<h3 id="am.parallel" class="func-def">am.parallel(actions)</h3>
+<p>Returns an action that runs the given array of actions all at the same time. The returned action finishes once all the actions in the array are finished.</p>
+<h3 id="am.loop" class="func-def">am.loop(func)</h3>
+<p><code>func</code> should be a function that returns an action. <code>am.loop</code> returns an action that repeatedly runs the action returned by <code>func</code>.</p>
 <h2 id="tweens">Tweens</h2>
-<h2 id="tween-ease-functions">Tween ease functions</h2>
+<h3 id="am.tween" class="func-def">am.tween([target,] time, values [, ease])</h3>
+<p>Returns an action that changes the values of one or more fields of <code>target</code> to new values over a given time period.</p>
+<p><code>time</code> is in seconds.</p>
+<p><code>values</code> is a table mapping field names to their new values.</p>
+<p><code>ease</code> is an easing function. This function takes a value between 0 and 1 and returns a value between 0 and 1. This determines the &quot;shape&quot; of the interpolation between the two values. If omitted a linear interpolation is used.</p>
+<p>The following easing functions are pre-defined (though of course you can define your own):</p>
+<ul>
+<li><code>am.ease.linear</code></li>
+<li><code>am.ease.quadratic</code></li>
+<li><code>am.ease.cubic</code></li>
+<li><code>am.ease.hyperbola</code></li>
+<li><code>am.ease.sine</code></li>
+<li><code>am.ease.windup</code></li>
+<li><code>am.ease.elastic</code></li>
+<li><code>am.ease.bounce</code></li>
+<li><code>am.ease.cubic_bezier(x1, y1, x2, y2)</code>: This returns a cubic bezier ease function with the given control points.</li>
+<li><code>am.ease.out(f)</code>: This takes an existing ease function and returns its reverse. E.g. if the existing ease function is slow and then fast, the new one will be fast and then slow.</li>
+<li><code>am.ease.inout(f, g)</code>. This returns an ease function that uses the ease function <code>f</code> for the first half of the transition and <code>out(g)</code> for the second half.</li>
+</ul>
+<p>Tweening works with fields that are numbers or vectors (<code>vec2</code>, <code>vec3</code> or <code>vec4</code>). It also works with <a href="#quaternions">quaternions</a>. In all cases the <a href="#math.mix"><code>math.mix</code></a> function is used to interpolate between the initial value and the final value.</p>
+<p>If target is omitted it is taken to be the <code>node</code> onto which the action is applied.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="ot">=</span>
+    am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span>
+    :action<span class="ot">(</span>
+        am<span class="ot">.</span>tween<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">{</span>
+            color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+            y2 <span class="ot">=</span> <span class="dv">100</span>
+        <span class="ot">}))</span></code></pre></div>
 <h2 id="coroutine-actions">Coroutine actions</h2>
+<p>An action can also be a coroutine. Inside a coroutine action it can sometimes be useful to wait for another action to finish, such as a tween. That is what the <code>am.wait</code> functon is for:</p>
+<h3 id="am.wait" class="func-def">am.wait(action)</h3>
+<p>Waits for the given action to finish before continuing. This can only be called from within a coroutine.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="ot">=</span>
+    am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span>
+    :action<span class="ot">(</span>coroutine<span class="ot">.</span>create<span class="ot">(</span><span class="kw">function</span><span class="ot">(</span>node<span class="ot">)</span>
+        <span class="kw">while</span> <span class="kw">true</span> <span class="kw">do</span>
+            am<span class="ot">.</span>wait<span class="ot">(</span>am<span class="ot">.</span>tween<span class="ot">(</span>node<span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="ot">{</span>
+                color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+                y2 <span class="ot">=</span> <span class="dv">100</span>
+            <span class="ot">}))</span>
+            am<span class="ot">.</span>wait<span class="ot">(</span>am<span class="ot">.</span>tween<span class="ot">(</span>node<span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="ot">{</span>
+                color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+                y2 <span class="ot">=</span> <span class="dv">0</span>
+            <span class="ot">}))</span>
+        <span class="kw">end</span>
+    <span class="kw">end</span><span class="ot">))</span></code></pre></div>
 <h1 id="time">Time</h1>
 <h2 id="frame-time">Frame time</h2>
+<h3 id="am.frame_time" class="field-def">am.frame_time</h3>
+<p>This contains the time the current frame started, in seconds.</p>
 <h2 id="delta-time">Delta time</h2>
+<h3 id="am.delta_time" class="field-def">am.delta_time</h3>
+<p>This contains the amount of time that lapsed between the start of the current frame and the start of the previous frame, in seconds.</p>
 <h2 id="real-time">Real time</h2>
+<h3 id="am.current_time" class="func-def">am.current_time()</h3>
+<p>This returns the time since the program started, in seconds. This value can change over the course of a frame.</p>
 <h1 id="saving-and-loading-state">Saving and loading state</h1>
 <h2 id="saving">Saving</h2>
+<h3 id="am.save_state" class="func-def">am.save_state(name, state)</h3>
+<p>Saves <code>state</code> under <code>name</code>. <code>state</code> should be a Lua table without any cyclic references (these are not detected and will result in the program hanging).</p>
+<p>How and where the data is saved is platform dependent.</p>
 <h2 id="loading">Loading</h2>
+<h3 id="am.load_state" class="func-def">am.load_state(name)</h3>
+<p>Loads a previously saved state and returns it. If the given name was not found <code>nil</code> is returned.</p>
 <h1 id="audio">Audio</h1>
-<h2 id="audio-graphs">Audio graphs</h2>
 <h2 id="playing-audio-1">Playing audio</h2>
+<h3 id="am.playsource-loop-pitch-gain">am.play(source, loop, pitch, gain)</h3>
+<p>Returns an action that plays audio. Like any other action it needs to be attached to a scene node that's connected to a window to run.</p>
+<p><code>source</code> can either be the name of a &quot;.ogg&quot; file or a seed generated by the sfxr tool (there's an online version of that tool in the examples list of the <a href="http://www.amulet.xyz/editor.html">online editor</a>.</p>
+<p><code>loop</code> can be <code>true</code> or <code>false</code>.</p>
+<p><code>pitch</code> is a multiplier applied to the playback speed. 1.0 mean play at the original speed. 2.0 means play swice as fast and 0.5 means play at half the original speed.</p>
+<p><code>gain</code> should be between 0 and 1.</p>
+<h2 id="audio-graphs">Audio graphs</h2>
+<p>TODO</p>
 <h2 id="analysing-audio">Analysing audio</h2>
+<p>TODO</p>
 <h2 id="audio-node-reference">Audio node reference</h2>
+<p>TODO</p>
 <h1 id="extra-table-functions">Extra table functions</h1>
+<p>TODO</p>
 <h1 id="logging">Logging</h1>
+<p>TODO</p>
 <h1 id="running-javascript">Running Javascript</h1>
+<p>TODO</p>
 <h1 id="converting-tofrom-json">Converting to/from JSON</h1>
+<p>TODO</p>
 <h1 id="loading-scripts">Loading scripts</h1>
+<p>TODO</p>
 <h1 id="performance-stats">Performance stats</h1>
+<p>TODO</p>
 <h1 id="amulet-version">Amulet version</h1>
+<p>TODO</p>
 <h1 id="useful-directories">Useful directories</h1>
+<p>TODO</p>
 <h1 id="spritepack">Packing sprites and generating fonts</h1>
+<p>TODO</p>
 <h1 id="exporting">Exporting</h1>
+<p>TODO</p>
 </div>
 </div>
 </body>

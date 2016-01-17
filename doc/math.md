@@ -537,7 +537,7 @@ or a number.
 
 The returned value is between -1 and 1.
 
-### math.mix(from, top, t) {.func-def}
+### math.mix(from, top, t) {#math.mix .func-def}
 
 Returns the linear interpolation between `from` and `to` determined by
 `t`. `from` and `to` can be numbers or vectors, and must be the same
