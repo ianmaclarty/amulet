@@ -128,16 +128,11 @@ struct am_bind_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
-#define AM_READ_MAT_NODE_DECL(D)                                        \
-struct am_read_mat##D##_node : am_scene_node {                          \
-    am_param_name_id name;                                              \
-    glm::mat##D m;                                                      \
-    virtual void render(am_render_state *rstate);                       \
+struct am_read_param_node : am_scene_node {
+    am_param_name_id name;
+    am_program_param_value value;
+    virtual void render(am_render_state *rstate);
 };
-
-AM_READ_MAT_NODE_DECL(2)
-AM_READ_MAT_NODE_DECL(3)
-AM_READ_MAT_NODE_DECL(4)
 
 void am_open_program_module(lua_State *L);
 

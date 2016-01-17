@@ -449,14 +449,7 @@ void am_bind_node::render(am_render_state *rstate) {
     assert(rstate->next_free_texture_unit >= 0);
 }
 
-static void get_bind_node_value(lua_State *L, void *obj) {
-    am_bind_node *node = (am_bind_node*)obj;
-    node->pushuservalue(L);
-    lua_pushlightuserdata(L, (void*)lua_tostring(L, 2));
-    lua_rawget(L, -2);
-    int index = lua_tointeger(L, -1);
-    lua_pop(L, 2); // index, uservalue
-    am_program_param_value *param = &node->values[index];
+static void push_program_param_value(lua_State *L, am_program_param_value *param) {
     switch (param->type) {
         case AM_PROGRAM_PARAM_CLIENT_TYPE_1F:
             lua_pushnumber(L, param->value.f);
@@ -480,15 +473,26 @@ static void get_bind_node_value(lua_State *L, void *obj) {
             memcpy(&am_new_userdata(L, am_mat4)->m, &param->value.m4, 16 * sizeof(float));
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY:
-            node->pushref(L, node->refs[index]);
+            param->value.arr->push(L);
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_SAMPLER2D:
-            node->pushref(L, node->refs[index]);
+            param->value.sampler2d.texture->push(L);
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_UNDEFINED:
             lua_pushnil(L);
             break;
     }
+}
+
+static void get_bind_node_value(lua_State *L, void *obj) {
+    am_bind_node *node = (am_bind_node*)obj;
+    node->pushuservalue(L);
+    lua_pushlightuserdata(L, (void*)lua_tostring(L, 2));
+    lua_rawget(L, -2);
+    int index = lua_tointeger(L, -1);
+    lua_pop(L, 2); // index, uservalue
+    am_program_param_value *param = &node->values[index];
+    push_program_param_value(L, param);
 }
 
 static void set_bind_node_value(lua_State *L, void *obj) {
@@ -655,43 +659,38 @@ static void register_bind_node_mt(lua_State *L) {
     am_register_metatable(L, "bind", MT_am_bind_node, MT_am_scene_node);
 }
 
-#define AM_READ_MAT_NODE_IMPL(D)                                        \
-void am_read_mat##D##_node::render(am_render_state *rstate) {           \
-    am_program_param_value *param = &rstate->param_name_map[name].value;     \
-    if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT##D) {           \
-        m = glm::make_mat##D(&param->value.m##D[0]);                    \
-    }                                                                   \
-    render_children(rstate);                                            \
-}                                                                       \
-static int create_read_mat##D##_node(lua_State *L) {                        \
-    am_check_nargs(L, 1);                                               \
-    if (!lua_isstring(L, 1)) return luaL_error(L, "expecting a string in position 2"); \
-    am_read_mat##D##_node *node = am_new_userdata(L, am_read_mat##D##_node); \
-    node->name = am_lookup_param_name(L, 1);                            \
-    return 1;                                                           \
-}                                                                       \
-static void get_read_mat##D##_node_value(lua_State *L, void *obj) {     \
-    am_read_mat##D##_node *node = (am_read_mat##D##_node*)obj;          \
-    am_mat##D *m = am_new_userdata(L, am_mat##D);                       \
-    m->m = node->m;                                                     \
-}                                                                       \
-static am_property read_mat##D##_node_value_property =                  \
-    {get_read_mat##D##_node_value, NULL};                               \
-static void register_read_mat##D##_node_mt(lua_State *L) {              \
-    lua_newtable(L);                                                    \
-    lua_pushcclosure(L, am_scene_node_index, 0);                        \
-    lua_setfield(L, -2, "__index");                                     \
-    lua_pushcclosure(L, am_scene_node_newindex, 0);                     \
-    lua_setfield(L, -2, "__newindex");                                  \
-                                                                        \
-    am_register_property(L, "value", &read_mat##D##_node_value_property); \
-                                                                        \
-    am_register_metatable(L, "read_mat" #D, MT_am_read_mat##D##_node, MT_am_scene_node);\
+void am_read_param_node::render(am_render_state *rstate) {
+    value = rstate->param_name_map[name].value;
+    render_children(rstate);
 }
 
-AM_READ_MAT_NODE_IMPL(2)
-AM_READ_MAT_NODE_IMPL(3)
-AM_READ_MAT_NODE_IMPL(4)
+static int create_read_param_node(lua_State *L) {
+    am_check_nargs(L, 1);
+    if (!lua_isstring(L, 1)) return luaL_error(L, "expecting a string in position 2");
+    am_read_param_node *node = am_new_userdata(L, am_read_param_node);
+    node->name = am_lookup_param_name(L, 1);
+    return 1;
+}
+
+static void get_read_param_node_value(lua_State *L, void *obj) {
+    am_read_param_node *node = (am_read_param_node*)obj;
+    push_program_param_value(L, &node->value);
+}
+
+static am_property read_param_node_value_property =
+    {get_read_param_node_value, NULL};
+
+static void register_read_param_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
+
+    am_register_property(L, "value", &read_param_node_value_property);
+
+    am_register_metatable(L, "read_param", MT_am_read_param_node, MT_am_scene_node);
+}
 
 const char *am_program_param_type_name(am_program_param_type t) {
     switch (t) {
@@ -753,16 +752,12 @@ void am_open_program_module(lua_State *L) {
         {"program", create_program},
         {"bind", create_bind_node},
         {"use_program", create_program_node},
-        {"read_mat2", create_read_mat2_node},
-        {"read_mat3", create_read_mat3_node},
-        {"read_mat4", create_read_mat4_node},
+        {"read_param", create_read_param_node},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_program_mt(L);
     register_program_node_mt(L);
     register_bind_node_mt(L);
-    register_read_mat2_node_mt(L);
-    register_read_mat3_node_mt(L);
-    register_read_mat4_node_mt(L);
+    register_read_param_node_mt(L);
 }
