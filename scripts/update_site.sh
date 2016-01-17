@@ -12,7 +12,7 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         echo copying ${TAG} docs...
         mkdir -p gh-pages/doc
         cp doc/index.html gh-pages/doc/
-        cp doc/favicon.png gh-pages/doc/
+        cp doc/*.png gh-pages/doc/
         cp doc/style.css gh-pages/doc/
         cp -r doc/sounds gh-pages/doc/
         cp -r doc/images gh-pages/doc/
