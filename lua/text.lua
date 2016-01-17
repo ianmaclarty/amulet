@@ -369,7 +369,11 @@ end
 
 am._convert_sprite_source = convert_sprite_source
 
-function am.sprite(image0, halign, valign, color)
+function am.sprite(image0, color, halign, valign)
+    if type(color) == "string" then
+        halign, valign = color, halign
+        color = vec4(1)
+    end
     halign = halign or "center"
     valign = valign or "center"
     color = color or vec4(1)
@@ -410,6 +414,9 @@ function am.sprite(image0, halign, valign, color)
     function node:get_height()
         return image.height
     end
+    function node:get_spec()
+        return image
+    end 
         
     node:tag"sprite"
     return node
