@@ -1,5 +1,6 @@
 -- click in the game window to allow it to capture your pointer
 -- WASD to walk
+-- There is audio - just walk for a bit :)
 local win = am.window{
     title = "City",
     width = 1200,
