@@ -32,7 +32,9 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, b
     }
     clear_color = clear_color;
     user_projection = false;
-    projection = glm::ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f);
+    float w = (float)width;
+    float h = (float)height;
+    projection = glm::ortho(-w*0.5f, w*0.5f, -h*0.5f, h*0.5f, -1.0f, 1.0f);
 }
 
 void am_framebuffer::clear(bool clear_colorbuf, bool clear_depth, bool clear_stencil) {
@@ -79,6 +81,10 @@ static int render_node_to_framebuffer(lua_State *L) {
     }
     rstate->do_render(node, fb->framebuffer_id, false, fb->clear_color,
         0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
+    if (fb->color_attachment0->has_mipmap) {
+        am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, fb->color_attachment0->texture_id);
+        am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
+    }
     return 0;
 }
 
@@ -93,6 +99,10 @@ static int render_children_to_framebuffer(lua_State *L) {
     tmpnode.children = node->children;
     rstate->do_render(&tmpnode, fb->framebuffer_id, false, fb->clear_color,
         0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
+    if (fb->color_attachment0->has_mipmap) {
+        am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, fb->color_attachment0->texture_id);
+        am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
+    }
     return 0;
 }
 
@@ -135,6 +145,18 @@ static int resize(lua_State *L) {
     }
     if (color_at->has_mipmap) {
         return luaL_error(L, "cannot resize a framebuffer whose color attachment is mipmapped");
+    }
+    if (color_at->swrap == AM_TEXTURE_WRAP_REPEAT && !am_is_power_of_two(color_at->width)) {
+        return luaL_error(L, "width must be a power of 2 when using repeat wrapping");
+    }
+    if (color_at->swrap == AM_TEXTURE_WRAP_MIRRORED_REPEAT && !am_is_power_of_two(color_at->width)) {
+        return luaL_error(L, "width must be a power of 2 when using mirrored repeat wrapping");
+    }
+    if (color_at->twrap == AM_TEXTURE_WRAP_REPEAT && !am_is_power_of_two(color_at->height)) {
+        return luaL_error(L, "height must be a power of 2 when using repeat wrapping");
+    }
+    if (color_at->twrap == AM_TEXTURE_WRAP_MIRRORED_REPEAT && !am_is_power_of_two(color_at->height)) {
+        return luaL_error(L, "height must be a power of 2 when using mirrored repeat wrapping");
     }
     color_at->width = w;
     color_at->height = h;
@@ -194,7 +216,9 @@ static void set_projection(lua_State *L, void *obj) {
     am_framebuffer *fb = (am_framebuffer*)obj;
     if (lua_isnil(L, 3)) {
         fb->user_projection = false;
-        fb->projection = glm::ortho(0.0f, (float)fb->width, 0.0f, (float)fb->height, -1.0f, 1.0f);
+        float w = (float)fb->width;
+        float h = (float)fb->height;
+        fb->projection = glm::ortho(-w*0.5f, w*0.5f, -h*0.5f, h*0.5f, -1.0f, 1.0f);
     } else {
         fb->user_projection = true;
         fb->projection = am_get_userdata(L, am_mat4, 3)->m;
