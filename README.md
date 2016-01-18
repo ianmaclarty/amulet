@@ -89,7 +89,7 @@ Amulet uses or borrows code and ideas from the following projects:
 - [Sean's Tool Box](https://github.com/nothings/stb)
 - [KissFFT](http://sourceforge.net/projects/kissfft/)
 - [Blink](http://www.chromium.org/blink)
-- [ANGLE](https://bugs.chromium.org/p/angleproject/)
+- [ANGLE](https://github.com/google/angle)
 - [FreeType](http://www.freetype.org/)
 - [GLM](https://github.com/g-truc/glm)
 - [Emscripten](http://emscripten.org)
