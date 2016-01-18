@@ -26,7 +26,7 @@ These are available from <http://www.amulet.xyz>.
 
 ## Documentation
 
-See <http://www.amulet.xyz/doc>.
+See <http://www.amulet.xyz/doc/>.
 
 ## Building from source
 
@@ -83,13 +83,13 @@ examples of how to do this.
 
 Amulet uses or borrows code and ideas from the following projects:
 
-- [Lua](http://lua.org)
+- [Lua](http://www.lua.org/)
 - [LuaJIT](http://luajit.org/)
 - [SDL2](https://www.libsdl.org)
 - [Sean's Tool Box](https://github.com/nothings/stb)
 - [KissFFT](http://sourceforge.net/projects/kissfft/)
 - [Blink](http://www.chromium.org/blink)
-- [ANGLE](https://code.google.com/p/angleproject/)
+- [ANGLE](https://bugs.chromium.org/p/angleproject/)
 - [FreeType](http://www.freetype.org/)
 - [GLM](https://github.com/g-truc/glm)
 - [Emscripten](http://emscripten.org)
@@ -101,7 +101,7 @@ Amulet uses or borrows code and ideas from the following projects:
 The HTML editor uses code and ideas from:
 
 - [Codemirror](https://codemirror.net/)
-- [PuzzleScript](https://github.com/increpare/PuzzleScript) and [Zeedonk](https://github.com/increpare/zeedonk)
+- [PuzzleScript](https://github.com/increpare/PuzzleScript) and [Zeedonk](https://github.com/TerryCavanagh/zeedonk)
 - [jQuery](https://jquery.com/)
 - [JSZip](https://stuk.github.io/jszip/)
 - [FileSaver.js](https://github.com/eligrey/FileSaver.js/)
