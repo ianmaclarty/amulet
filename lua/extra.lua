@@ -118,10 +118,16 @@ function table.clear(t)
 end
 
 local
-function table_tostring(t, indent)
+function table_tostring(t, indent, seen, depth)
+    seen = seen or {}
     indent = indent or 0
     local tp = type(t)
     if tp == "table" then
+        if seen[t] then
+            error("cycle detected", depth + 2)
+        else
+            seen[t] = true
+        end
         local tab = "    "
         local prefix = string.rep(tab, indent)
         local str = "{\n"
@@ -137,7 +143,7 @@ function table_tostring(t, indent)
         end
         if array_test then
             for i = 1, array_test - 1 do
-                str = str .. prefix .. tab .. table.tostring(t[i], indent + 1) .. ",\n"
+                str = str .. prefix .. tab .. table_tostring(t[i], indent + 1, seen, depth + 1) .. ",\n"
             end
         else
             table.sort(keys, function(k1, k2) 
@@ -163,9 +169,9 @@ function table_tostring(t, indent)
                 if type(key) == "string" and key:match"^[A-Za-z_][A-Za-z0-9_]*$" then
                     keystr = key
                 else
-                    keystr = "["..table.tostring(key).."]"
+                    keystr = "["..table_tostring(key, 0, seen, depth + 1).."]"
                 end
-                local valstr = table_tostring(value, indent + 1)
+                local valstr = table_tostring(value, indent + 1, seen, depth + 1)
                 str = str .. prefix .. tab .. keystr .. " = " .. valstr .. ",\n"
             end
         end
@@ -178,7 +184,9 @@ function table_tostring(t, indent)
     end
 end
 
-table.tostring = table_tostring
+table.tostring = function(t, indent)
+    return table_tostring(t, indent, nil, 1)
+end
 
 -- extra math functions
 
