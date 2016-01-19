@@ -3,7 +3,7 @@ extern const char *am_conf_app_title;
 extern const char *am_conf_app_id;
 extern const char *am_conf_app_version;
 extern const char *am_conf_app_shortname;
-extern const char *am_conf_app_org;
+extern const char *am_conf_app_author;
 
 // scene options
 extern int am_conf_default_recursion_limit;

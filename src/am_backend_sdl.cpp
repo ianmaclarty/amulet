@@ -304,10 +304,10 @@ char *am_get_base_path() {
 }
 
 char *am_get_data_path() {
-    if (am_conf_app_org == NULL || am_conf_app_shortname == NULL) {
+    if (am_conf_app_author == NULL || am_conf_app_shortname == NULL) {
         return am_format(".%c", AM_PATH_SEP);
     }
-    char *path = SDL_GetPrefPath(am_conf_app_org, am_conf_app_shortname);
+    char *path = SDL_GetPrefPath(am_conf_app_author, am_conf_app_shortname);
     if (path != NULL) {
         // copy so calling code can just use free
         char *path2 = am_format("%s", path);

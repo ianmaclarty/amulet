@@ -81,7 +81,6 @@ static bool add_data_files_to_zip(const char *zipfile, const char *rootdir, cons
         add_matching_files_to_zip(zipfile, rootdir, dir, "*.png", false, ZIP_PLATFORM_DOS) &&
         add_matching_files_to_zip(zipfile, rootdir, dir, "*.jpg", false, ZIP_PLATFORM_DOS) &&
         add_matching_files_to_zip(zipfile, rootdir, dir, "*.ogg", false, ZIP_PLATFORM_DOS) &&
-        add_matching_files_to_zip(zipfile, rootdir, dir, "*.txt", true, ZIP_PLATFORM_DOS) &&
         add_matching_files_to_zip(zipfile, rootdir, dir, "*.obj", true, ZIP_PLATFORM_DOS) &&
         true;
 }
@@ -132,7 +131,7 @@ static char *get_bin_path(export_config *conf, const char *platform) {
 }
 
 static char *get_export_zip_name(export_config *conf, const char *platname) {
-    return am_format("%s-%s.zip", conf->appshortname, platname);
+    return am_format("%s-%s-%s.zip", conf->appshortname, conf->appversion, platname);
 }
 
 static bool build_windows_export(export_config *conf) {
@@ -142,6 +141,7 @@ static bool build_windows_export(export_config *conf) {
     if (binpath == NULL) return false;
     const char *name = conf->appshortname;
     bool ok =
+        add_files_to_zip_renamed(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
         add_files_to_zip_renamed(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
         add_files_to_zip_renamed(zipname, binpath, "amulet.exe", name, name, ".exe", true, true, ZIP_PLATFORM_DOS) &&
         add_files_to_zip_renamed(zipname, binpath, "*.dll", name, NULL, NULL, true, true, ZIP_PLATFORM_DOS) &&
@@ -202,6 +202,7 @@ static bool build_mac_export(export_config *conf) {
     if (!create_mac_info_plist(AM_TMP_DIR "/Info.plist", conf)) return false;
     const char *name = conf->appshortname;
     bool ok =
+        add_files_to_zip_renamed(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath, "amulet", name, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, ".", conf->pakfile, name, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
@@ -223,6 +224,7 @@ static bool build_linux_export(export_config *conf) {
     if (binpath32 == NULL) return false;
     const char *name = conf->appshortname;
     bool ok =
+        add_files_to_zip_renamed(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath64, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX) &&
@@ -242,6 +244,7 @@ static bool build_html_export(export_config *conf) {
     if (binpath == NULL) return false;
     const char *name = conf->appshortname;
     bool ok =
+        add_files_to_zip_renamed(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath, "amulet.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_zip_renamed(zipname, binpath, "player.html", name, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&

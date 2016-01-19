@@ -4,7 +4,7 @@ const char *am_conf_app_title = NULL;
 const char *am_conf_app_id = NULL;
 const char *am_conf_app_version = NULL;
 const char *am_conf_app_shortname = NULL;
-const char *am_conf_app_org = NULL;
+const char *am_conf_app_author = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -59,7 +59,7 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_app_id);
     free_if_not_null((void**)&am_conf_app_version);
     free_if_not_null((void**)&am_conf_app_shortname);
-    free_if_not_null((void**)&am_conf_app_org);
+    free_if_not_null((void**)&am_conf_app_author);
 }
 
 bool am_load_config() {
@@ -86,7 +86,7 @@ bool am_load_config() {
     }
     read_string_setting(eng->L, "title", &am_conf_app_title, "Untitled");
     read_string_setting(eng->L, "shortname", &am_conf_app_shortname, am_conf_app_title);
-    read_string_setting(eng->L, "org", &am_conf_app_org, "Unknown");
+    read_string_setting(eng->L, "author", &am_conf_app_author, "Unknown");
     read_string_setting(eng->L, "appid", &am_conf_app_id, "null");
     read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");
     am_destroy_engine(eng);

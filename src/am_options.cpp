@@ -14,10 +14,104 @@ struct option {
     bool stop;
 };
 
-static bool help_cmd(int *argc, char ***argv) {
+static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet [ <command> ] [ <file> ... ]\n"
+        "Usage: amulet export [ <dir> ]\n"
+        "\n"
+        "  Generates distribution zips for the project in <dir>,\n"
+        "  or the current directory if <dir> is omitted.\n"
+        "  <dir> should contain main.lua.\n"
+        "\n"
+        "  All files in the directory with the following extensions will\n"
+        "  be included as data in the distribution: .lua .png .jpg .ogg .obj\n"
+        "  All .txt files will also be copied to the generated zip and\n"
+        "  be visible to the user when they open it.\n"
+        "\n"
+        "  If you create a conf.lua file in the same\n"
+        "  directory as main.lua containing the following:\n"
+        "\n"
+        "    title = \"My Game Title\"\n"
+        "    shortname = \"mygame\"\n"
+        "    author = \"Your Name\"\n"
+        "    appid = \"com.some-unique-id.123\"\n"
+        "    version = \"1.0.0\"\n"
+        "\n"
+        "  then this will be used for various bits of meta-data in the\n"
+        "  generated packages.\n"
+        "\n"
+        "  Packages are currently generated for Windows, Mac OS X, Linux\n"
+        "  and HTML.\n"
+        "\n"
+        "  IMPORTANT: avoid unzipping and re-zipping the generated packages\n"
+        "  as you may inadvertently strip the executable bit from\n"
+        "  some files, which will cause them not to work.\n"
+        "\n"
+       /*-------------------------------------------------------------------------------*/
+    );
+    return true;
+}
+
+static bool help_pack() {
+    printf(
+       /*-------------------------------------------------------------------------------*/
+        "Usage: amulet pack -png <filename.png> -lua <filename.lua> \n"
+        "                   [-mono] [-minfilter <filter>] [-magfilter <filter>]\n"
+        "                   [-no-premult] [-keep-padding] <files> ...\n"
+        "\n"
+        "  Packs images and/or fonts into a sprite sheet and generates a Lua\n"
+        "  module for accessing the sprites therein.\n"
+        "\n"
+        "Options:\n"
+        "  -png <filename.png>      The name of the png file to generate.\n"
+        "  -lua <filename.lua>      The name of the Lua module to generate.\n"
+        "  -mono                    Do not anti-alias fonts.\n"
+        "  -minfilter               nearest or linear (default is linear).\n"
+        "  -magfilter               nearest or linear (default is linear).\n"
+        "  -no-premult              Do not pre-multiply RGB channels by alpha.\n"
+        "  -keep-padding            Do not strip transparent pixels around images.\n"
+        "\n"
+        "  <files> is a list of image files (.png or .jpg) and/or font files (.ttf).\n"
+        "  Each font file must additionally have a suffix of the form @size which\n"
+        "  specifies the size of the font in pixels.\n"
+        "  Optionally each font item may also be followed by a colon and a comma\n"
+        "  separated list of character ranges to include in the sprite sheet.\n"
+        "  The characters in the character range can be written directly if they\n"
+        "  are ASCII, or given as hexidecimal unicode codepoints.\n"
+        "  Here are some examples of valid font items:\n"
+        "    times.ttf@64\n"
+        "    VeraMono.ttf@32:A-Z,0-9\n"
+        "    ComicSans.ttf@122:0x20-0xFF\n"
+        "    ChineseA.ttf@42:a-z,A-Z,0-9,0x4E00-0x9FFF\n"
+        "  If the character range list is omitted, it defaults to 0x20-0x7E\n"
+        "  i.e. the characters: !\"#$%%&'()*+,-./:;<=>?@[\\]^_`{|}~\n"
+        "  0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.\n"
+        "\n"
+        "Example:\n"
+        "\n"
+        "  amulet pack -png sprites.png -lua sprites.lua img1.png img2.png myfont.ttf@16\n"
+        "\n"
+        "This will produce sprites.lua and sprites.png.\n"
+        "Use them in your Lua code like so:\n"
+        "\n"
+        "  local sprites = require \"sprites\"\n"
+        "  local sprite_node = am.sprite(sprites.img1)\n"
+        "  local text_node = am.text(sprites.myfont16, \"BARF!\")\n"
+        "\n"
+       /*-------------------------------------------------------------------------------*/
+    );
+    return true;
+}
+
+static bool help_cmd(int *argc, char ***argv) {
+    if (*argc > 0 && strcmp((*argv)[0], "export") == 0) {
+        return help_export();
+    } else if (*argc > 0 && strcmp((*argv)[0], "pack") == 0) {
+        return help_pack();
+    }
+    printf(
+       /*-------------------------------------------------------------------------------*/
+        "Usage: amulet [ <command> ] [ <file> ] ...\n"
         "\n"
         "  If no command is supplied, amulet runs the lua script <file>.\n"
         "  If no file is supplied, it tries to run main.lua in the current directory.\n"
@@ -27,15 +121,13 @@ static bool help_cmd(int *argc, char ***argv) {
         "  Any extra arguments after <file> are passed on to the script\n"
         "  where they can be accessed via the arg global.\n"
         "\n"
-        "Commands:\n"
-        "  help            Show help message.\n"
-        "  version         Show version.\n"
+        "The available commands are:\n"
+        "  help [ <command> ] Show help.\n"
+        "  version            Show version.\n"
 #ifdef AM_BUILD_TOOLS
-        "  export [<dir>]  Generate packages for the project in <dir>.\n"
-        "                  <dir> should contain main.lua.\n"
-        "                  If <dir> is omitted, it is assumed to be the\n"
-        "                  current directory.\n"
-        "  pack ...        Generate sprite sheet.\n"
+        "  export [ <dir> ]   Generate distribution packages.\n"
+        "  pack ...           Generate sprite sheet from images or fonts.\n"
+        "\n"
 #endif
        /*-------------------------------------------------------------------------------*/
     );
