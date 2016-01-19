@@ -1,8 +1,8 @@
 [Setup]
 AppName=Amulet
 AppVersion={#VERSION}
-DefaultDirName={pf}\Amulet-{#VERSION}
-DefaultGroupName=Amulet-{#VERSION}
+DefaultDirName={pf}\Amulet
+DefaultGroupName=Amulet
 UninstallDisplayIcon={app}\icon.ico
 WizardImageFile=installer_img.bmp
 WizardSmallImageFile=installer_img_small.bmp
@@ -20,6 +20,7 @@ Source: "installer-payload\*"; DestDir: "{app}"; Flags: recursesubdirs
 
 [Icons]
 Name: "{group}\Amulet Console"; Filename: "{cmd}"; Parameters: "/K ""{app}\amulet_env.bat"""; WorkingDir: "{userdocs}"; IconFilename: "{app}\icon.ico" 
+Name: "{group}\Amulet Manual (latest version)"; Filename: "http://www.amulet.xyz/doc/"; IconFilename: "{app}\icon.ico" 
 Name: "{group}\Examples\RGB Triangle"; Filename: "{app}\amulet-window.exe"; Parameters: """{app}\examples\rgb_triangle.lua"""; IconFilename: "{app}\icon.ico" 
 Name: "{group}\Examples\Kaleidoscope"; Filename: "{app}\amulet-window.exe"; Parameters: """{app}\examples\kaleidoscope.lua"""; IconFilename: "{app}\icon.ico" 
 Name: "{group}\Examples\City Lights"; Filename: "{app}\amulet-window.exe"; Parameters: """{app}\examples\city.lua"""; IconFilename: "{app}\icon.ico" 
@@ -27,6 +28,8 @@ Name: "{group}\Examples\Paint"; Filename: "{app}\amulet-window.exe"; Parameters:
 Name: "{group}\Examples\5000 Tori"; Filename: "{app}\amulet-window.exe"; Parameters: """{app}\examples\3dsandbox.lua"""; IconFilename: "{app}\icon.ico" 
 Name: "{group}\Examples\Tweens"; Filename: "{app}\amulet-window.exe"; Parameters: """{app}\examples\tween.lua"""; IconFilename: "{app}\icon.ico" 
 Name: "{group}\Examples\Synth"; Filename: "{app}\amulet-window.exe"; Parameters: """{app}\examples\synth.lua"""; IconFilename: "{app}\icon.ico" 
+Name: "{group}\Examples\Defenders of the Weeping Quasar"; Filename: "{app}\amulet-window.exe"; Parameters: """{app}\examples\defenders.lua"""; IconFilename: "{app}\icon.ico" 
+Name: "{group}\Examples\View example scripts"; Filename: "{app}\examples";
 
 [Tasks]
 Name: modifypath; Description: "Add ""{app}"" to your PATH";
