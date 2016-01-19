@@ -292,7 +292,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#framebuffers">Framebuffers</a><ul>
 <li><a href="#creating-a-framebuffer">Creating a framebuffer</a><ul>
-<li><a href="#am.framebuffer">am.framebuffer(texture [, has_depth_buffer [, has_stencil_buffer]])</a></li>
+<li><a href="#am.framebuffer">am.framebuffer(texture [, depth_buf [, stencil_buf]])</a></li>
 </ul></li>
 <li><a href="#framebuffer-fields">Framebuffer fields</a><ul>
 <li><a href="#framebuffer.clear_color">framebuffer.clear_color</a></li>
@@ -351,14 +351,38 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#analysing-audio">Analysing audio</a></li>
 <li><a href="#audio-node-reference">Audio node reference</a></li>
 </ul></li>
-<li><a href="#extra-table-functions">Extra table functions</a></li>
-<li><a href="#logging">Logging</a></li>
-<li><a href="#running-javascript">Running Javascript</a></li>
-<li><a href="#converting-tofrom-json">Converting to/from JSON</a></li>
-<li><a href="#loading-scripts">Loading scripts</a></li>
-<li><a href="#performance-stats">Performance stats</a></li>
-<li><a href="#amulet-version">Amulet version</a></li>
-<li><a href="#useful-directories">Useful directories</a></li>
+<li><a href="#extra-table-functions">Extra table functions</a><ul>
+<li><a href="#table.shallow_copy">table.shallow_copy(t)</a></li>
+<li><a href="#table.deep_copy">table.deep_copy(t)</a></li>
+<li><a href="#table.search">table.search(arr, elem)</a></li>
+<li><a href="#table.clear">table.clear(t)</a></li>
+<li><a href="#table.remove_all">table.remove_all(arr, elem)</a></li>
+<li><a href="#table.append">table.append(arr1, arr2)</a></li>
+<li><a href="#table.merge">table.merge(t1, t2)</a></li>
+<li><a href="#table.keys">table.keys(t)</a></li>
+<li><a href="#table.values">table.values(t)</a></li>
+<li><a href="#table.filter">table.filter(arr, f)</a></li>
+<li><a href="#table.tostring">table.tostring(t)</a></li>
+</ul></li>
+<li><a href="#logging">Logging</a><ul>
+<li><a href="#log">log(msg, ...)</a></li>
+</ul></li>
+<li><a href="#running-javascript">Running Javascript</a><ul>
+<li><a href="#am.eval_js">am.eval_js(js)</a></li>
+</ul></li>
+<li><a href="#converting-tofrom-json">Converting to/from JSON</a><ul>
+<li><a href="#am.to_json">am.to_json(value)</a></li>
+<li><a href="#am.parse_json">am.parse_json(json)</a></li>
+</ul></li>
+<li><a href="#loading-scripts">Loading scripts</a><ul>
+<li><a href="#am.load_script">am.load_script(filename)</a></li>
+</ul></li>
+<li><a href="#performance-stats">Performance stats</a><ul>
+<li><a href="#am.perf_stats">am.perf_stats()</a></li>
+</ul></li>
+<li><a href="#amulet-version">Amulet version</a><ul>
+<li><a href="#am.version">am.version</a></li>
+</ul></li>
 <li><a href="#spritepack">Packing sprites and generating fonts</a></li>
 <li><a href="#exporting">Exporting</a></li>
 </ul>
@@ -386,6 +410,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>The <a href="#quickstart">quickstart tutorial</a> introduces basic concepts and walks you through drawing things on screen, playing audio and responding to user input.</p>
 <p>It is suggested that new users go through the tutorial first. The rest of the document can then be used as a reference, dipping into sections as needed.</p>
 <p>If you see a function argument with brackets around it in a function signature, then that argument is optional.</p>
+<div class="figure">
+<img src="images/screenshot7.jpg" alt="" />
+
+</div>
 <h1 id="lua">Lua</h1>
 <p>Amulet code is written in <a href="http://www.lua.org">Lua</a>. The version of Lua used by default is Lua-5.1.</p>
 <h2 id="lua-primer">Lua primer</h2>
@@ -1627,6 +1655,10 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <h3 id="windowtouch_pixel_deltatouch" class="method-def">window:touch_pixel_delta(touch)</h3>
 <p>Returns the change in touch position since the last frame in pixels (a <code>vec2</code>).</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
+<div class="figure">
+<img src="images/screenshot8.jpg" alt="" />
+
+</div>
 <h1 id="scenes">Scenes</h1>
 <p>Scene graphs are how you draw graphics in Amulet. <em>Scene nodes</em> are connected together to form a graph which is attached to a window (via the window's <a href="#window.scene"><code>scene</code></a> field). The window will then render the scene graph each frame.</p>
 <p>Scene nodes correspond to graphics commands. They either change the rendering state in some way, for example by applying a transformation or changing the blend mode, or execute a draw command, which renders something to the screen.</p>
@@ -1891,6 +1923,10 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <p>In the able the <code>_var</code> fields are an amount that is added to and subtracted from the field without <code>_var</code> to get the range of values from which one is randomly choses. For example if <code>source_pos</code> is <code>vec2(1, 0)</code> and <code>source_pos_var</code> is <code>vec2(3, 2)</code>, then source positions will be choses in the range <code>vec2(-2, -2)</code> to <code>vec2(4, 2)</code>.</p>
 <p>All of the sprite settings are exposed as updatable fields on the particles node.</p>
 <p>Default tag: <code>&quot;particles2d&quot;</code>.</p>
+<div class="figure">
+<img src="images/screenshot9.jpg" alt="" />
+
+</div>
 <h2 id="transformation-nodes-1">Transformation nodes</h2>
 <p>The following nodes apply transformations to all their descendents.</p>
 <p><strong>Note</strong>: These nodes have an optional <code>uniform</code> argument in the first position of their construction functions. This argument is only relevant if you're writing your own shader programs. Otherwise you can ignore it.</p>
@@ -2411,9 +2447,9 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h1 id="framebuffers">Framebuffers</h1>
 <p>A framebuffer is like an off-screen window you can draw too. It has a texture associated with it that gets updated when you draw to the framebuffer. The texture can then be used as input to further rendering.</p>
 <h2 id="creating-a-framebuffer">Creating a framebuffer</h2>
-<h3 id="am.framebuffer" class="func-def">am.framebuffer(texture [, has_depth_buffer [, has_stencil_buffer]])</h3>
+<h3 id="am.framebuffer" class="func-def">am.framebuffer(texture [, depth_buf [, stencil_buf]])</h3>
 <p>Creates framebuffer with the given texture attached.</p>
-<p><code>has_depth_buffer</code> and <code>has_stencil_buffer</code> determine whether the framebuffer has a depth and/or stencil buffer. These should be <code>true</code> or <code>false</code>.</p>
+<p><code>depth_buf</code> and <code>stencil_buf</code> determine whether the framebuffer has a depth and/or stencil buffer. These should be <code>true</code> or <code>false</code>.</p>
 <h2 id="framebuffer-fields">Framebuffer fields</h2>
 <h3 id="framebuffer.clear_color" class="field-def">framebuffer.clear_color</h3>
 <p>The color to use when clearing the framebuffer (a <code>vec4</code>).</p>
@@ -2512,7 +2548,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h1 id="saving-and-loading-state">Saving and loading state</h1>
 <h2 id="saving">Saving</h2>
 <h3 id="am.save_state" class="func-def">am.save_state(name, state)</h3>
-<p>Saves <code>state</code> under <code>name</code>. <code>state</code> should be a Lua table without any cyclic references (these are not detected and will result in the program hanging).</p>
+<p>Saves <code>state</code> under <code>name</code>. <code>state</code> should be a Lua table without any cyclic references.</p>
 <p>How and where the data is saved is platform dependent.</p>
 <h2 id="loading">Loading</h2>
 <h3 id="am.load_state" class="func-def">am.load_state(name)</h3>
@@ -2532,21 +2568,59 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h2 id="audio-node-reference">Audio node reference</h2>
 <p>TODO</p>
 <h1 id="extra-table-functions">Extra table functions</h1>
-<p>TODO</p>
+<h3 id="table.shallow_copy" class="func-def">table.shallow_copy(t)</h3>
+<p>Returns a shallow copy of <code>t</code> (i.e. a new table with the same keys and values as <code>t</code>).</p>
+<h3 id="table.deep_copy" class="func-def">table.deep_copy(t)</h3>
+<p>Returns a deep copy of <code>t</code> (all <code>t</code>'s keys and values are copied recursively). Cycles are detected and reproduced in the new table.</p>
+<h3 id="table.search" class="func-def">table.search(arr, elem)</h3>
+<p>Return the index of <code>elem</code> in <code>arr</code> or nil if it's not found.</p>
+<h3 id="table.clear" class="func-def">table.clear(t)</h3>
+<p>Remove all <code>t</code>'s pairs.</p>
+<h3 id="table.remove_all" class="func-def">table.remove_all(arr, elem)</h3>
+<p>Remove all values equal to <code>elem</code> from <code>arr</code>.</p>
+<h3 id="table.append" class="func-def">table.append(arr1, arr2)</h3>
+<p>Inserts all of <code>arr2</code>'s values at the end of <code>arr1</code>.</p>
+<h3 id="table.merge" class="func-def">table.merge(t1, t2)</h3>
+<p>Sets all the key-value pairs from <code>t2</code> in <code>t1</code>.</p>
+<h3 id="table.keys" class="func-def">table.keys(t)</h3>
+<p>Returns an array of <code>t</code>'s keys.</p>
+<h3 id="table.values" class="func-def">table.values(t)</h3>
+<p>Returns an array of <code>t</code>'s values.</p>
+<h3 id="table.filter" class="func-def">table.filter(arr, f)</h3>
+<p>Returns a new array which contains only the values from <code>arr</code> for which <code>f(elem)</code> returns true (or any value besides <code>nil</code> or <code>false</code>).</p>
+<h3 id="table.tostring" class="func-def">table.tostring(t)</h3>
+<p>Converts a table to a string. The returned string is a valid Lua table literal.</p>
 <h1 id="logging">Logging</h1>
-<p>TODO</p>
+<h3 id="log" class="func-def">log(msg, ...)</h3>
+<p>Log a message to the console.</p>
+<p><code>msg</code> may contain format specifiers like the standard Lua <code>string.format</code> function.</p>
+<p>The logged messages are prefixed with the file name and line number where <code>log</code> was called.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="fu">log</span><span class="ot">(</span><span class="st">&quot;here&quot;</span><span class="ot">)</span>
+<span class="fu">log</span><span class="ot">(</span><span class="st">&quot;num = %g, string = %s&quot;</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="st">&quot;two&quot;</span><span class="ot">)</span></code></pre></div>
 <h1 id="running-javascript">Running Javascript</h1>
-<p>TODO</p>
+<h3 id="am.eval_js" class="func-def">am.eval_js(js)</h3>
+<p>Runs the given JavaScript string and returns the result as a Lua value. JavaScript objects and arrays are converted to Lua tables and other JavaScript types are converted to the corresponding Lua types. <code>undefined</code> is converted to <code>nil</code>.</p>
+<p>This function only works when running in a browser. On other platforms it has no effect and always returns <code>nil</code>.</p>
 <h1 id="converting-tofrom-json">Converting to/from JSON</h1>
-<p>TODO</p>
+<h3 id="am.to_json" class="func-def">am.to_json(value)</h3>
+<p>Converts the given Lua value to a JSON string and returns it.</p>
+<p>Cycles are not detected.</p>
+<h3 id="am.parse_json" class="func-def">am.parse_json(json)</h3>
+<p>Converts the given JSON string to a Lua value and returns it.</p>
 <h1 id="loading-scripts">Loading scripts</h1>
-<p>TODO</p>
+<h3 id="am.load_script" class="func-def">am.load_script(filename)</h3>
+<p>Loads the Lua script in <code>filename</code> and returns a function that, when called, will run the script.</p>
 <h1 id="performance-stats">Performance stats</h1>
-<p>TODO</p>
+<h3 id="am.perf_stats" class="func-def">am.perf_stats()</h3>
+<p>Returns a table with the following fields:</p>
+<ul>
+<li><code>avg_fps</code>: frames per second averaged over the last 60 frames</li>
+<li><code>min_fps</code>: the minimum frames per second over the last 60 frames</li>
+</ul>
 <h1 id="amulet-version">Amulet version</h1>
-<p>TODO</p>
-<h1 id="useful-directories">Useful directories</h1>
-<p>TODO</p>
+<h3 id="am.version" class="field-def">am.version</h3>
+<p>The current Amulet version, as a string. E.g. <code>&quot;1.0.3&quot;</code>.</p>
 <h1 id="spritepack">Packing sprites and generating fonts</h1>
 <p>TODO</p>
 <h1 id="exporting">Exporting</h1>

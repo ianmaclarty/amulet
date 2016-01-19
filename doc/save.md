@@ -6,8 +6,7 @@
 ### am.save_state(name, state) {#am.save_state .func-def}
 
 Saves `state` under `name`. `state` should be a Lua table
-without any cyclic references (these are not detected and
-will result in the program hanging).
+without any cyclic references.
 
 How and where the data is saved is platform dependent.
 
@@ -17,4 +16,3 @@ How and where the data is saved is platform dependent.
 
 Loads a previously saved state and returns it.
 If the given name was not found `nil` is returned.
-

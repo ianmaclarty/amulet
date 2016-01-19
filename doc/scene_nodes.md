@@ -1,4 +1,6 @@
 
+![](images/screenshot8.jpg)
+
 # Scenes {#scenes}
 
 Scene graphs are how you draw graphics in Amulet.
@@ -487,6 +489,8 @@ All of the sprite settings are exposed as updatable fields on
 the particles node.
 
 Default tag: `"particles2d"`.
+
+![](images/screenshot9.jpg)
 
 ## Transformation nodes
 

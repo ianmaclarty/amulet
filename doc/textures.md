@@ -180,11 +180,11 @@ further rendering.
 
 ## Creating a framebuffer
 
-### am.framebuffer(texture [, has_depth_buffer [, has_stencil_buffer]]) {#am.framebuffer .func-def}
+### am.framebuffer(texture [, depth_buf [, stencil_buf]]) {#am.framebuffer .func-def}
 
 Creates framebuffer with the given texture attached.
 
-`has_depth_buffer` and `has_stencil_buffer` determine whether the
+`depth_buf` and `stencil_buf` determine whether the
 framebuffer has a depth and/or stencil buffer. These should be
 `true` or `false`.
 
