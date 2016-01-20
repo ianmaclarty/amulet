@@ -383,7 +383,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#amulet-version">Amulet version</a><ul>
 <li><a href="#am.version">am.version</a></li>
 </ul></li>
-<li><a href="#spritepack">Packing sprites and generating fonts</a></li>
+<li><a href="#spritepack">Packing sprites and generating fonts</a><ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#pack-options">Pack options</a></li>
+<li><a href="#padding">Padding</a></li>
+<li><a href="#specifying-which-font-glyphs-to-generate">Specifying which font glyphs to generate</a></li>
+</ul></li>
 <li><a href="#exporting">Exporting</a></li>
 </ul>
 </nav>
@@ -2622,9 +2627,83 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h3 id="am.version" class="field-def">am.version</h3>
 <p>The current Amulet version, as a string. E.g. <code>&quot;1.0.3&quot;</code>.</p>
 <h1 id="spritepack">Packing sprites and generating fonts</h1>
-<p>TODO</p>
+<h2 id="overview">Overview</h2>
+<p>Amulet includes a tool for packing images and font glyphs into a sprite sheet and generating a Lua module for conveniently accessing the images and glyphs therein.</p>
+<p>Suppose you have an <code>images</code> directory containing the images <code>run1.png</code>, <code>run2.png</code>, <code>jump1.png</code> and <code>jump2.png</code> and a <code>fonts</code> directory containing <code>myfont.ttf</code> and suppose these two directories are subdirectories of the main game directory (where your <code>main.lua</code> file lives). To generate a sprite sheet, run the following command while in the main game directory:</p>
+<pre class="console"><code>&gt; amulet pack -png mysprites.png -lua mysprites.lua 
+              images/run1.png images/run2.png
+              images/jump1.png images/jump2.png
+              fonts/myfont.ttf@32</code></pre>
+<p>This will generate <code>mysprites.png</code> and <code>mysprites.lua</code> in the current directory.</p>
+<p>To use the generated sprite sheet in your code, first required the Lua module and then pass the fields in that module to <code>am.sprite</code> or <code>am.text</code>. For example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> mysprites <span class="ot">=</span> <span class="fu">require</span> <span class="st">&quot;mysprites&quot;</span>
+<span class="kw">local</span> run1_node <span class="ot">=</span> am<span class="ot">.</span>sprite<span class="ot">(</span>sprites<span class="ot">.</span>run1<span class="ot">)</span>
+<span class="kw">local</span> text_node <span class="ot">=</span> am<span class="ot">.</span>text<span class="ot">(</span>sprites<span class="ot">.</span>myfont32<span class="ot">,</span> <span class="st">&quot;BARF!&quot;</span><span class="ot">)</span></code></pre></div>
+<p>Note that the font field (<code>myfont32</code>) is the concatenation of the font file name (without the <code>.ttf</code> part) and the font size.</p>
+<h2 id="pack-options">Pack options</h2>
+<p>In addition to the required <code>-png</code> and <code>-lua</code> options the pack command also supports the following options:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Option</th>
+<th align="left">Desription</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>-mono</code></td>
+<td align="left">Do not anti-alias fonts.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>-minfilter</code></td>
+<td align="left">The minification filter to apply when loading the sprite sheet texture. <code>linear</code> (the default) or <code>nearest</code>.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>-magfilter</code></td>
+<td align="left">The magnification filter to apply when loading the sprite sheet texture. <code>linear</code> (the default) or <code>nearest</code>.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>-no-premult</code></td>
+<td align="left">Do not pre-multiply RGB channels by alpha.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>-keep-padding</code></td>
+<td align="left">Do not strip transparent pixels around images.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="padding">Padding</h2>
+<p>Unless you specify the <code>-keep-padding</code> option, Amulet will remove excess rows and columns of completely transparent pixels from each image before packing it. It will always however leave a one pixel border of transparent pixels if the image was surrounded by transparent pixels to begin with. This is done to prevent pixels from one image &quot;bleeding&quot; into another image when it's drawn.</p>
+<p>When excess rows and columns are removed the vertices of the sprite will be adjusted so the images is still drawn in the correct position, as if the excess pixels were still there.</p>
+<p>If an image is not surrounded by a border of transparent pixels, then the border pixels will be duplicated around the image. This helps prevent &quot;cracks&quot; when tiling the image.</p>
+<p>In summary, if you don't intend to use an image for tiling, surround it with a border of completely transparent pixels.</p>
+<h2 id="specifying-which-font-glyphs-to-generate">Specifying which font glyphs to generate</h2>
+<p>Optionally each font item may also be followed by a colon and a comma separated list of character ranges to include in the sprite sheet.</p>
+<p>The characters in the character range can be written directly if they are ASCII, or given as hexidecimal unicode codepoints.</p>
+<p>Here are some examples of valid font items:</p>
+<ul>
+<li><code>VeraMono.ttf@32:A-Z,0-9</code></li>
+<li><code>ComicSans.ttf@122:0x20-0xFF</code></li>
+<li><code>gbsn00lp.ttf@42:a-z,A-Z,0-9,0x4E00-0x9FFF</code></li>
+</ul>
+<p>If the character range list is omitted, it defaults to <code>0x20-0x7E</code>, i.e:</p>
+<pre class="text"><code>!&quot;#$%&amp;&#39;()*+,-./:;&lt;=&gt;?@[\]^_`{|}~0123456789
+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <h1 id="exporting">Exporting</h1>
-<p>TODO</p>
+<p>To generate distribution packages for Windows, Mac OS X, Linux and HTML5, use the amulet export command.</p>
+<p>To do an export run the following command from the directory containing you Lua, image and sound files:</p>
+<pre class="console"><code>&gt; amulet export</code></pre>
+<p>This will generate zip files for each target platform in the current directory.</p>
+<p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
+<p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of the libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
+<p>If you create a <code>conf.lua</code> file in the same directory as your other Lua files containing the following:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">title <span class="ot">=</span> <span class="st">&quot;My Game Title&quot;</span>
+shortname <span class="ot">=</span> <span class="st">&quot;mygame&quot;</span>
+author <span class="ot">=</span> <span class="st">&quot;Your Name&quot;</span>
+appid <span class="ot">=</span> <span class="st">&quot;com.some-unique-id.123&quot;</span>
+version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span></code></pre></div>
+<p>then this will be used for various bits of meta-data in the generated packages. In particular <code>shortname</code> will be used in the name of the generated zip files (otherwise they will just be called &quot;Untitled&quot;).</p>
+<p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work.</p>
 </div>
 </div>
 </body>

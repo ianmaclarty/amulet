@@ -91,7 +91,9 @@ code.lua {
     border: 1px solid #e0e0e0;
 }
 
-pre.console code {
+pre.console code,
+pre.text code
+ {
     display: block;
     background-color: #e7e7e7;
     width: 600px;

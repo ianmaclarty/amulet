@@ -1,4 +1,99 @@
 
 # Packing sprites and generating fonts {#spritepack}
 
-TODO
+## Overview
+
+Amulet includes a tool for packing images and font glyphs
+into a sprite sheet and generating a Lua module for 
+conveniently accessing the images and glyphs therein.
+
+Suppose you have an `images` directory containing the images
+`run1.png`, `run2.png`, `jump1.png` and `jump2.png`
+and a `fonts` directory containing `myfont.ttf`
+and suppose these two directories are subdirectories
+of the main game directory (where your `main.lua` file
+lives). To generate a sprite sheet,
+run the following command while in the main game
+directory:
+
+~~~ {.console}
+> amulet pack -png mysprites.png -lua mysprites.lua 
+              images/run1.png images/run2.png
+              images/jump1.png images/jump2.png
+              fonts/myfont.ttf@32
+~~~
+
+This will generate `mysprites.png` and `mysprites.lua`
+in the current directory.
+
+To use the generated sprite sheet in your code, first
+required the Lua module and then pass the fields in that
+module to `am.sprite` or `am.text`. For example:
+
+~~~ {.lua}
+local mysprites = require "mysprites"
+local run1_node = am.sprite(sprites.run1)
+local text_node = am.text(sprites.myfont32, "BARF!")
+~~~
+
+Note that the font field (`myfont32`) is the concatenation
+of the font file name (without the `.ttf` part) and the
+font size.
+
+## Pack options
+
+In addition to the required `-png` and `-lua` options the
+pack command also supports the following options:
+
+Option                     Desription
+------------------------   --------------------------------------------------------------------------------------------------------
+`-mono`                    Do not anti-alias fonts.
+`-minfilter`               The minification filter to apply when loading the sprite sheet texture. `linear` (the default) or `nearest`.
+`-magfilter`               The magnification filter to apply when loading the sprite sheet texture. `linear` (the default) or `nearest`.
+`-no-premult`              Do not pre-multiply RGB channels by alpha.
+`-keep-padding`            Do not strip transparent pixels around images.
+
+## Padding
+
+Unless you specify the `-keep-padding` option, Amulet will
+remove excess rows and columns of completely transparent pixels
+from each image before packing it. It will always however leave
+a one pixel border of transparent pixels if the image was surrounded
+by transparent pixels to begin with. This is done to prevent
+pixels from one image "bleeding" into another
+image when it's drawn.
+
+When excess rows and columns are removed the vertices of the sprite will be
+adjusted so the images is still drawn in the correct position, as if the
+excess pixels were still there.
+
+If an image is not surrounded by a border of transparent pixels, then
+the border pixels will be duplicated around the image. This helps
+prevent "cracks" when tiling the image.
+
+In summary, if you don't intend to use an image for tiling,
+surround it with a border of completely transparent
+pixels. 
+
+## Specifying which font glyphs to generate
+
+Optionally each font item may also be followed by a colon and a comma
+separated list of character ranges to include in the sprite sheet.
+
+The characters in the character range can be written directly if they
+are ASCII, or given as hexidecimal unicode codepoints.
+
+Here are some examples of valid font items:
+
+- `VeraMono.ttf@32:A-Z,0-9`
+- `ComicSans.ttf@122:0x20-0xFF`
+- `gbsn00lp.ttf@42:a-z,A-Z,0-9,0x4E00-0x9FFF`
+
+If the character range list is omitted, it defaults to `0x20-0x7E`,
+i.e: 
+
+~~~ {.text}
+!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~0123456789
+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+~~~
+
