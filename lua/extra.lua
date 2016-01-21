@@ -202,6 +202,10 @@ function math.randvec4()
     return vec4(math.random(), math.random(), math.random(), math.random())
 end
 
+function math.sign(n)
+    return n > 0 and 1 or n < 0 and -1 or 0
+end
+
 -- vector/matrix stuff
 
 rawset(_G, "vec2", math.vec2)
