@@ -473,6 +473,25 @@ be zero and the z component of the result is dropped, yielding another
 
 The following functions supplement the standard Lua math functions.
 
+### math.sign(n) {#math.sign .func-def}
+
+Returns +1 if n > 0, -1 if n < 0 and 0 if n == 0.
+
+### math.randvec2() {#math.randvec2 .func-def}
+
+Returns a `vec2` with all components set to a random number
+between 0 and 1.
+
+### math.randvec3() {#math.randvec3 .func-def}
+
+Returns a `vec3` with all components set to a random number
+between 0 and 1.
+
+### math.randvec4() {#math.randvec4 .func-def}
+
+Returns a `vec4` with all components set to a random number
+between 0 and 1.
+
 ### math.dot(vector1, vector2) {.func-def}
 
 Returns the dot product of two vectors. The vectors must have the same
