@@ -7,9 +7,8 @@ Amulet includes a tool for packing images and font glyphs
 into a sprite sheet and generating a Lua module for 
 conveniently accessing the images and glyphs therein.
 
-Suppose you have an `images` directory containing the images
-`run1.png`, `run2.png`, `jump1.png` and `jump2.png`
-and a `fonts` directory containing `myfont.ttf`
+Suppose you have an `images` directory containing some
+`.png` files and a `fonts` directory containing `myfont.ttf`
 and suppose these two directories are subdirectories
 of the main game directory (where your `main.lua` file
 lives). To generate a sprite sheet,
@@ -18,9 +17,7 @@ directory:
 
 ~~~ {.console}
 > amulet pack -png mysprites.png -lua mysprites.lua 
-              images/run1.png images/run2.png
-              images/jump1.png images/jump2.png
-              fonts/myfont.ttf@32
+              images/*.png fonts/myfont.ttf@32
 ~~~
 
 This will generate `mysprites.png` and `mysprites.lua`
@@ -32,12 +29,16 @@ module to `am.sprite` or `am.text`. For example:
 
 ~~~ {.lua}
 local mysprites = require "mysprites"
-local run1_node = am.sprite(sprites.run1)
-local text_node = am.text(sprites.myfont32, "BARF!")
+local run1_node = am.sprite(mysprites.run1)
+local text_node = am.text(mysprites.myfont32, "BARF!")
 ~~~
 
-Note that the font field (`myfont32`) is the concatenation
-of the font file name (without the `.ttf` part) and the
+The sprite field names are generated from the image filenames
+with the extension removed (so the file `images/run1.png`
+would result in the field `mysprites.run1`).
+
+The font field name (`myfont32`) is the concatenation
+of the font file name (without the extension) and the
 font size.
 
 ## Pack options

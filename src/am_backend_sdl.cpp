@@ -399,6 +399,10 @@ int main( int argc, char *argv[] )
     SDL_SetMainReady();
 #endif
 
+    am_expand_args(&argc, &argv);
+    int expanded_argc = argc;
+    char **expanded_argv = argv;
+
     if (!am_process_args(&argc, &argv, &exit_status)) {
         goto quit;
     }
@@ -536,6 +540,7 @@ quit:
         free(capture_buffer);
         capture_buffer = NULL;
     }
+    am_free_expanded_args(expanded_argc, expanded_argv);
 #ifdef AM_OSX
     [pool release];
 #endif

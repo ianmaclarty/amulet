@@ -89,7 +89,7 @@ static bool help_pack() {
         "\n"
         "Example:\n"
         "\n"
-        "  amulet pack -png sprites.png -lua sprites.lua images/img1.png images/img2.png fonts/myfont.ttf@16\n"
+        "  amulet pack -png sprites.png -lua sprites.lua images/*.png fonts/myfont.ttf@16\n"
         "\n"
         "This will produce sprites.lua and sprites.png.\n"
         "Use them in your Lua code like so:\n"

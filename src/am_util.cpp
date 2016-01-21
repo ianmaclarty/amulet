@@ -2,6 +2,8 @@
 
 #include <sys/stat.h>
 
+#include "SimpleGlob.h"
+
 #define MAX_MSG_LEN 10240
 
 char *am_format(const char *fmt, ...) {
@@ -73,4 +75,42 @@ void *am_read_file(const char *filename, size_t *len) {
         buf[i] = fgetc(f);
     }
     return buf;
+}
+
+void am_expand_args(int *argc_ptr, char ***argv_ptr) {
+    char **argv = *argv_ptr;
+    int argc = *argc_ptr;
+    int expanded_argc = 0;
+    for (int a = 0; a < argc; a++) {
+        if (strchr(argv[a], '*') == NULL) {
+            expanded_argc++;
+        } else {
+            CSimpleGlobTempl<char> glob(SG_GLOB_ONLYFILE);
+            glob.Add(argv[a]);
+            expanded_argc += glob.FileCount();
+        }
+    }
+    char **expanded_argv = (char**)malloc(sizeof(char*) * expanded_argc);
+    int i = 0;
+    for (int a = 0; a < argc; a++) {
+        if (strchr(argv[a], '*') == NULL) {
+            expanded_argv[i++] = am_format("%s", argv[a]);
+        } else {
+            CSimpleGlobTempl<char> glob(SG_GLOB_ONLYFILE);
+            glob.Add(argv[a]);
+            for (int n = 0; n < glob.FileCount(); ++n) {
+                char *file = glob.File(n);
+                expanded_argv[i++] = am_format("%s", file);
+            }
+        }
+    }
+    *argc_ptr = expanded_argc;
+    *argv_ptr = expanded_argv;
+}
+
+void am_free_expanded_args(int argc, char **argv) {
+    for (int i = 0; i < argc; i++) {
+        free(argv[i]);
+    }
+    free(argv);
 }
