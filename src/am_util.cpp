@@ -2,8 +2,6 @@
 
 #include <sys/stat.h>
 
-#include "SimpleGlob.h"
-
 #define MAX_MSG_LEN 10240
 
 char *am_format(const char *fmt, ...) {
@@ -77,6 +75,10 @@ void *am_read_file(const char *filename, size_t *len) {
     return buf;
 }
 
+#ifdef AM_BUILD_TOOLS
+
+#include "SimpleGlob.h"
+
 void am_expand_args(int *argc_ptr, char ***argv_ptr) {
     char **argv = *argv_ptr;
     int argc = *argc_ptr;
@@ -114,3 +116,4 @@ void am_free_expanded_args(int argc, char **argv) {
     }
     free(argv);
 }
+#endif
