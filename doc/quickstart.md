@@ -26,6 +26,14 @@ directory of your choice. Then add the directory to your PATH.
 The `amulet` executable is for x86_64. If you're running a 32 bit system,
 rename the file `amulet.i686` to `amulet`.
 
+**Online editor:**
+There is also an [online editor](http://www.amulet.xyz/editor.html) which
+you can use without having to download or install anything.
+However be aware that there are some limitations when using the online
+editor: you can't load image or audio files and only one lua module
+is allowed per project. These restrictions do not apply when exporting
+to HTML from the desktop version.
+
 Running a script
 ----------------
 
@@ -45,6 +53,9 @@ main.lua:1: It works!
 
 If you see the text "`main.lua:1: It works!`", Amulet is installed and
 working.
+
+If you are using the online editor, just type this into the main text
+area and click "Run".
 
 Creating a window
 -----------------
@@ -98,7 +109,7 @@ children. The resulting scene graph looks like this:
 
 The translate node moves its descendents to the right 150 and up 100 (by
 convention the y axis increases in upward direction). The scale node
-doubles its descendents's size and the rotate node rotates its descendents by
+doubles its descendent's size and the rotate node rotates its descendents by
 90 degrees (`math.rad` converts degrees to radians).
 Finally the text node renders some text to the screen.
 
@@ -222,7 +233,7 @@ circle1_node:append(am.circle(vec2(0, 0), 50, red))
 local circle2_node = am.translate(150, 0)
 circle2_node:append(am.circle(vec2(0, 0), 50, red))
 
-local rect_node = am.translate(0, 0)
+local rect_node = am.translate(0, -25)
 rect_node:append(am.rect(-50, -50, 50, 50, yellow))
 
 local group_node = am.group()
@@ -379,6 +390,13 @@ corresponding translation, is drawn.  This ensures the ball
 is visible on the beach. If we draw the beach second
 it would obscure the ball.
 
+If you are using the online editor then you won't be able to
+load image files. Instead you'll need to draw the sprites
+using text. See the "Beach ball" example in the online editor
+for an equivalent example that doesn't load any image files.
+See also the documentation for [am.sprite](#am.sprite) for
+how to create sprites with text.
+
 Responding to mouse clicks
 --------------------------
 
@@ -442,7 +460,7 @@ win.scene:action(function(scene)
         spin = 0
     end
 
-    -- clamp the ball position so it doesn't dissapear
+    -- clamp the ball position so it doesn't disappear
     -- off the edge of the screen
     ball_pos = math.clamp(ball_pos, min_pos, max_pos)
 
@@ -467,7 +485,7 @@ We could have made separate variables for the x and y
 components, but using a `vec2` is more concise.
 Note that if the values of the x and y components of the
 vector are the same, we only need to give the value once,
-so we just need to write `vec2(0)` when initializing the
+so we just need to write `vec2(0)` when initialising the
 velocity instead of `vec2(0, 0)`.
 
 We also create some constants that we'll need. We define
@@ -478,7 +496,7 @@ impulse velocity to apply to the ball when it's clicked
 
 Next comes the action itself. The comments in the body of
 the action should help you work out what's going on, but here
-are some things to node:
+are some things to note:
 
 - `win:mouse_pressed(button)` can be used to check whether a mouse
   button was pressed in the last frame. `button` can be `"left"`,
@@ -590,7 +608,7 @@ win.scene:action(function(scene)
         on_ground = true
     end
 
-    -- clamp the ball position so it doesn't dissapear
+    -- clamp the ball position so it doesn't disappear
     -- off the edge of the screen
     ball_pos = math.clamp(ball_pos, min_pos, max_pos)
 

@@ -5,7 +5,7 @@
 
 ### am.window(settings) {#am.window .func-def}
 
-Creates a new window, returning a window object. `settings` is a
+Creates a new window and returns a handle to it. `settings` is a
 table with any of the following fields:
 
 - **`mode`**:
@@ -14,7 +14,7 @@ table with any of the following fields:
     `"windowed"`. Not all platforms support windowed mode (e.g. iOS).
     On these platforms this setting is ignored.
 
-- **`width` and `height`**:
+- **`width`** and **`height`**:
     The desired size of the window. This is not necessarily the size
     of the window in pixels (although it usually is if the window
     is created in `"windowed"` mode). Instead it defines the size of the window's
@@ -192,7 +192,6 @@ the only window.
 ### window:resized() {.method-def}
 
 Returns true if the window's size changed since the last frame.
-## Detecting key presses
 
 ## Detecting key presses
 
@@ -320,9 +319,10 @@ to down since the last frame.
 See [window:key_down](#key_down) for possible values
 for `key`.
 
-Note that if `key_pressed` returns true, then
+Note that if `key_pressed` returns true for a particular key, then
 `key_down` will also return `true`. Also if `key_pressed`
-returns `true` then `key_released` will always return `false`.
+returns `true` for a particular key then `key_released` will return `false`
+for the same key.
 (If necessary, Amulet will postpone key release events to the
 next frame to ensure this.)
 
@@ -333,9 +333,9 @@ to up since the last frame.
 See [window:key_down](#key_down) for possible values
 for `key`.
 
-Note that if `key_released` returns true, then
-`key_down` will also return `false`. Also if `key_released`
-returns `true` then `key_pressed` will always return `false`.
+Note that if `key_released` returns true for a particular key, then
+`key_down` will return `false`. Also if `key_released`
+returns `true` for a particular key then `key_pressed` will return `false`.
 (If necessary, Amulet will postpone key press events to the
 next frame to ensure this.)
 
@@ -384,10 +384,10 @@ from up to down since the
 last frame.
 `button` may be `"left"`, `"right"` or `"middle"`.
 
-Note that if `mouse_pressed` returns `true` then
+Note that if `mouse_pressed` returns `true` for a particular button then
 `mouse_down` will also return `true`. Also 
-if `mouse_pressed` returns `true` then `mouse_released`
-will always return `false`. (If necessary, Amulet will
+if `mouse_pressed` returns `true` for a particular button then `mouse_released`
+will return `false`. (If necessary, Amulet will
 postpone button release events to the next frame to ensure this.)
 
 ### window:mouse_released(button) {.method-def}
@@ -396,10 +396,10 @@ Returns true if the given mouse button's state changed
 from down to up since the last frame.
 `button` may be `"left"`, `"right"` or `"middle"`.
 
-Note that if `mouse_released` returns `true` then
-`mouse_down` will also return `false`. Also 
-if `mouse_released` returns `true` then `mouse_pressed`
-will always return `false`. (If necessary, Amulet will
+Note that if `mouse_released` returns `true` for a particular button then
+`mouse_down` will return `false`. Also 
+if `mouse_released` returns `true` for a particular button then `mouse_pressed`
+will return `false`. (If necessary, Amulet will
 postpone button press events to the next frame to ensure this.)
 
 ### window:mouse_wheel() {.method-def}

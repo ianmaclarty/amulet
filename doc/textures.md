@@ -14,8 +14,8 @@ If `height` is omitted it is the same as `width` (the
 image is square).
 
 If a `buffer` (created using [`am.buffer`](#am.buffer))
-if given, it is used as the image buffer. It must have
-the correct size, which is $4 \times$ `width` $\times$ `height`.
+is given, it is used as the image buffer. It must have
+the correct size, which is `4 * width * height`.
 If `buffer` is omitted a new one is created.
 
 Fields:
@@ -39,7 +39,7 @@ Saves the given image as a png in `filename`.
 
 ### am.encode_png(image_buffer) {#am.encode_png .func-def}
 
-Returns a buffer containing the png encoding of the given
+Returns a raw buffer containing the png encoding of the given
 image.
 
 ### am.decode_png(buffer) {#am.decode_png .func-def}
@@ -50,9 +50,9 @@ of an image, into an image buffer.
 # Textures {#textures}
 
 Textures are 2D images that can be used as input to shader programs
-(bound to a `sampler2D` uniform).
+when bound to a `sampler2D` uniform.
 
-The can also be rendered to via [framebuffers](#am.framebuffer).
+They can also be rendered to via [framebuffers](#am.framebuffer).
 
 A texture may optionally have a backing [image buffer](#image-buffers).
 If a texture has a backing image buffer, then any changes to the image
@@ -231,13 +231,13 @@ Renders `node`'s children into the framebuffer (but not `node` itself).
 
 Clears the framebuffer, using the current [`clear_color`](#framebuffer.clear_color).
 
-### framebuffer:read_back()
+### framebuffer:read_back() {#framebuffer:read_back .method-def}
 
 Reads the pixels from the framebuffer into the texture's
 backing image buffer. This is a relatively slow operation,
 so use it sparingly.
 
-### framebuffer:resize(width, height)
+### framebuffer:resize(width, height) {#framebuffer:resize .method-def}
 
 Resize the framebuffer. Only framebuffers with textures that have
 no backing image buffers can be resized. Also the texture must not

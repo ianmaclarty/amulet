@@ -18,7 +18,7 @@ log("here")
 log("num = %g, string = %s", 1, "two")
 ~~~
 
-# Running Javascript
+# Running JavaScript
 
 ### am.eval_js(js) {#am.eval_js .func-def}
 

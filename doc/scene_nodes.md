@@ -95,7 +95,7 @@ Updatable.
 
 ### node.paused {.func-def}
 
-Determines whether the node and its children's actions
+Determines whether the node and its children's [actions](#node:action)
 are executed. The default is `false`, meaning the actions
 are executed.
 
@@ -143,6 +143,9 @@ Searches `node` and its descendents for `tagname`
 and returns the first matching node found, or `nil`
 if no matching nodes were found. The search is depth-first
 left-to-right.
+
+The found node's parent is also returned as a second
+value, unless the found node was the root of the given subgraph.
 
 ### node:action([id,] action) {#node:action .method-def}
 
@@ -223,14 +226,14 @@ Adds `child` to the start of `node`'s child list and returns `node`.
 
 ### node:remove(child) {.func-def}
 
-Removes the first occurance of `child` from `node`'s child list
+Removes the first occurrence of `child` from `node`'s child list
 and returns `node`.
 
 ### node:remove(tagname) {.func-def}
 
 Searches for a node with tag `tagname` in the descendents
-of `node` and removes the first one it finds and
-returns `node`.
+of `node` and removes the first one it finds. 
+Then returns `node`.
 
 ### node:remove_all() {.func-def}
 
@@ -238,14 +241,14 @@ Removes all of `node`'s children and returns `node`.
 
 ### node:replace(child, replacement) {.func-def}
 
-Replaces the first occurance of `child` with `replacement`
+Replaces the first occurrence of `child` with `replacement`
 in `node`'s child list and returns `node`.
 
 ### node:replace(tagname, replacement) {.func-def}
 
 Searches for a node with tag `tagname` in the descendents
 of `node` and replaces the first one it finds with
-`replacement` and returns `node`.
+`replacement`. Then returns `node`.
 
 ### node:child(n) {.func-def}
 
@@ -299,7 +302,7 @@ Fields:
 - `width`: The width of the displayed text in pixels. Readonly.
 - `height`: The height of the displayed text in pixels. Readonly.
 
-Default tag: `"sprite"`.
+Default tag: `"text"`.
 
 ### am.sprite(source [, color] [, halign [, valign]]) {#am.sprite .func-def}
 
@@ -387,7 +390,7 @@ table with all of the following fields:
 
 Typically `x1` and `y1` would both be zero
 and `x2` and `y2` would be equal to `width` and `height`,
-though they may be different when transparent pixel
+though they may be different when transparents pixels
 are removed from the edges of sprites when packing them.
 The `width` and `height` fields are used for adjusting sprite
 position based on the requested alignment.
@@ -415,7 +418,7 @@ Default tag: `"sprite"`.
 
 ### am.rect(x1, y1, x2, y2 [, color]) {#am.rect .func-def}
 
-Draws a rectable from (`x1`, `y1`) to (`x2`, `y2`).
+Draws a rectangle from (`x1`, `y1`) to (`x2`, `y2`).
 
 `color` should be a `vec4` and defaults to white.
 
@@ -439,7 +442,7 @@ Draws a circle.
 
 `sides` is the number of sides to use when rendering the
 circle. The default is 255. You can change this to make
-other regular polygones. For example change it to 6 to
+other regular polygons. For example change it to 6 to
 draw a hexagon.
 
 Fields:
@@ -457,11 +460,11 @@ Renders a simple 2D particle system.
 `settings` should be a table with any of the following fields:
 
 - `source_pos`: The position where the particles emit from (`vec2`)
-- `source_pos_var`: The variation in source position (`vec2`)
+- `source_pos_var`: The source position variation (`vec2`)
 - `start_size`: The start size of the particles (number)
-- `start_size_var`: The start size variation of the particles (number)
+- `start_size_var`: The start size variation (number)
 - `end_size`: The end size of the particles (number)
-- `end_size_var`: The end size variation of the particles (number)
+- `end_size_var`: The end size variation (number)
 - `angle`: The angle the particles emit at (radians)
 - `angle_var`: The variation in the angle the particles emit at (radians)
 - `speed`: The speed of the particles (number)
@@ -472,18 +475,18 @@ Renders a simple 2D particle system.
 - `start_color_var`: The variation in the start color of the particles (`vec4`)
 - `end_color`: The end color of the particles (`vec4`)
 - `end_color_var`: The variation in the end color of the particles (`vec4`)
-- `emission_rate`: Number of particles to emit per second
+- `emission_rate`: The number of particles to emit per second
 - `start_particles`: The initial number of particles
 - `max_particles`: The maximum number of particles
 - `gravity`: Gravity to apply to the particles (`vec2`)
 - `sprite_source`: The particle sprite source (see [am.sprite](#am.sprite)). If this is omitted the particles will be colored squares.
 - `warmup_time`: Simulate running the particle system for this number of seconds before showing it for the first time.
 
-In the able the `_var` fields are an amount that is added to
-and subtracted from the field without `_var` to get the range of values from
-which one is randomly choses.
+In the table the `_var` fields are an amount that is added to
+and subtracted from the corresponding field (the one without the `_var` suffix)
+to get the range of values from which one is randomly chosen.
 For example if `source_pos` is `vec2(1, 0)` and `source_pos_var` is
-`vec2(3, 2)`, then source positions will be choses in the
+`vec2(3, 2)`, then source positions will be chosen in the
 range `vec2(-2, -2)` to `vec2(4, 2)`.
 
 All of the sprite settings are exposed as updatable fields on
@@ -518,20 +521,20 @@ be 0.
 
 Fields:
 
-- `position`: The translation position as `vec3`. Updatable.
-- `position2d`: The translation position as `vec2`. Updatable.
+- `position`: The translation position as a `vec3`. Updatable.
+- `position2d`: The translation position as a `vec2`. Updatable.
 
 Default tag: `"translate"`.
 
-Example:
+Examples:
 
 ~~~ {.lua}
 local node1 = am.translate(10, 20)
 local node2 = am.translate(vec2(10, 20))
 local node3 = am.translate("MyModelViewMatrix", 1, 2, -3.5)
 local node4 = am.translate(vec3(1, 2, 3))
-local node1.position2d = vec2(30, 40)
-local node3.position = vec3(1, 2, -3)
+node1.position2d = vec2(30, 40)
+node3.position = vec3(1, 2, -3)
 ~~~
 
 ### am.scale([uniform,] scaling) {#am.scale .func-def}
@@ -541,7 +544,7 @@ Apply a scale transform to a 4x4 matrix uniform.
 It is `"MV"` by default.
 
 `scaling` may be 1, 2 or 3 numbers or a
-`vec2` or `vec3'. If 1 number is provided
+`vec2` or `vec3`. If 1 number is provided
 it is assume to be the x and y components
 of the scaling and the z scaling is assumed
 to be 1. If 2 numbers or a `vec2` is provided,
@@ -555,7 +558,7 @@ Fields:
 
 Default tag: `"scale"`.
 
-Example:
+Examples:
 
 ~~~ {.lua}
 local node1 = am.scale(2)
@@ -585,7 +588,7 @@ Fields:
 
 Default tag: `"rotate"`.
 
-Example:
+Examples:
 
 ~~~ {.lua}
 local node1 = am.rotate(math.rad(45))
@@ -621,7 +624,7 @@ to values.
 The named parameters are matched with the
 uniforms and attributes in the shader program just before 
 a [`am.draw`](#am.draw) node is
-encountered.
+executed.
 
 Program parameter types are mapped to the following Lua types:
 
@@ -642,7 +645,7 @@ Program parameter type      Lua type
 
 Any bound parameters not in the program are ignored,
 but all program parameters must have been bound before
-a `draw` node is encountered.
+a `draw` node is executed.
 
 **Note**:
 The parameter `P` is initially bound to a 4x4 projection
@@ -782,7 +785,7 @@ Fields:
 Apply a color mask. The four arguments can be `true` or `false`
 and determine whether the corresponding color channel
 is updated in the rendering target (either the current window
-to framebuffer being rendered to).
+or framebuffer being rendered to).
 
 For example using a mask of `am.color_mask(false, true, false, true)`
 will cause only the green and alpha channels to be updated.
@@ -794,8 +797,8 @@ Culls triangles with a specific winding.
 The possible values for `face` are:
 
 - `"cw"`: Cull clockwise wound triangles.
-- `"ccw": Cull counter-clockwise wound triangles.
-- `"none": Do not cull any triangles.
+- `"ccw"`: Cull counter-clockwise wound triangles.
+- `"none"`: Do not cull any triangles.
 
 Fields:
 
@@ -809,7 +812,7 @@ buffer for this to have any effect.
 
 `test` is used to determine whether a fragment
 is rendered by comparing the depth value of the
-fragment to value in the depth buffer.
+fragment to the value in the depth buffer.
 The possible values for `test` are:
 
 - `"never"`
@@ -867,7 +870,7 @@ and radius would be visible using the previously computed matrix
 product as the model-view-projection matrix. If it wouldn't be visible then
 none of this node's children are rendered (i.e. they are culled).
 
-The default value for `uniforms...` is `"P", "MV"` and the default
+The default value for `uniforms` is `"P" and "MV"` and the default
 value for `center` is `vec3(0)`.
 
 Fields:
@@ -882,8 +885,8 @@ By default `uniform` is `"MV"`.
 
 If `preserve_scaling` is `false` or omitted then any scaling
 will also be removed from the matrix. If it is `true`, then
-scaling will be preserved, as long as it's uniform across
-all 3 axes.
+scaling will be preserved, as long as it's the same across
+all three axes.
 
 Default tag: `"billboard"`
 
@@ -892,10 +895,10 @@ Default tag: `"billboard"`
 This node has no effect on rendering. Instead it records the
 value of the named uniform when rendering occurs.
 
-One use-case for this is to find the value of the model-view matrix (`MV`) at a
-specifc node without having to keep track of all the ancestor transforms. This
+This is useful for finding the value of the model-view matrix (`MV`) at a
+specific node without having to keep track of all the ancestor transforms. This
 could then be used to, for example, determine the position of a mouse click
-in a node's coordinate space, by taking the inverse of the matrix.
+in a node's coordinate space, by taking the inverse of the model-view matrix.
 
 Fields:
 
@@ -999,8 +1002,8 @@ When a wrap node is rendered it renders the inner node.
 However any nodes added as children of a wrap node are also
 added to the leaf node(s) of the inner node.
 
-For example suppose we want to create a tranformation node
-called `move_and_rotate` that does both a tranlation and a rotation:
+For example suppose we want to create a transformation node
+called `move_and_rotate` that does both a translation and a rotation:
 
 ~~~ {.lua}
 function move_and_rotate(x, y, degrees)

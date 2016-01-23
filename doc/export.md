@@ -23,7 +23,7 @@ or similar files.
 The generated zip will also contain an `amulet_license.txt` file
 containing the Amulet license as well as the licenses of all third
 party libraries used by Amulet. Some of these licenses require that they
-be distributed with copies of the libraries, so to comply you should
+be distributed with copies of their libraries, so to comply you should
 include amulet_license.txt when you distribute your work. Note that
 these licenses do not apply to your work itself.
 

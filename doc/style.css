@@ -143,6 +143,9 @@ code.lua span.co {
     color: #333;
 }
 
+code.lua {
+    overflow-x: scroll;
+}
 
 .output code {
     display: block;

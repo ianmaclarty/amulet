@@ -13,10 +13,11 @@ An audio buffer also has a sample rate. Amulet currently plays all
 audio at a sample rate 44.1kHz and will resample an audio buffer
 if it has a different sample rate.
 
-The audio data itself is stored in a [buffer](#buffers-and-views)
+The audio data itself is stored in a raw [buffer](#buffers-and-views)
 as a series of single precision floats (4 bytes each). The samples for
 each channel are contiguous. The first channel's data comes first, then
 the second channel's data, etc (the channels are not interleaved).
+
 If the sample data is stored in the buffer `buf`, and there are two channels,
 then the following code will create [views](#buffers-and-views) that can
 be used to update or read the samples for each channel:
@@ -80,7 +81,7 @@ version of that tool in the examples list of the [online editor](http://www.amul
 
 `pitch` is a multiplier applied to the playback speed.
 1.0 mean play at the original speed. 2.0 means play
-swice as fast and 0.5 means play at half the original speed.
+twice as fast and 0.5 means play at half the original speed.
 
 `gain` should be between 0 and 1.
 
@@ -88,7 +89,7 @@ swice as fast and 0.5 means play at half the original speed.
 When the source is an sfxr seed or a filename, an [audio buffer](#audio-buffers)
 is generated behind the scenes and cached. Therefore there might be a short delay the
 first time this function is called with a given seed or filename (though for short
-audio clips this will probably not be noticable). Also avoid calling
+audio clips this will probably not be noticeable). Also avoid calling
 this function many times with different seeds or filenames, because that will cause 
 unbounded memory growth.
 
@@ -129,8 +130,8 @@ Field                Default value     Notes
 `arp_speed     `     `0.0`
 `arp_mod       `     `0.0`
 
-Alternatively settings can also be a numeric seed. Use the sfxr example
-in the [online editor](http://www.amulet.xyz/editor.html)) to generate seeds.
+or a numeric seed. Use the sfxr example
+in the [online editor](http://www.amulet.xyz/editor.html) to generate seeds.
 
 ## Audio graphs
 

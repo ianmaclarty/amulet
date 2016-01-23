@@ -57,10 +57,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <ul>
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#how-to-use-this-document">How to use this document</a></li>
-<li><a href="#lua">Lua</a><ul>
 <li><a href="#lua-primer">Lua primer</a></li>
-<li><a href="#amulet-require-function">Amulet require function</a></li>
-</ul></li>
 <li><a href="#quickstart">Quickstart tutorial</a><ul>
 <li><a href="#installing-amulet">Installing Amulet</a></li>
 <li><a href="#running-a-script">Running a script</a></li>
@@ -94,6 +91,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#math-functions">Math functions</a><ul>
 <li><a href="#math.sign">math.sign(n)</a></li>
+<li><a href="#math.fract">math.fract(v)</a></li>
+<li><a href="#math.clamp">math.clamp(v, min, max)</a></li>
 <li><a href="#math.randvec2">math.randvec2()</a></li>
 <li><a href="#math.randvec3">math.randvec3()</a></li>
 <li><a href="#math.randvec4">math.randvec4()</a></li>
@@ -101,7 +100,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#math.crossvector1-vector2">math.cross(vector1, vector2)</a></li>
 <li><a href="#math.normalizevector">math.normalize(vector)</a></li>
 <li><a href="#math.lengthvector">math.length(vector)</a></li>
-<li><a href="#math.distancevector1-vector2">math.distance(vector1, vector2)</a></li>
+<li><a href="#math.distance">math.distance(vector1, vector2)</a></li>
 <li><a href="#math.inversematrix">math.inverse(matrix)</a></li>
 <li><a href="#math.lookateye-center-up">math.lookat(eye, center, up)</a></li>
 <li><a href="#math.perspectivefovy-aspect-near-far">math.perspective(fovy, aspect, near, far)</a></li>
@@ -120,7 +119,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#views">Views</a><ul>
 <li><a href="#buffer:view">buffer:view(type [, offset [, stride [, count]]])</a></li>
+</ul></li>
+<li><a href="#view-fields">View fields</a><ul>
 <li><a href="#view.buffer">view.buffer</a></li>
+</ul></li>
+<li><a href="#view-methods">View methods</a><ul>
 <li><a href="#view:slice">view:slice(n [, count])</a></li>
 <li><a href="#view:set">view:set(val [, count])</a></li>
 <li><a href="#am.float_array">am.float_array(table)</a></li>
@@ -308,8 +311,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#framebuffer:render">framebuffer:render(node)</a></li>
 <li><a href="#framebuffer:render_children">framebuffer:render_children(node)</a></li>
 <li><a href="#framebuffer:clear">framebuffer:clear()</a></li>
-<li><a href="#framebufferread_back">framebuffer:read_back()</a></li>
-<li><a href="#framebufferresizewidth-height">framebuffer:resize(width, height)</a></li>
+<li><a href="#framebuffer:read_back">framebuffer:read_back()</a></li>
+<li><a href="#framebuffer:resize">framebuffer:resize(width, height)</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#actions-1">Actions</a><ul>
@@ -369,6 +372,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#audio-graph-nodes">Audio graph nodes</a></li>
 <li><a href="#analysing-audio">Analysing audio</a></li>
 </ul></li>
+<li><a href="#spritepack">Packing sprites and generating fonts</a><ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#pack-options">Pack options</a></li>
+<li><a href="#padding">Padding</a></li>
+<li><a href="#specifying-which-font-glyphs-to-generate">Specifying which font glyphs to generate</a></li>
+</ul></li>
+<li><a href="#exporting">Exporting</a></li>
 <li><a href="#extra-table-functions">Extra table functions</a><ul>
 <li><a href="#table.shallow_copy">table.shallow_copy(t)</a></li>
 <li><a href="#table.deep_copy">table.deep_copy(t)</a></li>
@@ -382,10 +392,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#table.filter">table.filter(arr, f)</a></li>
 <li><a href="#table.tostring">table.tostring(t)</a></li>
 </ul></li>
+<li><a href="#amulet-require-function">Amulet require function</a></li>
 <li><a href="#logging">Logging</a><ul>
 <li><a href="#log">log(msg, ...)</a></li>
 </ul></li>
-<li><a href="#running-javascript">Running Javascript</a><ul>
+<li><a href="#running-javascript">Running JavaScript</a><ul>
 <li><a href="#am.eval_js">am.eval_js(js)</a></li>
 </ul></li>
 <li><a href="#converting-tofrom-json">Converting to/from JSON</a><ul>
@@ -401,13 +412,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#amulet-version">Amulet version</a><ul>
 <li><a href="#am.version">am.version</a></li>
 </ul></li>
-<li><a href="#spritepack">Packing sprites and generating fonts</a><ul>
-<li><a href="#overview">Overview</a></li>
-<li><a href="#pack-options">Pack options</a></li>
-<li><a href="#padding">Padding</a></li>
-<li><a href="#specifying-which-font-glyphs-to-generate">Specifying which font glyphs to generate</a></li>
-</ul></li>
-<li><a href="#exporting">Exporting</a></li>
 </ul>
 </nav>
 <div id="content-inner">
@@ -417,7 +421,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <!--<h2 class="author">Ian MacLarty</h2>-->
 </header>
 <h1 id="introduction">Introduction</h1>
-<p>Amulet is a Lua-based toolkit for experimenting with interactive graphics and audio. It provides a cross-platform API for drawing graphics, playing audio and responding to user input, and a command-line interpretter for running Amulet scripts.</p>
+<p>Amulet is a Lua-based toolkit for experimenting with interactive graphics and audio. It provides a cross-platform API for drawing graphics, playing audio and responding to user input, and a command-line interpreter for running Amulet scripts.</p>
 <p>It tries to be simple to use, but without making too many assumptions about how you want to use it.</p>
 <p>Amulet currently runs on the following platforms:</p>
 <ul>
@@ -431,16 +435,15 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1 id="how-to-use-this-document">How to use this document</h1>
 <p>If you have some programming experience, but are new to Lua then the <a href="#lua-primer">Lua primer</a> should bring you up to speed.</p>
 <p>The <a href="#quickstart">quickstart tutorial</a> introduces basic concepts and walks you through drawing things on screen, playing audio and responding to user input.</p>
-<p>It is suggested that new users go through the tutorial first. The rest of the document can then be used as a reference, dipping into sections as needed.</p>
-<p>If you see a function argument with brackets around it in a function signature, then that argument is optional.</p>
+<p>The <a href="http://www.amulet.xyz/editor.html">online editor</a> contains numerous examples you can experiment with from your browser.</p>
+<p>If you see a function argument with square brackets around it in a function signature, then that argument is optional.</p>
 <div class="figure">
 <img src="images/screenshot7.jpg" alt="" />
 
 </div>
-<h1 id="lua">Lua</h1>
+<h1 id="lua-primer">Lua primer</h1>
 <p>Amulet code is written in <a href="http://www.lua.org">Lua</a>. The version of Lua used by default is Lua-5.1.</p>
-<h2 id="lua-primer">Lua primer</h2>
-<p>Here is a quick Lua syntax primer. For more detail please see the <a href="http://www.lua.org/manual/5.1/">Lua manual</a>.</p>
+<p>What follows is a quick introduction to Lua. For more detail please see the <a href="http://www.lua.org/manual/5.1/">Lua manual</a>.</p>
 <p><strong>Comments:</strong></p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="co">-- This is a single line comment</span>
 
@@ -455,7 +458,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <span class="st">multi-line</span>
 <span class="st">string]]</span>
 <span class="kw">local</span> bool <span class="ot">=</span> <span class="kw">true</span> <span class="co">-- a bool, can also be false</span>
-<span class="kw">local</span> y <span class="ot">=</span> <span class="kw">nil</span> <span class="co">-- nil value</span></code></pre></div>
+<span class="kw">local</span> y <span class="ot">=</span> <span class="kw">nil</span> <span class="co">-- nil value</span>
+<span class="kw">local</span> v1<span class="ot">,</span> v2 <span class="ot">=</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span> <span class="co">-- create two local variables at once</span></code></pre></div>
 <p><strong>Global variables:</strong></p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">score <span class="ot">=</span> <span class="dv">0</span>
 title <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span></code></pre></div>
@@ -504,7 +508,7 @@ title <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span></cod
 <p>The arithmetic operators are: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code> (exponent) and <code>%</code> (modulo).</p>
 <p>The relational operators are: <code>==</code>, <code>~=</code> (not equal), <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code> and <code>&gt;=</code></p>
 <p>The logical operators are: <code>and</code>, <code>or</code> and <code>not</code>.</p>
-<p>The string concantenation operator is two dots (e.g. <code>&quot;abc&quot;..&quot;def&quot;</code>).</p>
+<p>The string concatenation operator is two dots (e.g. <code>&quot;abc&quot;..&quot;def&quot;</code>).</p>
 <p><strong>Tables:</strong></p>
 <p>Tables are the only data structure in Lua. They can be used as key-value maps or arrays.</p>
 <p>Keys and values can be of any type except <code>nil</code>.</p>
@@ -567,7 +571,7 @@ t<span class="ot">.</span>say_hello<span class="ot">()</span> <span class="co">-
 t:print_x<span class="ot">()</span>   <span class="co">-- prints 3</span>
 t<span class="ot">.</span>x <span class="ot">=</span> <span class="dv">4</span>
 t:print_x<span class="ot">()</span>   <span class="co">-- prints 4</span></code></pre></div>
-<p>If a function call has only a single string or table argument, the parentheses can be omitted.</p>
+<p>If a function call has only a single string or table argument, the parentheses can be omitted:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span>
 <span class="kw">function</span> append_z<span class="ot">(</span>str<span class="ot">)</span>
     <span class="kw">return</span> str<span class="ot">..</span><span class="st">&quot;z&quot;</span>
@@ -583,22 +587,13 @@ t:print_x<span class="ot">()</span>   <span class="co">-- prints 4</span></code>
     <span class="kw">return</span> total
 <span class="kw">end</span>
 <span class="fu">print</span><span class="ot">(</span>sum<span class="ot">{</span><span class="dv">3</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">})</span> <span class="co">-- prints 10</span></code></pre></div>
-<h2 id="amulet-require-function">Amulet require function</h2>
-<p>The <code>require</code> function in Amulet is slightly different from the default one. The default Lua package loaders have been removed and replaced with a custom loader. The loader passes a new empty table into each module it loads. All exported functions can be added to this table, instead of creating a new table. If no other value is returned by the module, the passed in table will be used as the return value for <code>require</code>.</p>
-<p>The passed in export table can be accessed via the <code>...</code> expression. Here's a short example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> mymodule <span class="ot">=</span> <span class="ot">...</span>
-
-mymodule<span class="ot">.</span>message <span class="ot">=</span> <span class="st">&quot;hello&quot;</span>
-
-<span class="kw">function</span> mymodule<span class="ot">.</span>print_message<span class="ot">()</span>
-    <span class="fu">print</span><span class="ot">(</span>mymodule<span class="ot">.</span>message<span class="ot">)</span>
-<span class="kw">end</span></code></pre></div>
-<p>If this module is in the file <code>mymodule.lua</code>, then it can be imported like so:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> mymodule <span class="ot">=</span> <span class="fu">require</span> <span class="st">&quot;mymodule&quot;</span>
-
-mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span class="co">-- prints hello</span></code></pre></div>
-<p>This scheme allows cyclic module imports, e.g. module A requires module B which in turn requires module A. Amulet will detect the recursion and return A's (incomplete) export table in B. Then when A has finished initializing, all its functions will be available in B. This does mean that B can't call any of A's functions while its initializing, but after initialization all of A's functions will be available.</p>
-<p>Of course you can still return your own values from modules and they will be returned by <code>require</code> as with the default Lua <code>require</code> function.</p>
+<p>Functions may also return multiple values:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> f<span class="ot">()</span>
+    <span class="kw">return</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span>
+<span class="kw">end</span>
+<span class="kw">local</span> x<span class="ot">,</span> y <span class="ot">=</span> f<span class="ot">()</span>
+<span class="fu">print</span><span class="ot">(</span>x <span class="ot">+</span> y<span class="ot">)</span> <span class="co">-- prints 3</span></code></pre></div>
+<hr />
 <div class="figure">
 <img src="images/screenshot6.jpg" alt="" />
 
@@ -611,6 +606,7 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <p><a href="http://www.amulet.xyz">Download</a> the OSX pkg file and run it. Or, if you prefer, download the OSX zip archive, extract it to a directory of your choice and add that directory to your PATH.</p>
 <p><strong>Linux:</strong></p>
 <p><a href="http://www.amulet.xyz">Download</a> and extract the Linux zip archive to a directory of your choice. Then add the directory to your PATH. The <code>amulet</code> executable is for x86_64. If you're running a 32 bit system, rename the file <code>amulet.i686</code> to <code>amulet</code>.</p>
+<p><strong>Online editor:</strong> There is also an <a href="http://www.amulet.xyz/editor.html">online editor</a> which you can use without having to download or install anything. However be aware that there are some limitations when using the online editor: you can't load image or audio files and only one lua module is allowed per project. These restrictions do not apply when exporting to HTML from the desktop version.</p>
 <h2 id="running-a-script">Running a script</h2>
 <p>Create a text file called <code>main.lua</code> containing the following:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="fu">log</span><span class="ot">(</span><span class="st">&quot;It works!&quot;</span><span class="ot">)</span></code></pre></div>
@@ -618,6 +614,7 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <pre class="console"><code>&gt; amulet main.lua
 main.lua:1: It works!</code></pre>
 <p>If you see the text &quot;<code>main.lua:1: It works!</code>&quot;, Amulet is installed and working.</p>
+<p>If you are using the online editor, just type this into the main text area and click &quot;Run&quot;.</p>
 <h2 id="creating-a-window">Creating a window</h2>
 <p>Type the following into <code>main.lua</code>:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> win <span class="ot">=</span> am<span class="ot">.</span>window<span class="ot">{</span>
@@ -647,7 +644,7 @@ main.lua:1: It works!</code></pre>
 <img src="graphs/scene1.png" alt="" />
 
 </div>
-<p>The translate node moves its descendents to the right 150 and up 100 (by convention the y axis increases in upward direction). The scale node doubles its descendents's size and the rotate node rotates its descendents by 90 degrees (<code>math.rad</code> converts degrees to radians). Finally the text node renders some text to the screen.</p>
+<p>The translate node moves its descendents to the right 150 and up 100 (by convention the y axis increases in upward direction). The scale node doubles its descendent's size and the rotate node rotates its descendents by 90 degrees (<code>math.rad</code> converts degrees to radians). Finally the text node renders some text to the screen.</p>
 <p>When you run the program you should see something like this:</p>
 <div class="figure">
 <img src="images/hello2.png" alt="" />
@@ -722,7 +719,7 @@ circle1_node:append<span class="ot">(</span>am<span class="ot">.</span>circle<sp
 <span class="kw">local</span> circle2_node <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="dv">150</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">)</span>
 circle2_node:append<span class="ot">(</span>am<span class="ot">.</span>circle<span class="ot">(</span>vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> <span class="dv">50</span><span class="ot">,</span> red<span class="ot">))</span>
 
-<span class="kw">local</span> rect_node <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">)</span>
+<span class="kw">local</span> rect_node <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">25</span><span class="ot">)</span>
 rect_node:append<span class="ot">(</span>am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">50</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">50</span><span class="ot">,</span> <span class="dv">50</span><span class="ot">,</span> <span class="dv">50</span><span class="ot">,</span> yellow<span class="ot">))</span>
 
 <span class="kw">local</span> group_node <span class="ot">=</span> am<span class="ot">.</span>group<span class="ot">()</span>
@@ -822,6 +819,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 
 </div>
 <p>The children of any scene node are always drawn in order, so first the beach.jpg sprite node is drawn and then the ball.png sprite, with it's corresponding translation, is drawn. This ensures the ball is visible on the beach. If we draw the beach second it would obscure the ball.</p>
+<p>If you are using the online editor then you won't be able to load image files. Instead you'll need to draw the sprites using text. See the &quot;Beach ball&quot; example in the online editor for an equivalent example that doesn't load any image files. See also the documentation for <a href="#am.sprite">am.sprite</a> for how to create sprites with text.</p>
 <h2 id="responding-to-mouse-clicks">Responding to mouse clicks</h2>
 <p>Let's make the ball bounce when we click it. We'll add a rotate node so we can make the ball spin when it's in the air. We'll also tag the ball's translate and rotate nodes so we can easily access them:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">win<span class="ot">.</span>scene <span class="ot">=</span> 
@@ -873,7 +871,7 @@ win<span class="ot">.</span>scene:action<span class="ot">(</span><span class="kw
         spin <span class="ot">=</span> <span class="dv">0</span>
     <span class="kw">end</span>
 
-    <span class="co">-- clamp the ball position so it doesn&#39;t dissapear</span>
+    <span class="co">-- clamp the ball position so it doesn&#39;t disappear</span>
     <span class="co">-- off the edge of the screen</span>
     ball_pos <span class="ot">=</span> math<span class="ot">.</span>clamp<span class="ot">(</span>ball_pos<span class="ot">,</span> min_pos<span class="ot">,</span> max_pos<span class="ot">)</span>
 
@@ -887,9 +885,9 @@ win<span class="ot">.</span>scene:action<span class="ot">(</span><span class="kw
     <span class="co">-- apply gravity to the velocity</span>
     velocity <span class="ot">=</span> velocity <span class="ot">+</span> gravity <span class="ot">*</span> am<span class="ot">.</span>delta_time
 <span class="kw">end</span><span class="ot">)</span></code></pre></div>
-<p>First we create some variables to keep track of the ball's state. We need to track its position, angle, velocity and spin (angular velocity). The <code>ball_pos</code> and <code>velocity</code> variables are 2 dimensional vectors, since we want to track position and velocity along both the x and y axes. We could have made separate variables for the x and y components, but using a <code>vec2</code> is more concise. Note that if the values of the x and y components of the vector are the same, we only need to give the value once, so we just need to write <code>vec2(0)</code> when initializing the velocity instead of <code>vec2(0, 0)</code>.</p>
+<p>First we create some variables to keep track of the ball's state. We need to track its position, angle, velocity and spin (angular velocity). The <code>ball_pos</code> and <code>velocity</code> variables are 2 dimensional vectors, since we want to track position and velocity along both the x and y axes. We could have made separate variables for the x and y components, but using a <code>vec2</code> is more concise. Note that if the values of the x and y components of the vector are the same, we only need to give the value once, so we just need to write <code>vec2(0)</code> when initialising the velocity instead of <code>vec2(0, 0)</code>.</p>
 <p>We also create some constants that we'll need. We define the minimum and maximum positions of the ball (<code>min_pos</code>, <code>max_pos</code>). We also define the minimum and maximum impulse velocity to apply to the ball when it's clicked (<code>min_v</code>, <code>max_v</code>). And finally we create a constant for gravity.</p>
-<p>Next comes the action itself. The comments in the body of the action should help you work out what's going on, but here are some things to node:</p>
+<p>Next comes the action itself. The comments in the body of the action should help you work out what's going on, but here are some things to note:</p>
 <ul>
 <li><code>win:mouse_pressed(button)</code> can be used to check whether a mouse button was pressed in the last frame. <code>button</code> can be <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> or <code>&quot;middle&quot;</code>.</li>
 <li><code>win:mouse_position()</code> returns the current mouse position as a <code>vec2</code> value.</li>
@@ -971,7 +969,7 @@ win<span class="ot">.</span>scene:action<span class="ot">(</span><span class="kw
         on_ground <span class="ot">=</span> <span class="kw">true</span>
     <span class="kw">end</span>
 
-    <span class="co">-- clamp the ball position so it doesn&#39;t dissapear</span>
+    <span class="co">-- clamp the ball position so it doesn&#39;t disappear</span>
     <span class="co">-- off the edge of the screen</span>
     ball_pos <span class="ot">=</span> math<span class="ot">.</span>clamp<span class="ot">(</span>ball_pos<span class="ot">,</span> min_pos<span class="ot">,</span> max_pos<span class="ot">)</span>
 
@@ -995,8 +993,8 @@ win<span class="ot">.</span>scene:action<span class="ot">(</span>am<span class="
 </div>
 <h2 id="vectors">Vectors</h2>
 <p>Amulet has built-in support for 2, 3 or 4 dimensional vectors. Vectors are typically used to represent things like position, direction or velocity in 2 or 3 dimensional space. Representing RGBA colors is another common use of 4 dimensional vectors.</p>
-<p>In Amulet vectors are immutable. This means that once you create a vector, its value cannot be changed. Instead you need to construct a new vector with a new value.</p>
-<p><strong>Note</strong>: Each component of a vector is represented internally as a 32 bit float, so expect some loss of precision when converting between vector components and Lua numbers, which are 64 bit floats.</p>
+<p>In Amulet vectors are immutable. This means that once you create a vector, its value cannot be changed. Instead you need to construct a new vector.</p>
+<p><strong>Note</strong>: Each component of a vector is represented internally as a 32 bit float, so expect some loss of precision when converting between vector components and Lua numbers, which are 64 bits.</p>
 <h3 id="constructing-vectors">Constructing vectors</h3>
 <p>To construct a vector use one of the functions <code>vec2</code>, <code>vec3</code> or <code>vec4</code>. A vector may be constructed by passing its components as separate arguments to one of these functions, for example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> velocity <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">)</span></code></pre></div>
@@ -1032,7 +1030,7 @@ vec4(1, 2, 2, 3)
 vec4(3, 3, 2, 1)</code></pre>
 <p><strong>Note:</strong> You can pass vectors, matrices and quaternions directly to <code>print</code> or other functions that expect strings and they will be formatted appropriately.</p>
 <h3 id="vector-update-syntax">Vector update syntax</h3>
-<p>Although you can't directly set the components of a vector, Amulet provides some syntactic sugar to make it easier to create a new vector from an existing vector that has only some fields changed. Say, for example, you had a 3 dimensional vector, <code>v1</code>, and you wanted to create a new vector, <code>v2</code>, that had the same components as <code>v1</code>, except for the y component, which you'd like to be 10. One way to do this would be to write:</p>
+<p>Although you can't directly set the components of a vector, Amulet provides some syntactic sugar to make it easier to create a new vector from an existing vector that has only some fields modified. Say, for example, you had a 3 dimensional vector, <code>v1</code>, and you wanted to create a new vector, <code>v2</code>, that had the same components as <code>v1</code>, except for the y component, which you'd like to be 10. One way to do this would be to write:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">v2 <span class="ot">=</span> vec3<span class="ot">(</span>v1<span class="ot">.</span>x<span class="ot">,</span> <span class="dv">10</span><span class="ot">,</span> v1<span class="ot">.</span>z<span class="ot">)</span></code></pre></div>
 <p>but Amulet also allows you to write:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">v2 <span class="ot">=</span> v1<span class="ot">{</span>y <span class="ot">=</span> <span class="dv">10</span><span class="ot">}</span></code></pre></div>
@@ -1051,6 +1049,7 @@ v <span class="ot">=</span> v<span class="ot">{</span>x <span class="ot">=</span
 <pre class="console"><code>vec2(4, 5)
 vec3(10, 3, 6)
 vec4(2, 4, 6, 8)</code></pre>
+<hr />
 <div class="figure">
 <img src="images/screenshot4.jpg" alt="" />
 
@@ -1059,7 +1058,7 @@ vec4(2, 4, 6, 8)</code></pre>
 <p>Amulet has built-in support for 2x2, 3x3 and 4x4 matrices. Matrices are typically used to represent transformations in 2 or 3 dimensional space such as rotation, scaling, translation or perspective projection.</p>
 <p>Matrices, like vectors, are immutable and their components are represented internally as 32 bit floats.</p>
 <h3 id="constructing-matrices">Constructing matrices</h3>
-<p>Use one of the functions <code>mat2</code>, <code>mat3</code> or <code>mat4</code> to contruct a 2x2, 3x3 or 4x4 matrix.</p>
+<p>Use one of the functions <code>mat2</code>, <code>mat3</code> or <code>mat4</code> to construct a 2x2, 3x3 or 4x4 matrix.</p>
 <p>Passing a single number argument to one of the matrix constructors generates a matrix with all diagonal elements equal to the number and all other elements equal to zero. For example <code>mat3(1)</code> constructs the 3x3 identity matrix:</p>
 <div class="math">
 \begin{bmatrix}
@@ -1095,7 +1094,7 @@ vec4(2, 4, 6, 8)</code></pre>
 \end{bmatrix}
 </div>
 <p><strong>Note</strong>: Matrix constructors are admittedly somewhat confusing, because when you write the matrix constructor in code the columns are layed out horizontally. This is however the convention used in the OpenGL Shader Language (GLSL).</p>
-<p>A matrix can also be constructed by passing an existing matrix to one of the matrix construction functions. If the existing matrix is larger than the construction function, the new matrix's elements come from the top-left corner of the existing matrix. Otherwise the top-left corner of the new matrix is filled with the contents of the existing matrix and the rest from the identity matrix. For example:</p>
+<p>A matrix can also be constructed by passing an existing matrix to one of the matrix construction functions. If the existing matrix is larger than the new one, the new matrix's elements come from the top-left corner of the existing matrix. Otherwise the top-left corner of the new matrix is filled with the contents of the existing matrix and the rest from the identity matrix. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m <span class="ot">=</span> mat4<span class="ot">(</span>mat2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">))</span></code></pre></div>
 <p>will set <code>m</code> to the matrix:</p>
 <div class="math">
@@ -1146,7 +1145,7 @@ vec2(0, 2)</code></pre>
 \end{bmatrix}
 </div>
 <p>However, when both operands are matrices, the <code>*</code> operator computes the <a href="http://en.wikipedia.org/wiki/Matrix_multiplication">matrix product</a>.</p>
-<p>If the first operand is a vector and the second is a matrix, then the first operand is taken to be a row vector (a matrix with one row) and should have the same number of columns as the matrix. The result is the matrix product of the row vector and the matrix (another row vector).</p>
+<p>If the first operand is a vector and the second is a matrix, then the first operand is taken to be a row vector (a matrix with one row) and should have the same number of columns as the matrix. The result is the matrix product of the row vector and the matrix, which is another row vector.</p>
 <p>Similarly if the first argument is a matrix and the second a vector, the vector is taken to be a column vector (a matrix with one column) and the result is the matrix product of the matrix and column vector, which is another column vector.</p>
 <p>The <code>/</code> operator also works when both arguments are matrices and is equivalent to multiplying the first matrix by the inverse of the second.</p>
 <div class="figure">
@@ -1163,7 +1162,7 @@ vec2(0, 2)</code></pre>
 <p>If the axis argument is omitted then it is taken to be <code>vec3(0, 0, 1)</code>, so the above is equivalent to:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> q <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">45</span><span class="ot">))</span></code></pre></div>
 <p>This is a useful shortcut for 2D rotations in the xy plane.</p>
-<p>A quaternion can also be constructed from euler angles. Euler angles are rotations around the x, y and z axes, also known as pitch, roll and yaw. For example:</p>
+<p>A quaternion can also be constructed from Euler angles. Euler angles are rotations around the x, y and z axes, also known as pitch, roll and yaw. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> q <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">30</span><span class="ot">),</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">),</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">20</span><span class="ot">))</span></code></pre></div>
 <p>constructs a quaternion that represents the rotation you'd end up with if you first rotated 30 degrees around the x axis, then 60 degrees around the y axis and finally 20 degrees around the z axis.</p>
 <p>If two unit vector arguments are given, then the quaternion represents the rotation that would be needed to rotate the one vector into into the other. For example:</p>
@@ -1171,12 +1170,12 @@ vec2(0, 2)</code></pre>
 <p>The above quaternion represents a rotation of 90 degrees in the xy plane, since it rotates a vector pointing along the x axis to one pointing along the y axis.</p>
 <p>A quaternion can be constructed from a 3x3 or 4x4 matrix by passing the matrix as the single argument to <code>quat</code>.</p>
 <p>A quaternion can also be converted to a 3x3 or 4x4 matrix by passing it as the single argument to the <code>mat3</code> or <code>mat4</code> functions (see mat-cons).</p>
-<p>Finally a quaternion can be contructed from the coefficients of its real and imaginary parts:</p>
+<p>Finally a quaternion can be constructed from the coefficients of its real and imaginary parts:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> q <span class="ot">=</span> quat<span class="ot">(</span>w<span class="ot">,</span> x<span class="ot">,</span> y<span class="ot">,</span> z<span class="ot">)</span></code></pre></div>
 <p><code>w</code> is the real part and <code>x</code>, <code>y</code> and <code>z</code> are the coeffients of the imaginary numbers <span class="math inline">\(i\)</span>, <span class="math inline">\(j\)</span> and <span class="math inline">\(k\)</span>.</p>
 <h3 id="quaternion-fields">Quaternion fields</h3>
 <p>The <code>angle</code>, <code>axis</code>, <code>pitch</code>, <code>roll</code>, <code>yaw</code>, <code>w</code>, <code>x</code>, <code>y</code> and <code>z</code> fields can be used to read the corresponding attributes of a quaternion.</p>
-<p><strong>Note</strong>: Quaternions use a normalized internal representation, so the value returned by a field might be different from the value used to construct the quaternion. Though the quaternion as a whole represents the equivalent rotatation.</p>
+<p><strong>Note</strong>: Quaternions use a normalized internal representation, so the value returned by a field might be different from the value used to construct the quaternion. Though the quaternion as a whole represents the equivalent rotation.</p>
 <h3 id="quaternion-operations">Quaternion operations</h3>
 <p>Quaternions can be multiplied together using the <code>*</code> operator. The result of multiplying 2 quaternions is the rotation that results from applying the first quaternion's rotation followed by the second quaternion's rotation.</p>
 <p>Multiplying a quaternion by a vector rotates the vector. For example:</p>
@@ -1189,6 +1188,10 @@ vec2(0, 2)</code></pre>
 <p>The following functions supplement the standard Lua math functions.</p>
 <h3 id="math.sign" class="func-def">math.sign(n)</h3>
 <p>Returns +1 if n &gt; 0, -1 if n &lt; 0 and 0 if n == 0.</p>
+<h3 id="math.fract" class="func-def">math.fract(v)</h3>
+<p>Returns the fractional part of <code>v</code>. If <code>v</code> is a vector it returns a vector of the same size with each component being the fractional part of the corresponding component in the original vector.</p>
+<h3 id="math.clamp" class="func-def">math.clamp(v, min, max)</h3>
+<p>Clamps a value <code>v</code> between <code>min</code> and <code>max</code>. <code>v</code>, <code>min</code> and <code>max</code> may be vectors. In this case each component is clamped based on the corresponding components in <code>min</code> and <code>max</code>.</p>
 <h3 id="math.randvec2" class="func-def">math.randvec2()</h3>
 <p>Returns a <code>vec2</code> with all components set to a random number between 0 and 1.</p>
 <h3 id="math.randvec3" class="func-def">math.randvec3()</h3>
@@ -1203,21 +1206,21 @@ vec2(0, 2)</code></pre>
 <p>Returns the normalized form of a vector (i.e. the vector that points in the same direction, but whose length is 1). If the given vector has zero length, then a vector of the same size is returned whose first component is 1 and whose remaining components are 0.</p>
 <h3 id="math.lengthvector" class="func-def">math.length(vector)</h3>
 <p>Returns the length of a vector.</p>
-<h3 id="math.distancevector1-vector2" class="func-def">math.distance(vector1, vector2)</h3>
+<h3 id="math.distance" class="func-def">math.distance(vector1, vector2)</h3>
 <p>Returns the distance between two vectors.</p>
 <h3 id="math.inversematrix" class="func-def">math.inverse(matrix)</h3>
 <p>Returns the inverse of a matrix.</p>
 <h3 id="math.lookateye-center-up" class="func-def">math.lookat(eye, center, up)</h3>
-<p>Creates a 4x4 view matrix at <code>eye</code>, looking in the direction of <code>center</code> with the y axis of the camera pointing in the direction same direction as <code>up</code>.</p>
+<p>Creates a 4x4 view matrix at <code>eye</code>, looking in the direction of <code>center</code> with the y axis of the camera pointing in the same direction as <code>up</code>.</p>
 <h3 id="math.perspectivefovy-aspect-near-far" class="func-def">math.perspective(fovy, aspect, near, far)</h3>
-<p>Creates a 4x4 matrix for a symetric perspective-view frustum.</p>
+<p>Creates a 4x4 matrix for a symmetric perspective-view frustum.</p>
 <ul>
 <li><code>fovy</code> is the field of view in the y plain, in radians.</li>
 <li><code>aspect</code> is typically the window width divided by its height.</li>
 <li><code>near</code> and <code>far</code> are the distances of the near and far clipping plains from the camera (these should be positive).</li>
 </ul>
 <h3 id="math.ortholeft-right-bottom-top-near-far" class="func-def">math.ortho(left, right, bottom, top [, near, far])</h3>
-<p>Creates a 4x4 orthographic projection marix. The default values for <code>near</code> and <code>far</code> are <code>1</code> and <code>-1</code>.</p>
+<p>Creates a 4x4 orthographic projection matrix. The default values for <code>near</code> and <code>far</code> are <code>1</code> and <code>-1</code>.</p>
 <h3 id="math.perlinpos-period" class="func-def">math.perlin(pos [, period])</h3>
 <p>Generate perlin noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number. If the second argument is supplied then the noise will be periodic with the given period. <code>period</code> should be of the same type as <code>pos</code> and its components should be integers greater than 1.</p>
 <p>The returned value is between -1 and 1.</p>
@@ -1225,7 +1228,8 @@ vec2(0, 2)</code></pre>
 <p>Generate simplex noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number.</p>
 <p>The returned value is between -1 and 1.</p>
 <h3 id="math.mix" class="func-def">math.mix(from, top, t)</h3>
-<p>Returns the linear interpolation between <code>from</code> and <code>to</code> determined by <code>t</code>. <code>from</code> and <code>to</code> can be numbers or vectors, and must be the same type. <code>t</code> should be a number between 0 and 1. <code>from</code> and <code>to</code> can also be quaternions. In that case <code>math.mix</code> returns the spherical linear interpolation of the two quaternions.</p>
+<p>Returns the linear interpolation between <code>from</code> and <code>to</code> determined by <code>t</code>. <code>from</code> and <code>to</code> can be numbers or vectors, and must be the same type. <code>t</code> should be a number between 0 and 1. <code>from</code> and <code>to</code> can also be quaternions. In this case <code>math.mix</code> returns the spherical linear interpolation of the two quaternions.</p>
+<hr />
 <div class="figure">
 <img src="images/screenshot5.jpg" alt="" />
 
@@ -1374,11 +1378,11 @@ vec2(0, 2)</code></pre>
 </tbody>
 </table>
 <p>The <code>_norm</code> types map Lua numbers in the range -1 to 1 (or 0 to 1 for unsigned types) to integer values in the buffer.</p>
-<p>The <code>_elem</code> types are specifically for element array buffers and offset the Lua numbers by 1 to conform to the Lua convension of array indices starting at 1.</p>
+<p>The <code>_elem</code> types are specifically for element array buffers and offset the Lua numbers by 1 to conform to the Lua convention of array indices starting at 1.</p>
 <p>All view types currently use the native platform endianess, which happens to be little-endian on all currently supported platforms.</p>
 <p>The <code>offset</code> argument is the byte offset of the first element of the view. The default is 0.</p>
 <p>The <code>stride</code> argument is the distance between consecutive values in the view, in bytes. The default is the size of the view type.</p>
-<p>The <code>count</code> argument determines the number of elements in the view. The underlying buffer must be large enough accomodate the elements with the given stride. The default is the maximum supported by the buffer with the given stride.</p>
+<p>The <code>count</code> argument determines the number of elements in the view. The underlying buffer must be large enough to accommodate the elements with the given stride. The default is the maximum supported by the buffer with the given stride.</p>
 <p>You can read and write to views as if they were Lua arrays (as with Lua arrays, indices start at 1). For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> buf <span class="ot">=</span> am<span class="ot">.</span>buffer<span class="ot">(</span><span class="dv">12</span><span class="ot">)</span>
 <span class="kw">local</span> view <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;float&quot;</span><span class="ot">)</span>
@@ -1386,14 +1390,16 @@ view<span class="ot">[</span><span class="dv">1</span><span class="ot">]</span> 
 view<span class="ot">[</span><span class="dv">2</span><span class="ot">]</span> <span class="ot">=</span> view<span class="ot">[</span><span class="dv">1</span><span class="ot">]</span> <span class="ot">+</span> <span class="dv">2</span></code></pre></div>
 <p>Attempting to read an index less than 1 or larger than the number of elements will return nil.</p>
 <p>You can retrieve the number of elements in a view using the <code>#</code> operator.</p>
+<h2 id="view-fields">View fields</h2>
 <h3 id="view.buffer" class="field-def">view.buffer</h3>
 <p>The buffer associated with the view.</p>
 <p>Readonly.</p>
+<h2 id="view-methods">View methods</h2>
 <h3 id="view:slice" class="method-def">view:slice(n [, count])</h3>
-<p>Returns a new view of the same type as <code>view</code> that references the same buffer, but which starts at the <code>n</code>th element of <code>view</code> and continues for <code>count</code> elements. If <code>count</code> is ommitted it is <code>#view - n + 1</code> (i.e. it covers all the elements of <code>view</code> after and including the <code>n</code>th).</p>
+<p>Returns a new view of the same type as <code>view</code> that references the same buffer, but which starts at the <code>n</code>th element of <code>view</code> and continues for <code>count</code> elements. If <code>count</code> is omitted it is <code>#view - n + 1</code> (i.e. it covers all the elements of <code>view</code> after and including the <code>n</code>th).</p>
 <h3 id="view:set" class="method-def">view:set(val [, count])</h3>
 <p>Bulk sets values in a view. This is faster than setting them one at a time.</p>
-<p>If <code>val</code> is a number or vector then this sets up to <code>count</code> elements of <code>view</code> to <code>val</code>. If <code>count</code> is ommitted all the elements are set.</p>
+<p>If <code>val</code> is a number or vector then this sets up to <code>count</code> elements of <code>view</code> to <code>val</code>. If <code>count</code> is omitted all the elements are set.</p>
 <p>If <code>val</code> is a table then the elements are set to their corresponding values from the table. If <code>count</code> is given then at most <code>count</code> elements are set (fewer may be set if the table has less than <code>count</code> elements).</p>
 <p>As a special case, if <code>val</code> is a table of numbers and the view's type is a vector, then the elements of the table will be used to set the components of the vectors in the view. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> verts <span class="ot">=</span> am<span class="ot">.</span>buffer<span class="ot">(</span><span class="dv">32</span><span class="ot">)</span>:view<span class="ot">(</span><span class="st">&quot;vec3&quot;</span><span class="ot">)</span>
@@ -1447,10 +1453,10 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <h1 id="windows-and-input">Windows and input</h1>
 <h2 id="creating-a-window-1">Creating a window</h2>
 <h3 id="am.window" class="func-def">am.window(settings)</h3>
-<p>Creates a new window, returning a window object. <code>settings</code> is a table with any of the following fields:</p>
+<p>Creates a new window and returns a handle to it. <code>settings</code> is a table with any of the following fields:</p>
 <ul>
 <li><p><strong><code>mode</code></strong>: Either <code>&quot;windowed&quot;</code> or <code>&quot;fullscreen&quot;</code>. A fullscreen window will have the same resolution as the user's desktop. The default is <code>&quot;windowed&quot;</code>. Not all platforms support windowed mode (e.g. iOS). On these platforms this setting is ignored.</p></li>
-<li><p><strong><code>width</code> and <code>height</code></strong>: The desired size of the window. This is not necessarily the size of the window in pixels (although it usually is if the window is created in <code>&quot;windowed&quot;</code> mode). Instead it defines the size of the window's <em>default coordinate system</em>. If letterboxing is enabled then this is (<code>-width/2</code>, <code>-height/2</code>) in the bottom-left corner and (<code>width/2</code>, <code>height/2</code>) in the top-right corner. If letterboxing is disabled, then the coordinate system will extend in the horizontal or vertical directions to ensure an area of at least <code>width</code>×<code>height</code> is visible in the center of the window. In either case the centre coordinate will always be (0, 0). The default size is 640×480.</p></li>
+<li><p><strong><code>width</code></strong> and <strong><code>height</code></strong>: The desired size of the window. This is not necessarily the size of the window in pixels (although it usually is if the window is created in <code>&quot;windowed&quot;</code> mode). Instead it defines the size of the window's <em>default coordinate system</em>. If letterboxing is enabled then this is (<code>-width/2</code>, <code>-height/2</code>) in the bottom-left corner and (<code>width/2</code>, <code>height/2</code>) in the top-right corner. If letterboxing is disabled, then the coordinate system will extend in the horizontal or vertical directions to ensure an area of at least <code>width</code>×<code>height</code> is visible in the center of the window. In either case the centre coordinate will always be (0, 0). The default size is 640×480.</p></li>
 <li><p><strong><code>title</code></strong>: The window title.</p></li>
 <li><p><strong><code>resizable</code></strong>: Whether the window can be resized by the user (<code>true</code> or <code>false</code>, default <code>true</code>).</p></li>
 <li><p><strong><code>borderless</code></strong>: Whether the window has a title bar and border (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
@@ -1511,7 +1517,7 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>Closes the window and quits the application if this was the only window.</p>
 <h2 id="detecting-when-a-window-resizes">Detecting when a window resizes</h2>
 <h3 id="windowresized" class="method-def">window:resized()</h3>
-<p>Returns true if the window's size changed since the last frame. ## Detecting key presses</p>
+<p>Returns true if the window's size changed since the last frame.</p>
 <h2 id="detecting-key-presses">Detecting key presses</h2>
 <h3 id="key_down" class="method-def">window:key_down(key)</h3>
 <p>Returns true if the given key was down at the start of the current frame.</p>
@@ -1624,10 +1630,10 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>Returns an array of the keys that were down at the start of the current frame. See <a href="#key_down">window:key_down</a> for a list of possible key values.</p>
 <h3 id="windowkey_pressedkey" class="method-def">window:key_pressed(key)</h3>
 <p>Returns true if the given key's state changed from up to down since the last frame. See <a href="#key_down">window:key_down</a> for possible values for <code>key</code>.</p>
-<p>Note that if <code>key_pressed</code> returns true, then <code>key_down</code> will also return <code>true</code>. Also if <code>key_pressed</code> returns <code>true</code> then <code>key_released</code> will always return <code>false</code>. (If necessary, Amulet will postpone key release events to the next frame to ensure this.)</p>
+<p>Note that if <code>key_pressed</code> returns true for a particular key, then <code>key_down</code> will also return <code>true</code>. Also if <code>key_pressed</code> returns <code>true</code> for a particular key then <code>key_released</code> will return <code>false</code> for the same key. (If necessary, Amulet will postpone key release events to the next frame to ensure this.)</p>
 <h3 id="windowkey_releasedkey" class="method-def">window:key_released(key)</h3>
 <p>Returns true if the given key's state changed from down to up since the last frame. See <a href="#key_down">window:key_down</a> for possible values for <code>key</code>.</p>
-<p>Note that if <code>key_released</code> returns true, then <code>key_down</code> will also return <code>false</code>. Also if <code>key_released</code> returns <code>true</code> then <code>key_pressed</code> will always return <code>false</code>. (If necessary, Amulet will postpone key press events to the next frame to ensure this.)</p>
+<p>Note that if <code>key_released</code> returns true for a particular key, then <code>key_down</code> will return <code>false</code>. Also if <code>key_released</code> returns <code>true</code> for a particular key then <code>key_pressed</code> will return <code>false</code>. (If necessary, Amulet will postpone key press events to the next frame to ensure this.)</p>
 <h2 id="detecting-mouse-events">Detecting mouse events</h2>
 <h3 id="windowmouse_position" class="method-def">window:mouse_position()</h3>
 <p>Returns the position of the mouse cursor, as a <code>vec2</code>, in the window's coordinate system.</p>
@@ -1645,10 +1651,10 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>Returns <code>true</code> if the given button was down at the start of the frame. <code>button</code> may be <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> or <code>&quot;middle&quot;</code>.</p>
 <h3 id="windowmouse_pressedbutton" class="method-def">window:mouse_pressed(button)</h3>
 <p>Returns <code>true</code> if the given mouse button's state changed from up to down since the last frame. <code>button</code> may be <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> or <code>&quot;middle&quot;</code>.</p>
-<p>Note that if <code>mouse_pressed</code> returns <code>true</code> then <code>mouse_down</code> will also return <code>true</code>. Also if <code>mouse_pressed</code> returns <code>true</code> then <code>mouse_released</code> will always return <code>false</code>. (If necessary, Amulet will postpone button release events to the next frame to ensure this.)</p>
+<p>Note that if <code>mouse_pressed</code> returns <code>true</code> for a particular button then <code>mouse_down</code> will also return <code>true</code>. Also if <code>mouse_pressed</code> returns <code>true</code> for a particular button then <code>mouse_released</code> will return <code>false</code>. (If necessary, Amulet will postpone button release events to the next frame to ensure this.)</p>
 <h3 id="windowmouse_releasedbutton" class="method-def">window:mouse_released(button)</h3>
 <p>Returns true if the given mouse button's state changed from down to up since the last frame. <code>button</code> may be <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> or <code>&quot;middle&quot;</code>.</p>
-<p>Note that if <code>mouse_released</code> returns <code>true</code> then <code>mouse_down</code> will also return <code>false</code>. Also if <code>mouse_released</code> returns <code>true</code> then <code>mouse_pressed</code> will always return <code>false</code>. (If necessary, Amulet will postpone button press events to the next frame to ensure this.)</p>
+<p>Note that if <code>mouse_released</code> returns <code>true</code> for a particular button then <code>mouse_down</code> will return <code>false</code>. Also if <code>mouse_released</code> returns <code>true</code> for a particular button then <code>mouse_pressed</code> will return <code>false</code>. (If necessary, Amulet will postpone button press events to the next frame to ensure this.)</p>
 <h3 id="windowmouse_wheel" class="method-def">window:mouse_wheel()</h3>
 <p>Returns the mouse scroll wheel position (a <code>vec2</code>).</p>
 <h3 id="windowmouse_wheel_delta" class="method-def">window:mouse_wheel_delta()</h3>
@@ -1741,7 +1747,7 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>Determines whether the node and its children are rendered. The default is <code>false</code>, meaning that the node is rendered.</p>
 <p>Updatable.</p>
 <h3 id="node.paused" class="func-def">node.paused</h3>
-<p>Determines whether the node and its children's actions are executed. The default is <code>false</code>, meaning the actions are executed.</p>
+<p>Determines whether the node and its children's <a href="#node:action">actions</a> are executed. The default is <code>false</code>, meaning the actions are executed.</p>
 <p>Note that a descendent node's actions might still be executed if it is has another, non-paused, parent.</p>
 <p>Updatable.</p>
 <h3 id="node.num_children" class="func-def">node.num_children</h3>
@@ -1760,6 +1766,7 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>Searches <code>node</code> and all its descendents for any nodes with the tag <code>tagname</code> and returns them as a table.</p>
 <h3 id="node:tagsearch" class="method-def">node(tagname)</h3>
 <p>Searches <code>node</code> and its descendents for <code>tagname</code> and returns the first matching node found, or <code>nil</code> if no matching nodes were found. The search is depth-first left-to-right.</p>
+<p>The found node's parent is also returned as a second value, unless the found node was the root of the given subgraph.</p>
 <h3 id="node:action" class="method-def">node:action([id,] action)</h3>
 <p>Attaches an action to a node and returns the node.</p>
 <p><code>action</code> may be a function or a coroutine.</p>
@@ -1794,15 +1801,15 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <h3 id="nodeprependchild" class="func-def">node:prepend(child)</h3>
 <p>Adds <code>child</code> to the start of <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="noderemovechild" class="func-def">node:remove(child)</h3>
-<p>Removes the first occurance of <code>child</code> from <code>node</code>'s child list and returns <code>node</code>.</p>
+<p>Removes the first occurrence of <code>child</code> from <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="noderemovetagname" class="func-def">node:remove(tagname)</h3>
-<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and removes the first one it finds and returns <code>node</code>.</p>
+<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and removes the first one it finds. Then returns <code>node</code>.</p>
 <h3 id="noderemove_all" class="func-def">node:remove_all()</h3>
 <p>Removes all of <code>node</code>'s children and returns <code>node</code>.</p>
 <h3 id="nodereplacechild-replacement" class="func-def">node:replace(child, replacement)</h3>
-<p>Replaces the first occurance of <code>child</code> with <code>replacement</code> in <code>node</code>'s child list and returns <code>node</code>.</p>
+<p>Replaces the first occurrence of <code>child</code> with <code>replacement</code> in <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="nodereplacetagname-replacement" class="func-def">node:replace(tagname, replacement)</h3>
-<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and replaces the first one it finds with <code>replacement</code> and returns <code>node</code>.</p>
+<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and replaces the first one it finds with <code>replacement</code>. Then returns <code>node</code>.</p>
 <h3 id="nodechildn" class="func-def">node:child(n)</h3>
 <p>Returns the nth child of <code>node</code> (or <code>nil</code> if there is no such child).</p>
 <h3 id="nodechild_pairs" class="func-def">node:child_pairs()</h3>
@@ -1828,7 +1835,7 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <li><code>width</code>: The width of the displayed text in pixels. Readonly.</li>
 <li><code>height</code>: The height of the displayed text in pixels. Readonly.</li>
 </ul>
-<p>Default tag: <code>&quot;sprite&quot;</code>.</p>
+<p>Default tag: <code>&quot;text&quot;</code>.</p>
 <h3 id="am.sprite" class="func-def">am.sprite(source [, color] [, halign [, valign]])</h3>
 <p>Renders a sprite (an image).</p>
 <p><code>source</code> can be either a filename, an ASCII art string or a <em>sprite spec</em>.</p>
@@ -1888,7 +1895,7 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <li><code>width</code>: the width of the sprite (in pixels)</li>
 <li><code>height</code>: the height of the sprite (in pixels)</li>
 </ul>
-<p>Typically <code>x1</code> and <code>y1</code> would both be zero and <code>x2</code> and <code>y2</code> would be equal to <code>width</code> and <code>height</code>, though they may be different when transparent pixel are removed from the edges of sprites when packing them. The <code>width</code> and <code>height</code> fields are used for adjusting sprite position based on the requested alignment.</p>
+<p>Typically <code>x1</code> and <code>y1</code> would both be zero and <code>x2</code> and <code>y2</code> would be equal to <code>width</code> and <code>height</code>, though they may be different when transparents pixels are removed from the edges of sprites when packing them. The <code>width</code> and <code>height</code> fields are used for adjusting sprite position based on the requested alignment.</p>
 <p>The <code>color</code> argument is a <code>vec4</code> that applies a tinting color to the sprite. The default is white (no tinting).</p>
 <p>The <code>halign</code> and <code>valign</code> arguments determine the alignment of the sprite. The allowed values for <code>halign</code> are <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code> and <code>&quot;center&quot;</code>. The allowed values for <code>valign</code> are <code>&quot;bottom&quot;</code>, <code>&quot;top&quot;</code> and <code>&quot;center&quot;</code>. The default in both cases is <code>&quot;center&quot;</code>.</p>
 <p>Fields:</p>
@@ -1901,7 +1908,7 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 </ul>
 <p>Default tag: <code>&quot;sprite&quot;</code>.</p>
 <h3 id="am.rect" class="func-def">am.rect(x1, y1, x2, y2 [, color])</h3>
-<p>Draws a rectable from (<code>x1</code>, <code>y1</code>) to (<code>x2</code>, <code>y2</code>).</p>
+<p>Draws a rectangle from (<code>x1</code>, <code>y1</code>) to (<code>x2</code>, <code>y2</code>).</p>
 <p><code>color</code> should be a <code>vec4</code> and defaults to white.</p>
 <p>Fields:</p>
 <ul>
@@ -1916,7 +1923,7 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <p>Draws a circle.</p>
 <p><code>center</code> should be a <code>vec2</code>.</p>
 <p><code>color</code> should be a <code>vec4</code>. The default is white.</p>
-<p><code>sides</code> is the number of sides to use when rendering the circle. The default is 255. You can change this to make other regular polygones. For example change it to 6 to draw a hexagon.</p>
+<p><code>sides</code> is the number of sides to use when rendering the circle. The default is 255. You can change this to make other regular polygons. For example change it to 6 to draw a hexagon.</p>
 <p>Fields:</p>
 <ul>
 <li><code>center</code>: The circle center as a <code>vec2</code>. Updatable.</li>
@@ -1929,11 +1936,11 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <p><code>settings</code> should be a table with any of the following fields:</p>
 <ul>
 <li><code>source_pos</code>: The position where the particles emit from (<code>vec2</code>)</li>
-<li><code>source_pos_var</code>: The variation in source position (<code>vec2</code>)</li>
+<li><code>source_pos_var</code>: The source position variation (<code>vec2</code>)</li>
 <li><code>start_size</code>: The start size of the particles (number)</li>
-<li><code>start_size_var</code>: The start size variation of the particles (number)</li>
+<li><code>start_size_var</code>: The start size variation (number)</li>
 <li><code>end_size</code>: The end size of the particles (number)</li>
-<li><code>end_size_var</code>: The end size variation of the particles (number)</li>
+<li><code>end_size_var</code>: The end size variation (number)</li>
 <li><code>angle</code>: The angle the particles emit at (radians)</li>
 <li><code>angle_var</code>: The variation in the angle the particles emit at (radians)</li>
 <li><code>speed</code>: The speed of the particles (number)</li>
@@ -1944,14 +1951,14 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <li><code>start_color_var</code>: The variation in the start color of the particles (<code>vec4</code>)</li>
 <li><code>end_color</code>: The end color of the particles (<code>vec4</code>)</li>
 <li><code>end_color_var</code>: The variation in the end color of the particles (<code>vec4</code>)</li>
-<li><code>emission_rate</code>: Number of particles to emit per second</li>
+<li><code>emission_rate</code>: The number of particles to emit per second</li>
 <li><code>start_particles</code>: The initial number of particles</li>
 <li><code>max_particles</code>: The maximum number of particles</li>
 <li><code>gravity</code>: Gravity to apply to the particles (<code>vec2</code>)</li>
 <li><code>sprite_source</code>: The particle sprite source (see <a href="#am.sprite">am.sprite</a>). If this is omitted the particles will be colored squares.</li>
 <li><code>warmup_time</code>: Simulate running the particle system for this number of seconds before showing it for the first time.</li>
 </ul>
-<p>In the able the <code>_var</code> fields are an amount that is added to and subtracted from the field without <code>_var</code> to get the range of values from which one is randomly choses. For example if <code>source_pos</code> is <code>vec2(1, 0)</code> and <code>source_pos_var</code> is <code>vec2(3, 2)</code>, then source positions will be choses in the range <code>vec2(-2, -2)</code> to <code>vec2(4, 2)</code>.</p>
+<p>In the table the <code>_var</code> fields are an amount that is added to and subtracted from the corresponding field (the one without the <code>_var</code> suffix) to get the range of values from which one is randomly chosen. For example if <code>source_pos</code> is <code>vec2(1, 0)</code> and <code>source_pos_var</code> is <code>vec2(3, 2)</code>, then source positions will be chosen in the range <code>vec2(-2, -2)</code> to <code>vec2(4, 2)</code>.</p>
 <p>All of the sprite settings are exposed as updatable fields on the particles node.</p>
 <p>Default tag: <code>&quot;particles2d&quot;</code>.</p>
 <div class="figure">
@@ -1967,27 +1974,27 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <p>If the z component is omitted it is assumed to be 0.</p>
 <p>Fields:</p>
 <ul>
-<li><code>position</code>: The translation position as <code>vec3</code>. Updatable.</li>
-<li><code>position2d</code>: The translation position as <code>vec2</code>. Updatable.</li>
+<li><code>position</code>: The translation position as a <code>vec3</code>. Updatable.</li>
+<li><code>position2d</code>: The translation position as a <code>vec2</code>. Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;translate&quot;</code>.</p>
-<p>Example:</p>
+<p>Examples:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">)</span>
 <span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span>vec2<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">))</span>
 <span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3.5</span><span class="ot">)</span>
 <span class="kw">local</span> node4 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">))</span>
-<span class="kw">local</span> node1<span class="ot">.</span>position2d <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">30</span><span class="ot">,</span> <span class="dv">40</span><span class="ot">)</span>
-<span class="kw">local</span> node3<span class="ot">.</span>position <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3</span><span class="ot">)</span></code></pre></div>
+node1<span class="ot">.</span>position2d <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">30</span><span class="ot">,</span> <span class="dv">40</span><span class="ot">)</span>
+node3<span class="ot">.</span>position <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3</span><span class="ot">)</span></code></pre></div>
 <h3 id="am.scale" class="func-def">am.scale([uniform,] scaling)</h3>
 <p>Apply a scale transform to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
-<p><code>scaling</code> may be 1, 2 or 3 numbers or a <code>vec2</code> or <code>vec3'. If 1 number is provided it is assume to be the x and y components of the scaling and the z scaling is assumed to be 1. If 2 numbers or a</code>vec2` is provided, they are the scaling for the x and y components and z is assumed to be 1.</p>
+<p><code>scaling</code> may be 1, 2 or 3 numbers or a <code>vec2</code> or <code>vec3</code>. If 1 number is provided it is assume to be the x and y components of the scaling and the z scaling is assumed to be 1. If 2 numbers or a <code>vec2</code> is provided, they are the scaling for the x and y components and z is assumed to be 1.</p>
 <p>Fields:</p>
 <ul>
 <li><code>scale</code>: The scale as a <code>vec3</code>. Updatable.</li>
 <li><code>scale2d</code>: The scale as a <code>vec2</code>. Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;scale&quot;</code>.</p>
-<p>Example:</p>
+<p>Examples:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="dv">2</span><span class="ot">)</span>
 <span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="dv">2</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span>
 <span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span>vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">))</span>
@@ -2004,7 +2011,7 @@ node4<span class="ot">.</span>scale <span class="ot">=</span> vec3<span class="o
 <li><code>axis</code>: The rotation axis as a <code>vec3</code>. Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;rotate&quot;</code>.</p>
-<p>Example:</p>
+<p>Examples:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node1 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">45</span><span class="ot">))</span>
 <span class="kw">local</span> node2 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span>math<span class="ot">.</span>pi<span class="ot">/</span><span class="dv">4</span><span class="ot">,</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">))</span>
 <span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> 
@@ -2022,7 +2029,7 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
 <p>Default tag: <code>&quot;use_program&quot;</code>.</p>
 <h3 id="am.bind" class="func-def">am.bind(bindings)</h3>
 <p>Binds <a href="#shader-programs">shader program</a> parameters (uniforms and attributes) to values. <code>bindings</code> is a table mapping shader parameter names to values.</p>
-<p>The named parameters are matched with the uniforms and attributes in the shader program just before a <a href="#am.draw"><code>am.draw</code></a> node is encountered.</p>
+<p>The named parameters are matched with the uniforms and attributes in the shader program just before a <a href="#am.draw"><code>am.draw</code></a> node is executed.</p>
 <p>Program parameter types are mapped to the following Lua types:</p>
 <table>
 <thead>
@@ -2082,7 +2089,7 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
 </tr>
 </tbody>
 </table>
-<p>Any bound parameters not in the program are ignored, but all program parameters must have been bound before a <code>draw</code> node is encountered.</p>
+<p>Any bound parameters not in the program are ignored, but all program parameters must have been bound before a <code>draw</code> node is executed.</p>
 <p><strong>Note</strong>: The parameter <code>P</code> is initially bound to a 4x4 projection matrix defined by the window's coordinate system, while the parameter <code>MV</code> (the default model view matrix) is initially bound to the 4x4 identity matrix.</p>
 <p>The bound parameters are available as updatable fields on the bind node. The fields have the same names as their corresponding parameters.</p>
 <p>Default tag: <code>&quot;bind&quot;</code>.</p>
@@ -2184,15 +2191,15 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>mode</code>: Updatable.</li>
 </ul>
 <h3 id="am.color_maskred-green-blue-alpha" class="func-def">am.color_mask(red, green, blue, alpha)</h3>
-<p>Apply a color mask. The four arguments can be <code>true</code> or <code>false</code> and determine whether the corresponding color channel is updated in the rendering target (either the current window to framebuffer being rendered to).</p>
+<p>Apply a color mask. The four arguments can be <code>true</code> or <code>false</code> and determine whether the corresponding color channel is updated in the rendering target (either the current window or framebuffer being rendered to).</p>
 <p>For example using a mask of <code>am.color_mask(false, true, false, true)</code> will cause only the green and alpha channels to be updated.</p>
 <h3 id="am.cull_faceface" class="func-def">am.cull_face(face)</h3>
 <p>Culls triangles with a specific winding.</p>
 <p>The possible values for <code>face</code> are:</p>
 <ul>
 <li><code>&quot;cw&quot;</code>: Cull clockwise wound triangles.</li>
-<li>`&quot;ccw&quot;: Cull counter-clockwise wound triangles.</li>
-<li>`&quot;none&quot;: Do not cull any triangles.</li>
+<li><code>&quot;ccw&quot;</code>: Cull counter-clockwise wound triangles.</li>
+<li><code>&quot;none&quot;</code>: Do not cull any triangles.</li>
 </ul>
 <p>Fields:</p>
 <ul>
@@ -2200,7 +2207,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 </ul>
 <h3 id="am.depth_test" class="method-def">am.depth_test(test [, mask])</h3>
 <p>Sets the depth test and mask. The window or framebuffer being rendered to needs to have a depth buffer for this to have any effect.</p>
-<p><code>test</code> is used to determine whether a fragment is rendered by comparing the depth value of the fragment to value in the depth buffer. The possible values for <code>test</code> are:</p>
+<p><code>test</code> is used to determine whether a fragment is rendered by comparing the depth value of the fragment to the value in the depth buffer. The possible values for <code>test</code> are:</p>
 <ul>
 <li><code>&quot;never&quot;</code></li>
 <li><code>&quot;always&quot;</code></li>
@@ -2233,7 +2240,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <p>Default tag: <code>&quot;lookat&quot;</code>.</p>
 <h3 id="am.cull_sphere" class="func-def">am.cull_sphere([uniforms...,] radius [, center])</h3>
 <p>This first takes the matrix product of the given uniforms (which should be <code>mat4</code>s). Then it determines whether the sphere with the given center and radius would be visible using the previously computed matrix product as the model-view-projection matrix. If it wouldn't be visible then none of this node's children are rendered (i.e. they are culled).</p>
-<p>The default value for <code>uniforms...</code> is <code>&quot;P&quot;, &quot;MV&quot;</code> and the default value for <code>center</code> is <code>vec3(0)</code>.</p>
+<p>The default value for <code>uniforms</code> is <code>&quot;P&quot; and &quot;MV&quot;</code> and the default value for <code>center</code> is <code>vec3(0)</code>.</p>
 <p>Fields:</p>
 <ul>
 <li><code>radius</code>: Updatable.</li>
@@ -2241,11 +2248,11 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 </ul>
 <h3 id="am.billboard" class="func-def">am.billboard([uniform,] [preserve_scaling])</h3>
 <p>Removes rotation from <code>uniform</code>, which should be a <code>mat4</code>. By default <code>uniform</code> is <code>&quot;MV&quot;</code>.</p>
-<p>If <code>preserve_scaling</code> is <code>false</code> or omitted then any scaling will also be removed from the matrix. If it is <code>true</code>, then scaling will be preserved, as long as it's uniform across all 3 axes.</p>
+<p>If <code>preserve_scaling</code> is <code>false</code> or omitted then any scaling will also be removed from the matrix. If it is <code>true</code>, then scaling will be preserved, as long as it's the same across all three axes.</p>
 <p>Default tag: <code>&quot;billboard&quot;</code></p>
 <h3 id="am.read_param" class="func-def">am.read_uniform(uniform)</h3>
 <p>This node has no effect on rendering. Instead it records the value of the named uniform when rendering occurs.</p>
-<p>One use-case for this is to find the value of the model-view matrix (<code>MV</code>) at a specifc node without having to keep track of all the ancestor transforms. This could then be used to, for example, determine the position of a mouse click in a node's coordinate space, by taking the inverse of the matrix.</p>
+<p>This is useful for finding the value of the model-view matrix (<code>MV</code>) at a specific node without having to keep track of all the ancestor transforms. This could then be used to, for example, determine the position of a mouse click in a node's coordinate space, by taking the inverse of the model-view matrix.</p>
 <p>Fields:</p>
 <ul>
 <li><code>value</code>: The value of the uniform, or nil if the node hasn't been rendered yet, or the named uniform wasn't set in an ancestor node.</li>
@@ -2301,7 +2308,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <h3 id="am.wrap" class="func-def">am.wrap(node)</h3>
 <p>This &quot;wraps&quot; <code>node</code> inside a special type of node called a <em>wrap node</em>.</p>
 <p>When a wrap node is rendered it renders the inner node. However any nodes added as children of a wrap node are also added to the leaf node(s) of the inner node.</p>
-<p>For example suppose we want to create a tranformation node called <code>move_and_rotate</code> that does both a tranlation and a rotation:</p>
+<p>For example suppose we want to create a transformation node called <code>move_and_rotate</code> that does both a translation and a rotation:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> move_and_rotate<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">,</span> degrees<span class="ot">)</span>
     <span class="kw">return</span> am<span class="ot">.</span>translate<span class="ot">(</span>x<span class="ot">,</span> y<span class="ot">)</span> <span class="ot">^</span> am<span class="ot">.</span>rotate<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span>degrees<span class="ot">))</span>
 <span class="kw">end</span></code></pre></div>
@@ -2383,7 +2390,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h2 id="creating-image-buffers">Creating image buffers</h2>
 <h3 id="am.image_buffer" class="func-def">am.image_buffer([buffer, ] width [, height])</h3>
 <p>Creates an image buffer of the given width and height. If <code>height</code> is omitted it is the same as <code>width</code> (the image is square).</p>
-<p>If a <code>buffer</code> (created using <a href="#am.buffer"><code>am.buffer</code></a>) if given, it is used as the image buffer. It must have the correct size, which is <span class="math inline">\(4 \times\)</span> <code>width</code> <span class="math inline">\(\times\)</span> <code>height</code>. If <code>buffer</code> is omitted a new one is created.</p>
+<p>If a <code>buffer</code> (created using <a href="#am.buffer"><code>am.buffer</code></a>) is given, it is used as the image buffer. It must have the correct size, which is <code>4 * width * height</code>. If <code>buffer</code> is omitted a new one is created.</p>
 <p>Fields:</p>
 <ul>
 <li><code>width</code>: the image width.</li>
@@ -2397,12 +2404,12 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>Saves the given image as a png in <code>filename</code>.</p>
 <h2 id="decodingencoding-pngs">Decoding/encoding PNGs</h2>
 <h3 id="am.encode_png" class="func-def">am.encode_png(image_buffer)</h3>
-<p>Returns a buffer containing the png encoding of the given image.</p>
+<p>Returns a raw buffer containing the png encoding of the given image.</p>
 <h3 id="am.decode_png" class="func-def">am.decode_png(buffer)</h3>
 <p>Converts the raw buffer, which should be a png encoding of an image, into an image buffer.</p>
 <h1 id="textures">Textures</h1>
-<p>Textures are 2D images that can be used as input to shader programs (bound to a <code>sampler2D</code> uniform).</p>
-<p>The can also be rendered to via <a href="#am.framebuffer">framebuffers</a>.</p>
+<p>Textures are 2D images that can be used as input to shader programs when bound to a <code>sampler2D</code> uniform.</p>
+<p>They can also be rendered to via <a href="#am.framebuffer">framebuffers</a>.</p>
 <p>A texture may optionally have a backing <a href="#image-buffers">image buffer</a>. If a texture has a backing image buffer, then any changes to the image buffer will be automatically transferred to the texture.</p>
 <p>Textures always have 4 channels (RGBA) with 1 byte per channel.</p>
 <h2 id="creating-a-texture">Creating a texture</h2>
@@ -2501,9 +2508,9 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>Renders <code>node</code>'s children into the framebuffer (but not <code>node</code> itself).</p>
 <h3 id="framebuffer:clear" class="method-def">framebuffer:clear()</h3>
 <p>Clears the framebuffer, using the current <a href="#framebuffer.clear_color"><code>clear_color</code></a>.</p>
-<h3 id="framebufferread_back">framebuffer:read_back()</h3>
+<h3 id="framebuffer:read_back" class="method-def">framebuffer:read_back()</h3>
 <p>Reads the pixels from the framebuffer into the texture's backing image buffer. This is a relatively slow operation, so use it sparingly.</p>
-<h3 id="framebufferresizewidth-height">framebuffer:resize(width, height)</h3>
+<h3 id="framebuffer:resize" class="method-def">framebuffer:resize(width, height)</h3>
 <p>Resize the framebuffer. Only framebuffers with textures that have no backing image buffers can be resized. Also the texture must not use a filter that requires a mipmap.</p>
 <h1 id="actions-1">Actions</h1>
 <p>This section covers useful action utility functions. For information on the action mechanism see the description of the <a href="#node:action"><code>action</code></a> method.</p>
@@ -2538,7 +2545,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <li><code>am.ease.inout(f, g)</code>. This returns an ease function that uses the ease function <code>f</code> for the first half of the transition and <code>out(g)</code> for the second half.</li>
 </ul>
 <p>Tweening works with fields that are numbers or vectors (<code>vec2</code>, <code>vec3</code> or <code>vec4</code>). It also works with <a href="#quaternions">quaternions</a>. In all cases the <a href="#math.mix"><code>math.mix</code></a> function is used to interpolate between the initial value and the final value.</p>
-<p>If target is omitted it is taken to be the <code>node</code> onto which the action is applied.</p>
+<p>If target is omitted it is taken to be the node to which the tween action is attached.</p>
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="ot">=</span>
     am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span>
@@ -2548,7 +2555,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
             y2 <span class="ot">=</span> <span class="dv">100</span>
         <span class="ot">}))</span></code></pre></div>
 <h2 id="coroutine-actions">Coroutine actions</h2>
-<p>An action can also be a coroutine. Inside a coroutine action it can sometimes be useful to wait for another action to finish, such as a tween. That is what the <code>am.wait</code> functon is for:</p>
+<p>An action can also be a coroutine. Inside a coroutine action it can sometimes be useful to wait for another action to finish, such as a tween. That is what the <code>am.wait</code> function is for:</p>
 <h3 id="am.wait" class="func-def">am.wait(action)</h3>
 <p>Waits for the given action to finish before continuing. This can only be called from within a coroutine.</p>
 <p>Example:</p>
@@ -2589,7 +2596,8 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>An audio buffer is a block of memory that stores an uncompressed audio sample.</p>
 <p>An audio buffer may have any number of channels, although Amulet will currently only play up to two channels.</p>
 <p>An audio buffer also has a sample rate. Amulet currently plays all audio at a sample rate 44.1kHz and will resample an audio buffer if it has a different sample rate.</p>
-<p>The audio data itself is stored in a <a href="#buffers-and-views">buffer</a> as a series of single precision floats (4 bytes each). The samples for each channel are contiguous. The first channel's data comes first, then the second channel's data, etc (the channels are not interleaved). If the sample data is stored in the buffer <code>buf</code>, and there are two channels, then the following code will create <a href="#buffers-and-views">views</a> that can be used to update or read the samples for each channel:</p>
+<p>The audio data itself is stored in a raw <a href="#buffers-and-views">buffer</a> as a series of single precision floats (4 bytes each). The samples for each channel are contiguous. The first channel's data comes first, then the second channel's data, etc (the channels are not interleaved).</p>
+<p>If the sample data is stored in the buffer <code>buf</code>, and there are two channels, then the following code will create <a href="#buffers-and-views">views</a> that can be used to update or read the samples for each channel:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> c <span class="ot">=</span> <span class="dv">2</span> <span class="co">-- channels</span>
 <span class="kw">local</span> s <span class="ot">=</span> <span class="ot">#</span>buf <span class="ot">/</span> <span class="dv">4</span> <span class="ot">/</span> c <span class="co">-- samples per channel</span>
 <span class="kw">local</span> left_channel <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;float&quot;</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> s<span class="ot">)</span>
@@ -2615,9 +2623,9 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>Returns an action that plays audio. Like any other <a href="#node:action">action</a> it needs to be attached to a scene node that's connected to a window to run.</p>
 <p><code>source</code> can either be an <a href="#audio-buffers">audio buffer</a>, the name of a &quot;.ogg&quot; file or a seed generated by the sfxr tool (there's an online version of that tool in the examples list of the <a href="http://www.amulet.xyz/editor.html">online editor</a>).</p>
 <p><code>loop</code> can be <code>true</code> or <code>false</code>.</p>
-<p><code>pitch</code> is a multiplier applied to the playback speed. 1.0 mean play at the original speed. 2.0 means play swice as fast and 0.5 means play at half the original speed.</p>
+<p><code>pitch</code> is a multiplier applied to the playback speed. 1.0 mean play at the original speed. 2.0 means play twice as fast and 0.5 means play at half the original speed.</p>
 <p><code>gain</code> should be between 0 and 1.</p>
-<p><strong>Note</strong>: When the source is an sfxr seed or a filename, an <a href="#audio-buffers">audio buffer</a> is generated behind the scenes and cached. Therefore there might be a short delay the first time this function is called with a given seed or filename (though for short audio clips this will probably not be noticable). Also avoid calling this function many times with different seeds or filenames, because that will cause unbounded memory growth.</p>
+<p><strong>Note</strong>: When the source is an sfxr seed or a filename, an <a href="#audio-buffers">audio buffer</a> is generated behind the scenes and cached. Therefore there might be a short delay the first time this function is called with a given seed or filename (though for short audio clips this will probably not be noticeable). Also avoid calling this function many times with different seeds or filenames, because that will cause unbounded memory growth.</p>
 <h2 id="generating-sound-effects">Generating sound effects</h2>
 <h3 id="am.sfxr_synth" class="func-def">am.sfxr_synth(settings)</h3>
 <p>Returns an audio buffer containing a generated sound effect.</p>
@@ -2758,7 +2766,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 </tr>
 </tbody>
 </table>
-<p>Alternatively settings can also be a numeric seed. Use the sfxr example in the <a href="http://www.amulet.xyz/editor.html">online editor</a>) to generate seeds.</p>
+<p>or a numeric seed. Use the sfxr example in the <a href="http://www.amulet.xyz/editor.html">online editor</a> to generate seeds.</p>
 <h2 id="audio-graphs">Audio graphs</h2>
 <p>TODO</p>
 <p>(Amulet has support for building graphs of audio effect nodes, however it is currently undocumented because it will probably be changing shortly to use syntax more consistent with the way scene graphs are constructed.)</p>
@@ -2766,60 +2774,6 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>TODO</p>
 <h2 id="analysing-audio">Analysing audio</h2>
 <p>TODO</p>
-<h1 id="extra-table-functions">Extra table functions</h1>
-<h3 id="table.shallow_copy" class="func-def">table.shallow_copy(t)</h3>
-<p>Returns a shallow copy of <code>t</code> (i.e. a new table with the same keys and values as <code>t</code>).</p>
-<h3 id="table.deep_copy" class="func-def">table.deep_copy(t)</h3>
-<p>Returns a deep copy of <code>t</code> (all <code>t</code>'s keys and values are copied recursively). Cycles are detected and reproduced in the new table.</p>
-<h3 id="table.search" class="func-def">table.search(arr, elem)</h3>
-<p>Return the index of <code>elem</code> in <code>arr</code> or nil if it's not found.</p>
-<h3 id="table.clear" class="func-def">table.clear(t)</h3>
-<p>Remove all <code>t</code>'s pairs.</p>
-<h3 id="table.remove_all" class="func-def">table.remove_all(arr, elem)</h3>
-<p>Remove all values equal to <code>elem</code> from <code>arr</code>.</p>
-<h3 id="table.append" class="func-def">table.append(arr1, arr2)</h3>
-<p>Inserts all of <code>arr2</code>'s values at the end of <code>arr1</code>.</p>
-<h3 id="table.merge" class="func-def">table.merge(t1, t2)</h3>
-<p>Sets all the key-value pairs from <code>t2</code> in <code>t1</code>.</p>
-<h3 id="table.keys" class="func-def">table.keys(t)</h3>
-<p>Returns an array of <code>t</code>'s keys.</p>
-<h3 id="table.values" class="func-def">table.values(t)</h3>
-<p>Returns an array of <code>t</code>'s values.</p>
-<h3 id="table.filter" class="func-def">table.filter(arr, f)</h3>
-<p>Returns a new array which contains only the values from <code>arr</code> for which <code>f(elem)</code> returns true (or any value besides <code>nil</code> or <code>false</code>).</p>
-<h3 id="table.tostring" class="func-def">table.tostring(t)</h3>
-<p>Converts a table to a string. The returned string is a valid Lua table literal.</p>
-<h1 id="logging">Logging</h1>
-<h3 id="log" class="func-def">log(msg, ...)</h3>
-<p>Log a message to the console.</p>
-<p><code>msg</code> may contain format specifiers like the standard Lua <code>string.format</code> function.</p>
-<p>The logged messages are prefixed with the file name and line number where <code>log</code> was called.</p>
-<p>Example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="fu">log</span><span class="ot">(</span><span class="st">&quot;here&quot;</span><span class="ot">)</span>
-<span class="fu">log</span><span class="ot">(</span><span class="st">&quot;num = %g, string = %s&quot;</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="st">&quot;two&quot;</span><span class="ot">)</span></code></pre></div>
-<h1 id="running-javascript">Running Javascript</h1>
-<h3 id="am.eval_js" class="func-def">am.eval_js(js)</h3>
-<p>Runs the given JavaScript string and returns the result as a Lua value. JavaScript objects and arrays are converted to Lua tables and other JavaScript types are converted to the corresponding Lua types. <code>undefined</code> is converted to <code>nil</code>.</p>
-<p>This function only works when running in a browser. On other platforms it has no effect and always returns <code>nil</code>.</p>
-<h1 id="converting-tofrom-json">Converting to/from JSON</h1>
-<h3 id="am.to_json" class="func-def">am.to_json(value)</h3>
-<p>Converts the given Lua value to a JSON string and returns it.</p>
-<p>Cycles are not detected.</p>
-<h3 id="am.parse_json" class="func-def">am.parse_json(json)</h3>
-<p>Converts the given JSON string to a Lua value and returns it.</p>
-<h1 id="loading-scripts">Loading scripts</h1>
-<h3 id="am.load_script" class="func-def">am.load_script(filename)</h3>
-<p>Loads the Lua script in <code>filename</code> and returns a function that, when called, will run the script.</p>
-<h1 id="performance-stats">Performance stats</h1>
-<h3 id="am.perf_stats" class="func-def">am.perf_stats()</h3>
-<p>Returns a table with the following fields:</p>
-<ul>
-<li><code>avg_fps</code>: frames per second averaged over the last 60 frames</li>
-<li><code>min_fps</code>: the minimum frames per second over the last 60 frames</li>
-</ul>
-<h1 id="amulet-version">Amulet version</h1>
-<h3 id="am.version" class="field-def">am.version</h3>
-<p>The current Amulet version, as a string. E.g. <code>&quot;1.0.3&quot;</code>.</p>
 <h1 id="spritepack">Packing sprites and generating fonts</h1>
 <h2 id="overview">Overview</h2>
 <p>Amulet includes a tool for packing images and font glyphs into a sprite sheet and generating a Lua module for conveniently accessing the images and glyphs therein.</p>
@@ -2827,6 +2781,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <pre class="console"><code>&gt; amulet pack -png mysprites.png -lua mysprites.lua 
               images/*.png fonts/myfont.ttf@32</code></pre>
 <p>This will generate <code>mysprites.png</code> and <code>mysprites.lua</code> in the current directory.</p>
+<p>The <code>@32</code> after the font file specifies the size of the glyphs to generate (in this case 32px).</p>
 <p>To use the generated sprite sheet in your code, first required the Lua module and then pass the fields in that module to <code>am.sprite</code> or <code>am.text</code>. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> mysprites <span class="ot">=</span> <span class="fu">require</span> <span class="st">&quot;mysprites&quot;</span>
 <span class="kw">local</span> run1_node <span class="ot">=</span> am<span class="ot">.</span>sprite<span class="ot">(</span>mysprites<span class="ot">.</span>run1<span class="ot">)</span>
@@ -2839,7 +2794,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <thead>
 <tr class="header">
 <th align="left">Option</th>
-<th align="left">Desription</th>
+<th align="left">Description</th>
 </tr>
 </thead>
 <tbody>
@@ -2872,7 +2827,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>In summary, if you don't intend to use an image for tiling, surround it with a border of completely transparent pixels.</p>
 <h2 id="specifying-which-font-glyphs-to-generate">Specifying which font glyphs to generate</h2>
 <p>Optionally each font item may also be followed by a colon and a comma separated list of character ranges to include in the sprite sheet.</p>
-<p>The characters in the character range can be written directly if they are ASCII, or given as hexidecimal unicode codepoints.</p>
+<p>The characters in the character range can be written directly if they are ASCII, or given as hexadecimal Unicode codepoints.</p>
 <p>Here are some examples of valid font items:</p>
 <ul>
 <li><code>VeraMono.ttf@32:A-Z,0-9</code></li>
@@ -2888,7 +2843,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <pre class="console"><code>&gt; amulet export</code></pre>
 <p>This will generate zip files for each target platform in the current directory.</p>
 <p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
-<p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of the libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
+<p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
 <p>If you create a <code>conf.lua</code> file in the same directory as your other Lua files containing the following:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">title <span class="ot">=</span> <span class="st">&quot;My Game Title&quot;</span>
 shortname <span class="ot">=</span> <span class="st">&quot;mygame&quot;</span>
@@ -2897,6 +2852,77 @@ appid <span class="ot">=</span> <span class="st">&quot;com.some-unique-id.123&qu
 version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span></code></pre></div>
 <p>then this will be used for various bits of meta-data in the generated packages. In particular <code>shortname</code> will be used in the name of the generated zip files (otherwise they will just be called &quot;Untitled&quot;).</p>
 <p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work.</p>
+<h1 id="extra-table-functions">Extra table functions</h1>
+<p>The following functions suplement the standard Lua table functions.</p>
+<h3 id="table.shallow_copy" class="func-def">table.shallow_copy(t)</h3>
+<p>Returns a shallow copy of <code>t</code> (i.e. a new table with the same keys and values as <code>t</code>).</p>
+<h3 id="table.deep_copy" class="func-def">table.deep_copy(t)</h3>
+<p>Returns a deep copy of <code>t</code> (all <code>t</code>'s keys and values are copied recursively). Cycles are detected and reproduced in the new table.</p>
+<h3 id="table.search" class="func-def">table.search(arr, elem)</h3>
+<p>Return the index of <code>elem</code> in <code>arr</code> or nil if it's not found.</p>
+<h3 id="table.clear" class="func-def">table.clear(t)</h3>
+<p>Remove all <code>t</code>'s pairs.</p>
+<h3 id="table.remove_all" class="func-def">table.remove_all(arr, elem)</h3>
+<p>Remove all values equal to <code>elem</code> from <code>arr</code>.</p>
+<h3 id="table.append" class="func-def">table.append(arr1, arr2)</h3>
+<p>Inserts all of <code>arr2</code>'s values at the end of <code>arr1</code>.</p>
+<h3 id="table.merge" class="func-def">table.merge(t1, t2)</h3>
+<p>Sets all the key-value pairs from <code>t2</code> in <code>t1</code>.</p>
+<h3 id="table.keys" class="func-def">table.keys(t)</h3>
+<p>Returns an array of <code>t</code>'s keys.</p>
+<h3 id="table.values" class="func-def">table.values(t)</h3>
+<p>Returns an array of <code>t</code>'s values.</p>
+<h3 id="table.filter" class="func-def">table.filter(arr, f)</h3>
+<p>Returns a new array which contains only the values from <code>arr</code> for which <code>f(elem)</code> returns true (or any value besides <code>nil</code> or <code>false</code>).</p>
+<h3 id="table.tostring" class="func-def">table.tostring(t)</h3>
+<p>Converts a table to a string. The returned string is a valid Lua table literal.</p>
+<h1 id="amulet-require-function">Amulet require function</h1>
+<p>The <code>require</code> function in Amulet is slightly different from the default one. The default Lua package loaders have been removed and replaced with a custom loader. The loader passes a new empty table into each module it loads. All exported functions can be added to this table, instead of creating a new table. If no other value is returned by the module, the passed in table will be used as the return value for <code>require</code>.</p>
+<p>The passed in export table can be accessed via the <code>...</code> expression. Here's a short example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> mymodule <span class="ot">=</span> <span class="ot">...</span>
+
+mymodule<span class="ot">.</span>message <span class="ot">=</span> <span class="st">&quot;hello&quot;</span>
+
+<span class="kw">function</span> mymodule<span class="ot">.</span>print_message<span class="ot">()</span>
+    <span class="fu">print</span><span class="ot">(</span>mymodule<span class="ot">.</span>message<span class="ot">)</span>
+<span class="kw">end</span></code></pre></div>
+<p>If this module is in the file <code>mymodule.lua</code>, then it can be imported like so:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> mymodule <span class="ot">=</span> <span class="fu">require</span> <span class="st">&quot;mymodule&quot;</span>
+
+mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span class="co">-- prints hello</span></code></pre></div>
+<p>This scheme allows cyclic module imports, e.g. module A requires module B which in turn requires module A. Amulet will detect the recursion and return A's (incomplete) export table in B. Then when A has finished initialising, all its functions will be available in B. This does mean that B can't call any of A's functions while its initialising, but after initialisation all of A's functions will be available.</p>
+<p>Of course you can still return your own values from modules and they will be returned by <code>require</code> as with the default Lua <code>require</code> function.</p>
+<h1 id="logging">Logging</h1>
+<h3 id="log" class="func-def">log(msg, ...)</h3>
+<p>Log a message to the console.</p>
+<p><code>msg</code> may contain format specifiers like the standard Lua <code>string.format</code> function.</p>
+<p>The logged messages are prefixed with the file name and line number where <code>log</code> was called.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="fu">log</span><span class="ot">(</span><span class="st">&quot;here&quot;</span><span class="ot">)</span>
+<span class="fu">log</span><span class="ot">(</span><span class="st">&quot;num = %g, string = %s&quot;</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="st">&quot;two&quot;</span><span class="ot">)</span></code></pre></div>
+<h1 id="running-javascript">Running JavaScript</h1>
+<h3 id="am.eval_js" class="func-def">am.eval_js(js)</h3>
+<p>Runs the given JavaScript string and returns the result as a Lua value. JavaScript objects and arrays are converted to Lua tables and other JavaScript types are converted to the corresponding Lua types. <code>undefined</code> is converted to <code>nil</code>.</p>
+<p>This function only works when running in a browser. On other platforms it has no effect and always returns <code>nil</code>.</p>
+<h1 id="converting-tofrom-json">Converting to/from JSON</h1>
+<h3 id="am.to_json" class="func-def">am.to_json(value)</h3>
+<p>Converts the given Lua value to a JSON string and returns it.</p>
+<p>Cycles are not detected.</p>
+<h3 id="am.parse_json" class="func-def">am.parse_json(json)</h3>
+<p>Converts the given JSON string to a Lua value and returns it.</p>
+<h1 id="loading-scripts">Loading scripts</h1>
+<h3 id="am.load_script" class="func-def">am.load_script(filename)</h3>
+<p>Loads the Lua script in <code>filename</code> and returns a function that, when called, will run the script.</p>
+<h1 id="performance-stats">Performance stats</h1>
+<h3 id="am.perf_stats" class="func-def">am.perf_stats()</h3>
+<p>Returns a table with the following fields:</p>
+<ul>
+<li><code>avg_fps</code>: frames per second averaged over the last 60 frames</li>
+<li><code>min_fps</code>: the minimum frames per second over the last 60 frames</li>
+</ul>
+<h1 id="amulet-version">Amulet version</h1>
+<h3 id="am.version" class="field-def">am.version</h3>
+<p>The current Amulet version, as a string. E.g. <code>&quot;1.0.3&quot;</code>.</p>
 </div>
 </div>
 </body>

@@ -5,7 +5,7 @@ Introduction
 Amulet is a Lua-based toolkit for experimenting with interactive
 graphics and audio. It provides a cross-platform API
 for drawing graphics, playing audio and responding to user input, and a
-command-line interpretter for running Amulet scripts.
+command-line interpreter for running Amulet scripts.
 
 It tries to be simple to use, but without making too many assumptions
 about how you want to use it.
@@ -32,9 +32,8 @@ concepts and walks you through
 drawing things on screen, playing audio and responding to user
 input.
 
-It is suggested that new users go through the tutorial first.
-The rest of the document can then be used as a reference,
-dipping into sections as needed.
+The [online editor](http://www.amulet.xyz/editor.html) contains
+numerous examples you can experiment with from your browser.
 
-If you see a function argument with brackets around it
+If you see a function argument with square brackets around it
 in a function signature, then that argument is optional.

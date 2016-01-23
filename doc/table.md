@@ -1,6 +1,8 @@
 
 # Extra table functions
 
+The following functions suplement the standard Lua table functions.
+
 ### table.shallow_copy(t)       {#table.shallow_copy .func-def}
 
 Returns a shallow copy of `t` (i.e. a new table

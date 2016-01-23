@@ -16,10 +16,11 @@ SECTIONS = header.md \
 	time.md \
 	save.md \
 	audio.md \
-	table.md \
-	misc.md \
 	spritepack.md \
 	export.md \
+	table.md \
+	require.md \
+	misc.md
 
 
 GRAPHS = $(wildcard graphs/*.dot)

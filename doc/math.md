@@ -14,12 +14,12 @@ another common use of 4 dimensional vectors.
 
 In Amulet vectors are immutable. This means that once you create a
 vector, its value cannot be changed. Instead you need to construct a new
-vector with a new value.
+vector.
 
 **Note**:
 Each component of a vector is represented internally as a 32 bit
 float, so expect some loss of precision when converting between vector
-components and Lua numbers, which are 64 bit floats.
+components and Lua numbers, which are 64 bits.
 
 ### Constructing vectors
 
@@ -112,7 +112,7 @@ appropriately.
 
 Although you can't directly set the components of a vector, Amulet
 provides some syntactic sugar to make it easier to create a new vector
-from an existing vector that has only some fields changed. Say, for
+from an existing vector that has only some fields modified. Say, for
 example, you had a 3 dimensional vector, `v1`, and you wanted to create
 a new vector, `v2`, that had the same components as `v1`, except for the
 y component, which you'd like to be 10. One way to do this would be to
@@ -170,6 +170,8 @@ vec3(10, 3, 6)
 vec4(2, 4, 6, 8)
 ~~~
 
+-------------------
+
 ![](images/screenshot4.jpg)
 
 Matrices {#matrices}
@@ -184,7 +186,7 @@ represented internally as 32 bit floats.
 
 ### Constructing matrices
 
-Use one of the functions `mat2`, `mat3` or `mat4` to contruct a 2x2, 3x3
+Use one of the functions `mat2`, `mat3` or `mat4` to construct a 2x2, 3x3
 or 4x4 matrix.
 
 Passing a single number argument to one of the matrix constructors
@@ -249,7 +251,7 @@ Language (GLSL).
 
 A matrix can also be constructed by passing an existing matrix to one of
 the matrix construction functions. If the existing matrix is larger than
-the construction function, the new matrix's elements come from the
+the new one, the new matrix's elements come from the
 top-left corner of the existing matrix. Otherwise the top-left corner of
 the new matrix is filled with the contents of the existing matrix and
 the rest from the identity matrix. For example:
@@ -352,7 +354,7 @@ However, when both operands are matrices, the `*` operator computes the
 If the first operand is a vector and the second is a matrix, then the
 first operand is taken to be a row vector (a matrix with one row) and
 should have the same number of columns as the matrix. The result is the
-matrix product of the row vector and the matrix (another row vector).
+matrix product of the row vector and the matrix, which is another row vector.
 
 Similarly if the first argument is a matrix and the second a vector, the
 vector is taken to be a column vector (a matrix with one column) and the
@@ -396,7 +398,7 @@ local q = quat(math.rad(45))
 
 This is a useful shortcut for 2D rotations in the xy plane.
 
-A quaternion can also be constructed from euler angles. Euler angles are
+A quaternion can also be constructed from Euler angles. Euler angles are
 rotations around the x, y and z axes, also known as pitch, roll and yaw.
 For example:
 
@@ -426,7 +428,7 @@ matrix as the single argument to `quat`.
 A quaternion can also be converted to a 3x3 or 4x4 matrix by passing it
 as the single argument to the `mat3` or `mat4` functions (see mat-cons).
 
-Finally a quaternion can be contructed from the coefficients of its real
+Finally a quaternion can be constructed from the coefficients of its real
 and imaginary parts:
 
 ~~~ {.lua}
@@ -445,7 +447,7 @@ fields can be used to read the corresponding attributes of a quaternion.
 Quaternions use a normalized internal representation, so the value
 returned by a field might be different from the value used to
 construct the quaternion. Though the quaternion as a whole represents
-the equivalent rotatation.
+the equivalent rotation.
 
 ### Quaternion operations
 
@@ -484,6 +486,12 @@ it returns a vector of the same size with each component
 being the fractional part of the corresponding component
 in the original vector.
 
+### math.clamp(v, min, max) {#math.clamp .func-def}
+
+Clamps a value `v` between `min` and `max`. `v`, `min` and `max`
+may be vectors. In this case each component is clamped based on the
+corresponding components in `min` and `max`.
+
 ### math.randvec2() {#math.randvec2 .func-def}
 
 Returns a `vec2` with all components set to a random number
@@ -519,7 +527,7 @@ is 1 and whose remaining components are 0.
 
 Returns the length of a vector.
 
-### math.distance(vector1, vector2) {.func-def}
+### math.distance(vector1, vector2) {#math.distance .func-def}
 
 Returns the distance between two vectors.
 
@@ -530,12 +538,12 @@ Returns the inverse of a matrix.
 ### math.lookat(eye, center, up) {.func-def}
 
 Creates a 4x4 view matrix at `eye`, looking in the direction of
-`center` with the y axis of the camera pointing in the direction same
+`center` with the y axis of the camera pointing in the same
 direction as `up`.
 
 ### math.perspective(fovy, aspect, near, far) {.func-def}
 
-Creates a 4x4 matrix for a symetric perspective-view frustum.
+Creates a 4x4 matrix for a symmetric perspective-view frustum.
 
 -   `fovy` is the field of view in the y plain, in radians.
 -   `aspect` is typically the window width divided by its height.
@@ -544,7 +552,7 @@ Creates a 4x4 matrix for a symetric perspective-view frustum.
 
 ### math.ortho(left, right, bottom, top [, near, far]) {.func-def}
 
-Creates a 4x4 orthographic projection marix.
+Creates a 4x4 orthographic projection matrix.
 The default values for `near` and `far` are `1` and `-1`.
 
 ### math.perlin(pos [, period]) {.func-def}
@@ -568,6 +576,8 @@ The returned value is between -1 and 1.
 Returns the linear interpolation between `from` and `to` determined by
 `t`. `from` and `to` can be numbers or vectors, and must be the same
 type. `t` should be a number between 0 and 1. `from` and `to` can also
-be quaternions. In that case `math.mix` returns the spherical linear
+be quaternions. In this case `math.mix` returns the spherical linear
 interpolation of the two quaternions.
+
+---------------
 

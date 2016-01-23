@@ -78,8 +78,8 @@ In all cases the [`math.mix`](#math.mix) function
 is used to interpolate between the initial value and the
 final value.
 
-If target is omitted it is taken to be the `node` onto which
-the action is applied.
+If target is omitted it is taken to be the node to which the
+tween action is attached.
 
 Example:
 
@@ -97,7 +97,7 @@ am.window{}.scene =
 
 An action can also be a coroutine. Inside a coroutine action
 it can sometimes be useful to wait for another action to finish,
-such as a tween. That is what the `am.wait` functon is for:
+such as a tween. That is what the `am.wait` function is for:
 
 ### am.wait(action) {#am.wait .func-def}
 

@@ -23,6 +23,9 @@ directory:
 This will generate `mysprites.png` and `mysprites.lua`
 in the current directory.
 
+The `@32` after the font file specifies the size of the
+glyphs to generate (in this case 32px).
+
 To use the generated sprite sheet in your code, first
 required the Lua module and then pass the fields in that
 module to `am.sprite` or `am.text`. For example:
@@ -46,7 +49,7 @@ font size.
 In addition to the required `-png` and `-lua` options the
 pack command also supports the following options:
 
-Option                     Desription
+Option                     Description
 ------------------------   --------------------------------------------------------------------------------------------------------
 `-mono`                    Do not anti-alias fonts.
 `-minfilter`               The minification filter to apply when loading the sprite sheet texture. `linear` (the default) or `nearest`.
@@ -82,7 +85,7 @@ Optionally each font item may also be followed by a colon and a comma
 separated list of character ranges to include in the sprite sheet.
 
 The characters in the character range can be written directly if they
-are ASCII, or given as hexidecimal unicode codepoints.
+are ASCII, or given as hexadecimal Unicode codepoints.
 
 Here are some examples of valid font items:
 

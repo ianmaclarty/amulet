@@ -1,16 +1,12 @@
 
 ![](images/screenshot7.jpg)
 
-Lua
-===
+# Lua primer {#lua-primer}
 
 Amulet code is written in [Lua](http://www.lua.org).
 The version of Lua used by default is Lua-5.1.
 
-Lua primer {#lua-primer}
-----------
-
-Here is a quick Lua syntax primer. For more detail please
+What follows is a quick introduction to Lua. For more detail please
 see the
 [Lua manual](http://www.lua.org/manual/5.1/).
 
@@ -35,6 +31,7 @@ multi-line
 string]]
 local bool = true -- a bool, can also be false
 local y = nil -- nil value
+local v1, v2 = 1, 2 -- create two local variables at once
 ~~~
 
 **Global variables:**
@@ -115,7 +112,7 @@ The relational operators are: `==`, `~=` (not equal), `<`, `>`, `<=` and `>=`
 
 The logical operators are: `and`, `or` and `not`.
 
-The string concantenation operator is two dots (e.g. `"abc".."def"`).
+The string concatenation operator is two dots (e.g. `"abc".."def"`).
 
 **Tables:**
 
@@ -220,7 +217,7 @@ t:print_x()   -- prints 4
 ~~~
 
 If a function call has only a single string or
-table argument, the parentheses can be omitted.
+table argument, the parentheses can be omitted:
 
 ~~~ {.lua}
 local
@@ -240,49 +237,17 @@ end
 print(sum{3, 1, 6}) -- prints 10
 ~~~
 
-Amulet require function
------------------------
-
-The `require` function in Amulet is slightly different from
-the default one.
-The default Lua package loaders have been removed and replaced with a custom
-loader. The loader passes a new empty table into each module it loads.
-All exported functions can be added to this table, instead of creating a
-new table. If no other value is returned by the module, the passed in
-table will be used as the return value for `require`.
-
-The passed in export table can be accessed via the `...` expression.
-Here's a short example:
+Functions may also return multiple values:
 
 ~~~ {.lua}
-local mymodule = ...
-
-mymodule.message = "hello"
-
-function mymodule.print_message()
-    print(mymodule.message)
+function f()
+    return 1, 2
 end
+local x, y = f()
+print(x + y) -- prints 3
 ~~~
 
-If this module is in the file `mymodule.lua`, then it can be
-imported like so:
-
-~~~ {.lua}
-local mymodule = require "mymodule"
-
-mymodule.print_message() -- prints hello
-~~~
-
-This scheme allows cyclic module
-imports, e.g. module A requires module B which in turn requires module
-A. Amulet will detect the recursion and return A's (incomplete) export
-table in B. Then when A has finished initializing, all its functions
-will be available in B. This does mean that B can't call any of A's
-functions while its initializing, but after initialization all of A's
-functions will be available.
-
-Of course you can still return your own values from modules and they will
-be returned by `require` as with the default Lua `require` function.
+-------------------
 
 ![](images/screenshot6.jpg)
 

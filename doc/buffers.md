@@ -63,7 +63,7 @@ The `_norm` types map Lua numbers in the range -1 to 1
 (or 0 to 1 for unsigned types) to integer values in the buffer.
 
 The `_elem` types are specifically for element array buffers and
-offset the Lua numbers by 1 to conform to the Lua convension of 
+offset the Lua numbers by 1 to conform to the Lua convention of 
 array indices starting at 1.
 
 All view types currently use the native platform endianess, which happens
@@ -76,7 +76,7 @@ The `stride` argument is the distance between consecutive values in the
 view, in bytes. The default is the size of the view type.
 
 The `count` argument determines the number of elements in the view.
-The underlying buffer must be large enough accomodate the
+The underlying buffer must be large enough to accommodate the
 elements with the given stride. The default is the maximum supported by the
 buffer with the given stride.
 
@@ -95,17 +95,21 @@ will return nil.
 
 You can retrieve the number of elements in a view using the `#` operator.
 
+## View fields
+
 ### view.buffer {#view.buffer .field-def}
 
 The buffer associated with the view.
 
 Readonly.
 
+## View methods
+
 ### view:slice(n [, count]) {#view:slice .method-def}
 
 Returns a new view of the same type as `view` that references the same buffer,
 but which starts at the `n`th element of `view` and continues for
-`count` elements. If `count` is ommitted it is `#view - n + 1` (i.e.
+`count` elements. If `count` is omitted it is `#view - n + 1` (i.e.
 it covers all the elements of `view` after and including the `n`th).
 
 ### view:set(val [, count]) {#view:set .method-def}
@@ -114,7 +118,7 @@ Bulk sets values in a view. This is faster than setting them
 one at a time.
 
 If `val` is a number or vector then this sets up to `count` elements
-of `view` to `val`. If `count` is ommitted all the elements are set.
+of `view` to `val`. If `count` is omitted all the elements are set.
 
 If `val` is a table then the elements are set to their corresponding
 values from the table. If `count` is given then at most `count` elements
