@@ -158,6 +158,12 @@ static int try_pack() {
     return 1;
 }
 
+static void replace_backslashes(char *str) {
+    for (int i = 0; i < strlen(str); i++) {
+        if (str[i] == '\\') str[i] = '/';
+    }
+}
+
 static void write_data() {
     int r = 0;
     int s;
@@ -176,6 +182,8 @@ static void write_data() {
     fprintf(f, "    magfilter = \"%s\",\n", magfilter);
     fprintf(f, "    is_premult = %s,\n", do_premult ? "true" : "false");
     for (s = 0; s < num_items; s++) {
+        char *filename = am_format("%s", items[s].filename);
+        replace_backslashes(filename);
         if (items[s].is_font) {
             int sz = items[s].size;
             load_font(s);
@@ -189,7 +197,7 @@ static void write_data() {
                 fprintf(f, "false");
             }
             fprintf(f, ",\n");
-            fprintf(f, "        filename = \"%s\",\n", items[s].filename);
+            fprintf(f, "        filename = \"%s\",\n", filename);
             fprintf(f, "        face = %d,\n", items[s].face);
             fprintf(f, "        chars = {\n");
             c = 0;
@@ -297,12 +305,13 @@ static void write_data() {
                    "        s1 = " NUMFMT ", t1 = " NUMFMT ", s2 = " NUMFMT ", t2 = " NUMFMT ",\n"
                    "        width = %d, height = %d,\n"
                    "    },\n",
-                items[s].filename, 
+                filename, 
                 x1, y1, x2, y2,
                 s1, t1, s2, t2,
                 image_width, image_height);
             r++;
         }
+        free(filename);
     }
     fprintf(f, "}\n\n");
     if (default_font) {
