@@ -159,7 +159,7 @@ static int try_pack() {
 }
 
 static void replace_backslashes(char *str) {
-    for (int i = 0; i < strlen(str); i++) {
+    for (unsigned int i = 0; i < strlen(str); i++) {
         if (str[i] == '\\') str[i] = '/';
     }
 }
