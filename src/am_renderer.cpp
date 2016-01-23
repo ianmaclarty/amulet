@@ -412,8 +412,21 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
     rstate->active_viewport_state.set(x, y, w, h);
     rstate->bound_viewport_state.set(x, y, w, h);
 
-    bool scissor_enabled = true;
-    if (x == 0 && y == 0 && w == fbw && h == fbh) scissor_enabled = false;
+    rstate->bound_color_mask_state.set(true, true, true, true);
+    rstate->active_color_mask_state.set(true, true, true, true);
+    am_set_framebuffer_color_mask(true, true, true, true);
+
+    bool is_margin = !(x == 0 && y == 0 && w == fbw && h == fbh);
+
+    if (clear && is_margin) {
+        // do preliminary clear to black without scissor test
+        // to make sure margins are black.
+        am_set_scissor_test_enabled(false);
+        am_set_framebuffer_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+        am_clear_framebuffer(true, true, true);
+    }
+
+    bool scissor_enabled = is_margin;
     am_set_scissor_test_enabled(scissor_enabled);
     if (scissor_enabled) {
         am_set_scissor(x, y, w, h);
@@ -426,15 +439,15 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
     am_set_framebuffer_depth_mask(has_depthbuffer);
     rstate->bound_depth_test_state.mask_enabled = has_depthbuffer;
 
-    rstate->bound_color_mask_state.set(true, true, true, true);
-    rstate->active_color_mask_state.set(true, true, true, true);
-    am_set_framebuffer_color_mask(true, true, true, true);
-
-    rstate->projection_param->set_mat4(proj);
-    if (clear) {
+    if (clear && (!is_margin ||
+        clear_color.r != 0.0f || clear_color.g != 0.0f ||
+        clear_color.b != 0.0f || clear_color.a != 1.0f))
+    {
         am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
         am_clear_framebuffer(true, true, true);
     }
+
+    rstate->projection_param->set_mat4(proj);
 }
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,

@@ -1,7 +1,6 @@
 win = am.window{
     title = "Defenders of the Weeping Quasar",
     width = 640, height = 480,
-    clear_color = vec4(0, 0, 0.2, 1),
 }
 
 -- constants

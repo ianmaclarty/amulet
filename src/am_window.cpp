@@ -423,15 +423,7 @@ bool am_execute_actions(lua_State *L, double dt) {
         if (!win->needs_closing && win->scene != NULL) {
             // make sure window size properties are up-to-date before running 
             // actions.
-            bool size_changed = update_size(win);
-            if (size_changed && win->letterbox) {
-                // clear the window if the size changes to remove anything that
-                // might be in the letterbox margins.
-                am_native_window_bind_framebuffer(win->native_win);
-                am_set_framebuffer_clear_color(0, 0, 0, 1);
-                am_set_scissor_test_enabled(false);
-                am_clear_framebuffer(true, true, true);
-            }
+            update_size(win);
             if (!am_execute_node_actions(L, win->scene)) {
                 res = false;
                 break;
