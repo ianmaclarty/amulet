@@ -179,7 +179,7 @@ The order that actions are run is determined by the node's
 position in the scene graph. Each node is visited in
 depth-first, left-to-right order and the actions on each
 node are run in the order they were added to the node.
-Each action is never run more than once, even if the node
+Each action is never run more than once per frame, even if the node
 occurs multiple times in the graph or is part of a cycle.
 For example, given the following scene graph:
 
@@ -196,9 +196,10 @@ The nodes will be visited in this order:
 - `node3`
 
 Note that the action execution order is determined before
-the first action runs and is not affected by any modifications
-actions make to the scene graph (these modifications will only
-affect the order of actions in subsequent frames).
+the first action runs each frame and is not affected by any modifications
+to the scene graph made by actions running during the frame.
+Any modifications to the scene graph will only affect the order of actions in
+subsequent frames.
 
 ### node:late_action([id,] action) {#node:late_action .method-def}
 

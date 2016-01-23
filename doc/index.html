@@ -93,6 +93,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#quaternion-operations">Quaternion operations</a></li>
 </ul></li>
 <li><a href="#math-functions">Math functions</a><ul>
+<li><a href="#math.sign">math.sign(n)</a></li>
+<li><a href="#math.randvec2">math.randvec2()</a></li>
+<li><a href="#math.randvec3">math.randvec3()</a></li>
+<li><a href="#math.randvec4">math.randvec4()</a></li>
 <li><a href="#math.dotvector1-vector2">math.dot(vector1, vector2)</a></li>
 <li><a href="#math.crossvector1-vector2">math.cross(vector1, vector2)</a></li>
 <li><a href="#math.normalizevector">math.normalize(vector)</a></li>
@@ -344,12 +348,26 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul></li>
 <li><a href="#audio">Audio</a><ul>
+<li><a href="#audio-buffers">Audio buffers</a><ul>
+<li><a href="#am.audio_buffer">am.audio_buffer(buffer, channels, sample_rate)</a></li>
+<li><a href="#am.load_buffer">am.load_buffer(filename)</a></li>
+</ul></li>
+<li><a href="#audio-buffer-fields">Audio buffer fields</a><ul>
+<li><a href="#audio_buffer.channels">audio_buffer.channels</a></li>
+<li><a href="#audio_buffer.sample_rate">audio_buffer.sample_rate</a></li>
+<li><a href="#audio_buffer.samples_per_channel">audio_buffer.samples_per_channel</a></li>
+<li><a href="#audio_buffer.length">audio_buffer.length</a></li>
+<li><a href="#audio_buffer.buffer">audio_buffer.buffer</a></li>
+</ul></li>
 <li><a href="#playing-audio-1">Playing audio</a><ul>
 <li><a href="#am.playsource-loop-pitch-gain">am.play(source, loop, pitch, gain)</a></li>
 </ul></li>
+<li><a href="#generating-sound-effects">Generating sound effects</a><ul>
+<li><a href="#am.sfxr_synth">am.sfxr_synth(settings)</a></li>
+</ul></li>
 <li><a href="#audio-graphs">Audio graphs</a></li>
+<li><a href="#audio-graph-nodes">Audio graph nodes</a></li>
 <li><a href="#analysing-audio">Analysing audio</a></li>
-<li><a href="#audio-node-reference">Audio node reference</a></li>
 </ul></li>
 <li><a href="#extra-table-functions">Extra table functions</a><ul>
 <li><a href="#table.shallow_copy">table.shallow_copy(t)</a></li>
@@ -1169,6 +1187,14 @@ vec2(0, 2)</code></pre>
 <p>A <code>vec2</code> can be rotated in a similar way (the z component is assumed to be zero and the z component of the result is dropped, yielding another <code>vec2</code>).</p>
 <h2 id="math-functions">Math functions</h2>
 <p>The following functions supplement the standard Lua math functions.</p>
+<h3 id="math.sign" class="func-def">math.sign(n)</h3>
+<p>Returns +1 if n &gt; 0, -1 if n &lt; 0 and 0 if n == 0.</p>
+<h3 id="math.randvec2" class="func-def">math.randvec2()</h3>
+<p>Returns a <code>vec2</code> with all components set to a random number between 0 and 1.</p>
+<h3 id="math.randvec3" class="func-def">math.randvec3()</h3>
+<p>Returns a <code>vec3</code> with all components set to a random number between 0 and 1.</p>
+<h3 id="math.randvec4" class="func-def">math.randvec4()</h3>
+<p>Returns a <code>vec4</code> with all components set to a random number between 0 and 1.</p>
 <h3 id="math.dotvector1-vector2" class="func-def">math.dot(vector1, vector2)</h3>
 <p>Returns the dot product of two vectors. The vectors must have the same size.</p>
 <h3 id="math.crossvector1-vector2" class="func-def">math.cross(vector1, vector2)</h3>
@@ -1200,17 +1226,17 @@ vec2(0, 2)</code></pre>
 <p>The returned value is between -1 and 1.</p>
 <h3 id="math.mix" class="func-def">math.mix(from, top, t)</h3>
 <p>Returns the linear interpolation between <code>from</code> and <code>to</code> determined by <code>t</code>. <code>from</code> and <code>to</code> can be numbers or vectors, and must be the same type. <code>t</code> should be a number between 0 and 1. <code>from</code> and <code>to</code> can also be quaternions. In that case <code>math.mix</code> returns the spherical linear interpolation of the two quaternions.</p>
-<h1 id="buffers-and-views">Buffers and views</h1>
 <div class="figure">
 <img src="images/screenshot5.jpg" alt="" />
 
 </div>
+<h1 id="buffers-and-views">Buffers and views</h1>
 <p>Buffers are contiguous blocks of memory. They are used for storing images, audio and vertex data, or anything else you like.</p>
 <p>You can't access a buffer's memory directly. Instead you access a buffer through a <em>view</em>. Views provide a typed array-like interface to the buffer.</p>
 <h2 id="buffers">Buffers</h2>
 <h3 id="am.buffer" class="func-def">am.buffer(size)</h3>
 <p>Returns a new buffer of the given size in bytes.</p>
-<p>The buffer's memory will zeroed.</p>
+<p>The buffer's memory will be zeroed.</p>
 <p>The <code>#</code> operator can be used to retrieve the size of a buffer in bytes.</p>
 <h3 id="am.load_buffer" class="func-def">am.load_buffer(filename)</h3>
 <p>Loads the given file and returns a buffer containing the file's data.</p>
@@ -1742,7 +1768,7 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>If the action function returns <code>true</code> then the action will be removed from the node and not run again. Similarly if a coroutine yields <code>true</code> or finishes.</p>
 <p>Each action has an ID. If the <code>id</code> argument is omitted, then its ID is the value of the <code>action</code> argument. If present, <code>id</code> may be a value of any type besides nil, a function or coroutine (typically it's a string).</p>
 <p>Multiple actions may be attached to a scene node, but they must all have unique ids. If you attempt to attach an action with an ID that is already used by another action on the same node, then the other action will be removed before the new one is attached.</p>
-<p>The order that actions are run is determined by the node's position in the scene graph. Each node is visited in depth-first, left-to-right order and the actions on each node are run in the order they were added to the node. Each action is never run more than once, even if the node occurs multiple times in the graph or is part of a cycle. For example, given the following scene graph:</p>
+<p>The order that actions are run is determined by the node's position in the scene graph. Each node is visited in depth-first, left-to-right order and the actions on each node are run in the order they were added to the node. Each action is never run more than once per frame, even if the node occurs multiple times in the graph or is part of a cycle. For example, given the following scene graph:</p>
 <div class="figure">
 <img src="graphs/scene8.png" alt="" />
 
@@ -1757,7 +1783,7 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <li><code>node6</code></li>
 <li><code>node3</code></li>
 </ul>
-<p>Note that the action execution order is determined before the first action runs and is not affected by any modifications actions make to the scene graph (these modifications will only affect the order of actions in subsequent frames).</p>
+<p>Note that the action execution order is determined before the first action runs each frame and is not affected by any modifications to the scene graph made by actions running during the frame. Any modifications to the scene graph will only affect the order of actions in subsequent frames.</p>
 <h3 id="node:late_action" class="method-def">node:late_action([id,] action)</h3>
 <p>Attach a <em>late action</em> to a scene node. Late actions are the same as normal actions, except they are run after all normal actions are finished.</p>
 <p>See also <a href="#node:action">node:action</a>.</p>
@@ -2559,18 +2585,186 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h3 id="am.load_state" class="func-def">am.load_state(name)</h3>
 <p>Loads a previously saved state and returns it. If the given name was not found <code>nil</code> is returned.</p>
 <h1 id="audio">Audio</h1>
+<h2 id="audio-buffers">Audio buffers</h2>
+<p>An audio buffer is a block of memory that stores an uncompressed audio sample.</p>
+<p>An audio buffer may have any number of channels, although Amulet will currently only play up to two channels.</p>
+<p>An audio buffer also has a sample rate. Amulet currently plays all audio at a sample rate 44.1kHz and will resample an audio buffer if it has a different sample rate.</p>
+<p>The audio data itself is stored in a <a href="#buffers-and-views">buffer</a> as a series of single precision floats (4 bytes each). The samples for each channel are contiguous. The first channel's data comes first, then the second channel's data, etc (the channels are not interleaved). If the sample data is stored in the buffer <code>buf</code>, and there are two channels, then the following code will create <a href="#buffers-and-views">views</a> that can be used to update or read the samples for each channel:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> c <span class="ot">=</span> <span class="dv">2</span> <span class="co">-- channels</span>
+<span class="kw">local</span> s <span class="ot">=</span> <span class="ot">#</span>buf <span class="ot">/</span> <span class="dv">4</span> <span class="ot">/</span> c <span class="co">-- samples per channel</span>
+<span class="kw">local</span> left_channel <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;float&quot;</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> s<span class="ot">)</span>
+<span class="kw">local</span> right_channel <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;float&quot;</span><span class="ot">,</span> s <span class="ot">*</span> <span class="dv">4</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> s<span class="ot">)</span></code></pre></div>
+<h3 id="am.audio_buffer" class="func-def">am.audio_buffer(buffer, channels, sample_rate)</h3>
+<p>Returns a new audio buffer using the given raw buffer (a buffer created with <a href="#am.buffer"><code>am.buffer</code></a>). The audio data should be layed out as described <a href="#audio-buffers">above</a>.</p>
+<p><code>channels</code> is the number of channels and <code>sample_rate</code> is the sample rate in Hz.</p>
+<h3 id="am.load_buffer" class="func-def">am.load_buffer(filename)</h3>
+<p>Loads the given audio file and returns a new audio buffer. The file must be a <code>.ogg</code> audio file.</p>
+<h2 id="audio-buffer-fields">Audio buffer fields</h2>
+<h3 id="audio_buffer.channels" class="field-def">audio_buffer.channels</h3>
+<p>The number of channels. Readonly.</p>
+<h3 id="audio_buffer.sample_rate" class="field-def">audio_buffer.sample_rate</h3>
+<p>The sample rate in Hz. Readonly.</p>
+<h3 id="audio_buffer.samples_per_channel" class="field-def">audio_buffer.samples_per_channel</h3>
+<p>The number of samples per channel. Readonly.</p>
+<h3 id="audio_buffer.length" class="field-def">audio_buffer.length</h3>
+<p>The length of the audio in seconds. Readonly.</p>
+<h3 id="audio_buffer.buffer" class="field-def">audio_buffer.buffer</h3>
+<p>The underlying raw <a href="#buffers-and-views">buffer</a> where the audio data is stored. Readonly.</p>
 <h2 id="playing-audio-1">Playing audio</h2>
 <h3 id="am.playsource-loop-pitch-gain">am.play(source, loop, pitch, gain)</h3>
-<p>Returns an action that plays audio. Like any other action it needs to be attached to a scene node that's connected to a window to run.</p>
-<p><code>source</code> can either be the name of a &quot;.ogg&quot; file or a seed generated by the sfxr tool (there's an online version of that tool in the examples list of the <a href="http://www.amulet.xyz/editor.html">online editor</a>).</p>
+<p>Returns an action that plays audio. Like any other <a href="#node:action">action</a> it needs to be attached to a scene node that's connected to a window to run.</p>
+<p><code>source</code> can either be an <a href="#audio-buffers">audio buffer</a>, the name of a &quot;.ogg&quot; file or a seed generated by the sfxr tool (there's an online version of that tool in the examples list of the <a href="http://www.amulet.xyz/editor.html">online editor</a>).</p>
 <p><code>loop</code> can be <code>true</code> or <code>false</code>.</p>
 <p><code>pitch</code> is a multiplier applied to the playback speed. 1.0 mean play at the original speed. 2.0 means play swice as fast and 0.5 means play at half the original speed.</p>
 <p><code>gain</code> should be between 0 and 1.</p>
+<p><strong>Note</strong>: When the source is an sfxr seed or a filename, an <a href="#audio-buffers">audio buffer</a> is generated behind the scenes and cached. Therefore there might be a short delay the first time this function is called with a given seed or filename (though for short audio clips this will probably not be noticable). Also avoid calling this function many times with different seeds or filenames, because that will cause unbounded memory growth.</p>
+<h2 id="generating-sound-effects">Generating sound effects</h2>
+<h3 id="am.sfxr_synth" class="func-def">am.sfxr_synth(settings)</h3>
+<p>Returns an audio buffer containing a generated sound effect.</p>
+<p><code>settings</code> can either be a table containing any number of the following fields:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Field</th>
+<th align="left">Default value</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>wave_type</code></td>
+<td align="left"><code>&quot;square&quot;</code></td>
+<td align="left">Can also be <code>&quot;sawtooth&quot;</code>, <code>&quot;sine&quot;</code> or <code>&quot;noise&quot;</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>base_freq</code></td>
+<td align="left"><code>0.3</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>freq_limit</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>freq_ramp</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>freq_dramp</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>duty</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>duty_ramp</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>vib_strength</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>vib_speed</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>vib_delay</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>env_attack</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>env_sustain</code></td>
+<td align="left"><code>0.3</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>env_decay</code></td>
+<td align="left"><code>0.4</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>env_punch</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>filter_on</code></td>
+<td align="left"><code>false</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>lpf_resonance</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>lpf_freq</code></td>
+<td align="left"><code>1.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>lpf_ramp</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>hpf_freq</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>hpf_ramp</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>pha_offset</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>pha_ramp</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>repeat_speed</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><code>arp_speed</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>arp_mod</code></td>
+<td align="left"><code>0.0</code></td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>Alternatively settings can also be a numeric seed. Use the sfxr example in the <a href="http://www.amulet.xyz/editor.html">online editor</a>) to generate seeds.</p>
 <h2 id="audio-graphs">Audio graphs</h2>
 <p>TODO</p>
-<h2 id="analysing-audio">Analysing audio</h2>
+<p>(Amulet has support for building graphs of audio effect nodes, however it is currently undocumented because it will probably be changing shortly to use syntax more consistent with the way scene graphs are constructed.)</p>
+<h2 id="audio-graph-nodes">Audio graph nodes</h2>
 <p>TODO</p>
-<h2 id="audio-node-reference">Audio node reference</h2>
+<h2 id="analysing-audio">Analysing audio</h2>
 <p>TODO</p>
 <h1 id="extra-table-functions">Extra table functions</h1>
 <h3 id="table.shallow_copy" class="func-def">table.shallow_copy(t)</h3>

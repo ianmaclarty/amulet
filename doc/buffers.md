@@ -1,7 +1,7 @@
 
-# Buffers and views {#buffers-and-views}
-
 ![](images/screenshot5.jpg)
+
+# Buffers and views {#buffers-and-views}
 
 Buffers are contiguous blocks of memory. They are used for storing images,
 audio and vertex data, or anything else you like.
@@ -15,7 +15,7 @@ through a *view*.  Views provide a typed array-like interface to the buffer.
 
 Returns a new buffer of the given size in bytes.
 
-The buffer's memory will zeroed.
+The buffer's memory will be zeroed.
 
 The `#` operator can be used to retrieve the size of a buffer in bytes.
 

@@ -23,7 +23,7 @@ local white = vec4(1)
 local add_to_list
 
 local
-function button(x, y, label, gen, n)
+function button(x, y, label, gen, n, seed, buf)
     local x1, y1, x2, y2 = -90, -10, 4, 6
     local node = am.translate(x, y)
         ^ {
@@ -37,16 +37,14 @@ function button(x, y, label, gen, n)
             if pos.x - bpos.x > x1 and pos.x - bpos.x < x2 and
                 pos.y - bpos.y > y1 and pos.y - bpos.y < y2 
             then
-                local seed
                 if gen then
                     seed = math.random(1000000) * 100 + n
-                else
-                    seed = n
+                    buf = am.sfxr_synth(seed)
                 end
-                node:action(am.play(seed))
+                node:action(am.play(buf))
                 print("seed: "..seed)
                 if gen then
-                    add_to_list(seed)
+                    add_to_list(n, seed, buf)
                 end
             end
         end
@@ -56,15 +54,15 @@ end
 
 local list = am.group()
 
-function add_to_list(seed)
+function add_to_list(n, seed, buf)
     if list.num_children >= 10 then
         for i, child in list:child_pairs() do
             child.position2d = vec2(120, 100 - (i-2) * 20)
         end
         list:remove(list:child(1))
-        list:append(button(120, -80, seed, false, seed))
+        list:append(button(120, -80, seed, false, n, seed, buf))
     else
-        list:append(button(120, 100 - list.num_children * 20, seed, false, seed))
+        list:append(button(120, 100 - list.num_children * 20, seed, false, n, seed, buf))
     end
 end
 
