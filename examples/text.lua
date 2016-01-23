@@ -1,90 +1,23 @@
-local win = am.window{width = 800, height = 600}
+local win = am.window{title = "Text"}
 
-local strs = {
-[[
-Stay, you imperfect speakers, tell me more:
-By Sinel's death I know I am thane of Glamis;
-But how of Cawdor? the thane of Cawdor lives,
-A prosperous gentleman; and to be king
-Stands not within the prospect of belief,
-No more than to be Cawdor. Say from whence
-You owe this strange intelligence? or why
-Upon this blasted heath you stop our way
-With such prophetic greeting? Speak, I charge you.]],
-[[
-As whence the sun 'gins his reflection
-Shipwrecking storms and direful thunders break,
-So from that spring whence comfort seem'd to come
-Discomfort swells. Mark, king of Scotland, mark:
-No sooner justice had with valour arm'd
-Compell'd these skipping kerns to trust their heels,
-But the Norweyan lord surveying vantage,
-With furbish'd arms and new supplies of men
-Began a fresh assault.]],
-[[
-Yes;
-As sparrows eagles, or the hare the lion.
-If I say sooth, I must report they were
-As cannons overcharged with double cracks, so they
-Doubly redoubled strokes upon the foe:
-Except they meant to bathe in reeking wounds,
-Or memorise another Golgotha,
-I cannot tell.
-But I am faint, my gashes cry for help.]],
-[[
-From Fife, great king;
-Where the Norweyan banners flout the sky
-And fan our people cold. Norway himself,
-With terrible numbers,
-Assisted by that most disloyal traitor
-The thane of Cawdor, began a dismal conflict;
-Till that Bellona's bridegroom, lapp'd in proof,
-Confronted him with self-comparisons,
-Point against point rebellious, arm 'gainst arm.
-Curbing his lavish spirit: and, to conclude,
-The victory fell on us.]],
-[[
-I myself have all the other,
-And the very ports they blow,
-All the quarters that they know
-I' the shipman's card.
-I will drain him dry as hay:
-Sleep shall neither night nor day
-Hang upon his pent-house lid;
-He shall live a man forbid:
-Weary se'nnights nine times nine
-Shall he dwindle, peak and pine:
-Though his bark cannot be lost,
-Yet it shall be tempest-tost.
-Look what I have.]]
+win.scene = am.group{
+    -- background grey rectables for reference:
+    am.rect(-100, -240, 100, 240, vec4(0.2, 0.2, 0.2, 1)),
+    am.rect(-320, -100, 320, 100, vec4(0.2, 0.2, 0.2, 1)),
+    am.rect(-100, -100, 100, 100, vec4(0.3, 0.3, 0.3, 1)),
+
+    -- text nodes:
+    am.translate(-100, 100)
+    ^ am.scale(2)
+    ^ am.text("Centered")
+    ,
+    am.translate(100, 100)
+    ^ am.text("Left\nCenter\nAligned\nText", vec4(0, 1, 0.5, 1), "left")
+    ,
+    am.translate(-100, -100)
+    ^ am.text("Right\nBottom\nAligned\nText", vec4(1, 0, 0.5, 1), "right", "bottom")
+    ,
+    am.translate(100, -100)
+    ^ am.text("Left\nTop\nAligned\nText", vec4(1, 0.5, 0, 1), "left", "top")
 }
 
-win.scene =
-    am.bind{
-        MV = mat4(1),
-        P = math.ortho(0, win.width, 0, win.height)
-    }
-        :action(function()
-            if win:key_pressed("escape") then
-                win:close()
-            end
-        end)
-    ^am.translate("MV", vec3(200, 200, 0))
-    ^{
-        am.rect(0, 0, 0, 0, vec4(1, 0, 0, 1)),
-        am.text(strs[1], "left", "bottom"):action(coroutine.create(function(node)
-            while true do
-                am.wait(am.delay(2))
-                local str
-                repeat
-                    str = strs[math.random(#strs)]
-                until str ~= node.text
-                node.text = str
-                node.color = vec4(math.random(), math.random(), math.random(), 1)
-                local r = win.scene"rect"
-                r.x2 = node.width
-                r.y2 = node.height
-                r.color = 1 - node.color
-            end
-        end))
-    }

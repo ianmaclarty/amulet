@@ -477,6 +477,13 @@ The following functions supplement the standard Lua math functions.
 
 Returns +1 if n > 0, -1 if n < 0 and 0 if n == 0.
 
+### math.fract(v) {#math.fract .func-def}
+
+Returns the fractional part of `v`. If `v` is a vector
+it returns a vector of the same size with each component
+being the fractional part of the corresponding component
+in the original vector.
+
 ### math.randvec2() {#math.randvec2 .func-def}
 
 Returns a `vec2` with all components set to a random number

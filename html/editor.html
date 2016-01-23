@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="dialog.css">
     <link rel="stylesheet" href="editor.css">
     <link rel="icon" type="image/png" href="favicon.png">
-    <style type="text/css">
-    </style>
   </head>
   <body>
     <div id="top-panel">
@@ -21,15 +19,31 @@
         <div class="button"><select id="load"></select></div>
         <div class="button"><select id="loadexample">
             <option value="">Load example</option>
-            <option value="hello.lua">Hello, World!</option>
-            <option value="rgb_triangle.lua">RGB triangle</option>
-            <option value="paint.lua">Paint</option>
-            <option value="defenders.lua">Defenders of the Weeping Quasar</option>
-            <option value="sfxr.lua">SFXR</option>
-            <option value="particles.lua">Particles</option>
-            <option value="kaleidoscope.lua">Kaleidoscope</option>
-            <option value="city.lua">City Lights</option>
-            <option value="synth.lua">Synth</option>
+            <optgroup label="Basic">
+                <option value="shapes.lua">Shapes</option>
+                <option value="sprite.lua">Sprite</option>
+                <option value="transforms.lua">Transforms</option>
+                <option value="text.lua">Text</option>
+                <option value="actions.lua">Actions</option>
+                <option value="keyboard.lua">Keyboard</option>
+                <option value="mouse.lua">Mouse</option>
+                <option value="sounds.lua">Sounds</option>
+            </optgroup>
+            <optgroup label="Intermediate">
+                <option value="defenders.lua">Shoot-em-up</option>
+                <option value="paint.lua">Paint</option>
+                <option value="particles.lua">Particles</option>
+            </optgroup>
+            <optgroup label="Advanced">
+                <option value="rgb_triangle.lua">RGB triangle</option>
+                <option value="tunnel.lua">Tunnel</option>
+                <option value="kaleidoscope.lua">Kaleidoscope</option>
+                <option value="city.lua">City Lights</option>
+                <option value="synth.lua">Synth</option>
+            </optgroup>
+            <optgroup label="Tools">
+                <option value="sfxr.lua">SFXR</option>
+            </optgroup>
         </div>
         </select></div>
         <div class="button"><a id="delete">Delete</a></div>
