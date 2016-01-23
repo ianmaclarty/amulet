@@ -55,6 +55,10 @@ function init_canvas() {
         alert('WebGL context lost. You will need to reload the page or, failing that, restart your browser).');
         e.preventDefault();
     }, false);
+    canvas.addEventListener("contextmenu", function(e) { 
+        e.preventDefault();
+        return false;
+    });
     if (havePointerLock) {
         canvas.addEventListener("click", function() {
             if (window.amulet.pointer_lock_requested) {
