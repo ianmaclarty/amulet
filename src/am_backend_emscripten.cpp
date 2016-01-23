@@ -262,6 +262,7 @@ static void init_sdl() {
 
 static void update_mouse_state(lua_State *L) {
     am_window *win = am_find_window((am_native_window*)sdl_window);
+    if (!win) return;
     win->mouse_move(eng->L, (float)mouse_x, (float)mouse_y);
     win->mouse_wheel(eng->L, (double)mouse_wheel_x, (double)mouse_wheel_y);
 }
@@ -284,9 +285,12 @@ static bool handle_events() {
                         SDL_WM_ToggleFullScreen(sdl_window);
                     } else {
                         am_key key = convert_key(event.key.keysym.sym);
-                        am_find_window((am_native_window*)sdl_window)->push(eng->L);
-                        lua_pushstring(eng->L, am_key_name(key));
-                        was_error = !am_call_amulet(eng->L, "_key_down", 2, 0);
+                        am_window *win = am_find_window((am_native_window*)sdl_window);
+                        if (win) {
+                            win->push(eng->L);
+                            lua_pushstring(eng->L, am_key_name(key));
+                            was_error = !am_call_amulet(eng->L, "_key_down", 2, 0);
+                        }
                     }
                 }
                 break;
@@ -294,9 +298,12 @@ static bool handle_events() {
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
                     am_key key = convert_key(event.key.keysym.sym);
-                    am_find_window((am_native_window*)sdl_window)->push(eng->L);
-                    lua_pushstring(eng->L, am_key_name(key));
-                    was_error = !am_call_amulet(eng->L, "_key_up", 2, 0);
+                    am_window *win = am_find_window((am_native_window*)sdl_window);
+                    if (win) {
+                        win->push(eng->L);
+                        lua_pushstring(eng->L, am_key_name(key));
+                        was_error = !am_call_amulet(eng->L, "_key_up", 2, 0);
+                    }
                 }
                 break;
             }
@@ -313,15 +320,19 @@ static bool handle_events() {
             }
             case SDL_MOUSEBUTTONDOWN: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    am_find_window((am_native_window*)sdl_window)
-                        ->mouse_down(eng->L, convert_mouse_button(event.button.button));
+                    am_window *win = am_find_window((am_native_window*)sdl_window);
+                    if (win) {
+                        win->mouse_down(eng->L, convert_mouse_button(event.button.button));
+                    }
                 }
                 break;
             }
             case SDL_MOUSEBUTTONUP: {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    am_find_window((am_native_window*)sdl_window)
-                        ->mouse_up(eng->L, convert_mouse_button(event.button.button));
+                    am_window *win = am_find_window((am_native_window*)sdl_window);
+                    if (win) {
+                        win->mouse_up(eng->L, convert_mouse_button(event.button.button));
+                    }
                 }
                 break;
             }
