@@ -1,4 +1,4 @@
-local win = am.window{title = "Text"}
+win = am.window{title = "Text"}
 
 win.scene = am.group{
     -- background grey rectables for reference:

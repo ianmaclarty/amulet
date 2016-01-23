@@ -3,7 +3,7 @@ win = am.window{title = "Sprite",
     clear_color = vec4(0.6, 0.8, 1, 1)
 }
 
-local img = [[
+img = [[
 ...cc.ccc.
 .cccccccc.
 .cYYcYYYc.
