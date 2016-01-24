@@ -76,7 +76,7 @@ static bool add_files_to_pak(const char *zipfile, const char *rootdir, const cha
             return false;
         }
         free(buf);
-        printf("+ %s\n", name, zipfile);
+        printf("+ %s\n", name);
     }
     return true;
 }
