@@ -41,7 +41,7 @@ local cube = load_model("cube.obj")
 local modelview_matrix = mat4(1)
 
 local rotating_cube = 
-    am.read_param("M")
+    am.read_uniform("M")
     :action(function(node)
         modelview_matrix = node.value
         --log(modelview_matrix)
