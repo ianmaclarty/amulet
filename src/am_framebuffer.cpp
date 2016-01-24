@@ -45,7 +45,9 @@ void am_framebuffer::clear(bool clear_colorbuf, bool clear_depth, bool clear_ste
     if (clear_depth) {
         am_set_framebuffer_depth_mask(true);
     }
-    am_clear_framebuffer(clear_colorbuf, clear_depth, clear_stencil);
+    if (clear_colorbuf || clear_depth || clear_stencil) {
+        am_clear_framebuffer(clear_colorbuf, clear_depth, clear_stencil);
+    }
 }
 
 void am_framebuffer::destroy(lua_State *L) {
