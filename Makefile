@@ -259,7 +259,7 @@ clean:
 	rm -f $(BUILD_OBJ_DIR)/*
 	rm -f $(BUILD_BIN_DIR)/*
 	rm -f $(EMBEDDED_DATA_CPP_FILE)
-	rm =f $(VERSION_CPP_FILE)
+	rm -f $(VERSION_CPP_FILE)
 	rm -f amulet$(EXE_EXT)
 
 clean-target:
