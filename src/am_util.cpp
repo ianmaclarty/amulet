@@ -54,7 +54,7 @@ void am_delete_empty_dir(const char* dir) {
 
 void *am_read_file(const char *filename, size_t *len) {
     *len = 0;
-    FILE *f = fopen(filename, "r");
+    FILE *f = fopen(filename, "rb");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to open file %s\n", filename);
         return NULL;

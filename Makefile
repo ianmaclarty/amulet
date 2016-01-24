@@ -295,7 +295,7 @@ TESTS = $(patsubst tests/test_%.lua,test_%,$(wildcard tests/test_*.lua))
 test: run_tests
 
 .PHONY: run_tests
-run_tests: $(AMULET)
+run_tests: all
 	@echo Running tests...
 	@for t in $(TESTS); do \
 	    flua=tests/$$t.lua; \

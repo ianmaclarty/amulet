@@ -10,8 +10,10 @@ typedef struct {union {void* p; double d; long long l;} u;} am_align_struct;
 
 #ifdef AM_WINDOWS
 #define AM_PATH_SEP '\\'
+#define AM_PATH_SEP_STR "\\"
 #else
 #define AM_PATH_SEP '/'
+#define AM_PATH_SEP_STR "/"
 #endif
 
 #define AM_PI 3.14159265358979323846
