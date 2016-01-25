@@ -227,9 +227,14 @@ Renders `node` into the framebuffer.
 
 Renders `node`'s children into the framebuffer (but not `node` itself).
 
-### framebuffer:clear() {#framebuffer:clear .method-def}
+### framebuffer:clear([color [, depth [, stencil]]]) {#framebuffer:clear .method-def}
 
 Clears the framebuffer, using the current [`clear_color`](#framebuffer.clear_color).
+
+By default the color, depth and stencil buffers are
+cleared, but you can selectively clear only some buffers by
+setting the `color`, `depth` and `stencil` argumnets to `true`
+or `false`.
 
 ### framebuffer:read_back() {#framebuffer:read_back .method-def}
 
