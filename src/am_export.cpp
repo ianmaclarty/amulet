@@ -166,8 +166,6 @@ static char *get_bin_path(export_config *conf, const char *platform) {
     }
     char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", builds_path, platform, conf->luavm, conf->grade);
     if (!am_file_exists(bin_path)) {
-        fprintf(stderr, "Error: export configuration %s/%s/%s not available in your installation.\n", platform, conf->luavm, conf->grade);
-        fprintf(stderr, "(the path %s does not exist)\n", bin_path);
         free(bin_path);
         return NULL;
     }
@@ -182,7 +180,7 @@ static bool build_windows_export(export_config *conf) {
     char *zipname = get_export_zip_name(conf, "windows");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "msvc32");
-    if (binpath == NULL) return false;
+    if (binpath == NULL) return true;
     const char *name = conf->appshortname;
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
@@ -242,7 +240,7 @@ static bool build_mac_export(export_config *conf) {
     char *zipname = get_export_zip_name(conf, "mac");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "osx");
-    if (binpath == NULL) return false;
+    if (binpath == NULL) return true;
     if (!create_mac_info_plist(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
     const char *name = conf->appshortname;
     bool ok =
@@ -263,21 +261,24 @@ static bool build_linux_export(export_config *conf) {
     char *zipname = get_export_zip_name(conf, "linux");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath64 = get_bin_path(conf, "linux64");
-    if (binpath64 == NULL) return false;
     char *binpath32 = get_bin_path(conf, "linux32");
-    if (binpath32 == NULL) return false;
+    if (binpath64 == NULL && binpath32 == NULL) return true;
     const char *name = conf->appshortname;
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath64, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
+    if (ok && binpath32 != NULL) {
+        ok = add_files_to_dist(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX);
+    }
+    if (ok && binpath64 != NULL) {
+        ok = add_files_to_dist(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX);
+    }
     printf("Generated %s\n", zipname);
     free(zipname);
-    free(binpath32);
-    free(binpath64);
+    if (binpath32 != NULL) free(binpath32);
+    if (binpath64 != NULL) free(binpath64);
     return ok;
 }
 
@@ -285,7 +286,7 @@ static bool build_html_export(export_config *conf) {
     char *zipname = get_export_zip_name(conf, "html");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "html");
-    if (binpath == NULL) return false;
+    if (binpath == NULL) return true;
     const char *name = conf->appshortname;
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
