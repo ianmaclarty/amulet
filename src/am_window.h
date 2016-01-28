@@ -24,7 +24,6 @@ struct am_window : am_nonatomic_userdata {
     bool                has_stencil_buffer;
     bool                letterbox;
     glm::vec4           clear_color;
-    bool                lock_pointer;
     am_window_mode      mode;
     bool                dirty;
 

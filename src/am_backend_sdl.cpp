@@ -252,6 +252,20 @@ bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, 
     return false;
 }
 
+bool am_get_native_window_lock_pointer(am_native_window *window) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i].window == (SDL_Window*)window) {
+            SDL_Window *sdl_win = (SDL_Window*)window;
+            if (SDL_GetWindowFlags(sdl_win) & SDL_WINDOW_INPUT_FOCUS) {
+                return SDL_GetRelativeMouseMode() == SDL_TRUE;
+            } else {
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
 void am_set_native_window_lock_pointer(am_native_window *window, bool enabled) {
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window == (SDL_Window*)window) {

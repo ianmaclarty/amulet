@@ -1,5 +1,8 @@
 var status_timer;
 var is_in_editor = typeof in_editor !== "undefined";
+if (typeof log_output === "undefined") {
+    log_output = function(msg) {};
+}
 
 function getParameterByName(name) {
     name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -69,6 +72,7 @@ function init_canvas() {
                 canvas.requestPointerLock();
             }
         });
+        document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
     }
 }
 
@@ -236,13 +240,13 @@ var Module = {
       if (text == "ERROR") {
           if (handle_error) handle_error();
       } else {
-          if (log_output) log_output(text);
+          log_output(text);
       }
   },
   printErr: function(text) {
     text = Array.prototype.slice.call(arguments).join(' ');
     console.error(text);
-    if (log_output) log_output(text);
+    log_output(text);
   },
   canvas: document.getElementById("canvas"),
   keyboardListeningElement: document.getElementById("player-panel") || document,

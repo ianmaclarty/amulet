@@ -777,6 +777,10 @@ bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, 
     return false;
 }
 
+bool am_get_native_window_lock_pointer(am_native_window *window) {
+    return false;
+}
+
 void am_set_native_window_lock_pointer(am_native_window *window, bool lock) {
 }
 

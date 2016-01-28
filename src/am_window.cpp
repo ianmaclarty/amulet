@@ -110,7 +110,6 @@ static int create_window(lua_State *L) {
     win->has_depth_buffer = depth_buffer;
     win->has_stencil_buffer = stencil_buffer;
 
-    win->lock_pointer = lock_pointer;
     am_set_native_window_lock_pointer(win->native_win, lock_pointer);
     win->mode = mode;
     win->dirty = false;
@@ -530,14 +529,13 @@ static am_property projection_property = {get_projection, set_projection};
 
 static void get_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
-    lua_pushboolean(L, window->lock_pointer);
+    lua_pushboolean(L, am_get_native_window_lock_pointer(window->native_win));
 }
 
 static void set_lock_pointer(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     bool value = lua_toboolean(L, 3);
     am_set_native_window_lock_pointer(window->native_win, value);
-    window->lock_pointer = value;
 }
 
 static am_property lock_pointer_property = {get_lock_pointer, set_lock_pointer};

@@ -388,8 +388,13 @@ void am_set_native_window_lock_pointer(am_native_window *window, bool lock) {
     } else {
         EM_ASM(
             window.amulet.pointer_lock_requested = false;
+            if (document.exitPointerLock) document.exitPointerLock();
         );
     }
+}
+
+bool am_get_native_window_lock_pointer(am_native_window *window) {
+    return EM_ASM_INT({ return window.amulet.have_pointer_lock() ? 1 : 0; }, 0) == 1;
 }
 
 static am_key convert_key(SDL_Keycode key) {
