@@ -53,7 +53,7 @@ make
 ### Windows
 
 You will need to install [MinGW and MSYS](http://www.mingw.org/)
-as well as a MicroSoft Visual C compiler.
+as well as a Microsoft Visual C compiler.
 
 You will need to create your own version of msys.bat with something
 like the following at the top:
