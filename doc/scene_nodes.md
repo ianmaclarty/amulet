@@ -453,22 +453,22 @@ Fields:
 
 Default tag: `"circle"`.
 
-### am.line(point1, point2 [, color [, thickness]]) {#am.line .func-def}
+### am.line(point1, point2 [, thickness [, color]]) {#am.line .func-def}
 
 Draws a line from `point1` to `point2`.
 
 `point1` and `point1` should be `vec2`s.
 
-`color` should be a `vec4`. The default is white.
-
 `thickness` should be a number. The default is 1.
+
+`color` should be a `vec4`. The default is white.
 
 Fields:
 
 - `point1`: Updatable.
 - `point2`: Updatable.
-- `color`: Updatable.
 - `thickness`: Updatable.
+- `color`: Updatable.
 
 Default tag: `"line"`.
 
