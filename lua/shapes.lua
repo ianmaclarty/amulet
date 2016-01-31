@@ -3,8 +3,10 @@
 -- |\|
 -- 2-3
 
+local cached_rect_indices = am.ushort_elem_array{1, 2, 3, 1, 3, 4}
+
 function am.rect_indices() 
-    return am.ushort_elem_array{1, 2, 3, 1, 3, 4}
+    return cached_rect_indices
 end
 
 function am.rect_verts_2d(x1, y1, x2, y2)
@@ -49,7 +51,7 @@ function am.rect(x1, y1, x2, y2, color)
             vert = verts,
             color = color,
         }
-        ^am.draw("triangles", am.rect_indices())
+        ^am.draw("triangles", cached_rect_indices)
     node.verts = verts
     for prop, func in pairs(rect_props) do
         node[prop] = func
@@ -165,7 +167,7 @@ function am.line(point1, point2, thickness, color)
             vert = verts,
             color = color,
         }
-        ^am.draw("triangles", am.rect_indices())
+        ^am.draw("triangles", cached_rect_indices)
     function node:get_point1()
         return point1
     end
