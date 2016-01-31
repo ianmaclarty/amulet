@@ -38,6 +38,7 @@ function clear_keys(win)
 end
 
 function window_mt.key_down(win, key)
+    key = tostring(key)
     local u = win._event_data
     local state0 = u._key_state0[key]
     local presses = u._key_presses[key] or 0
@@ -57,11 +58,13 @@ function window_mt.keys_down(win)
 end
 
 function window_mt.key_pressed(win, key)
+    key = tostring(key)
     local u = win._event_data
     return not u._key_state0[key] and (u._key_presses[key] or 0) > 0
 end
 
 function window_mt.key_released(win, key)
+    key = tostring(key)
     local u = win._event_data
     return u._key_state0[key] and (u._key_releases[key] or 0) > 0
 end
