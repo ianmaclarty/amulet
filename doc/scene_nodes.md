@@ -434,7 +434,7 @@ Default tag: `"rect"`.
 
 ### am.circle(center, radius [, color [, sides]]) {#am.circle .func-def}
 
-Draws a circle.
+Draws a circle or regular polygon.
 
 `center` should be a `vec2`.
 
@@ -452,6 +452,25 @@ Fields:
 - `color`: The circle color as a `vec4`. Updatable.
 
 Default tag: `"circle"`.
+
+### am.line(point1, point2 [, color [, thickness]]) {#am.line .func-def}
+
+Draws a line from `point1` to `point2`.
+
+`point1` and `point1` should be `vec2`s.
+
+`color` should be a `vec4`. The default is white.
+
+`thickness` should be a number. The default is 1.
+
+Fields:
+
+- `point1`: Updatable.
+- `point2`: Updatable.
+- `color`: Updatable.
+- `thickness`: Updatable.
+
+Default tag: `"line"`.
 
 ### am.particles2d(settings) {#am.particles2d .func-def}
 

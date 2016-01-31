@@ -235,6 +235,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.sprite">am.sprite(source [, color] [, halign [, valign]])</a></li>
 <li><a href="#am.rect">am.rect(x1, y1, x2, y2 [, color])</a></li>
 <li><a href="#am.circle">am.circle(center, radius [, color [, sides]])</a></li>
+<li><a href="#am.line">am.line(point1, point2 [, color [, thickness]])</a></li>
 <li><a href="#am.particles2d">am.particles2d(settings)</a></li>
 </ul></li>
 <li><a href="#transformation-nodes-1">Transformation nodes</a><ul>
@@ -1923,7 +1924,7 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 </ul>
 <p>Default tag: <code>&quot;rect&quot;</code>.</p>
 <h3 id="am.circle" class="func-def">am.circle(center, radius [, color [, sides]])</h3>
-<p>Draws a circle.</p>
+<p>Draws a circle or regular polygon.</p>
 <p><code>center</code> should be a <code>vec2</code>.</p>
 <p><code>color</code> should be a <code>vec4</code>. The default is white.</p>
 <p><code>sides</code> is the number of sides to use when rendering the circle. The default is 255. You can change this to make other regular polygons. For example change it to 6 to draw a hexagon.</p>
@@ -1934,6 +1935,19 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <li><code>color</code>: The circle color as a <code>vec4</code>. Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;circle&quot;</code>.</p>
+<h3 id="am.line" class="func-def">am.line(point1, point2 [, color [, thickness]])</h3>
+<p>Draws a line from <code>point1</code> to <code>point2</code>.</p>
+<p><code>point1</code> and <code>point1</code> should be <code>vec2</code>s.</p>
+<p><code>color</code> should be a <code>vec4</code>. The default is white.</p>
+<p><code>thickness</code> should be a number. The default is 1.</p>
+<p>Fields:</p>
+<ul>
+<li><code>point1</code>: Updatable.</li>
+<li><code>point2</code>: Updatable.</li>
+<li><code>color</code>: Updatable.</li>
+<li><code>thickness</code>: Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;line&quot;</code>.</p>
 <h3 id="am.particles2d" class="func-def">am.particles2d(settings)</h3>
 <p>Renders a simple 2D particle system.</p>
 <p><code>settings</code> should be a table with any of the following fields:</p>

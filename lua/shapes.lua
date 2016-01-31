@@ -140,3 +140,60 @@ function am.circle(center, radius, color, sides)
     node:tag"circle"
     return node
 end
+
+function am.line(point1, point2, thickness, color)
+    thickness = thickness or 1
+    color = color or vec4(1)
+    local verts = am.buffer(4 * 2 * 4):view("vec2")
+    local
+    function set_verts()
+        local slope = math.normalize(point2 - point1)
+        local os1_x = -slope.y * thickness / 2
+        local os1_y = slope.x * thickness / 2
+        local os2_x = slope.y * thickness / 2
+        local os2_y = -slope.x * thickness / 2
+        local x1 = point1.x
+        local y1 = point1.y
+        local x2 = point2.x
+        local y2 = point2.y
+        verts:set{os1_x + x1, os1_y + y1, os2_x + x1, os2_y + y1, os2_x + x2, os2_y + y2, os1_x + x2, os1_y + y2}
+    end
+    set_verts()
+    local node =
+        am.use_program(am.shaders.color2d)
+        ^am.bind{
+            vert = verts,
+            color = color,
+        }
+        ^am.draw("triangles", am.rect_indices())
+    function node:get_point1()
+        return point1
+    end
+    function node:set_point1(p)
+        point1 = p
+        set_verts()
+    end
+    function node:get_point2()
+        return point2
+    end
+    function node:set_point2(p)
+        point2 = p
+        set_verts()
+    end
+    function node:get_thickness()
+        return thickness
+    end
+    function node:set_thickness(t)
+        thickness = t
+        set_verts()
+    end
+    function node:get_color()
+        return color
+    end
+    function node:set_color(c)
+        color = c
+        node"bind".color = color
+    end
+    node:tag"line"
+    return node
+end
