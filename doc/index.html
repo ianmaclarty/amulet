@@ -310,7 +310,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#framebuffer-methods">Framebuffer methods</a><ul>
 <li><a href="#framebuffer:render">framebuffer:render(node)</a></li>
 <li><a href="#framebuffer:render_children">framebuffer:render_children(node)</a></li>
-<li><a href="#framebuffer:clear">framebuffer:clear()</a></li>
+<li><a href="#framebuffer:clear">framebuffer:clear([color [, depth [, stencil]]])</a></li>
 <li><a href="#framebuffer:read_back">framebuffer:read_back()</a></li>
 <li><a href="#framebuffer:resize">framebuffer:resize(width, height)</a></li>
 </ul></li>
@@ -395,6 +395,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#amulet-require-function">Amulet require function</a></li>
 <li><a href="#logging">Logging</a><ul>
 <li><a href="#log">log(msg, ...)</a></li>
+</ul></li>
+<li><a href="#preventing-accidental-global-variable-usage">Preventing accidental global variable usage</a><ul>
+<li><a href="#noglobals">noglobals()</a></li>
 </ul></li>
 <li><a href="#running-javascript">Running JavaScript</a><ul>
 <li><a href="#am.eval_js">am.eval_js(js)</a></li>
@@ -2506,8 +2509,9 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>Renders <code>node</code> into the framebuffer.</p>
 <h3 id="framebuffer:render_children" class="method-def">framebuffer:render_children(node)</h3>
 <p>Renders <code>node</code>'s children into the framebuffer (but not <code>node</code> itself).</p>
-<h3 id="framebuffer:clear" class="method-def">framebuffer:clear()</h3>
+<h3 id="framebuffer:clear" class="method-def">framebuffer:clear([color [, depth [, stencil]]])</h3>
 <p>Clears the framebuffer, using the current <a href="#framebuffer.clear_color"><code>clear_color</code></a>.</p>
+<p>By default the color, depth and stencil buffers are cleared, but you can selectively clear only some buffers by setting the <code>color</code>, <code>depth</code> and <code>stencil</code> argumnets to <code>true</code> or <code>false</code>.</p>
 <h3 id="framebuffer:read_back" class="method-def">framebuffer:read_back()</h3>
 <p>Reads the pixels from the framebuffer into the texture's backing image buffer. This is a relatively slow operation, so use it sparingly.</p>
 <h3 id="framebuffer:resize" class="method-def">framebuffer:resize(width, height)</h3>
@@ -2900,6 +2904,9 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="fu">log</span><span class="ot">(</span><span class="st">&quot;here&quot;</span><span class="ot">)</span>
 <span class="fu">log</span><span class="ot">(</span><span class="st">&quot;num = %g, string = %s&quot;</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="st">&quot;two&quot;</span><span class="ot">)</span></code></pre></div>
+<h1 id="preventing-accidental-global-variable-usage">Preventing accidental global variable usage</h1>
+<h3 id="noglobals" class="func-def">noglobals()</h3>
+<p>Prevents the creation of new global variables. An error will be raised if a new global is created after this call, or if an attempt is made to read a nil global.</p>
 <h1 id="running-javascript">Running JavaScript</h1>
 <h3 id="am.eval_js" class="func-def">am.eval_js(js)</h3>
 <p>Runs the given JavaScript string and returns the result as a Lua value. JavaScript objects and arrays are converted to Lua tables and other JavaScript types are converted to the corresponding Lua types. <code>undefined</code> is converted to <code>nil</code>.</p>

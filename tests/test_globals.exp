@@ -1,0 +1,2 @@
+test_globals.lua:8: attempt to set global globals2
+test_globals.lua:13: attempt to reference missing global globals2

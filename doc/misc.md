@@ -18,6 +18,14 @@ log("here")
 log("num = %g, string = %s", 1, "two")
 ~~~
 
+# Preventing accidental global variable usage
+
+### noglobals() {#noglobals .func-def}
+
+Prevents the creation of new global variables.
+An error will be raised if a new global is created after this
+call, or if an attempt is made to read a nil global.
+
 # Running JavaScript
 
 ### am.eval_js(js) {#am.eval_js .func-def}

@@ -314,3 +314,17 @@ function log1(fmt, ...)
     end
 end
 rawset(_G, "log1", log1)
+
+local
+function noglobals()
+    setmetatable(_G, {
+        __index = function(t, k)
+            error("attempt to reference missing global "..tostring(k), 2)
+        end,
+        __newindex = function(t, k, v)
+            error("attempt to set global "..tostring(k), 2)
+        end,
+    })
+end
+
+rawset(_G, "noglobals", noglobals)
