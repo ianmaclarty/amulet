@@ -144,7 +144,7 @@ code.lua span.co {
 }
 
 code.lua {
-    overflow-x: scroll;
+    overflow-x: auto;
 }
 
 .output code {

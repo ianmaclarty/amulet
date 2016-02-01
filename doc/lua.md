@@ -203,14 +203,59 @@ Special syntax is provided for adding functions
 to tables:
 
 ~~~ {.lua}
-local t = {x = 3}
+local t = {}
 function t.say_hello()
     print("hello")
 end
+~~~
+
+This is equivalent to:
+
+~~~ {.lua}
+local t = {}
+t.say_hello = function()
+    print("hello")
+end
+~~~
+
+Special syntactic sugar allows you to use function fields
+like methods in object oriented languages:
+
+The code:
+
+~~~ {.lua}
+function t:f()
+    ...
+end
+~~~
+
+is equivalent to:
+
+~~~ {.lua}
+function t.f(self)
+    ...
+end
+~~~
+
+and the code:
+
+~~~ {.lua}
+t:f()
+~~~
+
+is equivalent to:
+
+~~~ {.lua}
+t.f(t)
+~~~
+
+For example:
+
+~~~ {.lua}
+local t = {x = 3}
 function t:print_x()
     print(self.x)
 end
-t.say_hello() -- prints hello
 t:print_x()   -- prints 3
 t.x = 4
 t:print_x()   -- prints 4

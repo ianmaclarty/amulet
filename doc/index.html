@@ -564,14 +564,33 @@ t<span class="ot">.</span>score <span class="ot">=</span> <span class="dv">10</s
 <span class="kw">end</span>
 <span class="fu">print</span><span class="ot">(</span>add<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">))</span> <span class="co">-- prints 3</span></code></pre></div>
 <p>Special syntax is provided for adding functions to tables:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{</span>x <span class="ot">=</span> <span class="dv">3</span><span class="ot">}</span>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{}</span>
 <span class="kw">function</span> t<span class="ot">.</span>say_hello<span class="ot">()</span>
     <span class="fu">print</span><span class="ot">(</span><span class="st">&quot;hello&quot;</span><span class="ot">)</span>
-<span class="kw">end</span>
+<span class="kw">end</span></code></pre></div>
+<p>This is equivalent to:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{}</span>
+t<span class="ot">.</span>say_hello <span class="ot">=</span> <span class="kw">function</span><span class="ot">()</span>
+    <span class="fu">print</span><span class="ot">(</span><span class="st">&quot;hello&quot;</span><span class="ot">)</span>
+<span class="kw">end</span></code></pre></div>
+<p>Special syntactic sugar allows you to use function fields like methods in object oriented languages:</p>
+<p>The code:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> t:f<span class="ot">()</span>
+    <span class="ot">...</span>
+<span class="kw">end</span></code></pre></div>
+<p>is equivalent to:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> t<span class="ot">.</span>f<span class="ot">(</span>self<span class="ot">)</span>
+    <span class="ot">...</span>
+<span class="kw">end</span></code></pre></div>
+<p>and the code:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">t:f<span class="ot">()</span></code></pre></div>
+<p>is equivalent to:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">t<span class="ot">.</span>f<span class="ot">(</span>t<span class="ot">)</span></code></pre></div>
+<p>For example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{</span>x <span class="ot">=</span> <span class="dv">3</span><span class="ot">}</span>
 <span class="kw">function</span> t:print_x<span class="ot">()</span>
     <span class="fu">print</span><span class="ot">(</span>self<span class="ot">.</span>x<span class="ot">)</span>
 <span class="kw">end</span>
-t<span class="ot">.</span>say_hello<span class="ot">()</span> <span class="co">-- prints hello</span>
 t:print_x<span class="ot">()</span>   <span class="co">-- prints 3</span>
 t<span class="ot">.</span>x <span class="ot">=</span> <span class="dv">4</span>
 t:print_x<span class="ot">()</span>   <span class="co">-- prints 4</span></code></pre></div>
