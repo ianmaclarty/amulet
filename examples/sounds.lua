@@ -17,7 +17,7 @@ for i = 0, 11 do
                 if win:mouse_pressed"left" or not playing and win:mouse_down"left" then
                     playing = true
                     local pitch = 2 ^ (i / 12 - 3 + j)
-                    rect.color = 1 - color
+                    rect.color = vec4(1 - color.rgb, 1)
                     rect:action("sound", am.series{
                         am.play(55581500, false, pitch),
                         function()
