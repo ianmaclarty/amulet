@@ -30,7 +30,7 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, b
     if (status != AM_FRAMEBUFFER_STATUS_COMPLETE) {
         luaL_error(L, "framebuffer incomplete");
     }
-    clear_color = clear_color;
+    am_framebuffer::clear_color = clear_color;
     user_projection = false;
     float w = (float)width;
     float h = (float)height;

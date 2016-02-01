@@ -183,7 +183,7 @@ function am.text(font, str, color, halign, valign)
     local w, h = set_text_verts(font, str, verts, uvs, halign, valign)
     local node =
         am.blend(font.is_premult and "premult" or "alpha")
-        ^am.use_program(am.shaders.texturecolor2d)
+        ^am.use_program(font.is_premult and am.shaders.premult_texturecolor2d or am.shaders.texturecolor2d)
         ^am.bind{
             vert = verts,
             uv = uvs,
@@ -384,7 +384,7 @@ function am.sprite(image0, color, halign, valign)
     set_sprite_verts(image, verts, uvs, halign, valign)
     local node =
         am.blend(image.is_premult and "premult" or "alpha")
-        ^am.use_program(am.shaders.texturecolor2d)
+        ^am.use_program(image.is_premult and am.shaders.premult_texturecolor2d or am.shaders.texturecolor2d)
         ^am.bind{
             vert = verts,
             uv = uvs,

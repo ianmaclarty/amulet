@@ -47,6 +47,7 @@ function am.rect(x1, y1, x2, y2, color)
     color = color or vec4(1)
     local verts = am.rect_verts_2d(x1, y1, x2, y2)
     local node = am.use_program(am.shaders.color2d)
+        ^am.blend"alpha"
         ^am.bind{
             vert = verts,
             color = color,
@@ -112,6 +113,7 @@ function am.circle(center, radius, color, sides)
         am.translate(center)
         ^am.scale(radius)
         ^am.use_program(am.shaders.color2d)
+        ^am.blend"alpha"
         ^am.bind{
             vert = verts,
             color = color,
@@ -163,6 +165,7 @@ function am.line(point1, point2, thickness, color)
     set_verts()
     local node =
         am.use_program(am.shaders.color2d)
+        ^am.blend"alpha"
         ^am.bind{
             vert = verts,
             color = color,
