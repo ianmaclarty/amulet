@@ -21,7 +21,7 @@ for i = 1, show do
     scene:append(rects[i])
 end
 
-win.scene = scene:bind{MV = mat4(1), P = mat4(1)}
+win.scene = am.bind{MV = mat4(1), P = mat4(1)} ^ scene
 scene:action(function()
     if win:key_pressed("escape") then
         win:close()
