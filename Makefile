@@ -277,7 +277,7 @@ doc:
 
 # Binary distribution license
 
-$(DIST_LICENSE): LICENSE
+$(DIST_LICENSE): LICENSE | $(BUILD_BIN_DIR)
 	@echo This work uses the Amulet engine \(http://www.amulet.xyz\). > $@
 	@echo >> $@
 	@echo THE FOLLOWING LICENSE APPLIES ONLY TO THE >> $@
