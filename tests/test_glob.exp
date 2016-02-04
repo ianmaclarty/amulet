@@ -2,3 +2,9 @@
     "tests/file1.glb",
     "tests/file2.glb",
 }
+{
+    "tests/file1.glb",
+    "tests/file2.glb",
+    "tests/file3.glb2",
+    "tests/submodules/",
+}

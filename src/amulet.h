@@ -32,7 +32,9 @@
 #endif
 
 #if defined(AM_WINDOWS) || defined(AM_LINUX) || defined(AM_OSX)
-    #define AM_BUILD_TOOLS
+    #define AM_HAVE_GLOB
+    #define AM_EXPORT
+    #define AM_SPRITEPACK
 #endif
 
 #if defined(AM_GLPROFILE_ES) && defined(AM_WINDOWS) || defined(AM_LINUX)
@@ -135,6 +137,7 @@ extern "C" {
 #include "am_export.h"
 #include "am_rand.h"
 #include "am_sfxr.h"
+#include "am_glob.h"
 
 #undef near
 #undef far

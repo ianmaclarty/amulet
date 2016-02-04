@@ -124,11 +124,13 @@ static bool help_cmd(int *argc, char ***argv) {
         "The available commands are:\n"
         "  help [ <command> ] Show help.\n"
         "  version            Show version.\n"
-#ifdef AM_BUILD_TOOLS
+#ifdef AM_EXPORT
         "  export [ <dir> ]   Generate distribution packages.\n"
-        "  pack ...           Generate sprite sheet from images or fonts.\n"
-        "\n"
 #endif
+#ifdef AM_SPRITEPACK
+        "  pack ...           Generate sprite sheet from images or fonts.\n"
+#endif
+        "\n"
        /*-------------------------------------------------------------------------------*/
     );
     return true;
@@ -140,7 +142,7 @@ static bool version_cmd(int *argc, char ***argv) {
 }
 
 static bool export_cmd(int *argc, char ***argv) {
-#ifdef AM_BUILD_TOOLS
+#ifdef AM_EXPORT
     char *dir = (char*)".";
     if (*argc > 0) {
         dir = (*argv)[0];
@@ -156,7 +158,7 @@ static bool export_cmd(int *argc, char ***argv) {
 }
 
 static bool pack_cmd(int *argc, char ***argv) {
-#ifdef AM_BUILD_TOOLS
+#ifdef AM_SPRITEPACK
     return am_pack_sprites(*argc, *argv);
 #else
     fprintf(stderr, "Sorry, the pack command is not supported on this platform.\n");

@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-#ifdef AM_BUILD_TOOLS
+#ifdef AM_EXPORT
 
 #include "SimpleGlob.h"
 

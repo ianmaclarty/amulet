@@ -26,6 +26,26 @@ Prevents the creation of new global variables.
 An error will be raised if a new global is created after this
 call, or if an attempt is made to read a nil global.
 
+# Globbing
+
+### am.glob(patterns) {#am.glob .func-def}
+
+Returns an array (table) of file names matching the given glob pattern(s).
+`patterns` should be a table of glob pattern strings.
+A glob pattern is a file path with zero or more wildcard (`*`) characters.
+
+Any matching files that are directories will have a slash (`/`)
+appended to their names (even on Windows).
+
+The slash character (`/`) can be used as a directory separator
+on Windows. You don't need to use backslash (`\`).
+
+Example:
+
+~~~ {.lua}
+local image_files = am.glob{"images/*.png", "images/*.jpg"}
+~~~
+
 # Running JavaScript
 
 ### am.eval_js(js) {#am.eval_js .func-def}

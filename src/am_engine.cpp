@@ -44,7 +44,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     am_open_http_module(L);
     am_open_browser_module(L);
     am_open_rand_module(L);
-    am_open_sfxr_module(L);
+    am_open_glob_module(L);
     if (!worker) {
         am_open_actions_module(L);
         am_open_window_module(L);
@@ -60,6 +60,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_transforms_module(L);
         am_open_renderer_module(L);
         am_open_audio_module(L);
+        am_open_sfxr_module(L);
     }
     am_set_version(L);
     am_set_dirs(L);

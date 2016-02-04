@@ -75,7 +75,7 @@ void *am_read_file(const char *filename, size_t *len) {
     return buf;
 }
 
-#ifdef AM_BUILD_TOOLS
+#ifdef AM_HAVE_GLOB
 
 #include "SimpleGlob.h"
 

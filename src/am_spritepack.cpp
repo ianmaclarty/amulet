@@ -1,5 +1,5 @@
 #include "amulet.h"
-#ifdef AM_BUILD_TOOLS
+#ifdef AM_SPRITEPACK
 
 #include "ft2build.h"
 #include FT_FREETYPE_H

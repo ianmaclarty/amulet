@@ -400,6 +400,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#preventing-accidental-global-variable-usage">Preventing accidental global variable usage</a><ul>
 <li><a href="#noglobals">noglobals()</a></li>
 </ul></li>
+<li><a href="#globbing">Globbing</a><ul>
+<li><a href="#am.glob">am.glob(patterns)</a></li>
+</ul></li>
 <li><a href="#running-javascript">Running JavaScript</a><ul>
 <li><a href="#am.eval_js">am.eval_js(js)</a></li>
 </ul></li>
@@ -2940,6 +2943,13 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <h1 id="preventing-accidental-global-variable-usage">Preventing accidental global variable usage</h1>
 <h3 id="noglobals" class="func-def">noglobals()</h3>
 <p>Prevents the creation of new global variables. An error will be raised if a new global is created after this call, or if an attempt is made to read a nil global.</p>
+<h1 id="globbing">Globbing</h1>
+<h3 id="am.glob" class="func-def">am.glob(patterns)</h3>
+<p>Returns an array (table) of file names matching the given glob pattern(s). <code>patterns</code> should be a table of glob pattern strings. A glob pattern is a file path with zero or more wildcard (<code>*</code>) characters.</p>
+<p>Any matching files that are directories will have a slash (<code>/</code>) appended to their names (even on Windows).</p>
+<p>The slash character (<code>/</code>) can be used as a directory separator on Windows. You don't need to use backslash (<code>\</code>).</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> image_files <span class="ot">=</span> am<span class="ot">.</span>glob<span class="ot">{</span><span class="st">&quot;images/*.png&quot;</span><span class="ot">,</span> <span class="st">&quot;images/*.jpg&quot;</span><span class="ot">}</span></code></pre></div>
 <h1 id="running-javascript">Running JavaScript</h1>
 <h3 id="am.eval_js" class="func-def">am.eval_js(js)</h3>
 <p>Runs the given JavaScript string and returns the result as a Lua value. JavaScript objects and arrays are converted to Lua tables and other JavaScript types are converted to the corresponding Lua types. <code>undefined</code> is converted to <code>nil</code>.</p>
