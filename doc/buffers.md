@@ -129,7 +129,7 @@ is a vector, then the elements of the table will be used to set the
 components of the vectors in the view. For example:
 
 ~~~ {.lua}
-local verts = am.buffer(32):view("vec3")
+local verts = am.buffer(24):view("vec3")
 verts:set{1, 2, 3, 4, 5, 6}
 print(verts[1]) -- vec3(1, 2, 3)
 print(verts[2]) -- vec3(4, 5, 6)

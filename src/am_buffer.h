@@ -44,6 +44,8 @@ struct am_buffer : am_nonatomic_userdata {
     void update_if_dirty();
 
     void mark_dirty(int byte_start, int byte_end) {
+        assert(byte_start >= 0);
+        assert(byte_end <= size);
         if (track_dirty) {
             if (byte_start < dirty_start) {
                 dirty_start = byte_start;

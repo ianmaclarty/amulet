@@ -138,6 +138,36 @@ static int save_image_as_png(lua_State *L) {
     return 0;
 }
 
+static int paste(lua_State *L) {
+    am_check_nargs(L, 4);
+    am_image_buffer *dst = am_get_userdata(L, am_image_buffer, 1);
+    am_image_buffer *src = am_get_userdata(L, am_image_buffer, 2);
+    int start_x = lua_tointeger(L, 3) - 1;
+    int start_y = lua_tointeger(L, 4) - 1;
+    if (start_x < 0) luaL_argerror(L, 3, "must be a positive integer");
+    if (start_y < 0) luaL_argerror(L, 4, "must be a positive integer");
+    if (src->format != dst->format) luaL_error(L, "images must have the same format");
+    int src_w = src->width;
+    int src_h = src->height;
+    int dst_w = dst->width;
+    int dst_h = dst->height;
+    if (start_x >= dst_w) return 0;
+    if (start_y >= dst_h) return 0;
+    int pitch = am_min(dst_w - start_x, src_w);
+    int end_y = am_min(dst_h - start_y, src_h);
+    uint8_t *src_data = src->buffer->data;
+    uint8_t *dst_data = dst->buffer->data;
+    int psz = pixel_format_size(src->format);
+    int row_size = pitch * psz;
+    int j = start_y;
+    for (int i = 0; i < end_y; i++) {
+        memmove(dst_data + j * dst_w * psz + start_x * psz, src_data + i * src_w * psz, row_size);
+        j++;
+    }
+    dst->buffer->mark_dirty(start_y * dst_w * psz + start_x * psz, (start_y + end_y - 1) * psz + (start_x + pitch) * psz);
+    return 0;
+}
+
 static int encode_png(lua_State *L) {
     am_check_nargs(L, 1);
     am_image_buffer *img = am_get_userdata(L, am_image_buffer, 1);
@@ -211,6 +241,11 @@ static void register_image_mt(lua_State *L) {
     am_register_property(L, "width", &image_width_property);
     am_register_property(L, "height", &image_height_property);
     am_register_property(L, "buffer", &image_buffer_property);
+    
+    lua_pushcclosure(L, save_image_as_png, 0);
+    lua_setfield(L, -2, "save_png");
+    lua_pushcclosure(L, paste, 0);
+    lua_setfield(L, -2, "paste");
 
     am_register_metatable(L, "image_buffer", MT_am_image_buffer, 0);
 }

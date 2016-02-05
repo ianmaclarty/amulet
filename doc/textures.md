@@ -29,11 +29,19 @@ Fields:
 Loads the given image file and returns a new image buffer.
 Only `.png` and `.jpg` files are supported.
 
-## Saving images.
+## Saving images
 
-### am.save_image_as_png(image_buffer, filename) {#am.save_image_as_png .func-def}
+### image_buffer:save_png(filename) {#image_buffer:save_png .method-def}
 
 Saves the given image as a png in `filename`.
+
+## Pasting images
+
+### image_buffer:paste(src, x, y) {#image_buffer:paste .method-def}
+
+Pastes one image into another such that the bottom-left corner
+of the source image is at the given pixel coordinate in the target image.
+The bottom-left pixel of the target image has coordinate (1, 1).
 
 ## Decoding/encoding PNGs
 

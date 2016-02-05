@@ -272,8 +272,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.image_buffer">am.image_buffer([buffer, ] width [, height])</a></li>
 <li><a href="#am.load_image">am.load_image(filename)</a></li>
 </ul></li>
-<li><a href="#saving-images.">Saving images.</a><ul>
-<li><a href="#am.save_image_as_png">am.save_image_as_png(image_buffer, filename)</a></li>
+<li><a href="#saving-images">Saving images</a><ul>
+<li><a href="#image_buffer:save_png">image_buffer:save_png(filename)</a></li>
+</ul></li>
+<li><a href="#pasting-images">Pasting images</a><ul>
+<li><a href="#image_buffer:paste">image_buffer:paste(src, x, y)</a></li>
 </ul></li>
 <li><a href="#decodingencoding-pngs">Decoding/encoding PNGs</a><ul>
 <li><a href="#am.encode_png">am.encode_png(image_buffer)</a></li>
@@ -1428,7 +1431,7 @@ view<span class="ot">[</span><span class="dv">2</span><span class="ot">]</span> 
 <p>If <code>val</code> is a number or vector then this sets up to <code>count</code> elements of <code>view</code> to <code>val</code>. If <code>count</code> is omitted all the elements are set.</p>
 <p>If <code>val</code> is a table then the elements are set to their corresponding values from the table. If <code>count</code> is given then at most <code>count</code> elements are set (fewer may be set if the table has less than <code>count</code> elements).</p>
 <p>As a special case, if <code>val</code> is a table of numbers and the view's type is a vector, then the elements of the table will be used to set the components of the vectors in the view. For example:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> verts <span class="ot">=</span> am<span class="ot">.</span>buffer<span class="ot">(</span><span class="dv">32</span><span class="ot">)</span>:view<span class="ot">(</span><span class="st">&quot;vec3&quot;</span><span class="ot">)</span>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> verts <span class="ot">=</span> am<span class="ot">.</span>buffer<span class="ot">(</span><span class="dv">24</span><span class="ot">)</span>:view<span class="ot">(</span><span class="st">&quot;vec3&quot;</span><span class="ot">)</span>
 verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">}</span>
 <span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">1</span><span class="ot">])</span> <span class="co">-- vec3(1, 2, 3)</span>
 <span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">2</span><span class="ot">])</span> <span class="co">-- vec3(4, 5, 6)</span></code></pre></div>
@@ -2438,9 +2441,12 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 </ul>
 <h3 id="am.load_image" class="func-def">am.load_image(filename)</h3>
 <p>Loads the given image file and returns a new image buffer. Only <code>.png</code> and <code>.jpg</code> files are supported.</p>
-<h2 id="saving-images.">Saving images.</h2>
-<h3 id="am.save_image_as_png" class="func-def">am.save_image_as_png(image_buffer, filename)</h3>
+<h2 id="saving-images">Saving images</h2>
+<h3 id="image_buffer:save_png" class="method-def">image_buffer:save_png(filename)</h3>
 <p>Saves the given image as a png in <code>filename</code>.</p>
+<h2 id="pasting-images">Pasting images</h2>
+<h3 id="image_buffer:paste" class="method-def">image_buffer:paste(src, x, y)</h3>
+<p>Pastes one image into another such that the bottom-left corner of the source image is at the given pixel coordinate in the target image. The bottom-left pixel of the target image has coordinate (1, 1).</p>
 <h2 id="decodingencoding-pngs">Decoding/encoding PNGs</h2>
 <h3 id="am.encode_png" class="func-def">am.encode_png(image_buffer)</h3>
 <p>Returns a raw buffer containing the png encoding of the given image.</p>
