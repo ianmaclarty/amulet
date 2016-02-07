@@ -142,6 +142,7 @@ static int resize(lua_State *L) {
     if (w <= 0) return luaL_error(L, "width must be positive");
     if (h <= 0) return luaL_error(L, "height must be positive");
     am_texture2d *color_at = fb->color_attachment0;
+    if (color_at->width == w && color_at->height == h) return 0; // nothing to do
     if (color_at->image_buffer != NULL) {
         return luaL_error(L, "cannot resize a framebuffer whose color attachment has a backing buffer");
     }
