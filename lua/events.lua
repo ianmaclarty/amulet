@@ -204,10 +204,10 @@ function am._touch_begin(win, id, x, y, nx, ny, px, py)
         touch.id = id
         touch.position_x = x
         touch.position_y = y
-        touch.norm_position_x = x
-        touch.norm_position_y = y
-        touch.pixel_position_x = x
-        touch.pixel_position_y = y
+        touch.norm_position_x = nx
+        touch.norm_position_y = ny
+        touch.pixel_position_x = px
+        touch.pixel_position_y = py
         touch.began = true
     end
 end
@@ -218,10 +218,10 @@ function am._touch_end(win, id, x, y, nx, ny, px, py)
         if touch.id == id then
             touch.position_x = x
             touch.position_y = y
-            touch.norm_position_x = x
-            touch.norm_position_y = y
-            touch.pixel_position_x = x
-            touch.pixel_position_y = y
+            touch.norm_position_x = nx
+            touch.norm_position_y = ny
+            touch.pixel_position_x = px
+            touch.pixel_position_y = py
             touch.ended = true
             return
         end
@@ -234,16 +234,17 @@ function am._touch_move(win, id, x, y)
         if touch.id == id then
             touch.position_x = x
             touch.position_y = y
-            touch.norm_position_x = x
-            touch.norm_position_y = y
-            touch.pixel_position_x = x
-            touch.pixel_position_y = y
+            touch.norm_position_x = nx
+            touch.norm_position_y = ny
+            touch.pixel_position_x = px
+            touch.pixel_position_y = py
             return
         end
     end
 end
 
 function window_mt.touch_position(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then
@@ -254,6 +255,7 @@ function window_mt.touch_position(win, i)
 end
 
 function window_mt.touch_norm_position(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then
@@ -264,6 +266,7 @@ function window_mt.touch_norm_position(win, i)
 end
 
 function window_mt.touch_pixel_position(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then
@@ -274,6 +277,7 @@ function window_mt.touch_pixel_position(win, i)
 end
 
 function window_mt.touch_delta(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then
@@ -284,6 +288,7 @@ function window_mt.touch_delta(win, i)
 end
 
 function window_mt.touch_norm_delta(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then
@@ -294,6 +299,7 @@ function window_mt.touch_norm_delta(win, i)
 end
 
 function window_mt.touch_pixel_delta(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then
@@ -334,6 +340,7 @@ function window_mt.active_touches(win)
 end
 
 function window_mt.touch_active(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then
@@ -344,6 +351,7 @@ function window_mt.touch_active(win, i)
 end
 
 function window_mt.touch_began(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then
@@ -354,6 +362,7 @@ function window_mt.touch_began(win, i)
 end
 
 function window_mt.touch_ended(win, i)
+    i = i or 1
     local u = win._event_data
     local touch = u._touches[i]
     if not touch then

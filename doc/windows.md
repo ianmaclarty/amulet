@@ -441,71 +441,89 @@ Returns an array of the currently active touches.
 See [`window:touches_began`](#touches_began) for more info about
 the returned touches.
 
-### window:touch_active(touch) {#window:touch_active .method-def}
-
-Returns true if the specific touch is active.
-
-See [`window:touches_began`](#touches_began) for additional
-notes on the `touch` argument.
-
-### window:touch_began(touch) {.method-def}
+### window:touch_began([touch]) {.method-def}
 
 Returns true if the specific touch began since the last frame.
 
+The default value for `touch` is `1`.
+
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_ended(touch) {.method-def}
+### window:touch_ended([touch]) {.method-def}
 
 Returns true if the specific touch ended since the last frame.
 
+The default value for `touch` is `1`.
+
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_position(touch) {.method-def}
+### window:touch_active([touch]) {#window:touch_active .method-def}
+
+Returns true if the specific touch is active.
+
+The default value for `touch` is `1`.
+
+See [`window:touches_began`](#touches_began) for additional
+notes on the `touch` argument.
+
+### window:touch_position([touch]) {.method-def}
 
 Returns the last touch position in the window's coordinate system
 (a `vec2`).
 
+The default value for `touch` is `1`.
+
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_norm_position(touch) {.method-def}
+### window:touch_norm_position([touch]) {.method-def}
 
 Returns the last touch position in normalized device coordinates
 (a `vec2`).
 
+The default value for `touch` is `1`.
+
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_pixel_position(touch) {.method-def}
+### window:touch_pixel_position([touch]) {.method-def}
 
 Returns the last touch position in pixels, where the bottom left
 corner of the window is (0, 0) (a `vec2`).
 
+The default value for `touch` is `1`.
+
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_delta(touch) {.method-def}
+### window:touch_delta([touch]) {.method-def}
 
 Returns the change in touch position since the
 last frame in the window's coordinate system (a `vec2`).
 
+The default value for `touch` is `1`.
+
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_norm_delta(touch) {.method-def}
+### window:touch_norm_delta([touch]) {.method-def}
 
 Returns the change in touch position since the
 last frame in normalized device coordinates (a `vec2`).
 
+The default value for `touch` is `1`.
+
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
 
-### window:touch_pixel_delta(touch) {.method-def}
+### window:touch_pixel_delta([touch]) {.method-def}
 
 Returns the change in touch position since the
 last frame in pixels (a `vec2`).
+
+The default value for `touch` is `1`.
 
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.

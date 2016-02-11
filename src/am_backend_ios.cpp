@@ -767,10 +767,10 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     GLKView *view = (GLKView*)window;
     CGRect bounds = view.bounds;
     float scale = view.contentScaleFactor;
-    *pw = bounds.size.width * scale;
-    *ph = bounds.size.height * scale;
-    *sw = *pw;
-    *sh = *ph;
+    *sw = bounds.size.width;
+    *sh = bounds.size.height;
+    *pw = *sw * scale;
+    *ph = *sh * scale;
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
