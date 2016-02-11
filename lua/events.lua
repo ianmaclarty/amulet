@@ -228,7 +228,7 @@ function am._touch_end(win, id, x, y, nx, ny, px, py)
     end
 end
 
-function am._touch_move(win, id, x, y)
+function am._touch_move(win, id, x, y, nx, ny, px, py)
     local u = win._event_data
     for i, touch in ipairs(u._touches) do
         if touch.id == id then
