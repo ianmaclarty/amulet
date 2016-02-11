@@ -145,7 +145,7 @@ else ifeq ($(TARGET_PLATFORM),ios32)
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
   TARGET_CFLAGS += -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=5.0
   XCFLAGS += -ObjC++
-  XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
@@ -161,7 +161,7 @@ else ifeq ($(TARGET_PLATFORM),ios64)
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
   TARGET_CFLAGS += -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=5.0
   XCFLAGS += -ObjC++
-  XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
@@ -177,7 +177,7 @@ else ifeq ($(TARGET_PLATFORM),iossim)
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDK_VERSION).sdk
   TARGET_CFLAGS += -arch x86_64 -isysroot $(SIM_SDK_PATH) -miphoneos-version-min=5.0
   XCFLAGS += -ObjC++
-  XLDFLAGS = -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
@@ -286,6 +286,12 @@ else
     GRADE_CFLAGS = -Ox -DNDEBUG
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),osx)
+    GRADE_CFLAGS = -O3 -DNDEBUG
+    GRADE_LDFLAGS =
+  else ifeq ($(TARGET_PLATFORM),ios32)
+    GRADE_CFLAGS = -O3 -DNDEBUG
+    GRADE_LDFLAGS =
+  else ifeq ($(TARGET_PLATFORM),ios64)
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =
   else
