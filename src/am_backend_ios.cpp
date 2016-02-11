@@ -805,7 +805,7 @@ double am_get_current_time() {
 }
 
 char *am_get_base_path() {
-    return am_format("%s/", *ios_bundle_path());
+    return am_format("%s/", ios_bundle_path());
 }
 
 char *am_get_data_path() {
