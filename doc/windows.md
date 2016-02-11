@@ -431,9 +431,22 @@ ignored.
 
 Returns an array of the touches that ended since the last frame.
 
+See [`window:touches_began`](#touches_began) for more info about
+the returned touches.
+
 ### window:active_touches() {.method-def}
 
 Returns an array of the currently active touches.
+
+See [`window:touches_began`](#touches_began) for more info about
+the returned touches.
+
+### window:touch_active(touch) {#window:touch_active .method-def}
+
+Returns true if the specific touch is active.
+
+See [`window:touches_began`](#touches_began) for additional
+notes on the `touch` argument.
 
 ### window:touch_began(touch) {.method-def}
 

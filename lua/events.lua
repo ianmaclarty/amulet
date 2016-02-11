@@ -333,6 +333,16 @@ function window_mt.active_touches(win)
     return touches
 end
 
+function window_mt.touch_active(win, i)
+    local u = win._event_data
+    local touch = u._touches[i]
+    if not touch then
+        return false
+    else
+        return touch.id and not touch.ended
+    end
+end
+
 function window_mt.touch_began(win, i)
     local u = win._event_data
     local touch = u._touches[i]
