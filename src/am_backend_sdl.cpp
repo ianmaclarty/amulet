@@ -1096,11 +1096,17 @@ static win_info *win_from_id(Uint32 winid) {
             return &windows[i];
         }
     }
-    // return window with focus
+    // return window with focus (for mouse events that happen outside
+    // window and so don't have a winid)
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (SDL_GetWindowFlags(windows[i].window) & SDL_WINDOW_INPUT_FOCUS) {
             return &windows[i];
         }
+    }
+    // return first window if present (catches key presses before
+    // first window has been fully opened)
+    if (windows.size() > 0) {
+        return &windows[0];
     }
     return NULL;
 }
