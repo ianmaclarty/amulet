@@ -1,6 +1,6 @@
 <p align="center"><img src="logo.png"/></p>
 
-Amulet is a Lua-based audio/visual toolkit designed for small-scope games and experimentation.
+Amulet is a Lua-based audio/visual toolkit designed for small games and experimentation.
 
 Here's what a minimal Hello World! looks like in Amulet:
 
