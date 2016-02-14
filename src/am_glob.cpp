@@ -20,8 +20,11 @@ static int glob(lua_State *L) {
     lua_newtable(L);
     for (int n = 0; n < glob.FileCount(); ++n) {
         char *file = glob.File(n);
-        if (file[strlen(file)-1] == '\\') {
-            file[strlen(file)-1] = '/';
+        int len = (int)strlen(file);
+        for (int i = 0; i < len; i++) {
+            if (file[i] == '\\') {
+                file[i] = '/';
+            }
         }
         lua_pushstring(L, file);
         lua_rawseti(L, -2, n + 1);

@@ -35,10 +35,18 @@ Returns an array (table) of file names matching the given glob pattern(s).
 A glob pattern is a file path with zero or more wildcard (`*`) characters.
 
 Any matching files that are directories will have a slash (`/`)
-appended to their names (even on Windows).
+appended to their names, even on Windows.
 
 The slash character (`/`) can be used as a directory separator
-on Windows. You don't need to use backslash (`\`).
+on Windows (you don't need to use `\`).
+Furthermore returned paths will always have '/' as the directory separator,
+even on Windows.
+
+**Note:**
+This function only searches for files on the file system. It won't search
+the resource archive in a exported game. Its intended use is
+for writing file processing utilities and not for use directly in games
+you wish to distribute.
 
 Example:
 
