@@ -18,16 +18,24 @@ static int glob(lua_State *L) {
         glob.Add(pattern);
     }
     lua_newtable(L);
+    int j = 1;
+    char *prev = NULL;
     for (int n = 0; n < glob.FileCount(); ++n) {
         char *file = glob.File(n);
+        // SimpleGlob sometimes returns duplicates on Windows:
+        if (prev != NULL && strcmp(prev, file) == 0) continue; 
         int len = (int)strlen(file);
+        char *copy = (char*)malloc(len + 1);
+        memcpy(copy, file, len + 1);
         for (int i = 0; i < len; i++) {
-            if (file[i] == '\\') {
-                file[i] = '/';
+            if (copy[i] == '\\') {
+                copy[i] = '/';
             }
         }
-        lua_pushstring(L, file);
-        lua_rawseti(L, -2, n + 1);
+        lua_pushstring(L, copy);
+        lua_rawseti(L, -2, j++);
+        free(copy);
+        prev = file;
     }
 #else
     lua_newtable(L);
