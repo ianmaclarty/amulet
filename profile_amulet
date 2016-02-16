@@ -1,0 +1,5 @@
+#!/bin/bash
+dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+rm -f amulet.prof
+env LD_PRELOAD="/usr/lib/libprofiler.so" CPUPROFILE=amulet.prof $dir/amulet $@
+google-pprof $dir/amulet amulet.prof
