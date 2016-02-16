@@ -1,0 +1,5 @@
+#!/bin/bash
+dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+rm -f amulet.cg
+valgrind --tool=cachegrind --cachegrind-out-file=amulet.cg $dir/amulet $@
+cg_annotate amulet.cg
