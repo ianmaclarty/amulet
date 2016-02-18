@@ -455,14 +455,13 @@ void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
     glm::mat4 proj, bool has_depthbuffer)
 {
     setup(this, fb, clear, clear_color, x, y, w, h, fbw, fbh, proj, has_depthbuffer);
-    if (root != NULL) {
-        next_pass = 1;
-        do {
-            pass = next_pass;
-            pass_mask = 1;
-            root->render(this);
-        } while (next_pass > pass);
-    }
+    if (root == NULL || am_node_hidden(root)) return;
+    next_pass = 1;
+    do {
+        pass = next_pass;
+        pass_mask = 1;
+        root->render(this);
+    } while (next_pass > pass);
 
     // Unbind the current program, because it might be
     // deleted and the id reused before the next call to
