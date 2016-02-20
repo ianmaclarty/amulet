@@ -39,12 +39,12 @@ static void register_cull_face_node_mt(lua_State *L) {
 // Cull sphere
 
 void am_cull_sphere_node::render(am_render_state *rstate) {
-    glm::mat4 matrix = glm::mat4(1.0f);
+    glm::dmat4 matrix = glm::dmat4(1.0);
     for (int i = 0; i < num_names; i++) {
         am_program_param_name_slot *slot = &rstate->param_name_map[names[i]];
         am_program_param_value *param = &slot->value;
         if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-            glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
+            glm::dmat4 *m = (glm::dmat4*)&param->value.m4[0];
             matrix = matrix * *m;
         } else {
             am_log1("WARNING: matrix '%s' is not a mat4 in cull_sphere node (node will be culled)", slot->name);
@@ -84,7 +84,7 @@ static int create_cull_sphere_node(lua_State *L) {
         node->center = am_get_userdata(L, am_vec3, i)->v;
         i++;
     } else {
-        node->center = glm::vec3(0.0f);
+        node->center = glm::dvec3(0.0);
     }
     return 1;
 }

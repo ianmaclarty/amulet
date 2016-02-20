@@ -36,44 +36,44 @@ struct am_sampler2d_param_value {
 struct am_program_param_value {
     am_program_param_client_type type;
     union {
-        float f;
-        float v2[2];
-        float v3[3];
-        float v4[4];
-        float m2[4];
-        float m3[9];
-        float m4[16];
+        double f;
+        double v2[2];
+        double v3[3];
+        double v4[4];
+        double m2[4];
+        double m3[9];
+        double m4[16];
         am_buffer_view *arr;
         am_sampler2d_param_value sampler2d;
     } value;
 
-    void set_float(float f) {
+    void set_float(double f) {
         type = AM_PROGRAM_PARAM_CLIENT_TYPE_1F;
         value.f = f;
     }
-    void set_vec2(glm::vec2 v2) {
+    void set_vec2(glm::dvec2 v2) {
         type = AM_PROGRAM_PARAM_CLIENT_TYPE_2F;
-        memcpy(&value.v2[0], glm::value_ptr(v2), sizeof(glm::vec2));
+        memcpy(&value.v2[0], glm::value_ptr(v2), sizeof(glm::dvec2));
     }
-    void set_vec3(glm::vec3 v3) {
+    void set_vec3(glm::dvec3 v3) {
         type = AM_PROGRAM_PARAM_CLIENT_TYPE_3F;
-        memcpy(&value.v3[0], glm::value_ptr(v3), sizeof(glm::vec3));
+        memcpy(&value.v3[0], glm::value_ptr(v3), sizeof(glm::dvec3));
     }
-    void set_vec4(glm::vec4 v4) {
+    void set_vec4(glm::dvec4 v4) {
         type = AM_PROGRAM_PARAM_CLIENT_TYPE_4F;
-        memcpy(&value.v4[0], glm::value_ptr(v4), sizeof(glm::vec4));
+        memcpy(&value.v4[0], glm::value_ptr(v4), sizeof(glm::dvec4));
     }
-    void set_mat2(glm::mat2 m2) {
+    void set_mat2(glm::dmat2 m2) {
         type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2;
-        memcpy(&value.m2[0], glm::value_ptr(m2), sizeof(glm::mat2));
+        memcpy(&value.m2[0], glm::value_ptr(m2), sizeof(glm::dmat2));
     }
-    void set_mat3(glm::mat3 m3) {
+    void set_mat3(glm::dmat3 m3) {
         type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3;
-        memcpy(&value.m3[0], glm::value_ptr(m3), sizeof(glm::mat3));
+        memcpy(&value.m3[0], glm::value_ptr(m3), sizeof(glm::dmat3));
     }
-    void set_mat4(glm::mat4 m4) {
+    void set_mat4(glm::dmat4 m4) {
         type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4;
-        memcpy(&value.m4[0], glm::value_ptr(m4), sizeof(glm::mat4));
+        memcpy(&value.m4[0], glm::value_ptr(m4), sizeof(glm::dmat4));
     }
     void set_arr(am_buffer_view *arr) {
         type = AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY;

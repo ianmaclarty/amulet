@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, bool stencil_buf, glm::vec4 clear_color) {
+void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, bool stencil_buf, glm::dvec4 clear_color) {
     framebuffer_id = am_create_framebuffer();
     if (texture->image_buffer != NULL) {
         texture->image_buffer->buffer->update_if_dirty();
@@ -32,9 +32,9 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, b
     }
     am_framebuffer::clear_color = clear_color;
     user_projection = false;
-    float w = (float)width;
-    float h = (float)height;
-    projection = glm::ortho(-w*0.5f, w*0.5f, -h*0.5f, h*0.5f, -1.0f, 1.0f);
+    double w = (double)width;
+    double h = (double)height;
+    projection = glm::ortho(-w*0.5, w*0.5, -h*0.5, h*0.5, -1.0, 1.0);
 }
 
 void am_framebuffer::clear(bool clear_colorbuf, bool clear_depth, bool clear_stencil) {
@@ -68,7 +68,7 @@ static int create_framebuffer(lua_State *L) {
     am_texture2d *texture = am_get_userdata(L, am_texture2d, 1);
     bool depth_buf = nargs > 1 && lua_toboolean(L, 2);
     bool stencil_buf = nargs > 2 && lua_toboolean(L, 3);
-    glm::vec4 clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    glm::dvec4 clear_color = glm::dvec4(0.0f, 0.0f, 0.0f, 1.0f);
     fb->init(L, texture, depth_buf, stencil_buf, clear_color);
     fb->clear(false, depth_buf, stencil_buf);
     return 1;
@@ -169,9 +169,9 @@ static int resize(lua_State *L) {
     free(data);
     bool depth_buf = fb->depth_renderbuffer_id != 0;
     bool stencil_buf = fb->stencil_renderbuffer_id != 0;
-    glm::vec4 clear_color = fb->clear_color;
+    glm::dvec4 clear_color = fb->clear_color;
     bool user_proj = fb->user_projection;
-    glm::mat4 old_proj = fb->projection;
+    glm::dmat4 old_proj = fb->projection;
     fb->destroy(L);
     fb->init(L, color_at, depth_buf, stencil_buf, clear_color);
     fb->clear(true, depth_buf, stencil_buf);
@@ -219,9 +219,9 @@ static void set_projection(lua_State *L, void *obj) {
     am_framebuffer *fb = (am_framebuffer*)obj;
     if (lua_isnil(L, 3)) {
         fb->user_projection = false;
-        float w = (float)fb->width;
-        float h = (float)fb->height;
-        fb->projection = glm::ortho(-w*0.5f, w*0.5f, -h*0.5f, h*0.5f, -1.0f, 1.0f);
+        double w = (double)fb->width;
+        double h = (double)fb->height;
+        fb->projection = glm::ortho(-w*0.5, w*0.5, -h*0.5, h*0.5, -1.0, 1.0);
     } else {
         fb->user_projection = true;
         fb->projection = am_get_userdata(L, am_mat4, 3)->m;

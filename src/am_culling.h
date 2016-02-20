@@ -14,7 +14,7 @@ struct am_cull_face_node : am_scene_node {
 struct am_cull_sphere_node : am_scene_node {
     am_param_name_id names[AM_MAX_CULL_SPHERE_NAMES];
     int num_names;
-    glm::vec3 center;
+    glm::dvec3 center;
     float radius;
     virtual void render(am_render_state *rstate);
 };

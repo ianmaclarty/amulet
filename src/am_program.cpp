@@ -57,37 +57,61 @@ bool am_program_param::bind(am_render_state *rstate) {
             break;
         case AM_PROGRAM_PARAM_UNIFORM_2F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_2F) {
-                am_set_uniform2f(location, slot->value.value.v2);
+                float fs[2];
+                fs[0] = (float)slot->value.value.v2[0];
+                fs[1] = (float)slot->value.value.v2[1];
+                am_set_uniform2f(location, fs);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_3F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_3F) {
-                am_set_uniform3f(location, slot->value.value.v3);
+                float fs[3];
+                fs[0] = (float)slot->value.value.v3[0];
+                fs[1] = (float)slot->value.value.v3[1];
+                fs[2] = (float)slot->value.value.v3[2];
+                am_set_uniform3f(location, fs);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_4F:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_4F) {
-                am_set_uniform4f(location, slot->value.value.v4);
+                float fs[4];
+                fs[0] = (float)slot->value.value.v4[0];
+                fs[1] = (float)slot->value.value.v4[1];
+                fs[2] = (float)slot->value.value.v4[2];
+                fs[3] = (float)slot->value.value.v4[3];
+                am_set_uniform4f(location, fs);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT2:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2) {
-                am_set_uniform_mat2(location, slot->value.value.m2);
+                float fs[4];
+                for (int i = 0; i < 4; i++) {
+                    fs[i] = (float)slot->value.value.m2[i];
+                }
+                am_set_uniform_mat2(location, fs);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT3:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3) {
-                am_set_uniform_mat3(location, slot->value.value.m3);
+                float fs[9];
+                for (int i = 0; i < 9; i++) {
+                    fs[i] = (float)slot->value.value.m3[i];
+                }
+                am_set_uniform_mat3(location, fs);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_UNIFORM_MAT4:
             if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-                am_set_uniform_mat4(location, slot->value.value.m4);
+                float fs[16];
+                for (int i = 0; i < 16; i++) {
+                    fs[i] = (float)slot->value.value.m4[i];
+                }
+                am_set_uniform_mat4(location, fs);
                 bound = true;
             }
             break;
@@ -455,22 +479,22 @@ static void push_program_param_value(lua_State *L, am_program_param_value *param
             lua_pushnumber(L, param->value.f);
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_2F:
-            memcpy(&am_new_userdata(L, am_vec2)->v, &param->value.v2, 2 * sizeof(float));
+            memcpy(&am_new_userdata(L, am_vec2)->v, &param->value.v2, 2 * sizeof(double));
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_3F:
-            memcpy(&am_new_userdata(L, am_vec3)->v, &param->value.v3, 3 * sizeof(float));
+            memcpy(&am_new_userdata(L, am_vec3)->v, &param->value.v3, 3 * sizeof(double));
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_4F:
-            memcpy(&am_new_userdata(L, am_vec4)->v, &param->value.v4, 4 * sizeof(float));
+            memcpy(&am_new_userdata(L, am_vec4)->v, &param->value.v4, 4 * sizeof(double));
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT2:
-            memcpy(&am_new_userdata(L, am_mat2)->m, &param->value.m2, 4 * sizeof(float));
+            memcpy(&am_new_userdata(L, am_mat2)->m, &param->value.m2, 4 * sizeof(double));
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3:
-            memcpy(&am_new_userdata(L, am_mat3)->m, &param->value.m3, 9 * sizeof(float));
+            memcpy(&am_new_userdata(L, am_mat3)->m, &param->value.m3, 9 * sizeof(double));
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4:
-            memcpy(&am_new_userdata(L, am_mat4)->m, &param->value.m4, 16 * sizeof(float));
+            memcpy(&am_new_userdata(L, am_mat4)->m, &param->value.m4, 16 * sizeof(double));
             break;
         case AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY:
             param->value.arr->push(L);

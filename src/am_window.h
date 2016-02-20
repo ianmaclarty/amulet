@@ -14,16 +14,16 @@ struct am_window : am_nonatomic_userdata {
     int                 viewport_y;
     int                 viewport_width;
     int                 viewport_height;
-    float               user_left;
-    float               user_right;
-    float               user_bottom;
-    float               user_top;
-    glm::mat4           projection;
+    double              user_left;
+    double              user_right;
+    double              user_bottom;
+    double              user_top;
+    glm::dmat4          projection;
     bool                user_projection; // did the user set the projection?
     bool                has_depth_buffer;
     bool                has_stencil_buffer;
     bool                letterbox;
-    glm::vec4           clear_color;
+    glm::dvec4          clear_color;
     am_window_mode      mode;
     bool                dirty;
 

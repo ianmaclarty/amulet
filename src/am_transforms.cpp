@@ -20,8 +20,8 @@ static void maybe_insert_default_mv(lua_State *L) {
 void am_translate_node::render(am_render_state *rstate) {
     am_program_param_value *param = &rstate->param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-        glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
-        glm::vec4 old_column = (*m)[3];
+        glm::dmat4 *m = (glm::dmat4*)&param->value.m4[0];
+        glm::dvec4 old_column = (*m)[3];
         (*m)[3] = (*m)[0] * v[0] + (*m)[1] * v[1] + (*m)[2] * v[2] + (*m)[3];
         render_children(rstate);
         (*m)[3] = old_column;
@@ -39,8 +39,8 @@ static int create_translate_node(lua_State *L) {
     node->name = am_lookup_param_name(L, 1);
     switch (am_get_type(L, 2)) {
         case MT_am_vec2: {
-            glm::vec2 v2 = am_get_userdata(L, am_vec2, 2)->v;
-            node->v = glm::vec3(v2.x, v2.y, 0.0f);
+            glm::dvec2 v2 = am_get_userdata(L, am_vec2, 2)->v;
+            node->v = glm::dvec3(v2.x, v2.y, 0.0);
             break;
         }
         case MT_am_vec3: {
@@ -51,9 +51,9 @@ static int create_translate_node(lua_State *L) {
             if (nargs < 3) {
                 return luaL_error(L, "too few arguments");
             } else if (nargs == 3) {
-                node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), 0.0f);
+                node->v = glm::dvec3((double)luaL_checknumber(L, 2), (double)luaL_checknumber(L, 3), 0.0);
             } else if (nargs == 4) {
-                node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+                node->v = glm::dvec3((double)luaL_checknumber(L, 2), (double)luaL_checknumber(L, 3), (double)luaL_checknumber(L, 4));
             } else {
                 return luaL_error(L, "too many arguments");
             }
@@ -79,12 +79,12 @@ static am_property position_property = {get_position, set_position};
 
 static void get_position2d(lua_State *L, void *obj) {
     am_translate_node *node = (am_translate_node*)obj;
-    am_new_userdata(L, am_vec2)->v = glm::vec2(node->v.x, node->v.y);
+    am_new_userdata(L, am_vec2)->v = glm::dvec2(node->v.x, node->v.y);
 }
 
 static void set_position2d(lua_State *L, void *obj) {
     am_translate_node *node = (am_translate_node*)obj;
-    node->v = glm::vec3(am_get_userdata(L, am_vec2, 3)->v, 0.0f);
+    node->v = glm::dvec3(am_get_userdata(L, am_vec2, 3)->v, 0.0);
 }
 
 static am_property position2d_property = {get_position2d, set_position2d};
@@ -107,8 +107,8 @@ static void register_translate_node_mt(lua_State *L) {
 void am_scale_node::render(am_render_state *rstate) {
     am_program_param_value *param = &rstate->param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-        glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
-        glm::mat4 old = *m;
+        glm::dmat4 *m = (glm::dmat4*)&param->value.m4[0];
+        glm::dmat4 old = *m;
         *m = glm::scale(*m, v);
         render_children(rstate);
         *m = old;
@@ -126,8 +126,8 @@ static int create_scale_node(lua_State *L) {
     node->name = am_lookup_param_name(L, 1);
     switch (am_get_type(L, 2)) {
         case MT_am_vec2: {
-            glm::vec2 v2 = am_get_userdata(L, am_vec2, 2)->v;
-            node->v = glm::vec3(v2.x, v2.y, 1.0f);
+            glm::dvec2 v2 = am_get_userdata(L, am_vec2, 2)->v;
+            node->v = glm::dvec3(v2.x, v2.y, 1.0);
             break;
         }
         case MT_am_vec3: {
@@ -136,12 +136,12 @@ static int create_scale_node(lua_State *L) {
         }
         case LUA_TNUMBER: {
             if (nargs == 2) {
-                float s = (float)luaL_checknumber(L, 2);
-                node->v = glm::vec3(s, s, 1.0f);
+                double s = (double)luaL_checknumber(L, 2);
+                node->v = glm::dvec3(s, s, 1.0);
             } else if (nargs == 3) {
-                node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), 1.0f);
+                node->v = glm::dvec3((double)luaL_checknumber(L, 2), (double)luaL_checknumber(L, 3), 1.0);
             } else if (nargs == 4) {
-                node->v = glm::vec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+                node->v = glm::dvec3((double)luaL_checknumber(L, 2), (double)luaL_checknumber(L, 3), (double)luaL_checknumber(L, 4));
             } else {
                 return luaL_error(L, "too many arguments");
             }
@@ -167,12 +167,12 @@ static am_property scale_property = {get_scale, set_scale};
 
 static void get_scale2d(lua_State *L, void *obj) {
     am_scale_node *node = (am_scale_node*)obj;
-    am_new_userdata(L, am_vec2)->v = glm::vec2(node->v.x, node->v.y);
+    am_new_userdata(L, am_vec2)->v = glm::dvec2(node->v.x, node->v.y);
 }
 
 static void set_scale2d(lua_State *L, void *obj) {
     am_scale_node *node = (am_scale_node*)obj;
-    node->v = glm::vec3(am_get_userdata(L, am_vec2, 3)->v, 1.0f);
+    node->v = glm::dvec3(am_get_userdata(L, am_vec2, 3)->v, 1.0);
 }
 
 static am_property scale2d_property = {get_scale2d, set_scale2d};
@@ -195,8 +195,8 @@ static void register_scale_node_mt(lua_State *L) {
 void am_rotate_node::render(am_render_state *rstate) {
     am_program_param_value *param = &rstate->param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-        glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
-        glm::mat4 old = *m;
+        glm::dmat4 *m = (glm::dmat4*)&param->value.m4[0];
+        glm::dmat4 old = *m;
         *m *= glm::mat4_cast(rotation);
         render_children(rstate);
         *m = old;
@@ -223,7 +223,7 @@ static int create_rotate_node(lua_State *L) {
             if (nargs > 2) {
                 node->axis = am_get_userdata(L, am_vec3, 3)->v;
             } else {
-                node->axis = glm::vec3(0.0f, 0.0f, 1.0f);
+                node->axis = glm::dvec3(0.0, 0.0, 1.0);
             }
             node->rotation = glm::angleAxis(node->angle, node->axis);
             break;
@@ -289,7 +289,7 @@ void am_lookat_node::render(am_render_state *rstate) {
     am_program_param_value *param = &rstate->param_name_map[name].value;
     am_program_param_value old_val = *param;
     param->type = AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4;
-    memcpy(&param->value.m4[0], glm::value_ptr(glm::lookAt(eye, center, up)), 16 * sizeof(float));
+    memcpy(&param->value.m4[0], glm::value_ptr(glm::lookAt(eye, center, up)), 16 * sizeof(double));
     render_children(rstate);
     *param = old_val;
 }
@@ -364,20 +364,20 @@ static void register_lookat_node_mt(lua_State *L) {
 void am_billboard_node::render(am_render_state *rstate) {
     am_program_param_value *param = &rstate->param_name_map[name].value;
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
-        glm::mat4 *m = (glm::mat4*)&param->value.m4[0];
-        glm::mat4 old = *m;
-        float s = 1.0f;
+        glm::dmat4 *m = (glm::dmat4*)&param->value.m4[0];
+        glm::dmat4 old = *m;
+        double s = 1.0;
         if (preserve_uniform_scaling) {
-            s = glm::length(glm::vec3((*m)[0][0], (*m)[1][0], (*m)[2][0]));
+            s = glm::length(glm::dvec3((*m)[0][0], (*m)[1][0], (*m)[2][0]));
         }
         (*m)[0][0] = s;
-        (*m)[0][1] = 0.0f;
-        (*m)[0][2] = 0.0f;
-        (*m)[1][0] = 0.0f;
+        (*m)[0][1] = 0.0;
+        (*m)[0][2] = 0.0;
+        (*m)[1][0] = 0.0;
         (*m)[1][1] = s;
-        (*m)[1][2] = 0.0f;
-        (*m)[2][0] = 0.0f;
-        (*m)[2][1] = 0.0f;
+        (*m)[1][2] = 0.0;
+        (*m)[2][0] = 0.0;
+        (*m)[2][1] = 0.0;
         (*m)[2][2] = s;
         render_children(rstate);
         *m = old;

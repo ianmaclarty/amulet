@@ -23,8 +23,8 @@ static int create_window(lua_State *L) {
     bool depth_buffer = false;
     bool stencil_buffer = false;
     bool letterbox = true;
-    glm::vec4 clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-    glm::mat4 projection;
+    glm::dvec4 clear_color(0.0, 0.0, 0.0, 1.0);
+    glm::dmat4 projection;
     bool user_projection = false;
     bool lock_pointer = false;
     int msaa_samples = 0;
@@ -145,8 +145,8 @@ void am_window::compute_position(double x, double y, double *usr_x, double *usr_
     double uy = py;
     // convert to user window space
     if (user_projection) {
-        glm::vec4 p(ux * 2.0f / (float)viewport_width - 1.0f,
-            uy * 2.0f / (float)viewport_height - 1.0f, 0.0f, 1.0f);
+        glm::dvec4 p(ux * 2.0 / (double)viewport_width - 1.0,
+            uy * 2.0 / (double)viewport_height - 1.0, 0.0, 1.0);
         p = glm::inverse(projection) * p;
         ux = p.x;
         uy = p.y;
@@ -325,54 +325,54 @@ static bool update_size(am_window *win) {
 }
 
 static void compute_viewport(am_window *win) {
-    float w0 = (float)win->requested_width;
-    float h0 = (float)win->requested_height;
-    float w1 = (float)win->pixel_width;
-    float h1 = (float)win->pixel_height;
+    double w0 = (double)win->requested_width;
+    double h0 = (double)win->requested_height;
+    double w1 = (double)win->pixel_width;
+    double h1 = (double)win->pixel_height;
     if (win->letterbox) {
-        float sy = h1 / h0;
-        float dx = (w1 - w0 * sy) / (2.0f * w1);
-        float sx = w1 / w0;
-        float dy = (h1 - h0 * sx) / (2.0f * h1);
-        if (dx > 0.01f) {
-            win->viewport_x = (int)(dx * (float)win->pixel_width);
+        double sy = h1 / h0;
+        double dx = (w1 - w0 * sy) / (2.0 * w1);
+        double sx = w1 / w0;
+        double dy = (h1 - h0 * sx) / (2.0 * h1);
+        if (dx > 0.01) {
+            win->viewport_x = (int)(dx * (double)win->pixel_width);
             win->viewport_y = 0;
-            win->viewport_width = win->pixel_width - (int)(dx * (float)win->pixel_width * 2.0f);
+            win->viewport_width = win->pixel_width - (int)(dx * (double)win->pixel_width * 2.0);
             win->viewport_height = win->pixel_height;
         } else {
             win->viewport_x = 0;
             win->viewport_width = win->pixel_width;
-            if (dy > 0.01f) {
-                win->viewport_y = (int)(dy * (float)win->pixel_height);
-                win->viewport_height = win->pixel_height - (int)(dy * (float)win->pixel_height) * 2;
+            if (dy > 0.01) {
+                win->viewport_y = (int)(dy * (double)win->pixel_height);
+                win->viewport_height = win->pixel_height - (int)(dy * (double)win->pixel_height) * 2;
             } else {
                 win->viewport_y = 0;
                 win->viewport_height = win->pixel_height;
             }
         }
-        win->user_left = floorf(-((float)win->requested_width) / 2.0f);
-        win->user_right = ceilf(((float)win->requested_width) / 2.0f);
-        win->user_bottom = floorf(-((float)win->requested_height) / 2.0f);
-        win->user_top = ceilf(((float)win->requested_height) / 2.0f);
+        win->user_left = floorf(-((double)win->requested_width) / 2.0);
+        win->user_right = ceilf(((double)win->requested_width) / 2.0);
+        win->user_bottom = floorf(-((double)win->requested_height) / 2.0);
+        win->user_top = ceilf(((double)win->requested_height) / 2.0);
     } else {
-        float sy = h1 / h0;
-        float dx = (w1 - w0 * sy) / (2.0f * w0 * sy);
-        float sx = w1 / w0;
-        float dy = (h1 - h0 * sx) / (2.0f * h0 * sx);
-        if (dx > 0.01f) {
-            win->user_left = floorf(-((float)win->requested_width) / 2.0f) - (float)win->requested_width * dx;
-            win->user_right = ceilf(((float)win->requested_width) / 2.0f) + (float)win->requested_width * dx;
-            win->user_bottom = floorf(-((float)win->requested_height) / 2.0f);
-            win->user_top = ceilf(((float)win->requested_height) / 2.0f);
+        double sy = h1 / h0;
+        double dx = (w1 - w0 * sy) / (2.0 * w0 * sy);
+        double sx = w1 / w0;
+        double dy = (h1 - h0 * sx) / (2.0 * h0 * sx);
+        if (dx > 0.01) {
+            win->user_left = floorf(-((double)win->requested_width) / 2.0) - (double)win->requested_width * dx;
+            win->user_right = ceilf(((double)win->requested_width) / 2.0) + (double)win->requested_width * dx;
+            win->user_bottom = floorf(-((double)win->requested_height) / 2.0);
+            win->user_top = ceilf(((double)win->requested_height) / 2.0);
         } else {
-            win->user_left = floorf(-((float)win->requested_width) / 2.0f);
-            win->user_right = ceilf(((float)win->requested_width) / 2.0f);
-            if (dy > 0.01f) {
-                win->user_bottom = floorf(-((float)win->requested_height) / 2.0f) - (float)win->requested_height * dy;
-                win->user_top = ceilf(((float)win->requested_height) / 2.0f) + (float)win->requested_height * dy;
+            win->user_left = floorf(-((double)win->requested_width) / 2.0);
+            win->user_right = ceilf(((double)win->requested_width) / 2.0);
+            if (dy > 0.01) {
+                win->user_bottom = floorf(-((double)win->requested_height) / 2.0) - (double)win->requested_height * dy;
+                win->user_top = ceilf(((double)win->requested_height) / 2.0) + (double)win->requested_height * dy;
             } else {
-                win->user_bottom = floorf(-((float)win->requested_height) / 2.0f);
-                win->user_top = ceilf(((float)win->requested_height) / 2.0f);
+                win->user_bottom = floorf(-((double)win->requested_height) / 2.0);
+                win->user_top = ceilf(((double)win->requested_height) / 2.0);
             }
         }
         win->viewport_x = 0;
@@ -382,7 +382,7 @@ static void compute_viewport(am_window *win) {
     }
     if (!win->user_projection) { // don't change user supplied projection
         win->projection = glm::ortho(win->user_left, win->user_right,
-            win->user_bottom, win->user_top, -1.0f, 1.0f);
+            win->user_bottom, win->user_top, -1.0, 1.0);
     }
 }
 

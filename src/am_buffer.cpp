@@ -652,8 +652,8 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 #define TNAME vec2
 #define CTYPE glm::vec2
 #define LUA_TYPE MT_am_vec2
-#define GET_CTYPE(L, idx) (am_get_userdata(L, am_vec2, idx)->v)
-#define PUSH_CTYPE(L, x) am_new_userdata(L, am_vec2)->v = x
+#define GET_CTYPE(L, idx) glm::vec2(am_get_userdata(L, am_vec2, idx)->v)
+#define PUSH_CTYPE(L, x) am_new_userdata(L, am_vec2)->v = glm::dvec2(x)
 #define VEC_SZ 2
 #define GET_VEC_COMPONENT(L, idx) ((float)(lua_tonumber(L, idx)))
 #include "am_view_template.inc"
@@ -661,8 +661,8 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 #define TNAME vec3
 #define CTYPE glm::vec3
 #define LUA_TYPE MT_am_vec3
-#define GET_CTYPE(L, idx) (am_get_userdata(L, am_vec3, idx)->v)
-#define PUSH_CTYPE(L, x) am_new_userdata(L, am_vec3)->v = x
+#define GET_CTYPE(L, idx) glm::vec3(am_get_userdata(L, am_vec3, idx)->v)
+#define PUSH_CTYPE(L, x) am_new_userdata(L, am_vec3)->v = glm::dvec3(x)
 #define VEC_SZ 3
 #define GET_VEC_COMPONENT(L, idx) ((float)(lua_tonumber(L, idx)))
 #include "am_view_template.inc"
@@ -670,8 +670,8 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 #define TNAME vec4
 #define CTYPE glm::vec4
 #define LUA_TYPE MT_am_vec4
-#define GET_CTYPE(L, idx) (am_get_userdata(L, am_vec4, idx)->v)
-#define PUSH_CTYPE(L, x) am_new_userdata(L, am_vec4)->v = x
+#define GET_CTYPE(L, idx) glm::vec4(am_get_userdata(L, am_vec4, idx)->v)
+#define PUSH_CTYPE(L, x) am_new_userdata(L, am_vec4)->v = glm::dvec4(x)
 #define VEC_SZ 4
 #define GET_VEC_COMPONENT(L, idx) ((float)(lua_tonumber(L, idx)))
 #include "am_view_template.inc"

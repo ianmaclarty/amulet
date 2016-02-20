@@ -16,11 +16,6 @@ In Amulet vectors are immutable. This means that once you create a
 vector, its value cannot be changed. Instead you need to construct a new
 vector.
 
-**Note**:
-Each component of a vector is represented internally as a 32 bit
-float, so expect some loss of precision when converting between vector
-components and Lua numbers, which are 64 bits.
-
 ### Constructing vectors
 
 To construct a vector use one of the functions `vec2`, `vec3` or `vec4`.
@@ -181,8 +176,7 @@ Amulet has built-in support for 2x2, 3x3 and 4x4 matrices. Matrices are
 typically used to represent transformations in 2 or 3 dimensional space
 such as rotation, scaling, translation or perspective projection.
 
-Matrices, like vectors, are immutable and their components are
-represented internally as 32 bit floats.
+Matrices, like vectors, are immutable.
 
 ### Constructing matrices
 

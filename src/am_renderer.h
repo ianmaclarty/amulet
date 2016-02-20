@@ -181,8 +181,8 @@ struct am_render_state {
     bool bind_active_program_params();
     bool update_state();
     void enable_vaas(int n);
-    void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, glm::vec4 clear_color,
-        int x, int y, int w, int h, int fbw, int fbh, glm::mat4 proj, bool has_depthbuffer);
+    void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, glm::dvec4 clear_color,
+        int x, int y, int w, int h, int fbw, int fbh, glm::dmat4 proj, bool has_depthbuffer);
 };
 
 struct am_draw_node : am_scene_node {

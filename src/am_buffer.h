@@ -95,15 +95,18 @@ struct am_buffer_view : am_nonatomic_userdata {
     }
 
     void set_float2(int i, am_vec2 *v2) {
-        memcpy(view_index_ptr(this, i), &v2->v, sizeof(float) * 2);
+        glm::vec2 v = glm::vec2(v2->v);
+        memcpy(view_index_ptr(this, i), &v, sizeof(float) * 2);
     }
 
     void set_float3(int i, am_vec3 *v3) {
-        memcpy(view_index_ptr(this, i), &v3->v, sizeof(float) * 3);
+        glm::vec3 v = glm::vec3(v3->v);
+        memcpy(view_index_ptr(this, i), &v, sizeof(float) * 3);
     }
 
     void set_float4(int i, am_vec4 *v4) {
-        memcpy(view_index_ptr(this, i), &v4->v, sizeof(float) * 4);
+        glm::vec4 v = glm::vec4(v4->v);
+        memcpy(view_index_ptr(this, i), &v, sizeof(float) * 4);
     }
 
     int8_t get_byte(int i) {
