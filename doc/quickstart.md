@@ -152,6 +152,10 @@ Then we set the `angle` property
 of the rotate node to the current frame time (the time at the
 beginning of the frame, in seconds) times 4.
 
+Note that `scene"rotate"` could also be written as `scene("rotate")`.
+The first form takes advantage of some Lua syntactic sugar that allows function
+parenthesis to be omitted if the argument is a single literal string.
+
 Since this code is run each frame, it causes the text to spin.
 
 Here is the complete code listing:
