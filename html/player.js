@@ -209,11 +209,17 @@ function set_visibility_handler() {
       hidden = "webkitHidden";
       visibilityChange = "webkitvisibilitychange";
     }
+    window.amulet.window_hidden = 0;
+    window.amulet.window_has_focus = 1;
     document.addEventListener(visibilityChange, function(event) {
         window.amulet.window_hidden = document[hidden] ? 1 : 0;
-        //console.log("hidden = " + window.amulet.window_hidden);
     }, false);
-    window.amulet.window_hidden = 0;
+    window.addEventListener('blur', function(event) {
+        window.amulet.window_has_focus = 0;
+    }, false);
+    window.addEventListener('focus', function(event) {
+        window.amulet.window_has_focus = 1;
+    }, false);
 }
 set_visibility_handler();
 

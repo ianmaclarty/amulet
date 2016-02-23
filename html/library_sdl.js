@@ -1796,6 +1796,7 @@ var LibrarySDL = {
         try {
           if (SDL.audio.paused) return;
           if (window.amulet.window_hidden) return;
+          if (!window.amulet.window_has_focus) return;
 
           var sizeSamples = sizeBytes / SDL.audio.bytesPerSample; // How many samples fit in the callback buffer?
           var sizeSamplesPerChannel = sizeSamples / SDL.audio.channels; // How many samples per a single channel fit in the cb buffer?
