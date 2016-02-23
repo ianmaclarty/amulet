@@ -414,6 +414,16 @@ function am._clear_events(win)
     clear_resized(win)
 end
 
+function am._reset_window_event_data(window)
+    local u = window._event_data
+    table.clear(u._key_state0)
+    table.clear(u._key_presses)
+    table.clear(u._key_releases)
+    table.clear(u._mouse_state0)
+    table.clear(u._mouse_presses)
+    table.clear(u._mouse_releases)
+end
+
 function am._init_window_event_data(window)
     local u = window._event_data
 

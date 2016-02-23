@@ -121,6 +121,23 @@ double am_get_current_time() {
     return ((double)SDL_GetTicks())/1000.0;
 }
 
+static void reset_event_data_if_blurred(am_engine *eng) {
+    int blurred = EM_ASM_INT({
+        if (window.amulet.window_hidden || !window.amulet.window_has_focus) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }, 0);
+    if (blurred) {
+        am_window *win = am_find_window((am_native_window*)sdl_window);
+        if (win) {
+            win->push(eng->L);
+            am_call_amulet(eng->L, "_reset_window_event_data", 1, 0);
+        }
+    }
+}
+
 static void main_loop() {
     if (eng == NULL) return;
     if (was_error) {
@@ -133,6 +150,7 @@ static void main_loop() {
     }
     if (!run_loop || sdl_window == NULL) return;
 
+    reset_event_data_if_blurred(eng);
     if (!handle_events()) {
         was_error = true;
         return;
