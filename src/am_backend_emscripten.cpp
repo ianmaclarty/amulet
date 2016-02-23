@@ -127,6 +127,7 @@ static void main_loop() {
         if (!printed_error) {
             am_log0("%s", "ERROR");
             printed_error = true;
+            am_update_windows(eng->L); // display error screen
         }
         return;
     }
