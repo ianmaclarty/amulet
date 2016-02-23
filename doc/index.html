@@ -195,14 +195,15 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#touches_began">window:touches_began()</a></li>
 <li><a href="#windowtouches_ended">window:touches_ended()</a></li>
 <li><a href="#windowactive_touches">window:active_touches()</a></li>
-<li><a href="#windowtouch_begantouch">window:touch_began(touch)</a></li>
-<li><a href="#windowtouch_endedtouch">window:touch_ended(touch)</a></li>
-<li><a href="#windowtouch_positiontouch">window:touch_position(touch)</a></li>
-<li><a href="#windowtouch_norm_positiontouch">window:touch_norm_position(touch)</a></li>
-<li><a href="#windowtouch_pixel_positiontouch">window:touch_pixel_position(touch)</a></li>
-<li><a href="#windowtouch_deltatouch">window:touch_delta(touch)</a></li>
-<li><a href="#windowtouch_norm_deltatouch">window:touch_norm_delta(touch)</a></li>
-<li><a href="#windowtouch_pixel_deltatouch">window:touch_pixel_delta(touch)</a></li>
+<li><a href="#windowtouch_begantouch">window:touch_began([touch])</a></li>
+<li><a href="#windowtouch_endedtouch">window:touch_ended([touch])</a></li>
+<li><a href="#window:touch_active">window:touch_active([touch])</a></li>
+<li><a href="#windowtouch_positiontouch">window:touch_position([touch])</a></li>
+<li><a href="#windowtouch_norm_positiontouch">window:touch_norm_position([touch])</a></li>
+<li><a href="#windowtouch_pixel_positiontouch">window:touch_pixel_position([touch])</a></li>
+<li><a href="#windowtouch_deltatouch">window:touch_delta([touch])</a></li>
+<li><a href="#windowtouch_norm_deltatouch">window:touch_norm_delta([touch])</a></li>
+<li><a href="#windowtouch_pixel_deltatouch">window:touch_pixel_delta([touch])</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#scenes">Scenes</a><ul>
@@ -690,6 +691,7 @@ main.lua:1: It works!</code></pre>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">scene<span class="st">&quot;rotate&quot;</span><span class="ot">.</span>angle <span class="ot">=</span> am<span class="ot">.</span>frame_time <span class="ot">*</span> <span class="dv">4</span></code></pre></div>
 <p>first finds a node with the <em>tag</em> <code>&quot;rotate&quot;</code> in the scene graph. By default nodes have tags that correspond to their names, so this returns the rotate node. You can also add your own tags to nodes using the <code>tag</code> method which we'll discuss in more detail in the next section.</p>
 <p>Then we set the <code>angle</code> property of the rotate node to the current frame time (the time at the beginning of the frame, in seconds) times 4.</p>
+<p>Note that <code>scene&quot;rotate&quot;</code> could also be written as <code>scene(&quot;rotate&quot;)</code>. The first form takes advantage of some Lua syntactic sugar that allows function parenthesis to be omitted if the argument is a single literal string.</p>
 <p>Since this code is run each frame, it causes the text to spin.</p>
 <p>Here is the complete code listing:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> win <span class="ot">=</span> am<span class="ot">.</span>window<span class="ot">{</span>
@@ -1023,7 +1025,6 @@ win<span class="ot">.</span>scene:action<span class="ot">(</span>am<span class="
 <h2 id="vectors">Vectors</h2>
 <p>Amulet has built-in support for 2, 3 or 4 dimensional vectors. Vectors are typically used to represent things like position, direction or velocity in 2 or 3 dimensional space. Representing RGBA colors is another common use of 4 dimensional vectors.</p>
 <p>In Amulet vectors are immutable. This means that once you create a vector, its value cannot be changed. Instead you need to construct a new vector.</p>
-<p><strong>Note</strong>: Each component of a vector is represented internally as a 32 bit float, so expect some loss of precision when converting between vector components and Lua numbers, which are 64 bits.</p>
 <h3 id="constructing-vectors">Constructing vectors</h3>
 <p>To construct a vector use one of the functions <code>vec2</code>, <code>vec3</code> or <code>vec4</code>. A vector may be constructed by passing its components as separate arguments to one of these functions, for example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> velocity <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">)</span></code></pre></div>
@@ -1085,7 +1086,7 @@ vec4(2, 4, 6, 8)</code></pre>
 </div>
 <h2 id="matrices">Matrices</h2>
 <p>Amulet has built-in support for 2x2, 3x3 and 4x4 matrices. Matrices are typically used to represent transformations in 2 or 3 dimensional space such as rotation, scaling, translation or perspective projection.</p>
-<p>Matrices, like vectors, are immutable and their components are represented internally as 32 bit floats.</p>
+<p>Matrices, like vectors, are immutable.</p>
 <h3 id="constructing-matrices">Constructing matrices</h3>
 <p>Use one of the functions <code>mat2</code>, <code>mat3</code> or <code>mat4</code> to construct a 2x2, 3x3 or 4x4 matrix.</p>
 <p>Passing a single number argument to one of the matrix constructors generates a matrix with all diagonal elements equal to the number and all other elements equal to zero. For example <code>mat3(1)</code> constructs the 3x3 identity matrix:</p>
@@ -1695,31 +1696,45 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>If there are no other active touches then the next touch will always be 1, so if your interface only expects a single touch at a time, you can just use 1 for all touch functions that take a touch argument and any additional touches will be ignored.</p>
 <h3 id="windowtouches_ended" class="method-def">window:touches_ended()</h3>
 <p>Returns an array of the touches that ended since the last frame.</p>
+<p>See <a href="#touches_began"><code>window:touches_began</code></a> for more info about the returned touches.</p>
 <h3 id="windowactive_touches" class="method-def">window:active_touches()</h3>
 <p>Returns an array of the currently active touches.</p>
-<h3 id="windowtouch_begantouch" class="method-def">window:touch_began(touch)</h3>
+<p>See <a href="#touches_began"><code>window:touches_began</code></a> for more info about the returned touches.</p>
+<h3 id="windowtouch_begantouch" class="method-def">window:touch_began([touch])</h3>
 <p>Returns true if the specific touch began since the last frame.</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_endedtouch" class="method-def">window:touch_ended(touch)</h3>
+<h3 id="windowtouch_endedtouch" class="method-def">window:touch_ended([touch])</h3>
 <p>Returns true if the specific touch ended since the last frame.</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_positiontouch" class="method-def">window:touch_position(touch)</h3>
+<h3 id="window:touch_active" class="method-def">window:touch_active([touch])</h3>
+<p>Returns true if the specific touch is active.</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
+<p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
+<h3 id="windowtouch_positiontouch" class="method-def">window:touch_position([touch])</h3>
 <p>Returns the last touch position in the window's coordinate system (a <code>vec2</code>).</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_norm_positiontouch" class="method-def">window:touch_norm_position(touch)</h3>
+<h3 id="windowtouch_norm_positiontouch" class="method-def">window:touch_norm_position([touch])</h3>
 <p>Returns the last touch position in normalized device coordinates (a <code>vec2</code>).</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_pixel_positiontouch" class="method-def">window:touch_pixel_position(touch)</h3>
+<h3 id="windowtouch_pixel_positiontouch" class="method-def">window:touch_pixel_position([touch])</h3>
 <p>Returns the last touch position in pixels, where the bottom left corner of the window is (0, 0) (a <code>vec2</code>).</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_deltatouch" class="method-def">window:touch_delta(touch)</h3>
+<h3 id="windowtouch_deltatouch" class="method-def">window:touch_delta([touch])</h3>
 <p>Returns the change in touch position since the last frame in the window's coordinate system (a <code>vec2</code>).</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_norm_deltatouch" class="method-def">window:touch_norm_delta(touch)</h3>
+<h3 id="windowtouch_norm_deltatouch" class="method-def">window:touch_norm_delta([touch])</h3>
 <p>Returns the change in touch position since the last frame in normalized device coordinates (a <code>vec2</code>).</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
-<h3 id="windowtouch_pixel_deltatouch" class="method-def">window:touch_pixel_delta(touch)</h3>
+<h3 id="windowtouch_pixel_deltatouch" class="method-def">window:touch_pixel_delta([touch])</h3>
 <p>Returns the change in touch position since the last frame in pixels (a <code>vec2</code>).</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
 <div class="figure">
 <img src="images/screenshot8.jpg" alt="" />
@@ -2952,8 +2967,9 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <h1 id="globbing">Globbing</h1>
 <h3 id="am.glob" class="func-def">am.glob(patterns)</h3>
 <p>Returns an array (table) of file names matching the given glob pattern(s). <code>patterns</code> should be a table of glob pattern strings. A glob pattern is a file path with zero or more wildcard (<code>*</code>) characters.</p>
-<p>Any matching files that are directories will have a slash (<code>/</code>) appended to their names (even on Windows).</p>
-<p>The slash character (<code>/</code>) can be used as a directory separator on Windows. You don't need to use backslash (<code>\</code>).</p>
+<p>Any matching files that are directories will have a slash (<code>/</code>) appended to their names, even on Windows.</p>
+<p>The slash character (<code>/</code>) can be used as a directory separator on Windows (you don't need to use <code>\</code>). Furthermore returned paths will always have '/' as the directory separator, even on Windows.</p>
+<p><strong>Note:</strong> This function only searches for files on the file system. It won't search the resource archive in a exported game. Its intended use is for writing file processing utilities and not for use directly in games you wish to distribute.</p>
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> image_files <span class="ot">=</span> am<span class="ot">.</span>glob<span class="ot">{</span><span class="st">&quot;images/*.png&quot;</span><span class="ot">,</span> <span class="st">&quot;images/*.jpg&quot;</span><span class="ot">}</span></code></pre></div>
 <h1 id="running-javascript">Running JavaScript</h1>

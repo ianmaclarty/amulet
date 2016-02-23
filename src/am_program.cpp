@@ -611,21 +611,21 @@ static void set_param_value(lua_State *L, am_program_param_value *param, int val
 
 static am_bind_node *new_bind_node(lua_State *L, int num_params) {
     // allocate extra space for the shader paramter names, values and refs
+    size_t node_sz = sizeof(am_bind_node);
+    am_align_size(node_sz);
+    size_t names_sz = sizeof(am_param_name_id) * num_params;
+    am_align_size(names_sz);
+    size_t values_sz = sizeof(am_program_param_value) * num_params;
+    am_align_size(values_sz);
+    size_t refs_sz = sizeof(int) * num_params;
+    am_align_size(refs_sz);
     am_bind_node *node = (am_bind_node*)am_set_metatable(L,
-        new (lua_newuserdata(L, 
-            sizeof(am_bind_node)
-                + sizeof(am_param_name_id) * num_params
-                + sizeof(am_program_param_value) * num_params
-                + sizeof(int) * num_params
-            ))
+        new (lua_newuserdata(L, node_sz + names_sz + values_sz + refs_sz))
         am_bind_node(), MT_am_bind_node);
     node->num_params = num_params;
-    node->names = (am_param_name_id*)(((uint8_t*)node) + sizeof(am_bind_node));
-    node->values = (am_program_param_value*)(((uint8_t*)node) + sizeof(am_bind_node)
-        + sizeof(am_param_name_id) * num_params);
-    node->refs = (int*)(((uint8_t*)node) + sizeof(am_bind_node)
-        + sizeof(am_param_name_id) * num_params
-        + sizeof(am_program_param_value) * num_params);
+    node->names = (am_param_name_id*)(((uint8_t*)node) + node_sz);
+    node->values = (am_program_param_value*)(((uint8_t*)node) + node_sz + names_sz);
+    node->refs = (int*)(((uint8_t*)node) + node_sz + names_sz + values_sz);
     return node;
 }
 

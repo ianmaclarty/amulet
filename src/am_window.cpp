@@ -407,9 +407,10 @@ bool am_update_windows(lua_State *L) {
     resize_windows();
     draw_windows();
     frame++;
-    if (am_conf_log_gl_calls) {
+    if (am_conf_log_gl_calls && am_conf_log_gl_frames > 0) {
         fprintf(stderr, "SDL_GL_SwapWindow(win);\n\n // ===================== END FRAME %d ==========================\n\n", frame);
     }
+    if (am_conf_log_gl_frames > 0) am_conf_log_gl_frames--;
     return windows.size() > 0;
 }
 

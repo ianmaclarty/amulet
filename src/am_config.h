@@ -27,6 +27,7 @@ extern bool am_conf_validate_shader_programs;
 extern bool am_conf_check_gl_errors;
 extern bool am_conf_dump_translated_shaders;
 extern bool am_conf_log_gl_calls;
+extern int am_conf_log_gl_frames;
 extern bool am_conf_allow_restart;
 
 bool am_load_config();
