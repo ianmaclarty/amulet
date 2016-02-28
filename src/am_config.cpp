@@ -17,10 +17,10 @@ int am_conf_vsync = true;
 
 // am_conf_audio_buffer_size is number of samples for each channel
 int am_conf_audio_buffer_size = 1024;
-
 int am_conf_audio_channels = 2;
 int am_conf_audio_sample_rate = 44100;
 int am_conf_audio_interpolate_samples = 128; // must be less than am_conf_audio_buffer_size
+bool am_conf_audio_mute = false;
 
 // Note: enabling either of the following two options causes substantial
 // slowdowns on the html backend in some browsers

@@ -111,24 +111,28 @@ static bool help_cmd(int *argc, char ***argv) {
     }
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet [ <command> ] [ <file> ] ...\n"
+        "Usage: amulet [ <options> ] [ <file> ] ...\n"
+        "   or: amulet <command> ...\n"
         "\n"
-        "  If no command is supplied, amulet runs the lua script <file>.\n"
-        "  If no file is supplied, it tries to run main.lua in the current directory.\n"
-      //"  Failing that it looks for data/main.lua. Finally it\n"
-      //"  tries to run data.pak in the current directory, where data.pak is\n"
-      //"  a zipped archive containing main.lua.\n"
-        "  Any extra arguments after <file> are passed on to the script\n"
-        "  where they can be accessed via the arg global.\n"
+        "If no command is supplied, amulet runs the lua script <file>.\n"
+        "If no file is supplied, it tries to run main.lua in the current directory.\n"
+      //"Failing that it looks for data/main.lua. Finally it\n"
+      //"tries to run data.pak in the current directory, where data.pak is\n"
+      //"a zipped archive containing main.lua.\n"
+        "Any extra arguments after <file> are passed on to the script\n"
+        "where they can be accessed via the arg global.\n"
         "\n"
-        "The available commands are:\n"
-        "  help [ <command> ] Show help.\n"
-        "  version            Show version.\n"
+        "Options:\n"
+        "  -mute              Mute audio\n"
+        "\n"
+        "Other commands:\n"
+        "  help [ <command> ] Show help\n"
+        "  version            Show version\n"
 #ifdef AM_EXPORT
-        "  export [ <dir> ]   Generate distribution packages.\n"
+        "  export [ <dir> ]   Generate distribution packages\n"
 #endif
 #ifdef AM_SPRITEPACK
-        "  pack ...           Generate sprite sheet from images or fonts.\n"
+        "  pack ...           Generate sprite sheet from images and/or fonts\n"
 #endif
         "\n"
        /*-------------------------------------------------------------------------------*/
@@ -166,6 +170,11 @@ static bool pack_cmd(int *argc, char ***argv) {
 #endif
 }
 
+static bool mute_opt(int *argc, char ***argv) {
+    am_conf_audio_mute = true;
+    return true;
+}
+
 static option options[] = {
     {"help",        help_cmd, true},
     {"-help",       help_cmd, true},
@@ -175,6 +184,7 @@ static option options[] = {
     {"--version",   version_cmd, true},
     {"export",      export_cmd, true},
     {"pack",        pack_cmd, true},
+    {"-mute",       mute_opt, false},
 
     {NULL, NULL}
 };
