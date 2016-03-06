@@ -280,13 +280,14 @@ void am_set_native_window_lock_pointer(am_native_window *window, bool enabled) {
 }
 
 void am_destroy_native_window(am_native_window* window) {
-    for (unsigned int i = 0; i < windows.size(); i++) {
-        if (windows[i].window == (SDL_Window*)window) {
+    SDL_Window *sdl_win = (SDL_Window*)window;
+    for (int i = windows.size() - 1; i >= 0; i--) {
+        // if main window closed, close all windows.
+        if (windows[i].window == sdl_win || main_window == sdl_win) {
             if (windows[i].window != main_window) {
                 SDL_DestroyWindow((SDL_Window*)window);
             }
             windows.erase(windows.begin() + i);
-            break;
         }
     }
 }
@@ -525,17 +526,18 @@ quit:
             SDL_CloseAudioDevice(capture_device);
         }
     }
-    // destroy lua state before window, so gl context not
+    // destroy lua state before main window, so gl context not
     // destroyed before textures and vbos deleted.
     if (eng != NULL) am_destroy_engine(eng);
     for (unsigned int i = 0; i < windows.size(); i++) {
-        // XXX why not destroy main window here?
+        // destroy main window last, because it owns the gl context.
         if (windows[i].window != main_window) {
             SDL_DestroyWindow(windows[i].window);
         }
     }
     if (main_window != NULL) {
         SDL_DestroyWindow(main_window);
+        main_window = NULL;
     }
     if (sdl_initialized) {
         SDL_Quit();
