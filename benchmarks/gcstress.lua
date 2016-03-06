@@ -1,5 +1,3 @@
-local am = amulet
-
 local branches = {10, 10, 10, 10, 20}
 local num_buffers = 10000
 local num_loops = 1000
@@ -23,13 +21,14 @@ local b = 1
 local
 function construct_tree(level)
     if not branches[level] then
-        local leaf = am.draw_arrays()
-            :bind{
+        local leaf =
+            am.bind{
                 verts = buffers[b]:view("vec3", 0, 12),
                 uvs = buffers[b]:view("vec2", 0, 8),
                 t = 0,
                 offset = vec3(0),
             }
+            ^ am.draw"triangles"
         b = b % num_buffers + 1
         return leaf
     end
@@ -37,10 +36,11 @@ function construct_tree(level)
     for i = 1, branches[level] do
         node:append(construct_tree(level + 1))
     end
-    return node:alias("group")
-        :scale("MV", vec3(1))
-        :rotate("MV", quat(0))
-        :translate("MV", vec3(0))
+    return 
+        am.translate("MV", vec3(0))
+        ^ am.rotate("MV", quat(0))
+        ^ am.scale("MV", vec3(1))
+        ^ node:tag("group")
 end
 
 time("start")
@@ -56,16 +56,16 @@ for i = 1, num_loops do
         local node = root
         for l = 1, #branches do
             local c = math.random(branches[l])
-            node = node.group:child(c)
+            node = node"group":child(c)
             if l < #branches then
-                node.position = vec3(0) + vec3(0)
-                node.rotation = quat(1) * quat(-1)
-                node.scaling = node.scaling * vec3(1)
+                node"translate".position = vec3(0) + vec3(0)
+                node"rotate".rotation = quat(1) * quat(-1)
+                node"scale".scale = node"scale".scale * vec3(1)
             else
-                node.verts = buffers[math.random(num_buffers)]:view("vec3", 0, 12)
-                node.uvs = buffers[math.random(num_buffers)]:view("vec2", 0, 8)
-                node.t = i
-                node.offset = vec3(1) + vec3(2) + vec3(4)
+                node"bind".verts = buffers[math.random(num_buffers)]:view("vec3", 0, 12)
+                node"bind".uvs = buffers[math.random(num_buffers)]:view("vec2", 0, 8)
+                node"bind".t = i
+                node"bind".offset = vec3(1) + vec3(2) + vec3(4)
             end
         end
     end
