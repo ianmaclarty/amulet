@@ -181,7 +181,7 @@ Updatable.
 
 # Framebuffers
 
-A framebuffer is like an off-screen window you can draw too.
+A framebuffer is like an off-screen window you can draw to.
 It has a texture associated with it that gets updated when you
 draw to the framebuffer. The texture can then be used as input to
 further rendering.
