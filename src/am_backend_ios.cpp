@@ -13,6 +13,7 @@
 #import <AudioUnit/AudioUnit.h>
 #import <CoreMotion/CoreMotion.h>
 #import <GLKit/GLKit.h>
+#import <GameKit/GameKit.h>
 
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
@@ -828,6 +829,169 @@ void am_capture_audio(am_audio_bus *bus) {
 
 int am_next_video_capture_frame() {
     return 0;
+}
+
+// ---------------- Game Center ---------------------
+
+static bool gamecenter_available = false;
+
+@interface GameCenterLeaderboardViewController : GKLeaderboardViewController 
+@end
+
+@implementation GameCenterLeaderboardViewController
+@end
+
+static GameCenterLeaderboardViewController *leaderboard_view_controller = nil;
+
+@interface GameCenterDelegate: NSObject<GKLeaderboardViewControllerDelegate>
+- (void)leaderboardViewControllerDidFinish:(GKLeaderboardViewController *)viewController;
+@end
+
+static GameCenterDelegate *gamecenter_delegate = nil;
+
+@implementation GameCenterDelegate
+- (void)leaderboardViewControllerDidFinish:(GKLeaderboardViewController *)viewController {
+    if (ios_view_controller != nil) {
+        [ios_view_controller dismissModalViewControllerAnimated:YES];
+    }
+}
+@end
+
+@interface GameCenterSubmitter : NSObject
++(void)submitScore:(id)data;
+@end
+
+@implementation GameCenterSubmitter
+
++(void)submitScore:(id)data{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    int score = [[data objectForKey:@"score"] intValue];
+    NSString* leaderboardCategory = [data objectForKey:@"category"];
+    GKScore *scoreReporter = [[[GKScore alloc] initWithCategory:leaderboardCategory] autorelease];
+    scoreReporter.value = score;
+    [scoreReporter reportScoreWithCompletionHandler:^(NSError *error)
+       {
+           if (error) {
+                NSLog(@"Game Center Score Error: %@", [error localizedDescription]);
+           }
+       }
+    ];
+    [data release];
+    [pool release];
+}
+
++(void)submitAchievement:(id)data{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    NSString *name = [data objectForKey:@"achievement"];
+    GKAchievement *achievement = [[[GKAchievement alloc] initWithIdentifier:name] autorelease];
+    achievement.percentComplete = 100.0;
+    [achievement reportAchievementWithCompletionHandler:^(NSError *error)
+       {
+           if (error) {
+                NSLog(@"Game Center Achievement Error: %@", [error localizedDescription]);
+           }
+       }
+    ];
+    [data release];
+    [pool release];
+}
+
+@end
+
+static int init_gamecenter(lua_State *L) {
+    am_debug("%s", "initializing gamecenter");
+    [[GKLocalPlayer localPlayer] authenticateWithCompletionHandler:^(NSError *error) {
+        if (error == nil) {
+            gamecenter_available = true;
+            am_debug("%s", "gamecenter initialisation ok");
+        } else {
+            NSString *description = error.localizedDescription;
+            NSString *reason = error.localizedFailureReason;
+            am_debug("gamecenter initialisation failed: %s (%s)", description.UTF8String, reason.UTF8String);
+            gamecenter_available = false;
+        }
+    }];
+
+    gamecenter_delegate = [[GameCenterDelegate alloc] init];
+    [gamecenter_delegate retain];
+    return 0;
+}
+
+/*
+static int destroy_gamecenter(lua_State *L) {
+    //fprintf(stderr, "gamecenter_delegate ref_count = %d\n", [gamecenter_delegate retain_count]);
+    [gamecenter_delegate release];
+    if (leaderboard_view_controller != nil) {
+        //fprintf(stderr, "leaderboard_view_controller ref_count = %d\n", [leaderboard_view_controller retain_count]);
+        [leaderboard_view_controller release];
+    }
+    return 0;
+}
+*/
+
+static int submit_gamecenter_score(lua_State *L) {
+    am_check_nargs(L, 2);
+    const char *leaderboard = lua_tostring(L, 1);
+    if (leaderboard == NULL) {
+        return luaL_error(L, "expecting a string in position 1");
+    }
+    int score = lua_tointeger(L, 2);
+    if (gamecenter_available) {
+        NSDictionary* data = [[NSDictionary alloc]
+            initWithObjectsAndKeys:[NSNumber numberWithInt:score], @"score",
+            [NSString stringWithUTF8String:leaderboard], @"category", nil];
+        [NSThread detachNewThreadSelector:@selector(submitScore:) toTarget:[GameCenterSubmitter class] withObject:data];
+    }
+    return 0;
+}
+
+static int submit_gamecenter_achievement(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *achievement = lua_tostring(L, 1);
+    if (achievement == NULL) {
+        return luaL_error(L, "expecting a string in position 1");
+    }
+    if (gamecenter_available) {
+        NSDictionary* data = [[NSDictionary alloc]
+            initWithObjectsAndKeys:
+            [NSString stringWithUTF8String:achievement], @"achievement", nil];
+        [NSThread detachNewThreadSelector:@selector(submitAchievement:) toTarget:[GameCenterSubmitter class] withObject:data];
+    }
+    return 0;
+}
+
+static int show_gamecenter_leaderboard(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *leaderboard = lua_tostring(L, 1);
+    if (leaderboard == NULL) {
+        return luaL_error(L, "expecting a string in position 1");
+    }
+    am_debug("showing game center leaderboard %s (%s)", leaderboard, gamecenter_available ? "available" : "not available");
+    if (gamecenter_available) {
+        NSString *category = [NSString stringWithUTF8String:leaderboard];
+        if (leaderboard_view_controller == nil) {
+            leaderboard_view_controller = [[GameCenterLeaderboardViewController alloc] init];
+            [leaderboard_view_controller retain];
+        }
+        if (ios_view_controller != nil) {
+            leaderboard_view_controller.leaderboardDelegate = gamecenter_delegate;
+            leaderboard_view_controller.category = category;
+            [ios_view_controller presentModalViewController: leaderboard_view_controller animated: YES];
+        }
+    }
+    return 0;
+}
+
+void am_open_gamecenter_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"init_gamecenter", init_gamecenter},
+        {"submit_gamecenter_score", submit_gamecenter_score},
+        {"submit_gamecenter_achievement", submit_gamecenter_achievement},
+        {"show_gamecenter_leaderboard", show_gamecenter_leaderboard},
+        //{"destroy_gamecenter", destroy_gamecenter},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
 }
 
 #endif // AM_BACKEND_IOS

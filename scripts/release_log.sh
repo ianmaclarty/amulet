@@ -2,12 +2,12 @@
 set -e
 tags=`git for-each-ref --sort=taggerdate --format '%(refname)' refs/tags | sed 's/refs\/tags\///g' | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+$' | tail -n 2`
 if [ -z "$1" ]; then
-    tag1=`echo $tags | sed 's/ v[0-9]\+\.[0-9]\+\.[0-9]\+$//'`
+    tag1=`echo $tags | sed 's/ v[0-9]*\.[0-9]*\.[0-9]*$//'`
 else
     tag1=$1
 fi
 if [ -z "$2" ]; then
-    tag2=`echo $tags | sed 's/^v[0-9]\+\.[0-9]\+\.[0-9]\+ //'`
+    tag2=`echo $tags | sed 's/^v[0-9]*\.[0-9]*\.[0-9]* //'`
 else
     tag2=$2
 fi

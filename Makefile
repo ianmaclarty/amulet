@@ -240,13 +240,6 @@ endif
 $(VERSION_CPP_FILE):
 	echo "const char *am_version = \"$(VERSION)\";" > $@
 
-# Font generation tool
-
-tools/ampack$(EXE_EXT): tools/ampack.c $(FT2_ALIB)
-	$(CC) $(COMMON_CFLAGS) $(NOLINK_OPT) $(AM_INCLUDE_FLAGS) $(OBJ_OUT_OPT)tools/ampack$(OBJ_EXT) $<
-	$(LINK) tools/ampack$(OBJ_EXT) $(FT2_ALIB) $(XLDFLAGS) $(EXE_OUT_OPT)$@
-	cp $@ `basename $@`
-
 # runnable gl logs (assumes gllog.cpp exists)
 
 gllog: gllog.cpp $(DEP_ALIBS) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
