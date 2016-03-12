@@ -189,6 +189,8 @@ am_native_window *am_create_native_window(
     winfo.window = win;
     winfo.lock_pointer = false;
     SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
+    winfo.mouse_delta_x = 0;
+    winfo.mouse_delta_y = 0;
     winfo.mouse_wheel_x = 0;
     winfo.mouse_wheel_y = 0;
     windows.push_back(winfo);
