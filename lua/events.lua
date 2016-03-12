@@ -422,6 +422,11 @@ function am._reset_window_event_data(window)
     table.clear(u._mouse_state0)
     table.clear(u._mouse_presses)
     table.clear(u._mouse_releases)
+    for i, touch in ipairs(u._touches) do
+        touch.id = false
+        touch.ended = false
+        touch.began = false
+    end
 end
 
 function am._init_window_event_data(window)

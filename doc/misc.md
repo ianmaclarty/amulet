@@ -102,3 +102,35 @@ Returns a table with the following fields:
 ### am.version {#am.version .field-def}
 
 The current Amulet version, as a string. E.g. `"1.0.3"`.
+
+# Platform
+
+### am.platform {#am.platform .field-def}
+
+The platform Amulet is running on. It will be one of the strings
+`"linux"` `"windows"` `"osx"` `"ios"` `"android"` or `"html"`.
+
+# Game Center (iOS only)
+
+The following functions are only available on iOS.
+
+### am.init_gamecenter() {#am.init_gamecenter .func-def}
+
+Initialize Game Center. This must be called before any other
+Game Center functions.
+
+### am.gamecenter_available() {#am.gamecenter_available .func-def}
+
+Returns true if Game Center was successfully initialized.
+
+### am.submit_gamecenter_score(leaderboard_id, score) {#am.submit_gamecenter_score .func-def}
+
+Submit a score to a leaderboard. Note that Game Center accepts only integer scores.
+
+### am.submit_gamecenter_achievement(achievment_id) {#am.submit_gamecenter_achievement .func-def}
+
+Submit an achievement.
+
+### am.show_gamecenter_leaderboard(leaderboard_id) {#am.show_gamecenter_leaderboard .func-def}
+
+Display a leaderboard.

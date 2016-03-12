@@ -41,6 +41,8 @@ static double frame_time = 0.0;
 static double delta_time;
 static double real_delta_time;
 
+//static void init_gamecenter();
+
 #define MIN_UPDATE_TIME (1.0/400.0)
 
 //---------------------------------------------------------------------------
@@ -419,6 +421,7 @@ static void ios_touch_began(NSSet *touches) {
     UITouch *touch;
     while ((touch = [e nextObject])) {
         CGPoint pos = [touch locationInView:touch.view];
+        //am_debug("pos = %f %f", pos.x, pos.y);
         am_find_window((am_native_window*)ios_view)->touch_begin(ios_eng->L, touch, pos.x, pos.y);
     }
 }
@@ -465,6 +468,11 @@ static void ios_resign_active() {
 static void ios_become_active() {
     // XXX ltClientInit();
     frames_since_disable_animations = 0;
+    if (ios_view != nil && ios_eng != NULL) {
+        // reset event data in case touch end events missing
+        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
+        am_call_amulet(ios_eng->L, "_reset_window_event_data", 1, 0);
+    }
 }
 
 static CMMotionManager *motionManager = nil;
@@ -601,6 +609,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
  
     //self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
+    //init_gamecenter();
     return YES;
 }
 
@@ -663,7 +672,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 - (void)dealloc
 {
-    am_debug("%s", "teardown");
     ios_teardown();
     [super dealloc];
     if (motionManager != nil) {
@@ -853,6 +861,12 @@ static GameCenterDelegate *gamecenter_delegate = nil;
 - (void)leaderboardViewControllerDidFinish:(GKLeaderboardViewController *)viewController {
     if (ios_view_controller != nil) {
         [ios_view_controller dismissModalViewControllerAnimated:YES];
+        if (ios_view != nil && ios_eng != NULL) {
+            // reset event data, because sometimes touch end events are missed
+            // when the leaderboard view controller is displayed.
+            am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
+            am_call_amulet(ios_eng->L, "_reset_window_event_data", 1, 0);
+        }
     }
 }
 @end
@@ -865,10 +879,10 @@ static GameCenterDelegate *gamecenter_delegate = nil;
 
 +(void)submitScore:(id)data{
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    int score = [[data objectForKey:@"score"] intValue];
+    double score = [[data objectForKey:@"score"] doubleValue];
     NSString* leaderboardCategory = [data objectForKey:@"category"];
     GKScore *scoreReporter = [[[GKScore alloc] initWithCategory:leaderboardCategory] autorelease];
-    scoreReporter.value = score;
+    scoreReporter.value = (int64_t)score;
     [scoreReporter reportScoreWithCompletionHandler:^(NSError *error)
        {
            if (error) {
@@ -899,11 +913,9 @@ static GameCenterDelegate *gamecenter_delegate = nil;
 @end
 
 static int init_gamecenter(lua_State *L) {
-    am_debug("%s", "initializing gamecenter");
     [[GKLocalPlayer localPlayer] authenticateWithCompletionHandler:^(NSError *error) {
         if (error == nil) {
             gamecenter_available = true;
-            am_debug("%s", "gamecenter initialisation ok");
         } else {
             NSString *description = error.localizedDescription;
             NSString *reason = error.localizedFailureReason;
@@ -912,8 +924,24 @@ static int init_gamecenter(lua_State *L) {
         }
     }];
 
+    /*
+    if ([GKLocalPlayer localPlayer].authenticated == NO) {
+        GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
+        [localPlayer setAuthenticateHandler:(^(UIViewController* viewcontroller, NSError *error) {
+            if(localPlayer.isAuthenticated) {
+                am_debug("%s", "gamecenter authenticated ok");
+            }else {
+                am_debug("%s", "gamecenter authentication failed");
+            }
+        })]; 
+    } else {
+        NSLog(@"Already authenticated!");   
+    }
+    */
+
     gamecenter_delegate = [[GameCenterDelegate alloc] init];
     [gamecenter_delegate retain];
+
     return 0;
 }
 
@@ -935,10 +963,10 @@ static int submit_gamecenter_score(lua_State *L) {
     if (leaderboard == NULL) {
         return luaL_error(L, "expecting a string in position 1");
     }
-    int score = lua_tointeger(L, 2);
+    double score = lua_tonumber(L, 2);
     if (gamecenter_available) {
         NSDictionary* data = [[NSDictionary alloc]
-            initWithObjectsAndKeys:[NSNumber numberWithInt:score], @"score",
+            initWithObjectsAndKeys:[NSNumber numberWithDouble:score], @"score",
             [NSString stringWithUTF8String:leaderboard], @"category", nil];
         [NSThread detachNewThreadSelector:@selector(submitScore:) toTarget:[GameCenterSubmitter class] withObject:data];
     }
@@ -966,25 +994,29 @@ static int show_gamecenter_leaderboard(lua_State *L) {
     if (leaderboard == NULL) {
         return luaL_error(L, "expecting a string in position 1");
     }
-    am_debug("showing game center leaderboard %s (%s)", leaderboard, gamecenter_available ? "available" : "not available");
-    if (gamecenter_available) {
+    //am_debug("showing game center leaderboard %s (%s)", leaderboard, gamecenter_available ? "available" : "not available");
+    if (gamecenter_available && ios_view_controller != nil) {
         NSString *category = [NSString stringWithUTF8String:leaderboard];
         if (leaderboard_view_controller == nil) {
             leaderboard_view_controller = [[GameCenterLeaderboardViewController alloc] init];
             [leaderboard_view_controller retain];
-        }
-        if (ios_view_controller != nil) {
             leaderboard_view_controller.leaderboardDelegate = gamecenter_delegate;
-            leaderboard_view_controller.category = category;
-            [ios_view_controller presentModalViewController: leaderboard_view_controller animated: YES];
         }
+        leaderboard_view_controller.category = category;
+        [ios_view_controller presentModalViewController: leaderboard_view_controller animated: YES];
     }
     return 0;
+}
+
+static int gamecenter_is_available(lua_State *L) {
+    lua_pushboolean(L, gamecenter_available);
+    return 1;
 }
 
 void am_open_gamecenter_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},
+        {"gamecenter_available", gamecenter_is_available},
         {"submit_gamecenter_score", submit_gamecenter_score},
         {"submit_gamecenter_achievement", submit_gamecenter_achievement},
         {"show_gamecenter_leaderboard", show_gamecenter_leaderboard},
