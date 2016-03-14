@@ -479,7 +479,7 @@
 @@ LUAI_MAXUPVALUES is the maximum number of upvalues per function
 @* (must be smaller than 250).
 */
-#define LUAI_MAXUPVALUES	60
+#define LUAI_MAXUPVALUES	100
 
 
 /*
