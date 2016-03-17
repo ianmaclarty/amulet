@@ -1,19 +1,27 @@
-function am.save_state(name, state)
-    local str = table.tostring(state)
+function am.save_state(name, state, format)
+    format = format or "lua"
+    local str
+    if format == "lua" then
+        str = "return "..table.tostring(state)
+    elseif format == "json" then
+        str = am.to_json(state)
+    else
+        error("unknown format: "..format, 2)
+    end
     if am.platform == "html" then
-        am.eval_js("localStorage.setItem('"..name.."','return "..
+        am.eval_js("localStorage.setItem('"..name.."','"..
             str:gsub("%'", "\\'"):gsub("%\n", "\\n").."');")
     elseif am.platform == "ios" then
-        am.ios_store_pref(name, "return "..str)
+        am.ios_store_pref(name, str)
     else
         local f = io.open(am.app_data_dir..name..".sav", "w")
-        f:write("return ")
         f:write(str)
         f:close()
     end
 end
 
-function am.load_state(name)
+function am.load_state(name, format)
+    format = format or "lua"
     local str
     if am.platform == "html" then
         str = am.eval_js("localStorage.getItem('"..name.."');")
@@ -33,5 +41,11 @@ function am.load_state(name)
         str = f:read("*a")
         f:close()
     end
-    return loadstring(str)()
+    if format == "lua" then
+        return loadstring(str)()
+    elseif format == "json" then
+        return am.parse_json(str)
+    else
+        error("unknown format: "..format, 2)
+    end
 end
