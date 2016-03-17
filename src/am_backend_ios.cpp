@@ -166,7 +166,6 @@ static void set_audio_category() {
     AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
 }
 
-/*
 static void ios_audio_suspend() {
     ios_audio_paused = true;
 }
@@ -185,7 +184,6 @@ static void audio_interrupt(void *ud, UInt32 state) {
         ios_audio_resume();
     }
 }
-*/
 
 static bool open_package() {
     char *package_filename = am_format("%s/%s", am_opt_data_dir, "data.pak");
@@ -268,7 +266,7 @@ static void ios_init_audio() {
     const AudioUnitElement bus = output_bus;
     const AudioUnitScope scope = kAudioUnitScope_Input;
 
-    AudioSessionInitialize(NULL, NULL, NULL, nil);
+    AudioSessionInitialize(NULL, NULL, audio_interrupt, nil);
     set_audio_category();
     AudioSessionSetActive(true);
 
