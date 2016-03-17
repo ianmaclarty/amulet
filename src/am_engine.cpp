@@ -62,7 +62,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_audio_module(L);
         am_open_sfxr_module(L);
 #ifdef AM_IOS
-        am_open_gamecenter_module(L);
+        am_open_ios_module(L);
 #endif
     }
     am_set_version(L);

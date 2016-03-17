@@ -95,31 +95,55 @@ static const char *ios_bundle_path() {
 
 static NSUserDefaults *prefs = nil;
 
-/*
 static void ensure_prefs_initialized() {
     if (prefs == nil) {
         prefs = [NSUserDefaults standardUserDefaults];
     }
 }
 
-void ltIOSStorePickledData(const char *key, LTPickler *pickler) {
+static void ios_store_pref_data(const char *key, const char *val) {
     ensure_prefs_initialized();
-    NSData *nsdata = [NSData dataWithBytesNoCopy:pickler->data length:pickler->size freeWhenDone:NO];
     NSString *skey = [NSString stringWithUTF8String:key];
-    [prefs setObject:nsdata forKey:skey];
+    NSString *sval = [NSString stringWithUTF8String:val];
+    [prefs setObject:sval forKey:skey];
 }
 
-LTUnpickler *ltIOSRetrievePickledData(const char *key) {
+static int ios_store_pref(lua_State *L) {
+    am_check_nargs(L, 2);
+    const char *key = lua_tostring(L, 1);
+    const char *val = lua_tostring(L, 2);
+    if (key == NULL) return luaL_error(L, "expecting a string in position 1");
+    if (val == NULL) return luaL_error(L, "expecting a string in position 2");
+    ios_store_pref_data(key, val);
+    return 0;
+}
+
+static char* ios_retrieve_pref_data(const char *key) {
     ensure_prefs_initialized();
-    NSData *nsdata = [prefs dataForKey:[NSString stringWithUTF8String:key]];
-    if (nsdata != nil) {
-        LTUnpickler *unpickler = new LTUnpickler(nsdata.bytes, nsdata.length);
-        return unpickler;
+    NSString *sval = [prefs stringForKey:[NSString stringWithUTF8String:key]];
+    if (sval != nil) {
+        const char *val0 = [sval UTF8String];
+        char *val = (char*)malloc(strlen(val0) + 1);
+        strcpy(val, val0);
+        return val;
     } else {
         return NULL;
     }
 }
-*/
+
+static int ios_retrieve_pref(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *key = lua_tostring(L, 1);
+    if (key == NULL) return luaL_error(L, "expecting a string in position 1");
+    char *val = ios_retrieve_pref_data(key);
+    if (val == NULL) {
+        lua_pushnil(L);
+    } else {
+        lua_pushstring(L, val);
+        free(val);
+    }
+    return 1;
+}
 
 static void ios_sync_store() {
     if (prefs != nil) {
@@ -652,22 +676,30 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    ios_touch_began(touches);
+    if (ios_view_controller != nil && ios_view_controller.presentedViewController == nil) {
+        ios_touch_began(touches);
+    }
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {    
-    ios_touch_moved(touches);
+    if (ios_view_controller != nil && ios_view_controller.presentedViewController == nil) {
+        ios_touch_moved(touches);
+    }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {    
-    ios_touch_ended(touches);
+    if (ios_view_controller != nil && ios_view_controller.presentedViewController == nil) {
+        ios_touch_ended(touches);
+    }
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    ios_touch_cancelled(touches);
+    if (ios_view_controller != nil && ios_view_controller.presentedViewController == nil) {
+        ios_touch_cancelled(touches);
+    }
 }
 
 - (void)dealloc
@@ -1013,13 +1045,15 @@ static int gamecenter_is_available(lua_State *L) {
     return 1;
 }
 
-void am_open_gamecenter_module(lua_State *L) {
+void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},
         {"gamecenter_available", gamecenter_is_available},
         {"submit_gamecenter_score", submit_gamecenter_score},
         {"submit_gamecenter_achievement", submit_gamecenter_achievement},
         {"show_gamecenter_leaderboard", show_gamecenter_leaderboard},
+        {"ios_store_pref", ios_store_pref},
+        {"ios_retrieve_pref", ios_retrieve_pref},
         //{"destroy_gamecenter", destroy_gamecenter},
         {NULL, NULL}
     };

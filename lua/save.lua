@@ -3,6 +3,8 @@ function am.save_state(name, state)
     if am.platform == "html" then
         am.eval_js("localStorage.setItem('"..name.."','return "..
             str:gsub("%'", "\\'"):gsub("%\n", "\\n").."');")
+    elseif am.platform == "ios" then
+        am.ios_store_pref(name, "return "..str)
     else
         local f = io.open(am.app_data_dir..name..".sav", "w")
         f:write("return ")
@@ -15,6 +17,11 @@ function am.load_state(name)
     local str
     if am.platform == "html" then
         str = am.eval_js("localStorage.getItem('"..name.."');")
+        if not str then
+            return nil
+        end
+    elseif am.platform == "ios" then
+        str = am.ios_retrieve_pref(name)
         if not str then
             return nil
         end
