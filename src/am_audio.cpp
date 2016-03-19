@@ -441,14 +441,15 @@ static bool is_too_slow(float playback_speed) {
 void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     if (done_server) return;
     if (is_too_slow(playback_speed.current_value)) return;
+    am_audio_bus tmp(bus);
     int buf_num_channels = audio_buffer->num_channels;
     int buf_num_samples = audio_buffer->buffer->size / (buf_num_channels * sizeof(float));
-    int bus_num_samples = bus->num_samples;
-    int bus_num_channels = bus->num_channels;
+    int bus_num_samples = tmp.num_samples;
+    int bus_num_channels = tmp.num_channels;
     if (!track_resample_required(this)) {
         // optimise common case where no resampling is required
         for (int c = 0; c < bus_num_channels; c++) {
-            float *bus_data = bus->channel_data[c];
+            float *bus_data = tmp.channel_data[c];
             float *buf_data = ((float*)audio_buffer->buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
                 int buf_pos = (int)floor(current_position);
@@ -467,7 +468,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
             } else {
                 // less channels in buffer than bus, so duplicate previous channels
                 assert(c > 0);
-                memcpy(bus_data, bus->channel_data[c-1], bus_num_samples * sizeof(float));
+                memcpy(bus_data, tmp.channel_data[c-1], bus_num_samples * sizeof(float));
             }
         }
         next_position = current_position + (double)bus_num_samples;
@@ -477,7 +478,7 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
     } else {
         // resample
         for (int c = 0; c < bus_num_channels; c++) {
-            float *bus_data = bus->channel_data[c];
+            float *bus_data = tmp.channel_data[c];
             float *buf_data = ((float*)audio_buffer->buffer->data) + c * buf_num_samples;
             if (c < buf_num_channels) {
                 double pos = current_position;
@@ -511,10 +512,11 @@ void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *
             } else {
                 // less channels in buffer than bus, so duplicate previous channels
                 assert(c > 0);
-                memcpy(bus_data, bus->channel_data[c-1], bus_num_samples * sizeof(float));
+                memcpy(bus_data, tmp.channel_data[c-1], bus_num_samples * sizeof(float));
             }
         }
     }
+    mix_bus(bus, &tmp);
 }
 
 void am_audio_track_node::post_render(am_audio_context *context, int num_samples) {
