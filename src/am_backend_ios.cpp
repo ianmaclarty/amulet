@@ -381,11 +381,8 @@ static void ios_teardown() {
 static int frames_since_disable_animations = 0;
 
 static void ios_draw() {
-    if (!ios_running) return;
-    if (!am_update_windows(ios_eng->L)) {
-        ios_running = false;
-        return;
-    }
+    if (ios_eng == NULL) return;
+    am_update_windows(ios_eng->L);
     //am_debug("%s", "done drawing");
 }
 
