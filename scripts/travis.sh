@@ -43,6 +43,7 @@ else
         #make TARGET=osx.release     LUAVM=luajit  test
         make -j2 TARGET=ios32.release   LUAVM=lua51
         make -j2 TARGET=ios64.release   LUAVM=lua51
+        scripts/gen_ios_universal.sh
     fi
     if [ -n "$TRAVIS_TAG" ]; then
         scripts/upload_builds.js $TRAVIS_TAG
