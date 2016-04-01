@@ -416,7 +416,7 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
     char *template_fmt = (char*)am_read_file(template_filename, NULL);
     free(template_filename);
     if (template_fmt == NULL) return false;
-    const char *orientation_xml;
+    const char *orientation_xml = "";
     switch (conf->orientation) {
         case AM_DISPLAY_ORIENTATION_ANY:
             orientation_xml = 
