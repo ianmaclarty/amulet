@@ -1,11 +1,11 @@
 
 # Exporting
 
-To generate distribution packages for Windows, Mac OS X, Linux
-and HTML5, use the amulet export command.
+To generate distribution packages for Windows, Mac OS X, Linux,
+HTML5, and iOS use the amulet export command.
 
-To do an export run the following command from the
-directory containing you Lua, image and sound files:
+Run the following command from the directory containing you Lua, image and
+sound files:
 
 ~~~ {.console}
 > amulet export
@@ -37,6 +37,12 @@ shortname = "mygame"
 author = "Your Name"
 appid = "com.some-unique-id.123"
 version = "1.0.0"
+
+-- iOS specific:
+display_name = "My Game"
+dev_region = "en"
+icon = "Icon.png"
+orientation = "any"
 ~~~
 
 then this will be used for various bits of meta-data in the

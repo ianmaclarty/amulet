@@ -53,7 +53,7 @@ void am_delete_empty_dir(const char* dir) {
 }
 
 void *am_read_file(const char *filename, size_t *len) {
-    *len = 0;
+    if (len != NULL) *len = 0;
     FILE *f = fopen(filename, "rb");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to open file %s\n", filename);
@@ -66,12 +66,13 @@ void *am_read_file(const char *filename, size_t *len) {
         if (c == EOF) break;
         else l++;
     } while (1);
-    *len = l;
-    unsigned char *buf = (unsigned char*)malloc(l);
+    if (len != NULL) *len = l;
+    unsigned char *buf = (unsigned char*)malloc(l + 1);
     fseek(f, 0, SEEK_SET);
     for (size_t i = 0; i < l; i++) {
         buf[i] = fgetc(f);
     }
+    buf[l] = 0; // null terminate so text file data can be cast to string
     return buf;
 }
 

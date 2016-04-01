@@ -44,6 +44,9 @@ else
         make -j2 TARGET=ios32.release   LUAVM=lua51
         make -j2 TARGET=ios64.release   LUAVM=lua51
         scripts/gen_ios_universal.sh
+        scripts/gen_ios_info_plist.sh
+        rm -rf builds/ios32
+        rm -rf builds/ios64
     fi
     if [ -n "$TRAVIS_TAG" ]; then
         scripts/upload_builds.js $TRAVIS_TAG

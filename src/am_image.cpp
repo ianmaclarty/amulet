@@ -132,6 +132,7 @@ static int save_image_as_png(lua_State *L) {
     void *png_data = tdefl_write_image_to_png_file_in_memory_ex(
         img->buffer->data, img->width, img->height, 4, &len, MZ_DEFAULT_LEVEL, 1);
     FILE *f = fopen(filename, "wb");
+    if (f == NULL) return luaL_error(L, "cannot open %s for writing", filename);
     fwrite(png_data, len, 1, f);
     fclose(f);
     free(png_data);

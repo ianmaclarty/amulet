@@ -42,6 +42,7 @@ void *am_read_resource(const char *filename, int *len, char** errmsg);
 int am_next_video_capture_frame();
 void am_copy_video_frame_to_texture();
 
+struct am_audio_bus;
 void am_capture_audio(am_audio_bus *bus);
 
 char *am_get_base_path();

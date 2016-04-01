@@ -1,10 +1,14 @@
 #include "amulet.h"
 
 const char *am_conf_app_title = NULL;
+const char *am_conf_app_author = NULL;
 const char *am_conf_app_id = NULL;
 const char *am_conf_app_version = NULL;
 const char *am_conf_app_shortname = NULL;
-const char *am_conf_app_author = NULL;
+const char *am_conf_app_display_name = NULL;
+const char *am_conf_app_dev_region = NULL;
+am_display_orientation am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_ANY;
+const char *am_conf_app_icon = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -42,6 +46,10 @@ static void read_string_setting(lua_State *L, const char *name, const char **val
     lua_getglobal(L, name);
     const char *lstr = lua_tostring(L, -1);
     if (lstr == NULL) lstr = default_val;
+    if (lstr == NULL) {
+        *value = NULL;
+        return;
+    }
     char **val = (char**)value;
     *val = (char*)malloc(strlen(lstr) + 1); // never freed
     memcpy(*val, lstr, strlen(lstr) + 1);
@@ -57,10 +65,13 @@ static void free_if_not_null(void **ptr) {
 
 static void free_config() {
     free_if_not_null((void**)&am_conf_app_title);
+    free_if_not_null((void**)&am_conf_app_author);
     free_if_not_null((void**)&am_conf_app_id);
     free_if_not_null((void**)&am_conf_app_version);
     free_if_not_null((void**)&am_conf_app_shortname);
-    free_if_not_null((void**)&am_conf_app_author);
+    free_if_not_null((void**)&am_conf_app_display_name);
+    free_if_not_null((void**)&am_conf_app_dev_region);
+    free_if_not_null((void**)&am_conf_app_icon);
 }
 
 bool am_load_config() {
@@ -82,14 +93,31 @@ bool am_load_config() {
         bool res = am_run_script(eng->L, (char*)data, len, "conf.lua");
         free(data);
         if (!res) {
+            am_destroy_engine(eng);
             return false;
         }
     }
     read_string_setting(eng->L, "title", &am_conf_app_title, "Untitled");
-    read_string_setting(eng->L, "shortname", &am_conf_app_shortname, am_conf_app_title);
     read_string_setting(eng->L, "author", &am_conf_app_author, "Unknown");
+    read_string_setting(eng->L, "shortname", &am_conf_app_shortname, am_conf_app_title);
     read_string_setting(eng->L, "appid", &am_conf_app_id, "null");
     read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");
+    read_string_setting(eng->L, "display_name", &am_conf_app_display_name, am_conf_app_title);
+    read_string_setting(eng->L, "dev_region", &am_conf_app_dev_region, "en");
+    const char *orientation_str = NULL;
+    read_string_setting(eng->L, "orientation", &orientation_str, "any");
+    if (strcmp(orientation_str, "any") == 0) {
+        am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_ANY;
+    } else if (strcmp(orientation_str, "portrait") == 0) {
+        am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_PORTRAIT;
+    } else if (strcmp(orientation_str, "landscape") == 0) {
+        am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_LANDSCAPE;
+    } else {
+        fprintf(stderr, "Invalid orientation in conf.lua: %s\n", orientation_str);
+        am_destroy_engine(eng);
+        return false;
+    }
+    read_string_setting(eng->L, "icon", &am_conf_app_icon, NULL);
     am_destroy_engine(eng);
     return true;
 }

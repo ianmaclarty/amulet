@@ -3,6 +3,8 @@
 #ifdef AM_EXPORT
 
 #include "SimpleGlob.h"
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize.h"
 
 #define RECURSE_LIMIT 20
 #define AM_TMP_DIR ".amulet_tmp"
@@ -15,14 +17,24 @@
 
 struct export_config {
     const char *pakfile;
-    const char *apptitle;
-    const char *appshortname;
+    const char *title;
+    const char *shortname;
     const char *appid;
-    const char *appversion;
+    const char *version;
+    const char *display_name;
+    const char *dev_region;
+    am_display_orientation orientation;
+    const char *icon_file;
     const char *luavm;
     const char *grade;
     const char *basepath;
 };
+
+static bool create_mac_info_plist(const char *filename, export_config *conf);
+static bool create_ios_info_plist(const char *binpath, const char *filename, export_config *conf);
+static bool create_ios_pkginfo(const char *filename);
+static bool create_ios_icon_files(const char *dir, export_config *conf);
+static bool create_ios_launch_images(const char *dir, export_config *conf);
 
 static void replace_backslashes(char *str) {
     for (unsigned int i = 0; i < strlen(str); i++) {
@@ -173,7 +185,9 @@ static char *get_bin_path(export_config *conf, const char *platform) {
 }
 
 static char *get_export_zip_name(export_config *conf, const char *platname) {
-    return am_format("%s-%s-%s.zip", conf->appshortname, conf->appversion, platname);
+    const char *ext = "zip";
+    if (strcmp(platname, "ios") == 0) ext = "ipa";
+    return am_format("%s-%s-%s.%s", conf->shortname, conf->version, platname, ext);
 }
 
 static bool build_windows_export(export_config *conf) {
@@ -181,7 +195,7 @@ static bool build_windows_export(export_config *conf) {
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "msvc32");
     if (binpath == NULL) return true;
-    const char *name = conf->appshortname;
+    const char *name = conf->shortname;
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
         add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
@@ -192,6 +206,162 @@ static bool build_windows_export(export_config *conf) {
     printf("Generated %s\n", zipname);
     free(zipname);
     free(binpath);
+    return ok;
+}
+
+static bool build_mac_export(export_config *conf) {
+    char *zipname = get_export_zip_name(conf, "mac");
+    if (am_file_exists(zipname)) am_delete_file(zipname);
+    char *binpath = get_bin_path(conf, "osx");
+    if (binpath == NULL) return true;
+    if (!create_mac_info_plist(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
+    const char *name = conf->shortname;
+    bool ok =
+        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet", name, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, ".", conf->pakfile, name, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", name, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
+        true;
+    am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
+    printf("Generated %s\n", zipname);
+    free(zipname);
+    free(binpath);
+    return ok;
+}
+
+static bool build_ios_export(export_config *conf) {
+    char *zipname = get_export_zip_name(conf, "ios");
+    if (am_file_exists(zipname)) am_delete_file(zipname);
+    char *binpath = get_bin_path(conf, "ios");
+    if (binpath == NULL) return true;
+    if (!create_ios_info_plist(binpath, AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
+    if (!create_ios_pkginfo(AM_TMP_DIR AM_PATH_SEP_STR "PkgInfo")) return false;
+    if (!create_ios_icon_files(AM_TMP_DIR, conf)) return false;
+    if (!create_ios_launch_images(AM_TMP_DIR, conf)) return false;
+    const char *name = conf->shortname;
+    char *appdir = am_format("Payload/%s.app", name);
+    bool ok =
+        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", appdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet_license.txt", appdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet", appdir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, ".", conf->pakfile, appdir, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", appdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "PkgInfo", appdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Icon.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Icon@2x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon40.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon57.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon72.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon76.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon80.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon114.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon120.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon144.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon152.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "icon180.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "iTunesArtwork", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default@2x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default-568h@2x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default-667h@2x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default-736h@2x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default-Landscape@2x~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default-Landscape~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default-Portrait@2x~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default-Portrait~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        true;
+    free(appdir);
+    am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
+    am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "PkgInfo");
+    printf("Generated %s\n", zipname);
+    free(zipname);
+    free(binpath);
+    return ok;
+}
+
+static bool build_linux_export(export_config *conf) {
+    char *zipname = get_export_zip_name(conf, "linux");
+    if (am_file_exists(zipname)) am_delete_file(zipname);
+    char *binpath64 = get_bin_path(conf, "linux64");
+    char *binpath32 = get_bin_path(conf, "linux32");
+    if (binpath64 == NULL && binpath32 == NULL) return true;
+    const char *name = conf->shortname;
+    bool ok =
+        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath64, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        true;
+    if (ok && binpath32 != NULL) {
+        ok = add_files_to_dist(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX);
+    }
+    if (ok && binpath64 != NULL) {
+        ok = add_files_to_dist(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX);
+    }
+    printf("Generated %s\n", zipname);
+    free(zipname);
+    if (binpath32 != NULL) free(binpath32);
+    if (binpath64 != NULL) free(binpath64);
+    return ok;
+}
+
+static bool build_html_export(export_config *conf) {
+    char *zipname = get_export_zip_name(conf, "html");
+    if (am_file_exists(zipname)) am_delete_file(zipname);
+    char *binpath = get_bin_path(conf, "html");
+    if (binpath == NULL) return true;
+    const char *name = conf->shortname;
+    bool ok =
+        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "player.html", name, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        true;
+    printf("Generated %s\n", zipname);
+    free(zipname);
+    free(binpath);
+    return ok;
+}
+
+static bool file_exists(const char *filename) {
+    char *path = am_format("%s%c%s", am_opt_data_dir, AM_PATH_SEP, filename);
+    bool exists = am_file_exists(path);
+    free(path);
+    return exists;
+}
+
+bool am_build_exports() {
+    if (!file_exists("main.lua")) {
+        fprintf(stderr, "Error: could not find main.lua in directory %s\n", am_opt_data_dir);
+        return false;
+    }
+    am_make_dir(AM_TMP_DIR);
+    if (!am_load_config()) return false;
+    export_config conf;
+    conf.basepath = (const char*)am_get_base_path();
+    conf.title = am_conf_app_title;
+    conf.shortname = am_conf_app_shortname;
+    conf.appid = am_conf_app_id;
+    conf.version = am_conf_app_version;
+    conf.display_name = am_conf_app_display_name;
+    conf.dev_region = am_conf_app_dev_region;
+    conf.orientation = am_conf_app_display_orientation;
+    conf.icon_file = am_conf_app_icon;
+    conf.luavm = "lua51";
+    conf.grade = "release";
+    conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
+    if (!build_data_pak(&conf)) return false;
+    bool ok =
+        build_windows_export(&conf) &&
+        build_mac_export(&conf) &&
+        build_ios_export(&conf) &&
+        build_linux_export(&conf) &&
+        build_html_export(&conf) &&
+        true;
+    am_delete_file(conf.pakfile);
+    am_delete_empty_dir(AM_TMP_DIR);
+    free((void*)conf.basepath);
     return ok;
 }
 
@@ -228,113 +398,176 @@ static bool create_mac_info_plist(const char *filename, export_config *conf) {
 "  <string>10.6.8</string>\n"
 "</dict>\n"
 "</plist>\n",
-        conf->appshortname,
-        conf->apptitle,
+        conf->shortname,
+        conf->title,
         conf->appid,
-        conf->appversion);
+        conf->version);
     fclose(f);
     return true;
 }
 
-static bool build_mac_export(export_config *conf) {
-    char *zipname = get_export_zip_name(conf, "mac");
-    if (am_file_exists(zipname)) am_delete_file(zipname);
-    char *binpath = get_bin_path(conf, "osx");
-    if (binpath == NULL) return true;
-    if (!create_mac_info_plist(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
-    const char *name = conf->appshortname;
-    bool ok =
-        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet", name, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, ".", conf->pakfile, name, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", name, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
-        true;
-    am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
-    printf("Generated %s\n", zipname);
-    free(zipname);
-    free(binpath);
-    return ok;
-}
-
-static bool build_linux_export(export_config *conf) {
-    char *zipname = get_export_zip_name(conf, "linux");
-    if (am_file_exists(zipname)) am_delete_file(zipname);
-    char *binpath64 = get_bin_path(conf, "linux64");
-    char *binpath32 = get_bin_path(conf, "linux32");
-    if (binpath64 == NULL && binpath32 == NULL) return true;
-    const char *name = conf->appshortname;
-    bool ok =
-        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath64, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
-        true;
-    if (ok && binpath32 != NULL) {
-        ok = add_files_to_dist(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX);
-    }
-    if (ok && binpath64 != NULL) {
-        ok = add_files_to_dist(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX);
-    }
-    printf("Generated %s\n", zipname);
-    free(zipname);
-    if (binpath32 != NULL) free(binpath32);
-    if (binpath64 != NULL) free(binpath64);
-    return ok;
-}
-
-static bool build_html_export(export_config *conf) {
-    char *zipname = get_export_zip_name(conf, "html");
-    if (am_file_exists(zipname)) am_delete_file(zipname);
-    char *binpath = get_bin_path(conf, "html");
-    if (binpath == NULL) return true;
-    const char *name = conf->appshortname;
-    bool ok =
-        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "player.html", name, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
-        true;
-    printf("Generated %s\n", zipname);
-    free(zipname);
-    free(binpath);
-    return ok;
-}
-
-static bool file_exists(const char *filename) {
-    char *path = am_format("%s%c%s", am_opt_data_dir, AM_PATH_SEP, filename);
-    bool exists = am_file_exists(path);
-    free(path);
-    return exists;
-}
-
-bool am_build_exports() {
-    if (!file_exists("main.lua")) {
-        fprintf(stderr, "Error: could not find main.lua in directory %s\n", am_opt_data_dir);
+static bool create_ios_info_plist(const char *binpath, const char *filename, export_config *conf) {
+    FILE *f = fopen(filename, "w");
+    if (f == NULL) {
+        fprintf(stderr, "Error: unable to create file %s", filename);
         return false;
     }
-    am_make_dir(AM_TMP_DIR);
-    if (!am_load_config()) return false;
-    export_config conf;
-    conf.basepath = (const char*)am_get_base_path();
-    conf.apptitle = am_conf_app_title;
-    conf.appshortname = am_conf_app_shortname;
-    conf.appid = am_conf_app_id;
-    conf.appversion = am_conf_app_version;
-    conf.luavm = "lua51";
-    conf.grade = "release";
-    conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
-    if (!build_data_pak(&conf)) return false;
-    bool ok =
-        build_windows_export(&conf) &&
-        build_mac_export(&conf) &&
-        build_linux_export(&conf) &&
-        build_html_export(&conf) &&
-        true;
-    am_delete_file(conf.pakfile);
-    am_delete_empty_dir(AM_TMP_DIR);
-    free((void*)conf.basepath);
-    return ok;
+    char *template_filename = am_format("%s%c%s", binpath, AM_PATH_SEP, "Info.plist");
+    char *template_fmt = (char*)am_read_file(template_filename, NULL);
+    free(template_filename);
+    if (template_fmt == NULL) return false;
+    const char *orientation_xml;
+    switch (conf->orientation) {
+        case AM_DISPLAY_ORIENTATION_ANY:
+            orientation_xml = 
+                "<key>UISupportedInterfaceOrientations</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                "<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>"
+                "<key>UISupportedInterfaceOrientations~ipad</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                "<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>";
+            break;
+        case AM_DISPLAY_ORIENTATION_PORTRAIT:
+            orientation_xml = 
+                "<key>UISupportedInterfaceOrientations</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                "<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+                "</array>"
+                "<key>UISupportedInterfaceOrientations~ipad</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                "<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+                "</array>";
+            break;
+        case AM_DISPLAY_ORIENTATION_LANDSCAPE:
+            orientation_xml = 
+                "<key>UISupportedInterfaceOrientations</key>"
+                "<array>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>"
+                "<key>UISupportedInterfaceOrientations~ipad</key>"
+                "<array>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>";
+            break;
+    }
+
+
+    fprintf(f, template_fmt, 
+        conf->title, // CFBundleName
+        conf->display_name, // CFBundleDisplayName
+        conf->dev_region, // CFBundleDevelopmentRegion
+        conf->version, // CFBundleShortVersionString
+        conf->version, // CFBundleVersion
+        conf->appid, // CFBundleIdentifier
+        orientation_xml
+    );
+    fclose(f);
+
+    return true;
+}
+
+static bool create_ios_pkginfo(const char *filename) {
+    FILE *f = fopen(filename, "w");
+    if (f == NULL) {
+        fprintf(stderr, "Error: unable to create file %s", filename);
+        return false;
+    }
+    fprintf(f, "APPL????");
+    fclose(f);
+    return true;
+}
+
+static bool resize_image(void *img_data, int in_w, int in_h, const char *dir, const char *filename, int out_w, int out_h) {
+    void *out_data = malloc(out_w * out_h * 4);
+    stbir_resize_uint8((const unsigned char*)img_data, in_w, in_h, 0, (unsigned char *)out_data, out_w, out_h, 0, 4);
+    size_t len;
+    void *png_data = tdefl_write_image_to_png_file_in_memory_ex(
+        out_data, out_w, out_h, 4, &len, MZ_DEFAULT_LEVEL, 1);
+    free(out_data);
+    char *path = am_format("%s%c%s", dir, AM_PATH_SEP, filename);
+    FILE *f = fopen(path, "wb");
+    free(path);
+    if (f == NULL) {
+        fprintf(stderr, "Error: cannot open %s for writing\n", filename);
+        return false;
+    }
+    fwrite(png_data, len, 1, f);
+    fclose(f);
+    free(png_data);
+    return true;
+}
+
+static bool create_ios_icon_files(const char *dir, export_config *conf) {
+    size_t len;
+    stbi_uc *img_data;
+    int width, height;
+    if (conf->icon_file == NULL) {
+        width = 1024;
+        height = 1024;
+        len = width * height * 4;
+        img_data = (stbi_uc*)malloc(len);
+        memset(img_data, 255, len);
+    } else {
+        void *data = am_read_file(conf->icon_file, &len);
+        int components = 4;
+        stbi_set_flip_vertically_on_load(0);
+        img_data =
+            stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+        free(data);
+        if (img_data == NULL) return false;
+    }
+    if (!resize_image(img_data, width, height, dir, "Icon.png", 57, 57)
+        || !resize_image(img_data, width, height, dir, "Icon@2x.png", 114, 114)
+        || !resize_image(img_data, width, height, dir, "icon40.png", 40, 40)
+        || !resize_image(img_data, width, height, dir, "icon57.png", 57, 57)
+        || !resize_image(img_data, width, height, dir, "icon72.png", 72, 72)
+        || !resize_image(img_data, width, height, dir, "icon76.png", 76, 76)
+        || !resize_image(img_data, width, height, dir, "icon80.png", 80, 80)
+        || !resize_image(img_data, width, height, dir, "icon114.png", 114, 114)
+        || !resize_image(img_data, width, height, dir, "icon120.png", 120, 120)
+        || !resize_image(img_data, width, height, dir, "icon144.png", 144, 144)
+        || !resize_image(img_data, width, height, dir, "icon152.png", 152, 152)
+        || !resize_image(img_data, width, height, dir, "icon180.png", 180, 180)
+        || !resize_image(img_data, width, height, dir, "iTunesArtwork", 1024, 1024)
+        ) return false;
+    free(img_data);
+    return true;
+}
+
+static bool create_ios_launch_images(const char *dir, export_config *conf) {
+    size_t len;
+    stbi_uc *img_data;
+    int width, height;
+    width = 128;
+    height = 128;
+    len = width * height * 4;
+    img_data = (stbi_uc*)malloc(len);
+    memset(img_data, 255, len);
+
+    if (!resize_image(img_data, width, height, dir,    "Default.png", 320, 480)
+        || !resize_image(img_data, width, height, dir, "Default@2x.png", 640, 960)
+        || !resize_image(img_data, width, height, dir, "Default-568h@2x.png", 640, 1136)
+        || !resize_image(img_data, width, height, dir, "Default-667h@2x.png", 750, 1334)
+        || !resize_image(img_data, width, height, dir, "Default-736h@2x.png", 1242, 2208)
+        || !resize_image(img_data, width, height, dir, "Default-Landscape@2x~ipad.png", 2048, 1536)
+        || !resize_image(img_data, width, height, dir, "Default-Landscape~ipad.png", 1024, 768)
+        || !resize_image(img_data, width, height, dir, "Default-Portrait@2x~ipad.png", 1536, 2048)
+        || !resize_image(img_data, width, height, dir, "Default-Portrait~ipad.png", 768, 1024)
+        ) return false;
+    free(img_data);
+    return true;
 }
 
 #endif
