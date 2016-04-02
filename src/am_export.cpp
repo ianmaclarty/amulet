@@ -24,7 +24,8 @@ struct export_config {
     const char *display_name;
     const char *dev_region;
     am_display_orientation orientation;
-    const char *icon_file;
+    const char *icon;
+    const char *launch_image;
     const char *luavm;
     const char *grade;
     const char *basepath;
@@ -347,7 +348,8 @@ bool am_build_exports() {
     conf.display_name = am_conf_app_display_name;
     conf.dev_region = am_conf_app_dev_region;
     conf.orientation = am_conf_app_display_orientation;
-    conf.icon_file = am_conf_app_icon;
+    conf.icon = am_conf_app_icon;
+    conf.launch_image = am_conf_app_launch_image;
     conf.luavm = "lua51";
     conf.grade = "release";
     conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
@@ -491,10 +493,36 @@ static bool create_ios_pkginfo(const char *filename) {
 
 static bool resize_image(void *img_data, int in_w, int in_h, const char *dir, const char *filename, int out_w, int out_h) {
     void *out_data = malloc(out_w * out_h * 4);
-    stbir_resize_uint8((const unsigned char*)img_data, in_w, in_h, 0, (unsigned char *)out_data, out_w, out_h, 0, 4);
+    double in_aspect = (double)in_w / (double)in_h;
+    double out_aspect = (double)out_w / (double)out_h;
+    if (fabs(in_aspect - out_aspect) < 0.05) {
+        stbir_resize_uint8((const unsigned char*)img_data, in_w, in_h, 0, (unsigned char *)out_data, out_w, out_h, 0, 4);
+    } else {
+        uint32_t *pxl_data = (uint32_t*)out_data;
+        uint32_t bg = ((uint32_t*)img_data)[0];
+        for (int i = 0; i < out_w * out_h; i++) {
+            pxl_data[i] = bg;
+        }
+        double scaling_x = (double)out_w / (double)in_w;
+        double scaling_y = (double)out_h / (double)in_h;
+        double scaling = fmin(scaling_x, scaling_y);
+        int scaled_w = (int)floor((double)in_w * scaling);
+        int scaled_h = (int)floor((double)in_h * scaling);
+        int x_os = (out_w - scaled_w) / 2;
+        int y_os = (out_h - scaled_h) / 2;
+        void *tmp_data = malloc(scaled_w * scaled_h * 4);
+        stbir_resize_uint8((const unsigned char*)img_data, in_w, in_h, 0, (unsigned char *)tmp_data, scaled_w, scaled_h, 0, 4);
+        uint32_t *tmp_pxl_data = (uint32_t*)tmp_data;
+        for (int i = 0; i < scaled_w; i++) {
+            for (int j = 0; j < scaled_h; j++) {
+                pxl_data[(i + x_os) + (j + y_os) * out_w] = tmp_pxl_data[i + j * scaled_w];
+            }
+        }
+        free(tmp_data);
+    }
     size_t len;
     void *png_data = tdefl_write_image_to_png_file_in_memory_ex(
-        out_data, out_w, out_h, 4, &len, MZ_DEFAULT_LEVEL, 1);
+        out_data, out_w, out_h, 4, &len, MZ_DEFAULT_LEVEL, 0);
     free(out_data);
     char *path = am_format("%s%c%s", dir, AM_PATH_SEP, filename);
     FILE *f = fopen(path, "wb");
@@ -513,14 +541,14 @@ static bool create_ios_icon_files(const char *dir, export_config *conf) {
     size_t len;
     stbi_uc *img_data;
     int width, height;
-    if (conf->icon_file == NULL) {
+    if (conf->icon == NULL) {
         width = 1024;
         height = 1024;
         len = width * height * 4;
         img_data = (stbi_uc*)malloc(len);
         memset(img_data, 255, len);
     } else {
-        void *data = am_read_file(conf->icon_file, &len);
+        void *data = am_read_file(conf->icon, &len);
         int components = 4;
         stbi_set_flip_vertically_on_load(0);
         img_data =
@@ -550,12 +578,21 @@ static bool create_ios_launch_images(const char *dir, export_config *conf) {
     size_t len;
     stbi_uc *img_data;
     int width, height;
-    width = 128;
-    height = 128;
-    len = width * height * 4;
-    img_data = (stbi_uc*)malloc(len);
-    memset(img_data, 255, len);
-
+    if (conf->launch_image == NULL) {
+        width = 1024;
+        height = 1024;
+        len = width * height * 4;
+        img_data = (stbi_uc*)malloc(len);
+        memset(img_data, 255, len);
+    } else {
+        void *data = am_read_file(conf->launch_image, &len);
+        int components = 4;
+        stbi_set_flip_vertically_on_load(0);
+        img_data =
+            stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+        free(data);
+        if (img_data == NULL) return false;
+    }
     if (!resize_image(img_data, width, height, dir,    "Default.png", 320, 480)
         || !resize_image(img_data, width, height, dir, "Default@2x.png", 640, 960)
         || !resize_image(img_data, width, height, dir, "Default-568h@2x.png", 640, 1136)

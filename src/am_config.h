@@ -8,6 +8,7 @@ extern const char *am_conf_app_display_name;
 extern const char *am_conf_app_dev_region;
 extern am_display_orientation am_conf_app_display_orientation;
 extern const char *am_conf_app_icon;
+extern const char *am_conf_app_launch_image;
 
 // scene options
 extern int am_conf_default_recursion_limit;

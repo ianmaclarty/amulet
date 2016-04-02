@@ -9,6 +9,7 @@ const char *am_conf_app_display_name = NULL;
 const char *am_conf_app_dev_region = NULL;
 am_display_orientation am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_ANY;
 const char *am_conf_app_icon = NULL;
+const char *am_conf_app_launch_image = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -72,6 +73,7 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_app_display_name);
     free_if_not_null((void**)&am_conf_app_dev_region);
     free_if_not_null((void**)&am_conf_app_icon);
+    free_if_not_null((void**)&am_conf_app_launch_image);
 }
 
 bool am_load_config() {
@@ -118,6 +120,7 @@ bool am_load_config() {
         return false;
     }
     read_string_setting(eng->L, "icon", &am_conf_app_icon, NULL);
+    read_string_setting(eng->L, "launch_image", &am_conf_app_launch_image, NULL);
     am_destroy_engine(eng);
     return true;
 }

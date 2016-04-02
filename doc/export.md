@@ -41,7 +41,8 @@ version = "1.0.0"
 -- iOS specific:
 display_name = "My Game"
 dev_region = "en"
-icon = "Icon.png"
+icon = "icon.png"
+launch_image = "launch.png"
 orientation = "any"
 ~~~
 
@@ -49,6 +50,14 @@ then this will be used for various bits of meta-data in the
 generated packages. In particular `shortname` will be used
 in the name of the generated zip files (otherwise they will
 just be called "Untitled").
+
+If you're generating an iOS package for submission to the App Store
+you'll need to fill out all the iOS specific settings.
+
+Note that the generated iOS ipa package is not signed. You will
+need to sign it using a tool like [sigh](https://github.com/fastlane/fastlane/tree/master/sigh)
+or [this script](https://raw.githubusercontent.com/fastlane/fastlane/master/sigh/lib/assets/resign.sh)
+before submitting it to the app store or deploying on a device.
 
 **IMPORTANT**: Avoid unzipping and re-zipping the generated packages
 as you may inadvertently strip the executable bit from
