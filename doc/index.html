@@ -398,6 +398,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#table.tostring">table.tostring(t)</a></li>
 </ul></li>
 <li><a href="#amulet-require-function">Amulet require function</a></li>
+<li><a href="#savingloading-state">Saving/loading state</a><ul>
+<li><a href="#am.save_statekey-state-format">am.save_state(key, state [,format])</a></li>
+<li><a href="#am.load_statekey-format">am.load_state(key, [,format])</a></li>
+</ul></li>
 <li><a href="#logging">Logging</a><ul>
 <li><a href="#log">log(msg, ...)</a></li>
 </ul></li>
@@ -422,6 +426,16 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#amulet-version">Amulet version</a><ul>
 <li><a href="#am.version">am.version</a></li>
+</ul></li>
+<li><a href="#platform">Platform</a><ul>
+<li><a href="#am.platform">am.platform</a></li>
+</ul></li>
+<li><a href="#game-center-ios-only">Game Center (iOS only)</a><ul>
+<li><a href="#am.init_gamecenter">am.init_gamecenter()</a></li>
+<li><a href="#am.gamecenter_available">am.gamecenter_available()</a></li>
+<li><a href="#am.submit_gamecenter_score">am.submit_gamecenter_score(leaderboard_id, score)</a></li>
+<li><a href="#am.submit_gamecenter_achievement">am.submit_gamecenter_achievement(achievment_id)</a></li>
+<li><a href="#am.show_gamecenter_leaderboard">am.show_gamecenter_leaderboard(leaderboard_id)</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -2899,10 +2913,10 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <pre class="text"><code>!&quot;#$%&amp;&#39;()*+,-./:;&lt;=&gt;?@[\]^_`{|}~0123456789
 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <h1 id="exporting">Exporting</h1>
-<p>To generate distribution packages for Windows, Mac OS X, Linux and HTML5, use the amulet export command.</p>
-<p>To do an export run the following command from the directory containing you Lua, image and sound files:</p>
+<p>To generate distribution packages for Windows, Mac OS X, iOS, Linux and HTML5, use the amulet export command.</p>
+<p>Run the following command from the directory containing your lua, image and audio files:</p>
 <pre class="console"><code>&gt; amulet export</code></pre>
-<p>This will generate zip files for each target platform in the current directory.</p>
+<p>This will generate package files for each supported platform in the current directory. If you just want to generate a package for one platform you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-ios</code>, <code>-linux</code> or <code>-html</code>.</p>
 <p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
 <p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
 <p>If you create a <code>conf.lua</code> file in the same directory as your other Lua files containing the following:</p>
@@ -2910,8 +2924,17 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 shortname <span class="ot">=</span> <span class="st">&quot;mygame&quot;</span>
 author <span class="ot">=</span> <span class="st">&quot;Your Name&quot;</span>
 appid <span class="ot">=</span> <span class="st">&quot;com.some-unique-id.123&quot;</span>
-version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span></code></pre></div>
+version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span>
+
+<span class="co">-- iOS specific:</span>
+display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>
+dev_region <span class="ot">=</span> <span class="st">&quot;en&quot;</span>
+icon <span class="ot">=</span> <span class="st">&quot;icon.png&quot;</span>
+launch_image <span class="ot">=</span> <span class="st">&quot;launch.png&quot;</span>
+orientation <span class="ot">=</span> <span class="st">&quot;any&quot;</span></code></pre></div>
 <p>then this will be used for various bits of meta-data in the generated packages. In particular <code>shortname</code> will be used in the name of the generated zip files (otherwise they will just be called &quot;Untitled&quot;).</p>
+<p>If you're generating an iOS package for submission to the App Store you'll need to fill out all the iOS specific settings.</p>
+<p>Note that the generated iOS ipa package is not signed. You will need to sign it using a tool like <a href="https://github.com/fastlane/fastlane/tree/master/sigh">sigh</a> or <a href="https://raw.githubusercontent.com/fastlane/fastlane/master/sigh/lib/assets/resign.sh">this script</a> before submitting it to the app store or deploying on a device.</p>
 <p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work.</p>
 <h1 id="extra-table-functions">Extra table functions</h1>
 <p>The following functions suplement the standard Lua table functions.</p>
@@ -2953,6 +2976,15 @@ mymodule<span class="ot">.</span>message <span class="ot">=</span> <span class="
 mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span class="co">-- prints hello</span></code></pre></div>
 <p>This scheme allows cyclic module imports, e.g. module A requires module B which in turn requires module A. Amulet will detect the recursion and return A's (incomplete) export table in B. Then when A has finished initialising, all its functions will be available in B. This does mean that B can't call any of A's functions while its initialising, but after initialisation all of A's functions will be available.</p>
 <p>Of course you can still return your own values from modules and they will be returned by <code>require</code> as with the default Lua <code>require</code> function.</p>
+<h1 id="savingloading-state">Saving/loading state</h1>
+<h3 id="am.save_statekey-state-format">am.save_state(key, state [,format])</h3>
+<p>Save the table <code>state</code> under <code>key</code>. State may contain other tables, numbers, strings or bools.</p>
+<p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
+<p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code my modifying the save file.</p>
+<h3 id="am.load_statekey-format">am.load_state(key, [,format])</h3>
+<p>Loads the table saved under <code>key</code> and returns it. If no table has been previously saved under <code>key</code> then <code>nil</code> is returned.</p>
+<p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
+<p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code my modifying the save file.</p>
 <h1 id="logging">Logging</h1>
 <h3 id="log" class="func-def">log(msg, ...)</h3>
 <p>Log a message to the console.</p>
@@ -2995,6 +3027,21 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <h1 id="amulet-version">Amulet version</h1>
 <h3 id="am.version" class="field-def">am.version</h3>
 <p>The current Amulet version, as a string. E.g. <code>&quot;1.0.3&quot;</code>.</p>
+<h1 id="platform">Platform</h1>
+<h3 id="am.platform" class="field-def">am.platform</h3>
+<p>The platform Amulet is running on. It will be one of the strings <code>&quot;linux&quot;</code> <code>&quot;windows&quot;</code> <code>&quot;osx&quot;</code> <code>&quot;ios&quot;</code> <code>&quot;android&quot;</code> or <code>&quot;html&quot;</code>.</p>
+<h1 id="game-center-ios-only">Game Center (iOS only)</h1>
+<p>The following functions are only available on iOS.</p>
+<h3 id="am.init_gamecenter" class="func-def">am.init_gamecenter()</h3>
+<p>Initialize Game Center. This must be called before any other Game Center functions.</p>
+<h3 id="am.gamecenter_available" class="func-def">am.gamecenter_available()</h3>
+<p>Returns true if Game Center was successfully initialized.</p>
+<h3 id="am.submit_gamecenter_score" class="func-def">am.submit_gamecenter_score(leaderboard_id, score)</h3>
+<p>Submit a score to a leaderboard. Note that Game Center accepts only integer scores.</p>
+<h3 id="am.submit_gamecenter_achievement" class="func-def">am.submit_gamecenter_achievement(achievment_id)</h3>
+<p>Submit an achievement.</p>
+<h3 id="am.show_gamecenter_leaderboard" class="func-def">am.show_gamecenter_leaderboard(leaderboard_id)</h3>
+<p>Display a leaderboard.</p>
 </div>
 </div>
 </body>
