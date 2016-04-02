@@ -1,18 +1,20 @@
 
 # Exporting
 
-To generate distribution packages for Windows, Mac OS X, Linux,
-HTML5, and iOS use the amulet export command.
+To generate distribution packages for Windows, Mac OS X, iOS, Linux
+and HTML5, use the amulet export command.
 
-Run the following command from the directory containing you Lua, image and
-sound files:
+Run the following command from the directory containing your lua, image and
+audio files:
 
 ~~~ {.console}
 > amulet export
 ~~~
 
-This will generate zip files for each target platform in the
+This will generate package files for each supported platform in the
 current directory.
+If you just want to generate a package for one platform you can
+pass one of the options `-windows`, `-mac`, `-ios`, `-linux` or `-html`.
 
 All files in the directory with the following extensions will
 be included as data in the distribution: `.lua`, `.png`, `.jpg`, `.ogg` and `.obj`.

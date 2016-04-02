@@ -17,11 +17,15 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [ <dir> ]\n"
+        "Usage: amulet export [-windows] [-mac] [-ios] [-linux] [-html] [ <dir> ]\n"
         "\n"
-        "  Generates distribution zips for the project in <dir>,\n"
+        "  Generates distribution packages for the project in <dir>,\n"
         "  or the current directory if <dir> is omitted.\n"
         "  <dir> should contain main.lua.\n"
+        "\n"
+        "  If none of the -windows, -mac, -ios, -linux or -html options are given\n"
+        "  then packages for all supported platforms will be generated,\n"
+        "  otherwise only packages for the specified platforms will be generated.\n"
         "\n"
         "  All files in the directory with the following extensions will\n"
         "  be included as data in the distribution: .lua .png .jpg .ogg .obj\n"
@@ -35,7 +39,8 @@ static bool help_export() {
         "    shortname = \"mygame\"\n"
         "    author = \"Your Name\"\n"
         "    appid = \"com.some-unique-id.123\"\n"
-        "    version = \"1.0.0\"\n\n"
+        "    version = \"1.0.0\"\n"
+        "\n"
         "    -- iOS specific:\n"
         "    display_name = \"My Game\"\n"
         "    dev_region = \"en\"\n"
@@ -45,9 +50,6 @@ static bool help_export() {
         "\n"
         "  then this will be used for various bits of meta-data in the\n"
         "  generated packages.\n"
-        "\n"
-        "  Packages are currently generated for Windows, Mac OS X, Linux, iOS\n"
-        "  and HTML.\n"
         "\n"
         "  IMPORTANT: avoid unzipping and re-zipping the generated packages\n"
         "  as you may inadvertently strip the executable bit from\n"
@@ -153,6 +155,28 @@ static bool version_cmd(int *argc, char ***argv) {
 
 static bool export_cmd(int *argc, char ***argv) {
 #ifdef AM_EXPORT
+    uint32_t flags = 0;
+    int n = *argc;
+    int i;
+    for (i = 0; i < n; i++) {
+        char *arg = (*argv)[i];
+        if (strcmp(arg, "-windows") == 0) {
+            flags |= AM_EXPORT_FLAG_WINDOWS;
+        } else if (strcmp(arg, "-mac") == 0) {
+            flags |= AM_EXPORT_FLAG_OSX;
+        } else if (strcmp(arg, "-linux") == 0) {
+            flags |= AM_EXPORT_FLAG_LINUX;
+        } else if (strcmp(arg, "-ios") == 0) {
+            flags |= AM_EXPORT_FLAG_IOS;
+        } else if (strcmp(arg, "-html") == 0) {
+            flags |= AM_EXPORT_FLAG_HTML;
+        } else {
+            break;
+        }
+    }
+    *argc -= i;
+    *argv += i;
+    if (flags == 0) flags = 0xFFFFFFFF;
     char *dir = (char*)".";
     if (*argc > 0) {
         dir = (*argv)[0];
@@ -160,7 +184,7 @@ static bool export_cmd(int *argc, char ***argv) {
     char last = dir[strlen(dir)-1];
     if (last == '/' || last == '\\') dir[strlen(dir)-1] = 0;
     am_opt_data_dir = dir;
-    return am_build_exports();
+    return am_build_exports(flags);
 #else
     fprintf(stderr, "Sorry, the export command is not supported on this platform.\n");
     return false;

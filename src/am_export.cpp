@@ -332,7 +332,7 @@ static bool file_exists(const char *filename) {
     return exists;
 }
 
-bool am_build_exports() {
+bool am_build_exports(uint32_t flags) {
     if (!file_exists("main.lua")) {
         fprintf(stderr, "Error: could not find main.lua in directory %s\n", am_opt_data_dir);
         return false;
@@ -355,11 +355,11 @@ bool am_build_exports() {
     conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
     if (!build_data_pak(&conf)) return false;
     bool ok =
-        build_windows_export(&conf) &&
-        build_mac_export(&conf) &&
-        build_ios_export(&conf) &&
-        build_linux_export(&conf) &&
-        build_html_export(&conf) &&
+        ((!(flags & AM_EXPORT_FLAG_WINDOWS)) || build_windows_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_OSX))     || build_mac_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_IOS))     || build_ios_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_LINUX))   || build_linux_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_HTML))    || build_html_export(&conf)) &&
         true;
     am_delete_file(conf.pakfile);
     am_delete_empty_dir(AM_TMP_DIR);
