@@ -245,7 +245,7 @@ static bool build_ios_export(export_config *conf) {
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", appdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath, "amulet_license.txt", appdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet", appdir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet", appdir, name, NULL, true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, appdir, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", appdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "PkgInfo", appdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
@@ -472,6 +472,7 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
         conf->dev_region, // CFBundleDevelopmentRegion
         conf->version, // CFBundleShortVersionString
         conf->version, // CFBundleVersion
+        conf->shortname, // CFBundleExecutable
         conf->appid, // CFBundleIdentifier
         orientation_xml
     );

@@ -89,7 +89,7 @@ cat << EOF > $f/Info.plist
 	    <string>iPhoneOS</string>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>amulet</string>
+	<string>%s</string>
 	<key>CFBundleIdentifier</key>
 	<string>%s</string>
 	<key>LSRequiresIPhoneOS</key>
