@@ -11,6 +11,7 @@
 #import <UIKit/UIKit.h>
 #import <AudioToolbox/AudioServices.h>
 #import <AudioUnit/AudioUnit.h>
+#import <AVFoundation/AVFoundation.h>
 #import <CoreMotion/CoreMotion.h>
 #import <GLKit/GLKit.h>
 #import <GameKit/GameKit.h>
@@ -162,10 +163,10 @@ static void ios_launch_url(const char *url) {
 
 
 static void set_audio_category() {
-    UInt32 category = kAudioSessionCategory_AmbientSound;
-    AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 }
 
+/*
 static void ios_audio_suspend() {
     ios_audio_paused = true;
 }
@@ -184,6 +185,7 @@ static void audio_interrupt(void *ud, UInt32 state) {
         ios_audio_resume();
     }
 }
+*/
 
 static bool open_package() {
     char *package_filename = am_format("%s/%s", am_opt_data_dir, "data.pak");
@@ -266,9 +268,11 @@ static void ios_init_audio() {
     const AudioUnitElement bus = output_bus;
     const AudioUnitScope scope = kAudioUnitScope_Input;
 
-    AudioSessionInitialize(NULL, NULL, audio_interrupt, nil);
+    if (![[AVAudioSession sharedInstance] setActive:YES error:nil]) {
+        am_log0("%s", "WARNING: unable to activate AVAudioSession");
+        return;
+    }
     set_audio_category();
-    AudioSessionSetActive(YES);
 
     memset(&desc, 0, sizeof(AudioComponentDescription));
     desc.componentType = kAudioUnitType_Output;

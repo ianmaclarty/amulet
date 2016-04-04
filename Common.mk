@@ -149,6 +149,7 @@ else ifeq ($(TARGET_PLATFORM),ios32)
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
+	     -Wl,-framework,AVFoundation \
 	     -Wl,-framework,GLKit -Wl,-framework,GameKit
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
@@ -165,6 +166,7 @@ else ifeq ($(TARGET_PLATFORM),ios64)
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
+	     -Wl,-framework,AVFoundation \
 	     -Wl,-framework,GLKit -Wl,-framework,GameKit
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
