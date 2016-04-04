@@ -268,7 +268,7 @@ static void ios_init_audio() {
 
     AudioSessionInitialize(NULL, NULL, audio_interrupt, nil);
     set_audio_category();
-    AudioSessionSetActive(true);
+    AudioSessionSetActive(YES);
 
     memset(&desc, 0, sizeof(AudioComponentDescription));
     desc.componentType = kAudioUnitType_Output;
@@ -1038,6 +1038,11 @@ static int show_gamecenter_leaderboard(lua_State *L) {
 static int gamecenter_is_available(lua_State *L) {
     lua_pushboolean(L, gamecenter_available);
     return 1;
+}
+
+const char *am_preferred_language() {
+    NSString *languageID = [[NSBundle mainBundle] preferredLocalizations].firstObject;
+    return [languageID UTF8String];
 }
 
 void am_open_ios_module(lua_State *L) {

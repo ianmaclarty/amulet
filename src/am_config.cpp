@@ -7,6 +7,7 @@ const char *am_conf_app_version = NULL;
 const char *am_conf_app_shortname = NULL;
 const char *am_conf_app_display_name = NULL;
 const char *am_conf_app_dev_region = NULL;
+const char *am_conf_app_supported_languages = NULL;
 am_display_orientation am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_ANY;
 const char *am_conf_app_icon = NULL;
 const char *am_conf_app_launch_image = NULL;
@@ -72,6 +73,7 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_app_shortname);
     free_if_not_null((void**)&am_conf_app_display_name);
     free_if_not_null((void**)&am_conf_app_dev_region);
+    free_if_not_null((void**)&am_conf_app_supported_languages);
     free_if_not_null((void**)&am_conf_app_icon);
     free_if_not_null((void**)&am_conf_app_launch_image);
 }
@@ -106,6 +108,7 @@ bool am_load_config() {
     read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");
     read_string_setting(eng->L, "display_name", &am_conf_app_display_name, am_conf_app_title);
     read_string_setting(eng->L, "dev_region", &am_conf_app_dev_region, "en");
+    read_string_setting(eng->L, "supported_languages", &am_conf_app_supported_languages, "en");
     const char *orientation_str = NULL;
     read_string_setting(eng->L, "orientation", &orientation_str, "any");
     if (strcmp(orientation_str, "any") == 0) {

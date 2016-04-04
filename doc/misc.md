@@ -137,6 +137,14 @@ The current Amulet version, as a string. E.g. `"1.0.3"`.
 The platform Amulet is running on. It will be one of the strings
 `"linux"` `"windows"` `"osx"` `"ios"` `"android"` or `"html"`.
 
+# Language
+
+### am.language() {#am.language .func-def}
+
+Returns the user's preferred language code (e.g. `"en"`).
+This currently only returns a meaningful value on iOS
+(on all other platforms it returns `"en"`).
+
 # Game Center (iOS only)
 
 The following functions are only available on iOS.

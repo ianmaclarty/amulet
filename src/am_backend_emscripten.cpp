@@ -602,6 +602,10 @@ void am_capture_audio(am_audio_bus *bus) {
     // NYI
 }
 
+const char *am_preferred_language() {
+    return "en";
+}
+
 extern "C" {
 
 void am_emscripten_run(const char *script) {

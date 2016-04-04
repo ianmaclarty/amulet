@@ -44,6 +44,7 @@ static bool help_export() {
         "    -- iOS specific:\n"
         "    display_name = \"My Game\"\n"
         "    dev_region = \"en\"\n"
+        "    supported_languages = \"en,fr,nl,de,ja,zh,ko,sp,de\"\n"
         "    icon = \"icon.png\"\n"
         "    launch_image = \"launch.png\"\n"
         "    orientation = \"any\"\n"

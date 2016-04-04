@@ -43,6 +43,7 @@ version = "1.0.0"
 -- iOS specific:
 display_name = "My Game"
 dev_region = "en"
+supported_languages = "en,fr,nl,de,ja,zh,ko,sp,de"
 icon = "icon.png"
 launch_image = "launch.png"
 orientation = "any"

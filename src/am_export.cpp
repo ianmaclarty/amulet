@@ -23,6 +23,7 @@ struct export_config {
     const char *version;
     const char *display_name;
     const char *dev_region;
+    const char *supported_languages;
     am_display_orientation orientation;
     const char *icon;
     const char *launch_image;
@@ -36,6 +37,7 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
 static bool create_ios_pkginfo(const char *filename);
 static bool create_ios_icon_files(const char *dir, export_config *conf);
 static bool create_ios_launch_images(const char *dir, export_config *conf);
+static bool create_ios_lproj_dirs(const char *zipname, const char *dir, export_config *conf);
 
 static void replace_backslashes(char *str) {
     for (unsigned int i = 0; i < strlen(str); i++) {
@@ -271,6 +273,7 @@ static bool build_ios_export(export_config *conf) {
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-Landscape~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-Portrait@2x~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-Portrait~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        create_ios_lproj_dirs(zipname, appdir, conf) &&
         true;
     free(appdir);
     am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
@@ -347,6 +350,7 @@ bool am_build_exports(uint32_t flags) {
     conf.version = am_conf_app_version;
     conf.display_name = am_conf_app_display_name;
     conf.dev_region = am_conf_app_dev_region;
+    conf.supported_languages = am_conf_app_supported_languages;
     conf.orientation = am_conf_app_display_orientation;
     conf.icon = am_conf_app_icon;
     conf.launch_image = am_conf_app_launch_image;
@@ -489,6 +493,33 @@ static bool create_ios_pkginfo(const char *filename) {
     }
     fprintf(f, "APPL????");
     fclose(f);
+    return true;
+}
+
+static bool create_ios_lproj_dirs(const char *zipname, const char *dir, export_config *conf) {
+    const char *ptr = conf->supported_languages;
+    char lang[100];
+    while (*ptr == ' ') ptr++;
+    while (*ptr != 0) {
+        int i = 0;
+        while (*ptr != 0 && *ptr != ',') {
+            if (i >= 100) {
+                fprintf(stderr, "conf.lua: language id too long\n");
+                return false;
+            }
+            lang[i] = *ptr;
+            i++;
+            ptr++;
+        }
+        lang[i] = 0;
+        char *name = am_format("%s/%s.lproj/x", dir, lang);
+        if (!mz_zip_add_mem_to_archive_file_in_place(zipname, name, "x", 1, "", 0, 0, 0100644, ZIP_PLATFORM_UNIX)) {
+            free(name);
+            return false;
+        }
+        free(name);
+        while (*ptr == ',' || *ptr == ' ') ptr++;
+    }
     return true;
 }
 

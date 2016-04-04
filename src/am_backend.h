@@ -48,6 +48,8 @@ void am_capture_audio(am_audio_bus *bus);
 char *am_get_base_path();
 char *am_get_data_path();
 
+const char *am_preferred_language();
+
 #ifdef AM_IOS
 void am_open_ios_module(lua_State *L);
 #endif

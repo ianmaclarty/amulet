@@ -395,6 +395,10 @@ void am_copy_video_frame_to_texture() {
 }
 #endif
 
+const char *am_preferred_language() {
+    return "en";
+}
+
 int main( int argc, char *argv[] )
 {
     int vsync;

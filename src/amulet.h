@@ -138,6 +138,7 @@ extern "C" {
 #include "am_rand.h"
 #include "am_sfxr.h"
 #include "am_glob.h"
+#include "am_i18n.h"
 
 #undef near
 #undef far
