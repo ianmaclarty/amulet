@@ -390,6 +390,159 @@ function clear_touch(win)
     end
 end
 
+-- controllers
+
+local max_controllers = 8
+local controllers = {}
+for i = 1, max_controllers do
+    controllers[i] = {id = false}
+end
+
+function am._controller_attached(id)
+    --log("controller attached "..id)
+    for i, controller in ipairs(controllers) do
+        if not controller.id or controller.id == id then
+            controllers[i] = {
+                id = id,
+                just_attached = true,
+                left_x = 0,
+                left_y = 0,
+                right_x = 0,
+                right_y = 0,
+                lt = 0,
+                rt = 0,
+                button_state0 = {},
+                button_presses = {},
+                button_releases = {},
+            }
+            return
+        end
+    end
+end
+
+function am._controller_detached(id)
+    --log("controller detached "..id)
+    for i, controller in ipairs(controllers) do
+        if controller.id == id then
+            controller.just_detached = true
+            controller.id = false
+            return
+        end
+    end
+end
+
+function am._controller_button_down(id, button)
+    --log("controller button down "..button.." "..id)
+    for i, controller in ipairs(controllers) do
+        if controller.id == id then
+            controller.button_presses[button] = (controller.button_presses[button] or 0) + 1
+            return
+        end
+    end
+end
+
+function am._controller_button_up(id, button)
+    --log("controller button up "..button.." "..id)
+    for i, controller in ipairs(controllers) do
+        if controller.id == id then
+            controller.button_releases[button] = (controller.button_releases[button] or 0) + 1
+            return
+        end
+    end
+end
+
+function am._controller_axis_motion(id, axis, val)
+    --log("controller axis motion "..axis.." "..val.." "..id)
+    for i, controller in ipairs(controllers) do
+        if controller.id == id then
+            controller[axis] = val
+            return
+        end
+    end
+end
+
+local
+function clear_controllers()
+    for i, controller in ipairs(controllers) do
+        if controller.id then
+            for button, presses in pairs(controller.button_presses) do
+                local state0 = controller.button_state0[button]
+                local releases = controller.button_releases[button] or 0
+                local new_state = not state0 and presses > 0 or state0 and releases == 0
+                local total = (state0 and 1 or 0) + presses - releases
+                presses = 0
+                releases = 0
+                if total <= 0 and new_state then
+                    -- postpose release to next frame
+                    releases = 1
+                elseif total > 0 and not new_state then
+                    -- postpone press to next frame
+                    presses = 1
+                end
+                controller.button_state0[button] = new_state
+                controller.button_presses[button] = presses
+                controller.button_releases[button] = releases
+            end
+            controller.just_attached = nil
+        elseif controller.just_detached then
+            controller.just_detached = nil
+        end
+    end
+end
+
+am._register_pre_frame_func(clear_controllers)
+
+function am.controller_lt_val(index)
+    return controllers[index].lt
+end
+
+function am.controller_rt_val(index)
+    return controllers[index].lt
+end
+
+function am.controller_lstick_pos(index)
+    local controller = controllers[index]
+    if not controller then
+        return nil
+    end
+    return vec2(controller.left_x, controller.left_y)
+end
+
+function am.controller_rstick_pos(index)
+    local controller = controllers[index]
+    if not controller then
+        return nil
+    end
+    return vec2(controller.right_x, controller.right_y)
+end
+
+function am.controller_button_pressed(index, button)
+    local controller = controllers[index]
+    if not controller then
+        return nil
+    end
+    return not controller.button_state0[button] and (controller.button_presses[button] or 0) > 0
+end
+
+function am.controller_button_released(index, button)
+    local controller = controllers[index]
+    if not controller then
+        return nil
+    end
+    return controller.button_state0[button] and (contoller.button_releases[button] or 0) > 0
+end
+
+function am.controller_button_down(index, button)
+    local controller = controllers[index]
+    if not controller then
+        return nil
+    end
+    local state0 = controller.button_state0[button]
+    local presses = controller.button_presses[button] or 0
+    local releases = controller.button_releases[button] or 0
+    return not state0 and presses > 0 or state0 and releases <= 0
+end
+
 -- resize
 
 local

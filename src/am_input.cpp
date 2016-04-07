@@ -121,3 +121,38 @@ const char *am_mouse_button_name(am_mouse_button button) {
     }
     return NULL;
 }
+
+const char *am_controller_button_name(am_controller_button button) {
+    switch (button) {
+        case AM_CONTROLLER_BUTTON_A: return "a";
+        case AM_CONTROLLER_BUTTON_B: return "b";
+        case AM_CONTROLLER_BUTTON_X: return "x";
+        case AM_CONTROLLER_BUTTON_Y: return "y";
+        case AM_CONTROLLER_BUTTON_BACK: return "back";
+        case AM_CONTROLLER_BUTTON_GUIDE: return "guide";
+        case AM_CONTROLLER_BUTTON_START: return "start";
+        case AM_CONTROLLER_BUTTON_LEFTSTICK: return "ls";
+        case AM_CONTROLLER_BUTTON_RIGHTSTICK: return "rs";
+        case AM_CONTROLLER_BUTTON_LEFTSHOULDER: return "lb";
+        case AM_CONTROLLER_BUTTON_RIGHTSHOULDER: return "rb";
+        case AM_CONTROLLER_BUTTON_DPAD_UP: return "up";
+        case AM_CONTROLLER_BUTTON_DPAD_DOWN: return "down";
+        case AM_CONTROLLER_BUTTON_DPAD_LEFT: return "left";
+        case AM_CONTROLLER_BUTTON_DPAD_RIGHT: return "right";
+        case AM_CONTROLLER_BUTTON_UNKNOWN: return "unknown";
+    }
+    return NULL;
+}
+
+const char *am_controller_axis_name(am_controller_axis axis) {
+    switch (axis) {
+        case AM_CONTROLLER_AXIS_LEFTX: return "left_x";
+        case AM_CONTROLLER_AXIS_LEFTY: return "left_y";
+        case AM_CONTROLLER_AXIS_RIGHTX: return "right_y";
+        case AM_CONTROLLER_AXIS_RIGHTY: return "right_y";
+        case AM_CONTROLLER_AXIS_TRIGGERLEFT: return "lt";
+        case AM_CONTROLLER_AXIS_TRIGGERRIGHT: return "rt";
+        case AM_CONTROLLER_AXIS_UNKNOWN: return "unknown";
+    }
+    return NULL;
+}

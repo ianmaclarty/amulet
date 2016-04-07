@@ -27,14 +27,6 @@
 static void init_gl_func_ptrs();
 #endif
 
-enum axis_button {
-    AXIS_BUTTON_LEFT,
-    AXIS_BUTTON_RIGHT,
-    AXIS_BUTTON_UP,
-    AXIS_BUTTON_DOWN,
-    NUM_AXIS_BUTTONS
-};
-
 struct win_info {
     SDL_Window *window;
     bool lock_pointer;
@@ -65,27 +57,20 @@ static bool restart_triggered = false;
 
 static am_package *package = NULL;
 
-static bool controller_present = false;
-static bool axis_button_down[NUM_AXIS_BUTTONS];
-static float axis_hwm[SDL_CONTROLLER_AXIS_MAX];
-//static LTKey controller_button_to_key(SDL_GameControllerButton button);
-static void load_controller_mappings();
-static void init_gamepad();
-
 static void init_sdl();
 static void init_audio();
 static void init_audio_capture();
 static bool handle_events(lua_State *L);
-//static void key_handler(SDL_Window *win, int key, int scancode, int state, int mods);
-//static void gen_controller_key_events();
-//static void mouse_button_handler(SDL_Window *win, int button, int action, int mods);
-//static void mouse_pos_handler(SDL_Window *win, double x, double y);
-//static void resize_handler(SDL_Window *win, int w, int h);
 static am_key convert_key(int key);
 static am_mouse_button convert_mouse_button(Uint8 button);
-//static bool controller_to_keys = true;
 static bool check_for_package();
 static win_info *win_from_id(Uint32 winid);
+
+static am_controller_button convert_controller_button(Uint8 button);
+static am_controller_axis convert_controller_axis(Uint8 axis);
+static bool controller_present_at_start = false;
+static void load_controller_mappings();
+static void init_gamepad();
 
 am_native_window *am_create_native_window(
     am_window_mode mode,
@@ -952,6 +937,44 @@ static bool handle_events(lua_State *L) {
                 }
                 break;
             }
+            case SDL_CONTROLLERDEVICEADDED: {
+                int joyid = event.cdevice.which;
+                SDL_GameController *controller = SDL_GameControllerOpen(joyid);
+                if (controller) {
+                    lua_pushinteger(L, joyid);
+                    am_call_amulet(L, "_controller_attached", 1, 0);
+                }
+                break;
+            }
+            case SDL_CONTROLLERDEVICEREMOVED: {
+                int joyid = event.cdevice.which;
+                lua_pushinteger(L, joyid);
+                am_call_amulet(L, "_controller_detached", 1, 0);
+                break;
+            }
+            case SDL_CONTROLLERBUTTONDOWN: {
+                int joyid = event.cbutton.which;
+                lua_pushinteger(L, joyid);
+                lua_pushstring(L, am_controller_button_name(convert_controller_button(event.cbutton.button)));
+                am_call_amulet(L, "_controller_button_down", 2, 0);
+                break;
+            }
+            case SDL_CONTROLLERBUTTONUP: {
+                int joyid = event.cbutton.which;
+                lua_pushinteger(L, joyid);
+                lua_pushstring(L, am_controller_button_name(convert_controller_button(event.cbutton.button)));
+                am_call_amulet(L, "_controller_button_up", 2, 0);
+                break;
+            }
+            case SDL_CONTROLLERAXISMOTION: {
+                int joyid = event.caxis.which;
+                double val = am_clamp((double)event.caxis.value / 32767.0, 0.0, 1.0);
+                lua_pushinteger(L, joyid);
+                lua_pushstring(L, am_controller_axis_name(convert_controller_axis(event.caxis.axis)));
+                lua_pushnumber(L, val);
+                am_call_amulet(L, "_controller_axis_motion", 3, 0);
+                break;
+            }
         }
     }
     for (unsigned i = 0; i < windows.size(); i++) {
@@ -1079,6 +1102,39 @@ static am_mouse_button convert_mouse_button(Uint8 button) {
     return AM_MOUSE_BUTTON_UNKNOWN;
 }
 
+static am_controller_button convert_controller_button(Uint8 button) {
+    switch (button) {
+        case SDL_CONTROLLER_BUTTON_A: return AM_CONTROLLER_BUTTON_A;
+        case SDL_CONTROLLER_BUTTON_B: return AM_CONTROLLER_BUTTON_B;
+        case SDL_CONTROLLER_BUTTON_X: return AM_CONTROLLER_BUTTON_X;
+        case SDL_CONTROLLER_BUTTON_Y: return AM_CONTROLLER_BUTTON_Y;
+        case SDL_CONTROLLER_BUTTON_BACK: return AM_CONTROLLER_BUTTON_BACK;
+        case SDL_CONTROLLER_BUTTON_GUIDE: return AM_CONTROLLER_BUTTON_GUIDE;
+        case SDL_CONTROLLER_BUTTON_START: return AM_CONTROLLER_BUTTON_START;
+        case SDL_CONTROLLER_BUTTON_LEFTSTICK: return AM_CONTROLLER_BUTTON_LEFTSTICK;
+        case SDL_CONTROLLER_BUTTON_RIGHTSTICK: return AM_CONTROLLER_BUTTON_RIGHTSTICK;
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: return AM_CONTROLLER_BUTTON_LEFTSHOULDER;
+        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return AM_CONTROLLER_BUTTON_RIGHTSHOULDER;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP: return AM_CONTROLLER_BUTTON_DPAD_UP;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return AM_CONTROLLER_BUTTON_DPAD_DOWN;
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return AM_CONTROLLER_BUTTON_DPAD_LEFT;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return AM_CONTROLLER_BUTTON_DPAD_RIGHT;
+    }
+    return AM_CONTROLLER_BUTTON_UNKNOWN;
+}
+
+static am_controller_axis convert_controller_axis(Uint8 axis) {
+    switch (axis) {
+        case SDL_CONTROLLER_AXIS_LEFTX: return AM_CONTROLLER_AXIS_LEFTX;
+        case SDL_CONTROLLER_AXIS_LEFTY: return AM_CONTROLLER_AXIS_LEFTY;
+        case SDL_CONTROLLER_AXIS_RIGHTX: return AM_CONTROLLER_AXIS_RIGHTX;
+        case SDL_CONTROLLER_AXIS_RIGHTY: return AM_CONTROLLER_AXIS_RIGHTY;
+        case SDL_CONTROLLER_AXIS_TRIGGERLEFT: return AM_CONTROLLER_AXIS_TRIGGERLEFT;
+        case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: return AM_CONTROLLER_AXIS_TRIGGERRIGHT;
+    }
+    return AM_CONTROLLER_AXIS_UNKNOWN;
+}
+
 static bool check_for_package() {
     if (am_opt_main_module != NULL) {
         return true;
@@ -1118,26 +1174,6 @@ static win_info *win_from_id(Uint32 winid) {
     }
     return NULL;
 }
-
-/*
-static LTKey controller_button_to_key(SDL_GameControllerButton button) {
-    switch (button) {
-        case SDL_CONTROLLER_BUTTON_A: return LT_KEY_ENTER;
-        case SDL_CONTROLLER_BUTTON_B: return LT_KEY_ESC;
-        case SDL_CONTROLLER_BUTTON_X: return LT_KEY_ENTER;
-        case SDL_CONTROLLER_BUTTON_BACK: return LT_KEY_ESC;
-        case SDL_CONTROLLER_BUTTON_START: return LT_KEY_ENTER;
-        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: return LT_KEY_LEFT;
-        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return LT_KEY_RIGHT;
-        case SDL_CONTROLLER_BUTTON_DPAD_UP: return LT_KEY_UP;
-        case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return LT_KEY_DOWN;
-        case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return LT_KEY_LEFT;
-        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return LT_KEY_RIGHT;
-        default:;
-    }
-    return LT_KEY_UNKNOWN;
-}
-*/
 
 static const char *controller_mappings[] =
 {
@@ -1190,12 +1226,6 @@ static const char *controller_mappings[] =
 };
 
 static void init_gamepad() {
-    for (int i = 0; i < NUM_AXIS_BUTTONS; i++) {
-        axis_button_down[i] = false;
-    }
-    for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX; i++) {
-        axis_hwm[i] = 0.0f;
-    }
     load_controller_mappings();
     if (SDL_NumJoysticks() > 0) {
         //am_debug("detected joysticks = %d", SDL_NumJoysticks());
@@ -1206,7 +1236,7 @@ static void init_gamepad() {
         SDL_GameController *controller = SDL_GameControllerOpen(0);
         if (controller != NULL) {
             //am_debug("detected controller");
-            controller_present = true;
+            controller_present_at_start = true;
         } else {
             //am_debug("controller error: %s", SDL_GetError());
         }
