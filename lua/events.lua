@@ -493,49 +493,49 @@ end
 am._register_pre_frame_func(clear_controllers)
 
 function am.controller_lt_val(index)
-    return controllers[index].lt
+    return controllers[index].lt or 0
 end
 
 function am.controller_rt_val(index)
-    return controllers[index].lt
+    return controllers[index].rt or 0
 end
 
 function am.controller_lstick_pos(index)
     local controller = controllers[index]
-    if not controller then
-        return nil
+    if not controller or not controller.id then
+        return vec2(0)
     end
     return vec2(controller.left_x, controller.left_y)
 end
 
 function am.controller_rstick_pos(index)
     local controller = controllers[index]
-    if not controller then
-        return nil
+    if not controller or not controller.id then
+        return vec2(0)
     end
     return vec2(controller.right_x, controller.right_y)
 end
 
 function am.controller_button_pressed(index, button)
     local controller = controllers[index]
-    if not controller then
-        return nil
+    if not controller or not controller.id then
+        return false
     end
     return not controller.button_state0[button] and (controller.button_presses[button] or 0) > 0
 end
 
 function am.controller_button_released(index, button)
     local controller = controllers[index]
-    if not controller then
-        return nil
+    if not controller or not controller.id then
+        return false
     end
     return controller.button_state0[button] and (contoller.button_releases[button] or 0) > 0
 end
 
 function am.controller_button_down(index, button)
     local controller = controllers[index]
-    if not controller then
-        return nil
+    if not controller or not controller.id then
+        return false
     end
     local state0 = controller.button_state0[button]
     local presses = controller.button_presses[button] or 0
