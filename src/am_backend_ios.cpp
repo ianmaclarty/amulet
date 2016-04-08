@@ -28,6 +28,7 @@ static bool ios_window_created = false;
 static bool ios_running = false;
 static bool ios_audio_initialized = false;
 static bool ios_audio_paused = false;
+static bool ios_force_available = false;
 static float *ios_audio_buffer = NULL;
 static int ios_audio_offset = 0;
 static NSLock *ios_audio_mutex = [[NSLock alloc] init];
@@ -443,9 +444,13 @@ static void ios_touch_began(NSSet *touches) {
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
+        double force = 1.0;
+        if (ios_force_available) {
+            force = [touch force];
+        }
         CGPoint pos = [touch locationInView:touch.view];
         //am_debug("pos = %f %f", pos.x, pos.y);
-        am_find_window((am_native_window*)ios_view)->touch_begin(ios_eng->L, touch, pos.x, pos.y);
+        am_find_window((am_native_window*)ios_view)->touch_begin(ios_eng->L, touch, pos.x, pos.y, force);
     }
 }
 
@@ -454,8 +459,12 @@ static void ios_touch_moved(NSSet *touches) {
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
+        double force = 1.0;
+        if (ios_force_available) {
+            force = [touch force];
+        }
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->touch_move(ios_eng->L, touch, pos.x, pos.y);
+        am_find_window((am_native_window*)ios_view)->touch_move(ios_eng->L, touch, pos.x, pos.y, force);
     }
 }
 
@@ -464,8 +473,12 @@ static void ios_touch_ended(NSSet *touches) {
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
+        double force = 1.0;
+        if (ios_force_available) {
+            force = [touch force];
+        }
         CGPoint pos = [touch locationInView:touch.view];
-        am_find_window((am_native_window*)ios_view)->touch_end(ios_eng->L, touch, pos.x, pos.y);
+        am_find_window((am_native_window*)ios_view)->touch_end(ios_eng->L, touch, pos.x, pos.y, force);
     }
 }
 
@@ -617,6 +630,14 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     view.delegate = self;
     ios_view = view;
     [view setMultipleTouchEnabled:YES]; 
+
+    if ([view respondsToSelector: NSSelectorFromString(@"traitCollection")]) {
+        if ([[view traitCollection] respondsToSelector: NSSelectorFromString(@"forceTouchCapability")]) {
+            if ([[view traitCollection] forceTouchCapability] == UIForceTouchCapabilityAvailable) {
+                ios_force_available = true;
+            }
+        }
+    }
 
     [EAGLContext setCurrentContext:context];
 
