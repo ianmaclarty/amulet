@@ -490,7 +490,7 @@ function clear_controllers()
     end
 end
 
-am._register_pre_frame_func(clear_controllers)
+am._register_post_frame_func(clear_controllers)
 
 function am.controller_lt_val(index)
     return controllers[index].lt or 0
