@@ -32,9 +32,9 @@ struct am_window : am_nonatomic_userdata {
     void mouse_down(lua_State *L, am_mouse_button button);
     void mouse_up(lua_State *L, am_mouse_button button);
     void mouse_wheel(lua_State *L, double x, double y);
-    void touch_begin(lua_State *L, void* touchid, double x, double y);
-    void touch_end(lua_State *L, void* touchid, double x, double y);
-    void touch_move(lua_State *L, void* touchid, double x, double y);
+    void touch_begin(lua_State *L, void* touchid, double x, double y, double force);
+    void touch_end(lua_State *L, void* touchid, double x, double y, double force);
+    void touch_move(lua_State *L, void* touchid, double x, double y, double force);
 };
 
 void am_open_window_module(lua_State *L);

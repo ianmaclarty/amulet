@@ -200,7 +200,7 @@ void am_window::mouse_up(lua_State *L, am_mouse_button button) {
     am_call_amulet(L, "_mouse_up", 2, 0);
 }
 
-void am_window::touch_begin(lua_State *L, void* touchid, double x, double y) {
+void am_window::touch_begin(lua_State *L, void* touchid, double x, double y, double force) {
     double ux, uy, nx, ny, px, py;
     compute_position(x, y, &ux, &uy, &nx, &ny, &px, &py);
     push(L);
@@ -211,10 +211,11 @@ void am_window::touch_begin(lua_State *L, void* touchid, double x, double y) {
     lua_pushnumber(L, ny);
     lua_pushnumber(L, px);
     lua_pushnumber(L, py);
-    am_call_amulet(L, "_touch_begin", 8, 0);
+    lua_pushnumber(L, force);
+    am_call_amulet(L, "_touch_begin", 9, 0);
 }
 
-void am_window::touch_end(lua_State *L, void* touchid, double x, double y) {
+void am_window::touch_end(lua_State *L, void* touchid, double x, double y, double force) {
     double ux, uy, nx, ny, px, py;
     compute_position(x, y, &ux, &uy, &nx, &ny, &px, &py);
     push(L);
@@ -225,10 +226,11 @@ void am_window::touch_end(lua_State *L, void* touchid, double x, double y) {
     lua_pushnumber(L, ny);
     lua_pushnumber(L, px);
     lua_pushnumber(L, py);
-    am_call_amulet(L, "_touch_end", 8, 0);
+    lua_pushnumber(L, force);
+    am_call_amulet(L, "_touch_end", 9, 0);
 }
 
-void am_window::touch_move(lua_State *L, void* touchid, double x, double y) {
+void am_window::touch_move(lua_State *L, void* touchid, double x, double y, double force) {
     double ux, uy, nx, ny, px, py;
     compute_position(x, y, &ux, &uy, &nx, &ny, &px, &py);
     push(L);
@@ -239,7 +241,8 @@ void am_window::touch_move(lua_State *L, void* touchid, double x, double y) {
     lua_pushnumber(L, ny);
     lua_pushnumber(L, px);
     lua_pushnumber(L, py);
-    am_call_amulet(L, "_touch_move", 8, 0);
+    lua_pushnumber(L, force);
+    am_call_amulet(L, "_touch_move", 9, 0);
 }
 
 am_window* am_find_window(am_native_window *nwin) {

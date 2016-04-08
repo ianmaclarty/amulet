@@ -188,7 +188,7 @@ end
 
 -- touch
 
-function am._touch_begin(win, id, x, y, nx, ny, px, py)
+function am._touch_begin(win, id, x, y, nx, ny, px, py, force)
     local u = win._event_data
     local free_i = nil
     for i, touch in ipairs(u._touches) do
@@ -208,11 +208,12 @@ function am._touch_begin(win, id, x, y, nx, ny, px, py)
         touch.norm_position_y = ny
         touch.pixel_position_x = px
         touch.pixel_position_y = py
+        touch.force = force
         touch.began = true
     end
 end
 
-function am._touch_end(win, id, x, y, nx, ny, px, py)
+function am._touch_end(win, id, x, y, nx, ny, px, py, force)
     local u = win._event_data
     for i, touch in ipairs(u._touches) do
         if touch.id == id then
@@ -222,13 +223,14 @@ function am._touch_end(win, id, x, y, nx, ny, px, py)
             touch.norm_position_y = ny
             touch.pixel_position_x = px
             touch.pixel_position_y = py
+            touch.force = force
             touch.ended = true
             return
         end
     end
 end
 
-function am._touch_move(win, id, x, y, nx, ny, px, py)
+function am._touch_move(win, id, x, y, nx, ny, px, py, force)
     local u = win._event_data
     for i, touch in ipairs(u._touches) do
         if touch.id == id then
@@ -238,6 +240,7 @@ function am._touch_move(win, id, x, y, nx, ny, px, py)
             touch.norm_position_y = ny
             touch.pixel_position_x = px
             touch.pixel_position_y = py
+            touch.force = force
             return
         end
     end
@@ -273,6 +276,17 @@ function window_mt.touch_pixel_position(win, i)
         return vec2(0, 0)
     else
         return vec2(touch.pixel_position_x, touch.pixel_position_y)
+    end
+end
+
+function window_mt.touch_force(win, i)
+    i = i or 1
+    local u = win._event_data
+    local touch = u._touches[i]
+    if not touch then
+        return 0
+    else
+        return touch.force
     end
 end
 
@@ -635,6 +649,7 @@ function am._init_window_event_data(window)
             prev_norm_position_y = 0,
             prev_pixel_position_x = 0,
             prev_pixel_position_y = 0,
+            force = 0,
         }
     end
 
