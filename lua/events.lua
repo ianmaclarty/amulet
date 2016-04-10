@@ -290,6 +290,14 @@ function window_mt.touch_force(win, i)
     end
 end
 
+function window_mt.touch_force_available(win)
+    if am.platform == "ios" then
+        return am.force_touch_available()
+    else
+        return false
+    end
+end
+
 function window_mt.touch_delta(win, i)
     i = i or 1
     local u = win._event_data

@@ -28,7 +28,8 @@ static bool ios_window_created = false;
 static bool ios_running = false;
 static bool ios_audio_initialized = false;
 static bool ios_audio_paused = false;
-static bool ios_force_available = false;
+static bool ios_force_touch_recognised = false;
+static bool force_touch_is_available();
 static float *ios_audio_buffer = NULL;
 static int ios_audio_offset = 0;
 static NSLock *ios_audio_mutex = [[NSLock alloc] init];
@@ -144,6 +145,11 @@ static int ios_retrieve_pref(lua_State *L) {
         lua_pushstring(L, val);
         free(val);
     }
+    return 1;
+}
+
+static int force_touch_available(lua_State *L) {
+    lua_pushboolean(L, force_touch_is_available() ? 1 : 0);
     return 1;
 }
 
@@ -438,16 +444,25 @@ static void ios_garbage_collect() {
     lua_gc(ios_eng->L, LUA_GCCOLLECT, 0);
 }
 
+static bool force_touch_is_available() {
+    //am_debug("ios_force_touch_recognised = %s", ios_force_touch_recognised ? "true" : "false");
+    //const char *str = "???";
+    //switch ([[ios_view traitCollection] forceTouchCapability]) {
+    //    case UIForceTouchCapabilityAvailable: str = "available"; break;
+    //    case UIForceTouchCapabilityUnavailable: str = "unavailable"; break;
+    //    case UIForceTouchCapabilityUnknown: str = "unknown"; break;
+    //}
+    //am_debug("forceTouchCapability = %s", str);
+    return (ios_force_touch_recognised && ios_view != nil &&
+        [[ios_view traitCollection] forceTouchCapability] == UIForceTouchCapabilityAvailable);
+}
 
 static void ios_touch_began(NSSet *touches) {
     if (ios_eng->L == NULL) return;
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
-        double force = 1.0;
-        if (ios_force_available) {
-            force = [touch force];
-        }
+        double force = force_touch_is_available() ? [touch force] : 1.0;
         CGPoint pos = [touch locationInView:touch.view];
         //am_debug("pos = %f %f", pos.x, pos.y);
         am_find_window((am_native_window*)ios_view)->touch_begin(ios_eng->L, touch, pos.x, pos.y, force);
@@ -459,10 +474,7 @@ static void ios_touch_moved(NSSet *touches) {
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
-        double force = 1.0;
-        if (ios_force_available) {
-            force = [touch force];
-        }
+        double force = force_touch_is_available() ? [touch force] : 1.0;
         CGPoint pos = [touch locationInView:touch.view];
         am_find_window((am_native_window*)ios_view)->touch_move(ios_eng->L, touch, pos.x, pos.y, force);
     }
@@ -473,10 +485,7 @@ static void ios_touch_ended(NSSet *touches) {
     NSEnumerator *e = [touches objectEnumerator];
     UITouch *touch;
     while ((touch = [e nextObject])) {
-        double force = 1.0;
-        if (ios_force_available) {
-            force = [touch force];
-        }
+        double force = force_touch_is_available() ? [touch force] : 0.0;
         CGPoint pos = [touch locationInView:touch.view];
         am_find_window((am_native_window*)ios_view)->touch_end(ios_eng->L, touch, pos.x, pos.y, force);
     }
@@ -559,16 +568,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     ios_garbage_collect();
 }
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-}
-
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)orientation
 {
     //am_debug("%s", "shouldAutorotateToInterfaceOrientation");
@@ -631,12 +630,10 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     ios_view = view;
     [view setMultipleTouchEnabled:YES]; 
 
-    if ([view respondsToSelector: NSSelectorFromString(@"traitCollection")]) {
-        if ([[view traitCollection] respondsToSelector: NSSelectorFromString(@"forceTouchCapability")]) {
-            if ([[view traitCollection] forceTouchCapability] == UIForceTouchCapabilityAvailable) {
-                ios_force_available = true;
-            }
-        }
+    if ([ios_view respondsToSelector: NSSelectorFromString(@"traitCollection")] &&
+        [[ios_view traitCollection] respondsToSelector: NSSelectorFromString(@"forceTouchCapability")])
+    {
+        ios_force_touch_recognised = true;
     }
 
     [EAGLContext setCurrentContext:context];
@@ -651,9 +648,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     self.window.rootViewController = viewController;
     ios_view_controller = viewController;
  
-    //self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
-    //init_gamecenter();
     return YES;
 }
 
@@ -1079,6 +1074,7 @@ void am_open_ios_module(lua_State *L) {
         {"show_gamecenter_leaderboard", show_gamecenter_leaderboard},
         {"ios_store_pref", ios_store_pref},
         {"ios_retrieve_pref", ios_retrieve_pref},
+        {"force_touch_available", force_touch_available},
         //{"destroy_gamecenter", destroy_gamecenter},
         {NULL, NULL}
     };
