@@ -205,6 +205,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#windowtouch_norm_deltatouch">window:touch_norm_delta([touch])</a></li>
 <li><a href="#windowtouch_pixel_deltatouch">window:touch_pixel_delta([touch])</a></li>
 <li><a href="#window:touch_force">window:touch_force([touch])</a></li>
+<li><a href="#window:touch_force_available">window:touch_force_available()</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#scenes">Scenes</a><ul>
@@ -1765,9 +1766,10 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
 <h3 id="window:touch_force" class="method-def">window:touch_force([touch])</h3>
 <p>Returns the force of the touch where 0 means no force and 1 is &quot;average&quot; force. Harder presses will result in values larger than 1.</p>
-<p>If pressure sensitive touches are not supported then 1 is returned.</p>
 <p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
+<h3 id="window:touch_force_available" class="method-def">window:touch_force_available()</h3>
+<p>Returns true if touch force is supported on the device.</p>
 <div class="figure">
 <img src="images/screenshot8.jpg" alt="" />
 
