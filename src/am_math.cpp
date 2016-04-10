@@ -1461,7 +1461,7 @@ static int perlin(lua_State *L) {
 //----------------------- interpolation functions -------------------------//
 
 static int mix(lua_State *L) {
-    am_check_nargs(L, 1);
+    am_check_nargs(L, 3);
     switch (am_get_type(L, 1)) {
         case LUA_TNUMBER: {
             lua_Number x = lua_tonumber(L, 1);
@@ -1535,12 +1535,22 @@ static int mix(lua_State *L) {
             am_quat *y = am_get_userdata(L, am_quat, 2);
             am_quat *r = am_new_userdata(L, am_quat);
             double a = lua_tonumber(L, 3);
-            r->q = glm::slerp(x->q, y->q, a);
+            r->q = glm::mix(x->q, y->q, a);
             break;
         }
         default:
-            return luaL_error(L, "expecting a number or vec in position 1");
+            return luaL_error(L, "expecting a number, vec or quat in position 1");
     }
+    return 1;
+}
+
+static int slerp(lua_State *L) {
+    am_check_nargs(L, 3);
+    am_quat *x = am_get_userdata(L, am_quat, 1);
+    am_quat *y = am_get_userdata(L, am_quat, 2);
+    double a = lua_tonumber(L, 3);
+    am_quat *r = am_new_userdata(L, am_quat);
+    r->q = glm::slerp(x->q, y->q, a);
     return 1;
 }
 
@@ -1900,6 +1910,7 @@ void am_open_math_module(lua_State *L) {
         {"simplex",     simplex},
         {"perlin",      perlin},
         {"mix",         mix},
+        {"slerp",       slerp},
         {"clamp",       clamp},
         {"fract",       fract},
         //{"smoothstep",  smoothstep},

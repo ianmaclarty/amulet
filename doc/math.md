@@ -573,5 +573,12 @@ type. `t` should be a number between 0 and 1. `from` and `to` can also
 be quaternions. In this case `math.mix` returns the spherical linear
 interpolation of the two quaternions.
 
+### math.slerp(from, top, t) {#math.slerp .func-def}
+
+Returns the spherical linear interpolation of the two quaternions
+`from` and `to`. `t` should be a number between 0 and 1.
+Unlike (`math.mix`)[#math.mix] this interpolation takes the shortest
+path.
+
 ---------------
 
