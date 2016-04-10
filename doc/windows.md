@@ -527,3 +527,18 @@ The default value for `touch` is `1`.
 
 See [`window:touches_began`](#touches_began) for additional
 notes on the `touch` argument.
+
+### window:touch_force([touch]) {#window:touch_force .method-def}
+
+Returns the force of the touch where 0 means no force and
+1 is "average" force. Harder presses will result in values
+larger than 1.
+
+If pressure sensitive touches are not supported then 1
+is returned.
+
+The default value for `touch` is `1`.
+
+See [`window:touches_began`](#touches_began) for additional
+notes on the `touch` argument.
+

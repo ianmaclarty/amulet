@@ -16,6 +16,7 @@ SECTIONS = header.md \
 	time.md \
 	save.md \
 	audio.md \
+	controller.md \
 	spritepack.md \
 	export.md \
 	table.md \

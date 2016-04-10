@@ -204,6 +204,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#windowtouch_deltatouch">window:touch_delta([touch])</a></li>
 <li><a href="#windowtouch_norm_deltatouch">window:touch_norm_delta([touch])</a></li>
 <li><a href="#windowtouch_pixel_deltatouch">window:touch_pixel_delta([touch])</a></li>
+<li><a href="#window:touch_force">window:touch_force([touch])</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#scenes">Scenes</a><ul>
@@ -377,6 +378,15 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#audio-graph-nodes">Audio graph nodes</a></li>
 <li><a href="#analysing-audio">Analysing audio</a></li>
 </ul></li>
+<li><a href="#controllers">Controllers</a><ul>
+<li><a href="#am.controller_lt_val">am.controller_lt_val(index)</a></li>
+<li><a href="#am.controller_rt_val">am.controller_rt_val(index)</a></li>
+<li><a href="#am.controller_lstick_pos">am.controller_lstick_pos(index)</a></li>
+<li><a href="#am.controller_rstick_pos">am.controller_rstick_pos(index)</a></li>
+<li><a href="#am.controller_button_pressed">am.controller_button_pressed(index, button)</a></li>
+<li><a href="#am.controller_button_released">am.controller_button_released(index, button)</a></li>
+<li><a href="#am.controller_button_down">am.controller_button_down(index, button)</a></li>
+</ul></li>
 <li><a href="#spritepack">Packing sprites and generating fonts</a><ul>
 <li><a href="#overview">Overview</a></li>
 <li><a href="#pack-options">Pack options</a></li>
@@ -429,6 +439,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#platform">Platform</a><ul>
 <li><a href="#am.platform">am.platform</a></li>
+</ul></li>
+<li><a href="#language">Language</a><ul>
+<li><a href="#am.language">am.language()</a></li>
 </ul></li>
 <li><a href="#game-center-ios-only">Game Center (iOS only)</a><ul>
 <li><a href="#am.init_gamecenter">am.init_gamecenter()</a></li>
@@ -1750,6 +1763,11 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <p>Returns the change in touch position since the last frame in pixels (a <code>vec2</code>).</p>
 <p>The default value for <code>touch</code> is <code>1</code>.</p>
 <p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
+<h3 id="window:touch_force" class="method-def">window:touch_force([touch])</h3>
+<p>Returns the force of the touch where 0 means no force and 1 is &quot;average&quot; force. Harder presses will result in values larger than 1.</p>
+<p>If pressure sensitive touches are not supported then 1 is returned.</p>
+<p>The default value for <code>touch</code> is <code>1</code>.</p>
+<p>See <a href="#touches_began"><code>window:touches_began</code></a> for additional notes on the <code>touch</code> argument.</p>
 <div class="figure">
 <img src="images/screenshot8.jpg" alt="" />
 
@@ -2849,6 +2867,39 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>TODO</p>
 <h2 id="analysing-audio">Analysing audio</h2>
 <p>TODO</p>
+<h1 id="controllers">Controllers</h1>
+<h3 id="am.controller_lt_val" class="func-def">am.controller_lt_val(index)</h3>
+<p>Returns the value of the left trigger axis of controller <code>index</code>, where <code>index</code> starts from 1. The returned value is between 0 and 1.</p>
+<h3 id="am.controller_rt_val" class="func-def">am.controller_rt_val(index)</h3>
+<p>Returns the value of the right trigger axis of controller <code>index</code>, where <code>index</code> starts from 1. The returned value is between 0 and 1.</p>
+<h3 id="am.controller_lstick_pos" class="func-def">am.controller_lstick_pos(index)</h3>
+<p>Returns the position of the left stick of controller <code>index</code> as a <code>vec2</code>, where <code>index</code> starts from 1.</p>
+<h3 id="am.controller_rstick_pos" class="func-def">am.controller_rstick_pos(index)</h3>
+<p>Returns the position of the left stick of controller <code>index</code> as a <code>vec2</code>, where <code>index</code> starts from 1.</p>
+<h3 id="am.controller_button_pressed" class="func-def">am.controller_button_pressed(index, button)</h3>
+<p>Returns <code>true</code> if the given button of controller <code>index</code> was pressed since the last frame, where <code>index</code> starts from 1.</p>
+<p><code>button</code> can be one of the following strings:</p>
+<ul>
+<li><code>&quot;a&quot;</code></li>
+<li><code>&quot;b&quot;</code></li>
+<li><code>&quot;x&quot;</code></li>
+<li><code>&quot;y&quot;</code></li>
+<li><code>&quot;back&quot;</code></li>
+<li><code>&quot;guide&quot;</code></li>
+<li><code>&quot;start&quot;</code></li>
+<li><code>&quot;ls&quot;</code></li>
+<li><code>&quot;rs&quot;</code></li>
+<li><code>&quot;lb&quot;</code></li>
+<li><code>&quot;rb&quot;</code></li>
+<li><code>&quot;up&quot;</code></li>
+<li><code>&quot;down&quot;</code></li>
+<li><code>&quot;left&quot;</code></li>
+<li><code>&quot;right&quot;</code></li>
+</ul>
+<h3 id="am.controller_button_released" class="func-def">am.controller_button_released(index, button)</h3>
+<p>Returns <code>true</code> if the given button of controller <code>index</code> was released since the last frame, where <code>index</code> starts from 1. See <a href="#am.controller_button_pressed">am.controller_button_pressed</a> for a list of valid values for <code>button</code>.</p>
+<h3 id="am.controller_button_down" class="func-def">am.controller_button_down(index, button)</h3>
+<p>Returns <code>true</code> if the given button of controller <code>index</code> was down at the start of the current frame, where <code>index</code> starts from 1. See <a href="#am.controller_button_pressed">am.controller_button_pressed</a> for a list of valid values for <code>button</code>.</p>
 <h1 id="spritepack">Packing sprites and generating fonts</h1>
 <h2 id="overview">Overview</h2>
 <p>Amulet includes a tool for packing images and font glyphs into a sprite sheet and generating a Lua module for conveniently accessing the images and glyphs therein.</p>
@@ -2929,6 +2980,7 @@ version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span>
 <span class="co">-- iOS specific:</span>
 display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>
 dev_region <span class="ot">=</span> <span class="st">&quot;en&quot;</span>
+supported_languages <span class="ot">=</span> <span class="st">&quot;en,fr,nl,de,ja,zh,ko,sp,de&quot;</span>
 icon <span class="ot">=</span> <span class="st">&quot;icon.png&quot;</span>
 launch_image <span class="ot">=</span> <span class="st">&quot;launch.png&quot;</span>
 orientation <span class="ot">=</span> <span class="st">&quot;any&quot;</span></code></pre></div>
@@ -3030,6 +3082,9 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <h1 id="platform">Platform</h1>
 <h3 id="am.platform" class="field-def">am.platform</h3>
 <p>The platform Amulet is running on. It will be one of the strings <code>&quot;linux&quot;</code> <code>&quot;windows&quot;</code> <code>&quot;osx&quot;</code> <code>&quot;ios&quot;</code> <code>&quot;android&quot;</code> or <code>&quot;html&quot;</code>.</p>
+<h1 id="language">Language</h1>
+<h3 id="am.language" class="func-def">am.language()</h3>
+<p>Returns the user's preferred language code (e.g. <code>&quot;en&quot;</code>). This currently only returns a meaningful value on iOS (on all other platforms it returns <code>&quot;en&quot;</code>).</p>
 <h1 id="game-center-ios-only">Game Center (iOS only)</h1>
 <p>The following functions are only available on iOS.</p>
 <h3 id="am.init_gamecenter" class="func-def">am.init_gamecenter()</h3>
