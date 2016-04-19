@@ -1,18 +1,29 @@
 
 # Saving and loading state
 
-## Saving
+### am.save_state(key, state [,format])
 
-### am.save_state(name, state) {#am.save_state .func-def}
+Save the table `state` under `key`. State 
+may contain other tables, numbers, strings
+or bools.
 
-Saves `state` under `name`. `state` should be a Lua table
-without any cyclic references.
+`format` can be `json` or `lua`. The default is
+`lua`.
 
-How and where the data is saved is platform dependent.
+**Note**:
+The `lua` format allows users to execute arbitrary lua
+code my modifying the save file.
 
-## Loading
+### am.load_state(key, [,format])
 
-### am.load_state(name) {#am.load_state .func-def}
+Loads the table saved under `key` and returns
+it. If no table has been previously saved under `key`
+then `nil` is returned.
 
-Loads a previously saved state and returns it.
-If the given name was not found `nil` is returned.
+`format` can be `json` or `lua`. The default is
+`lua`.
+
+**Note**:
+The `lua` format allows users to execute arbitrary lua
+code my modifying the save file.
+
