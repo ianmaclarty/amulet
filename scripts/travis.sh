@@ -38,6 +38,7 @@ else
         #make TARGET=linux64.release LUAVM=lua52   test
         #make TARGET=linux64.release LUAVM=luajit  test
         make -j2 TARGET=mingw32.release
+        scripts/gen_linux_universal.sh
     else
         make -j2 TARGET=osx.release     LUAVM=lua51   test
         #make TARGET=osx.release     LUAVM=luajit  test

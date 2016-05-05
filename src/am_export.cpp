@@ -300,7 +300,8 @@ static bool build_linux_export(export_config *conf) {
         ok = add_files_to_dist(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX);
     }
     if (ok && binpath64 != NULL) {
-        ok = add_files_to_dist(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX);
+        ok = add_files_to_dist(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX)
+            && add_files_to_dist(zipname, binpath64, "amulet.sh", name, name, "", true, true, ZIP_PLATFORM_UNIX);
     }
     printf("Generated %s\n", zipname);
     free(zipname);
