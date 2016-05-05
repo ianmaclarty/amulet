@@ -31,9 +31,8 @@ mv scripts/installer-payload/amulet-console.exe scripts/installer-payload/amulet
 cp -r examples scripts/installer-payload/
 cp scripts/icon.ico scripts/installer-payload/
 cp scripts/amulet_env.bat scripts/installer-payload/
-iscc /DVERSION=%TAG% scripts\installer.iss
+iscc /DVERSION=%TAG% /F amulet-%TAG%-windows.exe scripts\installer.iss
 if %errorlevel% neq 0 exit /b %errorlevel%
-cp scripts/output/setup.exe amulet-%TAG%-windows.exe
 mv scripts/installer-payload amulet-%TAG%
 zip -r amulet-%TAG%-windows.zip amulet-%TAG%
 node scripts\upload_distros.js %TAG% amulet-%TAG%-windows.exe amulet-%TAG%-windows.zip
