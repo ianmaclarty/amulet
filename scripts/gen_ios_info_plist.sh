@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 DTXcodeBuild=`xcodebuild -version | grep "Build version" | sed 's/^Build version //'`
-XcodeVer=`xcodebuild -version | grep "Xcode" | sed 's/^Xcode //'`
+XcodeVer=`xcodebuild -version | grep "Xcode" | sed 's/^Xcode //' | sed 's/^\([0-9]*\.[0-9]*\)\.[0-9]*$/\1/'`
 XcodeMagVer=`echo $XcodeVer | sed 's/\.[0-9]*//'`
 XcodeMinVer=`printf %0.2f $XcodeVer | sed 's/^[0-9]*\.//'`
 DTXcode=`printf %02d $XcodeMagVer`$XcodeMinVer
