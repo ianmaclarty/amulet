@@ -31,7 +31,7 @@ mv scripts/installer-payload/amulet-console.exe scripts/installer-payload/amulet
 cp -r examples scripts/installer-payload/
 cp scripts/icon.ico scripts/installer-payload/
 cp scripts/amulet_env.bat scripts/installer-payload/
-iscc /DVERSION=%TAG% /O.. /Famulet-%TAG%-windows.exe scripts\installer.iss
+iscc /DVERSION=%TAG% /O. /Famulet-%TAG%-windows.exe scripts\installer.iss
 if %errorlevel% neq 0 exit /b %errorlevel%
 mv scripts/installer-payload amulet-%TAG%
 zip -r amulet-%TAG%-windows.zip amulet-%TAG%
