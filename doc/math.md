@@ -393,7 +393,7 @@ local q = quat(math.rad(45))
 This is a useful shortcut for 2D rotations in the xy plane.
 
 A quaternion can also be constructed from Euler angles. Euler angles are
-rotations around the x, y and z axes, also known as pitch, roll and yaw.
+rotations around the x, y and z axes, also known as pitch, yaw and roll.
 For example:
 
 ~~~ {.lua}
@@ -547,7 +547,9 @@ Creates a 4x4 matrix for a symmetric perspective-view frustum.
 ### math.ortho(left, right, bottom, top [, near, far]) {.func-def}
 
 Creates a 4x4 orthographic projection matrix.
-The default values for `near` and `far` are `1` and `-1`.
+`near` and `far` are the distance from the viewer of the
+near and far clipping plains (negative means behind the viewer).
+Their default values are `-1` and `1`.
 
 ### math.perlin(pos [, period]) {.func-def}
 

@@ -108,6 +108,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#math.perlinpos-period">math.perlin(pos [, period])</a></li>
 <li><a href="#math.simplexpos">math.simplex(pos)</a></li>
 <li><a href="#math.mix">math.mix(from, top, t)</a></li>
+<li><a href="#math.slerp">math.slerp(from, top, t)</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#buffers-and-views">Buffers and views</a><ul>
@@ -350,12 +351,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul></li>
 <li><a href="#saving-and-loading-state">Saving and loading state</a><ul>
-<li><a href="#saving">Saving</a><ul>
-<li><a href="#am.save_state">am.save_state(name, state)</a></li>
-</ul></li>
-<li><a href="#loading">Loading</a><ul>
-<li><a href="#am.load_state">am.load_state(name)</a></li>
-</ul></li>
+<li><a href="#am.save_statekey-state-format">am.save_state(key, state [,format])</a></li>
+<li><a href="#am.load_statekey-format">am.load_state(key, [,format])</a></li>
 </ul></li>
 <li><a href="#audio">Audio</a><ul>
 <li><a href="#audio-buffers">Audio buffers</a><ul>
@@ -409,10 +406,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#table.tostring">table.tostring(t)</a></li>
 </ul></li>
 <li><a href="#amulet-require-function">Amulet require function</a></li>
-<li><a href="#savingloading-state">Saving/loading state</a><ul>
-<li><a href="#am.save_statekey-state-format">am.save_state(key, state [,format])</a></li>
-<li><a href="#am.load_statekey-format">am.load_state(key, [,format])</a></li>
-</ul></li>
 <li><a href="#logging">Logging</a><ul>
 <li><a href="#log">log(msg, ...)</a></li>
 </ul></li>
@@ -1220,7 +1213,7 @@ vec2(0, 2)</code></pre>
 <p>If the axis argument is omitted then it is taken to be <code>vec3(0, 0, 1)</code>, so the above is equivalent to:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> q <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">45</span><span class="ot">))</span></code></pre></div>
 <p>This is a useful shortcut for 2D rotations in the xy plane.</p>
-<p>A quaternion can also be constructed from Euler angles. Euler angles are rotations around the x, y and z axes, also known as pitch, roll and yaw. For example:</p>
+<p>A quaternion can also be constructed from Euler angles. Euler angles are rotations around the x, y and z axes, also known as pitch, yaw and roll. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> q <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">30</span><span class="ot">),</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">),</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">20</span><span class="ot">))</span></code></pre></div>
 <p>constructs a quaternion that represents the rotation you'd end up with if you first rotated 30 degrees around the x axis, then 60 degrees around the y axis and finally 20 degrees around the z axis.</p>
 <p>If two unit vector arguments are given, then the quaternion represents the rotation that would be needed to rotate the one vector into into the other. For example:</p>
@@ -1278,7 +1271,7 @@ vec2(0, 2)</code></pre>
 <li><code>near</code> and <code>far</code> are the distances of the near and far clipping plains from the camera (these should be positive).</li>
 </ul>
 <h3 id="math.ortholeft-right-bottom-top-near-far" class="func-def">math.ortho(left, right, bottom, top [, near, far])</h3>
-<p>Creates a 4x4 orthographic projection matrix. The default values for <code>near</code> and <code>far</code> are <code>1</code> and <code>-1</code>.</p>
+<p>Creates a 4x4 orthographic projection matrix. <code>near</code> and <code>far</code> are the distance from the viewer of the near and far clipping plains (negative means behind the viewer). Their default values are <code>-1</code> and <code>1</code>.</p>
 <h3 id="math.perlinpos-period" class="func-def">math.perlin(pos [, period])</h3>
 <p>Generate perlin noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number. If the second argument is supplied then the noise will be periodic with the given period. <code>period</code> should be of the same type as <code>pos</code> and its components should be integers greater than 1.</p>
 <p>The returned value is between -1 and 1.</p>
@@ -1287,6 +1280,8 @@ vec2(0, 2)</code></pre>
 <p>The returned value is between -1 and 1.</p>
 <h3 id="math.mix" class="func-def">math.mix(from, top, t)</h3>
 <p>Returns the linear interpolation between <code>from</code> and <code>to</code> determined by <code>t</code>. <code>from</code> and <code>to</code> can be numbers or vectors, and must be the same type. <code>t</code> should be a number between 0 and 1. <code>from</code> and <code>to</code> can also be quaternions. In this case <code>math.mix</code> returns the spherical linear interpolation of the two quaternions.</p>
+<h3 id="math.slerp" class="func-def">math.slerp(from, top, t)</h3>
+<p>Returns the spherical linear interpolation of the two quaternions <code>from</code> and <code>to</code>. <code>t</code> should be a number between 0 and 1. Unlike (<code>math.mix</code>)[#math.mix] this interpolation takes the shortest path.</p>
 <hr />
 <div class="figure">
 <img src="images/screenshot5.jpg" alt="" />
@@ -2679,13 +2674,14 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h3 id="am.current_time" class="func-def">am.current_time()</h3>
 <p>This returns the time since the program started, in seconds. This value can change over the course of a frame.</p>
 <h1 id="saving-and-loading-state">Saving and loading state</h1>
-<h2 id="saving">Saving</h2>
-<h3 id="am.save_state" class="func-def">am.save_state(name, state)</h3>
-<p>Saves <code>state</code> under <code>name</code>. <code>state</code> should be a Lua table without any cyclic references.</p>
-<p>How and where the data is saved is platform dependent.</p>
-<h2 id="loading">Loading</h2>
-<h3 id="am.load_state" class="func-def">am.load_state(name)</h3>
-<p>Loads a previously saved state and returns it. If the given name was not found <code>nil</code> is returned.</p>
+<h3 id="am.save_statekey-state-format">am.save_state(key, state [,format])</h3>
+<p>Save the table <code>state</code> under <code>key</code>. State may contain other tables, numbers, strings or bools.</p>
+<p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
+<p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code my modifying the save file.</p>
+<h3 id="am.load_statekey-format">am.load_state(key, [,format])</h3>
+<p>Loads the table saved under <code>key</code> and returns it. If no table has been previously saved under <code>key</code> then <code>nil</code> is returned.</p>
+<p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
+<p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code my modifying the save file.</p>
 <h1 id="audio">Audio</h1>
 <h2 id="audio-buffers">Audio buffers</h2>
 <p>An audio buffer is a block of memory that stores an uncompressed audio sample.</p>
@@ -3030,15 +3026,6 @@ mymodule<span class="ot">.</span>message <span class="ot">=</span> <span class="
 mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span class="co">-- prints hello</span></code></pre></div>
 <p>This scheme allows cyclic module imports, e.g. module A requires module B which in turn requires module A. Amulet will detect the recursion and return A's (incomplete) export table in B. Then when A has finished initialising, all its functions will be available in B. This does mean that B can't call any of A's functions while its initialising, but after initialisation all of A's functions will be available.</p>
 <p>Of course you can still return your own values from modules and they will be returned by <code>require</code> as with the default Lua <code>require</code> function.</p>
-<h1 id="savingloading-state">Saving/loading state</h1>
-<h3 id="am.save_statekey-state-format">am.save_state(key, state [,format])</h3>
-<p>Save the table <code>state</code> under <code>key</code>. State may contain other tables, numbers, strings or bools.</p>
-<p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
-<p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code my modifying the save file.</p>
-<h3 id="am.load_statekey-format">am.load_state(key, [,format])</h3>
-<p>Loads the table saved under <code>key</code> and returns it. If no table has been previously saved under <code>key</code> then <code>nil</code> is returned.</p>
-<p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
-<p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code my modifying the save file.</p>
 <h1 id="logging">Logging</h1>
 <h3 id="log" class="func-def">log(msg, ...)</h3>
 <p>Log a message to the console.</p>
