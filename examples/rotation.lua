@@ -10,9 +10,9 @@ uniform mat4 MV;
 uniform mat4 P;
 varying vec3 v_color;
 void main() {
-    vec3 light = normalize(vec3(0.1, -0.5, 1.0));
+    vec3 light = normalize(vec3(0.1, 0.1, 1.0));
     vec3 nm = normalize((MV * vec4(normal, 0.0)).xyz);
-    v_color = vec3(max(0.3, dot(light, nm)));
+    v_color = vec3(max(0.1, dot(light, nm)));
     gl_Position = P * MV * vec4(pos, 1.0);
 }
 ]]
@@ -46,22 +46,20 @@ local rotating_cube =
     am.rotate("MV", quat(0))
         :action(coroutine.create(function(node)
             while true do
-                am.wait(am.delay(1.0))
                 local angle = math.random() * 2 * math.pi
-                local axis = math.normalize(vec3(0, 0, 1))
-                am.wait(am.tween(2, {rotation = quat(angle, axis)},
+                local axis = math.normalize(vec3(math.random(), math.random(), math.random()) - 0.5)
+                am.wait(am.tween(1, {rotation = quat(angle, axis)},
                     am.ease.inout(am.ease.cubic)), node)
+                am.wait(am.delay(0.1))
             end
         end))
     ^cube
 
 local scene_group = am.group()
 
-local translated_cube = am.translate(0, 0, -1) ^ am.scale(vec3(0.5)) ^ rotating_cube
+local translated_cube = am.translate("MV", vec3(0, 0, -4)) ^ rotating_cube
 
---local projection_matrix = math.perspective(math.rad(85), 1, 0.1, 10)
-local oblique_matrix = math.oblique(-math.pi/2, 2.5, 0.5, -4, 4, -3, 3, 0, 20)
-local ortho_matrix = math.ortho(-4, 4, -3, 3, 0, 20)
+local projection_matrix = math.perspective(math.rad(85), 1, 0.1, 10)
 
 scene_group:append(translated_cube)
 
@@ -72,17 +70,9 @@ local scene =
                 win:close()
             end
         end)
-    ^ {
-        am.bind{
-            MV = mat4(1),
-            P = oblique_matrix,
-        },
-        --[[
-        am.bind{
-            MV = mat4(1),
-            P = ortho_matrix,
-        },
-        ]]
+    ^am.bind{
+        MV = mat4(1),
+        P = projection_matrix,
     }
     ^ scene_group
 
