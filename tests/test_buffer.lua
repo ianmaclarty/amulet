@@ -11,6 +11,20 @@ function printv_and_restore(view, index, val)
     view[index] = old
 end
 
+local
+function print_view(view)
+    str = "["
+    for i = 1, #view do
+        str = str..view[i]
+        if i == #view then
+            str = str.."]"
+        else
+            str = str..", "
+        end
+    end
+    print(str)
+end
+
 local n = 10000
 local buf = am.buffer(4 * n)
 local view = buf:view("float")
@@ -140,10 +154,20 @@ for _, vs in ipairs({{viewub, viewubn}, {viewushort, viewushortn}, {viewshort, v
 end
 
 local settest1 = am.float_array({1, 2, 3, 4})
-settest1:set(0, 1, 2)
+settest1:set(0, 1, 2) -- 0 0 3 4
 for i = 1, 4 do
     print(settest1[i])
 end
+settest1:set({5, 5}, 2) -- 0 5 5 4
+print_view(settest1)
+settest1:set(settest1, 4) -- 0 5 5 0
+print_view(settest1)
+settest1:set({7, 8, 9}, 2, 2) -- 0 7 8 0
+print_view(settest1)
+settest1:set(settest1, 1, 0) -- 0 7 8 0
+print_view(settest1)
+settest1:set(am.float_array{1, 2, 3, 4}, 2, 2) -- 0 1 2 0
+print_view(settest1)
 
 local setvec = am.vec3_array({1, 2, 3, 4, 5, 6})
 printvec(setvec[1])
