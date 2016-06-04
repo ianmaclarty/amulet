@@ -42,10 +42,7 @@ else
     else
         make -j2 TARGET=osx.release     LUAVM=lua51   test
         #make TARGET=osx.release     LUAVM=luajit  test
-        make -j2 TARGET=ios32.release   LUAVM=lua51
-        make -j2 TARGET=ios64.release   LUAVM=lua51
-        scripts/gen_ios_universal.sh
-        scripts/gen_ios_info_plist.sh
+        scripts/build_ios.sh
         rm -rf builds/ios32
         rm -rf builds/ios64
     fi

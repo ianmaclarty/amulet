@@ -430,14 +430,14 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
                 "<key>UISupportedInterfaceOrientations</key>"
                 "<array>"
                 "<string>UIInterfaceOrientationPortrait</string>"
-                "<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
 		"<string>UIInterfaceOrientationLandscapeLeft</string>"
 		"<string>UIInterfaceOrientationLandscapeRight</string>"
                 "</array>"
                 "<key>UISupportedInterfaceOrientations~ipad</key>"
                 "<array>"
                 "<string>UIInterfaceOrientationPortrait</string>"
-                "<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
 		"<string>UIInterfaceOrientationLandscapeLeft</string>"
 		"<string>UIInterfaceOrientationLandscapeRight</string>"
                 "</array>";
@@ -447,12 +447,12 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
                 "<key>UISupportedInterfaceOrientations</key>"
                 "<array>"
                 "<string>UIInterfaceOrientationPortrait</string>"
-                "<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
                 "</array>"
                 "<key>UISupportedInterfaceOrientations~ipad</key>"
                 "<array>"
                 "<string>UIInterfaceOrientationPortrait</string>"
-                "<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
                 "</array>";
             break;
         case AM_DISPLAY_ORIENTATION_LANDSCAPE:

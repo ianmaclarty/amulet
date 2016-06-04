@@ -9,6 +9,55 @@ function am.rect_indices()
     return cached_rect_indices
 end
 
+function am.quad_indices(n)
+    local indices = {}
+    local j = 0
+    local m = (n - 1) * 6
+    for i = 0, m, 6 do
+        indices[i + 1] = j + 1
+        indices[i + 2] = j + 2
+        indices[i + 3] = j + 3
+        indices[i + 4] = j + 1
+        indices[i + 5] = j + 3
+        indices[i + 6] = j + 4
+        j = j + 4
+    end
+    if n * 4 < 2^16 then
+        return am.ushort_elem_array(indices)
+    else
+        return am.uint_elem_array(indices)
+    end
+end
+
+local view_type_size = {
+    float = 4,
+    vec2 = 8,
+    vec3 = 12,
+    vec4 = 16,
+}
+
+function am.quad_mesh(n, attrs)
+    local stride = 0
+    for attr, view_type in pairs(attrs) do
+        stride = stride + view_type_size[view_type]
+    end
+    local buffer = am.buffer(n * stride * 4)
+    local mesh = {
+        buffer = buffer,
+    }
+    local offset = 0
+    for attr, view_type in pairs(attrs) do
+        local view = buffer:view(view_type, offset, stride)
+        local sz = view_type_size[view_type]
+        mesh[attr] = view
+        offset = offset + sz
+        mesh["set_"..attr] = function(mesh, q, vals)
+            view:set(vals, (q - 1) * 4 + 1, 4)
+        end
+    end
+    return mesh
+end
+
 function am.rect_verts_2d(x1, y1, x2, y2)
     return am.vec2_array{x1, y2, x1, y1, x2, y1, x2, y2}
 end

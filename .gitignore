@@ -36,13 +36,15 @@ ampack
 
 xcode/*
 
-third_party/SDL2-2.0.3/Makefile
-third_party/SDL2-2.0.3/Makefile.rules
-third_party/SDL2-2.0.3/libtool
-third_party/SDL2-2.0.3/sdl2-config
-third_party/SDL2-2.0.3/sdl2.pc
-third_party/SDL2-2.0.3/build/*
-third_party/SDL2-2.0.3/include/SDL_config.h
+third_party/SDL2-*/Makefile
+third_party/SDL2-*/Makefile.rules
+third_party/SDL2-*/libtool
+third_party/SDL2-*/sdl2-config
+third_party/SDL2-*/sdl2.pc
+third_party/SDL2-*/build/*
+third_party/SDL2-*/include/SDL_config.h
+third_party/SDL2-*/SDL2.spec
+third_party/SDL2-*/sdl2-config.cmake
 
 third_party/lua-*/src/lua
 third_party/lua-*/src/luac

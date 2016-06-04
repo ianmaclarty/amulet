@@ -62,6 +62,7 @@ static void angle_translate_shader(am_shader_type type,
 #endif
 
 #ifdef AM_GLPROFILE_DESKTOP
+#undef GL_RGB565
 #define GL_RGB565 GL_UNSIGNED_SHORT_5_6_5
 #endif
 

@@ -54,10 +54,10 @@ static int AM_CONCAT(TNAME,_view_newindex)(lua_State *L) {
 }
 
 #ifdef VEC_SZ
-static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buffer_view *view, int idx, int sz) {
-    int size = am_min(sz, view->size);
+static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buffer_view *view, int idx, int start, int sz) {
+    int size = am_min(sz, view->size - start + 1);
     int stride = view->stride;
-    int start_offset = view->offset;
+    int start_offset = view->offset + (start - 1) * stride;
     int end_offset = start_offset + stride * size;
     am_buffer *buf = view->buffer;
     uint8_t *ptr = buf->data + start_offset;
@@ -96,7 +96,7 @@ static void AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(lua_State *L, am_buff
 }
 #endif
 
-static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *view, int idx, int sz) {
+static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *view, int idx, int start, int sz) {
     lua_rawgeti(L, idx, 1);
     int first_type = lua_type(L, -1);
     lua_pop(L, 1);
@@ -105,13 +105,13 @@ static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *
     }
 #ifdef VEC_SZ
     if (first_type == LUA_TNUMBER) {
-        AM_CONCAT(TNAME,_view_set_vecs_from_num_table(L, view, idx, sz));
+        AM_CONCAT(TNAME,_view_set_vecs_from_num_table(L, view, idx, start, sz));
         return;
     }
 #endif
-    int size = am_min(sz, view->size);
+    int size = am_min(sz, view->size - start + 1);
     int stride = view->stride;
-    int start_offset = view->offset;
+    int start_offset = view->offset + (start - 1) * stride;
     int end_offset = start_offset + stride * size;
     am_buffer *buf = view->buffer;
     uint8_t *ptr = buf->data + start_offset;
@@ -144,12 +144,12 @@ static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *
     buf->mark_dirty(start_offset, start_offset + (j-2) * stride + sizeof(CTYPE));
 }
 
-static void AM_CONCAT(TNAME,_view_set_from_single)(lua_State *L, am_buffer_view *view, int idx, int sz) {
-    int size = am_min(sz, view->size);
+static void AM_CONCAT(TNAME,_view_set_from_single)(lua_State *L, am_buffer_view *view, int idx, int start, int sz) {
+    int size = am_min(sz, view->size - start + 1);
     if (size == 0) return;
     int stride = view->stride;
     am_buffer *buf = view->buffer;
-    int start_offset = view->offset;
+    int start_offset = view->offset + (start - 1) * stride;
     int end_offset = start_offset + stride * (size-1) + sizeof(CTYPE);
     uint8_t *ptr = buf->data + start_offset;
     uint8_t *end = ptr + stride * size;
@@ -161,11 +161,11 @@ static void AM_CONCAT(TNAME,_view_set_from_single)(lua_State *L, am_buffer_view 
     buf->mark_dirty(start_offset, end_offset);
 }
 
-static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *dest, am_buffer_view *src, int sz) {
-    int dest_size = am_min(sz, dest->size);
+static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *dest, am_buffer_view *src, int start, int sz) {
+    int dest_size = am_min(sz, dest->size - start + 1);
     int dest_stride = dest->stride;
     am_buffer *dest_buf = dest->buffer;
-    int dest_start_offset = dest->offset;
+    int dest_start_offset = dest->offset + (start - 1) * dest_stride;
     uint8_t *dest_ptr = dest_buf->data + dest_start_offset;
     uint8_t *dest_end = dest_ptr + dest_stride * dest_size;
     int src_size = src->size;
@@ -205,24 +205,35 @@ static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
     int sz = INT_MAX;
+    int start = 1;
     if (nargs > 2) {
-        sz = luaL_checkinteger(L, 3);
+        start = luaL_checkinteger(L, 3);
         if (sz < 0) {
             return luaL_error(L, "size can't be negative");
         }
     }
+    if (nargs > 3) {
+        sz = luaL_checkinteger(L, 4);
+        if (sz < 0) {
+            return luaL_error(L, "size can't be negative");
+        }
+    }
+    if (start < 1 || start > view->size) {
+        return luaL_error(L, "start must be in the range [1, %d] (in fact %d)",
+            view->size, start);
+    }
     switch (am_get_type(L, 2)) {
         case LUA_TTABLE:
-            AM_CONCAT(TNAME,_view_set_from_table)(L, view, 2, sz);
+            AM_CONCAT(TNAME,_view_set_from_table)(L, view, 2, start, sz);
             break;
         case LUA_TNUMBER:
         case MT_am_vec2:
         case MT_am_vec3:
         case MT_am_vec4:
-            AM_CONCAT(TNAME,_view_set_from_single)(L, view, 2, sz);
+            AM_CONCAT(TNAME,_view_set_from_single)(L, view, 2, start, sz);
             break;
         case MT_am_buffer_view:
-            AM_CONCAT(TNAME,_view_set_from_view)(L, view, am_get_userdata(L, am_buffer_view, 2), sz);
+            AM_CONCAT(TNAME,_view_set_from_view)(L, view, am_get_userdata(L, am_buffer_view, 2), start, sz);
             break;
         default:
             return luaL_error(L, "expecting a number, table or view in position 2 (got %s[%d])",
