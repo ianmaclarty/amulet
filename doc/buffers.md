@@ -112,17 +112,16 @@ but which starts at the `n`th element of `view` and continues for
 `count` elements. If `count` is omitted it is `#view - n + 1` (i.e.
 it covers all the elements of `view` after and including the `n`th).
 
-### view:set(val [, count]) {#view:set .method-def}
+### view:set(val [, start [, count]]) {#view:set .method-def}
 
 Bulk sets values in a view. This is faster than setting them
 one at a time.
 
-If `val` is a number or vector then this sets up to `count` elements
-of `view` to `val`. If `count` is omitted all the elements are set.
+If `val` is a number or vector then this sets all elements
+of `view` to `val`.
 
 If `val` is a table then the elements are set to their corresponding
-values from the table. If `count` is given then at most `count` elements
-are set (fewer may be set if the table has less than `count` elements).
+values from the table.
 
 As a special case, if `val` is a table of numbers and the view's type
 is a vector, then the elements of the table will be used to set the
@@ -141,6 +140,11 @@ types as long as they are "compatible". The types are converted
 as if each element were set using the Lua code `view1[i] = view2[i]`.
 This means you can't set a number view to a vector view or
 vice versa.
+
+If `start` is given then only elements at that index and beyond
+will be set. The default value for `start` is `1`.
+
+If `count` is given then at most that many elements will be set.
 
 ### am.float_array(table) {#am.float_array .func-def}
 
