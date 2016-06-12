@@ -36,26 +36,27 @@ local view_type_size = {
     vec4 = 16,
 }
 
-function am.quad_mesh(n, attrs)
+function am.quad_mesh(max, attrs)
     local stride = 0
     for attr, view_type in pairs(attrs) do
         stride = stride + view_type_size[view_type]
     end
-    local buffer = am.buffer(n * stride * 4)
-    local mesh = {
-        buffer = buffer,
-    }
+    local buffer = am.buffer(max * stride * 4)
+    local bindings = {}
     local offset = 0
     for attr, view_type in pairs(attrs) do
         local view = buffer:view(view_type, offset, stride)
         local sz = view_type_size[view_type]
-        mesh[attr] = view
+        bindings[attr] = view
         offset = offset + sz
-        mesh["set_"..attr] = function(mesh, q, vals)
+    end
+    local node = am.bind(bindings) ^ am.draw("triangles", am.quad_indices(max))
+    for attr, view in pairs(bindings) do
+        node["quad_"..attr] = function(node, q, vals)
             view:set(vals, (q - 1) * 4 + 1, 4)
         end
     end
-    return mesh
+    return node
 end
 
 function am.rect_verts_2d(x1, y1, x2, y2)
