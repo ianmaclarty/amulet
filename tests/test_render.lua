@@ -59,7 +59,7 @@ fb1:read_back()
 assert(v1[1] == 128)
 assert(v1[2] == 0)
 assert(v1[3] == 0)
-assert(v1[4] == 128 + 255 - 128)
+assert(v1[4] == 64 + 255 - 128)
 
 fb1:clear()
 fb1:render(am.sprite("CCC\nCCC", vec4(128, 128, 128, 128) / 255))

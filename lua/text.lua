@@ -157,10 +157,24 @@ function set_sprite_verts(img, verts_view, uvs_view, halign, valign)
     uvs_view:set{s1, t2, s1, t1, s2, t1, s2, t2}
 end
 
+local default_font_key = [[
+ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼
+ !"#$%&'()*+,-./0123456789:;<=>?
+@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_
+`abcdefghijklmnopqrstuvwxyz{|}~⌂
+ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒ
+áíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐
+└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀
+αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ 
+]]
+
 function am.text(font, str, color, halign, valign)
     if type(font) ~= "table" then
         str, color, halign, valign = font, str, color, halign
-        font = am.default_font.default16
+        if not am.default_font then
+            am.default_font = am.load_bitmap_font("lua/default_font.png", default_font_key, true)
+        end
+        font = am.default_font
     end
     if type(color) == "string" then
         halign, valign = color, halign
@@ -469,4 +483,52 @@ function am._init_fonts(data, imgfile, embedded)
         return entry
     end})
     return fonts
+end
+
+function am.load_bitmap_font(filename, key, embedded)
+    local img
+    if embedded then
+        img = am._load_embedded_image(filename)
+    else
+        img = am.load_image(filename)
+    end
+    local num_rows, num_cols = 0, 0
+    local chars = {}
+    local row, col = 1, 1
+    for p, c in utf8.codes(key) do
+        if c ~= newline then
+            chars[c] = {row = row, col = col}
+            col = col + 1
+        else
+            num_cols = math.max(col - 1, num_cols)
+            col = 1
+            row = row + 1
+        end
+    end
+    num_rows = col == 1 and row - 1 or row
+    local w, h = img.width, img.height
+    local dx = w / num_cols
+    local dy = h / num_rows
+    local ds = 1 / num_cols
+    local dt = 1 / num_rows
+    for c, info in pairs(chars) do
+        local i, j = info.col - 1, num_rows - info.row
+        info.x1 = 0
+        info.y1 = 0
+        info.x2 = dx
+        info.y2 = dy
+        info.s1 = i * ds
+        info.t1 = j * dt
+        info.s2 = info.s1 + ds
+        info.t2 = info.t1 + dt
+        info.advance = dx
+    end
+    local font = {
+        line_height = dy,
+        is_premult = false,
+        is_font = true,
+        chars = chars,
+        texture = am.texture2d(img),
+    }
+    return font
 end

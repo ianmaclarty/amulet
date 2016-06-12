@@ -101,3 +101,26 @@ i.e:
 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 ~~~
 
+## Loading bitmap font images
+
+### am.load_bitmap_font(filename, key) {#am.load_bitmap_font .func-def}
+
+Loads the image `filename` and returns a font using
+the glyph layout described by `key` where `key` is a string
+containing all the glyphs in the file as they are layed out.
+All glyphs must have the same width and height which is
+determined from the width and height of the image and the
+number of rows and columns in `key`. For example if the
+key is:
+
+~~~ {.lua}
+[[
+ABC
+DEF
+GHI
+]]
+~~~
+
+then the image contains 9 glyphs in 3 rows and 3 columns.
+If the image has height 30 and width 36 then each glyph has
+width 10 and height 12.

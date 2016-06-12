@@ -19,5 +19,10 @@ win.scene = am.group{
     ,
     am.translate(100, -100)
     ^ am.text("Left\nTop\nAligned\nText", vec4(1, 0.5, 0, 1), "left", "top")
+    ,
+    am.text([[
+╔═══════════╗
+║ ♥ UTF-8 ♦ ║
+║ ♫ Text‼ ☺ ║
+╚═══════════╝]])
 }
-

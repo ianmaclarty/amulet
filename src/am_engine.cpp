@@ -245,8 +245,7 @@ static bool run_embedded_scripts(lua_State *L, bool worker) {
         run_embedded_script(L, "lua/tweens.lua") &&
         run_embedded_script(L, "lua/cameras.lua") &&
         run_embedded_script(L, "lua/postprocess.lua") &&
-        run_embedded_script(L, "lua/particles.lua") &&
-        run_embedded_script(L, "lua/default_font.lua");
+        run_embedded_script(L, "lua/particles.lua");
     } else {
         return true;
     }
