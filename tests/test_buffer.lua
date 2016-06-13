@@ -180,4 +180,17 @@ local vec3view = am.vec3_array{vec3(1, 2, 3), vec3(4, 5, 6)}
 printvec(vec3view[1])
 printvec(vec3view[2])
 
+local struct_arr = am.struct_array(10, {"a", "ubyte", "b", "vec3", "c", "short", "d", "byte", "e", "byte"})
+struct_arr.a:set(23)
+struct_arr.b:set(vec3(1, 2, 3))
+struct_arr.c:set(24001)
+struct_arr.d:set(-55)
+struct_arr.e:set(19)
+struct_arr_buf = struct_arr.a.buffer
+print(struct_arr_buf:view("ubyte", 0, 20)[1])
+print(struct_arr_buf:view("vec3", 4, 20)[5])
+print(struct_arr_buf:view("short", 16, 20)[7])
+print(struct_arr_buf:view("byte", 18, 20)[8])
+print(struct_arr_buf:view("byte", 19, 20)[10])
+
 print("ok")
