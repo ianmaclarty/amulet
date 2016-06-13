@@ -29,34 +29,85 @@ function am.quad_indices(n)
     end
 end
 
-local view_type_size = {
-    float = 4,
-    vec2 = 8,
-    vec3 = 12,
-    vec4 = 16,
-}
-
-function am.quad_mesh(max, attrs)
-    local stride = 0
-    for attr, view_type in pairs(attrs) do
-        stride = stride + view_type_size[view_type]
-    end
-    local buffer = am.buffer(max * stride * 4)
-    local bindings = {}
-    local offset = 0
-    for attr, view_type in pairs(attrs) do
-        local view = buffer:view(view_type, offset, stride)
-        local sz = view_type_size[view_type]
-        bindings[attr] = view
-        offset = offset + sz
-    end
-    local node = am.bind(bindings) ^ am.draw("triangles", am.quad_indices(max))
-    for attr, view in pairs(bindings) do
-        node["quad_"..attr] = function(node, q, vals)
-            view:set(vals, (q - 1) * 4 + 1, 4)
+function am.quads(capacity, spec)
+    capacity = math.max(1, capacity)
+    local n = 0
+    local bindings
+    local attrs
+    local views
+    local
+    function create_bindings()
+        bindings = am.struct_array(capacity * 4, spec)
+        attrs = {}
+        views = {}
+        for attr, view in pairs(bindings) do
+            table.insert(attrs, attr)
+            table.insert(views, view)
         end
     end
-    return node
+    create_bindings()
+    local num_attrs = #attrs
+    local elements = am.quad_indices(capacity)
+    local draw_node = am.draw("triangles", elements, 1, 0)
+    local bind_node = am.bind(bindings) ^ draw_node
+    local
+    function expand(min_capacity)
+        local old_capacity = capacity
+        while capacity < min_capacity do
+            capacity = capacity * 2
+        end
+        local old_bindings = bindings
+        create_bindings()
+        for attr, view in pairs(bindings) do
+            bind_node[attr] = view
+            view:set(old_bindings[attr])
+        end
+        elements = am.quad_indices(capacity)
+        draw_node.elements = elements
+    end
+    for attr, view in pairs(bindings) do
+        bind_node["quad_"..attr] = function(bind_node, q, vals)
+            if q > capacity then
+                expand(q)
+            end
+            bindings[attr]:set(vals, (q - 1) * 4 + 1, 4)
+            if q > n then
+                n = q
+                draw_node.count = n * 6
+            end
+        end
+    end
+    function bind_node:add_quad(quad)
+        n = n + 1
+        if n > capacity then
+            expand(n)
+        end
+        local i = (n - 1) * 4 + 1
+        for attr, vals in pairs(quad) do
+            bindings[attr]:set(vals, i, 4)
+        end
+        draw_node.count = n * 6
+        return n
+    end
+    function bind_node:remove_quad(q)
+        if q < n then
+            local j = (q - 1) * 4 + 1
+            local k = (q - 1) * 6 + 1
+            for i = 1, num_attrs do
+                local view = views[i]
+                view:set(view:slice(j + 4), j)
+            end
+        elseif q > n then
+            error("cannot remove quad "..q..", because it doesn't exist", 2)
+        end
+        n = n - 1
+        draw_node.count = n * 6
+    end
+    function bind_node:get_num_quads()
+        return n
+    end
+    bind_node:tag"quads"
+    return bind_node
 end
 
 function am.rect_verts_2d(x1, y1, x2, y2)

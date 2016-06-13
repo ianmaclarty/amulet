@@ -1,3 +1,22 @@
+local view_type_size = {
+    float = 4,
+    vec2 = 8,
+    vec3 = 12,
+    vec4 = 16,
+    byte = 1,
+    ubyte = 1,
+    byte_norm = 1,
+    ubyte_norm = 1,
+    short = 2,
+    ushort = 2,
+    short_norm = 2,
+    ushort_norm = 2,
+    ushort_elem = 2,
+    int = 4,
+    uint = 4,
+    uint_elem = 4,
+}
+
 function am.float_array(values)
     local view = am.buffer(4 * #values):view("float", 0, 4)
     view:set(values)
@@ -115,4 +134,41 @@ end
 
 function am.vec4_array(values)
     return vec_array(values, "vec4", 4)
+end
+
+local struct_array_mt = {}
+
+function am.struct_array(capacity, spec)
+    local n = #spec
+    if n % 2 ~= 0 then
+        error("each attribute must have a corresponding type", 2)
+    elseif n == 0 then
+        error("no attributes given", 2)
+    end
+    local attrs = {}
+    local stride = 0
+    for i = 1, n, 2 do
+        local attr = spec[i]
+        local tp = spec[i + 1]
+        local sz = view_type_size[tp]
+        if not sz then
+            error("unknown view element type: "..tostring(tp), 2)
+        end
+        -- align
+        while stride % math.min(4, sz) ~= 0 do
+            stride = stride + 1
+        end
+        attrs[attr] = {type = tp, offset = stride}
+        stride = stride + sz
+    end
+    -- 4 byte align
+    while stride % 4 ~= 0 do
+        stride = stride + 1
+    end
+    local buffer = am.buffer(capacity * stride)
+    local views = {}
+    for attr, info in pairs(attrs) do
+        views[attr] = buffer:view(info.type, info.offset, stride)
+    end
+    return views
 end

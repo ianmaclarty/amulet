@@ -1250,19 +1250,17 @@ static int oblique(lua_State *L) {
     int nargs = am_check_nargs(L, 4);
     double angle = luaL_checknumber(L, 1);
     double zScale = luaL_checknumber(L, 2);
-    double zOffset = luaL_checknumber(L, 3);
-    double left = luaL_checknumber(L, 4);
-    double right = luaL_checknumber(L, 5);
-    double bottom = luaL_checknumber(L, 6);
-    double top = luaL_checknumber(L, 7);
+    double left = luaL_checknumber(L, 3);
+    double right = luaL_checknumber(L, 4);
+    double bottom = luaL_checknumber(L, 5);
+    double top = luaL_checknumber(L, 6);
     double near = -1.0;
     double far = 1.0;
-    if (nargs > 7) {
-        near = luaL_checknumber(L, 8);
-        far = luaL_checknumber(L, 9);
+    if (nargs > 6) {
+        near = luaL_checknumber(L, 7);
+        far = luaL_checknumber(L, 8);
     }
     glm::dmat4 m1 = glm::ortho(left, right, bottom, top, near, far);
-    m1 = glm::translate(m1, glm::dvec3(0.0, 0.0, zOffset));
     glm::dmat4 m2 = glm::transpose(glm::dmat4(1.0, 0.0, - zScale * cos(angle), 0.0,
                               0.0, 1.0, - zScale * sin(angle), 0.0,
                               0.0, 0.0, 1.0, 0.0,

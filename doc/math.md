@@ -544,14 +544,21 @@ Creates a 4x4 matrix for a symmetric perspective-view frustum.
 -   `near` and `far` are the distances of the near and far clipping
     plains from the camera (these should be positive).
 
-### math.ortho(left, right, bottom, top [, near, far]) {.func-def}
+### math.ortho(left, right, bottom, top [, near, far]) {#math.ortho .func-def}
 
 Creates a 4x4 orthographic projection matrix.
 `near` and `far` are the distance from the viewer of the
 near and far clipping plains (negative means behind the viewer).
 Their default values are `-1` and `1`.
 
-### math.perlin(pos [, period]) {.func-def}
+### math.oblique(angle, zscale, left, right, bottom, top [, near, far]) {#math.oblique .func-def}
+
+Creates a 4x4 oblique projection matrix.
+`near` and `far` are the distance from the viewer of the
+near and far clipping plains (negative means behind the viewer).
+Their default values are `-1` and `1`.
+
+### math.perlin(pos [, period]) {#math.perlin .func-def}
 
 Generate perlin noise. `pos` can be a 2, 3, or 4 dimensional vector,
 or a number. If the second argument is supplied then the noise will be
@@ -560,7 +567,7 @@ periodic with the given period. `period` should be of the same type as
 
 The returned value is between -1 and 1.
 
-### math.simplex(pos) {.func-def}
+### math.simplex(pos) {#math.simplex .func-def}
 
 Generate simplex noise. `pos` can be a 2, 3, or 4 dimensional vector,
 or a number.

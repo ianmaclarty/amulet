@@ -251,6 +251,23 @@ table contains numbers they are used for the vector components and the
 resulting view will have a quarter the number of elements as there are
 numbers in the table.
 
+### am.struct_array(size, spec) {#am.struct_array .func-def}
+
+Returns a table of views of the given `size` as defined by
+`spec`. `spec` is a sequence of view name (a string) and
+view type (also a string) pairs.
+The returned table can be passed directly
+to the [`am.bind`](#am.bind) function.
+The views all use the same underlying buffer.
+
+For example:
+
+~~~ {.lua}
+local arr = am.struct_array(3, {"vert", "vec2", "color", "vec4"})
+arr.vert:set{vec2(-1, 0), vec2(1, 0), vec2(0, 1)} 
+arr.color:set(vec4(1, 0, 0.5, 1))
+~~~
+
 ![](images/screenshot3.jpg)
 
 

@@ -925,6 +925,85 @@ Fields:
   the node hasn't been rendered yet,
   or the named uniform wasn't set in an ancestor node.
 
+### am.quads(n, spec) {#am.quads .func-def}
+
+Returns a node that renders a set of quads. The returned node
+is actually an [`am.bind`](#am.bind) node with an [`am.draw`](#am.draw)
+node child. i.e. no program or blending is defined -- these
+must be created separately as parent nodes.
+
+`n` is initial capacity. Set this to the number of quads you think
+you'll want to render. It doesn't matter if it's too small as the
+capacity will be increased as required (though it's slightly faster
+no capacity increases are required).
+
+`spec` is a table of attribute name and type pairs (the same
+as used for [`am.struct_array`](#am.struct_array) ).
+
+Fields:
+
+- `num_quads`: The number of quads. This is zero
+  initially.
+
+Methods:
+- `add_quad(data)`: adds a quad to be rendered. `data` is
+  a table where the keys are attribute names and the
+  values are the values of the 4 vertices of the quad.
+  The values can be specified in several ways:
+    - as a table where each each element is the value for the
+      left-top, left-bottom, right-bottom and right-top 
+      corners of the quad.
+    - a single value for all corners.
+    - a view containing the values for the elements
+  As with the [`view:set`](#view:set) method, if the attribute
+  is a vector, a table of numbers is also accepted.
+  The quad number (starting at 1) is returned.
+- `remove_quad(n)`: Removes the nth quad.
+- Additionally methods are created for each attribute
+  of the form `quad_<attribute name>` that can be
+  used to update the value of a quad attribute.
+  The signature of the method is: `quad_attr(n, values)`
+  where `n` is the quad number and `values` has the
+  same meaning as in the `add_quad` method.
+
+Example:
+
+~~~ {.lua}
+local quads = am.quads(2, {"vert", "vec2", "color", "vec3"})
+quads:add_quad{vert = {vec2(-100, 0), vec2(-100, -100),
+                       vec2(0, -100), vec2(0, 0)},
+               color = {vec3(1, 0, 0), vec3(0, 1, 0),
+                        vec3(0, 0, 1), vec3(1, 1, 1)}}
+quads:add_quad{vert = {vec2(0, 100), vec2(0, 0),
+                       vec2(100, 0), vec2(100, 100)},
+               color = {vec3(1, 0, 0), vec3(0, 1, 0),
+                        vec3(0, 0, 1), vec3(1, 1, 1)}}
+local win = am.window{}
+local prog = am.program([[
+    precision highp float;
+    attribute vec2 vert;
+    attribute vec3 color;
+    uniform mat4 MV;
+    uniform mat4 P;
+    varying vec3 v_color;
+    void main() {
+        v_color = color;
+        gl_Position = P * MV * vec4(vert, 0.0, 1.0);
+    }
+]], [[
+    precision mediump float;
+    varying vec3 v_color;
+    void main() {
+        gl_FragColor = vec4(v_color, 1.0);
+    }
+]])
+win.scene = am.use_program(prog) ^ quads
+~~~
+
+The above program produces the following output:
+
+![](images/quads_example.png)
+
 ### am.postprocess(settings) {#am.postprocess .func-def}
 
 Allows for post-processing of a scene. First the children
