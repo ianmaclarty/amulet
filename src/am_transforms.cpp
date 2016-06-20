@@ -9,7 +9,7 @@ static void log_ignored_transform(am_render_state *rstate, am_param_name_id name
 }
 
 static void maybe_insert_default_mv(lua_State *L) {
-    if (lua_gettop(L) >= 1 && lua_type(L, 1) != LUA_TSTRING) {
+    if ((lua_gettop(L) >= 1 && lua_type(L, 1) != LUA_TSTRING) || lua_gettop(L) == 0) {
         lua_pushstring(L, am_conf_default_modelview_matrix_name);
         lua_insert(L, 1);
     }
