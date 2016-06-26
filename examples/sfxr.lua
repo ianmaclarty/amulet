@@ -24,10 +24,10 @@ local add_to_list
 
 local
 function button(x, y, label, gen, n, seed, buf)
-    local x1, y1, x2, y2 = -90, -10, 4, 6
+    local x1, y1, x2, y2 = -100, -6, 0, 8
     local node = am.translate(x, y)
         ^ {
-            am.rect(-90, -10, 4, 6, colors[n % #colors + 1]),
+            am.rect(x1, y1, x2, y2, colors[n % #colors + 1]),
             am.text(label, black, "right")
         }
     node:action(function()
