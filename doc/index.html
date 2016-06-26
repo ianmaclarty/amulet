@@ -104,9 +104,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#math.inversematrix">math.inverse(matrix)</a></li>
 <li><a href="#math.lookateye-center-up">math.lookat(eye, center, up)</a></li>
 <li><a href="#math.perspectivefovy-aspect-near-far">math.perspective(fovy, aspect, near, far)</a></li>
-<li><a href="#math.ortholeft-right-bottom-top-near-far">math.ortho(left, right, bottom, top [, near, far])</a></li>
-<li><a href="#math.perlinpos-period">math.perlin(pos [, period])</a></li>
-<li><a href="#math.simplexpos">math.simplex(pos)</a></li>
+<li><a href="#math.ortho">math.ortho(left, right, bottom, top [, near, far])</a></li>
+<li><a href="#math.oblique">math.oblique(angle, zscale, left, right, bottom, top [, near, far])</a></li>
+<li><a href="#math.perlin">math.perlin(pos [, period])</a></li>
+<li><a href="#math.simplex">math.simplex(pos)</a></li>
 <li><a href="#math.mix">math.mix(from, top, t)</a></li>
 <li><a href="#math.slerp">math.slerp(from, top, t)</a></li>
 </ul></li>
@@ -126,7 +127,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#view-methods">View methods</a><ul>
 <li><a href="#view:slice">view:slice(n [, count])</a></li>
-<li><a href="#view:set">view:set(val [, count])</a></li>
+<li><a href="#view:set">view:set(val [, start [, count]])</a></li>
 <li><a href="#am.float_array">am.float_array(table)</a></li>
 <li><a href="#am.byte_array">am.byte_array(table)</a></li>
 <li><a href="#am.ubyte_array">am.ubyte_array(table)</a></li>
@@ -145,6 +146,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.vec2_array">am.vec2_array(table)</a></li>
 <li><a href="#am.vec3_array">am.vec3_array(table)</a></li>
 <li><a href="#am.vec4_array">am.vec4_array(table)</a></li>
+<li><a href="#am.struct_array">am.struct_array(size, spec)</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#windows-and-input">Windows and input</a><ul>
@@ -260,6 +262,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.cull_sphere">am.cull_sphere([uniforms...,] radius [, center])</a></li>
 <li><a href="#am.billboard">am.billboard([uniform,] [preserve_scaling])</a></li>
 <li><a href="#am.read_param">am.read_uniform(uniform)</a></li>
+<li><a href="#am.quads">am.quads(n, spec)</a></li>
 <li><a href="#am.postprocess">am.postprocess(settings)</a></li>
 </ul></li>
 <li><a href="#creating-custom-scene-nodes">Creating custom scene nodes</a><ul>
@@ -390,6 +393,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#pack-options">Pack options</a></li>
 <li><a href="#padding">Padding</a></li>
 <li><a href="#specifying-which-font-glyphs-to-generate">Specifying which font glyphs to generate</a></li>
+<li><a href="#loading-bitmap-font-images">Loading bitmap font images</a><ul>
+<li><a href="#am.load_bitmap_font">am.load_bitmap_font(filename, key)</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#exporting">Exporting</a></li>
 <li><a href="#extra-table-functions">Extra table functions</a><ul>
@@ -1270,12 +1276,14 @@ vec2(0, 2)</code></pre>
 <li><code>aspect</code> is typically the window width divided by its height.</li>
 <li><code>near</code> and <code>far</code> are the distances of the near and far clipping plains from the camera (these should be positive).</li>
 </ul>
-<h3 id="math.ortholeft-right-bottom-top-near-far" class="func-def">math.ortho(left, right, bottom, top [, near, far])</h3>
+<h3 id="math.ortho" class="func-def">math.ortho(left, right, bottom, top [, near, far])</h3>
 <p>Creates a 4x4 orthographic projection matrix. <code>near</code> and <code>far</code> are the distance from the viewer of the near and far clipping plains (negative means behind the viewer). Their default values are <code>-1</code> and <code>1</code>.</p>
-<h3 id="math.perlinpos-period" class="func-def">math.perlin(pos [, period])</h3>
+<h3 id="math.oblique" class="func-def">math.oblique(angle, zscale, left, right, bottom, top [, near, far])</h3>
+<p>Creates a 4x4 oblique projection matrix. <code>near</code> and <code>far</code> are the distance from the viewer of the near and far clipping plains (negative means behind the viewer). Their default values are <code>-1</code> and <code>1</code>.</p>
+<h3 id="math.perlin" class="func-def">math.perlin(pos [, period])</h3>
 <p>Generate perlin noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number. If the second argument is supplied then the noise will be periodic with the given period. <code>period</code> should be of the same type as <code>pos</code> and its components should be integers greater than 1.</p>
 <p>The returned value is between -1 and 1.</p>
-<h3 id="math.simplexpos" class="func-def">math.simplex(pos)</h3>
+<h3 id="math.simplex" class="func-def">math.simplex(pos)</h3>
 <p>Generate simplex noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number.</p>
 <p>The returned value is between -1 and 1.</p>
 <h3 id="math.mix" class="func-def">math.mix(from, top, t)</h3>
@@ -1450,16 +1458,18 @@ view<span class="ot">[</span><span class="dv">2</span><span class="ot">]</span> 
 <h2 id="view-methods">View methods</h2>
 <h3 id="view:slice" class="method-def">view:slice(n [, count])</h3>
 <p>Returns a new view of the same type as <code>view</code> that references the same buffer, but which starts at the <code>n</code>th element of <code>view</code> and continues for <code>count</code> elements. If <code>count</code> is omitted it is <code>#view - n + 1</code> (i.e. it covers all the elements of <code>view</code> after and including the <code>n</code>th).</p>
-<h3 id="view:set" class="method-def">view:set(val [, count])</h3>
+<h3 id="view:set" class="method-def">view:set(val [, start [, count]])</h3>
 <p>Bulk sets values in a view. This is faster than setting them one at a time.</p>
-<p>If <code>val</code> is a number or vector then this sets up to <code>count</code> elements of <code>view</code> to <code>val</code>. If <code>count</code> is omitted all the elements are set.</p>
-<p>If <code>val</code> is a table then the elements are set to their corresponding values from the table. If <code>count</code> is given then at most <code>count</code> elements are set (fewer may be set if the table has less than <code>count</code> elements).</p>
+<p>If <code>val</code> is a number or vector then this sets all elements of <code>view</code> to <code>val</code>.</p>
+<p>If <code>val</code> is a table then the elements are set to their corresponding values from the table.</p>
 <p>As a special case, if <code>val</code> is a table of numbers and the view's type is a vector, then the elements of the table will be used to set the components of the vectors in the view. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> verts <span class="ot">=</span> am<span class="ot">.</span>buffer<span class="ot">(</span><span class="dv">24</span><span class="ot">)</span>:view<span class="ot">(</span><span class="st">&quot;vec3&quot;</span><span class="ot">)</span>
 verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">}</span>
 <span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">1</span><span class="ot">])</span> <span class="co">-- vec3(1, 2, 3)</span>
 <span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">2</span><span class="ot">])</span> <span class="co">-- vec3(4, 5, 6)</span></code></pre></div>
 <p>Finally if <code>val</code> is another view then the elements are set to the corresponding values from that view. The views may be of different types as long as they are &quot;compatible&quot;. The types are converted as if each element were set using the Lua code <code>view1[i] = view2[i]</code>. This means you can't set a number view to a vector view or vice versa.</p>
+<p>If <code>start</code> is given then only elements at that index and beyond will be set. The default value for <code>start</code> is <code>1</code>.</p>
+<p>If <code>count</code> is given then at most that many elements will be set.</p>
 <h3 id="am.float_array" class="func-def">am.float_array(table)</h3>
 <p>Returns a <code>float</code> view to a newly created buffer and fills it with the values in the given table.</p>
 <h3 id="am.byte_array" class="func-def">am.byte_array(table)</h3>
@@ -1499,6 +1509,12 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 <h3 id="am.vec4_array" class="func-def">am.vec4_array(table)</h3>
 <p>Returns a <code>vec4</code> view to a newly created buffer containing the values in the given table.</p>
 <p>The table may contain either <code>vec4</code>s or numbers (though not a mix). If the table contains numbers they are used for the vector components and the resulting view will have a quarter the number of elements as there are numbers in the table.</p>
+<h3 id="am.struct_array" class="func-def">am.struct_array(size, spec)</h3>
+<p>Returns a table of views of the given <code>size</code> as defined by <code>spec</code>. <code>spec</code> is a sequence of view name (a string) and view type (also a string) pairs. The returned table can be passed directly to the <a href="#am.bind"><code>am.bind</code></a> function. The views all use the same underlying buffer.</p>
+<p>For example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> arr <span class="ot">=</span> am<span class="ot">.</span>struct_array<span class="ot">(</span><span class="dv">3</span><span class="ot">,</span> <span class="ot">{</span><span class="st">&quot;vert&quot;</span><span class="ot">,</span> <span class="st">&quot;vec2&quot;</span><span class="ot">,</span> <span class="st">&quot;color&quot;</span><span class="ot">,</span> <span class="st">&quot;vec4&quot;</span><span class="ot">})</span>
+arr<span class="ot">.</span>vert:set<span class="ot">{</span>vec2<span class="ot">(-</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)}</span> 
+arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span></code></pre></div>
 <div class="figure">
 <img src="images/screenshot3.jpg" alt="" />
 
@@ -2343,6 +2359,50 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <ul>
 <li><code>value</code>: The value of the uniform, or nil if the node hasn't been rendered yet, or the named uniform wasn't set in an ancestor node.</li>
 </ul>
+<h3 id="am.quads" class="func-def">am.quads(n, spec)</h3>
+<p>Returns a node that renders a set of quads. The returned node is actually an <a href="#am.bind"><code>am.bind</code></a> node with an <a href="#am.draw"><code>am.draw</code></a> node child. i.e. no program or blending is defined -- these must be created separately as parent nodes.</p>
+<p><code>n</code> is initial capacity. Set this to the number of quads you think you'll want to render. It doesn't matter if it's too small as the capacity will be increased as required (though it's slightly faster no capacity increases are required).</p>
+<p><code>spec</code> is a table of attribute name and type pairs (the same as used for <a href="#am.struct_array"><code>am.struct_array</code></a> ).</p>
+<p>Fields:</p>
+<ul>
+<li><code>num_quads</code>: The number of quads. This is zero initially.</li>
+</ul>
+<p>Methods: - <code>add_quad(data)</code>: adds a quad to be rendered. <code>data</code> is a table where the keys are attribute names and the values are the values of the 4 vertices of the quad. The values can be specified in several ways: - as a table where each each element is the value for the left-top, left-bottom, right-bottom and right-top corners of the quad. - a single value for all corners. - a view containing the values for the elements As with the <a href="#view:set"><code>view:set</code></a> method, if the attribute is a vector, a table of numbers is also accepted. The quad number (starting at 1) is returned. - <code>remove_quad(n)</code>: Removes the nth quad. - Additionally methods are created for each attribute of the form <code>quad_&lt;attribute name&gt;</code> that can be used to update the value of a quad attribute. The signature of the method is: <code>quad_attr(n, values)</code> where <code>n</code> is the quad number and <code>values</code> has the same meaning as in the <code>add_quad</code> method.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> quads <span class="ot">=</span> am<span class="ot">.</span>quads<span class="ot">(</span><span class="dv">2</span><span class="ot">,</span> <span class="ot">{</span><span class="st">&quot;vert&quot;</span><span class="ot">,</span> <span class="st">&quot;vec2&quot;</span><span class="ot">,</span> <span class="st">&quot;color&quot;</span><span class="ot">,</span> <span class="st">&quot;vec3&quot;</span><span class="ot">})</span>
+quads:add_quad<span class="ot">{</span>vert <span class="ot">=</span> <span class="ot">{</span>vec2<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">),</span>
+                       vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">)},</span>
+               color <span class="ot">=</span> <span class="ot">{</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span>
+                        vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)}}</span>
+quads:add_quad<span class="ot">{</span>vert <span class="ot">=</span> <span class="ot">{</span>vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">100</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span>
+                       vec2<span class="ot">(</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">100</span><span class="ot">)},</span>
+               color <span class="ot">=</span> <span class="ot">{</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span>
+                        vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)}}</span>
+<span class="kw">local</span> win <span class="ot">=</span> am<span class="ot">.</span>window<span class="ot">{}</span>
+<span class="kw">local</span> prog <span class="ot">=</span> am<span class="ot">.</span>program<span class="ot">(</span><span class="st">[[</span>
+<span class="st">    precision highp float;</span>
+<span class="st">    attribute vec2 vert;</span>
+<span class="st">    attribute vec3 color;</span>
+<span class="st">    uniform mat4 MV;</span>
+<span class="st">    uniform mat4 P;</span>
+<span class="st">    varying vec3 v_color;</span>
+<span class="st">    void main() {</span>
+<span class="st">        v_color = color;</span>
+<span class="st">        gl_Position = P * MV * vec4(vert, 0.0, 1.0);</span>
+<span class="st">    }</span>
+<span class="st">]]</span><span class="ot">,</span> <span class="st">[[</span>
+<span class="st">    precision mediump float;</span>
+<span class="st">    varying vec3 v_color;</span>
+<span class="st">    void main() {</span>
+<span class="st">        gl_FragColor = vec4(v_color, 1.0);</span>
+<span class="st">    }</span>
+<span class="st">]]</span><span class="ot">)</span>
+win<span class="ot">.</span>scene <span class="ot">=</span> am<span class="ot">.</span>use_program<span class="ot">(</span>prog<span class="ot">)</span> <span class="ot">^</span> quads</code></pre></div>
+<p>The above program produces the following output:</p>
+<div class="figure">
+<img src="images/quads_example.png" alt="" />
+
+</div>
 <h3 id="am.postprocess" class="func-def">am.postprocess(settings)</h3>
 <p>Allows for post-processing of a scene. First the children of the <code>postprocess</code> node are rendered into a texture, then the texture is rendered to the entire window using a user-supplied shader program.</p>
 <p><code>settings</code> is a table containing any number of the following fields:</p>
@@ -2582,7 +2642,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>The color to use when clearing the framebuffer (a <code>vec4</code>).</p>
 <p>Updatable.</p>
 <h3 id="framebuffer.projection" class="field-def">framebuffer.projection</h3>
-<p>A <code>mat4</code> projection matrix to use when rendering nodes into this framebuffer. The <code>&quot;P&quot;</code> uniform will be set to this. If this is not specified then the projection <code>math.ortho(-width/2, -height/2, width/2, height/2)</code> is used.</p>
+<p>A <code>mat4</code> projection matrix to use when rendering nodes into this framebuffer. The <code>&quot;P&quot;</code> uniform will be set to this. If this is not specified then the projection <code>math.ortho(-width/2, width/2, -height/2, height/2)</code> is used.</p>
 <p>Updatable.</p>
 <h3 id="framebuffer.pixel_width" class="field-def">framebuffer.pixel_width</h3>
 <p>The width of the framebuffer, in pixels.</p>
@@ -2961,6 +3021,15 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>If the character range list is omitted, it defaults to <code>0x20-0x7E</code>, i.e:</p>
 <pre class="text"><code>!&quot;#$%&amp;&#39;()*+,-./:;&lt;=&gt;?@[\]^_`{|}~0123456789
 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
+<h2 id="loading-bitmap-font-images">Loading bitmap font images</h2>
+<h3 id="am.load_bitmap_font" class="func-def">am.load_bitmap_font(filename, key)</h3>
+<p>Loads the image <code>filename</code> and returns a font using the glyph layout described by <code>key</code> where <code>key</code> is a string containing all the glyphs in the file as they are layed out. All glyphs must have the same width and height which is determined from the width and height of the image and the number of rows and columns in <code>key</code>. For example if the key is:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="st">[[</span>
+<span class="st">ABC</span>
+<span class="st">DEF</span>
+<span class="st">GHI</span>
+<span class="st">]]</span></code></pre></div>
+<p>then the image contains 9 glyphs in 3 rows and 3 columns. If the image has height 30 and width 36 then each glyph has width 10 and height 12.</p>
 <h1 id="exporting">Exporting</h1>
 <p>To generate distribution packages for Windows, Mac OS X, iOS, Linux and HTML5, use the amulet export command.</p>
 <p>Run the following command from the directory containing your lua, image and audio files:</p>
