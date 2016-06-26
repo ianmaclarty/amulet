@@ -165,25 +165,25 @@ void am_init_gl() {
     gl_initialized = true;
 
     GLint pval; 
-    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &pval);
     am_max_combined_texture_image_units = pval;
-    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &pval);
     am_max_cube_map_texture_size = pval;
-    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &pval);
     am_max_fragment_uniform_vectors = pval;
-    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_RENDERBUFFER_SIZE, &pval);
     am_max_renderbuffer_size = pval;
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_TEXTURE_IMAGE_UNITS, &pval);
     am_max_texture_image_units = pval;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_TEXTURE_SIZE, &pval);
     am_max_texture_size = pval;
-    glGetIntegerv(GL_MAX_VARYING_VECTORS, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_VARYING_VECTORS, &pval);
     am_max_varying_vectors = pval;
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_ATTRIBS, &pval);
     am_max_vertex_attribs = pval;
-    glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &pval);
     am_max_vertex_texture_image_units = pval;
-    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &pval);
+    GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_UNIFORM_VECTORS, &pval);
     am_max_vertex_uniform_vectors = pval;
 
     // initialize angle if using
