@@ -209,7 +209,7 @@ Updatable.
 A `mat4` projection matrix to use when rendering nodes into
 this framebuffer. The `"P"` uniform will be set to this.
 If this is not specified then the projection
-`math.ortho(-width/2, -height/2, width/2, height/2)` is used.
+`math.ortho(-width/2, width/2, -height/2, height/2)` is used.
 
 Updatable.
 
