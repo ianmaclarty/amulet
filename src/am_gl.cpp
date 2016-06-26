@@ -66,6 +66,17 @@ static void angle_translate_shader(am_shader_type type,
 #define GL_RGB565 GL_UNSIGNED_SHORT_5_6_5
 #endif
 
+int am_max_combined_texture_image_units = 0;
+int am_max_cube_map_texture_size = 0;
+int am_max_fragment_uniform_vectors = 0;
+int am_max_renderbuffer_size = 0;
+int am_max_texture_image_units = 0;
+int am_max_texture_size = 0;
+int am_max_varying_vectors = 0;
+int am_max_vertex_attribs = 0;
+int am_max_vertex_texture_image_units = 0;
+int am_max_vertex_uniform_vectors = 0;
+
 static bool gl_initialized = false;
 
 static void reset_gl() {
@@ -152,6 +163,28 @@ void am_init_gl() {
         return;
     }
     gl_initialized = true;
+
+    GLint pval; 
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &pval);
+    am_max_combined_texture_image_units = pval;
+    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &pval);
+    am_max_cube_map_texture_size = pval;
+    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &pval);
+    am_max_fragment_uniform_vectors = pval;
+    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &pval);
+    am_max_renderbuffer_size = pval;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &pval);
+    am_max_texture_image_units = pval;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &pval);
+    am_max_texture_size = pval;
+    glGetIntegerv(GL_MAX_VARYING_VECTORS, &pval);
+    am_max_varying_vectors = pval;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &pval);
+    am_max_vertex_attribs = pval;
+    glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &pval);
+    am_max_vertex_texture_image_units = pval;
+    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &pval);
+    am_max_vertex_uniform_vectors = pval;
 
     // initialize angle if using
 #if defined(AM_USE_ANGLE)
@@ -981,17 +1014,13 @@ void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_
 
 // Texture Objects
 
-int am_get_max_texture_units() {
-    return GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS;
-}
-
 void am_set_active_texture_unit(int texture_unit) {
     check_initialized();
-    if (texture_unit < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
+    if (texture_unit < am_max_combined_texture_image_units) {
         log_gl("glActiveTexture(GL_TEXTURE0 + %d);", texture_unit);
         GLFUNC(glActiveTexture)(GL_TEXTURE0 + texture_unit);
     } else {
-        am_log1("WARNING: too many active texture units (max %d)", GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+        am_log1("WARNING: too many active texture units (max %d)", am_max_combined_texture_image_units);
     }
     check_for_errors
 }
@@ -1902,14 +1931,13 @@ static void init_angle() {
     ShInitialize();
 
     ShInitBuiltInResources(&angle_resources);
-    // XXX derive these from opengl 
-    angle_resources.MaxVertexAttribs = 16;
-    angle_resources.MaxVertexUniformVectors = 128;
-    angle_resources.MaxVaryingVectors = 16;
-    angle_resources.MaxVertexTextureImageUnits = 8;
-    angle_resources.MaxCombinedTextureImageUnits = 16;
-    angle_resources.MaxTextureImageUnits = 16;
-    angle_resources.MaxFragmentUniformVectors = 32;
+    angle_resources.MaxVertexAttribs = am_max_vertex_attribs;
+    angle_resources.MaxVertexUniformVectors = am_max_vertex_uniform_vectors;
+    angle_resources.MaxVaryingVectors = am_max_varying_vectors;
+    angle_resources.MaxVertexTextureImageUnits = am_max_vertex_texture_image_units;
+    angle_resources.MaxCombinedTextureImageUnits = am_max_combined_texture_image_units;
+    angle_resources.MaxTextureImageUnits = am_max_texture_image_units;
+    angle_resources.MaxFragmentUniformVectors = am_max_fragment_uniform_vectors;
     angle_resources.MaxDrawBuffers = 4;
     angle_resources.OES_standard_derivatives = 1;
     angle_resources.FragmentPrecisionHigh = 1;

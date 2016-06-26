@@ -7,6 +7,19 @@ void am_init_gl();
 void am_destroy_gl();
 bool am_gl_is_initialized();
 
+// Constants (available after initialization)
+
+extern int am_max_combined_texture_image_units;
+extern int am_max_cube_map_texture_size;
+extern int am_max_fragment_uniform_vectors;
+extern int am_max_renderbuffer_size;
+extern int am_max_texture_image_units;
+extern int am_max_texture_size;
+extern int am_max_varying_vectors;
+extern int am_max_vertex_attribs;
+extern int am_max_vertex_texture_image_units;
+extern int am_max_vertex_uniform_vectors;
+
 // Per-Fragment Operations
 
 enum am_blend_equation {
@@ -277,8 +290,6 @@ void am_set_attribute4f(am_gluint location, const float *value);
 void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_type type, bool normalized, int stride, int offset);
 
 // Texture Objects
-
-int am_get_max_texture_units();
 
 enum am_texture_bind_target {
     AM_TEXTURE_BIND_TARGET_2D,
