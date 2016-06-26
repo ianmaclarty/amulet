@@ -91,8 +91,6 @@ struct am_program_param_name_slot {
     const char *name;
 };
 
-extern am_program_param_name_slot *am_param_name_map;
-
 void am_init_param_name_map(lua_State *L);
 am_param_name_id am_lookup_param_name(lua_State *L, int name_idx);
 

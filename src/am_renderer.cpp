@@ -447,7 +447,8 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
         am_clear_framebuffer(true, true, true);
     }
 
-    rstate->projection_param->set_mat4(proj);
+    rstate->param_name_map[rstate->projection_param_index].value.set_mat4(proj);
+    rstate->param_name_map[rstate->modelview_param_index].value.set_mat4(glm::dmat4(1.0));
 }
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
@@ -593,8 +594,8 @@ am_render_state::am_render_state() {
 
     next_free_texture_unit = 0;
 
-    modelview_param = NULL;
-    projection_param = NULL;
+    modelview_param_index = -1;
+    projection_param_index = -1;
 }
 
 am_draw_node::am_draw_node() {
@@ -796,14 +797,12 @@ static void init_param_name_map(am_render_state *rstate, lua_State *L) {
 
     // create default modelview and projection names
     lua_pushstring(L, am_conf_default_modelview_matrix_name);
-    rstate->modelview_param = &rstate->param_name_map[am_lookup_param_name(L, -1)].value;
+    rstate->modelview_param_index = am_lookup_param_name(L, -1);
     lua_pop(L, 1); // modelview name string
-    rstate->modelview_param->set_mat4(glm::dmat4(1.0));
 
     lua_pushstring(L, am_conf_default_projection_matrix_name);
-    rstate->projection_param = &rstate->param_name_map[am_lookup_param_name(L, -1)].value;
+    rstate->projection_param_index = am_lookup_param_name(L, -1);
     lua_pop(L, 1); // projection name string
-    rstate->projection_param->set_mat4(glm::dmat4(1.0));
 }
 
 void am_open_renderer_module(lua_State *L) {

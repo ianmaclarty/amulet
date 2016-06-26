@@ -168,8 +168,8 @@ struct am_render_state {
 
     int                     next_free_texture_unit;
 
-    am_program_param_value* modelview_param;
-    am_program_param_value* projection_param;
+    int                     modelview_param_index;
+    int                     projection_param_index;
 
     am_render_state();
 
