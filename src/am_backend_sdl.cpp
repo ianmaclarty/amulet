@@ -968,7 +968,7 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_CONTROLLERAXISMOTION: {
                 int joyid = event.caxis.which;
-                double val = am_clamp((double)event.caxis.value / 32767.0, 0.0, 1.0);
+                double val = am_clamp((double)event.caxis.value / 32767.0, -1.0, 1.0);
                 lua_pushinteger(L, joyid);
                 lua_pushstring(L, am_controller_axis_name(convert_controller_axis(event.caxis.axis)));
                 lua_pushnumber(L, val);
