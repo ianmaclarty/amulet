@@ -148,7 +148,7 @@ const char *am_controller_axis_name(am_controller_axis axis) {
     switch (axis) {
         case AM_CONTROLLER_AXIS_LEFTX: return "left_x";
         case AM_CONTROLLER_AXIS_LEFTY: return "left_y";
-        case AM_CONTROLLER_AXIS_RIGHTX: return "right_y";
+        case AM_CONTROLLER_AXIS_RIGHTX: return "right_x";
         case AM_CONTROLLER_AXIS_RIGHTY: return "right_y";
         case AM_CONTROLLER_AXIS_TRIGGERLEFT: return "lt";
         case AM_CONTROLLER_AXIS_TRIGGERRIGHT: return "rt";
