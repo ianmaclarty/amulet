@@ -946,6 +946,7 @@ Fields:
   initially.
 
 Methods:
+
 - `add_quad(data)`: adds a quad to be rendered. `data` is
   a table where the keys are attribute names and the
   values are the values of the 4 vertices of the quad.

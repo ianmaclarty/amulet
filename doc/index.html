@@ -2367,7 +2367,17 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <ul>
 <li><code>num_quads</code>: The number of quads. This is zero initially.</li>
 </ul>
-<p>Methods: - <code>add_quad(data)</code>: adds a quad to be rendered. <code>data</code> is a table where the keys are attribute names and the values are the values of the 4 vertices of the quad. The values can be specified in several ways: - as a table where each each element is the value for the left-top, left-bottom, right-bottom and right-top corners of the quad. - a single value for all corners. - a view containing the values for the elements As with the <a href="#view:set"><code>view:set</code></a> method, if the attribute is a vector, a table of numbers is also accepted. The quad number (starting at 1) is returned. - <code>remove_quad(n)</code>: Removes the nth quad. - Additionally methods are created for each attribute of the form <code>quad_&lt;attribute name&gt;</code> that can be used to update the value of a quad attribute. The signature of the method is: <code>quad_attr(n, values)</code> where <code>n</code> is the quad number and <code>values</code> has the same meaning as in the <code>add_quad</code> method.</p>
+<p>Methods:</p>
+<ul>
+<li><code>add_quad(data)</code>: adds a quad to be rendered. <code>data</code> is a table where the keys are attribute names and the values are the values of the 4 vertices of the quad. The values can be specified in several ways:
+<ul>
+<li>as a table where each each element is the value for the left-top, left-bottom, right-bottom and right-top corners of the quad.</li>
+<li>a single value for all corners.</li>
+<li>a view containing the values for the elements As with the <a href="#view:set"><code>view:set</code></a> method, if the attribute is a vector, a table of numbers is also accepted. The quad number (starting at 1) is returned.</li>
+</ul></li>
+<li><code>remove_quad(n)</code>: Removes the nth quad.</li>
+<li>Additionally methods are created for each attribute of the form <code>quad_&lt;attribute name&gt;</code> that can be used to update the value of a quad attribute. The signature of the method is: <code>quad_attr(n, values)</code> where <code>n</code> is the quad number and <code>values</code> has the same meaning as in the <code>add_quad</code> method.</li>
+</ul>
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> quads <span class="ot">=</span> am<span class="ot">.</span>quads<span class="ot">(</span><span class="dv">2</span><span class="ot">,</span> <span class="ot">{</span><span class="st">&quot;vert&quot;</span><span class="ot">,</span> <span class="st">&quot;vec2&quot;</span><span class="ot">,</span> <span class="st">&quot;color&quot;</span><span class="ot">,</span> <span class="st">&quot;vec3&quot;</span><span class="ot">})</span>
 quads:add_quad<span class="ot">{</span>vert <span class="ot">=</span> <span class="ot">{</span>vec2<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">),</span>
