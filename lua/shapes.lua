@@ -92,7 +92,6 @@ function am.quads(capacity, spec)
     function bind_node:remove_quad(q)
         if q < n then
             local j = (q - 1) * 4 + 1
-            local k = (q - 1) * 6 + 1
             for i = 1, num_attrs do
                 local view = views[i]
                 view:set(view:slice(j + 4), j)
