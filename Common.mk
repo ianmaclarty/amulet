@@ -133,7 +133,7 @@ ifeq ($(TARGET_PLATFORM),osx)
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia \
 	     -pagezero_size 10000 -image_base 100000000
-  LUA_CFLAGS += -DLUA_USE_POSIX
+  LUA_CFLAGS += -DLUA_USE_MACOSX
   MACOSX_DEPLOYMENT_TARGET=10.6
   export MACOSX_DEPLOYMENT_TARGET
 else ifeq ($(TARGET_PLATFORM),ios32)
@@ -256,10 +256,10 @@ else ifeq ($(TARGET_PLATFORM),mingw64)
 else ifeq ($(TARGET_PLATFORM),linux32)
   TARGET_CFLAGS += -m32
   LDFLAGS += -m32
-  LUA_CFLAGS += -DLUA_USE_POSIX
+  LUA_CFLAGS += -DLUA_USE_POSIX -DLUA_USE_DLOPEN
   LUAJIT_FLAGS += CC="gcc -m32"
 else ifeq ($(TARGET_PLATFORM),linux64)
-  LUA_CFLAGS += -DLUA_USE_POSIX
+  LUA_CFLAGS += -DLUA_USE_POSIX -DLUA_USE_DLOPEN
 endif
 
 # Adjust flags for grade
