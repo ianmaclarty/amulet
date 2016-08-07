@@ -485,6 +485,37 @@ function am._init_fonts(data, imgfile, embedded)
     return fonts
 end
 
+function am.load_sprite_grid(filename, width, height)
+    local img = am.load_image(filename)
+    local tex = am.texture2d(img)
+    local num_rows, num_cols = math.floor(img.height / height), math.floor(img.width / width)
+    local grid = {}
+    local w, h = img.width, img.height
+    local dx = w / num_cols
+    local dy = h / num_rows
+    local ds = 1 / num_cols
+    local dt = 1 / num_rows
+    for row = 1, num_rows do
+        grid[row] = {}
+        for col = 1, num_cols do
+            grid[row][col] = {
+                x1 = 0,
+                y1 = 0,
+                x2 = dx,
+                y2 = dy,
+                s1 = (col - 1) * ds,
+                t1 = (num_rows - row) * dt,
+                s2 = col * ds,
+                t2 = (num_rows - row + 1) * dt,
+                width = dx,
+                height = dy,
+                texture = tex,
+            }
+        end
+    end
+    return grid
+end
+
 function am.load_bitmap_font(filename, key, embedded)
     local img
     if embedded then
