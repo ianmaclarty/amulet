@@ -235,7 +235,7 @@ void *am_check_metatable_id(lua_State *L, int metatable_id, int idx) {
 
 void am_register_property(lua_State *L, const char *field, const am_property *property) {
     if (property->getter == NULL) {
-        am_abort("property getter for '%s' is NULL");
+        am_abort("property getter for '%s' is NULL", field);
         return;
     }
     lua_pushlightuserdata(L, (void*)property);

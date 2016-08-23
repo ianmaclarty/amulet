@@ -695,8 +695,12 @@ static void init_gl_func_ptrs() {
 
 static void audio_callback(void *ud, Uint8 *stream, int len) {
     //if (capture_device != 0) SDL_LockAudioDevice(capture_device);
-    assert(audio_buffer != NULL);
-    assert(len == (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
+    am_always_assert(audio_buffer != NULL);
+    am_always_assert(len % ((int)sizeof(float) * am_conf_audio_channels) == 0);
+    if (len != (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels) {
+        // This will cause the buffer pool to be reset. See push_buffer in am_audio.cpp.
+        am_conf_audio_buffer_size = len / ((int)sizeof(float) * am_conf_audio_channels);
+    }
     int num_channels = am_conf_audio_channels;
     int num_samples = am_conf_audio_buffer_size;
     memset(audio_buffer, 0, len);

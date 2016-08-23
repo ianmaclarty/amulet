@@ -51,7 +51,7 @@ static void* push_buffer(int size) {
         clear_buffer_pool();
         current_pool_bufsize = size;
     }
-    assert(bufpool_top <= buffer_pool.size());
+    am_always_assert(bufpool_top <= buffer_pool.size());
     if (bufpool_top == buffer_pool.size()) {
         buffer_pool.push_back(malloc(size));
     }

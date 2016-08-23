@@ -72,3 +72,5 @@ void *am_read_file(const char *filename, size_t *len);
 void am_expand_args(int *argc_ptr, char ***argv_ptr);
 void am_free_expanded_args(int argc, char **argv);
 #endif
+
+#define am_always_assert(c) {if (!(c)) {am_abort("%s:%d: assertion failed: %s\n", __FILE__, __LINE__, #c);}}
