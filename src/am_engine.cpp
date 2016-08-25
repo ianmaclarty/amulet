@@ -11,8 +11,10 @@ static void am_set_dirs(lua_State *L);
 static void am_set_platform(lua_State *L);
 
 am_engine *am_init_engine(bool worker, int argc, char** argv) {
-#if defined(AM_LUAJIT) && defined(AM_64BIT)
-    // luajit requires using luaL_newstate on 64 bit
+#if defined(AM_LUAJIT)
+    // luajit implements its own allocator which is probably
+    // better than ours. In any case on 64 bit luajit does not
+    // allow using a custom allocator.
     lua_State *L = luaL_newstate();
     if (L == NULL) return NULL;
     am_allocator *allocator = NULL;
