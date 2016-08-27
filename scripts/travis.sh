@@ -35,13 +35,13 @@ else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         make -j2 TARGET=linux32.release LUAVM=lua51   test
         make -j2 TARGET=linux64.release LUAVM=lua51   test
-        #make TARGET=linux64.release LUAVM=lua52   test
-        #make TARGET=linux64.release LUAVM=luajit  test
-        make -j2 TARGET=mingw32.release
+        make -j2 TARGET=linux32.release LUAVM=luajit  test
+        make -j2 TARGET=linux64.release LUAVM=luajit  test
+        make -j2 TARGET=mingw32.release LUAVM=lua51
         scripts/gen_linux_universal.sh
     else
         make -j2 TARGET=osx.release     LUAVM=lua51   test
-        #make TARGET=osx.release     LUAVM=luajit  test
+        make -j2 TARGET=osx.release     LUAVM=luajit  test
         scripts/build_ios.sh
         rm -rf builds/ios32
         rm -rf builds/ios64

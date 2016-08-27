@@ -113,17 +113,11 @@ $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) $(
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	if [ -d $(SDL_PREBUILT_DIR) ]; then \
-	    cp $(SDL_PREBUILT_DIR)/lib/*.a $(BUILD_LIB_DIR)/; \
-	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
-	    cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/; \
-	else \
-	    BASE_DIR=`pwd`; \
-	    cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE); \
-	    cd $$BASE_DIR; \
-	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
-	    cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@; \
-	fi
+	BASE_DIR=`pwd`; \
+	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE); \
+	cd $$BASE_DIR; \
+	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
+	cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@; \
 
 $(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
@@ -163,10 +157,20 @@ $(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(LUA53_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(LUAJIT_DIR) && $(MAKE) clean $(LUAJIT_FLAGS)
-	cd $(LUAJIT_DIR) && $(MAKE) all $(LUAJIT_FLAGS)
-	cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/
-	cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@
+	BASE_DIR=`pwd`; \
+	if [ "$(TARGET_PLATFORM)" = "msvc32" ]; then \
+	    cd $(LUAJIT_DIR)/src; \
+	    PATH='$(VC_CL_DIR):$(PATH)' cmd /c 'msvcbuild.bat static'; \
+	    cd $$BASE_DIR; \
+	    cp $(LUAJIT_DIR)/src/lua51.lib $@; \
+	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
+	else \
+	    cd $(LUAJIT_DIR); \
+	    $(MAKE) clean all $(LUAJIT_FLAGS); \
+	    cd $$BASE_DIR; \
+	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
+	    cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@; \
+	fi
 
 $(FT2_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(FT2_DIR) && $(MAKE) -f Makefile.custom clean
