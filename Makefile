@@ -113,11 +113,17 @@ $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) $(
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	BASE_DIR=`pwd`; \
-	cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE); \
-	cd $$BASE_DIR; \
-	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
-	cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@; \
+	if [ -d $(SDL_PREBUILT_DIR) ]; then \
+	    cp $(SDL_PREBUILT_DIR)/lib/*.a $(BUILD_LIB_DIR)/; \
+	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
+	    cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/; \
+	else \
+	    BASE_DIR=`pwd`; \
+	    cd $(SDL_DIR) && ./configure --disable-render --disable-loadso CC=$(CC) CXX=$(CPP) CFLAGS="$(COMMON_CFLAGS)" LDFLAGS="$(LDFLAGS)" && $(MAKE) clean && $(MAKE); \
+	    cd $$BASE_DIR; \
+	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
+	    cp $(SDL_DIR)/build/.libs/libSDL2$(ALIB_EXT) $@; \
+	fi
 
 $(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
