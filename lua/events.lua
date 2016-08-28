@@ -208,6 +208,12 @@ function am._touch_begin(win, id, x, y, nx, ny, px, py, force)
         touch.norm_position_y = ny
         touch.pixel_position_x = px
         touch.pixel_position_y = py
+        touch.prev_position_x = touch.position_x
+        touch.prev_position_y = touch.position_y
+        touch.prev_norm_position_x = touch.norm_position_x
+        touch.prev_norm_position_y = touch.norm_position_y
+        touch.prev_pixel_position_x = touch.pixel_position_x
+        touch.prev_pixel_position_y = touch.pixel_position_y
         touch.force = force
         touch.began = true
     end
