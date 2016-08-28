@@ -366,6 +366,27 @@ static int release_vbo(lua_State *L) {
     return 0;
 }
 
+static int mark_buffer_dirty(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    int start = 0;
+    int end = buf->size;
+    if (nargs > 1) {
+        start = lua_tointeger(L, 2);
+        if (start < 0 || start >= buf->size) {
+            return luaL_error(L, "start must be in the range 0 to %d", buf->size - 1);
+        }
+    }
+    if (nargs > 2) {
+        end = lua_tointeger(L, 3);
+        if (end <= 0 || end > buf->size) {
+            return luaL_error(L, "end be in the range 1 to %d", buf->size);
+        }
+    }
+    buf->mark_dirty(start, end);
+    return 0;
+}
+
 am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type) {
     int mtid = (int)MT_am_buffer_view + (int)type + 1;
     assert(mtid < (int)MT_VIEW_TYPE_END_MARKER);
@@ -503,6 +524,13 @@ static int view_slice(lua_State *L) {
     return 1;
 }
 
+static void get_buffer_data(lua_State *L, void *obj) {
+    am_buffer *buf = (am_buffer*)obj;
+    lua_pushlightuserdata(L, (void*)buf->data);
+}
+
+static am_property buffer_data_property = {get_buffer_data, NULL};
+
 static void register_buffer_mt(lua_State *L) {
     lua_newtable(L);
     am_set_default_index_func(L);
@@ -513,10 +541,14 @@ static void register_buffer_mt(lua_State *L) {
     lua_pushcclosure(L, buffer_gc, 0);
     lua_setfield(L, -2, "__gc");
 
+    am_register_property(L, "data", &buffer_data_property);
+
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
     lua_pushcclosure(L, release_vbo, 0);
     lua_setfield(L, -2, "release_vbo");
+    lua_pushcclosure(L, mark_buffer_dirty, 0);
+    lua_setfield(L, -2, "mark_dirty");
 
     am_register_metatable(L, "buffer", MT_am_buffer, 0);
 }
