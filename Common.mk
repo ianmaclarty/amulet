@@ -137,13 +137,12 @@ ifeq ($(TARGET_PLATFORM),osx)
   MACOSX_DEPLOYMENT_TARGET=10.6
   export MACOSX_DEPLOYMENT_TARGET
 else ifeq ($(TARGET_PLATFORM),ios32)
-  CC = clang
-  CPP = clang++
+  CC = $(shell xcrun --sdk iphoneos --find clang)
+  CPP = $(shell xcrun --sdk iphoneos --find clang++)
+  CROSS = $(shell dirname $(CC))/
   LINK = $(CPP)
-  XCODE_PATH = $(shell xcode-select --print-path)
-  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
-  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=5.1.1
+  SDK_PATH = $(shell xcrun --sdk iphoneos --show-sdk-path)
+  TARGET_CFLAGS = -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=5.1.1 --no-thumb
   XCFLAGS += -ObjC++
   XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
@@ -152,15 +151,15 @@ else ifeq ($(TARGET_PLATFORM),ios32)
 	     -Wl,-framework,AVFoundation \
 	     -Wl,-framework,GLKit -Wl,-framework,GameKit
   LUA_CFLAGS += -DLUA_USE_POSIX
+  LUAJIT_FLAGS += HOST_CC="clang -m32 -arch i386" CC=clang CROSS="$(CROSS)" TARGET_FLAGS="$(TARGET_CFLAGS)" SYS=iOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),ios64)
-  CC = clang
-  CPP = clang++
+  CC = $(shell xcrun --sdk iphoneos --find clang)
+  CPP = $(shell xcrun --sdk iphoneos --find clang++)
+  CROSS = $(shell dirname $(CC))/
   LINK = $(CPP)
-  XCODE_PATH = $(shell xcode-select --print-path)
-  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
-  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=5.1.1
+  SDK_PATH = $(shell xcrun --sdk iphoneos --show-sdk-path)
+  TARGET_CFLAGS = -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=5.1.1
   XCFLAGS += -ObjC++
   XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
@@ -169,6 +168,7 @@ else ifeq ($(TARGET_PLATFORM),ios64)
 	     -Wl,-framework,AVFoundation \
 	     -Wl,-framework,GLKit -Wl,-framework,GameKit
   LUA_CFLAGS += -DLUA_USE_POSIX
+  LUAJIT_FLAGS += HOST_CC="clang -m32 -arch i386" CROSS="$(CROSS)/" TARGET_FLAGS="$(TARGET_CFLAGS)" SYS=iOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),iossim)
   CC = clang

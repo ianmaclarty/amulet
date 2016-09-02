@@ -163,6 +163,7 @@ $(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(LUA53_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	set -e; \
 	BASE_DIR=`pwd`; \
 	if [ "$(TARGET_PLATFORM)" = "msvc32" ]; then \
 	    cd $(LUAJIT_DIR)/src; \
