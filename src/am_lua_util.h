@@ -35,6 +35,8 @@ void lua_setuservalue(lua_State *L, int idx);
 void lua_getuservalue(lua_State *L, int idx);
 lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum);
 lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum);
+#else
+int luaL_typerror (lua_State *L, int narg, const char *tname);
 #endif
 
 #define am_absindex(L, idx) ((idx) > 0 ? (idx) : lua_gettop(L) + (idx) + 1)
