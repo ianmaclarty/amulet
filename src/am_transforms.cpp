@@ -89,6 +89,42 @@ static void set_position2d(lua_State *L, void *obj) {
 
 static am_property position2d_property = {get_position2d, set_position2d};
 
+static void get_position_x(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    lua_pushnumber(L, node->v.x);
+}
+
+static void set_position_x(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    node->v.x = luaL_checknumber(L, 3);
+}
+
+static am_property position_x_property = {get_position_x, set_position_x};
+
+static void get_position_y(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    lua_pushnumber(L, node->v.y);
+}
+
+static void set_position_y(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    node->v.y = luaL_checknumber(L, 3);
+}
+
+static am_property position_y_property = {get_position_y, set_position_y};
+
+static void get_position_z(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    lua_pushnumber(L, node->v.z);
+}
+
+static void set_position_z(lua_State *L, void *obj) {
+    am_translate_node *node = (am_translate_node*)obj;
+    node->v.z = luaL_checknumber(L, 3);
+}
+
+static am_property position_z_property = {get_position_z, set_position_z};
+
 static void register_translate_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
@@ -98,6 +134,9 @@ static void register_translate_node_mt(lua_State *L) {
 
     am_register_property(L, "position", &position_property);
     am_register_property(L, "position2d", &position2d_property);
+    am_register_property(L, "x", &position_x_property);
+    am_register_property(L, "y", &position_y_property);
+    am_register_property(L, "z", &position_z_property);
 
     am_register_metatable(L, "translate", MT_am_translate_node, MT_am_scene_node);
 }
@@ -177,6 +216,42 @@ static void set_scale2d(lua_State *L, void *obj) {
 
 static am_property scale2d_property = {get_scale2d, set_scale2d};
 
+static void get_scale_x(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    lua_pushnumber(L, node->v.x);
+}
+
+static void set_scale_x(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    node->v.x = luaL_checknumber(L, 3);
+}
+
+static am_property scale_x_property = {get_scale_x, set_scale_x};
+
+static void get_scale_y(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    lua_pushnumber(L, node->v.y);
+}
+
+static void set_scale_y(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    node->v.y = luaL_checknumber(L, 3);
+}
+
+static am_property scale_y_property = {get_scale_y, set_scale_y};
+
+static void get_scale_z(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    lua_pushnumber(L, node->v.z);
+}
+
+static void set_scale_z(lua_State *L, void *obj) {
+    am_scale_node *node = (am_scale_node*)obj;
+    node->v.z = luaL_checknumber(L, 3);
+}
+
+static am_property scale_z_property = {get_scale_z, set_scale_z};
+
 static void register_scale_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_scene_node_index, 0);
@@ -186,6 +261,9 @@ static void register_scale_node_mt(lua_State *L) {
 
     am_register_property(L, "scale", &scale_property);
     am_register_property(L, "scale2d", &scale2d_property);
+    am_register_property(L, "x", &scale_x_property);
+    am_register_property(L, "y", &scale_y_property);
+    am_register_property(L, "z", &scale_z_property);
 
     am_register_metatable(L, "scale", MT_am_scale_node, MT_am_scene_node);
 }

@@ -542,6 +542,7 @@ Fields:
 
 - `position`: The translation position as a `vec3`. Updatable.
 - `position2d`: The translation position as a `vec2`. Updatable.
+- `x`, `y`, `z`: The `x`, `y` and `z` components of the position. Updatable.
 
 Default tag: `"translate"`.
 
@@ -553,6 +554,8 @@ local node2 = am.translate(vec2(10, 20))
 local node3 = am.translate("MyModelViewMatrix", 1, 2, -3.5)
 local node4 = am.translate(vec3(1, 2, 3))
 node1.position2d = vec2(30, 40)
+node2.x = 40
+node2.y = 50
 node3.position = vec3(1, 2, -3)
 ~~~
 
@@ -574,6 +577,7 @@ Fields:
 
 - `scale`: The scale as a `vec3`. Updatable.
 - `scale2d`: The scale as a `vec2`. Updatable.
+- `x`, `y`, `z`: The `x`, `y` and `z` components of the scale. Updatable.
 
 Default tag: `"scale"`.
 
@@ -585,6 +589,7 @@ local node2 = am.scale(2, 1)
 local node3 = am.scale(vec2(1, 2))
 local node4 = am.scale("MyModelViewMatrix", vec3(0.5, 2, 3))
 node1.scale2d = vec2(1)
+node2.x = 3
 node4.scale = vec3(1, 3, 2)
 ~~~
 
