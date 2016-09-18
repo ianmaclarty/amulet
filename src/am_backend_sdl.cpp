@@ -9,8 +9,6 @@
 #import <AppKit/AppKit.h>
 #endif
 
-#define MIN_UPDATE_TIME (1.0/400.0)
-
 // Create variables for OpenGL ES 2 functions
 #ifdef AM_NEED_GL_FUNC_PTRS
 #if defined(AM_GLPROFILE_ES)
@@ -469,7 +467,7 @@ restart:
         if (have_focus && am_conf_warn_delta_time > 0.0 && real_delta_time > am_conf_warn_delta_time) {
             am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);
         }
-        delta_time = am_min(am_conf_min_delta_time, real_delta_time); // fmin in case process was suspended, or last frame took very long
+        delta_time = am_min(am_conf_max_delta_time, real_delta_time); // fmin in case process was suspended, or last frame took very long
         t_debt += delta_time;
 
         if (am_conf_fixed_delta_time > 0.0) {
@@ -481,7 +479,7 @@ restart:
                 t_debt -= am_conf_fixed_delta_time;
             }
         } else {
-            if (t_debt > MIN_UPDATE_TIME) {
+            if (t_debt > am_conf_min_delta_time) {
                 if (!am_execute_actions(L, t_debt)) {
                     exit_status = EXIT_FAILURE;
                     goto quit;

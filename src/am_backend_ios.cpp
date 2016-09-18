@@ -415,7 +415,7 @@ static void ios_update() {
         am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);
     }
     // take min in case app paused, or last frame took very long
-    delta_time = am_min(am_conf_min_delta_time, real_delta_time); 
+    delta_time = am_min(am_conf_max_delta_time, real_delta_time); 
     t_debt += delta_time;
 
     if (am_conf_fixed_delta_time > 0.0) {
@@ -427,7 +427,7 @@ static void ios_update() {
             t_debt -= am_conf_fixed_delta_time;
         }
     } else {
-        if (t_debt > MIN_UPDATE_TIME) {
+        if (t_debt > am_conf_min_delta_time) {
             if (!am_execute_actions(ios_eng->L, t_debt)) {
                 ios_running = false;
                 return;

@@ -157,7 +157,7 @@ static void main_loop() {
     }
 
     frame_time = am_get_current_time();
-    delta_time = fmin(am_conf_min_delta_time, frame_time - t0); // fmin in case process was suspended, or last frame took very long
+    delta_time = fmin(am_conf_max_delta_time, frame_time - t0); // fmin in case process was suspended, or last frame took very long
     t_debt += delta_time;
 
     if (am_conf_fixed_delta_time > 0.0) {

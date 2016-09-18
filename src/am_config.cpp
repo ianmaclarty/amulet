@@ -16,8 +16,9 @@ int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
 const char *am_conf_default_projection_matrix_name = "P";
 
-double am_conf_fixed_delta_time = -1.0;
-double am_conf_min_delta_time = 1.0/15.0;
+double am_conf_fixed_delta_time = -1.0; //1.0 / 60.0; //-1.0;
+double am_conf_min_delta_time = 1.0/240.0;
+double am_conf_max_delta_time = 1.0/15.0;
 double am_conf_warn_delta_time = -1.0; //1.0/30.0;
 int am_conf_vsync = true;
 

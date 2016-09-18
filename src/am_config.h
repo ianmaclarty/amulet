@@ -19,6 +19,7 @@ extern const char *am_conf_default_projection_matrix_name;
 // game loop options
 extern double am_conf_fixed_delta_time;
 extern double am_conf_min_delta_time;
+extern double am_conf_max_delta_time;
 extern double am_conf_warn_delta_time;
 extern int am_conf_vsync;
 
