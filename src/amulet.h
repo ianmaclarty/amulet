@@ -69,6 +69,16 @@
 #undef __STDC_LIMIT_MACROS
 #include <math.h>
 
+// networking
+#if defined(AM_IOS) || defined(AM_OSX)
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <ifaddrs.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#endif
+
 #include <new>
 #include <climits>
 #include <vector>
@@ -139,6 +149,7 @@ extern "C" {
 #include "am_sfxr.h"
 #include "am_glob.h"
 #include "am_i18n.h"
+#include "am_net.h"
 
 #undef near
 #undef far

@@ -78,6 +78,8 @@ typedef enum {
     MT_am_quat,
 
     MT_am_http_request,
+    MT_am_socket,
+
     MT_am_rand,
 
     ENUM_am_buffer_view_type,

@@ -48,6 +48,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     am_open_rand_module(L);
     am_open_glob_module(L);
     am_open_i18n_module(L);
+    am_open_net_module(L);
     if (!worker) {
         am_open_actions_module(L);
         am_open_window_module(L);
