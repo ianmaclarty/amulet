@@ -4,7 +4,8 @@
 # Lua primer {#lua-primer}
 
 Amulet code is written in [Lua](http://www.lua.org).
-The version of Lua used by default is Lua-5.1.
+The version of Lua used by default is LuaJIT-2 on Windows, Mac and Linux
+and Lua-5.1 on all other platforms.
 
 What follows is a quick introduction to Lua. For more detail please
 see the
@@ -295,4 +296,3 @@ print(x + y) -- prints 3
 -------------------
 
 ![](images/screenshot6.jpg)
-

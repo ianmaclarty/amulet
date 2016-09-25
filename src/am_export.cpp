@@ -27,7 +27,6 @@ struct export_config {
     am_display_orientation orientation;
     const char *icon;
     const char *launch_image;
-    const char *luavm;
     const char *grade;
     const char *basepath;
 };
@@ -172,6 +171,13 @@ static bool build_data_pak(export_config *conf) {
     return build_data_pak_2(0, false, am_opt_data_dir, am_opt_data_dir, conf->pakfile);
 }
 
+static const char *platform_luavm(const char *platform) {
+    if (strcmp(platform, "msvc32")) return "luajit";
+    if (strcmp(platform, "linux32")) return "luajit";
+    if (strcmp(platform, "linux64")) return "luajit";
+    if (strcmp(platform, "osx")) return "luajit";
+    return "lua51";
+
 static char *get_bin_path(export_config *conf, const char *platform) {
     const char *builds_path = conf->basepath;
     if (strcmp(conf->basepath, "/usr/local/bin/") == 0) {
@@ -179,7 +185,8 @@ static char *get_bin_path(export_config *conf, const char *platform) {
     } else if (strcmp(conf->basepath, "/usr/bin/") == 0) {
         builds_path = "/usr/share/amulet/";
     }
-    char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", builds_path, platform, conf->luavm, conf->grade);
+    const char *luavm = platform_luavm(platform);
+    char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", builds_path, platform, luavm, conf->grade);
     if (!am_file_exists(bin_path)) {
         free(bin_path);
         return NULL;
@@ -355,7 +362,6 @@ bool am_build_exports(uint32_t flags) {
     conf.orientation = am_conf_app_display_orientation;
     conf.icon = am_conf_app_icon;
     conf.launch_image = am_conf_app_launch_image;
-    conf.luavm = "lua51";
     conf.grade = "release";
     conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
     if (!build_data_pak(&conf)) return false;

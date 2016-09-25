@@ -26,7 +26,7 @@ unzip builds-win32.zip
 unzip builds-linux.zip
 mkdir scripts\installer-payload
 cp -r builds scripts/installer-payload/
-cp -r builds/msvc32/lua51/release/bin/* scripts/installer-payload/
+cp -r builds/msvc32/luajit/release/bin/* scripts/installer-payload/
 mv scripts/installer-payload/amulet.exe scripts/installer-payload/amulet-window.exe
 mv scripts/installer-payload/amulet-console.exe scripts/installer-payload/amulet.exe
 cp -r examples scripts/installer-payload/
