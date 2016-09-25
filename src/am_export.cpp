@@ -172,10 +172,10 @@ static bool build_data_pak(export_config *conf) {
 }
 
 static const char *platform_luavm(const char *platform) {
-    if (strcmp(platform, "msvc32")) return "luajit";
-    if (strcmp(platform, "linux32")) return "luajit";
-    if (strcmp(platform, "linux64")) return "luajit";
-    if (strcmp(platform, "osx")) return "luajit";
+    if (strcmp(platform, "msvc32") == 0) return "luajit";
+    if (strcmp(platform, "linux32") == 0) return "luajit";
+    if (strcmp(platform, "linux64") == 0) return "luajit";
+    if (strcmp(platform, "osx") == 0) return "luajit";
     return "lua51";
 }
 
