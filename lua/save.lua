@@ -44,7 +44,12 @@ function am.load_state(name, format)
     if format == "lua" then
         return loadstring(str)()
     elseif format == "json" then
-        return am.parse_json(str)
+        local res, err = am.parse_json(str)
+        if res == nil and err then
+            error("error parsing JSON while loading "..name..":\n"..err, 2)
+        else
+            return res
+        end
     else
         error("unknown format: "..format, 2)
     end
