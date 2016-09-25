@@ -74,12 +74,18 @@ On other platforms it has no effect and always returns `nil`.
 Converts the given Lua value to a JSON string and
 returns it.
 
-Cycles are not detected.
+Tables with string keys are converted to JSON objects
+and tables with consecutive integer keys starting at 1
+are converted to JSON arrays. Empty tables are converted
+to empty JSON arrays. Other types of tables
+are not supported anc cycles are not detected.
 
 ### am.parse_json(json) {#am.parse_json .func-def}
 
 Converts the given JSON string to a Lua value
-and returns it.
+and returns it. If there was an error parsing the JSON
+then `nil` is returned and the error message is returned as
+a second return value.
 
 # Loading scripts
 
