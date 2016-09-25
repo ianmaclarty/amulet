@@ -177,6 +177,7 @@ static const char *platform_luavm(const char *platform) {
     if (strcmp(platform, "linux64")) return "luajit";
     if (strcmp(platform, "osx")) return "luajit";
     return "lua51";
+}
 
 static char *get_bin_path(export_config *conf, const char *platform) {
     const char *builds_path = conf->basepath;
