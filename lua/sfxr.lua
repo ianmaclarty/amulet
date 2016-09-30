@@ -5,7 +5,12 @@ local wave_type_code = {
     noise = 3,
 }
 
-local wave_types = table.keys(wave_type_code)
+local wave_types = {
+ "sine",
+ "square",
+ "noise",
+ "sawtooth",
+}
 
 local
 function base_settings()
