@@ -472,14 +472,19 @@ restart:
 
         if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
+                double t0 = am_get_current_time();
                 if (!am_execute_actions(L, am_conf_fixed_delta_time)) {
                     exit_status = EXIT_FAILURE;
                     goto quit;
                 }
-                t_debt -= am_conf_fixed_delta_time;
+                double t = am_get_current_time() - t0;
+                t_debt -= am_max(t, am_conf_fixed_delta_time);
             }
         } else {
             if (t_debt > am_conf_min_delta_time) {
+                if (am_conf_delta_time_step > 0.0) {
+                    t_debt = floor(t_debt / am_conf_delta_time_step + 0.5) * am_conf_delta_time_step;
+                }
                 if (!am_execute_actions(L, t_debt)) {
                     exit_status = EXIT_FAILURE;
                     goto quit;

@@ -30,6 +30,8 @@ function am.perf_stats()
         end
     end
     --log("total time = %0.5f, max_time = %0.5f", total_time, max_dt)
+    stats.time = total_time
+    stats.frames = count
     stats.min_fps = 1 / max_dt
     stats.avg_fps = count / total_time
     return stats
