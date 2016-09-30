@@ -9,12 +9,12 @@ typedef struct { float r, g, b, a; } color;
 local n = 200000
 local sz = ffi.sizeof("vec2[?]", n)
 local vbuf = am.buffer(sz)
-local verts = ffi.cast("vec2*", vbuf.data)
+local verts = ffi.cast("vec2*", vbuf.dataptr)
 local vels = ffi.new("vec2[?]", n)
 
 local csz = ffi.sizeof("color[?]", n)
 local cbuf = am.buffer(csz)
-local colors = ffi.cast("color*", cbuf.data)
+local colors = ffi.cast("color*", cbuf.dataptr)
 
 for i = 0, n - 1 do
     local x, y = math.random() - 0.5, math.random() - 0.5

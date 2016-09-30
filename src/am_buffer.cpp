@@ -524,12 +524,12 @@ static int view_slice(lua_State *L) {
     return 1;
 }
 
-static void get_buffer_data(lua_State *L, void *obj) {
+static void get_buffer_dataptr(lua_State *L, void *obj) {
     am_buffer *buf = (am_buffer*)obj;
     lua_pushlightuserdata(L, (void*)buf->data);
 }
 
-static am_property buffer_data_property = {get_buffer_data, NULL};
+static am_property buffer_dataptr_property = {get_buffer_dataptr, NULL};
 
 static void register_buffer_mt(lua_State *L) {
     lua_newtable(L);
@@ -541,7 +541,7 @@ static void register_buffer_mt(lua_State *L) {
     lua_pushcclosure(L, buffer_gc, 0);
     lua_setfield(L, -2, "__gc");
 
-    am_register_property(L, "data", &buffer_data_property);
+    am_register_property(L, "dataptr", &buffer_dataptr_property);
 
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
