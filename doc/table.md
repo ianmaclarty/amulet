@@ -52,3 +52,7 @@ Returns a new array which contains only the values from
 
 Converts a table to a string.
 The returned string is a valid Lua table literal.
+
+### table.count(t)   {#table.count .func-def}
+
+Returns the total number of pairs in the table.

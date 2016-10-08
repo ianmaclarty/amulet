@@ -117,6 +117,14 @@ function table.clear(t)
     end
 end
 
+function table.count(t)
+    local count = 0
+    for k, v in pairs(t) do
+        count = count + 1
+    end
+    return count
+end
+
 local
 function table_tostring(t, indent, seen, depth)
     seen = seen or {}
