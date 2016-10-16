@@ -138,6 +138,7 @@ static bool add_data_files_to_zip(const char *zipfile, const char *rootdir, cons
         add_files_to_pak(zipfile, rootdir, dir, "*.jpg", false, ZIP_PLATFORM_DOS) &&
         add_files_to_pak(zipfile, rootdir, dir, "*.ogg", false, ZIP_PLATFORM_DOS) &&
         add_files_to_pak(zipfile, rootdir, dir, "*.obj", true, ZIP_PLATFORM_DOS) &&
+        add_files_to_pak(zipfile, rootdir, dir, "*.json", true, ZIP_PLATFORM_DOS) &&
         true;
 }
 

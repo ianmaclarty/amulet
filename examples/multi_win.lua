@@ -1,3 +1,5 @@
+-- multiple windows do not yet work properly on all platforms
+
 local window1 = am.window{title="Window 1"}
 local window2 = am.window{title="Window 2"}
 window1.scene = am.rotate(0) ^ am.scale(4) ^ am.text("Window 1", vec4(1, 0, 0.5, 1))

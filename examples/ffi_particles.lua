@@ -1,3 +1,5 @@
+-- note: this example only works with luajit
+
 local win = am.window{letterbox = false}
 
 ffi.cdef[[

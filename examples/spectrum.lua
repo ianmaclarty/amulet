@@ -1,12 +1,12 @@
 local win = am.window{}
 
-local track = am.stream(am.load_buffer("killing.ogg"), true)
+local track = am.stream(am.load_buffer("drums.ogg"), true)
 
 local n = 64
 local show = 64
 local spec_arr = am.buffer(n * 4):view("float", 0, 4)
 spec_arr:set(-1000)
-local spectrum = track:spectrum(n, spec_arr, 0.5)
+local spectrum = track:spectrum(n, spec_arr, 0.97)
 
 local scene = am.group()
 scene:action(am.play(spectrum))

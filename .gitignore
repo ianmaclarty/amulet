@@ -19,6 +19,7 @@ log
 D.*
 *.swp
 *.dSYM
+.DS_Store
 
 /VERSION
 

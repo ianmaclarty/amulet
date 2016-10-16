@@ -55,11 +55,17 @@ local projection_matrix = math.perspective(math.rad(85), 1, 0.1, 10)
 
 scene_group:append(translated_cube)
 
+local bg = am.rect(win.left, win.bottom, win.right, win.top, vec4(0, 0, 0, 1))
+
 local scene = 
     am.use_program(shader)
         :action(function()
             translated_cube.position = vec3(win:mouse_norm_position().xy * 10, translated_cube.position.z)
-            log(math.sphere_visible(projection_matrix * modelview_matrix, vec3(0), math.sqrt(3)))
+            if math.sphere_visible(projection_matrix * modelview_matrix, vec3(0), math.sqrt(3)) then
+                bg.color = vec4(0, 0, 0, 1)
+            else
+                bg.color = vec4(1, 0, 0, 1)
+            end
             if win:key_pressed("escape") then
                 win:close()
             end
@@ -70,4 +76,4 @@ local scene =
     }
     ^scene_group
 
-win.scene = scene
+win.scene = am.group{am.depth_test("always", false) ^ bg, scene}

@@ -511,10 +511,9 @@ function clear_controllers()
                 controller.button_presses[button] = presses
                 controller.button_releases[button] = releases
             end
-            controller.just_attached = nil
-        elseif controller.just_detached then
-            controller.just_detached = nil
         end
+        controller.just_attached = nil
+        controller.just_detached = nil
     end
 end
 
@@ -569,6 +568,72 @@ function am.controller_button_down(index, button)
     local presses = controller.button_presses[button] or 0
     local releases = controller.button_releases[button] or 0
     return not state0 and presses > 0 or state0 and releases <= 0
+end
+
+function am.controller_present(index)
+    local controller = controllers[index]
+    if controller and controller.id then
+        return true
+    else
+        return false
+    end
+end
+
+function am.controller_attached(index)
+    local controller = controllers[index]
+    if controller then
+        return controller.just_attached
+    else
+        return false
+    end
+end
+
+function am.controller_detached(index)
+    local controller = controllers[index]
+    if controller then
+        return controller.just_detached
+    else
+        return false
+    end
+end
+
+function am.controllers_present()
+    local res = nil
+    for i, controller in ipairs(controllers) do
+        if controller.id then
+            if not res then
+                res = {}
+            end
+            table.insert(res, i)
+        end
+    end
+    return res
+end
+
+function am.controllers_attached()
+    local res = nil
+    for i, controller in ipairs(controllers) do
+        if controller.just_attached then
+            if not res then
+                res = {}
+            end
+            table.insert(res, i)
+        end
+    end
+    return res
+end
+
+function am.controllers_detached()
+    local res = nil
+    for i, controller in ipairs(controllers) do
+        if controller.just_detached then
+            if not res then
+                res = {}
+            end
+            table.insert(res, i)
+        end
+    end
+    return res
 end
 
 -- resize

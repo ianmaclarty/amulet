@@ -87,12 +87,16 @@ and returns it. If there was an error parsing the JSON
 then `nil` is returned and the error message is returned as
 a second return value.
 
-# Loading scripts
+# Loading other resources
 
 ### am.load_script(filename) {#am.load_script .func-def}
 
 Loads the Lua script in `filename` and returns
 a function that, when called, will run the script.
+
+### am.load_string(filename) {#am.load_string .func-def}
+
+Loads `filename` and returns its contents as a string.
 
 # Performance stats
 

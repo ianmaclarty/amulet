@@ -17,7 +17,7 @@ If you just want to generate a package for one platform you can
 pass one of the options `-windows`, `-mac`, `-ios`, `-linux` or `-html`.
 
 All files in the directory with the following extensions will
-be included as data in the distribution: `.lua`, `.png`, `.jpg`, `.ogg` and `.obj`.
+be included as data in the distribution: `.lua`, `.json`, `.png`, `.jpg`, `.ogg` and `.obj`.
 All .txt files will also be copied to the generated zip and
 be visible to the user when they unzip it. This is intended for `README.txt`
 or similar files.
