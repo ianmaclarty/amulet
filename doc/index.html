@@ -380,6 +380,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#analysing-audio">Analysing audio</a></li>
 </ul></li>
 <li><a href="#controllers">Controllers</a><ul>
+<li><a href="#am.controller_present">am.controller_present(index)</a></li>
+<li><a href="#am.controller_attached">am.controller_attached(index)</a></li>
+<li><a href="#am.controller_detached">am.controller_detached(index)</a></li>
+<li><a href="#am.controllers_present">am.controllers_present()</a></li>
+<li><a href="#am.controllers_attached">am.controllers_attached()</a></li>
+<li><a href="#am.controllers_detached">am.controllers_detached()</a></li>
 <li><a href="#am.controller_lt_val">am.controller_lt_val(index)</a></li>
 <li><a href="#am.controller_rt_val">am.controller_rt_val(index)</a></li>
 <li><a href="#am.controller_lstick_pos">am.controller_lstick_pos(index)</a></li>
@@ -410,6 +416,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#table.values">table.values(t)</a></li>
 <li><a href="#table.filter">table.filter(arr, f)</a></li>
 <li><a href="#table.tostring">table.tostring(t)</a></li>
+<li><a href="#table.count">table.count(t)</a></li>
 </ul></li>
 <li><a href="#amulet-require-function">Amulet require function</a></li>
 <li><a href="#logging">Logging</a><ul>
@@ -428,8 +435,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.to_json">am.to_json(value)</a></li>
 <li><a href="#am.parse_json">am.parse_json(json)</a></li>
 </ul></li>
-<li><a href="#loading-scripts">Loading scripts</a><ul>
+<li><a href="#loading-other-resources">Loading other resources</a><ul>
 <li><a href="#am.load_script">am.load_script(filename)</a></li>
+<li><a href="#am.load_string">am.load_string(filename)</a></li>
 </ul></li>
 <li><a href="#performance-stats">Performance stats</a><ul>
 <li><a href="#am.perf_stats">am.perf_stats()</a></li>
@@ -480,7 +488,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 </div>
 <h1 id="lua-primer">Lua primer</h1>
-<p>Amulet code is written in <a href="http://www.lua.org">Lua</a>. The version of Lua used by default is Lua-5.1.</p>
+<p>Amulet code is written in <a href="http://www.lua.org">Lua</a>. The version of Lua used by default is LuaJIT-2 on Windows, Mac and Linux and Lua-5.1 on all other platforms.</p>
 <p>What follows is a quick introduction to Lua. For more detail please see the <a href="http://www.lua.org/manual/5.1/">Lua manual</a>.</p>
 <p><strong>Comments:</strong></p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="co">-- This is a single line comment</span>
@@ -1303,6 +1311,14 @@ vec2(0, 2)</code></pre>
 <p>Returns a new buffer of the given size in bytes.</p>
 <p>The buffer's memory will be zeroed.</p>
 <p>The <code>#</code> operator can be used to retrieve the size of a buffer in bytes.</p>
+<p>Fields:</p>
+<ul>
+<li><code>dataptr</code>: Returns a pointer to the buffer as a Lua <code>lightuserdata</code> value. The intended use for this is to manipulate the buffer using the <a href="http://luajit.org/ext_ffi.html">LuaJIT FFI library</a>.</li>
+</ul>
+<p>Methods:</p>
+<ul>
+<li><code>mark_dirty()</code>: Mark the buffer dirty. This should be called if you update the buffer using the <code>dataptr</code> field. This will cause data to be copied to any textures or vbos that depend on the buffer when next they are drawn. Note that you don't need to call this method if you're not using <code>dataptr</code> to update the buffer, for example if you're updating it through a view - in that case the buffer will automatically be marked dirty.</li>
+</ul>
 <h3 id="am.load_buffer" class="func-def">am.load_buffer(filename)</h3>
 <p>Loads the given file and returns a buffer containing the file's data.</p>
 <h3 id="am.base64_encode" class="func-def">am.base64_encode(buffer)</h3>
@@ -2078,6 +2094,7 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <ul>
 <li><code>position</code>: The translation position as a <code>vec3</code>. Updatable.</li>
 <li><code>position2d</code>: The translation position as a <code>vec2</code>. Updatable.</li>
+<li><code>x</code>, <code>y</code>, <code>z</code>: The <code>x</code>, <code>y</code> and <code>z</code> components of the position. Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;translate&quot;</code>.</p>
 <p>Examples:</p>
@@ -2086,6 +2103,8 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 <span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3.5</span><span class="ot">)</span>
 <span class="kw">local</span> node4 <span class="ot">=</span> am<span class="ot">.</span>translate<span class="ot">(</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">))</span>
 node1<span class="ot">.</span>position2d <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">30</span><span class="ot">,</span> <span class="dv">40</span><span class="ot">)</span>
+node2<span class="ot">.</span>x <span class="ot">=</span> <span class="dv">40</span>
+node2<span class="ot">.</span>y <span class="ot">=</span> <span class="dv">50</span>
 node3<span class="ot">.</span>position <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">3</span><span class="ot">)</span></code></pre></div>
 <h3 id="am.scale" class="func-def">am.scale([uniform,] scaling)</h3>
 <p>Apply a scale transform to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
@@ -2094,6 +2113,7 @@ node3<span class="ot">.</span>position <span class="ot">=</span> vec3<span class
 <ul>
 <li><code>scale</code>: The scale as a <code>vec3</code>. Updatable.</li>
 <li><code>scale2d</code>: The scale as a <code>vec2</code>. Updatable.</li>
+<li><code>x</code>, <code>y</code>, <code>z</code>: The <code>x</code>, <code>y</code> and <code>z</code> components of the scale. Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;scale&quot;</code>.</p>
 <p>Examples:</p>
@@ -2102,6 +2122,7 @@ node3<span class="ot">.</span>position <span class="ot">=</span> vec3<span class
 <span class="kw">local</span> node3 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span>vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">))</span>
 <span class="kw">local</span> node4 <span class="ot">=</span> am<span class="ot">.</span>scale<span class="ot">(</span><span class="st">&quot;MyModelViewMatrix&quot;</span><span class="ot">,</span> vec3<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">))</span>
 node1<span class="ot">.</span>scale2d <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">)</span>
+node2<span class="ot">.</span>x <span class="ot">=</span> <span class="dv">3</span>
 node4<span class="ot">.</span>scale <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">)</span></code></pre></div>
 <h3 id="am.rotate" class="func-def">am.rotate([uniform,] rotation)</h3>
 <p>Apply a rotation to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
@@ -2936,16 +2957,30 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h2 id="analysing-audio">Analysing audio</h2>
 <p>TODO</p>
 <h1 id="controllers">Controllers</h1>
+<p>Each controller is assigned an index starting from 1. The first controller attached will always have index 1, so if your game only uses one controller you can just use index 1.</p>
+<p>Controllers are supported on Windows, OSX and Linux and up to 8 controllers can be connected at once.</p>
+<h3 id="am.controller_present" class="func-def">am.controller_present(index)</h3>
+<p>Returns <code>true</code> if controller <code>index</code> is currently connected.</p>
+<h3 id="am.controller_attached" class="func-def">am.controller_attached(index)</h3>
+<p>Returns <code>true</code> if controller <code>index</code> was attached since the last frame.</p>
+<h3 id="am.controller_detached" class="func-def">am.controller_detached(index)</h3>
+<p>Returns <code>true</code> if controller <code>index</code> was removed since the last frame.</p>
+<h3 id="am.controllers_present" class="func-def">am.controllers_present()</h3>
+<p>Returns a list of currently connected controller indexes.</p>
+<h3 id="am.controllers_attached" class="func-def">am.controllers_attached()</h3>
+<p>Returns a list of controller indexes attached since the last frame.</p>
+<h3 id="am.controllers_detached" class="func-def">am.controllers_detached()</h3>
+<p>Returns a list of controller indexes removed since the last frame.</p>
 <h3 id="am.controller_lt_val" class="func-def">am.controller_lt_val(index)</h3>
-<p>Returns the value of the left trigger axis of controller <code>index</code>, where <code>index</code> starts from 1. The returned value is between 0 and 1.</p>
+<p>Returns the value of the left trigger axis of controller <code>index</code>. The returned value is between 0 and 1.</p>
 <h3 id="am.controller_rt_val" class="func-def">am.controller_rt_val(index)</h3>
-<p>Returns the value of the right trigger axis of controller <code>index</code>, where <code>index</code> starts from 1. The returned value is between 0 and 1.</p>
+<p>Returns the value of the right trigger axis of controller <code>index</code>. The returned value is between 0 and 1.</p>
 <h3 id="am.controller_lstick_pos" class="func-def">am.controller_lstick_pos(index)</h3>
-<p>Returns the position of the left stick of controller <code>index</code> as a <code>vec2</code>, where <code>index</code> starts from 1.</p>
+<p>Returns the position of the left stick of controller <code>index</code> as a <code>vec2</code>. The position values range from -1 to 1 in both the x and y components. Negative x means left and negative y means down.</p>
 <h3 id="am.controller_rstick_pos" class="func-def">am.controller_rstick_pos(index)</h3>
-<p>Returns the position of the left stick of controller <code>index</code> as a <code>vec2</code>, where <code>index</code> starts from 1.</p>
+<p>Returns the position of the left stick of controller <code>index</code> as a <code>vec2</code>. The position values range from -1 to 1 in both the x and y components. Negative x means left and negative y means down.</p>
 <h3 id="am.controller_button_pressed" class="func-def">am.controller_button_pressed(index, button)</h3>
-<p>Returns <code>true</code> if the given button of controller <code>index</code> was pressed since the last frame, where <code>index</code> starts from 1.</p>
+<p>Returns <code>true</code> if the given button of controller <code>index</code> was pressed since the last frame.</p>
 <p><code>button</code> can be one of the following strings:</p>
 <ul>
 <li><code>&quot;a&quot;</code></li>
@@ -2965,9 +3000,9 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <li><code>&quot;right&quot;</code></li>
 </ul>
 <h3 id="am.controller_button_released" class="func-def">am.controller_button_released(index, button)</h3>
-<p>Returns <code>true</code> if the given button of controller <code>index</code> was released since the last frame, where <code>index</code> starts from 1. See <a href="#am.controller_button_pressed">am.controller_button_pressed</a> for a list of valid values for <code>button</code>.</p>
+<p>Returns <code>true</code> if the given button of controller <code>index</code> was released since the last frame. See <a href="#am.controller_button_pressed">am.controller_button_pressed</a> for a list of valid values for <code>button</code>.</p>
 <h3 id="am.controller_button_down" class="func-def">am.controller_button_down(index, button)</h3>
-<p>Returns <code>true</code> if the given button of controller <code>index</code> was down at the start of the current frame, where <code>index</code> starts from 1. See <a href="#am.controller_button_pressed">am.controller_button_pressed</a> for a list of valid values for <code>button</code>.</p>
+<p>Returns <code>true</code> if the given button of controller <code>index</code> was down at the start of the current frame. See <a href="#am.controller_button_pressed">am.controller_button_pressed</a> for a list of valid values for <code>button</code>.</p>
 <h1 id="spritepack">Packing sprites and generating fonts</h1>
 <h2 id="overview">Overview</h2>
 <p>Amulet includes a tool for packing images and font glyphs into a sprite sheet and generating a Lua module for conveniently accessing the images and glyphs therein.</p>
@@ -3045,7 +3080,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <p>Run the following command from the directory containing your lua, image and audio files:</p>
 <pre class="console"><code>&gt; amulet export</code></pre>
 <p>This will generate package files for each supported platform in the current directory. If you just want to generate a package for one platform you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-ios</code>, <code>-linux</code> or <code>-html</code>.</p>
-<p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
+<p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.json</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
 <p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
 <p>If you create a <code>conf.lua</code> file in the same directory as your other Lua files containing the following:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">title <span class="ot">=</span> <span class="st">&quot;My Game Title&quot;</span>
@@ -3089,6 +3124,8 @@ orientation <span class="ot">=</span> <span class="st">&quot;any&quot;</span></c
 <p>Returns a new array which contains only the values from <code>arr</code> for which <code>f(elem)</code> returns true (or any value besides <code>nil</code> or <code>false</code>).</p>
 <h3 id="table.tostring" class="func-def">table.tostring(t)</h3>
 <p>Converts a table to a string. The returned string is a valid Lua table literal.</p>
+<h3 id="table.count" class="func-def">table.count(t)</h3>
+<p>Returns the total number of pairs in the table.</p>
 <h1 id="amulet-require-function">Amulet require function</h1>
 <p>The <code>require</code> function in Amulet is slightly different from the default one. The default Lua package loaders have been removed and replaced with a custom loader. The loader passes a new empty table into each module it loads. All exported functions can be added to this table, instead of creating a new table. If no other value is returned by the module, the passed in table will be used as the return value for <code>require</code>.</p>
 <p>The passed in export table can be accessed via the <code>...</code> expression. Here's a short example:</p>
@@ -3131,12 +3168,14 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <h1 id="converting-tofrom-json">Converting to/from JSON</h1>
 <h3 id="am.to_json" class="func-def">am.to_json(value)</h3>
 <p>Converts the given Lua value to a JSON string and returns it.</p>
-<p>Cycles are not detected.</p>
+<p>Tables with string keys are converted to JSON objects and tables with consecutive integer keys starting at 1 are converted to JSON arrays. Empty tables are converted to empty JSON arrays. Other types of tables are not supported anc cycles are not detected.</p>
 <h3 id="am.parse_json" class="func-def">am.parse_json(json)</h3>
-<p>Converts the given JSON string to a Lua value and returns it.</p>
-<h1 id="loading-scripts">Loading scripts</h1>
+<p>Converts the given JSON string to a Lua value and returns it. If there was an error parsing the JSON then <code>nil</code> is returned and the error message is returned as a second return value.</p>
+<h1 id="loading-other-resources">Loading other resources</h1>
 <h3 id="am.load_script" class="func-def">am.load_script(filename)</h3>
 <p>Loads the Lua script in <code>filename</code> and returns a function that, when called, will run the script.</p>
+<h3 id="am.load_string" class="func-def">am.load_string(filename)</h3>
+<p>Loads <code>filename</code> and returns its contents as a string.</p>
 <h1 id="performance-stats">Performance stats</h1>
 <h3 id="am.perf_stats" class="func-def">am.perf_stats()</h3>
 <p>Returns a table with the following fields:</p>

@@ -19,6 +19,22 @@ The buffer's memory will be zeroed.
 
 The `#` operator can be used to retrieve the size of a buffer in bytes.
 
+Fields:
+
+- `dataptr`: Returns a pointer to the buffer as a Lua `lightuserdata` value.
+  The intended use for this is to manipulate the buffer using the
+  [LuaJIT FFI library](http://luajit.org/ext_ffi.html).
+
+Methods:
+
+- `mark_dirty()`: Mark the buffer dirty. This should be called if you 
+  update the buffer using the `dataptr` field. This will cause
+  data to be copied to any textures or vbos that depend on the buffer
+  when next they are drawn. Note that you don't need to call this method if
+  you're not using `dataptr` to update the buffer, for example if you're updating
+  it through a view - in that case the buffer will automatically be marked
+  dirty.
+
 ### am.load_buffer(filename) {#am.load_buffer .func-def}
 
 Loads the given file and returns a buffer containing the
