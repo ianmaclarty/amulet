@@ -338,6 +338,7 @@ function window_mt.touch_pixel_delta(win, i)
 end
 
 function window_mt.touches_began(win)
+    local u = win._event_data
     local touches = {}
     for i, touch in ipairs(u._touches) do
         if touch.id and touch.began then
@@ -348,6 +349,7 @@ function window_mt.touches_began(win)
 end
 
 function window_mt.touches_ended(win)
+    local u = win._event_data
     local touches = {}
     for i, touch in ipairs(u._touches) do
         if touch.id and touch.ended then
@@ -358,6 +360,7 @@ function window_mt.touches_ended(win)
 end
 
 function window_mt.active_touches(win)
+    local u = win._event_data
     local touches = {}
     for i, touch in ipairs(u._touches) do
         if touch.id and not touch.ended then
