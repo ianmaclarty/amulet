@@ -60,6 +60,7 @@ void am_log(lua_State *L, int level, bool once, const char *fmt, ...) {
     va_start(argp, fmt);
     vsnprintf(msg, MAX_MSG_LEN, fmt, argp);
     va_end(argp);
+    /*
     if (L != NULL && level > 0) {
         lua_Debug ar;
         int r = lua_getstack(L, level, &ar);
@@ -77,6 +78,7 @@ void am_log(lua_State *L, int level, bool once, const char *fmt, ...) {
             free((void*)tmp);
         }
     }
+    */
     if (!once || !check_log_cache(msg)) {
         fprintf(LOG_F, "%s\n", msg);
         fflush(LOG_F);

@@ -73,9 +73,6 @@ top:action(function()
     if win:key_pressed("escape") then
         win:close()
     end
-    if win:resized() then
-        log("resize %dx%d", win.width, win.height)
-    end
     if win:key_pressed("f") then
         win.mode = win.mode == "fullscreen" and "windowed" or "fullscreen"
     end

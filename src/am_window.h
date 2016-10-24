@@ -3,6 +3,8 @@ struct am_window : am_nonatomic_userdata {
     am_native_window   *native_win;
     am_scene_node      *scene;
     int                 scene_ref;
+    am_scene_node      *overlay;
+    int                 overlay_ref;
     int                 window_ref;
     int                 requested_width;
     int                 requested_height;

@@ -295,8 +295,12 @@ _metatable_registry.quat.__tostring = format_quat
 
 -- extra builtins
 
+local log_overlay_node
+local log_overlay_lines
+local max_log_lines = 20
 local
 function log(fmt, ...)
+    local msg
     if type(fmt) == "string" and ... then
         local args = {}
         for a = 1, select("#", ...) do
@@ -306,9 +310,39 @@ function log(fmt, ...)
             end
             table.insert(args, arg)
         end
-        am.log(string.format(fmt, unpack(args)), false, 2)
+        msg = string.format(fmt, unpack(args))
     else
-        am.log(tostring(fmt), false, 2)
+        msg = tostring(fmt)
+    end
+    local info = debug.getinfo(2, "Sl")
+    if info then
+        msg = info.short_src..":"..info.currentline..": "..msg
+    end
+    am.log(msg, false, 2)
+    if am._main_window then
+        local win = am._main_window
+        if not log_overlay_node then
+            log_overlay_node = am.bind{P = math.ortho(0, win.pixel_width, 0, win.pixel_height)}
+                ^ am.translate(0, win.pixel_height)
+                ^ am.text("", vec4(0, 1, 0, 1), "left", "top")
+            log_overlay_node:action(function(node)
+                if win:resized() then
+                    node.P = math.ortho(0, win.pixel_width, 0, win.pixel_height)
+                    node"translate".y = win.pixel_height
+                end
+            end)
+            win._overlay = log_overlay_node
+            log_overlay_lines = {}
+        end
+        table.insert(log_overlay_lines, msg)
+        while #log_overlay_lines > max_log_lines do
+            table.remove(log_overlay_lines, 1)
+        end
+        local str = ""
+        for i = 1, #log_overlay_lines do
+            str = str..log_overlay_lines[i].."\n"
+        end
+        log_overlay_node"text".text = str
     end
 end
 rawset(_G, "log", log)

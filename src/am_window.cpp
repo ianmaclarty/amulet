@@ -106,6 +106,8 @@ static int create_window(lua_State *L) {
 
     win->scene = NULL;
     win->scene_ref = LUA_NOREF;
+    win->overlay = NULL;
+    win->overlay_ref = LUA_NOREF;
 
     win->has_depth_buffer = depth_buffer;
     win->has_stencil_buffer = stencil_buffer;
@@ -399,6 +401,12 @@ static void draw_windows() {
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                 win->pixel_width, win->pixel_height,
                 win->projection, win->has_depth_buffer);
+            if (win->overlay != NULL) {
+                rstate->do_render(win->overlay, 0, false, win->clear_color,
+                    win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
+                    win->pixel_width, win->pixel_height,
+                    win->projection, false);
+            }
             am_native_window_swap_buffers(win->native_win);
         }
     }
@@ -428,6 +436,10 @@ bool am_execute_actions(lua_State *L, double dt) {
             // actions.
             update_size(win);
             if (!am_execute_node_actions(L, win->scene)) {
+                res = false;
+                break;
+            }
+            if (win->overlay != NULL && !am_execute_node_actions(L, win->overlay)) {
                 res = false;
                 break;
             }
@@ -462,6 +474,30 @@ static void set_scene(lua_State *L, void *obj) {
 }
 
 static am_property scene_property = {get_scene, set_scene};
+
+static void get_overlay(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    window->pushref(L, window->overlay_ref);
+}
+
+static void set_overlay(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    if (lua_isnil(L, 3)) {
+        if (window->overlay == NULL) return;
+        window->unref(L, window->overlay_ref);
+        window->overlay_ref = LUA_NOREF;
+        window->overlay = NULL;
+        return;
+    }
+    window->overlay = am_get_userdata(L, am_scene_node, 3);
+    if (window->overlay_ref == LUA_NOREF) {
+        window->overlay_ref = window->ref(L, 3);
+    } else {
+        window->reref(L, window->overlay_ref, 3);
+    }
+}
+
+static am_property overlay_property = {get_overlay, set_overlay};
 
 static void get_window_left(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
@@ -591,6 +627,7 @@ static void register_window_mt(lua_State *L) {
     am_set_default_newindex_func(L);
 
     am_register_property(L, "scene", &scene_property);
+    am_register_property(L, "_overlay", &overlay_property);
     am_register_property(L, "lock_pointer", &lock_pointer_property);
     am_register_property(L, "pixel_width", &pixel_width_property);
     am_register_property(L, "pixel_height", &pixel_height_property);
