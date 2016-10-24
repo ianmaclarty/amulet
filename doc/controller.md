@@ -22,18 +22,15 @@ Returns `true` if controller `index` was removed since the last frame.
 
 ### am.controllers_present() {#am.controllers_present .func-def}
 
-Returns a list of currently connected controller indexes,
-or `nil` if none are attached.
+Returns a list of currently connected controller indexes.
 
 ### am.controllers_attached() {#am.controllers_attached .func-def}
 
-Returns a list of controller indexes attached since the last frame,
-or `nil` if none were attached.
+Returns a list of controller indexes attached since the last frame.
 
 ### am.controllers_detached() {#am.controllers_detached .func-def}
 
-Returns a list of controller indexes removed since the last frame,
-or `nil` if none were removed.
+Returns a list of controller indexes removed since the last frame.
 
 ### am.controller_lt_val(index) {#am.controller_lt_val .func-def}
 

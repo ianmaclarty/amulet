@@ -1,5 +1,7 @@
 local window_mt = _metatable_registry.window
 
+local empty_table = {} -- for active_touches, etc.
+
 -- keyboard
 
 function am._key_down(win, key)
@@ -192,11 +194,9 @@ function am._touch_begin(win, id, x, y, nx, ny, px, py, force)
     local u = win._event_data
     local free_i = nil
     for i, touch in ipairs(u._touches) do
-        if touch.id == id then
+        if not touch.id then
             free_i = i
             break
-        elseif not touch.id and not free_i then
-            free_i = i
         end
     end
     if free_i then
@@ -339,35 +339,44 @@ end
 
 function window_mt.touches_began(win)
     local u = win._event_data
-    local touches = {}
+    local touches
     for i, touch in ipairs(u._touches) do
         if touch.id and touch.began then
+            if not touches then
+                touches = {}
+            end
             table.insert(touches, i)
         end
     end
-    return touches
+    return touches or empty_table
 end
 
 function window_mt.touches_ended(win)
     local u = win._event_data
-    local touches = {}
+    local touches
     for i, touch in ipairs(u._touches) do
         if touch.id and touch.ended then
+            if not touches then
+                touches = {}
+            end
             table.insert(touches, i)
         end
     end
-    return touches
+    return touches or empty_table
 end
 
 function window_mt.active_touches(win)
     local u = win._event_data
-    local touches = {}
+    local touches
     for i, touch in ipairs(u._touches) do
         if touch.id and not touch.ended then
+            if not touches then
+                touches = {}
+            end
             table.insert(touches, i)
         end
     end
-    return touches
+    return touches or empty_table
 end
 
 function window_mt.touch_active(win, i)
@@ -610,7 +619,7 @@ function am.controllers_present()
             table.insert(res, i)
         end
     end
-    return res
+    return res or empty_table
 end
 
 function am.controllers_attached()
@@ -623,7 +632,7 @@ function am.controllers_attached()
             table.insert(res, i)
         end
     end
-    return res
+    return res or empty_table
 end
 
 function am.controllers_detached()
@@ -636,7 +645,7 @@ function am.controllers_detached()
             table.insert(res, i)
         end
     end
-    return res
+    return res or empty_table
 end
 
 -- resize
