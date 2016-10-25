@@ -206,6 +206,11 @@ static bool mute_opt(int *argc, char ***argv) {
     return true;
 }
 
+static bool gllog_opt(int *argc, char ***argv) {
+    am_conf_log_gl_calls = true;
+    return true;
+}
+
 static option options[] = {
     {"help",        help_cmd, true},
     {"-help",       help_cmd, true},
@@ -216,6 +221,7 @@ static option options[] = {
     {"export",      export_cmd, true},
     {"pack",        pack_cmd, true},
     {"-mute",       mute_opt, false},
+    {"-gllog",      gllog_opt, false},
 
     {NULL, NULL}
 };

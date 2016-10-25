@@ -44,10 +44,12 @@
 
 #define check_for_errors { if (am_conf_check_gl_errors) check_glerror(__FILE__, __LINE__, __func__); }
 
-#define log_gl(fmt, ...) {if (am_conf_log_gl_calls && am_conf_log_gl_frames > 0) {fprintf(stderr, fmt "\n", __VA_ARGS__);}}
-#define log_gl_ptr(ptr, len) {if (am_conf_log_gl_calls && am_conf_log_gl_frames > 0) {print_ptr((void*)ptr, len);}}
+#define log_gl(fmt, ...) {if (am_conf_log_gl_calls && am_conf_log_gl_frames > 0) {fprintf(gl_log_file, fmt "\n", __VA_ARGS__);}}
+#define log_gl_ptr(ptr, len) {if (am_conf_log_gl_calls && am_conf_log_gl_frames > 0) {print_ptr(gl_log_file, (void*)ptr, len);}}
 
-static void print_ptr(void* p, int len);
+static FILE *gl_log_file = NULL;
+
+static void print_ptr(FILE* f, void* p, int len);
 
 #define check_initialized(...) {if (!gl_initialized) {am_log1("%s:%d: attempt to call %s without a valid gl context", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
 
@@ -115,46 +117,46 @@ static void reset_gl() {
 
 static void log_gl_prog_header() {
     if (!am_conf_log_gl_calls) return;
-    fprintf(stderr, "%s\n", "#define SDL_MAIN_HANDLED 1");
-    fprintf(stderr, "%s\n", "#include \"SDL.h\"");
-    fprintf(stderr, "%s\n", "#define GL_GLEXT_PROTOTYPES");
-    fprintf(stderr, "%s\n", "#include \"SDL_opengl.h\"");
-    fprintf(stderr, "%s\n", "#include <map>");
-    fprintf(stderr, "%s\n", "#include <assert.h>");
-    fprintf(stderr, "%s\n", "int main( int argc, char *argv[] )");
-    fprintf(stderr, "%s\n", "{");
-    fprintf(stderr, "%s\n", "    std::map<uintptr_t, void*> ptr;");
-    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> prog;");
-    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> tex;");
-    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> buf;");
-    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> shader;");
-    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> fbuf;");
-    fprintf(stderr, "%s\n", "    std::map<GLuint, GLuint> rbuf;");
-    fprintf(stderr, "%s\n", "    ptr[0] = NULL;");
-    fprintf(stderr, "%s\n", "    prog[0] = 0;");
-    fprintf(stderr, "%s\n", "    tex[0] = 0;");
-    fprintf(stderr, "%s\n", "    buf[0] = 0;");
-    fprintf(stderr, "%s\n", "    shader[0] = 0;");
-    fprintf(stderr, "%s\n", "    fbuf[0] = 0;");
-    fprintf(stderr, "%s\n", "    rbuf[0] = 0;");
-    fprintf(stderr, "%s\n", "    SDL_Init(SDL_INIT_VIDEO);");
-    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);");
-    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);");
-    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);");
-    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);");
-    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);");
-    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);");
-    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);");
-    fprintf(stderr, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);");
-    fprintf(stderr, "%s\n", "    SDL_Window *win = SDL_CreateWindow(\"\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL);");
-    fprintf(stderr, "%s\n", "    SDL_GL_MakeCurrent(win, SDL_GL_CreateContext(win));");
-    fprintf(stderr, "\n\n");
+    fprintf(gl_log_file, "%s\n", "#define SDL_MAIN_HANDLED 1");
+    fprintf(gl_log_file, "%s\n", "#include \"SDL.h\"");
+    fprintf(gl_log_file, "%s\n", "#define GL_GLEXT_PROTOTYPES");
+    fprintf(gl_log_file, "%s\n", "#include \"SDL_opengl.h\"");
+    fprintf(gl_log_file, "%s\n", "#include <map>");
+    fprintf(gl_log_file, "%s\n", "#include <assert.h>");
+    fprintf(gl_log_file, "%s\n", "int main( int argc, char *argv[] )");
+    fprintf(gl_log_file, "%s\n", "{");
+    fprintf(gl_log_file, "%s\n", "    std::map<uintptr_t, void*> ptr;");
+    fprintf(gl_log_file, "%s\n", "    std::map<GLuint, GLuint> prog;");
+    fprintf(gl_log_file, "%s\n", "    std::map<GLuint, GLuint> tex;");
+    fprintf(gl_log_file, "%s\n", "    std::map<GLuint, GLuint> buf;");
+    fprintf(gl_log_file, "%s\n", "    std::map<GLuint, GLuint> shader;");
+    fprintf(gl_log_file, "%s\n", "    std::map<GLuint, GLuint> fbuf;");
+    fprintf(gl_log_file, "%s\n", "    std::map<GLuint, GLuint> rbuf;");
+    fprintf(gl_log_file, "%s\n", "    ptr[0] = NULL;");
+    fprintf(gl_log_file, "%s\n", "    prog[0] = 0;");
+    fprintf(gl_log_file, "%s\n", "    tex[0] = 0;");
+    fprintf(gl_log_file, "%s\n", "    buf[0] = 0;");
+    fprintf(gl_log_file, "%s\n", "    shader[0] = 0;");
+    fprintf(gl_log_file, "%s\n", "    fbuf[0] = 0;");
+    fprintf(gl_log_file, "%s\n", "    rbuf[0] = 0;");
+    fprintf(gl_log_file, "%s\n", "    SDL_Init(SDL_INIT_VIDEO);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);");
+    fprintf(gl_log_file, "%s\n", "    SDL_Window *win = SDL_CreateWindow(\"\", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL);");
+    fprintf(gl_log_file, "%s\n", "    SDL_GL_MakeCurrent(win, SDL_GL_CreateContext(win));");
+    fprintf(gl_log_file, "\n\n");
 }
 
 static void log_gl_prog_footer() {
     if (!am_conf_log_gl_calls) return;
-    fprintf(stderr, "%s\n", "    SDL_Quit();");
-    fprintf(stderr, "%s\n", "}");
+    fprintf(gl_log_file, "%s\n", "    SDL_Quit();");
+    fprintf(gl_log_file, "%s\n", "}");
 }
 
 void am_init_gl() {
@@ -191,8 +193,21 @@ void am_init_gl() {
     init_angle();
 #endif
 
+    if (am_conf_log_gl_calls) {
+        gl_log_file = fopen("amulet_gllog.txt", "w");
+        if (gl_log_file == NULL) {
+            fprintf(stderr, "ERROR: unable to open amulet_gllog.txt for writing\n");
+            exit(1);
+        }
+    }
     log_gl_prog_header();
     reset_gl();
+}
+
+void am_close_gllog() {
+    if (am_conf_log_gl_calls) {
+        fclose(gl_log_file);
+    }
 }
 
 void am_destroy_gl() {
@@ -1907,15 +1922,22 @@ static void get_src_error_line(char *errmsg, const char *src, int *line_no, char
     }
 }
 
-static void print_ptr(void* p, int len) {
+static void print_ptr(FILE* f, void* p, int len) {
     uint8_t *ptr = (uint8_t*)p;
-    fprintf(stderr, "ptr[%p] = (void*)\"", ptr);
+    fprintf(f, "ptr[%p] = (void*)\"", ptr);
     for (int i = 0; i < len; i++) {
-        fprintf(stderr, "\\x%02X", *ptr);
+        fprintf(f, "\\x%02X", *ptr);
         ptr++;
     }
-    fprintf(stderr, "\";\n");
+    fprintf(f, "\";\n");
 }
+
+void am_log_gl(const char *msg) {
+    if (gl_log_file != NULL) {
+        log_gl("%s", msg);
+    }
+}
+
 //-------------------------------------------------------------------------------------------------
 // Angle shader translater
 #if defined(AM_USE_ANGLE)

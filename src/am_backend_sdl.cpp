@@ -262,6 +262,7 @@ void am_set_native_window_lock_pointer(am_native_window *window, bool enabled) {
 }
 
 void am_destroy_native_window(am_native_window* window) {
+    am_log_gl("// destroy window");
     SDL_Window *sdl_win = (SDL_Window*)window;
     for (int i = windows.size() - 1; i >= 0; i--) {
         // if main window closed, close all windows.
@@ -510,6 +511,7 @@ restart:
 
 quit:
     if (audio_device != 0 || capture_device != 0) {
+        am_log_gl("// close audio");
         if (audio_device != 0) {
             SDL_CloseAudioDevice(audio_device);
         }
@@ -517,40 +519,51 @@ quit:
             SDL_CloseAudioDevice(capture_device);
         }
     }
+    am_log_gl("// destroy engine");
     // destroy lua state before main window, so gl context not
     // destroyed before textures and vbos deleted.
     if (eng != NULL) am_destroy_engine(eng);
     for (unsigned int i = 0; i < windows.size(); i++) {
         // destroy main window last, because it owns the gl context.
         if (windows[i].window != main_window) {
+            am_log_gl("// destroy non-main window");
             SDL_DestroyWindow(windows[i].window);
         }
     }
     if (main_window != NULL) {
+        am_log_gl("// destroy main window");
         SDL_DestroyWindow(main_window);
         main_window = NULL;
     }
     if (sdl_initialized) {
+        am_log_gl("// quit sdl");
         SDL_Quit();
     }
     if (am_gl_is_initialized()) {
+        am_log_gl("// destroy gl");
         am_destroy_gl();
     }
     if (package != NULL) {
+        am_log_gl("// close package");
         am_close_package(package);
     }
     if (audio_buffer != NULL) {
+        am_log_gl("// free audio buffer");
         free(audio_buffer);
         audio_buffer = NULL;
     }
     if (capture_buffer != NULL) {
+        am_log_gl("// free capture buffer");
         free(capture_buffer);
         capture_buffer = NULL;
     }
+    am_log_gl("// free expanded args");
     am_free_expanded_args(expanded_argc, expanded_argv);
 #ifdef AM_OSX
     [pool release];
 #endif
+    am_log_gl("// exit");
+    am_close_gllog();
     exit(exit_status);
     return exit_status;
 }

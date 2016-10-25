@@ -42,7 +42,7 @@ bool am_conf_check_gl_errors = false;
 
 bool am_conf_dump_translated_shaders = false;
 bool am_conf_log_gl_calls = false;
-int am_conf_log_gl_frames = 1;
+int am_conf_log_gl_frames = 1000000;
 
 bool am_conf_allow_restart = false;
 

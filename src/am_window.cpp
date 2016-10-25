@@ -279,31 +279,30 @@ static int close_window(lua_State *L) {
 #endif
 }
 
-static void close_windows(lua_State *L) {
+static bool close_windows(lua_State *L) {
     unsigned int i = 0;
     while (i < windows.size()) {
         am_window *win = windows[i];
         if (win->needs_closing) {
-            am_destroy_native_window(win->native_win);
-            win->native_win = NULL;
-            win->needs_closing = false;
-            lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
-            luaL_unref(L, -1, win->window_ref);
-            lua_pop(L, 1); // window table
-            win->window_ref = LUA_NOREF;
-            windows.erase(windows.begin() + i);
-            continue;
+            if (i == 0) {
+                // don't close main window here, because we need to destroy the
+                // gl objects first.
+                return false;
+            } else {
+                am_destroy_native_window(win->native_win);
+                win->native_win = NULL;
+                win->needs_closing = false;
+                lua_rawgeti(L, LUA_REGISTRYINDEX, AM_WINDOW_TABLE);
+                luaL_unref(L, -1, win->window_ref);
+                lua_pop(L, 1); // window table
+                win->window_ref = LUA_NOREF;
+                windows.erase(windows.begin() + i);
+                continue;
+            }
         }
         i++;
     }
-}
-
-void am_destroy_windows(lua_State *L) {
-    for (unsigned int i = 0; i < windows.size(); i++) {
-        am_window *win = windows[i];
-        win->needs_closing = true;
-    }
-    close_windows(L);
+    return true;
 }
 
 static void resize_windows() {
@@ -414,12 +413,14 @@ static void draw_windows() {
 
 bool am_update_windows(lua_State *L) {
     static unsigned int frame = 0;
-    close_windows(L);
+    if (!close_windows(L)) return false;
     resize_windows();
     draw_windows();
     frame++;
     if (am_conf_log_gl_calls && am_conf_log_gl_frames > 0) {
-        fprintf(stderr, "SDL_GL_SwapWindow(win);\n\n // ===================== END FRAME %d ==========================\n\n", frame);
+        char *msg = am_format("SDL_GL_SwapWindow(win);\n\n // ===================== END FRAME %d ==========================\n\n", frame);
+        am_log_gl(msg);
+        free(msg);
     }
     if (am_conf_log_gl_frames > 0) am_conf_log_gl_frames--;
     return windows.size() > 0;

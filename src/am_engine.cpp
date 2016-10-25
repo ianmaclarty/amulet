@@ -83,14 +83,19 @@ void am_destroy_engine(am_engine *eng) {
     if (!eng->worker) {
         // Audio must be destroyed before closing the lua state, because
         // closing the lua state will destroy the root audio node.
+        am_log_gl("// destroy audio");
         am_destroy_audio();
-        am_destroy_windows(eng->L);
+        //am_log_gl("// destroy windows");
+        //am_destroy_windows(eng->L);
     }
+    am_log_gl("// close lua");
     lua_close(eng->L);
+    am_log_gl("// destroy allocator");
     if (eng->allocator != NULL) {
         am_destroy_allocator(eng->allocator);
     }
     delete eng;
+    am_log_gl("// reset log cache");
     am_reset_log_cache(); // XXX what about other running engines?
 }
 
