@@ -239,7 +239,7 @@ end
 function am._touch_move(win, id, x, y, nx, ny, px, py, force)
     local u = win._event_data
     for i, touch in ipairs(u._touches) do
-        if touch.id == id then
+        if touch.id == id and not touch.ended then
             touch.position_x = x
             touch.position_y = y
             touch.norm_position_x = nx
