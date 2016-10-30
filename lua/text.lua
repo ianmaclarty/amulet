@@ -536,6 +536,7 @@ function am.load_bitmap_font(filename, key, embedded)
             row = row + 1
         end
     end
+    num_cols = math.max(col - 1, num_cols)
     num_rows = col == 1 and row - 1 or row
     local w, h = img.width, img.height
     local dx = w / num_cols
