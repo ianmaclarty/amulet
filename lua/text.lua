@@ -439,7 +439,7 @@ end
 function am._init_fonts(data, imgfile, embedded)
     local fonts = {}
     for _, entry in ipairs(data) do
-        local name = entry.filename:match("([^/%.:\\]+)%.([^/%.:\\]+)$")
+        local name = entry.filename:match("([^/:\\]+)%.([^/%.:\\]+)$")
         if entry.is_font then
             if not name then
                 error("invalid font filename: "..entry.filename, 3)
