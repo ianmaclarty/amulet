@@ -83,6 +83,7 @@
 /* #undef HAVE_LIBUDEV_H */
 /* #undef HAVE_DBUS_DBUS_H */
 /* #undef HAVE_IBUS_IBUS_H */
+/* #undef HAVE_FCITX_FRONTEND_H */
 
 /* C library functions */
 #define HAVE_MALLOC 1
@@ -356,5 +357,8 @@
 /* Enable assembly routines */
 #define SDL_ASSEMBLY_ROUTINES 1
 /* #undef SDL_ALTIVEC_BLITTERS */
+
+/* Enable ime support */
+/* #undef SDL_USE_IME */
 
 #endif /* _SDL_config_h */

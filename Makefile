@@ -113,6 +113,7 @@ $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) $(
 $(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	echo $(SDL_PREBUILT_DIR)
 	if [ -d $(SDL_PREBUILT_DIR) ]; then \
 	    cp $(SDL_PREBUILT_DIR)/lib/*.a $(BUILD_LIB_DIR)/; \
 	    cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/; \
