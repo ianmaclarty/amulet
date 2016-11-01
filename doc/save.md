@@ -12,7 +12,7 @@ or bools.
 
 **Note**:
 The `lua` format allows users to execute arbitrary lua
-code my modifying the save file.
+code by modifying the save file.
 
 ### am.load_state(key, [,format])
 
@@ -25,5 +25,5 @@ then `nil` is returned.
 
 **Note**:
 The `lua` format allows users to execute arbitrary lua
-code my modifying the save file.
+code by modifying the save file.
 
