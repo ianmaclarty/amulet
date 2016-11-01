@@ -211,6 +211,11 @@ static bool gllog_opt(int *argc, char ***argv) {
     return true;
 }
 
+static bool nocloselua_opt(int *argc, char ***argv) {
+    am_conf_no_close_lua = true;
+    return true;
+}
+
 static option options[] = {
     {"help",        help_cmd, true},
     {"-help",       help_cmd, true},
@@ -222,6 +227,7 @@ static option options[] = {
     {"pack",        pack_cmd, true},
     {"-mute",       mute_opt, false},
     {"-gllog",      gllog_opt, false},
+    {"-nocloselua", nocloselua_opt, false},
 
     {NULL, NULL}
 };

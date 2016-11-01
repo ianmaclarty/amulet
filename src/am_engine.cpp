@@ -85,18 +85,18 @@ void am_destroy_engine(am_engine *eng) {
         // closing the lua state will destroy the root audio node.
         am_log_gl("// destroy audio");
         am_destroy_audio();
-        //am_log_gl("// destroy windows");
-        //am_destroy_windows(eng->L);
     }
-    am_log_gl("// close lua");
-    lua_close(eng->L);
-    am_log_gl("// destroy allocator");
-    if (eng->allocator != NULL) {
-        am_destroy_allocator(eng->allocator);
+    if (!am_conf_no_close_lua) {
+        am_log_gl("// close lua");
+        lua_close(eng->L);
+        am_log_gl("// destroy allocator");
+        if (eng->allocator != NULL) {
+            am_destroy_allocator(eng->allocator);
+        }
+        delete eng;
+        am_log_gl("// reset log cache");
+        am_reset_log_cache(); // XXX what about other running engines?
     }
-    delete eng;
-    am_log_gl("// reset log cache");
-    am_reset_log_cache(); // XXX what about other running engines?
 }
 
 static void init_reserved_refs(lua_State *L) {
