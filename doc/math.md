@@ -381,7 +381,7 @@ local q = quat(math.rad(45), vec3(0, 0, 1))
 ~~~
 
 constructs a quaternion that represents a 45 degree rotation around the
-z axis. (`math.rad` converts radians to degrees).
+z axis. (`math.rad` converts degrees to radians).
 
 If the axis argument is omitted then it is taken to be `vec3(0, 0, 1)`,
 so the above is equivalent to:
