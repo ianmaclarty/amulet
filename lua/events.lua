@@ -568,7 +568,7 @@ function am.controller_button_released(index, button)
     if not controller or not controller.id then
         return false
     end
-    return controller.button_state0[button] and (contoller.button_releases[button] or 0) > 0
+    return controller.button_state0[button] and (controller.button_releases[button] or 0) > 0
 end
 
 function am.controller_button_down(index, button)
