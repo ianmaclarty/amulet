@@ -199,9 +199,14 @@ static void write_data() {
             fprintf(f, ",\n");
             fprintf(f, "        filename = \"%s\",\n", filename);
             fprintf(f, "        face = %d,\n", items[s].face);
-            fprintf(f, "        chars = {\n");
+            fprintf(f, "        chars = (function()\n");
+            fprintf(f, "            local chrs = {}\n");
             c = 0;
             while (items[s].codepoints[c] >= 0) {
+                if (c % 256 == 0) {
+                    if (c != 0) fprintf(f, "            end)();\n");
+                    fprintf(f, "            (function()\n");
+                }
                 int cp = items[s].codepoints[c];
                 load_char(cp);
                 rows = char_bitmap.rows;
@@ -259,11 +264,11 @@ static void write_data() {
                 adv = (double)ft_face->glyph->advance.x * ADVANCE_SCALE;
 
                 fprintf(f, 
-                       "            [%d] = {\n"
-                       "                x1 = " NUMFMT ", y1 = " NUMFMT ", x2 = " NUMFMT ", y2 = " NUMFMT ",\n"
-                       "                s1 = " NUMFMT ", t1 = " NUMFMT ", s2 = " NUMFMT ", t2 = " NUMFMT ",\n"
-                       "                advance = " NUMFMT ",\n"
-                       "            },\n",
+                       "                chrs[%d] = {\n"
+                       "                    x1 = " NUMFMT ", y1 = " NUMFMT ", x2 = " NUMFMT ", y2 = " NUMFMT ",\n"
+                       "                    s1 = " NUMFMT ", t1 = " NUMFMT ", s2 = " NUMFMT ", t2 = " NUMFMT ",\n"
+                       "                    advance = " NUMFMT ",\n"
+                       "                }\n",
                     cp, 
                     x1, y1, x2, y2,
                     s1, t1, s2, t2,
@@ -271,7 +276,9 @@ static void write_data() {
                 r++;
                 c++;
             }
-            fprintf(f, "        }\n");
+            fprintf(f, "            end)();\n");
+            fprintf(f, "            return chrs\n");
+            fprintf(f, "        end)(),\n");
             fprintf(f, "    },\n");
         } else {
             load_image(s);
