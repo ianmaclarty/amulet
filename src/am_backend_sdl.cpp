@@ -264,7 +264,13 @@ void am_set_native_window_lock_pointer(am_native_window *window, bool enabled) {
 void am_destroy_native_window(am_native_window* window) {
     am_log_gl("// destroy window");
     SDL_Window *sdl_win = (SDL_Window*)window;
-    SDL_DestroyWindow(sdl_win);
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i].window == sdl_win) {
+            SDL_DestroyWindow(sdl_win);
+            windows.erase(windows.begin()+i);
+            break;
+        }
+    }
 }
 
 void am_native_window_bind_framebuffer(am_native_window* window) {
