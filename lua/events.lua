@@ -50,13 +50,20 @@ end
 
 function window_mt.keys_down(win)
     local u = win._event_data
-    local keys = {}
-    for key, _ in pairs(u._key_presses) do
-        if win:key_down(key) then
+    local keys = nil
+    local key_state0 = u._key_state0
+    local key_releases = u._key_releases
+    for key, presses in pairs(u._key_presses) do
+        local state0 = key_state0[key]
+        local releases = key_releases[key] or 0
+        if not state0 and presses > 0 or state0 and releases <= 0 then
+            if not keys then
+                keys = {}
+            end
             table.insert(keys, key)
         end
     end
-    return keys
+    return keys or empty_table
 end
 
 function window_mt.key_pressed(win, key)
@@ -65,10 +72,41 @@ function window_mt.key_pressed(win, key)
     return not u._key_state0[key] and (u._key_presses[key] or 0) > 0
 end
 
+function window_mt.keys_pressed(win)
+    local u = win._event_data
+    local keys = nil
+    local key_state0 = u._key_state0
+    for key, presses in pairs(u._key_presses) do
+        if not key_state0[key] and presses > 0 then
+            if not keys then
+                keys = {}
+            end
+            table.insert(keys, key)
+        end
+    end
+    return keys or empty_table
+end
+
 function window_mt.key_released(win, key)
     key = tostring(key)
     local u = win._event_data
     return u._key_state0[key] and (u._key_releases[key] or 0) > 0
+end
+
+function window_mt.keys_released(win)
+    local u = win._event_data
+    local keys = nil
+    local key_state0 = u._key_state0
+    local key_releases = u._key_releases
+    for key, presses in pairs(u._key_presses) do
+        if key_state0[key] and (key_releases[key] or 0) > 0 then
+            if not keys then
+                keys = {}
+            end
+            table.insert(keys, key)
+        end
+    end
+    return keys or empty_table
 end
 
 -- mouse

@@ -59,7 +59,7 @@ static void init_sdl();
 static void init_audio();
 static void init_audio_capture();
 static bool handle_events(lua_State *L);
-static am_key convert_key(int key);
+static am_key convert_key_scancode(SDL_Scancode key);
 static am_mouse_button convert_mouse_button(Uint8 button);
 static bool check_for_package();
 static win_info *win_from_id(Uint32 winid);
@@ -887,8 +887,12 @@ static bool handle_events(lua_State *L) {
                     win_info *info = win_from_id(event.key.windowID);
                     if (info) {
                         am_find_window((am_native_window*)info->window)->push(L);
-                        am_key key = convert_key(event.key.keysym.sym);
-                        lua_pushstring(L, am_key_name(key));
+                        am_key key = convert_key_scancode(event.key.keysym.scancode);
+                        if (key != AM_KEY_UNKNOWN) {
+                            lua_pushstring(L, am_key_name(key));
+                        } else {
+                            lua_pushfstring(L, "#%d", event.key.keysym.scancode);
+                        }
                         am_call_amulet(L, "_key_down", 2, 0);
                     }
                 }
@@ -896,14 +900,18 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
-                    if (am_conf_allow_restart && event.key.keysym.sym == SDLK_F5) {
+                    if (am_conf_allow_restart && event.key.keysym.scancode == SDL_SCANCODE_F5) {
                         restart_triggered = true;
                     } else {
                         win_info *info = win_from_id(event.key.windowID);
                         if (info) {
                             am_find_window((am_native_window*)info->window)->push(L);
-                            am_key key = convert_key(event.key.keysym.sym);
-                            lua_pushstring(L, am_key_name(key));
+                            am_key key = convert_key_scancode(event.key.keysym.scancode);
+                            if (key != AM_KEY_UNKNOWN) {
+                                lua_pushstring(L, am_key_name(key));
+                            } else {
+                                lua_pushfstring(L, "#%d", event.key.keysym.scancode);
+                            }
                             am_call_amulet(L, "_key_up", 2, 0);
                         }
                     }
@@ -1001,110 +1009,112 @@ static bool handle_events(lua_State *L) {
     return true;
 }
 
-static am_key convert_key(SDL_Keycode key) {
+static am_key convert_key_scancode(SDL_Scancode key) {
     switch(key) {
-        case SDLK_TAB: return AM_KEY_TAB;
-        case SDLK_RETURN: return AM_KEY_ENTER;
-        case SDLK_ESCAPE: return AM_KEY_ESCAPE;
-        case SDLK_SPACE: return AM_KEY_SPACE;
-        case SDLK_QUOTE: return AM_KEY_QUOTE;
-        case SDLK_EQUALS: return AM_KEY_EQUALS;
-        case SDLK_COMMA: return AM_KEY_COMMA;
-        case SDLK_MINUS: return AM_KEY_MINUS;
-        case SDLK_PERIOD: return AM_KEY_PERIOD;
-        case SDLK_SLASH: return AM_KEY_SLASH;
-        case SDLK_0: return AM_KEY_0;
-        case SDLK_1: return AM_KEY_1;
-        case SDLK_2: return AM_KEY_2;
-        case SDLK_3: return AM_KEY_3;
-        case SDLK_4: return AM_KEY_4;
-        case SDLK_5: return AM_KEY_5;
-        case SDLK_6: return AM_KEY_6;
-        case SDLK_7: return AM_KEY_7;
-        case SDLK_8: return AM_KEY_8;
-        case SDLK_9: return AM_KEY_9;
-        case SDLK_SEMICOLON: return AM_KEY_SEMICOLON;
-        case SDLK_LEFTBRACKET: return AM_KEY_LEFTBRACKET;
-        case SDLK_BACKSLASH: return AM_KEY_BACKSLASH;
-        case SDLK_RIGHTBRACKET: return AM_KEY_RIGHTBRACKET;
-        case SDLK_BACKQUOTE: return AM_KEY_BACKQUOTE;
-        case SDLK_a: return AM_KEY_A;
-        case SDLK_b: return AM_KEY_B;
-        case SDLK_c: return AM_KEY_C;
-        case SDLK_d: return AM_KEY_D;
-        case SDLK_e: return AM_KEY_E;
-        case SDLK_f: return AM_KEY_F;
-        case SDLK_g: return AM_KEY_G;
-        case SDLK_h: return AM_KEY_H;
-        case SDLK_i: return AM_KEY_I;
-        case SDLK_j: return AM_KEY_J;
-        case SDLK_k: return AM_KEY_K;
-        case SDLK_l: return AM_KEY_L;
-        case SDLK_m: return AM_KEY_M;
-        case SDLK_n: return AM_KEY_N;
-        case SDLK_o: return AM_KEY_O;
-        case SDLK_p: return AM_KEY_P;
-        case SDLK_q: return AM_KEY_Q;
-        case SDLK_r: return AM_KEY_R;
-        case SDLK_s: return AM_KEY_S;
-        case SDLK_t: return AM_KEY_T;
-        case SDLK_u: return AM_KEY_U;
-        case SDLK_v: return AM_KEY_V;
-        case SDLK_w: return AM_KEY_W;
-        case SDLK_x: return AM_KEY_X;
-        case SDLK_y: return AM_KEY_Y;
-        case SDLK_z: return AM_KEY_Z;
-        case SDLK_DELETE: return AM_KEY_DELETE;
-        case SDLK_BACKSPACE: return AM_KEY_BACKSPACE;
-        case SDLK_UP: return AM_KEY_UP;
-        case SDLK_DOWN: return AM_KEY_DOWN;
-        case SDLK_RIGHT: return AM_KEY_RIGHT;
-        case SDLK_LEFT: return AM_KEY_LEFT;
-        case SDLK_LALT: return AM_KEY_LALT;
-        case SDLK_RALT: return AM_KEY_RALT;
-        case SDLK_LCTRL: return AM_KEY_LCTRL;
-        case SDLK_RCTRL: return AM_KEY_RCTRL;
-        case SDLK_LSHIFT: return AM_KEY_LSHIFT;
-        case SDLK_RSHIFT: return AM_KEY_RSHIFT;
-        case SDLK_F1: return AM_KEY_F1;
-        case SDLK_F2: return AM_KEY_F2;
-        case SDLK_F3: return AM_KEY_F3;
-        case SDLK_F4: return AM_KEY_F4;
-        case SDLK_F5: return AM_KEY_F5;
-        case SDLK_F6: return AM_KEY_F6;
-        case SDLK_F7: return AM_KEY_F7;
-        case SDLK_F8: return AM_KEY_F8;
-        case SDLK_F9: return AM_KEY_F9;
-        case SDLK_F10: return AM_KEY_F10;
-        case SDLK_F11: return AM_KEY_F11;
-        case SDLK_F12: return AM_KEY_F12;
-        case SDLK_CAPSLOCK    : return AM_KEY_CAPSLOCK;
-        case SDLK_PRINTSCREEN : return AM_KEY_PRINTSCREEN;
-        case SDLK_SCROLLLOCK  : return AM_KEY_SCROLLLOCK;
-        case SDLK_PAUSE       : return AM_KEY_PAUSE;
-        case SDLK_INSERT      : return AM_KEY_INSERT;
-        case SDLK_HOME        : return AM_KEY_HOME;
-        case SDLK_PAGEUP      : return AM_KEY_PAGEUP;
-        case SDLK_END         : return AM_KEY_END;
-        case SDLK_PAGEDOWN    : return AM_KEY_PAGEDOWN;
-        case SDLK_KP_DIVIDE   : return AM_KEY_KP_DIVIDE;
-        case SDLK_KP_MULTIPLY : return AM_KEY_KP_MULTIPLY;
-        case SDLK_KP_MINUS    : return AM_KEY_KP_MINUS;
-        case SDLK_KP_PLUS     : return AM_KEY_KP_PLUS;
-        case SDLK_KP_ENTER    : return AM_KEY_KP_ENTER;
-        case SDLK_KP_1        : return AM_KEY_KP_1;
-        case SDLK_KP_2        : return AM_KEY_KP_2;
-        case SDLK_KP_3        : return AM_KEY_KP_3;
-        case SDLK_KP_4        : return AM_KEY_KP_4;
-        case SDLK_KP_5        : return AM_KEY_KP_5;
-        case SDLK_KP_6        : return AM_KEY_KP_6;
-        case SDLK_KP_7        : return AM_KEY_KP_7;
-        case SDLK_KP_8        : return AM_KEY_KP_8;
-        case SDLK_KP_9        : return AM_KEY_KP_9;
-        case SDLK_KP_0        : return AM_KEY_KP_0;
-        case SDLK_KP_PERIOD   : return AM_KEY_KP_PERIOD;
-        case SDLK_LGUI        : return AM_KEY_LGUI;
-        case SDLK_RGUI        : return AM_KEY_RGUI;
+        case SDL_SCANCODE_TAB: return AM_KEY_TAB;
+        case SDL_SCANCODE_RETURN: return AM_KEY_ENTER;
+        case SDL_SCANCODE_ESCAPE: return AM_KEY_ESCAPE;
+        case SDL_SCANCODE_SPACE: return AM_KEY_SPACE;
+        case SDL_SCANCODE_APOSTROPHE: return AM_KEY_QUOTE;
+        case SDL_SCANCODE_EQUALS: return AM_KEY_EQUALS;
+        case SDL_SCANCODE_COMMA: return AM_KEY_COMMA;
+        case SDL_SCANCODE_MINUS: return AM_KEY_MINUS;
+        case SDL_SCANCODE_PERIOD: return AM_KEY_PERIOD;
+        case SDL_SCANCODE_SLASH: return AM_KEY_SLASH;
+        case SDL_SCANCODE_0: return AM_KEY_0;
+        case SDL_SCANCODE_1: return AM_KEY_1;
+        case SDL_SCANCODE_2: return AM_KEY_2;
+        case SDL_SCANCODE_3: return AM_KEY_3;
+        case SDL_SCANCODE_4: return AM_KEY_4;
+        case SDL_SCANCODE_5: return AM_KEY_5;
+        case SDL_SCANCODE_6: return AM_KEY_6;
+        case SDL_SCANCODE_7: return AM_KEY_7;
+        case SDL_SCANCODE_8: return AM_KEY_8;
+        case SDL_SCANCODE_9: return AM_KEY_9;
+        case SDL_SCANCODE_SEMICOLON: return AM_KEY_SEMICOLON;
+        case SDL_SCANCODE_LEFTBRACKET: return AM_KEY_LEFTBRACKET;
+        case SDL_SCANCODE_BACKSLASH: return AM_KEY_BACKSLASH;
+        case SDL_SCANCODE_RIGHTBRACKET: return AM_KEY_RIGHTBRACKET;
+        case SDL_SCANCODE_GRAVE: return AM_KEY_BACKQUOTE;
+        case SDL_SCANCODE_A: return AM_KEY_A;
+        case SDL_SCANCODE_B: return AM_KEY_B;
+        case SDL_SCANCODE_C: return AM_KEY_C;
+        case SDL_SCANCODE_D: return AM_KEY_D;
+        case SDL_SCANCODE_E: return AM_KEY_E;
+        case SDL_SCANCODE_F: return AM_KEY_F;
+        case SDL_SCANCODE_G: return AM_KEY_G;
+        case SDL_SCANCODE_H: return AM_KEY_H;
+        case SDL_SCANCODE_I: return AM_KEY_I;
+        case SDL_SCANCODE_J: return AM_KEY_J;
+        case SDL_SCANCODE_K: return AM_KEY_K;
+        case SDL_SCANCODE_L: return AM_KEY_L;
+        case SDL_SCANCODE_M: return AM_KEY_M;
+        case SDL_SCANCODE_N: return AM_KEY_N;
+        case SDL_SCANCODE_O: return AM_KEY_O;
+        case SDL_SCANCODE_P: return AM_KEY_P;
+        case SDL_SCANCODE_Q: return AM_KEY_Q;
+        case SDL_SCANCODE_R: return AM_KEY_R;
+        case SDL_SCANCODE_S: return AM_KEY_S;
+        case SDL_SCANCODE_T: return AM_KEY_T;
+        case SDL_SCANCODE_U: return AM_KEY_U;
+        case SDL_SCANCODE_V: return AM_KEY_V;
+        case SDL_SCANCODE_W: return AM_KEY_W;
+        case SDL_SCANCODE_X: return AM_KEY_X;
+        case SDL_SCANCODE_Y: return AM_KEY_Y;
+        case SDL_SCANCODE_Z: return AM_KEY_Z;
+        case SDL_SCANCODE_DELETE: return AM_KEY_DELETE;
+        case SDL_SCANCODE_BACKSPACE: return AM_KEY_BACKSPACE;
+        case SDL_SCANCODE_UP: return AM_KEY_UP;
+        case SDL_SCANCODE_DOWN: return AM_KEY_DOWN;
+        case SDL_SCANCODE_RIGHT: return AM_KEY_RIGHT;
+        case SDL_SCANCODE_LEFT: return AM_KEY_LEFT;
+        case SDL_SCANCODE_LALT: return AM_KEY_LALT;
+        case SDL_SCANCODE_RALT: return AM_KEY_RALT;
+        case SDL_SCANCODE_LCTRL: return AM_KEY_LCTRL;
+        case SDL_SCANCODE_RCTRL: return AM_KEY_RCTRL;
+        case SDL_SCANCODE_LSHIFT: return AM_KEY_LSHIFT;
+        case SDL_SCANCODE_RSHIFT: return AM_KEY_RSHIFT;
+        case SDL_SCANCODE_F1: return AM_KEY_F1;
+        case SDL_SCANCODE_F2: return AM_KEY_F2;
+        case SDL_SCANCODE_F3: return AM_KEY_F3;
+        case SDL_SCANCODE_F4: return AM_KEY_F4;
+        case SDL_SCANCODE_F5: return AM_KEY_F5;
+        case SDL_SCANCODE_F6: return AM_KEY_F6;
+        case SDL_SCANCODE_F7: return AM_KEY_F7;
+        case SDL_SCANCODE_F8: return AM_KEY_F8;
+        case SDL_SCANCODE_F9: return AM_KEY_F9;
+        case SDL_SCANCODE_F10: return AM_KEY_F10;
+        case SDL_SCANCODE_F11: return AM_KEY_F11;
+        case SDL_SCANCODE_F12: return AM_KEY_F12;
+        case SDL_SCANCODE_CAPSLOCK    : return AM_KEY_CAPSLOCK;
+        case SDL_SCANCODE_PRINTSCREEN : return AM_KEY_PRINTSCREEN;
+        case SDL_SCANCODE_SCROLLLOCK  : return AM_KEY_SCROLLLOCK;
+        case SDL_SCANCODE_NUMLOCKCLEAR: return AM_KEY_NUMLOCK;
+        case SDL_SCANCODE_PAUSE       : return AM_KEY_PAUSE;
+        case SDL_SCANCODE_INSERT      : return AM_KEY_INSERT;
+        case SDL_SCANCODE_HOME        : return AM_KEY_HOME;
+        case SDL_SCANCODE_PAGEUP      : return AM_KEY_PAGEUP;
+        case SDL_SCANCODE_END         : return AM_KEY_END;
+        case SDL_SCANCODE_PAGEDOWN    : return AM_KEY_PAGEDOWN;
+        case SDL_SCANCODE_KP_DIVIDE   : return AM_KEY_KP_DIVIDE;
+        case SDL_SCANCODE_KP_MULTIPLY : return AM_KEY_KP_MULTIPLY;
+        case SDL_SCANCODE_KP_MINUS    : return AM_KEY_KP_MINUS;
+        case SDL_SCANCODE_KP_PLUS     : return AM_KEY_KP_PLUS;
+        case SDL_SCANCODE_KP_ENTER    : return AM_KEY_KP_ENTER;
+        case SDL_SCANCODE_KP_1        : return AM_KEY_KP_1;
+        case SDL_SCANCODE_KP_2        : return AM_KEY_KP_2;
+        case SDL_SCANCODE_KP_3        : return AM_KEY_KP_3;
+        case SDL_SCANCODE_KP_4        : return AM_KEY_KP_4;
+        case SDL_SCANCODE_KP_5        : return AM_KEY_KP_5;
+        case SDL_SCANCODE_KP_6        : return AM_KEY_KP_6;
+        case SDL_SCANCODE_KP_7        : return AM_KEY_KP_7;
+        case SDL_SCANCODE_KP_8        : return AM_KEY_KP_8;
+        case SDL_SCANCODE_KP_9        : return AM_KEY_KP_9;
+        case SDL_SCANCODE_KP_0        : return AM_KEY_KP_0;
+        case SDL_SCANCODE_KP_PERIOD   : return AM_KEY_KP_PERIOD;
+        case SDL_SCANCODE_LGUI        : return AM_KEY_LGUI;
+        case SDL_SCANCODE_RGUI        : return AM_KEY_RGUI;
+        default                       : return AM_KEY_UNKNOWN;
     }
     return AM_KEY_UNKNOWN;
 }

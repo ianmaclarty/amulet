@@ -179,7 +179,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#key_down">window:key_down(key)</a></li>
 <li><a href="#windowkeys_down">window:keys_down()</a></li>
 <li><a href="#windowkey_pressedkey">window:key_pressed(key)</a></li>
+<li><a href="#windowkeys_pressedkey">window:keys_pressed(key)</a></li>
 <li><a href="#windowkey_releasedkey">window:key_released(key)</a></li>
+<li><a href="#windowkeys_releasedkey">window:keys_released(key)</a></li>
 </ul></li>
 <li><a href="#detecting-mouse-events">Detecting mouse events</a><ul>
 <li><a href="#windowmouse_position">window:mouse_position()</a></li>
@@ -1223,7 +1225,7 @@ vec2(0, 2)</code></pre>
 <h3 id="constructing-quaternions">Constructing quaternions</h3>
 <p>The <code>quat</code> function is used to construct quaternions. The simplest way to construct a quaternion is to pass an angle (in radians) and a unit 3D vector representing the axis about which the rotation should occur. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> q <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">45</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span></code></pre></div>
-<p>constructs a quaternion that represents a 45 degree rotation around the z axis. (<code>math.rad</code> converts radians to degrees).</p>
+<p>constructs a quaternion that represents a 45 degree rotation around the z axis. (<code>math.rad</code> converts degrees to radians).</p>
 <p>If the axis argument is omitted then it is taken to be <code>vec3(0, 0, 1)</code>, so the above is equivalent to:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> q <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">45</span><span class="ot">))</span></code></pre></div>
 <p>This is a useful shortcut for 2D rotations in the xy plane.</p>
@@ -1604,9 +1606,8 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="windowresized" class="method-def">window:resized()</h3>
 <p>Returns true if the window's size changed since the last frame.</p>
 <h2 id="detecting-key-presses">Detecting key presses</h2>
-<h3 id="key_down" class="method-def">window:key_down(key)</h3>
-<p>Returns true if the given key was down at the start of the current frame.</p>
-<p>The possible values for <code>key</code> are:</p>
+<p>The following functions detect physical key states and are not affected by the keyboard layout preferences selected in the OS (except when targetting HTML).</p>
+<p>Keys are represented by one of the following strings:</p>
 <ul>
 <li><code>&quot;a&quot;</code></li>
 <li><code>&quot;b&quot;</code></li>
@@ -1686,6 +1687,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <li><code>&quot;left&quot;</code></li>
 <li><code>&quot;down&quot;</code></li>
 <li><code>&quot;up&quot;</code></li>
+<li><code>&quot;numlock&quot;</code></li>
 <li><code>&quot;kp_divide&quot;</code></li>
 <li><code>&quot;kp_multiply&quot;</code></li>
 <li><code>&quot;kp_minus&quot;</code></li>
@@ -1711,14 +1713,21 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <li><code>&quot;ralt&quot;</code></li>
 <li><code>&quot;rgui&quot;</code></li>
 </ul>
+<p>Keys not listed above are represented as a hash followed by the scancode, for example <code>&quot;#101&quot;</code>.</p>
+<h3 id="key_down" class="method-def">window:key_down(key)</h3>
+<p>Returns true if the given key was down at the start of the current frame.</p>
 <h3 id="windowkeys_down" class="method-def">window:keys_down()</h3>
-<p>Returns an array of the keys that were down at the start of the current frame. See <a href="#key_down">window:key_down</a> for a list of possible key values.</p>
+<p>Returns an array of the keys that were down at the start of the current frame.</p>
 <h3 id="windowkey_pressedkey" class="method-def">window:key_pressed(key)</h3>
-<p>Returns true if the given key's state changed from up to down since the last frame. See <a href="#key_down">window:key_down</a> for possible values for <code>key</code>.</p>
+<p>Returns true if the given key's state changed from up to down since the last frame.</p>
 <p>Note that if <code>key_pressed</code> returns true for a particular key, then <code>key_down</code> will also return <code>true</code>. Also if <code>key_pressed</code> returns <code>true</code> for a particular key then <code>key_released</code> will return <code>false</code> for the same key. (If necessary, Amulet will postpone key release events to the next frame to ensure this.)</p>
+<h3 id="windowkeys_pressedkey" class="method-def">window:keys_pressed(key)</h3>
+<p>Returns an array of all the keys whose state changed from up to down since the last frame.</p>
 <h3 id="windowkey_releasedkey" class="method-def">window:key_released(key)</h3>
-<p>Returns true if the given key's state changed from down to up since the last frame. See <a href="#key_down">window:key_down</a> for possible values for <code>key</code>.</p>
+<p>Returns true if the given key's state changed from down to up since the last frame.</p>
 <p>Note that if <code>key_released</code> returns true for a particular key, then <code>key_down</code> will return <code>false</code>. Also if <code>key_released</code> returns <code>true</code> for a particular key then <code>key_pressed</code> will return <code>false</code>. (If necessary, Amulet will postpone key press events to the next frame to ensure this.)</p>
+<h3 id="windowkeys_releasedkey" class="method-def">window:keys_released(key)</h3>
+<p>Returns an array of all the keys whose state changed from down to up since the last frame.</p>
 <h2 id="detecting-mouse-events">Detecting mouse events</h2>
 <h3 id="windowmouse_position" class="method-def">window:mouse_position()</h3>
 <p>Returns the position of the mouse cursor, as a <code>vec2</code>, in the window's coordinate system.</p>

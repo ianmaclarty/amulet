@@ -86,6 +86,7 @@ enum am_key {
     AM_KEY_DOWN,
     AM_KEY_UP,
 
+    AM_KEY_NUMLOCK,
     AM_KEY_KP_DIVIDE,
     AM_KEY_KP_MULTIPLY,
     AM_KEY_KP_MINUS,

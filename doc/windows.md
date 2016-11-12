@@ -195,12 +195,11 @@ Returns true if the window's size changed since the last frame.
 
 ## Detecting key presses
 
-### window:key_down(key) {#key_down .method-def}
+The following functions detect physical key states and are
+not affected by the keyboard layout preferences selected
+in the OS (except when targetting HTML).
 
-Returns true if the given key was down at the start of the
-current frame.
-
-The possible values for `key` are:
+Keys are represented by one of the following strings:
 
 - `"a"`
 - `"b"`
@@ -280,6 +279,7 @@ The possible values for `key` are:
 - `"left"`
 - `"down"`
 - `"up"`
+- `"numlock"`
 - `"kp_divide"`
 - `"kp_multiply"`
 - `"kp_minus"`
@@ -305,19 +305,23 @@ The possible values for `key` are:
 - `"ralt"`
 - `"rgui"`
 
+Keys not listed above are represented as a hash followed by the scancode,
+for example `"#101"`.
+
+### window:key_down(key) {#key_down .method-def}
+
+Returns true if the given key was down at the start of the
+current frame.
+
 ### window:keys_down() {.method-def}
 
 Returns an array of the keys that were down at the
 start of the current frame.
-See [window:key_down](#key_down) for a list of possible
-key values.
 
 ### window:key_pressed(key) {.method-def}
 
 Returns true if the given key's state changed from up
 to down since the last frame.
-See [window:key_down](#key_down) for possible values
-for `key`.
 
 Note that if `key_pressed` returns true for a particular key, then
 `key_down` will also return `true`. Also if `key_pressed`
@@ -326,18 +330,26 @@ for the same key.
 (If necessary, Amulet will postpone key release events to the
 next frame to ensure this.)
 
+### window:keys_pressed(key) {.method-def}
+
+Returns an array of all the keys whose state changed from
+up to down since the last frame.
+
 ### window:key_released(key) {.method-def}
 
 Returns true if the given key's state changed from down
 to up since the last frame.
-See [window:key_down](#key_down) for possible values
-for `key`.
 
 Note that if `key_released` returns true for a particular key, then
 `key_down` will return `false`. Also if `key_released`
 returns `true` for a particular key then `key_pressed` will return `false`.
 (If necessary, Amulet will postpone key press events to the
 next frame to ensure this.)
+
+### window:keys_released(key) {.method-def}
+
+Returns an array of all the keys whose state changed from
+down to up since the last frame.
 
 ## Detecting mouse events
 

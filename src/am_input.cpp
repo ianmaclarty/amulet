@@ -81,6 +81,7 @@ const char *am_key_name(am_key key) {
         case AM_KEY_LEFT: return "left";
         case AM_KEY_DOWN: return "down";
         case AM_KEY_UP: return "up";
+        case AM_KEY_NUMLOCK: return "numlock";
         case AM_KEY_KP_DIVIDE: return "kp_divide";
         case AM_KEY_KP_MULTIPLY: return "kp_multiply";
         case AM_KEY_KP_MINUS: return "kp_minus";
