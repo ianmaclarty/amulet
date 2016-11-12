@@ -81,13 +81,18 @@ int am_max_vertex_uniform_vectors = 0;
 
 static bool gl_initialized = false;
 
+static void check_glerror(const char *file, int line, const char *func);
+
 static void reset_gl() {
     log_gl("glPixelStorei(GL_PACK_ALIGNMENT, %d);", 1);
     GLFUNC(glPixelStorei)(GL_PACK_ALIGNMENT, 1);
+    check_for_errors
     log_gl("glPixelStorei(GL_UNPACK_ALIGNMENT, %d);", 1);
     GLFUNC(glPixelStorei)(GL_UNPACK_ALIGNMENT, 1);
+    check_for_errors
     log_gl("glHint(GL_GENERATE_MIPMAP_HINT, %s);", "GL_NICEST");
     GLFUNC(glHint)(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+    check_for_errors
 
     // initialize global gl state so it corresponds with the initial
     // value of am_render_state.
@@ -166,27 +171,57 @@ void am_init_gl() {
     }
     gl_initialized = true;
 
+    check_for_errors
+
     GLint pval; 
     GLFUNC(glGetIntegerv)(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &pval);
+    check_for_errors
     am_max_combined_texture_image_units = pval;
     GLFUNC(glGetIntegerv)(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &pval);
+    check_for_errors
     am_max_cube_map_texture_size = pval;
+#if defined(AM_GLPROFILE_DESKTOP)
+    GLFUNC(glGetIntegerv)(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &pval);
+    check_for_errors
+    am_max_fragment_uniform_vectors = pval/4;
+#else
     GLFUNC(glGetIntegerv)(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &pval);
+    check_for_errors
     am_max_fragment_uniform_vectors = pval;
+#endif
     GLFUNC(glGetIntegerv)(GL_MAX_RENDERBUFFER_SIZE, &pval);
+    check_for_errors
     am_max_renderbuffer_size = pval;
     GLFUNC(glGetIntegerv)(GL_MAX_TEXTURE_IMAGE_UNITS, &pval);
+    check_for_errors
     am_max_texture_image_units = pval;
     GLFUNC(glGetIntegerv)(GL_MAX_TEXTURE_SIZE, &pval);
+    check_for_errors
     am_max_texture_size = pval;
+#if defined(AM_GLPROFILE_DESKTOP)
+    GLFUNC(glGetIntegerv)(GL_MAX_VARYING_FLOATS, &pval);
+    check_for_errors
+    am_max_varying_vectors = pval/4;
+#else
     GLFUNC(glGetIntegerv)(GL_MAX_VARYING_VECTORS, &pval);
+    check_for_errors
     am_max_varying_vectors = pval;
+#endif
     GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_ATTRIBS, &pval);
+    check_for_errors
     am_max_vertex_attribs = pval;
     GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &pval);
+    check_for_errors
     am_max_vertex_texture_image_units = pval;
+#if defined(AM_GLPROFILE_DESKTOP)
+    GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &pval);
+    check_for_errors
+    am_max_vertex_uniform_vectors = pval/4;
+#else
     GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_UNIFORM_VECTORS, &pval);
+    check_for_errors
     am_max_vertex_uniform_vectors = pval;
+#endif
 
     // initialize angle if using
 #if defined(AM_USE_ANGLE)
@@ -222,8 +257,6 @@ void am_destroy_gl() {
 bool am_gl_is_initialized() {
     return gl_initialized;
 }
-
-static void check_glerror(const char *file, int line, const char *func);
 
 static GLenum to_gl_blend_equation(am_blend_equation eq);
 static GLenum to_gl_blend_sfactor(am_blend_sfactor f);
