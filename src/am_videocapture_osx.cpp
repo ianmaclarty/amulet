@@ -132,8 +132,17 @@ static bool init_video(int cam_id) {
 
     captureDelegate = [[CaptureDelegate alloc] init];
 
-    NSError* error;
+    NSError* error = NULL;
     captureDeviceInput = [[AVCaptureDeviceInput alloc] initWithDevice:captureDevice error:&error];
+    if (captureDeviceInput == nil) {
+        if (error != NULL) {
+            am_log1("captureDeviceInput is nil: %u: %s", [error code], [[error localizedDescription] UTF8String]);
+        } else {
+            am_log1("%s", "captureDeviceInput is nil");
+        }
+        [localpool drain];
+        return false;
+    }
     captureSession = [[AVCaptureSession alloc] init];
 
     captureDecompressedVideoOutput = [[AVCaptureVideoDataOutput alloc] init];
