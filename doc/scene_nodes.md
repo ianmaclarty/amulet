@@ -511,6 +511,11 @@ range `vec2(-2, -2)` to `vec2(4, 2)`.
 All of the sprite settings are exposed as updatable fields on
 the particles node.
 
+Methods:
+
+- `reset()`: resets the particles as if they had just been created with their
+  current settings.
+
 Default tag: `"particles2d"`.
 
 ![](images/screenshot9.jpg)

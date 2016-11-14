@@ -295,11 +295,6 @@ function am.particles2d(opts)
         speed_y[n] = sin(angle) * speed
     end
 
-    for i = 1, start_particles do
-        add_particle()
-    end
-    set_verts()
-
     local
     function update(dt)
         -- update existing particles
@@ -354,11 +349,22 @@ function am.particles2d(opts)
     
     node:action(function() update(am.delta_time) end)
 
-    local dt = 1/60
-    while warmup_time > 0 do
-        update(dt)
-        warmup_time = warmup_time - dt
+    local
+    function init()
+        n = 0
+        for i = 1, start_particles do
+            add_particle()
+        end
+        set_verts()
+
+        local dt = 1/60
+        while warmup_time > 0 do
+            update(dt)
+            warmup_time = warmup_time - dt
+        end
     end
+
+    init()
 
     function node:get_source_pos()
         return vec2(source_pos_x, source_pos_y)
@@ -509,6 +515,9 @@ function am.particles2d(opts)
     end
     function node:get_active_particles()
         return n
+    end
+    function node:reset()
+        init()
     end
 
     node:tag"particles2d"
