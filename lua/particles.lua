@@ -358,6 +358,7 @@ function am.particles2d(opts)
         set_verts()
 
         local dt = 1/60
+        warmup_time = opts.warmup_time or 0
         while warmup_time > 0 do
             update(dt)
             warmup_time = warmup_time - dt
