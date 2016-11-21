@@ -15,6 +15,7 @@
 #import <CoreMotion/CoreMotion.h>
 #import <GLKit/GLKit.h>
 #import <GameKit/GameKit.h>
+#import <GoogleMobileAds/GADBannerView.h>
 
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
@@ -647,7 +648,19 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     viewController.preferredFramesPerSecond = 60; // XXX
     self.window.rootViewController = viewController;
     ios_view_controller = viewController;
- 
+
+    // Create a banner ad and add it to the view hierarchy.
+    GADBannerView *banner = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait];
+    banner.hidden = YES;
+    banner.adUnitID = @"ca-app-pub-3940256099942544/2934735716";
+    banner.rootViewController = viewController;
+    [view addSubview:banner];
+
+    banner.hidden = NO;
+    GADRequest *request = [GADRequest request];
+    request.testDevices = @[@"2077ef9a63d2b398840261c8221a0c9b"];
+    [banner loadRequest:request];
+
     [self.window makeKeyAndVisible];
     return YES;
 }
@@ -907,7 +920,7 @@ static GameCenterDelegate *gamecenter_delegate = nil;
 @implementation GameCenterDelegate
 - (void)leaderboardViewControllerDidFinish:(GKLeaderboardViewController *)viewController {
     if (ios_view_controller != nil) {
-        [ios_view_controller dismissModalViewControllerAnimated:YES];
+        [ios_view_controller dismissViewControllerAnimated:YES completion:nil];
         if (ios_view != nil && ios_eng != NULL) {
             // reset event data, because sometimes touch end events are missed
             // when the leaderboard view controller is displayed.
@@ -960,6 +973,7 @@ static GameCenterDelegate *gamecenter_delegate = nil;
 @end
 
 static int init_gamecenter(lua_State *L) {
+/*
     [[GKLocalPlayer localPlayer] authenticateWithCompletionHandler:^(NSError *error) {
         if (error == nil) {
             gamecenter_available = true;
@@ -970,25 +984,30 @@ static int init_gamecenter(lua_State *L) {
             gamecenter_available = false;
         }
     }];
+*/
 
-    /*
+/*
+ * XXX FIXME for iOS 6
     if ([GKLocalPlayer localPlayer].authenticated == NO) {
         GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
         [localPlayer setAuthenticateHandler:(^(UIViewController* viewcontroller, NSError *error) {
             if(localPlayer.isAuthenticated) {
                 am_debug("%s", "gamecenter authenticated ok");
-            }else {
+                gamecenter_available = true;
+            } else if(viewController) {
+                [self presentViewController:viewController]; //present the login form
+            } else {
+                //problem with authentication,probably bc the user doesn't use Game Center
                 am_debug("%s", "gamecenter authentication failed");
             }
         })]; 
     } else {
         NSLog(@"Already authenticated!");   
     }
-    */
-
     gamecenter_delegate = [[GameCenterDelegate alloc] init];
     [gamecenter_delegate retain];
 
+*/
     return 0;
 }
 
@@ -1050,7 +1069,7 @@ static int show_gamecenter_leaderboard(lua_State *L) {
             leaderboard_view_controller.leaderboardDelegate = gamecenter_delegate;
         }
         leaderboard_view_controller.category = category;
-        [ios_view_controller presentModalViewController: leaderboard_view_controller animated: YES];
+        [ios_view_controller presentViewController:leaderboard_view_controller animated:YES completion:nil];
     }
     return 0;
 }

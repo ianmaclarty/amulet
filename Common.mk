@@ -143,14 +143,15 @@ else ifeq ($(TARGET_PLATFORM),ios32)
   XCODE_PATH = $(shell xcode-select --print-path)
   SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=5.1.1
+  TARGET_CFLAGS += -Fthird_party -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=6.0
   XCFLAGS += -ObjC++
   XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
-	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
-	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
-	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
-	     -Wl,-framework,AVFoundation \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit
+	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
+	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
+	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
+	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony \
+	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
+	     -Wl,-framework,GLKit -Wl,-framework,GameKit -Wl,-framework,GoogleMobileAds
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),ios64)
@@ -160,14 +161,15 @@ else ifeq ($(TARGET_PLATFORM),ios64)
   XCODE_PATH = $(shell xcode-select --print-path)
   SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=5.1.1
+  TARGET_CFLAGS += -Fthird_party -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=6.0
   XCFLAGS += -ObjC++
   XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
-	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
-	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
-	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
-	     -Wl,-framework,AVFoundation \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit
+	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
+	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
+	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
+	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
+	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
+	     -Wl,-framework,GLKit -Wl,-framework,GameKit -Wl,-framework,GoogleMobileAds
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),iossim)
@@ -177,13 +179,14 @@ else ifeq ($(TARGET_PLATFORM),iossim)
   XCODE_PATH = $(shell xcode-select --print-path)
   SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -arch x86_64 -isysroot $(SIM_SDK_PATH) -miphoneos-version-min=5.1.1
+  TARGET_CFLAGS += -Fthird_party -arch x86_64 -isysroot $(SIM_SDK_PATH) -miphoneos-version-min=6.0
   XCFLAGS += -ObjC++
   XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
-	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox \
-	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore \
-	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation \
-	     -Wl,-framework,GLKit
+	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
+	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SpriteKit -Wl,-framework,AdSupport \
+	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SystemConfiguration -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
+	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreVideo -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI \
+	     -Wl,-framework,GLKit -Wl,-framework,GoogleMobileAds
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),html)

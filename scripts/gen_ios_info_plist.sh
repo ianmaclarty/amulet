@@ -55,7 +55,7 @@ cat << EOF > $f/Info.plist
 	<string>%s</string>
 
 	<key>MinimumOSVersion</key>
-	<string>5.1.1</string>
+	<string>6.0</string>
 
 	<key>UIRequiresFullScreen</key>
 	<string>YES</string>
@@ -103,6 +103,13 @@ cat << EOF > $f/Info.plist
 	</array>
 	<key>UIStatusBarHidden</key>
 	<true/>
+
+        <!-- needed for Google Ads -->
+        <key>NSAppTransportSecurity</key>
+        <dict>
+            <key>NSAllowsArbitraryLoads</key>
+            <true/>
+        </dict>
 
         <!-- orientation -->
         %s
