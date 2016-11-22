@@ -35,9 +35,11 @@ static float *ios_audio_buffer = NULL;
 static int ios_audio_offset = 0;
 static NSLock *ios_audio_mutex = [[NSLock alloc] init];
 static bool ios_done_first_draw = false;
+GADBannerView *banner_ad = nil;
 
 static GLKView *ios_view = nil;
 static GLKViewController *ios_view_controller = nil;
+
 
 static double t0;
 static double t_debt;
@@ -349,6 +351,45 @@ static void ios_init_audio() {
     }
 }
 
+static int init_ads(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_debug("init_ads %p", ios_view_controller);
+    if (banner_ad != nil) return luaL_error(L, "google ads already initialized");
+    if (ios_view == nil) return luaL_error(L, "internal error: ios_view not initialized");
+    if (ios_view_controller == nil) return luaL_error(L, "internal error: ios_view_controller not initialized");
+    const char *unitid = lua_tostring(L, 1);
+    if (unitid == NULL) return luaL_error(L, "expecting a string unitid argument");
+    banner_ad = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait];
+    banner_ad.hidden = YES;
+    banner_ad.adUnitID = [NSString stringWithUTF8String:unitid];
+    banner_ad.rootViewController = ios_view_controller;
+    [ios_view addSubview:banner_ad];
+    return 0;
+}
+
+static int set_ad_visible(lua_State *L) {
+    am_check_nargs(L, 1);
+    if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
+    banner_ad.hidden = lua_toboolean(L, 1) ? NO : YES;
+    return 0;
+}
+
+static int request_ad(lua_State *L) {
+    if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
+    [banner_ad loadRequest:[GADRequest request]];
+    return 0;
+}
+
+static void open_google_ads_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"init", init_ads},
+        {"set_visible", set_ad_visible},
+        {"request_ad", request_ad},
+        {NULL, NULL}
+    };
+    am_open_module(L, "google_ads", funcs);
+}
+
 static void ios_init_engine() {
     ios_running = false;
 
@@ -358,6 +399,7 @@ static void ios_init_engine() {
     if (!am_load_config()) return;
     ios_eng = am_init_engine(false, 0, NULL);
     if (ios_eng == NULL) return;
+    open_google_ads_module(ios_eng->L);
 
     frame_time = am_get_current_time();
     lua_pushcclosure(ios_eng->L, am_require, 0);
@@ -649,17 +691,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     self.window.rootViewController = viewController;
     ios_view_controller = viewController;
 
-    // Create a banner ad and add it to the view hierarchy.
-    GADBannerView *banner = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait];
-    banner.hidden = YES;
-    banner.adUnitID = @"ca-app-pub-3940256099942544/2934735716";
-    banner.rootViewController = viewController;
-    [view addSubview:banner];
 
-    banner.hidden = NO;
-    GADRequest *request = [GADRequest request];
-    request.testDevices = @[@"2077ef9a63d2b398840261c8221a0c9b"];
-    [banner loadRequest:request];
 
     [self.window makeKeyAndVisible];
     return YES;

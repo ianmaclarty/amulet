@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 make TARGET=ios32.release
 make TARGET=ios64.release
 ./scripts/gen_ios_universal.sh
