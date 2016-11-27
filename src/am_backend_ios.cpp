@@ -15,6 +15,7 @@
 #import <CoreMotion/CoreMotion.h>
 #import <GLKit/GLKit.h>
 #import <GameKit/GameKit.h>
+#import <StoreKit/StoreKit.h>
 #import <GoogleMobileAds/GADBannerView.h>
 
 #include <OpenGLES/ES2/gl.h>
@@ -351,45 +352,6 @@ static void ios_init_audio() {
     }
 }
 
-static int init_ads(lua_State *L) {
-    am_check_nargs(L, 1);
-    am_debug("init_ads %p", ios_view_controller);
-    if (banner_ad != nil) return luaL_error(L, "google ads already initialized");
-    if (ios_view == nil) return luaL_error(L, "internal error: ios_view not initialized");
-    if (ios_view_controller == nil) return luaL_error(L, "internal error: ios_view_controller not initialized");
-    const char *unitid = lua_tostring(L, 1);
-    if (unitid == NULL) return luaL_error(L, "expecting a string unitid argument");
-    banner_ad = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait];
-    banner_ad.hidden = YES;
-    banner_ad.adUnitID = [NSString stringWithUTF8String:unitid];
-    banner_ad.rootViewController = ios_view_controller;
-    [ios_view addSubview:banner_ad];
-    return 0;
-}
-
-static int set_ad_visible(lua_State *L) {
-    am_check_nargs(L, 1);
-    if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
-    banner_ad.hidden = lua_toboolean(L, 1) ? NO : YES;
-    return 0;
-}
-
-static int request_ad(lua_State *L) {
-    if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
-    [banner_ad loadRequest:[GADRequest request]];
-    return 0;
-}
-
-static void open_google_ads_module(lua_State *L) {
-    luaL_Reg funcs[] = {
-        {"init", init_ads},
-        {"set_visible", set_ad_visible},
-        {"request_ad", request_ad},
-        {NULL, NULL}
-    };
-    am_open_module(L, "google_ads", funcs);
-}
-
 static void ios_init_engine() {
     ios_running = false;
 
@@ -399,7 +361,6 @@ static void ios_init_engine() {
     if (!am_load_config()) return;
     ios_eng = am_init_engine(false, 0, NULL);
     if (ios_eng == NULL) return;
-    open_google_ads_module(ios_eng->L);
 
     frame_time = am_get_current_time();
     lua_pushcclosure(ios_eng->L, am_require, 0);
@@ -652,7 +613,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 @end
 
 
-@interface AMAppDelegate : UIResponder <UIApplicationDelegate, GLKViewDelegate, GLKViewControllerDelegate>
+@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, GLKViewDelegate, GLKViewControllerDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
@@ -691,7 +652,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     self.window.rootViewController = viewController;
     ios_view_controller = viewController;
 
-
+    [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
 
     [self.window makeKeyAndVisible];
     return YES;
@@ -759,6 +720,51 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 {
     if (ios_view_controller != nil && ios_view_controller.presentedViewController == nil) {
         ios_touch_cancelled(touches);
+    }
+}
+
+- (void)paymentQueue:(SKPaymentQueue *)queue
+ updatedTransactions:(NSArray *)transactions
+{
+    if (ios_eng != NULL && ios_eng->L != NULL) {
+        lua_State *L = ios_eng->L;
+        lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+        lua_getfield(L, -1, "iap_transactions");
+        // create iap_transactions table if it doesn't exist already
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            lua_newtable(L);
+            lua_pushvalue(L, -1);
+            lua_setfield(L, -3, "iap_transactions");
+        }
+        for (SKPaymentTransaction *transaction in transactions) {
+            const char *status = "unknown";
+            switch (transaction.transactionState) {
+                // Call the appropriate custom method for the transaction state.
+                case SKPaymentTransactionStatePurchasing:
+                    status = "purchasing";
+                    break;
+                case SKPaymentTransactionStateDeferred:
+                    status = "deferred";
+                    break;
+                case SKPaymentTransactionStateFailed:
+                    status = "failed";
+                    break;
+                case SKPaymentTransactionStatePurchased:
+                    status = "purchased";
+                    break;
+                case SKPaymentTransactionStateRestored:
+                    status = "restored";
+                    break;
+            }
+            lua_newtable(L);
+            lua_pushstring(L, [transaction.payment.productIdentifier UTF8String]);
+            lua_setfield(L, -2, "productid");
+            lua_pushstring(L, status);
+            lua_setfield(L, -2, "status");
+            lua_rawseti(L, -2, lua_objlen(L, -2) + 1);
+        }
+        lua_pop(L, 2); // iap_transactions and am tables
     }
 }
 
@@ -1116,6 +1122,109 @@ const char *am_preferred_language() {
     return [languageID UTF8String];
 }
 
+static int init_google_banner_ad(lua_State *L) {
+    am_check_nargs(L, 1);
+    if (banner_ad != nil) return luaL_error(L, "google ads already initialized");
+    if (ios_view == nil) return luaL_error(L, "internal error: ios_view not initialized");
+    if (ios_view_controller == nil) return luaL_error(L, "internal error: ios_view_controller not initialized");
+    const char *unitid = lua_tostring(L, 1);
+    if (unitid == NULL) return luaL_error(L, "expecting a string unitid argument");
+    banner_ad = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait];
+    banner_ad.hidden = YES;
+    banner_ad.adUnitID = [NSString stringWithUTF8String:unitid];
+    banner_ad.rootViewController = ios_view_controller;
+    [ios_view addSubview:banner_ad];
+    return 0;
+}
+
+static int set_google_banner_ad_visible(lua_State *L) {
+    am_check_nargs(L, 1);
+    if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
+    banner_ad.hidden = lua_toboolean(L, 1) ? NO : YES;
+    return 0;
+}
+
+static int request_google_banner_ad(lua_State *L) {
+    if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
+    [banner_ad loadRequest:[GADRequest request]];
+    return 0;
+}
+
+struct am_iap_product : am_nonatomic_userdata {
+    SKProduct *product;
+};
+
+static void register_iap_product_mt(lua_State *L) {
+    lua_newtable(L);
+
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
+
+    am_register_metatable(L, "iap_product", MT_am_iap_product, 0);
+}
+
+@interface RetrieveIAPProductsDelegate: NSObject<SKProductsRequestDelegate>
+- (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response;
+@end
+
+@implementation RetrieveIAPProductsDelegate
+- (void)productsRequest:(SKProductsRequest *)request
+     didReceiveResponse:(SKProductsResponse *)response
+{
+    if (ios_eng != NULL && ios_eng->L != NULL) {
+        lua_State *L = ios_eng->L;
+        lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+        lua_newtable(L);
+        for (SKProduct *product in response.products) {
+            [product retain];
+            lua_pushstring(L, [[product productIdentifier] UTF8String]);
+            am_new_userdata(L, am_iap_product)->product = product;
+            lua_settable(L, -3);
+        } 
+        lua_setfield(L, -2, "iap_products");
+        lua_pop(L, 1); // am table
+    }
+    [request release];
+}
+@end
+
+static int retrieve_iap_products(lua_State *L) {
+    am_check_nargs(L, 1);
+    if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
+    int n = lua_objlen(L, 1);
+    NSMutableSet *ids = [[NSMutableSet alloc] init];
+    for (int i = 1; i <= n; i++) {
+        lua_rawgeti(L, 1, i);
+        const char *pid = lua_tostring(L, -1);
+        lua_pop(L, 1);
+        if (pid != NULL) {
+            NSString *id = [NSString stringWithUTF8String:pid];
+            [ids addObject:id];
+        }
+    }
+    SKProductsRequest *productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:ids];
+    [ids dealloc];
+                     
+    [productsRequest retain];
+    productsRequest.delegate = [[RetrieveIAPProductsDelegate alloc] init];
+    [productsRequest start];
+    return 0;
+}
+
+static int purchase_iap_product(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_iap_product *product = am_get_userdata(L, am_iap_product, 1);
+    SKMutablePayment *payment = [SKMutablePayment paymentWithProduct:product->product];
+    payment.quantity = 1;
+    [[SKPaymentQueue defaultQueue] addPayment:payment];
+    return 0;
+}
+
+static int restore_iap_purchases(lua_State *L) {
+    [[SKPaymentQueue defaultQueue] restoreCompletedTransactions];
+    return 0;
+}
+
 void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},
@@ -1123,13 +1232,25 @@ void am_open_ios_module(lua_State *L) {
         {"submit_gamecenter_score", submit_gamecenter_score},
         {"submit_gamecenter_achievement", submit_gamecenter_achievement},
         {"show_gamecenter_leaderboard", show_gamecenter_leaderboard},
+        //{"destroy_gamecenter", destroy_gamecenter},
+
         {"ios_store_pref", ios_store_pref},
         {"ios_retrieve_pref", ios_retrieve_pref},
+
         {"force_touch_available", force_touch_available},
-        //{"destroy_gamecenter", destroy_gamecenter},
+
+        {"init_google_banner_ad", init_google_banner_ad},
+        {"set_google_banner_ad_visible", set_google_banner_ad_visible},
+        {"request_google_banner_ad", request_google_banner_ad},
+
+        {"retrieve_iap_products", retrieve_iap_products},
+        {"purchase_iap_product", purchase_iap_product},
+        {"restore_iap_purchases", restore_iap_purchases},
+
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+    register_iap_product_mt(L);
 }
 
 #endif // AM_BACKEND_IOS

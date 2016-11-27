@@ -89,6 +89,7 @@ void am_destroy_engine(am_engine *eng) {
     if (!am_conf_no_close_lua) {
         am_log_gl("// close lua");
         lua_close(eng->L);
+        eng->L = NULL;
         am_log_gl("// destroy allocator");
         if (eng->allocator != NULL) {
             am_destroy_allocator(eng->allocator);

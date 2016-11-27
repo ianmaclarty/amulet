@@ -82,6 +82,8 @@ typedef enum {
 
     MT_am_rand,
 
+    MT_am_iap_product,
+
     ENUM_am_buffer_view_type,
     ENUM_am_texture_format,
     ENUM_am_texture_type,
