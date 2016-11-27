@@ -642,6 +642,8 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
     [EAGLContext setCurrentContext:context];
 
+    [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
+
     ios_init_engine();
     ios_init_audio();
  
@@ -651,8 +653,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     viewController.preferredFramesPerSecond = 60; // XXX
     self.window.rootViewController = viewController;
     ios_view_controller = viewController;
-
-    [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
 
     [self.window makeKeyAndVisible];
     return YES;
