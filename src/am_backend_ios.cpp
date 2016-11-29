@@ -36,11 +36,12 @@ static float *ios_audio_buffer = NULL;
 static int ios_audio_offset = 0;
 static NSLock *ios_audio_mutex = [[NSLock alloc] init];
 static bool ios_done_first_draw = false;
-GADBannerView *banner_ad = nil;
+static GADBannerView *banner_ad = nil;
+static bool banner_ad_filled = false;
+static bool banner_ad_want_visible = false;
 
 static GLKView *ios_view = nil;
 static GLKViewController *ios_view_controller = nil;
-
 
 static double t0;
 static double t_debt;
@@ -613,17 +614,21 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 @end
 
 
-@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, GLKViewDelegate, GLKViewControllerDelegate>
+@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, GLKViewDelegate, GLKViewControllerDelegate, GADAdDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
 @end
+
+static id banner_delegate = nil;
 
 @implementation AMAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Prevent rotate animation when application launches.
     [UIView setAnimationsEnabled:NO];
+
+    banner_delegate = self;
 
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
  
@@ -650,7 +655,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     GLKViewController * viewController = [[AMViewController alloc] initWithNibName:nil bundle:nil];
     viewController.view = view;
     viewController.delegate = self;
-    viewController.preferredFramesPerSecond = 60; // XXX
+    viewController.preferredFramesPerSecond = 60;
     self.window.rootViewController = viewController;
     ios_view_controller = viewController;
 
@@ -766,6 +771,21 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
         }
         lua_pop(L, 2); // iap_transactions and am tables
     }
+}
+
+- (void)adViewDidReceiveAd:(nonnull GADBannerView *)bannerView
+{
+    banner_ad_filled = true;
+    if (banner_ad_want_visible) {
+        banner_ad.hidden = NO;
+    }
+}
+
+- (void)adView:(nonnull GADBannerView *)bannerView
+    didFailToReceiveAdWithError:(nonnull GADRequestError *)error
+{
+    banner_ad_filled = false;
+    banner_ad.hidden = YES;
 }
 
 - (void)dealloc
@@ -1133,6 +1153,7 @@ static int init_google_banner_ad(lua_State *L) {
     banner_ad.hidden = YES;
     banner_ad.adUnitID = [NSString stringWithUTF8String:unitid];
     banner_ad.rootViewController = ios_view_controller;
+    banner_ad.delegate = banner_delegate;
     [ios_view addSubview:banner_ad];
     return 0;
 }
@@ -1140,13 +1161,26 @@ static int init_google_banner_ad(lua_State *L) {
 static int set_google_banner_ad_visible(lua_State *L) {
     am_check_nargs(L, 1);
     if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
-    banner_ad.hidden = lua_toboolean(L, 1) ? NO : YES;
+    bool vis = lua_toboolean(L, 1) ? true : false;
+    banner_ad_want_visible = vis;
+    if (vis && banner_ad_filled) {
+        banner_ad.hidden = NO;
+    } else if (!vis) {
+        banner_ad.hidden = YES;
+    }
     return 0;
+}
+
+static int is_google_banner_ad_visible(lua_State *L) {
+    if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
+    lua_pushboolean(L, banner_ad.hidden == YES ? 0 : 1);
+    return 1;
 }
 
 static int request_google_banner_ad(lua_State *L) {
     if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
     [banner_ad loadRequest:[GADRequest request]];
+    banner_ad.hidden = YES;
     return 0;
 }
 
@@ -1241,6 +1275,7 @@ void am_open_ios_module(lua_State *L) {
 
         {"init_google_banner_ad", init_google_banner_ad},
         {"set_google_banner_ad_visible", set_google_banner_ad_visible},
+        {"is_google_banner_ad_visible", is_google_banner_ad_visible},
         {"request_google_banner_ad", request_google_banner_ad},
 
         {"retrieve_iap_products", retrieve_iap_products},
