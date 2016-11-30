@@ -130,8 +130,10 @@ function table.shuffle(t)
       error("table expected, but got a "..type(t), 2)
   end
 
+  local math_random = math.random
+
   for a = #t, 2, -1 do
-    local b = math.random(a)
+    local b = math_random(a)
     t[a], t[b] = t[b], t[a]
   end
 end
