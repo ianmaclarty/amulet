@@ -126,16 +126,16 @@ function table.count(t)
 end
 
 function table.shuffle(t)
-  if type(t) ~= "table" then
-      error("table expected, but got a "..type(t), 2)
-  end
+    if type(t) ~= "table" then
+        error("table expected, but got a "..type(t), 2)
+    end
 
-  local math_random = math.random
+    local math_random = math.random
 
-  for a = #t, 2, -1 do
-    local b = math_random(a)
-    t[a], t[b] = t[b], t[a]
-  end
+    for a = #t, 2, -1 do
+        local b = math_random(a)
+        t[a], t[b] = t[b], t[a]
+    end
 end
 
 local
