@@ -22,6 +22,9 @@ All .txt files will also be copied to the generated zip and
 be visible to the user when they unzip it. This is intended for `README.txt`
 or similar files.
 
+If the `-r` option is given then all subdirectories will also be included
+(recursively), otherwise only the files in current directory are included.
+
 The generated zip will also contain an `amulet_license.txt` file
 containing the Amulet license as well as the licenses of all third
 party libraries used by Amulet. Some of these licenses require that they
