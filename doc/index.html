@@ -410,6 +410,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#table.shallow_copy">table.shallow_copy(t)</a></li>
 <li><a href="#table.deep_copy">table.deep_copy(t)</a></li>
 <li><a href="#table.search">table.search(arr, elem)</a></li>
+<li><a href="#table.shuffle">table.shuffle(t [,rand])</a></li>
 <li><a href="#table.clear">table.clear(t)</a></li>
 <li><a href="#table.remove_all">table.remove_all(arr, elem)</a></li>
 <li><a href="#table.append">table.append(arr1, arr2)</a></li>
@@ -2087,6 +2088,10 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 </ul>
 <p>In the table the <code>_var</code> fields are an amount that is added to and subtracted from the corresponding field (the one without the <code>_var</code> suffix) to get the range of values from which one is randomly chosen. For example if <code>source_pos</code> is <code>vec2(1, 0)</code> and <code>source_pos_var</code> is <code>vec2(3, 2)</code>, then source positions will be chosen in the range <code>vec2(-2, -2)</code> to <code>vec2(4, 2)</code>.</p>
 <p>All of the sprite settings are exposed as updatable fields on the particles node.</p>
+<p>Methods:</p>
+<ul>
+<li><code>reset()</code>: resets the particles as if they had just been created with their current settings.</li>
+</ul>
 <p>Default tag: <code>&quot;particles2d&quot;</code>.</p>
 <div class="figure">
 <img src="images/screenshot9.jpg" alt="" />
@@ -3090,6 +3095,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <pre class="console"><code>&gt; amulet export</code></pre>
 <p>This will generate package files for each supported platform in the current directory. If you just want to generate a package for one platform you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-ios</code>, <code>-linux</code> or <code>-html</code>.</p>
 <p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.json</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
+<p>If the <code>-r</code> option is given then all subdirectories will also be included (recursively), otherwise only the files in current directory are included.</p>
 <p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
 <p>If you create a <code>conf.lua</code> file in the same directory as your other Lua files containing the following:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">title <span class="ot">=</span> <span class="st">&quot;My Game Title&quot;</span>
@@ -3117,6 +3123,8 @@ orientation <span class="ot">=</span> <span class="st">&quot;any&quot;</span></c
 <p>Returns a deep copy of <code>t</code> (all <code>t</code>'s keys and values are copied recursively). Cycles are detected and reproduced in the new table.</p>
 <h3 id="table.search" class="func-def">table.search(arr, elem)</h3>
 <p>Return the index of <code>elem</code> in <code>arr</code> or nil if it's not found.</p>
+<h3 id="table.shuffle" class="func-def">table.shuffle(t [,rand])</h3>
+<p>Randomly rearranges the values of <code>t</code>. The optional <code>rand</code> argument should be a function where <code>rand(n)</code> returns an integer between 1 and n (like <code>math.random</code>). By default <code>math.random</code> is used.</p>
 <h3 id="table.clear" class="func-def">table.clear(t)</h3>
 <p>Remove all <code>t</code>'s pairs.</p>
 <h3 id="table.remove_all" class="func-def">table.remove_all(arr, elem)</h3>
