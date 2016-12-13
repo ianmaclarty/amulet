@@ -27,6 +27,7 @@ static int create_window(lua_State *L) {
     glm::dmat4 projection;
     bool user_projection = false;
     bool lock_pointer = false;
+    bool show_cursor = true;
     int msaa_samples = 0;
 
     lua_pushnil(L);
@@ -62,6 +63,8 @@ static int create_window(lua_State *L) {
             letterbox = lua_toboolean(L, -1);
         } else if (strcmp(key, "lock_pointer") == 0) {
             lock_pointer = lua_toboolean(L, -1);
+        } else if (strcmp(key, "show_cursor") == 0) {
+            show_cursor = lua_toboolean(L, -1);
         } else if (strcmp(key, "msaa_samples") == 0) {
             msaa_samples = luaL_checkinteger(L, -1);
             if (msaa_samples < 0) {
@@ -113,6 +116,7 @@ static int create_window(lua_State *L) {
     win->has_stencil_buffer = stencil_buffer;
 
     am_set_native_window_lock_pointer(win->native_win, lock_pointer);
+    am_set_native_window_show_cursor(win->native_win, show_cursor);
     win->mode = mode;
     win->dirty = false;
 
@@ -581,6 +585,19 @@ static void set_lock_pointer(lua_State *L, void *obj) {
 
 static am_property lock_pointer_property = {get_lock_pointer, set_lock_pointer};
 
+static void get_show_cursor(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushboolean(L, am_get_native_window_show_cursor(window->native_win));
+}
+
+static void set_show_cursor(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    bool value = lua_toboolean(L, 3);
+    am_set_native_window_show_cursor(window->native_win, value);
+}
+
+static am_property show_cursor_property = {get_show_cursor, set_show_cursor};
+
 static void get_window_mode(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     am_push_enum(L, am_window_mode, window->mode);
@@ -630,6 +647,7 @@ static void register_window_mt(lua_State *L) {
     am_register_property(L, "scene", &scene_property);
     am_register_property(L, "_overlay", &overlay_property);
     am_register_property(L, "lock_pointer", &lock_pointer_property);
+    am_register_property(L, "show_cursor", &show_cursor_property);
     am_register_property(L, "pixel_width", &pixel_width_property);
     am_register_property(L, "pixel_height", &pixel_height_property);
     am_register_property(L, "left", &left_property);

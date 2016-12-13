@@ -840,6 +840,13 @@ bool am_get_native_window_lock_pointer(am_native_window *window) {
 void am_set_native_window_lock_pointer(am_native_window *window, bool lock) {
 }
 
+void am_set_native_window_show_cursor(am_native_window *window, bool show) {
+}
+
+bool am_get_native_window_show_cursor(am_native_window *window) {
+    return false;
+}
+
 void am_destroy_native_window(am_native_window *window) {
 }
 

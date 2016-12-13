@@ -55,6 +55,9 @@ table with any of the following fields:
     useful for implementing first-person style mouse-look. The default
     is `false`.
 
+- **`show_cursor`**:
+    Whether to show the mouse cursor (`true` or `false`, default `true`).
+
 - **`clear_color`**:
     The color (a `vec4`) used to clear the window each frame before drawing.
     The default clear color is black (`vec4(0, 0, 0, 1)`).
@@ -162,6 +165,12 @@ See [window settings](#am.window).
 Updatable.
 
 ### window.lock_pointer {.field-def}
+
+See [window settings](#am.window).
+
+Updatable.
+
+### window.show_cursor {.field-def}
 
 See [window settings](#am.window).
 

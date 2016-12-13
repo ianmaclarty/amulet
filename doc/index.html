@@ -166,6 +166,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#window.clear_color">window.clear_color</a></li>
 <li><a href="#window.letterbox">window.letterbox</a></li>
 <li><a href="#window.lock_pointer">window.lock_pointer</a></li>
+<li><a href="#window.show_cursor">window.show_cursor</a></li>
 <li><a href="#window.scene">window.scene</a></li>
 <li><a href="#window.projection">window.projection</a></li>
 </ul></li>
@@ -487,28 +488,28 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>The <a href="http://www.amulet.xyz/editor.html">online editor</a> contains numerous examples you can experiment with from your browser.</p>
 <p>If you see a function argument with square brackets around it in a function signature, then that argument is optional.</p>
 <div class="figure">
-<img src="images/screenshot7.jpg" alt="" />
+<img src="images/screenshot7.jpg" />
 
 </div>
 <h1 id="lua-primer">Lua primer</h1>
 <p>Amulet code is written in <a href="http://www.lua.org">Lua</a>. The version of Lua used by default is LuaJIT-2 on Windows, Mac and Linux and Lua-5.1 on all other platforms.</p>
 <p>What follows is a quick introduction to Lua. For more detail please see the <a href="http://www.lua.org/manual/5.1/">Lua manual</a>.</p>
 <p><strong>Comments:</strong></p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="co">-- This is a single line comment</span>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="do">-- This is a single line comment</span>
 
-<span class="co">--[[ This is</span>
-<span class="co">a multi-line</span>
-<span class="co">comment ]]</span></code></pre></div>
+<span class="do">--[[ This is</span>
+<span class="do">a multi-line</span>
+<span class="do">comment ]]</span></code></pre></div>
 <p><strong>Local variables (block scope):</strong></p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> x <span class="ot">=</span> <span class="dv">3.14</span> <span class="co">-- a number</span>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> x <span class="ot">=</span> <span class="dv">3.14</span> <span class="do">-- a number</span>
 <span class="kw">local</span> str <span class="ot">=</span> <span class="st">&quot;a string&quot;</span>
 <span class="kw">local</span> str2 <span class="ot">=</span> <span class="st">[[</span>
 <span class="st">a</span>
 <span class="st">multi-line</span>
 <span class="st">string]]</span>
-<span class="kw">local</span> bool <span class="ot">=</span> <span class="kw">true</span> <span class="co">-- a bool, can also be false</span>
-<span class="kw">local</span> y <span class="ot">=</span> <span class="kw">nil</span> <span class="co">-- nil value</span>
-<span class="kw">local</span> v1<span class="ot">,</span> v2 <span class="ot">=</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span> <span class="co">-- create two local variables at once</span></code></pre></div>
+<span class="kw">local</span> bool <span class="ot">=</span> <span class="kw">true</span> <span class="do">-- a bool, can also be false</span>
+<span class="kw">local</span> y <span class="ot">=</span> <span class="kw">nil</span> <span class="do">-- nil value</span>
+<span class="kw">local</span> v1<span class="ot">,</span> v2 <span class="ot">=</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span> <span class="do">-- create two local variables at once</span></code></pre></div>
 <p><strong>Global variables:</strong></p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">score <span class="ot">=</span> <span class="dv">0</span>
 title <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span></code></pre></div>
@@ -528,23 +529,23 @@ title <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span></cod
     <span class="fu">print</span><span class="ot">(</span>n<span class="ot">)</span>
     n <span class="ot">=</span> n <span class="ot">-</span> <span class="dv">1</span>
 <span class="kw">end</span>
-<span class="co">-- prints 5 4 3 2 1</span></code></pre></div>
+<span class="do">-- prints 5 4 3 2 1</span></code></pre></div>
 <p><strong>Repeat-until loop:</strong></p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> n <span class="ot">=</span> <span class="dv">0</span>
 <span class="kw">repeat</span>
     n <span class="ot">=</span> n <span class="ot">+</span> <span class="dv">1</span>
     <span class="fu">print</span><span class="ot">(</span>n<span class="ot">)</span>
 <span class="kw">until</span> n <span class="ot">==</span> <span class="dv">5</span>
-<span class="co">-- prints 1 2 3 4 5</span></code></pre></div>
+<span class="do">-- prints 1 2 3 4 5</span></code></pre></div>
 <p><strong>For loop:</strong></p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">for</span> i <span class="ot">=</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">5</span> <span class="kw">do</span>
     <span class="fu">print</span><span class="ot">(</span>i<span class="ot">)</span>
 <span class="kw">end</span>
-<span class="co">-- prints 1 2 3 4 5</span>
+<span class="do">-- prints 1 2 3 4 5</span>
 <span class="kw">for</span> j <span class="ot">=</span> <span class="dv">10</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">2</span> <span class="kw">do</span>
     <span class="fu">print</span><span class="ot">(</span>j<span class="ot">)</span>
 <span class="kw">end</span>
-<span class="co">-- prints 10 8 6 4 2</span></code></pre></div>
+<span class="do">-- prints 10 8 6 4 2</span></code></pre></div>
 <p>You can break out of a loop using the <code>break</code> statement:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">for</span> j <span class="ot">=</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">10</span> <span class="kw">do</span>
     <span class="fu">print</span><span class="ot">(</span>j<span class="ot">)</span>
@@ -552,7 +553,7 @@ title <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span></cod
         <span class="kw">break</span>
     <span class="kw">end</span>
 <span class="kw">end</span>
-<span class="co">-- prints 1 2 3 4 5</span></code></pre></div>
+<span class="do">-- prints 1 2 3 4 5</span></code></pre></div>
 <p><strong>Operators:</strong></p>
 <p>The arithmetic operators are: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code> (exponent) and <code>%</code> (modulo).</p>
 <p>The relational operators are: <code>==</code>, <code>~=</code> (not equal), <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code> and <code>&gt;=</code></p>
@@ -561,12 +562,12 @@ title <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span></cod
 <p><strong>Tables:</strong></p>
 <p>Tables are the only data structure in Lua. They can be used as key-value maps or arrays.</p>
 <p>Keys and values can be of any type except <code>nil</code>.</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{}</span> <span class="co">-- create empty table</span>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{}</span> <span class="do">-- create empty table</span>
 t<span class="ot">[</span><span class="st">&quot;score&quot;</span><span class="ot">]</span> <span class="ot">=</span> <span class="dv">10</span>
 t<span class="ot">[</span><span class="dv">1</span><span class="ot">]</span> <span class="ot">=</span> <span class="st">&quot;foo&quot;</span>
 t<span class="ot">[</span><span class="kw">true</span><span class="ot">]</span> <span class="ot">=</span> <span class="st">&quot;x&quot;</span>
 
-<span class="co">-- this creates a table with 2 string keys:</span>
+<span class="do">-- this creates a table with 2 string keys:</span>
 <span class="kw">local</span> t2 <span class="ot">=</span> <span class="ot">{</span>foo <span class="ot">=</span> <span class="st">&quot;bar&quot;</span><span class="ot">,</span> baz <span class="ot">=</span> <span class="dv">123</span><span class="ot">}</span></code></pre></div>
 <p>Special syntax is provided for string keys:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{}</span>
@@ -577,23 +578,23 @@ t<span class="ot">.</span>score <span class="ot">=</span> <span class="dv">10</s
 <span class="kw">for</span> i <span class="ot">=</span> <span class="dv">1</span><span class="ot">,</span> <span class="ot">#</span>arr <span class="kw">do</span>
     <span class="fu">print</span><span class="ot">(</span>arr<span class="ot">[</span>i<span class="ot">])</span>
 <span class="kw">end</span>
-<span class="co">-- prints 3, 4, 5</span>
-<span class="fu">table.insert</span><span class="ot">(</span>arr<span class="ot">,</span> <span class="dv">6</span><span class="ot">)</span> <span class="co">-- appends 6 to end of arr</span>
-<span class="fu">table.remove</span><span class="ot">(</span>arr<span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span> <span class="co">-- removes the first element of arr</span>
-<span class="co">-- arr is now {4, 5, 6}</span></code></pre></div>
+<span class="do">-- prints 3, 4, 5</span>
+<span class="fu">table.insert</span><span class="ot">(</span>arr<span class="ot">,</span> <span class="dv">6</span><span class="ot">)</span> <span class="do">-- appends 6 to end of arr</span>
+<span class="fu">table.remove</span><span class="ot">(</span>arr<span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span> <span class="do">-- removes the first element of arr</span>
+<span class="do">-- arr is now {4, 5, 6}</span></code></pre></div>
 <p>Setting a key's value to <code>nil</code> removes the key and indexing a missing key returns <code>nil</code>.</p>
 <p>You can iterate over all key/value pairs using the <code>pairs</code> function. Note that the order is not preserved.</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{</span>a <span class="ot">=</span> <span class="dv">1</span><span class="ot">,</span> b <span class="ot">=</span> <span class="dv">2</span><span class="ot">,</span> c <span class="ot">=</span> <span class="dv">3</span><span class="ot">}</span>
 <span class="kw">for</span> k<span class="ot">,</span> v <span class="kw">in</span> <span class="fu">pairs</span><span class="ot">(</span>t<span class="ot">)</span> <span class="kw">do</span>
     <span class="fu">print</span><span class="ot">(</span>k<span class="ot">..</span><span class="st">&quot;:&quot;</span><span class="ot">..</span>v<span class="ot">)</span>
 <span class="kw">end</span>
-<span class="co">-- prints a:1 c:3 b:2</span></code></pre></div>
+<span class="do">-- prints a:1 c:3 b:2</span></code></pre></div>
 <p>To iterate over an array table, keeping the order, use <code>ipairs</code>:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> arr <span class="ot">=</span> <span class="ot">{</span><span class="st">&quot;a&quot;</span><span class="ot">,</span> <span class="st">&quot;b&quot;</span><span class="ot">,</span> <span class="st">&quot;c&quot;</span><span class="ot">}</span>
 <span class="kw">for</span> k<span class="ot">,</span> v <span class="kw">in</span> <span class="fu">ipairs</span><span class="ot">(</span>arr<span class="ot">)</span> <span class="kw">do</span>
     <span class="fu">print</span><span class="ot">(</span>k<span class="ot">..</span><span class="st">&quot;:&quot;</span><span class="ot">..</span>v<span class="ot">)</span>
 <span class="kw">end</span>
-<span class="co">-- prints 1:a 2:b 3:c</span></code></pre></div>
+<span class="do">-- prints 1:a 2:b 3:c</span></code></pre></div>
 <p><strong>Functions:</strong></p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> factorial<span class="ot">(</span>n<span class="ot">)</span>
     <span class="kw">if</span> n <span class="ot">&lt;=</span> <span class="dv">1</span> <span class="kw">then</span>
@@ -602,12 +603,12 @@ t<span class="ot">.</span>score <span class="ot">=</span> <span class="dv">10</s
         <span class="kw">return</span> n <span class="ot">*</span> factorial<span class="ot">(</span>n<span class="ot">-</span><span class="dv">1</span><span class="ot">)</span>
     <span class="kw">end</span>
 <span class="kw">end</span>
-<span class="fu">print</span><span class="ot">(</span>factorial<span class="ot">(</span><span class="dv">3</span><span class="ot">))</span> <span class="co">-- prints 6</span></code></pre></div>
+<span class="fu">print</span><span class="ot">(</span>factorial<span class="ot">(</span><span class="dv">3</span><span class="ot">))</span> <span class="do">-- prints 6</span></code></pre></div>
 <p>Functions are values in Lua so they can be assigned to variables:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> add <span class="ot">=</span> <span class="kw">function</span><span class="ot">(</span>a<span class="ot">,</span> b<span class="ot">)</span>
     <span class="kw">return</span> a <span class="ot">+</span> b
 <span class="kw">end</span>
-<span class="fu">print</span><span class="ot">(</span>add<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">))</span> <span class="co">-- prints 3</span></code></pre></div>
+<span class="fu">print</span><span class="ot">(</span>add<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">))</span> <span class="do">-- prints 3</span></code></pre></div>
 <p>Special syntax is provided for adding functions to tables:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> t <span class="ot">=</span> <span class="ot">{}</span>
 <span class="kw">function</span> t<span class="ot">.</span>say_hello<span class="ot">()</span>
@@ -636,15 +637,15 @@ t<span class="ot">.</span>say_hello <span class="ot">=</span> <span class="kw">f
 <span class="kw">function</span> t:print_x<span class="ot">()</span>
     <span class="fu">print</span><span class="ot">(</span>self<span class="ot">.</span>x<span class="ot">)</span>
 <span class="kw">end</span>
-t:print_x<span class="ot">()</span>   <span class="co">-- prints 3</span>
+t:print_x<span class="ot">()</span>   <span class="do">-- prints 3</span>
 t<span class="ot">.</span>x <span class="ot">=</span> <span class="dv">4</span>
-t:print_x<span class="ot">()</span>   <span class="co">-- prints 4</span></code></pre></div>
+t:print_x<span class="ot">()</span>   <span class="do">-- prints 4</span></code></pre></div>
 <p>If a function call has only a single string or table argument, the parentheses can be omitted:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span>
 <span class="kw">function</span> append_z<span class="ot">(</span>str<span class="ot">)</span>
     <span class="kw">return</span> str<span class="ot">..</span><span class="st">&quot;z&quot;</span>
 <span class="kw">end</span>
-<span class="fu">print</span><span class="ot">(</span>append_z<span class="st">&quot;xy&quot;</span><span class="ot">)</span> <span class="co">-- prints xyz</span>
+<span class="fu">print</span><span class="ot">(</span>append_z<span class="st">&quot;xy&quot;</span><span class="ot">)</span> <span class="do">-- prints xyz</span>
 
 <span class="kw">local</span>
 <span class="kw">function</span> sum<span class="ot">(</span>values<span class="ot">)</span>
@@ -654,16 +655,16 @@ t:print_x<span class="ot">()</span>   <span class="co">-- prints 4</span></code>
     <span class="kw">end</span>
     <span class="kw">return</span> total
 <span class="kw">end</span>
-<span class="fu">print</span><span class="ot">(</span>sum<span class="ot">{</span><span class="dv">3</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">})</span> <span class="co">-- prints 10</span></code></pre></div>
+<span class="fu">print</span><span class="ot">(</span>sum<span class="ot">{</span><span class="dv">3</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">})</span> <span class="do">-- prints 10</span></code></pre></div>
 <p>Functions may also return multiple values:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">function</span> f<span class="ot">()</span>
     <span class="kw">return</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span>
 <span class="kw">end</span>
 <span class="kw">local</span> x<span class="ot">,</span> y <span class="ot">=</span> f<span class="ot">()</span>
-<span class="fu">print</span><span class="ot">(</span>x <span class="ot">+</span> y<span class="ot">)</span> <span class="co">-- prints 3</span></code></pre></div>
+<span class="fu">print</span><span class="ot">(</span>x <span class="ot">+</span> y<span class="ot">)</span> <span class="do">-- prints 3</span></code></pre></div>
 <hr />
 <div class="figure">
-<img src="images/screenshot6.jpg" alt="" />
+<img src="images/screenshot6.jpg" />
 
 </div>
 <h1 id="quickstart">Quickstart tutorial</h1>
@@ -697,7 +698,7 @@ main.lua:1: It works!</code></pre>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">win<span class="ot">.</span>scene <span class="ot">=</span> am<span class="ot">.</span>text<span class="ot">(</span><span class="st">&quot;Hello!&quot;</span><span class="ot">)</span></code></pre></div>
 <p>This assigns a <em>scene graph</em> to the window. The scene has a single text node. The window will render its scene graph each frame.</p>
 <div class="figure">
-<img src="images/hello1.png" alt="" />
+<img src="images/hello1.png" />
 
 </div>
 <h2 id="transformation-nodes">Transformation nodes</h2>
@@ -709,13 +710,13 @@ main.lua:1: It works!</code></pre>
     <span class="ot">^</span> am<span class="ot">.</span>text<span class="ot">(</span><span class="st">&quot;Hello!&quot;</span><span class="ot">)</span></code></pre></div>
 <p>This adds translate, scale and rotate nodes as parents of the text node. These nodes transform the position, size and rotation of all their children. The resulting scene graph looks like this:</p>
 <div class="figure">
-<img src="graphs/scene1.png" alt="" />
+<img src="graphs/scene1.png" />
 
 </div>
 <p>The translate node moves its descendents to the right 150 and up 100 (by convention the y axis increases in upward direction). The scale node doubles its descendent's size and the rotate node rotates its descendents by 90 degrees (<code>math.rad</code> converts degrees to radians). Finally the text node renders some text to the screen.</p>
 <p>When you run the program you should see something like this:</p>
 <div class="figure">
-<img src="images/hello2.png" alt="" />
+<img src="images/hello2.png" />
 
 </div>
 <h2 id="actions">Actions</h2>
@@ -772,13 +773,13 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
         <span class="ot">^</span> am<span class="ot">.</span>rect<span class="ot">(-</span><span class="dv">50</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">50</span><span class="ot">,</span> <span class="dv">50</span><span class="ot">,</span> <span class="dv">50</span><span class="ot">,</span> yellow<span class="ot">)</span>
     <span class="ot">}</span></code></pre></div>
 <div class="figure">
-<img src="images/shapes.png" alt="" />
+<img src="images/shapes.png" />
 
 </div>
 <p>This time, we've created variables for the different colours we'll need. In Amulet colours are 4-dimensional vectors. Each component of the vector represents the red, green, blue and alpha intensity of the colour and ranges from 0 to 1.</p>
 <p>The scene graph has a <code>group</code> node at the top. <code>group</code> nodes don't have any effect on the rendering and are only used to group other nodes together. The group node has 3 children, each of which is a <code>translate</code> node with a shape child. The scene graph looks like this:</p>
 <div class="figure">
-<img src="graphs/scene2.png" alt="" />
+<img src="graphs/scene2.png" />
 
 </div>
 <p>Instead of building the scene graph using the <code>^</code> operator as we've done above, we can also do it step-by-step using the <code>append</code> method, which adds a node to the child list of another node:</p>
@@ -884,7 +885,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
     <span class="ot">}</span></code></pre></div>
 <p>Run the program and you should get something like this:</p>
 <div class="figure">
-<img src="images/beach1.png" alt="" />
+<img src="images/beach1.png" />
 
 </div>
 <p>The children of any scene node are always drawn in order, so first the beach.jpg sprite node is drawn and then the ball.png sprite, with it's corresponding translation, is drawn. This ensures the ball is visible on the beach. If we draw the beach second it would obscure the ball.</p>
@@ -901,57 +902,57 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
         <span class="ot">^</span> am<span class="ot">.</span>sprite<span class="st">&quot;ball.png&quot;</span>
     <span class="ot">}</span></code></pre></div>
 <p>Now add an action to animate the ball when it's clicked:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="co">-- ball state variables:</span>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="do">-- ball state variables:</span>
 <span class="kw">local</span> ball_pos <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">60</span><span class="ot">)</span>
 <span class="kw">local</span> ball_angle <span class="ot">=</span> <span class="dv">0</span>
 <span class="kw">local</span> velocity <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">)</span>
 <span class="kw">local</span> spin <span class="ot">=</span> <span class="dv">0</span>
 
-<span class="co">-- constants:</span>
+<span class="do">-- constants:</span>
 <span class="kw">local</span> min_pos <span class="ot">=</span> vec2<span class="ot">(-</span><span class="dv">180</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">60</span><span class="ot">)</span>
 <span class="kw">local</span> max_pos <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">180</span><span class="ot">,</span> <span class="dv">500</span><span class="ot">)</span>
-<span class="co">-- min and max impulse velocity:</span>
+<span class="do">-- min and max impulse velocity:</span>
 <span class="kw">local</span> min_v <span class="ot">=</span> vec2<span class="ot">(-</span><span class="dv">50</span><span class="ot">,</span> <span class="dv">150</span><span class="ot">)</span>
 <span class="kw">local</span> max_v <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">50</span><span class="ot">,</span> <span class="dv">300</span><span class="ot">)</span>
 <span class="kw">local</span> gravity <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">500</span><span class="ot">)</span>
 
 win<span class="ot">.</span>scene:action<span class="ot">(</span><span class="kw">function</span><span class="ot">(</span>scene<span class="ot">)</span>
-    <span class="co">-- check if the left mouse button was pressed</span>
+    <span class="do">-- check if the left mouse button was pressed</span>
     <span class="kw">if</span> win:mouse_pressed<span class="st">&quot;left&quot;</span> <span class="kw">then</span>
         <span class="kw">local</span> mouse_pos <span class="ot">=</span> win:mouse_position<span class="ot">()</span>
-        <span class="co">-- check if the mouse click is on the ball</span>
+        <span class="do">-- check if the mouse click is on the ball</span>
         <span class="kw">if</span> math<span class="ot">.</span>distance<span class="ot">(</span>mouse_pos<span class="ot">,</span> ball_pos<span class="ot">)</span> <span class="ot">&lt;</span> <span class="dv">50</span> <span class="kw">then</span>
-            <span class="co">-- compute a velocity based on click position</span>
+            <span class="do">-- compute a velocity based on click position</span>
             <span class="kw">local</span> dir <span class="ot">=</span> math<span class="ot">.</span>normalize<span class="ot">(</span>ball_pos <span class="ot">-</span> mouse_pos<span class="ot">)</span>
             velocity <span class="ot">=</span> dir <span class="ot">*</span> <span class="dv">300</span>
             velocity <span class="ot">=</span> math<span class="ot">.</span>clamp<span class="ot">(</span>velocity<span class="ot">,</span> min_v<span class="ot">,</span> max_v<span class="ot">)</span>
-            <span class="co">-- set a random spin</span>
+            <span class="do">-- set a random spin</span>
             spin <span class="ot">=</span> <span class="fu">math.random</span><span class="ot">()</span> <span class="ot">*</span> <span class="dv">4</span> <span class="ot">-</span> <span class="dv">2</span>
         <span class="kw">end</span>
     <span class="kw">end</span>
 
-    <span class="co">-- update the ball position</span>
+    <span class="do">-- update the ball position</span>
     ball_pos <span class="ot">=</span> ball_pos <span class="ot">+</span> velocity <span class="ot">*</span> am<span class="ot">.</span>delta_time
 
-    <span class="co">-- if the ball is on the ground, set the</span>
-    <span class="co">-- velocity and spin to zero.</span>
+    <span class="do">-- if the ball is on the ground, set the</span>
+    <span class="do">-- velocity and spin to zero.</span>
     <span class="kw">if</span> ball_pos<span class="ot">.</span>y <span class="ot">&lt;=</span> <span class="ot">-</span><span class="dv">60</span> <span class="kw">then</span>
         velocity <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">)</span>
         spin <span class="ot">=</span> <span class="dv">0</span>
     <span class="kw">end</span>
 
-    <span class="co">-- clamp the ball position so it doesn&#39;t disappear</span>
-    <span class="co">-- off the edge of the screen</span>
+    <span class="do">-- clamp the ball position so it doesn&#39;t disappear</span>
+    <span class="do">-- off the edge of the screen</span>
     ball_pos <span class="ot">=</span> math<span class="ot">.</span>clamp<span class="ot">(</span>ball_pos<span class="ot">,</span> min_pos<span class="ot">,</span> max_pos<span class="ot">)</span>
 
-    <span class="co">-- update the ball angle</span>
+    <span class="do">-- update the ball angle</span>
     ball_angle <span class="ot">=</span> ball_angle <span class="ot">+</span> spin <span class="ot">*</span> am<span class="ot">.</span>delta_time
 
-    <span class="co">-- update the ball translate and rotate nodes</span>
+    <span class="do">-- update the ball translate and rotate nodes</span>
     scene<span class="st">&quot;ballt&quot;</span><span class="ot">.</span>position2d <span class="ot">=</span> ball_pos
     scene<span class="st">&quot;ballr&quot;</span><span class="ot">.</span>angle <span class="ot">=</span> ball_angle
 
-    <span class="co">-- apply gravity to the velocity</span>
+    <span class="do">-- apply gravity to the velocity</span>
     velocity <span class="ot">=</span> velocity <span class="ot">+</span> gravity <span class="ot">*</span> am<span class="ot">.</span>delta_time
 <span class="kw">end</span><span class="ot">)</span></code></pre></div>
 <p>First we create some variables to keep track of the ball's state. We need to track its position, angle, velocity and spin (angular velocity). The <code>ball_pos</code> and <code>velocity</code> variables are 2 dimensional vectors, since we want to track position and velocity along both the x and y axes. We could have made separate variables for the x and y components, but using a <code>vec2</code> is more concise. Note that if the values of the x and y components of the vector are the same, we only need to give the value once, so we just need to write <code>vec2(0)</code> when initialising the velocity instead of <code>vec2(0, 0)</code>.</p>
@@ -1008,56 +1009,56 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <span class="kw">local</span> on_ground <span class="ot">=</span> <span class="kw">true</span>
 
 win<span class="ot">.</span>scene:action<span class="ot">(</span><span class="kw">function</span><span class="ot">(</span>scene<span class="ot">)</span>
-    <span class="co">-- check if the left mouse button was pressed</span>
+    <span class="do">-- check if the left mouse button was pressed</span>
     <span class="kw">if</span> win:mouse_pressed<span class="st">&quot;left&quot;</span> <span class="kw">then</span>
         <span class="kw">local</span> mouse_pos <span class="ot">=</span> win:mouse_position<span class="ot">()</span>
-        <span class="co">-- check if the mouse click is on the ball</span>
+        <span class="do">-- check if the mouse click is on the ball</span>
         <span class="kw">if</span> math<span class="ot">.</span>distance<span class="ot">(</span>mouse_pos<span class="ot">,</span> ball_pos<span class="ot">)</span> <span class="ot">&lt;</span> <span class="dv">50</span> <span class="kw">then</span>
-            <span class="co">-- compute a velocity based on click position</span>
+            <span class="do">-- compute a velocity based on click position</span>
             <span class="kw">local</span> dir <span class="ot">=</span> math<span class="ot">.</span>normalize<span class="ot">(</span>ball_pos <span class="ot">-</span> mouse_pos<span class="ot">)</span>
             velocity <span class="ot">=</span> dir <span class="ot">*</span> <span class="dv">300</span>
             velocity <span class="ot">=</span> math<span class="ot">.</span>clamp<span class="ot">(</span>velocity<span class="ot">,</span> min_v<span class="ot">,</span> max_v<span class="ot">)</span>
-            <span class="co">-- set a random spin</span>
+            <span class="do">-- set a random spin</span>
             spin <span class="ot">=</span> <span class="fu">math.random</span><span class="ot">()</span> <span class="ot">*</span> <span class="dv">4</span> <span class="ot">-</span> <span class="dv">2</span>
-            <span class="co">-- play bounce sound</span>
+            <span class="do">-- play bounce sound</span>
             scene:action<span class="ot">(</span>am<span class="ot">.</span>play<span class="ot">(</span><span class="st">&quot;bounce.ogg&quot;</span><span class="ot">))</span>
             on_ground <span class="ot">=</span> <span class="kw">false</span>
         <span class="kw">end</span>
     <span class="kw">end</span>
 
-    <span class="co">-- update the ball position</span>
+    <span class="do">-- update the ball position</span>
     ball_pos <span class="ot">=</span> ball_pos <span class="ot">+</span> velocity <span class="ot">*</span> am<span class="ot">.</span>delta_time
 
-    <span class="co">-- if the ball lands on the ground, set the</span>
-    <span class="co">-- velocity and spin to zero.</span>
+    <span class="do">-- if the ball lands on the ground, set the</span>
+    <span class="do">-- velocity and spin to zero.</span>
     <span class="kw">if</span> ball_pos<span class="ot">.</span>y <span class="ot">&lt;=</span> <span class="ot">-</span><span class="dv">60</span> <span class="kw">and</span> <span class="kw">not</span> on_ground <span class="kw">then</span>
         velocity <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">)</span>
         spin <span class="ot">=</span> <span class="dv">0</span>
-        <span class="co">-- play land sound</span>
+        <span class="do">-- play land sound</span>
         scene:action<span class="ot">(</span>am<span class="ot">.</span>play<span class="ot">(</span><span class="st">&quot;land.ogg&quot;</span><span class="ot">))</span>
         on_ground <span class="ot">=</span> <span class="kw">true</span>
     <span class="kw">end</span>
 
-    <span class="co">-- clamp the ball position so it doesn&#39;t disappear</span>
-    <span class="co">-- off the edge of the screen</span>
+    <span class="do">-- clamp the ball position so it doesn&#39;t disappear</span>
+    <span class="do">-- off the edge of the screen</span>
     ball_pos <span class="ot">=</span> math<span class="ot">.</span>clamp<span class="ot">(</span>ball_pos<span class="ot">,</span> min_pos<span class="ot">,</span> max_pos<span class="ot">)</span>
 
-    <span class="co">-- update the ball angle</span>
+    <span class="do">-- update the ball angle</span>
     ball_angle <span class="ot">=</span> ball_angle <span class="ot">+</span> spin <span class="ot">*</span> am<span class="ot">.</span>delta_time
 
-    <span class="co">-- update the ball translate and rotate nodes</span>
+    <span class="do">-- update the ball translate and rotate nodes</span>
     scene<span class="st">&quot;ballt&quot;</span><span class="ot">.</span>position2d <span class="ot">=</span> ball_pos
     scene<span class="st">&quot;ballr&quot;</span><span class="ot">.</span>angle <span class="ot">=</span> ball_angle
 
-    <span class="co">-- apply gravity to the velocity</span>
+    <span class="do">-- apply gravity to the velocity</span>
     velocity <span class="ot">=</span> velocity <span class="ot">+</span> gravity <span class="ot">*</span> am<span class="ot">.</span>delta_time
 <span class="kw">end</span><span class="ot">)</span>
 
-<span class="co">-- play ocean sound in a loop</span>
+<span class="do">-- play ocean sound in a loop</span>
 win<span class="ot">.</span>scene:action<span class="ot">(</span>am<span class="ot">.</span>play<span class="ot">(</span><span class="st">&quot;ocean.ogg&quot;</span><span class="ot">,</span> <span class="kw">true</span><span class="ot">))</span></code></pre></div>
 <h1 id="math">Math</h1>
 <div class="figure">
-<img src="images/screenshot1.jpg" alt="" />
+<img src="images/screenshot1.jpg" />
 
 </div>
 <h2 id="vectors">Vectors</h2>
@@ -1119,7 +1120,7 @@ vec3(10, 3, 6)
 vec4(2, 4, 6, 8)</code></pre>
 <hr />
 <div class="figure">
-<img src="images/screenshot4.jpg" alt="" />
+<img src="images/screenshot4.jpg" />
 
 </div>
 <h2 id="matrices">Matrices</h2>
@@ -1129,11 +1130,11 @@ vec4(2, 4, 6, 8)</code></pre>
 <p>Use one of the functions <code>mat2</code>, <code>mat3</code> or <code>mat4</code> to construct a 2x2, 3x3 or 4x4 matrix.</p>
 <p>Passing a single number argument to one of the matrix constructors generates a matrix with all diagonal elements equal to the number and all other elements equal to zero. For example <code>mat3(1)</code> constructs the 3x3 identity matrix:</p>
 <div class="math">
-\begin{bmatrix}
+<span class="math display">\[\begin{bmatrix}
     1 &amp; 0 &amp; 0 \\
     0 &amp; 1 &amp; 0 \\
     0 &amp; 0 &amp; 1
-\end{bmatrix}
+\end{bmatrix}\]</span>
 </div>
 <p>You can also pass the individual elements of the matrix as arguments to one of the constructors. These can either be numbers or vectors or a mix of the two. As the constructor arguments are consumed from left to right, the matrix is filled in column by column. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m <span class="ot">=</span> mat3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span>
@@ -1141,11 +1142,11 @@ vec4(2, 4, 6, 8)</code></pre>
                <span class="dv">7</span><span class="ot">,</span> <span class="dv">8</span><span class="ot">,</span> <span class="dv">9</span><span class="ot">)</span></code></pre></div>
 <p>sets <code>m</code> to the matrix:</p>
 <div class="math">
-\begin{bmatrix}
+<span class="math display">\[\begin{bmatrix}
     1 &amp; 4 &amp; 7 \\
     2 &amp; 5 &amp; 8 \\
     3 &amp; 6 &amp; 9
-\end{bmatrix}
+\end{bmatrix}\]</span>
 </div>
 <p>Here's another example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m <span class="ot">=</span> mat4<span class="ot">(</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">),</span> <span class="dv">4</span><span class="ot">,</span>
@@ -1154,24 +1155,24 @@ vec4(2, 4, 6, 8)</code></pre>
                <span class="dv">13</span><span class="ot">,</span> <span class="dv">14</span><span class="ot">,</span> <span class="dv">15</span><span class="ot">,</span> <span class="dv">16</span><span class="ot">)</span></code></pre></div>
 <p>This sets <code>m</code> to the matrix:</p>
 <div class="math">
-\begin{bmatrix}
+<span class="math display">\[\begin{bmatrix}
     1 &amp;  5 &amp;  9 &amp; 13 \\ 
     2 &amp;  6 &amp; 10 &amp; 14 \\ 
     3 &amp;  7 &amp; 11 &amp; 15 \\ 
     4 &amp;  8 &amp; 12 &amp; 16
-\end{bmatrix}
+\end{bmatrix}\]</span>
 </div>
 <p><strong>Note</strong>: Matrix constructors are admittedly somewhat confusing, because when you write the matrix constructor in code the columns are layed out horizontally. This is however the convention used in the OpenGL Shader Language (GLSL).</p>
 <p>A matrix can also be constructed by passing an existing matrix to one of the matrix construction functions. If the existing matrix is larger than the new one, the new matrix's elements come from the top-left corner of the existing matrix. Otherwise the top-left corner of the new matrix is filled with the contents of the existing matrix and the rest from the identity matrix. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m <span class="ot">=</span> mat4<span class="ot">(</span>mat2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">))</span></code></pre></div>
 <p>will set <code>m</code> to the matrix:</p>
 <div class="math">
-\begin{bmatrix}
+<span class="math display">\[\begin{bmatrix}
     1 &amp; 3 &amp; 0 &amp; 0 \\
     2 &amp; 4 &amp; 0 &amp; 0 \\
     0 &amp; 0 &amp; 1 &amp; 0 \\
     0 &amp; 0 &amp; 0 &amp; 1
-\end{bmatrix}
+\end{bmatrix}\]</span>
 </div>
 <p>Finally a 3x3 or 4x4 rotation matrix can be constructed from a quaternion by passing the quaternion as the single argument to <code>mat3</code> or <code>mat4</code> (see quaternions).</p>
 <h3 id="accessing-matrix-components">Accessing matrix components</h3>
@@ -1188,36 +1189,36 @@ vec2(0, 2)</code></pre>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m1 <span class="ot">=</span> <span class="dv">2</span> <span class="ot">*</span> mat2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">)</span></code></pre></div>
 <p>sets <code>m1</code> to the matrix:</p>
 <div class="math">
-\begin{bmatrix}
+<span class="math display">\[\begin{bmatrix}
     2 &amp; 6 \\
     4 &amp; 8
-\end{bmatrix}
+\end{bmatrix}\]</span>
 </div>
 <p>and:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m2 <span class="ot">=</span> mat3<span class="ot">(</span><span class="dv">3</span><span class="ot">)</span> <span class="ot">-</span> <span class="dv">1</span></code></pre></div>
 <p>sets <code>m2</code> to the matrix:</p>
 <div class="math">
-\begin{bmatrix}
+<span class="math display">\[\begin{bmatrix}
     2 &amp; -1 &amp; -1 \\
     -1 &amp; 2 &amp; -1 \\
     -1 &amp; -1 &amp; 2
-\end{bmatrix}
+\end{bmatrix}\]</span>
 </div>
 <p>When both operands are matrices, the <code>+</code> and <code>-</code> operators work in a similar way to vectors, with the operations applied component-wise. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> m3 <span class="ot">=</span> mat2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">)</span> <span class="ot">+</span> mat2<span class="ot">(</span><span class="dv">0.1</span><span class="ot">,</span> <span class="dv">0.2</span><span class="ot">,</span> <span class="dv">0.3</span><span class="ot">,</span> <span class="dv">0.4</span><span class="ot">)</span></code></pre></div>
 <p>sets <code>m3</code> to the matrix:</p>
 <div class="math">
-\begin{bmatrix}
+<span class="math display">\[\begin{bmatrix}
     1.1 &amp; 3.3 \\
     2.2 &amp; 4.4
-\end{bmatrix}
+\end{bmatrix}\]</span>
 </div>
 <p>However, when both operands are matrices, the <code>*</code> operator computes the <a href="http://en.wikipedia.org/wiki/Matrix_multiplication">matrix product</a>.</p>
 <p>If the first operand is a vector and the second is a matrix, then the first operand is taken to be a row vector (a matrix with one row) and should have the same number of columns as the matrix. The result is the matrix product of the row vector and the matrix, which is another row vector.</p>
 <p>Similarly if the first argument is a matrix and the second a vector, the vector is taken to be a column vector (a matrix with one column) and the result is the matrix product of the matrix and column vector, which is another column vector.</p>
 <p>The <code>/</code> operator also works when both arguments are matrices and is equivalent to multiplying the first matrix by the inverse of the second.</p>
 <div class="figure">
-<img src="images/screenshot2.jpg" alt="" />
+<img src="images/screenshot2.jpg" />
 
 </div>
 <h2 id="quaternions">Quaternions</h2>
@@ -1303,7 +1304,7 @@ vec2(0, 2)</code></pre>
 <p>Returns the spherical linear interpolation of the two quaternions <code>from</code> and <code>to</code>. <code>t</code> should be a number between 0 and 1. Unlike (<code>math.mix</code>)[#math.mix] this interpolation takes the shortest path.</p>
 <hr />
 <div class="figure">
-<img src="images/screenshot5.jpg" alt="" />
+<img src="images/screenshot5.jpg" />
 
 </div>
 <h1 id="buffers-and-views">Buffers and views</h1>
@@ -1484,8 +1485,8 @@ view<span class="ot">[</span><span class="dv">2</span><span class="ot">]</span> 
 <p>As a special case, if <code>val</code> is a table of numbers and the view's type is a vector, then the elements of the table will be used to set the components of the vectors in the view. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> verts <span class="ot">=</span> am<span class="ot">.</span>buffer<span class="ot">(</span><span class="dv">24</span><span class="ot">)</span>:view<span class="ot">(</span><span class="st">&quot;vec3&quot;</span><span class="ot">)</span>
 verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">,</span> <span class="dv">6</span><span class="ot">}</span>
-<span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">1</span><span class="ot">])</span> <span class="co">-- vec3(1, 2, 3)</span>
-<span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">2</span><span class="ot">])</span> <span class="co">-- vec3(4, 5, 6)</span></code></pre></div>
+<span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">1</span><span class="ot">])</span> <span class="do">-- vec3(1, 2, 3)</span>
+<span class="fu">print</span><span class="ot">(</span>verts<span class="ot">[</span><span class="dv">2</span><span class="ot">])</span> <span class="do">-- vec3(4, 5, 6)</span></code></pre></div>
 <p>Finally if <code>val</code> is another view then the elements are set to the corresponding values from that view. The views may be of different types as long as they are &quot;compatible&quot;. The types are converted as if each element were set using the Lua code <code>view1[i] = view2[i]</code>. This means you can't set a number view to a vector view or vice versa.</p>
 <p>If <code>start</code> is given then only elements at that index and beyond will be set. The default value for <code>start</code> is <code>1</code>.</p>
 <p>If <code>count</code> is given then at most that many elements will be set.</p>
@@ -1535,7 +1536,7 @@ verts:set<span class="ot">{</span><span class="dv">1</span><span class="ot">,</s
 arr<span class="ot">.</span>vert:set<span class="ot">{</span>vec2<span class="ot">(-</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)}</span> 
 arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span></code></pre></div>
 <div class="figure">
-<img src="images/screenshot3.jpg" alt="" />
+<img src="images/screenshot3.jpg" />
 
 </div>
 <h1 id="windows-and-input">Windows and input</h1>
@@ -1551,6 +1552,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <li><p><strong><code>depth_buffer</code></strong>: Whether the window has a depth buffer (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
 <li><p><strong><code>stencil_buffer</code></strong>: Whether the window has a stencil buffer (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
 <li><p><strong><code>lock_pointer</code></strong>: <code>true</code> or <code>false</code>. When pointer lock is enabled the cursor will be hidden and mouse movement will be set to &quot;relative&quot; mode. In this mode the mouse is tracked infinitely in all directions, i.e. as if there is no edge of the screen to stop the mouse cursor. This is useful for implementing first-person style mouse-look. The default is <code>false</code>.</p></li>
+<li><p><strong><code>show_cursor</code></strong>: Whether to show the mouse cursor (<code>true</code> or <code>false</code>, default <code>true</code>).</p></li>
 <li><p><strong><code>clear_color</code></strong>: The color (a <code>vec4</code>) used to clear the window each frame before drawing. The default clear color is black (<code>vec4(0, 0, 0, 1)</code>).</p></li>
 <li><p><strong><code>letterbox</code></strong>: <code>true</code> or <code>false</code>. Indicates whether the original aspect ratio (as determined by the <code>width</code> and <code>height</code> settings of the window) should be maintained after a resize by adding black horizontal or vertical bars to the sides of the window. The default is <code>true</code>.</p></li>
 <li><p><strong><code>msaa_samples</code></strong>: The number of samples to use for multisample anti-aliasing. This must be a power of 2. Use zero (the default) for no anti-aliasing.</p></li>
@@ -1592,6 +1594,9 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
 <h3 id="window.lock_pointer" class="field-def">window.lock_pointer</h3>
+<p>See <a href="#am.window">window settings</a>.</p>
+<p>Updatable.</p>
+<h3 id="window.show_cursor" class="field-def">window.show_cursor</h3>
 <p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
 <h3 id="window.scene" class="field-def">window.scene</h3>
@@ -1808,7 +1813,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="window:touch_force_available" class="method-def">window:touch_force_available()</h3>
 <p>Returns true if touch force is supported on the device.</p>
 <div class="figure">
-<img src="images/screenshot8.jpg" alt="" />
+<img src="images/screenshot8.jpg" />
 
 </div>
 <h1 id="scenes">Scenes</h1>
@@ -1821,21 +1826,21 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> node2</code></pre></div>
 <p>adds <code>node2</code> as a child of <code>node1</code> and returns <code>node1</code>. The resulting scene graph looks like this:</p>
 <div class="figure">
-<img src="graphs/scene4.png" alt="" />
+<img src="graphs/scene4.png" />
 
 </div>
 <p>The expression:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> <span class="ot">{</span> node2<span class="ot">,</span> node3 <span class="ot">}</span></code></pre></div>
 <p>adds both <code>node2</code> and <code>node3</code> as children of <code>node1</code> and returns <code>node1</code>:</p>
 <div class="figure">
-<img src="graphs/scene5.png" alt="" />
+<img src="graphs/scene5.png" />
 
 </div>
 <p>The expression:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> <span class="ot">{</span> node2<span class="ot">,</span> node3 <span class="ot">}</span> <span class="ot">^</span> node4</code></pre></div>
 <p>does the same as the previous expression, except <code>node4</code> is added as a child of both <code>node2</code> and <code>node3</code>:</p>
 <div class="figure">
-<img src="graphs/scene6.png" alt="" />
+<img src="graphs/scene6.png" />
 
 </div>
 <p>If <code>node2</code> or <code>node3</code> were graphs with multiple nodes, then <code>node4</code> would be added to the leaf nodes of those graphs.</p>
@@ -1853,7 +1858,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
     <span class="ot">^</span> node10</code></pre></div>
 <p>The above expression results in the following graph:</p>
 <div class="figure">
-<img src="graphs/scene7.png" alt="" />
+<img src="graphs/scene7.png" />
 
 </div>
 <h2 id="scene-node-common-fields-and-methods">Scene node common fields and methods</h2>
@@ -1892,7 +1897,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>Multiple actions may be attached to a scene node, but they must all have unique ids. If you attempt to attach an action with an ID that is already used by another action on the same node, then the other action will be removed before the new one is attached.</p>
 <p>The order that actions are run is determined by the node's position in the scene graph. Each node is visited in depth-first, left-to-right order and the actions on each node are run in the order they were added to the node. Each action is never run more than once per frame, even if the node occurs multiple times in the graph or is part of a cycle. For example, given the following scene graph:</p>
 <div class="figure">
-<img src="graphs/scene8.png" alt="" />
+<img src="graphs/scene8.png" />
 
 </div>
 <p>The nodes will be visited in this order:</p>
@@ -1930,7 +1935,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="nodechild_pairs" class="func-def">node:child_pairs()</h3>
 <p>Returns an iterator over all <code>node</code>'s children. For example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">for</span> i<span class="ot">,</span> child <span class="kw">in</span> node:child_pairs<span class="ot">()</span> <span class="kw">do</span>
-    <span class="co">-- do something with child</span>
+    <span class="do">-- do something with child</span>
 <span class="kw">end</span></code></pre></div>
 <h2 id="basic-nodes">Basic nodes</h2>
 <h3 id="am.groupchildren" class="func-def">am.group(children)</h3>
@@ -1974,24 +1979,24 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 </div>
 <p>The mapping from characters to colors is determined by the <code>am.ascii_color_map</code> table. By default this is defined as:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">am<span class="ot">.</span>ascii_color_map <span class="ot">=</span> <span class="ot">{</span>
-    W <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full white</span>
-    w <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.75</span><span class="ot">,</span> <span class="dv">0.75</span><span class="ot">,</span> <span class="dv">0.75</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span> <span class="co">-- silver</span>
-    K <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full black</span>
-    k <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>    <span class="co">-- dark grey</span>
-    R <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full red</span>
-    r <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="co">-- half red (maroon)</span>
-    Y <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full yellow</span>
-    y <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="co">-- half yellow (olive)</span>
-    G <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full green</span>
-    g <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="co">-- half green</span>
-    C <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full cyan</span>
-    c <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="co">-- half cyan (teal)</span>
-    B <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full blue</span>
-    b <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="co">-- half blue (navy)</span>
-    M <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="co">-- full magenta</span>
-    m <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="co">-- half magenta</span>
-    O <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="co">-- full orange</span>
-    o <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.25</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>     <span class="co">-- half orange (brown)</span>
+    W <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="do">-- full white</span>
+    w <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.75</span><span class="ot">,</span> <span class="dv">0.75</span><span class="ot">,</span> <span class="dv">0.75</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span> <span class="do">-- silver</span>
+    K <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="do">-- full black</span>
+    k <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>    <span class="do">-- dark grey</span>
+    R <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="do">-- full red</span>
+    r <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="do">-- half red (maroon)</span>
+    Y <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="do">-- full yellow</span>
+    y <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="do">-- half yellow (olive)</span>
+    G <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="do">-- full green</span>
+    g <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="do">-- half green</span>
+    C <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="do">-- full cyan</span>
+    c <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="do">-- half cyan (teal)</span>
+    B <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="do">-- full blue</span>
+    b <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="do">-- half blue (navy)</span>
+    M <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>          <span class="do">-- full magenta</span>
+    m <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>      <span class="do">-- half magenta</span>
+    O <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>        <span class="do">-- full orange</span>
+    o <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.25</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>     <span class="do">-- half orange (brown)</span>
 <span class="ot">}</span></code></pre></div>
 <p>but you can modify it as you please (though this must be done before creating a sprite).</p>
 <p>Any characters not in the color map will come out as transparent pixels, except for space characters which are ignored.</p>
@@ -2094,7 +2099,7 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 </ul>
 <p>Default tag: <code>&quot;particles2d&quot;</code>.</p>
 <div class="figure">
-<img src="images/screenshot9.jpg" alt="" />
+<img src="images/screenshot9.jpg" />
 
 </div>
 <h2 id="transformation-nodes-1">Transformation nodes</h2>
@@ -2241,7 +2246,7 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
         vec2<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">1</span><span class="ot">)</span>
     <span class="ot">}</span>
 <span class="ot">}</span>
-<span class="co">-- update a parameter</span>
+<span class="do">-- update a parameter</span>
 bind_node<span class="ot">.</span>color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span></code></pre></div>
 <h3 id="am.draw" class="func-def">am.draw(primitive [, elements] [, first [, count]])</h3>
 <p>Draws the currently bound vertices using the current shader program with the currently bound parameter values.</p>
@@ -2306,7 +2311,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
     <span class="ot">^</span> am<span class="ot">.</span>draw<span class="st">&quot;triangles&quot;</span></code></pre></div>
 <p>The resulting image looks like this:</p>
 <div class="figure">
-<img src="images/rgb_triangle.png" alt="" />
+<img src="images/rgb_triangle.png" />
 
 </div>
 <h3 id="am.blendmode" class="func-def">am.blend(mode)</h3>
@@ -2445,7 +2450,7 @@ quads:add_quad<span class="ot">{</span>vert <span class="ot">=</span> <span clas
 win<span class="ot">.</span>scene <span class="ot">=</span> am<span class="ot">.</span>use_program<span class="ot">(</span>prog<span class="ot">)</span> <span class="ot">^</span> quads</code></pre></div>
 <p>The above program produces the following output:</p>
 <div class="figure">
-<img src="images/quads_example.png" alt="" />
+<img src="images/quads_example.png" />
 
 </div>
 <h3 id="am.postprocess" class="func-def">am.postprocess(settings)</h3>
@@ -2463,7 +2468,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span> am<span class="ot">.
 <li><code>program</code>: The shader program to use to render the texture.</li>
 </ul>
 <p>The shader program should expect the following uniforms and attributes:</p>
-<div class="sourceCode"><pre class="sourceCode glsl"><code class="sourceCode glsl"><span class="dt">uniform</span> <span class="dt">sampler2D</span> tex;
+<div class="sourceCode"><pre class="sourceCode glsl"><code class="sourceCode glsl"><span class="kw">uniform</span> <span class="dt">sampler2D</span> tex;
 <span class="dt">attribute</span> <span class="dt">vec2</span> vert;
 <span class="dt">attribute</span> <span class="dt">vec2</span> uv;</code></pre></div>
 <p>Note that if either <code>width</code> or <code>height</code> are set then they must both be set.</p>
@@ -2794,8 +2799,8 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>An audio buffer also has a sample rate. Amulet currently plays all audio at a sample rate 44.1kHz and will resample an audio buffer if it has a different sample rate.</p>
 <p>The audio data itself is stored in a raw <a href="#buffers-and-views">buffer</a> as a series of single precision floats (4 bytes each). The samples for each channel are contiguous. The first channel's data comes first, then the second channel's data, etc (the channels are not interleaved).</p>
 <p>If the sample data is stored in the buffer <code>buf</code>, and there are two channels, then the following code will create <a href="#buffers-and-views">views</a> that can be used to update or read the samples for each channel:</p>
-<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> c <span class="ot">=</span> <span class="dv">2</span> <span class="co">-- channels</span>
-<span class="kw">local</span> s <span class="ot">=</span> <span class="ot">#</span>buf <span class="ot">/</span> <span class="dv">4</span> <span class="ot">/</span> c <span class="co">-- samples per channel</span>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> c <span class="ot">=</span> <span class="dv">2</span> <span class="do">-- channels</span>
+<span class="kw">local</span> s <span class="ot">=</span> <span class="ot">#</span>buf <span class="ot">/</span> <span class="dv">4</span> <span class="ot">/</span> c <span class="do">-- samples per channel</span>
 <span class="kw">local</span> left_channel <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;float&quot;</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> s<span class="ot">)</span>
 <span class="kw">local</span> right_channel <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;float&quot;</span><span class="ot">,</span> s <span class="ot">*</span> <span class="dv">4</span><span class="ot">,</span> <span class="dv">4</span><span class="ot">,</span> s<span class="ot">)</span></code></pre></div>
 <h3 id="am.audio_buffer" class="func-def">am.audio_buffer(buffer, channels, sample_rate)</h3>
@@ -3104,7 +3109,7 @@ author <span class="ot">=</span> <span class="st">&quot;Your Name&quot;</span>
 appid <span class="ot">=</span> <span class="st">&quot;com.some-unique-id.123&quot;</span>
 version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span>
 
-<span class="co">-- iOS specific:</span>
+<span class="do">-- iOS specific:</span>
 display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>
 dev_region <span class="ot">=</span> <span class="st">&quot;en&quot;</span>
 supported_languages <span class="ot">=</span> <span class="st">&quot;en,fr,nl,de,ja,zh,ko,sp,de&quot;</span>
@@ -3156,7 +3161,7 @@ mymodule<span class="ot">.</span>message <span class="ot">=</span> <span class="
 <p>If this module is in the file <code>mymodule.lua</code>, then it can be imported like so:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> mymodule <span class="ot">=</span> <span class="fu">require</span> <span class="st">&quot;mymodule&quot;</span>
 
-mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span class="co">-- prints hello</span></code></pre></div>
+mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span class="do">-- prints hello</span></code></pre></div>
 <p>This scheme allows cyclic module imports, e.g. module A requires module B which in turn requires module A. Amulet will detect the recursion and return A's (incomplete) export table in B. Then when A has finished initialising, all its functions will be available in B. This does mean that B can't call any of A's functions while its initialising, but after initialisation all of A's functions will be available.</p>
 <p>Of course you can still return your own values from modules and they will be returned by <code>require</code> as with the default Lua <code>require</code> function.</p>
 <h1 id="logging">Logging</h1>
