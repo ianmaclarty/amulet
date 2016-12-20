@@ -129,19 +129,15 @@ static int load_buffer(lua_State *L) {
     char *errmsg;
     void *data = am_read_resource(filename, &len, &errmsg);
     if (data == NULL) {
-        if (errmsg != NULL) {
-            lua_pushfstring(L, "error reading buffer '%s': %s", filename, errmsg);
-            free(errmsg);
-            return lua_error(L);
-        } else {
-            return luaL_error(L, "unknown error reading buffer '%s'", filename);
-        }
+        free(errmsg);
+        lua_pushnil(L);
+    } else {
+        am_buffer *buf = am_new_userdata(L, am_buffer);
+        buf->data = (uint8_t*)data;
+        buf->size = len;
+        buf->origin = filename;
+        buf->origin_ref = buf->ref(L, 1);
     }
-    am_buffer *buf = am_new_userdata(L, am_buffer);
-    buf->data = (uint8_t*)data;
-    buf->size = len;
-    buf->origin = filename;
-    buf->origin_ref = buf->ref(L, 1);
     return 1;
 }
 
@@ -152,16 +148,12 @@ static int load_string(lua_State *L) {
     char *errmsg;
     void *data = am_read_resource(filename, &len, &errmsg);
     if (data == NULL) {
-        if (errmsg != NULL) {
-            lua_pushfstring(L, "error reading file '%s': %s", filename, errmsg);
-            free(errmsg);
-            return lua_error(L);
-        } else {
-            return luaL_error(L, "unknown error reading file '%s'", filename);
-        }
+        free(errmsg);
+        lua_pushnil(L);
+    } else {
+        lua_pushlstring(L, (const char*)data, len);
+        free(data);
     }
-    lua_pushlstring(L, (const char*)data, len);
-    free(data);
     return 1;
 }
 
@@ -172,16 +164,12 @@ static int load_script(lua_State *L) {
     char *errmsg;
     void *data = am_read_resource(filename, &len, &errmsg);
     if (data == NULL) {
-        if (errmsg != NULL) {
-            lua_pushfstring(L, "error reading file '%s': %s", filename, errmsg);
-            free(errmsg);
-            return lua_error(L);
-        } else {
-            return luaL_error(L, "unknown error reading file '%s'", filename);
-        }
+        free(errmsg);
+        lua_pushnil(L);
+    } else {
+        luaL_loadbuffer(L, (const char*)data, len, filename);
+        free(data);
     }
-    luaL_loadbuffer(L, (const char*)data, len, filename);
-    free(data);
     return 1;
 }
 

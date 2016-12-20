@@ -93,10 +93,12 @@ a second return value.
 
 Loads the Lua script in `filename` and returns
 a function that, when called, will run the script.
+If the file doesn't exist `nil` is returned.
 
 ### am.load_string(filename) {#am.load_string .func-def}
 
-Loads `filename` and returns its contents as a string.
+Loads `filename` and returns its contents as a string
+or `nil` if the file wasn't found.
 
 # Performance stats
 

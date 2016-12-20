@@ -64,9 +64,9 @@ static int load_image(lua_State *L) {
     const char *filename = luaL_checkstring(L, 1);
     void *data = am_read_resource(filename, &len, &errmsg);
     if (data == NULL) {
-        lua_pushstring(L, errmsg);
         free(errmsg);
-        return lua_error(L);
+        lua_pushnil(L);
+        return 1;
     }
     int width, height;
     int components = 4;

@@ -363,7 +363,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#audio">Audio</a><ul>
 <li><a href="#audio-buffers">Audio buffers</a><ul>
 <li><a href="#am.audio_buffer">am.audio_buffer(buffer, channels, sample_rate)</a></li>
-<li><a href="#am.load_buffer">am.load_buffer(filename)</a></li>
+<li><a href="#am.load_audio">am.load_audio(filename)</a></li>
 </ul></li>
 <li><a href="#audio-buffer-fields">Audio buffer fields</a><ul>
 <li><a href="#audio_buffer.channels">audio_buffer.channels</a></li>
@@ -1324,7 +1324,7 @@ vec2(0, 2)</code></pre>
 <li><code>mark_dirty()</code>: Mark the buffer dirty. This should be called if you update the buffer using the <code>dataptr</code> field. This will cause data to be copied to any textures or vbos that depend on the buffer when next they are drawn. Note that you don't need to call this method if you're not using <code>dataptr</code> to update the buffer, for example if you're updating it through a view - in that case the buffer will automatically be marked dirty.</li>
 </ul>
 <h3 id="am.load_buffer" class="func-def">am.load_buffer(filename)</h3>
-<p>Loads the given file and returns a buffer containing the file's data.</p>
+<p>Loads the given file and returns a buffer containing the file's data, or <code>nil</code> if the file wasn't found.</p>
 <h3 id="am.base64_encode" class="func-def">am.base64_encode(buffer)</h3>
 <p>Returns a base64 encoding of a buffer as a string.</p>
 <h3 id="am.base64_decode" class="func-def">am.base64_decode(string)</h3>
@@ -2594,7 +2594,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <li><code>buffer</code>: the raw data buffer.</li>
 </ul>
 <h3 id="am.load_image" class="func-def">am.load_image(filename)</h3>
-<p>Loads the given image file and returns a new image buffer. Only <code>.png</code> and <code>.jpg</code> files are supported.</p>
+<p>Loads the given image file and returns a new image buffer. Only <code>.png</code> and <code>.jpg</code> files are supported. Returns <code>nil</code> if the file was not found.</p>
 <h2 id="saving-images">Saving images</h2>
 <h3 id="image_buffer:save_png" class="method-def">image_buffer:save_png(filename)</h3>
 <p>Saves the given image as a png in <code>filename</code>.</p>
@@ -2806,8 +2806,8 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h3 id="am.audio_buffer" class="func-def">am.audio_buffer(buffer, channels, sample_rate)</h3>
 <p>Returns a new audio buffer using the given raw buffer (a buffer created with <a href="#am.buffer"><code>am.buffer</code></a>). The audio data should be layed out as described <a href="#audio-buffers">above</a>.</p>
 <p><code>channels</code> is the number of channels and <code>sample_rate</code> is the sample rate in Hz.</p>
-<h3 id="am.load_buffer" class="func-def">am.load_buffer(filename)</h3>
-<p>Loads the given audio file and returns a new audio buffer. The file must be a <code>.ogg</code> audio file.</p>
+<h3 id="am.load_audio" class="func-def">am.load_audio(filename)</h3>
+<p>Loads the given audio file and returns a new audio buffer. The file must be a <code>.ogg</code> audio file. Returns <code>nil</code> if the file was not found.</p>
 <h2 id="audio-buffer-fields">Audio buffer fields</h2>
 <h3 id="audio_buffer.channels" class="field-def">audio_buffer.channels</h3>
 <p>The number of channels. Readonly.</p>
@@ -3195,9 +3195,9 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <p>Converts the given JSON string to a Lua value and returns it. If there was an error parsing the JSON then <code>nil</code> is returned and the error message is returned as a second return value.</p>
 <h1 id="loading-other-resources">Loading other resources</h1>
 <h3 id="am.load_script" class="func-def">am.load_script(filename)</h3>
-<p>Loads the Lua script in <code>filename</code> and returns a function that, when called, will run the script.</p>
+<p>Loads the Lua script in <code>filename</code> and returns a function that, when called, will run the script. If the file doesn't exist <code>nil</code> is returned.</p>
 <h3 id="am.load_string" class="func-def">am.load_string(filename)</h3>
-<p>Loads <code>filename</code> and returns its contents as a string.</p>
+<p>Loads <code>filename</code> and returns its contents as a string or <code>nil</code> if the file wasn't found.</p>
 <h1 id="performance-stats">Performance stats</h1>
 <h3 id="am.perf_stats" class="func-def">am.perf_stats()</h3>
 <p>Returns a table with the following fields:</p>
