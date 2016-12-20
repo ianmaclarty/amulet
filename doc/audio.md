@@ -38,7 +38,7 @@ be layed out as described [above](#audio-buffers).
 `channels` is the number of channels and `sample_rate` is the sample rate
 in Hz.
 
-### am.load_buffer(filename) {#am.load_buffer .func-def}
+### am.load_audio(filename) {#am.load_audio .func-def}
 
 Loads the given audio file and returns a new audio buffer.
 The file must be a `.ogg` audio file.
