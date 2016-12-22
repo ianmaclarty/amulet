@@ -17,7 +17,7 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-windows] [-mac] [-ios] [-linux] [-html] [ <dir> ]\n"
+        "Usage: amulet export [-r] [-windows] [-mac] [-ios] [-linux] [-html] [ <dir> ]\n"
         "\n"
         "  Generates distribution packages for the project in <dir>,\n"
         "  or the current directory if <dir> is omitted.\n"
@@ -27,10 +27,13 @@ static bool help_export() {
         "  then packages for all supported platforms will be generated,\n"
         "  otherwise only packages for the specified platforms will be generated.\n"
         "\n"
-        "  All files in the directory with the following extensions will\n"
-        "  be included as data in the distribution: .lua .png .jpg .ogg .obj\n"
+        "  All files with the following extensions will be included:\n"
+        "  .lua .png .jpg .ogg .obj\n"
         "  All .txt files will also be copied to the generated zip and\n"
         "  be visible to the user when they open it.\n"
+        "\n"
+        "  If the -r option is given then all subdirectories of <dir> are included\n"
+        "  recursively, otherwise only the files in <dir> are included.\n"
         "\n"
         "  If you create a conf.lua file in the same\n"
         "  directory as main.lua containing the following:\n"
@@ -171,6 +174,8 @@ static bool export_cmd(int *argc, char ***argv) {
             flags |= AM_EXPORT_FLAG_IOS;
         } else if (strcmp(arg, "-html") == 0) {
             flags |= AM_EXPORT_FLAG_HTML;
+        } else if (strcmp(arg, "-r") == 0) {
+            flags |= AM_EXPORT_FLAG_RECURSE;
         } else {
             break;
         }

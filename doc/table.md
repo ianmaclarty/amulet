@@ -18,6 +18,13 @@ in the new table.
 
 Return the index of `elem` in `arr` or nil if it's not found.
 
+### table.shuffle(t [,rand])   {#table.shuffle .func-def}
+
+Randomly rearranges the values of `t`. 
+The optional `rand` argument should be a function where `rand(n)` returns
+an integer between 1 and n (like `math.random`). By default `math.random` is
+used.
+
 ### table.clear(t)              {#table.clear .func-def}
 
 Remove all `t`'s pairs.

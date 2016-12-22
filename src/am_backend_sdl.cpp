@@ -28,6 +28,7 @@ static void init_gl_func_ptrs();
 struct win_info {
     SDL_Window *window;
     bool lock_pointer;
+    bool show_cursor;
     int mouse_x;
     int mouse_y;
     int mouse_delta_x;
@@ -168,6 +169,7 @@ am_native_window *am_create_native_window(
     win_info winfo;
     winfo.window = win;
     winfo.lock_pointer = false;
+    winfo.show_cursor = true;
     SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
     winfo.mouse_delta_x = 0;
     winfo.mouse_delta_y = 0;
@@ -255,6 +257,28 @@ void am_set_native_window_lock_pointer(am_native_window *window, bool enabled) {
             SDL_Window *sdl_win = (SDL_Window*)window;
             if (SDL_GetWindowFlags(sdl_win) & SDL_WINDOW_INPUT_FOCUS) {
                 SDL_SetRelativeMouseMode(enabled ? SDL_TRUE : SDL_FALSE);
+            }
+            return;
+        }
+    }
+}
+
+bool am_get_native_window_show_cursor(am_native_window *window) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i].window == (SDL_Window*)window) {
+            return windows[i].show_cursor;
+        }
+    }
+    return false;
+}
+
+void am_set_native_window_show_cursor(am_native_window *window, bool show) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i].window == (SDL_Window*)window) {
+            windows[i].show_cursor = show;
+            SDL_Window *sdl_win = (SDL_Window*)window;
+            if (SDL_GetWindowFlags(sdl_win) & SDL_WINDOW_INPUT_FOCUS) {
+                SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE);
             }
             return;
         }
@@ -862,6 +886,7 @@ static bool handle_events(lua_State *L) {
                         for (unsigned int i = 0; i < windows.size(); i++) {
                             if (SDL_GetWindowID(windows[i].window) == event.window.windowID) {
                                 SDL_SetRelativeMouseMode(windows[i].lock_pointer ? SDL_TRUE : SDL_FALSE);
+                                SDL_ShowCursor(windows[i].show_cursor ? SDL_ENABLE : SDL_DISABLE);
                                 break;
                             }
                         }

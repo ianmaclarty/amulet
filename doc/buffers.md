@@ -38,7 +38,7 @@ Methods:
 ### am.load_buffer(filename) {#am.load_buffer .func-def}
 
 Loads the given file and returns a buffer containing the
-file's data.
+file's data, or `nil` if the file wasn't found.
 
 ### am.base64_encode(buffer) {#am.base64_encode .func-def}
 

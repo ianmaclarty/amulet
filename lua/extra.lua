@@ -125,6 +125,19 @@ function table.count(t)
     return count
 end
 
+function table.shuffle(t, r)
+    if type(t) ~= "table" then
+        error("table expected, but got a "..type(t), 2)
+    end
+
+    local math_random = r or math.random
+
+    for a = #t, 2, -1 do
+        local b = math_random(a)
+        t[a], t[b] = t[b], t[a]
+    end
+end
+
 local
 function table_tostring(t, indent, seen, depth)
     seen = seen or {}
@@ -154,7 +167,7 @@ function table_tostring(t, indent, seen, depth)
                 str = str .. prefix .. tab .. table_tostring(t[i], indent + 1, seen, depth + 1) .. ",\n"
             end
         else
-            table.sort(keys, function(k1, k2) 
+            table.sort(keys, function(k1, k2)
                 local t1 = type(k1)
                 local t2 = type(k2)
                 if t1 == "string" and t2 == "string" then

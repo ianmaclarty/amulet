@@ -9,3 +9,7 @@ print(rand(4, 10))
 print(rand(-10, 0))
 print(rand(-10, 10))
 print(rand(-10, 10))
+
+local t = {1, 2, 3, 4, 5, 5}
+table.shuffle(t, rand)
+print(table.tostring(t))

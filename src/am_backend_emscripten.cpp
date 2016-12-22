@@ -416,6 +416,24 @@ bool am_get_native_window_lock_pointer(am_native_window *window) {
     return EM_ASM_INT({ return window.amulet.have_pointer_lock() ? 1 : 0; }, 0) == 1;
 }
 
+void am_set_native_window_show_cursor(am_native_window *window, bool show) {
+    if (show) {
+        EM_ASM(
+            window.amulet.show_cursor = true;
+            document.getElementById("canvas").style.cursor = "pointer";
+        );
+    } else {
+        EM_ASM(
+            window.amulet.show_cursor = false;
+            document.getElementById("canvas").style.cursor = "none";
+        );
+    }
+}
+
+bool am_get_native_window_show_cursor(am_native_window *window) {
+    return EM_ASM_INT({ return window.amulet.show_cursor ? 1 : 0; }, 0) == 1;
+}
+
 static am_key convert_key(SDL_Keycode key) {
     switch(key) {
         case SDLK_TAB: return AM_KEY_TAB;

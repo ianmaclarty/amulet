@@ -29,6 +29,7 @@ struct export_config {
     const char *launch_image;
     const char *grade;
     const char *basepath;
+    bool recurse;
 };
 
 static bool create_mac_info_plist(const char *filename, export_config *conf);
@@ -169,7 +170,7 @@ static bool build_data_pak(export_config *conf) {
     if (am_file_exists(conf->pakfile)) {
         am_delete_file(conf->pakfile);
     }
-    return build_data_pak_2(0, false, am_opt_data_dir, am_opt_data_dir, conf->pakfile);
+    return build_data_pak_2(0, conf->recurse, am_opt_data_dir, am_opt_data_dir, conf->pakfile);
 }
 
 static const char *platform_luavm(const char *platform) {
@@ -366,6 +367,7 @@ bool am_build_exports(uint32_t flags) {
     conf.launch_image = am_conf_app_launch_image;
     conf.grade = "release";
     conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
+    conf.recurse = flags & AM_EXPORT_FLAG_RECURSE;
     if (!build_data_pak(&conf)) return false;
     bool ok =
         ((!(flags & AM_EXPORT_FLAG_WINDOWS)) || build_windows_export(&conf)) &&

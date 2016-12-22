@@ -28,6 +28,7 @@ Fields:
 
 Loads the given image file and returns a new image buffer.
 Only `.png` and `.jpg` files are supported.
+Returns `nil` if the file was not found.
 
 ## Saving images
 

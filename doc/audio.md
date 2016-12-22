@@ -42,6 +42,7 @@ in Hz.
 
 Loads the given audio file and returns a new audio buffer.
 The file must be a `.ogg` audio file.
+Returns `nil` if the file was not found.
 
 ## Audio buffer fields
 
