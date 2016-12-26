@@ -1051,19 +1051,14 @@ static int init_gamecenter(lua_State *L) {
     }];
 */
 
-/*
- * XXX FIXME for iOS 6
     if ([GKLocalPlayer localPlayer].authenticated == NO) {
         GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
-        [localPlayer setAuthenticateHandler:(^(UIViewController* viewcontroller, NSError *error) {
+        [localPlayer setAuthenticateHandler:(^(UIViewController* viewController, NSError *error) {
             if(localPlayer.isAuthenticated) {
-                am_debug("%s", "gamecenter authenticated ok");
                 gamecenter_available = true;
-            } else if(viewController) {
-                [self presentViewController:viewController]; //present the login form
             } else {
-                //problem with authentication,probably bc the user doesn't use Game Center
-                am_debug("%s", "gamecenter authentication failed");
+                //problem with authentication, probably because the user doesn't use Game Center
+                //am_debug("%s", "gamecenter authentication failed");
             }
         })]; 
     } else {
@@ -1072,7 +1067,6 @@ static int init_gamecenter(lua_State *L) {
     gamecenter_delegate = [[GameCenterDelegate alloc] init];
     [gamecenter_delegate retain];
 
-*/
     return 0;
 }
 
