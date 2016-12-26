@@ -525,6 +525,24 @@ static void ios_become_active() {
     }
 }
 
+static void hide_banner() {
+    [UIView animateWithDuration:0.5
+        animations:^ { banner_ad.frame = CGRectMake(0.0, -banner_ad.frame.size.height,
+                                  banner_ad.frame.size.width,
+                                  banner_ad.frame.size.height);
+        }
+        completion:^(BOOL finished){ banner_ad.hidden = YES; }];
+}
+
+static void show_banner() {
+    banner_ad.hidden = NO;
+    [UIView animateWithDuration:0.5 animations:^ {
+        banner_ad.frame = CGRectMake(0.0, 0.0,
+                              banner_ad.frame.size.width,
+                              banner_ad.frame.size.height);
+    }];
+}
+
 static CMMotionManager *motionManager = nil;
 
 @interface AMViewController : GLKViewController { }
@@ -777,7 +795,7 @@ static id banner_delegate = nil;
 {
     banner_ad_filled = true;
     if (banner_ad_want_visible) {
-        banner_ad.hidden = NO;
+        show_banner();
     }
 }
 
@@ -785,7 +803,7 @@ static id banner_delegate = nil;
     didFailToReceiveAdWithError:(nonnull GADRequestError *)error
 {
     banner_ad_filled = false;
-    banner_ad.hidden = YES;
+    //banner_ad.hidden = YES;
 }
 
 - (void)dealloc
@@ -1152,6 +1170,9 @@ static int init_google_banner_ad(lua_State *L) {
     if (unitid == NULL) return luaL_error(L, "expecting a string unitid argument");
     banner_ad = [[GADBannerView alloc] initWithAdSize:kGADAdSizeSmartBannerPortrait];
     banner_ad.hidden = YES;
+    banner_ad.frame = CGRectMake(0.0, -banner_ad.frame.size.height,
+                              banner_ad.frame.size.width,
+                              banner_ad.frame.size.height);
     banner_ad.adUnitID = [NSString stringWithUTF8String:unitid];
     banner_ad.rootViewController = ios_view_controller;
     banner_ad.delegate = banner_delegate;
@@ -1165,9 +1186,9 @@ static int set_google_banner_ad_visible(lua_State *L) {
     bool vis = lua_toboolean(L, 1) ? true : false;
     banner_ad_want_visible = vis;
     if (vis && banner_ad_filled) {
-        banner_ad.hidden = NO;
+        show_banner();
     } else if (!vis) {
-        banner_ad.hidden = YES;
+        hide_banner();
     }
     return 0;
 }
@@ -1181,7 +1202,7 @@ static int is_google_banner_ad_visible(lua_State *L) {
 static int request_google_banner_ad(lua_State *L) {
     if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
     [banner_ad loadRequest:[GADRequest request]];
-    banner_ad.hidden = YES;
+    hide_banner();
     return 0;
 }
 
