@@ -1281,6 +1281,19 @@ static int restore_iap_purchases(lua_State *L) {
     return 0;
 }
 
+static int iap_product_local_price(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_iap_product *product = am_get_userdata(L, am_iap_product, 1);
+    NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+    [numberFormatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+    [numberFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+    [numberFormatter setLocale:product->product.priceLocale];
+    const char *formattedPrice = [[numberFormatter stringFromNumber:product->product.price] UTF8String];
+    [numberFormatter dealloc];
+    lua_pushstring(L, formattedPrice);
+    return 1;
+}
+
 void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},
@@ -1303,6 +1316,7 @@ void am_open_ios_module(lua_State *L) {
         {"retrieve_iap_products", retrieve_iap_products},
         {"purchase_iap_product", purchase_iap_product},
         {"restore_iap_purchases", restore_iap_purchases},
+        {"iap_product_local_price", iap_product_local_price},
 
         {NULL, NULL}
     };
