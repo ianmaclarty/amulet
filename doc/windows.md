@@ -39,6 +39,10 @@ table with any of the following fields:
     Whether the window has a title bar and border (`true` or `false`,
     default `false`).
 
+- **`highdpi`**:
+    Whether to use high DPI resolution if available (`true` or `false`,
+    default `false`).
+
 - **`depth_buffer`**:
     Whether the window has a depth buffer (`true` or `false`,
     default `false`).
