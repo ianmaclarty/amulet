@@ -17,6 +17,9 @@ else ifeq ($(LUAVM),lua53)
 else
   $(error invalid LUAVM: $(LUAVM))
 endif
+ifdef GOOGLE_ADS
+  AM_DEFS += AM_GOOGLE_ADS
+endif
 
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 

@@ -16,7 +16,6 @@
 #import <GLKit/GLKit.h>
 #import <GameKit/GameKit.h>
 #import <StoreKit/StoreKit.h>
-#import <GoogleMobileAds/GADBannerView.h>
 
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
@@ -36,9 +35,13 @@ static float *ios_audio_buffer = NULL;
 static int ios_audio_offset = 0;
 static NSLock *ios_audio_mutex = [[NSLock alloc] init];
 static bool ios_done_first_draw = false;
+#ifdef AM_GOOGLE_ADS
+#import <GoogleMobileAds/GADBannerView.h>
 static GADBannerView *banner_ad = nil;
 static bool banner_ad_filled = false;
 static bool banner_ad_want_visible = false;
+static id banner_delegate = nil;
+#endif
 
 static GLKView *ios_view = nil;
 static GLKViewController *ios_view_controller = nil;
@@ -525,6 +528,7 @@ static void ios_become_active() {
     }
 }
 
+#ifdef AM_GOOGLE_ADS
 static void hide_banner() {
     [UIView animateWithDuration:0.5
         animations:^ { banner_ad.frame = CGRectMake(0.0, -banner_ad.frame.size.height,
@@ -542,6 +546,7 @@ static void show_banner() {
                               banner_ad.frame.size.height);
     }];
 }
+#endif
 
 static CMMotionManager *motionManager = nil;
 
@@ -632,13 +637,15 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 @end
 
 
-@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, GLKViewDelegate, GLKViewControllerDelegate, GADAdDelegate>
+@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, GLKViewDelegate, GLKViewControllerDelegate
+#ifdef AM_GOOGLE_ADS
+    , GADAdDelegate
+#endif
+>
 
 @property (strong, nonatomic) UIWindow *window;
 
 @end
-
-static id banner_delegate = nil;
 
 @implementation AMAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -646,7 +653,9 @@ static id banner_delegate = nil;
     // Prevent rotate animation when application launches.
     [UIView setAnimationsEnabled:NO];
 
+#ifdef AM_GOOGLE_ADS
     banner_delegate = self;
+#endif
 
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
  
@@ -791,6 +800,7 @@ static id banner_delegate = nil;
     }
 }
 
+#ifdef AM_GOOGLE_ADS
 - (void)adViewDidReceiveAd:(nonnull GADBannerView *)bannerView
 {
     banner_ad_filled = true;
@@ -805,6 +815,7 @@ static id banner_delegate = nil;
     banner_ad_filled = false;
     //banner_ad.hidden = YES;
 }
+#endif
 
 - (void)dealloc
 {
@@ -1162,6 +1173,7 @@ const char *am_preferred_language() {
 }
 
 static int init_google_banner_ad(lua_State *L) {
+#ifdef AM_GOOGLE_ADS
     am_check_nargs(L, 1);
     if (banner_ad != nil) return luaL_error(L, "google ads already initialized");
     if (ios_view == nil) return luaL_error(L, "internal error: ios_view not initialized");
@@ -1177,10 +1189,12 @@ static int init_google_banner_ad(lua_State *L) {
     banner_ad.rootViewController = ios_view_controller;
     banner_ad.delegate = banner_delegate;
     [ios_view addSubview:banner_ad];
+#endif
     return 0;
 }
 
 static int set_google_banner_ad_visible(lua_State *L) {
+#ifdef AM_GOOGLE_ADS
     am_check_nargs(L, 1);
     if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
     bool vis = lua_toboolean(L, 1) ? true : false;
@@ -1190,19 +1204,26 @@ static int set_google_banner_ad_visible(lua_State *L) {
     } else if (!vis) {
         hide_banner();
     }
+#endif
     return 0;
 }
 
 static int is_google_banner_ad_visible(lua_State *L) {
+#ifdef AM_GOOGLE_ADS
     if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
     lua_pushboolean(L, banner_ad.hidden == YES ? 0 : 1);
+#else
+    lua_pushboolean(L, 0);
+#endif
     return 1;
 }
 
 static int request_google_banner_ad(lua_State *L) {
+#ifdef AM_GOOGLE_ADS
     if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
     [banner_ad loadRequest:[GADRequest request]];
     hide_banner();
+#endif
     return 0;
 }
 

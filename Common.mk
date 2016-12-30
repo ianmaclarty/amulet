@@ -69,6 +69,13 @@ ifndef LUAVM
   LUAVM = lua51
 endif
 
+ifeq (,$(wildcard $(THIRD_PARTY_DIR)/GoogleMobileAds.framework))
+  GOOGLE_ADS_FRAMEWORK_OPT=
+else
+  GOOGLE_ADS=1
+  GOOGLE_ADS_FRAMEWORK_OPT=-Wl,-framework,GoogleMobileAds
+endif
+
 SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
 ANGLE_ALIB = $(BUILD_LIB_DIR)/libangle$(ALIB_EXT)
 ANGLE_WIN_PREBUILT = $(BUILD_LIB_DIR)/angle-win-prebuilt.date
@@ -151,7 +158,7 @@ else ifeq ($(TARGET_PLATFORM),ios32)
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit -Wl,-framework,GoogleMobileAds
+	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),ios64)
@@ -169,7 +176,7 @@ else ifeq ($(TARGET_PLATFORM),ios64)
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit -Wl,-framework,GoogleMobileAds
+	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),iossim)
@@ -186,7 +193,7 @@ else ifeq ($(TARGET_PLATFORM),iossim)
 	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SpriteKit -Wl,-framework,AdSupport \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SystemConfiguration -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreVideo -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI \
-	     -Wl,-framework,GLKit -Wl,-framework,GoogleMobileAds
+	     -Wl,-framework,GLKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),html)
