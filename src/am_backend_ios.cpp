@@ -283,11 +283,11 @@ static void ios_init_audio() {
     const AudioUnitElement bus = output_bus;
     const AudioUnitScope scope = kAudioUnitScope_Input;
 
+    set_audio_category();
     if (![[AVAudioSession sharedInstance] setActive:YES error:nil]) {
         am_log0("%s", "WARNING: unable to activate AVAudioSession");
         return;
     }
-    set_audio_category();
 
     memset(&desc, 0, sizeof(AudioComponentDescription));
     desc.componentType = kAudioUnitType_Output;
