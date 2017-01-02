@@ -419,6 +419,7 @@ bool am_update_windows(lua_State *L) {
     static unsigned int frame = 0;
     if (!close_windows(L)) return false;
     resize_windows();
+    am_reset_gl_frame_stats();
     draw_windows();
     frame++;
     if (am_conf_log_gl_calls && am_conf_log_gl_frames > 0) {
@@ -667,9 +668,21 @@ static void register_window_mt(lua_State *L) {
     am_register_metatable(L, "window", MT_am_window, 0);
 }
 
+static int get_frame_draw_calls(lua_State *L) {
+    lua_pushinteger(L, am_frame_draw_calls);
+    return 1;
+}
+
+static int get_frame_use_program_calls(lua_State *L) {
+    lua_pushinteger(L, am_frame_use_program_calls);
+    return 1;
+}
+
 void am_open_window_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"window",    create_window},
+        {"_frame_draw_calls", get_frame_draw_calls},
+        {"_frame_use_program_calls", get_frame_use_program_calls},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

@@ -34,5 +34,7 @@ function am.perf_stats()
     stats.frames = count
     stats.min_fps = 1 / max_dt
     stats.avg_fps = count / total_time
+    stats.frame_draw_calls = am._frame_draw_calls()
+    stats.frame_use_program_calls = am._frame_use_program_calls()
     return stats
 end

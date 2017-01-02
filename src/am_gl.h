@@ -19,6 +19,8 @@ extern int am_max_varying_vectors;
 extern int am_max_vertex_attribs;
 extern int am_max_vertex_texture_image_units;
 extern int am_max_vertex_uniform_vectors;
+extern int am_frame_draw_calls;
+extern int am_frame_use_program_calls;
 
 // Per-Fragment Operations
 
@@ -439,3 +441,4 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
 
 void am_log_gl(const char *msg);
 void am_close_gllog();
+void am_reset_gl_frame_stats();

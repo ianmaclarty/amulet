@@ -78,6 +78,8 @@ int am_max_varying_vectors = 0;
 int am_max_vertex_attribs = 0;
 int am_max_vertex_texture_image_units = 0;
 int am_max_vertex_uniform_vectors = 0;
+int am_frame_draw_calls = 0;
+int am_frame_use_program_calls = 0;
 
 static bool gl_initialized = false;
 
@@ -824,6 +826,7 @@ void am_use_program(am_program_id program) {
     log_gl("glUseProgram(prog[%u]);", program);
     GLFUNC(glUseProgram)(program);
     check_for_errors
+    am_frame_use_program_calls++;
 }
 
 void am_detach_shader(am_program_id program, am_shader_id shader) {
@@ -1329,6 +1332,7 @@ void am_draw_arrays(am_draw_mode mode, int first, int count) {
         gl_draw_mode_str(gl_mode), first, count);
     GLFUNC(glDrawArrays)(gl_mode, first, count);
     check_for_errors
+    am_frame_draw_calls++;
 }
 
 void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, int offset) {
@@ -1339,6 +1343,7 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
         gl_draw_mode_str(gl_mode), count, gl_type_str(gl_type), offset);
     GLFUNC(glDrawElements)(gl_mode, count, gl_type, (void*)((uintptr_t)offset));
     check_for_errors
+    am_frame_draw_calls++;
 }
 
 static GLenum to_gl_blend_equation(am_blend_equation eq) {
@@ -2039,3 +2044,8 @@ static void angle_translate_shader(am_shader_type type,
     }
 }
 #endif
+
+void am_reset_gl_frame_stats() {
+    am_frame_draw_calls = 0;
+    am_frame_use_program_calls = 0;
+}

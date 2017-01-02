@@ -108,6 +108,8 @@ Returns a table with the following fields:
 
 - `avg_fps`: frames per second averaged over the last 60 frames
 - `min_fps`: the minimum frames per second over the last 60 frames
+- `frame_draw_calls`: the number of `draw` calls in the last frame
+- `frame_use_program_calls`: the number of `use_program` calls in the last frame
 
 # Amulet version
 
