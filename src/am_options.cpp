@@ -182,7 +182,7 @@ static bool export_cmd(int *argc, char ***argv) {
     }
     *argc -= i;
     *argv += i;
-    if (flags == 0) flags = 0xFFFFFFFF;
+    if (flags == 0 || flags == AM_EXPORT_FLAG_RECURSE) flags = AM_EXPORT_FLAG_WINDOWS | AM_EXPORT_FLAG_OSX | AM_EXPORT_FLAG_LINUX | AM_EXPORT_FLAG_IOS | AM_EXPORT_FLAG_HTML;
     char *dir = (char*)".";
     if (*argc > 0) {
         dir = (*argv)[0];
