@@ -67,6 +67,7 @@ static void write_data();
 static void write_png();
 static void load_font(int s);
 static void load_char(int c);
+static bool char_exists(int c);
 static void load_image(int s);
 static void compute_bordered_image();
 static void compute_bbox();
@@ -110,9 +111,12 @@ static void gen_rects() {
     num_rects = 0;
     for (s = 0; s < num_items; s++) {
         if (items[s].is_font) {
+            load_font(s);
             c = 0;
             while (items[s].codepoints[c] >= 0) {
-                num_rects++;
+                if (char_exists(items[s].codepoints[c])) {
+                    num_rects++;
+                }
                 c++;
             }
         } else {
@@ -126,11 +130,14 @@ static void gen_rects() {
             load_font(s);
             c = 0;
             while (items[s].codepoints[c] >= 0) {
-                load_char(items[s].codepoints[c]);
-                rects[r].id = 0;
-                rects[r].w = char_bitmap.width + 2;
-                rects[r].h = char_bitmap.rows + 2;
-                r++;
+                int cp = items[s].codepoints[c];
+                if (char_exists(cp)) {
+                    load_char(cp);
+                    rects[r].id = 0;
+                    rects[r].w = char_bitmap.width + 2;
+                    rects[r].h = char_bitmap.rows + 2;
+                    r++;
+                }
                 c++;
             }
         } else {
@@ -208,6 +215,10 @@ static void write_data() {
                     fprintf(f, "            (function()\n");
                 }
                 int cp = items[s].codepoints[c];
+                if (!char_exists(cp)) {
+                    c++;
+                    continue;
+                }
                 load_char(cp);
                 rows = char_bitmap.rows;
                 width = char_bitmap.width;
@@ -369,6 +380,10 @@ static void load_font(int s) {
         exit(EXIT_FAILURE);
     }
     font_loaded = 1;
+}
+
+static bool char_exists(int c) {
+    return c == ' ' || c == 0 || FT_Get_Char_Index(ft_face, c) > 0;
 }
 
 static void load_char(int c) {
