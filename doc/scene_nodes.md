@@ -970,10 +970,10 @@ is actually an [`am.bind`](#am.bind) node with an [`am.draw`](#am.draw)
 node child. i.e. no program or blending is defined -- these
 must be created separately as parent nodes.
 
-`n` is initial capacity. Set this to the number of quads you think
+`n` is the initial capacity. Set this to the number of quads you think
 you'll want to render. It doesn't matter if it's too small as the
-capacity will be increased as required (though it's slightly faster
-no capacity increases are required).
+capacity will be increased as required, though it's slightly faster
+if no capacity increases are required.
 
 `spec` is a table of attribute name and type pairs (the same
 as used for [`am.struct_array`](#am.struct_array) ).
