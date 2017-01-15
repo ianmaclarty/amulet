@@ -256,7 +256,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.use_program">am.use_program(program)</a></li>
 <li><a href="#am.bind">am.bind(bindings)</a></li>
 <li><a href="#am.draw">am.draw(primitive [, elements] [, first [, count]])</a></li>
-<li><a href="#am.blendmode">am.blend(mode)</a></li>
+<li><a href="#am.blend">am.blend(mode)</a></li>
 <li><a href="#am.color_maskred-green-blue-alpha">am.color_mask(red, green, blue, alpha)</a></li>
 <li><a href="#am.cull_faceface">am.cull_face(face)</a></li>
 <li><a href="#am.depth_test">am.depth_test(test [, mask])</a></li>
@@ -2094,6 +2094,29 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 </ul>
 <p>In the table the <code>_var</code> fields are an amount that is added to and subtracted from the corresponding field (the one without the <code>_var</code> suffix) to get the range of values from which one is randomly chosen. For example if <code>source_pos</code> is <code>vec2(1, 0)</code> and <code>source_pos_var</code> is <code>vec2(3, 2)</code>, then source positions will be chosen in the range <code>vec2(-2, -2)</code> to <code>vec2(4, 2)</code>.</p>
 <p>All of the sprite settings are exposed as updatable fields on the particles node.</p>
+<p>Note that no blending is applied to the particles, so if you want alpha on your particles, then you need to add a <a href="#am.blend"><code>am.blend</code></a> node. For example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> node <span class="ot">=</span> am<span class="ot">.</span>blend<span class="ot">(</span><span class="st">&quot;add_alpha&quot;</span><span class="ot">)</span>
+    <span class="ot">^</span> am<span class="ot">.</span>particles2d<span class="ot">{</span>
+        source_pos <span class="ot">=</span> win:mouse_position<span class="ot">(),</span>
+        source_pos_var <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">20</span><span class="ot">),</span>
+        max_particles <span class="ot">=</span> <span class="dv">1000</span><span class="ot">,</span>
+        emission_rate <span class="ot">=</span> <span class="dv">500</span><span class="ot">,</span>
+        start_particles <span class="ot">=</span> <span class="dv">0</span><span class="ot">,</span>
+        life <span class="ot">=</span> <span class="dv">0.4</span><span class="ot">,</span>
+        life_var <span class="ot">=</span> <span class="dv">0.1</span><span class="ot">,</span>
+        angle <span class="ot">=</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">90</span><span class="ot">),</span>
+        angle_var <span class="ot">=</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">180</span><span class="ot">),</span>
+        speed <span class="ot">=</span> <span class="dv">200</span><span class="ot">,</span>
+        start_color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0.3</span><span class="ot">,</span> <span class="dv">0.01</span><span class="ot">,</span> <span class="dv">0.5</span><span class="ot">),</span>
+        start_color_var <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.1</span><span class="ot">,</span> <span class="dv">0.05</span><span class="ot">,</span> <span class="dv">0.0</span><span class="ot">,</span> <span class="dv">0.1</span><span class="ot">),</span>
+        end_color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.5</span><span class="ot">,</span> <span class="dv">0.8</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">),</span>
+        end_color_var <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">0.1</span><span class="ot">),</span>
+        start_size <span class="ot">=</span> <span class="dv">30</span><span class="ot">,</span>
+        start_size_var <span class="ot">=</span> <span class="dv">10</span><span class="ot">,</span>
+        end_size <span class="ot">=</span> <span class="dv">2</span><span class="ot">,</span>
+        end_size_var <span class="ot">=</span> <span class="dv">2</span><span class="ot">,</span>
+        gravity <span class="ot">=</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">2000</span><span class="ot">),</span>
+    <span class="ot">}</span></code></pre></div>
 <p>Methods:</p>
 <ul>
 <li><code>reset()</code>: resets the particles as if they had just been created with their current settings.</li>
@@ -2315,7 +2338,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <img src="images/rgb_triangle.png" />
 
 </div>
-<h3 id="am.blendmode" class="func-def">am.blend(mode)</h3>
+<h3 id="am.blend" class="func-def">am.blend(mode)</h3>
 <p>Set the blending mode.</p>
 <p>The possible values for <code>mode</code> are:</p>
 <ul>

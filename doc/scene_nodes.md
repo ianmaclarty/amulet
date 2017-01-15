@@ -511,6 +511,34 @@ range `vec2(-2, -2)` to `vec2(4, 2)`.
 All of the sprite settings are exposed as updatable fields on
 the particles node.
 
+Note that no blending is applied to the particles, so if you want alpha on your
+particles, then you need to add a [`am.blend`](#am.blend) node. For example:
+
+~~~ {.lua}
+local node = am.blend("add_alpha")
+    ^ am.particles2d{
+        source_pos = win:mouse_position(),
+        source_pos_var = vec2(20),
+        max_particles = 1000,
+        emission_rate = 500,
+        start_particles = 0,
+        life = 0.4,
+        life_var = 0.1,
+        angle = math.rad(90),
+        angle_var = math.rad(180),
+        speed = 200,
+        start_color = vec4(1, 0.3, 0.01, 0.5),
+        start_color_var = vec4(0.1, 0.05, 0.0, 0.1),
+        end_color = vec4(0.5, 0.8, 1, 1),
+        end_color_var = vec4(0.1),
+        start_size = 30,
+        start_size_var = 10,
+        end_size = 2,
+        end_size_var = 2,
+        gravity = vec2(0, 2000),
+    }
+~~~
+
 Methods:
 
 - `reset()`: resets the particles as if they had just been created with their
@@ -789,7 +817,7 @@ The resulting image looks like this:
 
 ![](images/rgb_triangle.png)
 
-### am.blend(mode) {.func-def}
+### am.blend(mode) {#am.blend .func-def}
 
 Set the blending mode.
 
