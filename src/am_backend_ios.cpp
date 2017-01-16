@@ -674,8 +674,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
     [EAGLContext setCurrentContext:context];
 
-    [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
-
     ios_init_engine();
     ios_init_audio();
  
@@ -685,6 +683,8 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     viewController.preferredFramesPerSecond = 60;
     self.window.rootViewController = viewController;
     ios_view_controller = viewController;
+
+    [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
 
     [self.window makeKeyAndVisible];
     return YES;
@@ -772,7 +772,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
         for (SKPaymentTransaction *transaction in transactions) {
             const char *status = "unknown";
             switch (transaction.transactionState) {
-                // Call the appropriate custom method for the transaction state.
                 case SKPaymentTransactionStatePurchasing:
                     status = "purchasing";
                     break;
@@ -780,12 +779,15 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
                     status = "deferred";
                     break;
                 case SKPaymentTransactionStateFailed:
+                    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
                     status = "failed";
                     break;
                 case SKPaymentTransactionStatePurchased:
+                    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
                     status = "purchased";
                     break;
                 case SKPaymentTransactionStateRestored:
+                    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
                     status = "restored";
                     break;
             }
