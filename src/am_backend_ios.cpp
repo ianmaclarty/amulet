@@ -760,15 +760,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 {
     if (ios_eng != NULL && ios_eng->L != NULL) {
         lua_State *L = ios_eng->L;
-        lua_getglobal(L, AMULET_LUA_MODULE_NAME);
-        lua_getfield(L, -1, "iap_transactions");
-        // create iap_transactions table if it doesn't exist already
-        if (lua_isnil(L, -1)) {
-            lua_pop(L, 1);
-            lua_newtable(L);
-            lua_pushvalue(L, -1);
-            lua_setfield(L, -3, "iap_transactions");
-        }
         for (SKPaymentTransaction *transaction in transactions) {
             const char *status = "unknown";
             switch (transaction.transactionState) {
@@ -779,26 +770,45 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
                     status = "deferred";
                     break;
                 case SKPaymentTransactionStateFailed:
-                    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
                     status = "failed";
                     break;
                 case SKPaymentTransactionStatePurchased:
-                    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
                     status = "purchased";
                     break;
                 case SKPaymentTransactionStateRestored:
-                    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
                     status = "restored";
                     break;
             }
-            lua_newtable(L);
             lua_pushstring(L, [transaction.payment.productIdentifier UTF8String]);
-            lua_setfield(L, -2, "productid");
             lua_pushstring(L, status);
-            lua_setfield(L, -2, "status");
-            lua_rawseti(L, -2, lua_objlen(L, -2) + 1);
+            am_call_amulet(L, "_iap_transaction_updated", 2, 0);
+            switch (transaction.transactionState) {
+                case SKPaymentTransactionStateFailed:
+                case SKPaymentTransactionStatePurchased:
+                case SKPaymentTransactionStateRestored:
+                    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
+                    break;
+            }
         }
-        lua_pop(L, 2); // iap_transactions and am tables
+    }
+}
+
+- (void)paymentQueue:(SKPaymentQueue *)queue 
+restoreCompletedTransactionsFailedWithError:(NSError *)error
+{
+    if (ios_eng != NULL && ios_eng->L != NULL) {
+        lua_State *L = ios_eng->L;
+        lua_pushboolean(L, 0);
+        am_call_amulet(L, "_iap_restore_finished", 1, 0);
+    }
+}
+
+- (void)paymentQueueRestoreCompletedTransactionsFinished:(SKPaymentQueue *)queue
+{
+    if (ios_eng != NULL && ios_eng->L != NULL) {
+        lua_State *L = ios_eng->L;
+        lua_pushboolean(L, 1);
+        am_call_amulet(L, "_iap_restore_finished", 1, 0);
     }
 }
 

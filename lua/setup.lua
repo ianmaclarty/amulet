@@ -55,3 +55,30 @@ end
 function am._register_post_frame_func(f)
     table.insert(post_frame_funcs, f)
 end
+
+local iap_callback
+local iap_restore_finished
+
+function am._iap_transaction_updated(productid, status)
+    iap_callback(productid, status)
+end
+
+function am.register_iap_callback(cb)
+    if iap_callback then
+        error("iap callback already registered", 2)
+    end
+    iap_callback = cb
+end
+
+function am._iap_restore_finished(success)
+    if iap_restore_finished then
+        iap_restore_finished(success)
+    end
+end
+
+function am.register_iap_restore_finished(f)
+    if iap_restore_finished then
+        error("iap restore finished callback already registered", 2)
+    end
+    iap_restore_finished = f
+end
