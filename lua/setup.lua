@@ -56,29 +56,38 @@ function am._register_post_frame_func(f)
     table.insert(post_frame_funcs, f)
 end
 
-local iap_callback
-local iap_restore_finished
+local iap_transaction_callback
+local iap_restore_callback
+local iap_retrieve_callback
 
 function am._iap_transaction_updated(productid, status)
-    iap_callback(productid, status)
+    if not iap_transaction_callback then
+        error("no iap transaction callback registered!")
+    else
+        iap_transaction_callback(productid, status)
+    end
 end
 
-function am.register_iap_callback(cb)
-    if iap_callback then
-        error("iap callback already registered", 2)
-    end
-    iap_callback = cb
+function am.register_iap_transaction_callback(cb)
+    iap_transaction_callback = cb
 end
 
 function am._iap_restore_finished(success)
-    if iap_restore_finished then
-        iap_restore_finished(success)
+    if iap_restore_callback then
+        iap_restore_callback(success)
     end
 end
 
-function am.register_iap_restore_finished(f)
-    if iap_restore_finished then
-        error("iap restore finished callback already registered", 2)
+function am.register_iap_restore_callback(cb)
+    iap_restore_callback = cb
+end
+
+function am._iap_retrieve_products_finished(products)
+    if iap_retrieve_callback then
+        iap_retrieve_callback(products)
     end
-    iap_restore_finished = f
+end
+
+function am.register_iap_retrieve_callback(cb)
+    iap_retrieve_callback = cb
 end

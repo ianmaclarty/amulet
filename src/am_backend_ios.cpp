@@ -539,6 +539,13 @@ static void hide_banner() {
 }
 
 static void show_banner() {
+    /*
+    if (banner_ad.frame.origin.y < 0.0) {
+        banner_ad.frame = CGRectMake(0.0, -banner_ad.frame.size.height,
+                                      banner_ad.frame.size.width,
+                                      banner_ad.frame.size.height);
+    }
+    */
     banner_ad.hidden = NO;
     [UIView animateWithDuration:0.5 animations:^ {
         banner_ad.frame = CGRectMake(0.0, 0.0,
@@ -758,6 +765,12 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 - (void)paymentQueue:(SKPaymentQueue *)queue
  updatedTransactions:(NSArray *)transactions
 {
+    // need to run on main thread, because it will access lua engine.
+    [self performSelectorOnMainThread:@selector(updateTransactionsMain:) withObject:transactions waitUntilDone:YES];
+}
+
+- (void)updateTransactionsMain:(NSArray *)transactions;
+{
     if (ios_eng != NULL && ios_eng->L != NULL) {
         lua_State *L = ios_eng->L;
         for (SKPaymentTransaction *transaction in transactions) {
@@ -770,7 +783,11 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
                     status = "deferred";
                     break;
                 case SKPaymentTransactionStateFailed:
-                    status = "failed";
+                    if (transaction.error.code == SKErrorPaymentCancelled) {
+                        status = "cancelled";
+                    } else {
+                        status = "failed";
+                    }
                     break;
                 case SKPaymentTransactionStatePurchased:
                     status = "purchased";
@@ -796,6 +813,11 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 - (void)paymentQueue:(SKPaymentQueue *)queue 
 restoreCompletedTransactionsFailedWithError:(NSError *)error
 {
+    [self performSelectorOnMainThread:@selector(restoreCompletedTransactionsFailedWithErrorMain) withObject:nil waitUntilDone:YES];
+}
+
+- (void)restoreCompletedTransactionsFailedWithErrorMain
+{
     if (ios_eng != NULL && ios_eng->L != NULL) {
         lua_State *L = ios_eng->L;
         lua_pushboolean(L, 0);
@@ -804,6 +826,11 @@ restoreCompletedTransactionsFailedWithError:(NSError *)error
 }
 
 - (void)paymentQueueRestoreCompletedTransactionsFinished:(SKPaymentQueue *)queue
+{
+    [self performSelectorOnMainThread:@selector(paymentQueueRestoreCompletedTransactionsFinishedMain) withObject:nil waitUntilDone:YES];
+}
+
+- (void)paymentQueueRestoreCompletedTransactionsFinishedMain
 {
     if (ios_eng != NULL && ios_eng->L != NULL) {
         lua_State *L = ios_eng->L;
@@ -1235,6 +1262,7 @@ static int request_google_banner_ad(lua_State *L) {
     if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
     [banner_ad loadRequest:[GADRequest request]];
     hide_banner();
+    banner_ad_filled = false;
 #endif
     return 0;
 }
@@ -1243,26 +1271,42 @@ struct am_iap_product : am_nonatomic_userdata {
     SKProduct *product;
 };
 
+static int iap_product_gc(lua_State *L) {
+    am_iap_product *product = am_get_userdata(L, am_iap_product, 1);
+    [product->product release];
+    return 0;
+}
+
 static void register_iap_product_mt(lua_State *L) {
     lua_newtable(L);
 
     am_set_default_index_func(L);
     am_set_default_newindex_func(L);
 
+    lua_pushcclosure(L, iap_product_gc, 0);
+    lua_setfield(L, -2, "__gc");
+
     am_register_metatable(L, "iap_product", MT_am_iap_product, 0);
 }
 
 @interface RetrieveIAPProductsDelegate: NSObject<SKProductsRequestDelegate>
 - (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response;
+- (void)request:(SKRequest *)request didFailWithError:(NSError *)error;
 @end
 
 @implementation RetrieveIAPProductsDelegate
 - (void)productsRequest:(SKProductsRequest *)request
      didReceiveResponse:(SKProductsResponse *)response
 {
+    // run on main thread, because calls into lua engine.
+    [self performSelectorOnMainThread:@selector(productsRequestMain:) withObject:response waitUntilDone:YES];
+    [request release];
+}
+
+- (void)productsRequestMain:(SKProductsResponse *)response
+{
     if (ios_eng != NULL && ios_eng->L != NULL) {
         lua_State *L = ios_eng->L;
-        lua_getglobal(L, AMULET_LUA_MODULE_NAME);
         lua_newtable(L);
         for (SKProduct *product in response.products) {
             [product retain];
@@ -1270,11 +1314,25 @@ static void register_iap_product_mt(lua_State *L) {
             am_new_userdata(L, am_iap_product)->product = product;
             lua_settable(L, -3);
         } 
-        lua_setfield(L, -2, "iap_products");
-        lua_pop(L, 1); // am table
+        am_call_amulet(L, "_iap_retrieve_products_finished", 1, 0);
     }
+}
+
+- (void)request:(SKRequest *)request didFailWithError:(NSError *)error;
+{
+    [self performSelectorOnMainThread:@selector(productsRequestErrorMain) withObject:nil waitUntilDone:YES];
     [request release];
 }
+
+- (void)productsRequestErrorMain
+{
+    if (ios_eng != NULL && ios_eng->L != NULL) {
+        lua_State *L = ios_eng->L;
+        lua_pushnil(L);
+        am_call_amulet(L, "_iap_retrieve_products_finished", 1, 0);
+    }
+}
+
 @end
 
 static int retrieve_iap_products(lua_State *L) {
@@ -1314,6 +1372,15 @@ static int restore_iap_purchases(lua_State *L) {
     return 0;
 }
 
+static int can_make_iap_payments(lua_State *L) {
+    if ([SKPaymentQueue canMakePayments]) {
+        lua_pushboolean(L, 1);
+    } else {
+        lua_pushboolean(L, 0);
+    }
+    return 1;
+}
+
 static int iap_product_local_price(lua_State *L) {
     am_check_nargs(L, 1);
     am_iap_product *product = am_get_userdata(L, am_iap_product, 1);
@@ -1349,6 +1416,7 @@ void am_open_ios_module(lua_State *L) {
         {"retrieve_iap_products", retrieve_iap_products},
         {"purchase_iap_product", purchase_iap_product},
         {"restore_iap_purchases", restore_iap_purchases},
+        {"can_make_iap_payments", can_make_iap_payments},
         {"iap_product_local_price", iap_product_local_price},
 
         {NULL, NULL}
