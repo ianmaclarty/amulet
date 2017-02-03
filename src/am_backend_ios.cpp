@@ -40,6 +40,7 @@ static bool ios_done_first_draw = false;
 static GADBannerView *banner_ad = nil;
 static bool banner_ad_filled = false;
 static bool banner_ad_want_visible = false;
+static bool banner_ad_is_visible = false;
 static id banner_delegate = nil;
 #endif
 
@@ -530,12 +531,15 @@ static void ios_become_active() {
 
 #ifdef AM_GOOGLE_ADS
 static void hide_banner() {
+    banner_ad_is_visible = false;
     [UIView animateWithDuration:0.5
         animations:^ { banner_ad.frame = CGRectMake(0.0, -banner_ad.frame.size.height,
                                   banner_ad.frame.size.width,
                                   banner_ad.frame.size.height);
         }
-        completion:^(BOOL finished){ banner_ad.hidden = YES; }];
+        completion:^(BOOL finished){
+            banner_ad.hidden = YES;
+        }];
 }
 
 static void show_banner() {
@@ -547,11 +551,14 @@ static void show_banner() {
     }
     */
     banner_ad.hidden = NO;
-    [UIView animateWithDuration:0.5 animations:^ {
-        banner_ad.frame = CGRectMake(0.0, 0.0,
+    [UIView animateWithDuration:0.5
+        animations:^ {banner_ad.frame = CGRectMake(0.0, 0.0,
                               banner_ad.frame.size.width,
                               banner_ad.frame.size.height);
-    }];
+        }
+        completion:^(BOOL finished){
+            banner_ad_is_visible = true;
+        }];
 }
 #endif
 
@@ -1249,8 +1256,7 @@ static int set_google_banner_ad_visible(lua_State *L) {
 
 static int is_google_banner_ad_visible(lua_State *L) {
 #ifdef AM_GOOGLE_ADS
-    if (banner_ad == nil) return luaL_error(L, "please initialse ads first");
-    lua_pushboolean(L, banner_ad.hidden == YES ? 0 : 1);
+    lua_pushboolean(L, banner_ad_is_visible ? 1 : 0);
 #else
     lua_pushboolean(L, 0);
 #endif
@@ -1265,6 +1271,21 @@ static int request_google_banner_ad(lua_State *L) {
     banner_ad_filled = false;
 #endif
     return 0;
+}
+
+static int get_banner_ad_height(lua_State *L) {
+#ifdef AM_GOOGLE_ADS
+    if (banner_ad != nil && ios_view != nil) {
+        float scale = ios_view.contentScaleFactor;
+        float h = banner_ad.frame.size.height * scale;
+        lua_pushnumber(L, (lua_Number)h);
+    } else {
+        lua_pushnumber(L, 0.0);
+    }
+#else
+    lua_pushnumber(L, 0.0);
+#endif
+    return 1;
 }
 
 struct am_iap_product : am_nonatomic_userdata {
@@ -1412,6 +1433,7 @@ void am_open_ios_module(lua_State *L) {
         {"set_google_banner_ad_visible", set_google_banner_ad_visible},
         {"is_google_banner_ad_visible", is_google_banner_ad_visible},
         {"request_google_banner_ad", request_google_banner_ad},
+        {"get_banner_ad_height", get_banner_ad_height},
 
         {"retrieve_iap_products", retrieve_iap_products},
         {"purchase_iap_product", purchase_iap_product},
