@@ -77,7 +77,7 @@ static int create_framebuffer(lua_State *L) {
 static int render_node_to_framebuffer(lua_State *L) {
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 2);
-    am_render_state *rstate = &am_global_render_state;
+    am_render_state *rstate = am_global_render_state;
     if (fb->color_attachment0->image_buffer != NULL) {
         fb->color_attachment0->image_buffer->buffer->update_if_dirty();
     }
@@ -93,7 +93,7 @@ static int render_node_to_framebuffer(lua_State *L) {
 static int render_children_to_framebuffer(lua_State *L) {
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 2);
-    am_render_state *rstate = &am_global_render_state;
+    am_render_state *rstate = am_global_render_state;
     if (fb->color_attachment0->image_buffer != NULL) {
         fb->color_attachment0->image_buffer->buffer->update_if_dirty();
     }

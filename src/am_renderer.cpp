@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-am_render_state am_global_render_state;
+am_render_state *am_global_render_state = NULL;
 
 am_viewport_state::am_viewport_state() {
     x = 0;
@@ -828,5 +828,14 @@ void am_open_renderer_module(lua_State *L) {
     register_draw_node_mt(L);
     register_pass_filter_node_mt(L);
 
-    init_param_name_map(&am_global_render_state, L);
+    if (am_global_render_state != NULL) {
+        if (am_global_render_state->param_name_map != NULL) {
+            free(am_global_render_state->param_name_map);
+            am_global_render_state->param_name_map = NULL;
+        }
+        delete am_global_render_state;
+        am_global_render_state = NULL;
+    }
+    am_global_render_state = new am_render_state();
+    init_param_name_map(am_global_render_state, L);
 }

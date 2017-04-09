@@ -399,7 +399,7 @@ static void draw_windows() {
         am_window *win = windows[i];
         if (!win->needs_closing) {
             am_native_window_bind_framebuffer(win->native_win);
-            am_render_state *rstate = &am_global_render_state;
+            am_render_state *rstate = am_global_render_state;
             rstate->do_render(win->scene, 0, true, win->clear_color,
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                 win->pixel_width, win->pixel_height,

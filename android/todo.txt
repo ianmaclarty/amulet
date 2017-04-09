@@ -1,2 +1,3 @@
 - fix issue with size changing on startup
-- fix black screen when restarting after gl context lost
+- is there a way to avoid requesting a depth/stencil buffer if we don't need
+  one?

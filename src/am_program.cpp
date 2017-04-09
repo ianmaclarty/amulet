@@ -152,7 +152,7 @@ bool am_program_param::bind(am_render_state *rstate) {
 }
 
 am_param_name_id am_lookup_param_name(lua_State *L, int name_idx) {
-    am_render_state *g = &am_global_render_state;
+    am_render_state *g = am_global_render_state;
     name_idx = am_absindex(L, name_idx);
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_PARAM_NAME_STRING_TABLE);
     int strt_idx = lua_gettop(L);
