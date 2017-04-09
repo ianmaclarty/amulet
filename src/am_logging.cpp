@@ -60,28 +60,13 @@ void am_log(lua_State *L, int level, bool once, const char *fmt, ...) {
     va_start(argp, fmt);
     vsnprintf(msg, MAX_MSG_LEN, fmt, argp);
     va_end(argp);
-    /*
-    if (L != NULL && level > 0) {
-        lua_Debug ar;
-        int r = lua_getstack(L, level, &ar);
-        if (r) {
-            lua_getinfo(L, "Sl", &ar);
-            char *tmp = (char*)malloc(strlen(msg)+1);
-            strcpy(tmp, msg);
-            const char *fmt;
-            if (am_conf_log_gl_calls) {
-                fmt = "// %s:%d: %s";
-            } else {
-                fmt = "%s:%d: %s";
-            }
-            snprintf(msg, MAX_MSG_LEN, fmt, ar.short_src, ar.currentline, tmp);
-            free((void*)tmp);
-        }
-    }
-    */
     if (!once || !check_log_cache(msg)) {
+#ifdef AM_ANDROID
+        __android_log_print(ANDROID_LOG_INFO, "AMULET", "%s", msg);
+#else
         fprintf(LOG_F, "%s\n", msg);
         fflush(LOG_F);
+#endif
     }
     free(msg);
 }
@@ -92,9 +77,14 @@ void am_abort(const char *fmt, ...) {
     va_start(argp, fmt);
     vsnprintf(msg, MAX_MSG_LEN, fmt, argp);
     va_end(argp);
+#ifdef AM_ANDROID
+    __android_log_print(ANDROID_LOG_INFO, "AMULET", "%s\n", msg);
+    __android_log_print(ANDROID_LOG_INFO, "AMULET", "*** ABORTING ***\n");
+#else
     fprintf(LOG_F, "%s\n", msg);
     fprintf(LOG_F, "*** ABORTING ***\n");
     fflush(LOG_F);
+#endif
     assert(false); // so we can catch the abort in gdb if debugging
     exit(EXIT_FAILURE);
 }

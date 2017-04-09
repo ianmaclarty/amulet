@@ -10,6 +10,8 @@
 config.log
 config.status
 amulet
+amulet.exe
+libamulet.so
 builds/*
 tags
 settings

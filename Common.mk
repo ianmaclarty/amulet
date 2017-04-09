@@ -196,6 +196,30 @@ else ifeq ($(TARGET_PLATFORM),iossim)
 	     -Wl,-framework,GLKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
+else ifeq ($(TARGET_PLATFORM),android)
+  NDK_HOME=$(HOME)/android/ndk-r14
+  NDK_HOST=darwin-x86_64
+  ANDROID_VER=16
+  NDK_VER=$(NDK_HOME)/toolchains/arm-linux-androideabi-4.9
+  NDK_SYSROOT=$(NDK_HOME)/platforms/android-$(ANDROID_VER)/arch-arm
+  CC = $(NDK_HOME)/toolchains/llvm/prebuilt/$(NDK_HOST)/bin/clang
+  CPP = $(NDK_HOME)/toolchains/llvm/prebuilt/$(NDK_HOST)/bin/clang++
+  LINK = $(CPP)
+  AR= $(NDK_VER)/prebuilt/$(NDK_HOST)/bin/arm-linux-androideabi-ar
+  TARGET_CFLAGS += --sysroot $(NDK_SYSROOT) -gcc-toolchain $(NDK_VER)/prebuilt/$(NDK_HOST) -fpic \
+  	-target armv7-none-linux-androideabi -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-exceptions -fno-rtti \
+	-I$(NDK_HOME)/sources/android/native_app_glue \
+	-I$(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/include \
+	-I$(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include \
+	-I$(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/include/backward \
+	-I$(NDK_SYSROOT)usr/include \
+	-DANDROID
+  XLDFLAGS = $(TARGET_CFLAGS) -Wl,-soname,libamulet.so -shared \
+ 	$(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libgnustl_static.a -lgcc \
+	-no-canonical-prefixes -Wl,--fix-cortex-a8 \
+	-L$(NDK_SYSROOT)/usr/lib -llog -landroid -lEGL -lGLESv2 -lOpenSLES -llog -lc -lm 
+  LUA_CFLAGS += -DLUA_USE_POSIX
+  ANDROID = 1
 else ifeq ($(TARGET_PLATFORM),html)
   CC = emcc
   CPP = em++
@@ -305,6 +329,9 @@ else
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),ios64)
+    GRADE_CFLAGS = -O3 -DNDEBUG
+    GRADE_LDFLAGS =
+  else ifeq ($(TARGET_PLATFORM),android)
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =
   else

@@ -13,10 +13,12 @@
 #if defined(AM_IOS32) || defined(AM_IOS64) || defined(AM_IOSSIM)
     #define AM_IOS
 #endif
-#if defined(AM_WINDOWS) || defined(AM_OSX) || defined(AM_LINUX) || defined(AM_ANDROID)
+#if defined(AM_WINDOWS) || defined(AM_OSX) || defined(AM_LINUX)
     #define AM_BACKEND_SDL
 #elif defined(AM_IOS)
     #define AM_BACKEND_IOS
+#elif defined(AM_ANDROID)
+    #define AM_BACKEND_ANDROID
 #elif defined(AM_HTML)
     #define AM_BACKEND_EMSCRIPTEN
     #include <emscripten.h>
@@ -77,6 +79,10 @@
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#endif
+
+#if defined(AM_ANDROID)
+#include <android/log.h>
 #endif
 
 #include <new>

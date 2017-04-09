@@ -35,6 +35,9 @@ else ifdef IOS
 else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+else ifdef ANDROID
+  AM_DEPS = $(LUAVM) stb kissfft tinymt
+  AMULET = $(BUILD_BIN_DIR)/libamulet.so
 else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)

@@ -267,5 +267,7 @@ void am_sync_audio_graph(lua_State *L);
 
 void am_interleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
     int num_channels, int num_samples, int sample_offset, int count);
+void am_interleave_audio16(int16_t* AM_RESTRICT dest, float* AM_RESTRICT src,
+    int num_channels, int num_samples, int sample_offset, int count);
 void am_uninterleave_audio(float* AM_RESTRICT dest, float* AM_RESTRICT src,
     int num_channels, int num_samples);
