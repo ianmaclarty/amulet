@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="xyz.amulet"
+        android:versionCode="1"
+        android:versionName="1.0"
+        >
+
+    <uses-sdk android:minSdkVersion="16" />
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" /> <!-- OpenGL ES 2.0 -->
+
+    <application android:label="Amulet"
+        android:icon="@drawable/icon"
+        android:hasCode="true" android:debuggable="false"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+        android:hardwareAccelerated="true"
+        android:allowBackup="true"
+        >
+
+        <activity android:name="xyz.amulet.AmuletActivity"
+                android:label="Amulet"
+                android:screenOrientation="portrait"
+                android:configChanges="orientation|keyboardHidden">
+            <meta-data android:name="android.app.lib_name"
+                    android:value="amulet" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+    <!--<uses-permission android:name="android.permission.INTERNET"></uses-permission>-->
+</manifest> 

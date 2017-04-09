@@ -1,0 +1,2 @@
+- fix issue with size changing on startup
+- fix black screen when restarting after gl context lost

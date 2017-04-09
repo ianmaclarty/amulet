@@ -280,19 +280,19 @@ static void audio_cb(short *buffer, int num_samples);
 static bool OpenSLWrap_Init(AndroidAudioCallback cb);
 
 extern "C" {
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_resize(JNIEnv * env, jobject obj,  jint width, jint height);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_step(JNIEnv * env, jobject obj);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_init(JNIEnv * env, jobject obj, jobject jassman, jstring jdatadir, jstring jlang);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_surfaceCreated(JNIEnv * env, jobject obj);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_teardown(JNIEnv * env, jobject obj);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_pause(JNIEnv * env, jobject obj);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_resume(JNIEnv * env, jobject obj);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_touchDown(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_touchUp(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
-    JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_touchMove(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResize(JNIEnv * env, jobject obj,  jint width, jint height);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniStep(JNIEnv * env, jobject obj);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniInit(JNIEnv * env, jobject obj, jobject jassman, jstring jdatadir, jstring jlang);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSurfaceCreated(JNIEnv * env, jobject obj);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTeardown(JNIEnv * env, jobject obj);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniPause(JNIEnv * env, jobject obj);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResume(JNIEnv * env, jobject obj);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchDown(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchUp(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchMove(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
 };
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_resize(JNIEnv * env, jobject obj,  jint width, jint height)
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResize(JNIEnv * env, jobject obj,  jint width, jint height)
 {
     android_win_width = width;
     android_win_height = height;
@@ -301,14 +301,14 @@ JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_resize(JNIEnv * env, jobje
 
 }
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_step(JNIEnv * env, jobject obj)
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniStep(JNIEnv * env, jobject obj)
 {
     android_draw();
     android_update();
     //renderFrame();
 }
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_init(JNIEnv * env, jobject obj, jobject jassman, jstring jdatadir, jstring jlang)
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniInit(JNIEnv * env, jobject obj, jobject jassman, jstring jdatadir, jstring jlang)
 {
     asset_manager = AAssetManager_fromJava(env, jassman);
 
@@ -323,30 +323,33 @@ JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_init(JNIEnv * env, jobject
     //setupGraphics(android_win_width, android_win_height);
 }
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_surfaceCreated(JNIEnv * env, jobject obj)
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSurfaceCreated(JNIEnv * env, jobject obj)
 {
     android_init_engine();
 }
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_teardown(JNIEnv * env, jobject obj) {
+static void OpenSLWrap_Shutdown();
+
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTeardown(JNIEnv * env, jobject obj) {
     android_teardown();
+    OpenSLWrap_Shutdown();
 }
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_touchDown(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchDown(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
     win->touch_begin(android_eng->L, (void*)id, x, y, 1.0);
 }
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_touchUp(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchUp(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
     win->touch_end(android_eng->L, (void*)id, x, y, 1.0);
 }
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_touchMove(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchMove(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
@@ -519,23 +522,18 @@ static void OpenSLWrap_Shutdown() {
 }
 
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_pause(JNIEnv * env, jobject obj)
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniPause(JNIEnv * env, jobject obj)
 {
     if (bqPlayerObject != NULL) {
         (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_STOPPED);
     }
 }
 
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_resume(JNIEnv * env, jobject obj)
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResume(JNIEnv * env, jobject obj)
 {
     if (bqPlayerObject != NULL) {
         (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
     }
-}
-
-JNIEXPORT void JNICALL Java_com_ianmaclarty_LotechJNI_shutdown(JNIEnv * env, jobject obj)
-{
-    OpenSLWrap_Shutdown();
 }
 
 //-----------------------------------------------------------------
