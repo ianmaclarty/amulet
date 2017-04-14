@@ -1,0 +1,31 @@
+diff --git a/third_party/SDL2-2.0.5/src/video/windows/SDL_windowsopengl.c b/third_party/SDL2-2.0.5/src/video/windows/SDL_windowsopengl.c
+index d30d838..3230dd9 100644
+--- a/third_party/SDL2-2.0.5/src/video/windows/SDL_windowsopengl.c
++++ b/third_party/SDL2-2.0.5/src/video/windows/SDL_windowsopengl.c
+@@ -408,9 +408,12 @@ WIN_GL_InitExtensions(_THIS)
+ 
+     /* Check for WGL_EXT_create_context_es2_profile */
+     _this->gl_data->HAS_WGL_EXT_create_context_es2_profile = SDL_FALSE;
++    /*
++     * [AMULET] Always use ANGLE 
+     if (HasExtension("WGL_EXT_create_context_es2_profile", extensions)) {
+         _this->gl_data->HAS_WGL_EXT_create_context_es2_profile = SDL_TRUE;
+     }
++    */
+ 
+     /* Check for GLX_ARB_context_flush_control */
+     if (HasExtension("WGL_ARB_context_flush_control", extensions)) {
+diff --git a/third_party/SDL2-2.0.5/src/video/windows/SDL_windowsopengles.c b/third_party/SDL2-2.0.5/src/video/windows/SDL_windowsopengles.c
+index f66cc08..9f000b2 100644
+--- a/third_party/SDL2-2.0.5/src/video/windows/SDL_windowsopengles.c
++++ b/third_party/SDL2-2.0.5/src/video/windows/SDL_windowsopengles.c
+@@ -133,7 +133,8 @@ WIN_GLES_SetSwapInterval(_THIS, int interval)
+      * from working if we do (the window contents freeze and don't swap properly). So, we ignore
+      * the request for now.
+      */
+-    SDL_Log("WARNING: Ignoring SDL_GL_SetSwapInterval call due to ANGLE bug");
++    //SDL_Log("WARNING: Ignoring SDL_GL_SetSwapInterval call due to ANGLE bug");
++    SDL_EGL_SetSwapInterval(_this, interval); // [AMULET] seems to work for me??
+     return 0;
+ }
+ 
