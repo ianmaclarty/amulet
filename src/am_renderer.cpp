@@ -828,6 +828,9 @@ void am_open_renderer_module(lua_State *L) {
     register_draw_node_mt(L);
     register_pass_filter_node_mt(L);
 
+#if defined(AM_ANDROID)
+    // only re-create global render state on android, since the gl context 
+    // would have been lost there.
     if (am_global_render_state != NULL) {
         if (am_global_render_state->param_name_map != NULL) {
             free(am_global_render_state->param_name_map);
@@ -836,6 +839,9 @@ void am_open_renderer_module(lua_State *L) {
         delete am_global_render_state;
         am_global_render_state = NULL;
     }
-    am_global_render_state = new am_render_state();
+#endif
+    if (am_global_render_state == NULL) {
+        am_global_render_state = new am_render_state();
+    }
     init_param_name_map(am_global_render_state, L);
 }
