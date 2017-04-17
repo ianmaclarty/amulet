@@ -197,7 +197,7 @@ else ifeq ($(TARGET_PLATFORM),iossim)
   LUA_CFLAGS += -DLUA_USE_POSIX
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),android)
-  NDK_HOME=$(HOME)/android/ndk-r14
+  NDK_HOME=$(HOME)/Library/Android/sdk/ndk-bundle
   NDK_HOST=darwin-x86_64
   ANDROID_VER=16
   NDK_VER=$(NDK_HOME)/toolchains/arm-linux-androideabi-4.9

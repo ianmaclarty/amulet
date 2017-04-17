@@ -52,6 +52,8 @@ char *am_get_data_path();
 
 const char *am_preferred_language();
 
-#ifdef AM_IOS
+#if defined(AM_IOS)
 void am_open_ios_module(lua_State *L);
+#elif defined(AM_ANDROID)
+void am_open_android_module(lua_State *L);
 #endif

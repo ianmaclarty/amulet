@@ -40,6 +40,8 @@ static double real_delta_time;
 static void android_init_audio();
 static void android_teardown();
 
+static JNIEnv *jni_env = NULL;
+
 static void android_init_engine() {
     // First call am_destroy_gl in case the gl context was lost and we are re-initializing.
     // This will prevent any glDelete* function finalizers from being called
@@ -149,6 +151,9 @@ extern "C" {
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchDown(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchUp(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchMove(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPProductsRetrieved(JNIEnv * env, jobject obj, jint success, jobjectArray productIds, jobjectArray prices);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jproductId, jstring jstatus);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPRestoreFinished(JNIEnv * env, jobject obj, jint success);
 };
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResize(JNIEnv * env, jobject obj,  jint width, jint height)
@@ -160,8 +165,10 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResize(JNIEnv * env, jo
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniStep(JNIEnv * env, jobject obj)
 {
+    jni_env = env;
     android_draw();
     android_update();
+    jni_env = NULL;
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniInit(JNIEnv * env, jobject obj, jobject jassman, jstring jdatadir, jstring jlang)
@@ -179,7 +186,9 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniInit(JNIEnv * env, jobj
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSurfaceCreated(JNIEnv * env, jobject obj)
 {
+    jni_env = env;
     android_init_engine();
+    jni_env = NULL;
 }
 
 static void OpenSLWrap_Shutdown();
@@ -208,6 +217,60 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchMove(JNIEnv * env,
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
     win->touch_move(android_eng->L, (void*)id, x, y, 1.0);
+}
+
+struct am_iap_product : am_nonatomic_userdata {
+    char *product_id;
+    char *price;
+};
+
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPProductsRetrieved(JNIEnv * env, jobject obj, jint success, jobjectArray productIds, jobjectArray prices) {
+    if (android_eng != NULL && android_eng->L != NULL) {
+        lua_State *L = android_eng->L;
+        if (success) {
+            lua_newtable(L);
+            int n = env->GetArrayLength(productIds);
+            for (int i = 0; i < n; i++) {
+                jstring jpid = (jstring) (env->GetObjectArrayElement(productIds, i));
+                jstring jprice = (jstring) (env->GetObjectArrayElement(prices, i));
+                const char* pid = env->GetStringUTFChars(jpid , NULL ) ;
+                const char* price = env->GetStringUTFChars(jprice , NULL ) ;
+                lua_pushstring(L, pid);
+                am_iap_product *product = am_new_userdata(L, am_iap_product);
+                product->product_id = am_format("%s", pid);
+                product->price = am_format("%s", price);
+                env->ReleaseStringUTFChars(jpid, pid);
+                env->ReleaseStringUTFChars(jprice, price);
+                env->DeleteLocalRef(jpid);
+                env->DeleteLocalRef(jprice);
+                lua_settable(L, -3);
+            } 
+        } else {
+            lua_pushnil(L);
+        }
+        am_call_amulet(L, "_iap_retrieve_products_finished", 1, 0);
+    }
+}
+
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jpid, jstring jstatus) {
+    if (android_eng != NULL && android_eng->L != NULL) {
+        lua_State *L = android_eng->L;
+        const char* pid = env->GetStringUTFChars(jpid , NULL ) ;
+        const char* status = env->GetStringUTFChars(jstatus , NULL ) ;
+        lua_pushstring(L, pid);
+        lua_pushstring(L, status);
+        env->ReleaseStringUTFChars(jpid, pid);
+        env->ReleaseStringUTFChars(jstatus, status);
+        am_call_amulet(L, "_iap_transaction_updated", 2, 0);
+    }
+}
+
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPRestoreFinished(JNIEnv * env, jobject obj, jint success) {
+    if (android_eng != NULL && android_eng->L != NULL) {
+        lua_State *L = android_eng->L;
+        lua_pushboolean(L, success);
+        am_call_amulet(L, "_iap_restore_finished", 1, 0);
+    }
 }
 
 //------------------------------
@@ -512,6 +575,98 @@ char *am_get_data_path() {
 
 const char *am_preferred_language() {
     return android_lang;
+}
+
+static int retrieve_iap_products(lua_State *L) {
+    am_check_nargs(L, 1);
+    if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
+    int n = lua_objlen(L, 1);
+    jclass string_cls = jni_env->FindClass("java/lang/String");
+    jobjectArray productIds = jni_env->NewObjectArray(n, string_cls, 0);
+    for (int i = 1; i <= n; i++) {
+        lua_rawgeti(L, 1, i);
+        const char *pid = lua_tostring(L, -1);
+        if (pid == NULL) return luaL_error(L, "all product ids must be strings");
+        jstring jpid = jni_env->NewStringUTF(pid);
+        jni_env->SetObjectArrayElement(productIds, i-1, jpid);
+        jni_env->DeleteLocalRef(jpid);
+        lua_pop(L, 1);
+    }
+
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppGetProducts", "([Ljava/lang/String;)V");
+    jni_env->CallStaticVoidMethod(cls, mid, productIds);
+    jni_env->DeleteLocalRef(productIds);
+    return 0;
+}
+
+static int purchase_iap_product(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_iap_product *product = am_get_userdata(L, am_iap_product, 1);
+    jstring jpid = jni_env->NewStringUTF(product->product_id);
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppPurchaseProduct", "(Ljava/lang/String;)V");
+    jni_env->CallStaticVoidMethod(cls, mid, jpid);
+    jni_env->DeleteLocalRef(jpid);
+    return 0;
+}
+
+static int restore_iap_purchases(lua_State *L) {
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppRestorePurchases", "()V");
+    jni_env->CallStaticVoidMethod(cls, mid);
+    return 0;
+}
+
+static int can_make_iap_payments(lua_State *L) {
+    lua_pushboolean(L, 1);
+    return 1;
+}
+
+static int iap_product_local_price(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_iap_product *product = am_get_userdata(L, am_iap_product, 1);
+    lua_pushstring(L, product->price);
+    return 1;
+}
+
+static int iap_product_gc(lua_State *L) {
+    am_iap_product *product = am_get_userdata(L, am_iap_product, 1);
+    free(product->product_id);
+    free(product->price);
+    return 0;
+}
+
+static void register_iap_product_mt(lua_State *L) {
+    lua_newtable(L);
+
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
+
+    lua_pushcclosure(L, iap_product_gc, 0);
+    lua_setfield(L, -2, "__gc");
+
+    am_register_metatable(L, "iap_product", MT_am_iap_product, 0);
+}
+
+void am_open_android_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        //{"init_google_banner_ad", init_google_banner_ad},
+        //{"set_google_banner_ad_visible", set_google_banner_ad_visible},
+        //{"is_google_banner_ad_visible", is_google_banner_ad_visible},
+        //{"request_google_banner_ad", request_google_banner_ad},
+        //{"get_banner_ad_height", get_banner_ad_height},
+
+        {"retrieve_iap_products", retrieve_iap_products},
+        {"purchase_iap_product", purchase_iap_product},
+        {"restore_iap_purchases", restore_iap_purchases},
+        {"can_make_iap_payments", can_make_iap_payments},
+        {"iap_product_local_price", iap_product_local_price},
+
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+    register_iap_product_mt(L);
 }
 
 #endif // AM_BACKEND_ANDROID
