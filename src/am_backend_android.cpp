@@ -637,6 +637,50 @@ static int iap_product_gc(lua_State *L) {
     return 0;
 }
 
+static int init_google_banner_ad(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *unitid = lua_tostring(L, 1);
+    if (unitid == NULL) return luaL_error(L, "expecting a string unitid argument");
+    jstring junitid = jni_env->NewStringUTF(unitid);
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppInitAds", "(Ljava/lang/String;)V");
+    jni_env->CallStaticVoidMethod(cls, mid, junitid);
+    jni_env->DeleteLocalRef(junitid);
+    return 0;
+}
+
+static int set_google_banner_ad_visible(lua_State *L) {
+    am_check_nargs(L, 1);
+    int vis = lua_toboolean(L, 1);
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppSetAdVisible", "(I)V");
+    jni_env->CallStaticVoidMethod(cls, mid, vis);
+    return 0;
+}
+
+static int is_google_banner_ad_visible(lua_State *L) {
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppIsAdVisible", "()I");
+    int vis = jni_env->CallStaticIntMethod(cls, mid);
+    lua_pushboolean(L, vis);
+    return 1;
+}
+
+static int request_google_banner_ad(lua_State *L) {
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppRefreshAd", "()V");
+    jni_env->CallStaticVoidMethod(cls, mid);
+    return 0;
+}
+
+static int get_banner_ad_height(lua_State *L) {
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppGetAdHeight", "()I");
+    int h = jni_env->CallStaticIntMethod(cls, mid);
+    lua_pushinteger(L, h);
+    return 1;
+}
+
 static void register_iap_product_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -651,11 +695,11 @@ static void register_iap_product_mt(lua_State *L) {
 
 void am_open_android_module(lua_State *L) {
     luaL_Reg funcs[] = {
-        //{"init_google_banner_ad", init_google_banner_ad},
-        //{"set_google_banner_ad_visible", set_google_banner_ad_visible},
-        //{"is_google_banner_ad_visible", is_google_banner_ad_visible},
-        //{"request_google_banner_ad", request_google_banner_ad},
-        //{"get_banner_ad_height", get_banner_ad_height},
+        {"init_google_banner_ad", init_google_banner_ad},
+        {"set_google_banner_ad_visible", set_google_banner_ad_visible},
+        {"is_google_banner_ad_visible", is_google_banner_ad_visible},
+        {"request_google_banner_ad", request_google_banner_ad},
+        {"get_banner_ad_height", get_banner_ad_height},
 
         {"retrieve_iap_products", retrieve_iap_products},
         {"purchase_iap_product", purchase_iap_product},
