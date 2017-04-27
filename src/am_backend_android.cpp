@@ -52,33 +52,24 @@ static void android_init_engine() {
     am_debug("%s", "android_init_engine");
 
     am_opt_main_module = "main";
-    am_debug("%s", "load config");
     if (!am_load_config()) return;
-    am_debug("%s", "init engine");
     android_eng = am_init_engine(false, 0, NULL);
     if (android_eng == NULL) return;
 
-    am_debug("%s", "call main");
     frame_time = am_get_current_time();
     lua_pushcclosure(android_eng->L, am_require, 0);
     lua_pushstring(android_eng->L, am_opt_main_module);
     if (am_call(android_eng->L, 1, 0)) {
         android_running = true;
     }
-    am_debug("%s", "call main");
     t0 = am_get_current_time();
     frame_time = t0;
     t_debt = 0.0;
 
-    static bool audio_initialized = false;
-    if (!audio_initialized) {
-        am_debug("%s", "init audio");
-        // only initialize audio once (android_init_engine maybe be called again if surface recreated)
-        android_init_audio();
-        audio_initialized = true;
-    }
-    am_debug("%s", "done");
+    android_init_audio();
 }
+
+static void OpenSLWrap_Shutdown();
 
 static void android_teardown() {
     android_running = false;
@@ -90,6 +81,7 @@ static void android_teardown() {
     }
     am_destroy_gl();
     android_window_created = false;
+    OpenSLWrap_Shutdown();
 }
 
 static void android_draw() {
@@ -173,6 +165,8 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniStep(JNIEnv * env, jobj
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniInit(JNIEnv * env, jobject obj, jobject jassman, jstring jdatadir, jstring jlang)
 {
+    pthread_mutex_init(&android_audio_mutex, NULL);
+
     asset_manager = AAssetManager_fromJava(env, jassman);
 
     const char* datadir_tmp = env->GetStringUTFChars(jdatadir , NULL ) ;
@@ -190,8 +184,6 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSurfaceCreated(JNIEnv *
     android_init_engine();
     jni_env = NULL;
 }
-
-static void OpenSLWrap_Shutdown();
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTeardown(JNIEnv * env, jobject obj) {
     android_teardown();
@@ -290,16 +282,6 @@ void android_audio_teardown() {
 #define FREQ 44100
 
 static void audio_cb(short *buffer, int n_samples) {
-    /*
-    static double t = 0.0;
-    //am_debug("audio_cb %d", num_samples);
-    for (int i = 0; i < num_samples; i+=1) {
-        buffer[i*2] = (short)(sin(2.0 * 3.14 * t * 440.0) * 30000.0);
-        //buffer[i * BUFFER_SIZE] = 0;
-        t += 1.0 / (double)FREQ;
-    }
-    */
-
     int num_channels = am_conf_audio_channels;
     int num_samples = am_conf_audio_buffer_size;
     memset(android_audio_buffer, 0, num_channels * num_samples * sizeof(float));
@@ -312,13 +294,12 @@ static void audio_cb(short *buffer, int n_samples) {
     for (int i = 0; i < 2048; i++) {
         if (android_audio_buffer[i] > mx) mx = android_audio_buffer[i];
     }
-    //am_debug("audio_callback %g", mx);
 }
 
 // engine interfaces
-static SLObjectItf engineObject;
+static SLObjectItf engineObject = NULL;
 static SLEngineItf engineEngine;
-static SLObjectItf outputMixObject;
+static SLObjectItf outputMixObject = NULL;
 
 // buffer queue player interfaces
 static SLObjectItf bqPlayerObject = NULL;
@@ -331,10 +312,6 @@ static short buffer[BUFFER_SIZE];
 
 static AndroidAudioCallback audioCallback;
 
-// This callback handler is called every time a buffer finishes playing.
-// The documentation available is very unclear about how to best manage buffers.
-// I've chosen to this approach: Instantly enqueue a buffer that was rendered to the last time,
-// and then render the next. Hopefully it's okay to spend time in this callback after having enqueued. 
 static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
   assert(bq == bqPlayerBufferQueue);
   assert(NULL == context);
@@ -345,9 +322,6 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
   SLresult result;
   result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, nextSize);
 
-  // Comment from sample code:
-  // the most likely other result is SL_RESULT_BUFFER_INSUFFICIENT,
-  // which for this code example would indicate a programming error
   assert(SL_RESULT_SUCCESS == result);
 }
 
@@ -406,8 +380,7 @@ static bool OpenSLWrap_Init(AndroidAudioCallback cb) {
   result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
   assert(SL_RESULT_SUCCESS == result);
 
-  // Render and enqueue a first buffer. (or should we just play the buffer empty?)
-  audioCallback(buffer, BUFFER_SIZE_IN_SAMPLES);
+  memset(buffer, 0, sizeof(buffer));
 
   result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, sizeof(buffer));
   if (SL_RESULT_SUCCESS != result) {
