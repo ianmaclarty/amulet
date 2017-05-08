@@ -1,3 +1,6 @@
 - fix issue with size changing on startup
 - is there a way to avoid requesting a depth/stencil buffer if we don't need
   one?
+- fix locale problem: only return a supported language
+- avoid having to import com.ianmaclarty.jellyjuggle.R in
+  AmuletActivity.java.

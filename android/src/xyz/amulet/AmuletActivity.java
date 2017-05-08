@@ -30,6 +30,8 @@ import org.json.*;
 import com.google.android.gms.ads.*;
 import com.android.vending.billing.*;
 
+import com.ianmaclarty.jellyjuggle.R; // XXX
+
 public class AmuletActivity extends Activity {
     AmuletView view = null;
     AdView adView = null;
@@ -61,12 +63,6 @@ public class AmuletActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        //Create a displayMetrics object to get pixel width and height
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        int width = metrics.widthPixels;
-        int height = metrics.heightPixels;
 
         //Create and set GL view (OpenGL View)
         view = new AmuletView(getApplication());
@@ -113,7 +109,7 @@ public class AmuletActivity extends Activity {
             setEGLConfigChooser(new ConfigChooser());
             setRenderer(new AMRenderer());
             Context appContext = context;
-            jniInit(context.getAssets(), appContext.getFilesDir().getPath() + "/", Locale.getDefault().getLanguage());
+            jniInit(context.getAssets(), appContext.getFilesDir().getPath() + "/", context.getResources().getString(R.string.lang));
         }
 
         private static class ContextFactory implements GLSurfaceView.EGLContextFactory {
@@ -497,6 +493,7 @@ public class AmuletActivity extends Activity {
                     startIntentSenderForResult(pendingIntent.getIntentSender(),
                             1001, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
                             Integer.valueOf(0));
+                    pendingProductId = productId;
                 } else {
                     Log.i("AMULET", "non-zero getbuyintent response: " + response);
                     view.queueEvent(new Runnable() {
@@ -506,7 +503,6 @@ public class AmuletActivity extends Activity {
                         }
                     });
                 }
-                pendingProductId = productId;
             }
         } catch (Exception e) {
             Log.i("AMULET", e.getMessage() + ":" + e.getStackTrace());

@@ -165,6 +165,7 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniStep(JNIEnv * env, jobj
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniInit(JNIEnv * env, jobject obj, jobject jassman, jstring jdatadir, jstring jlang)
 {
+    jni_env = env;
     pthread_mutex_init(&android_audio_mutex, NULL);
 
     asset_manager = AAssetManager_fromJava(env, jassman);
@@ -176,6 +177,7 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniInit(JNIEnv * env, jobj
     const char* lang_tmp = env->GetStringUTFChars(jlang , NULL ) ;
     android_lang = am_format("%s", lang_tmp);
     env->ReleaseStringUTFChars(jlang, lang_tmp);
+    jni_env = NULL;
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSurfaceCreated(JNIEnv * env, jobject obj)
@@ -191,24 +193,30 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTeardown(JNIEnv * env, 
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchDown(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
+    jni_env = env;
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
     win->touch_begin(android_eng->L, (void*)id, x, y, 1.0);
+    jni_env = NULL;
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchUp(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
+    jni_env = env;
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
     win->touch_end(android_eng->L, (void*)id, x, y, 1.0);
+    jni_env = NULL;
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchMove(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
+    jni_env = env;
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
     win->touch_move(android_eng->L, (void*)id, x, y, 1.0);
+    jni_env = NULL;
 }
 
 struct am_iap_product : am_nonatomic_userdata {
@@ -217,6 +225,7 @@ struct am_iap_product : am_nonatomic_userdata {
 };
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPProductsRetrieved(JNIEnv * env, jobject obj, jint success, jobjectArray productIds, jobjectArray prices) {
+    jni_env = env;
     if (android_eng != NULL && android_eng->L != NULL) {
         lua_State *L = android_eng->L;
         if (success) {
@@ -242,9 +251,11 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPProductsRetrieved(JN
         }
         am_call_amulet(L, "_iap_retrieve_products_finished", 1, 0);
     }
+    jni_env = NULL;
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jpid, jstring jstatus) {
+    jni_env = env;
     if (android_eng != NULL && android_eng->L != NULL) {
         lua_State *L = android_eng->L;
         const char* pid = env->GetStringUTFChars(jpid , NULL ) ;
@@ -255,14 +266,17 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(J
         env->ReleaseStringUTFChars(jstatus, status);
         am_call_amulet(L, "_iap_transaction_updated", 2, 0);
     }
+    jni_env = NULL;
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPRestoreFinished(JNIEnv * env, jobject obj, jint success) {
+    jni_env = env;
     if (android_eng != NULL && android_eng->L != NULL) {
         lua_State *L = android_eng->L;
         lua_pushboolean(L, success);
         am_call_amulet(L, "_iap_restore_finished", 1, 0);
     }
+    jni_env = NULL;
 }
 
 //------------------------------
