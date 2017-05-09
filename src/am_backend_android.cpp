@@ -146,6 +146,7 @@ extern "C" {
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPProductsRetrieved(JNIEnv * env, jobject obj, jint success, jobjectArray productIds, jobjectArray prices);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jproductId, jstring jstatus);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPRestoreFinished(JNIEnv * env, jobject obj, jint success);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSetGameServicesConnected(JNIEnv * env, jobject obj, jint c);
 };
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResize(JNIEnv * env, jobject obj,  jint width, jint height)
@@ -668,6 +669,42 @@ static int get_banner_ad_height(lua_State *L) {
     return 1;
 }
 
+static int google_play_connected = 0;
+
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSetGameServicesConnected(JNIEnv * env, jobject obj, jint c) {
+    google_play_connected = c;
+}
+
+static int google_play_is_available(lua_State *L) {
+    lua_pushboolean(L, google_play_connected);
+    return 1;
+}
+
+static int show_google_play_leaderboard(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *leaderboard = lua_tostring(L, 1);
+    if (leaderboard == NULL) return luaL_error(L, "expecting a string in position 1");
+    jstring jleaderboard = jni_env->NewStringUTF(leaderboard);
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppShowLeaderboard", "(Ljava/lang/String;)V");
+    jni_env->CallStaticVoidMethod(cls, mid, jleaderboard);
+    jni_env->DeleteLocalRef(jleaderboard);
+    return 0;
+}
+
+static int submit_google_play_score(lua_State *L) {
+    am_check_nargs(L, 2);
+    const char *leaderboard = lua_tostring(L, 1);
+    if (leaderboard == NULL) return luaL_error(L, "expecting a string in position 1");
+    jlong jscore = (jlong)lua_tonumber(L, 2);
+    jstring jleaderboard = jni_env->NewStringUTF(leaderboard);
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppSubmitLeaderboardScore", "(Ljava/lang/String;J)V");
+    jni_env->CallStaticVoidMethod(cls, mid, jleaderboard, jscore);
+    jni_env->DeleteLocalRef(jleaderboard);
+    return 0;
+}
+
 static void register_iap_product_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -682,6 +719,10 @@ static void register_iap_product_mt(lua_State *L) {
 
 void am_open_android_module(lua_State *L) {
     luaL_Reg funcs[] = {
+        {"google_play_available", google_play_is_available},
+        {"show_google_play_leaderboard", show_google_play_leaderboard},
+        {"submit_google_play_score", submit_google_play_score},
+
         {"init_google_banner_ad", init_google_banner_ad},
         {"set_google_banner_ad_visible", set_google_banner_ad_visible},
         {"is_google_banner_ad_visible", is_google_banner_ad_visible},
