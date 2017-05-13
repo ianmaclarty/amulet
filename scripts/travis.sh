@@ -33,6 +33,15 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
     scripts/upload_distros.js $TAG $FILE_LIST
 else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+        # setup android ndk
+        NDK=android-ndk-r14b
+        curl -L https://dl.google.com/android/repository/$NDK-linux-x86_64.zip -o android-ndk.zip
+        unzip android-ndk.zip > /dev/null
+        export NDK_HOME=`pwd`/$NDK
+        export NDK_HOST=linux-x86_64
+        export NDK_ANDROID_VER=16
+
+        make -j2 TARGET=android.release LUAVM=lua51
         make -j2 TARGET=linux32.release LUAVM=lua51   test
         make -j2 TARGET=linux64.release LUAVM=lua51   test
         make -j2 TARGET=linux32.release LUAVM=luajit  test

@@ -4,3 +4,15 @@
 - fix locale problem: only return a supported language
 - avoid having to import com.ianmaclarty.jellyjuggle.R in
   AmuletActivity.java.
+- don't intialize google play services automatically
+- tidy up audio
+
+- export requirements:
+    - generate binary AndroidManifest.xml
+    - make sure compiled resources have nothing app-specific in them
+      (do they need to contain app_name??)
+    - custom lang function
+    - build .so on travis ci
+    - create .apk template with everything from jj
+    - create export function
+
