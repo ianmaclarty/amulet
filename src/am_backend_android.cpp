@@ -705,6 +705,18 @@ static int submit_google_play_score(lua_State *L) {
     return 0;
 }
 
+static int submit_google_play_achievement(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *id = lua_tostring(L, 1);
+    if (id == NULL) return luaL_error(L, "expecting a string in position 1");
+    jstring jid = jni_env->NewStringUTF(id);
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppSubmitAchievement", "(Ljava/lang/String;)V");
+    jni_env->CallStaticVoidMethod(cls, mid, jid);
+    jni_env->DeleteLocalRef(jid);
+    return 0;
+}
+
 static void register_iap_product_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -722,6 +734,7 @@ void am_open_android_module(lua_State *L) {
         {"google_play_available", google_play_is_available},
         {"show_google_play_leaderboard", show_google_play_leaderboard},
         {"submit_google_play_score", submit_google_play_score},
+        {"submit_google_play_achievement", submit_google_play_achievement},
 
         {"init_google_banner_ad", init_google_banner_ad},
         {"set_google_banner_ad_visible", set_google_banner_ad_visible},

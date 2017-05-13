@@ -29,10 +29,16 @@ import org.json.*;
 
 import com.google.android.gms.ads.*;
 import com.android.vending.billing.*;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.Games;
 
 import com.ianmaclarty.jellyjuggle.R; // XXX
 
-public class AmuletActivity extends Activity {
+public class AmuletActivity extends Activity
+        implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
     AmuletView view = null;
     AdView adView = null;
     boolean requestAdVisible = false;
@@ -41,6 +47,8 @@ public class AmuletActivity extends Activity {
     Object adLock = new Object();
     RelativeLayout.LayoutParams adLayoutParams = null;
     int adHeight;
+    GoogleApiClient googleApiClient = null;
+    int googleApiClientConnectionAttempts = 0;
 
     static AmuletActivity singleton;
 
@@ -76,6 +84,8 @@ public class AmuletActivity extends Activity {
                 new Intent("com.android.vending.billing.InAppBillingService.BIND");
         serviceIntent.setPackage("com.android.vending");
         bindService(serviceIntent, iapServiceCon, Context.BIND_AUTO_CREATE);
+
+        initGoogleApiClient();
     }
 
     @Override
@@ -431,6 +441,10 @@ public class AmuletActivity extends Activity {
         Bundle querySkus = new Bundle();
         querySkus.putStringArrayList("ITEM_ID_LIST", skuList);
         try {
+            // wait for connect
+            while (iapService == null) {
+                Thread.sleep(100);
+            }
             Bundle skuDetails = iapService.getSkuDetails(3,
                     getPackageName(), "inapp", querySkus);
             int response = skuDetails.getInt("RESPONSE_CODE");
@@ -455,7 +469,6 @@ public class AmuletActivity extends Activity {
             } else {
                 Log.i("AMULET", "non-zero getproducts response: " + response);
             }
-
         } catch (Exception e) {
             Log.i("AMULET", e.getMessage() + ":" + e.getStackTrace());
         }
@@ -608,6 +621,94 @@ public class AmuletActivity extends Activity {
         }).start();
     }
 
+    // -- Game services API ----------
+
+    void initGoogleApiClient() {
+        //  for leaderboards, achievements
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                .build();
+        googleApiClient.connect();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.i("AMULET", "Google services connected!");
+        view.queueEvent(new Runnable() {
+            public void run() {
+                Log.i("AMULET", "calling jniSetGameServicesConnected (1)");
+                jniSetGameServicesConnected(1);
+            }
+        });
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i("AMULET", "Google services suspended!");
+        view.queueEvent(new Runnable() {
+            public void run() {
+                Log.i("AMULET", "calling jniSetGameServicesConnected (0)");
+                jniSetGameServicesConnected(0);
+            }
+        });
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult)  {
+        Log.i("AMULET", "Google services connection failed!");
+        view.queueEvent(new Runnable() {
+            public void run() {
+                Log.i("AMULET", "calling jniSetGameServicesConnected (0)");
+                jniSetGameServicesConnected(0);
+            }
+        });
+        if (googleApiClientConnectionAttempts == 0) {
+            Log.i("AMULET", "Google services trying reconnect");
+            // on my device it always fails to connect on first attempt after
+            // installation and then works after that, so try again once.
+            googleApiClientConnectionAttempts++;
+            initGoogleApiClient();
+        }
+    }
+
+    public static void cppSubmitLeaderboardScore(String leaderboard0, long score0) {
+        final String leaderboard = leaderboard0;
+        final long score = score0;
+        singleton.runOnUiThread(new Runnable() {
+            public void run() {
+                if(singleton.googleApiClient != null && singleton.googleApiClient.isConnected()) {
+                    Games.Leaderboards.submitScore(singleton.googleApiClient, leaderboard, score);
+                }
+            }
+        });
+    }
+
+    public static void cppSubmitAchievement(String achievement0) {
+        final String achievement = achievement0;
+        singleton.runOnUiThread(new Runnable() {
+            public void run() {
+                if(singleton.googleApiClient != null && singleton.googleApiClient.isConnected()) {
+                    //Log.i("AMULET", "unlock " + achievement);
+                    Games.Achievements.unlock(singleton.googleApiClient, achievement);
+                }
+            }
+        });
+    }
+
+    public static void cppShowLeaderboard(String leaderboard0) {
+        final String leaderboard = leaderboard0;
+        singleton.runOnUiThread(new Runnable() {
+            public void run() {
+                if(singleton.googleApiClient != null && singleton.googleApiClient.isConnected()) {
+                    singleton.startActivityForResult(Games.Leaderboards.getLeaderboardIntent(singleton.googleApiClient,
+                            leaderboard), 1002);
+                }
+            }
+        });
+    }
+
     // --- JNI ------------
 
     static {
@@ -627,4 +728,5 @@ public class AmuletActivity extends Activity {
     public static native void jniIAPProductsRetrieved(int success, String[] productids, String[] prices);
     public static native void jniIAPTransactionUpdated(String productId, String status);
     public static native void jniIAPRestoreFinished(int success);
+    public static native void jniSetGameServicesConnected(int flag);
 }
