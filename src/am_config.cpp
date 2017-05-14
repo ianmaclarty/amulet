@@ -46,6 +46,7 @@ int am_conf_log_gl_frames = 1000000;
 
 bool am_conf_allow_restart = false;
 bool am_conf_no_close_lua = false;
+char *am_conf_test_lang = NULL;
 
 static void read_string_setting(lua_State *L, const char *name, const char **value, const char *default_val) {
     lua_getglobal(L, name);

@@ -12,7 +12,6 @@
     - make sure compiled resources have nothing app-specific in them
       (do they need to contain app_name??)
     - custom lang function
-    - build .so on travis ci
     - create .apk template with everything from jj
     - create export function
 

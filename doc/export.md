@@ -1,5 +1,5 @@
 
-# Exporting
+# Exporting {#exporting}
 
 To generate distribution packages for Windows, Mac OS X, iOS, Linux
 and HTML5, use the amulet export command.
@@ -43,10 +43,9 @@ author = "Your Name"
 appid = "com.some-unique-id.123"
 version = "1.0.0"
 
--- iOS specific:
 display_name = "My Game"
 dev_region = "en"
-supported_languages = "en,fr,nl,de,ja,zh,ko,sp,de"
+supported_languages = "en,fr,nl,de,ja,zh-CN,zh-TW"
 icon = "icon.png"
 launch_image = "launch.png"
 orientation = "any"
@@ -58,7 +57,7 @@ in the name of the generated zip files (otherwise they will
 just be called "Untitled").
 
 If you're generating an iOS package for submission to the App Store
-you'll need to fill out all the iOS specific settings.
+you'll need to fill out all the settings.
 
 Note that the generated iOS ipa package is not signed. You will
 need to sign it using a tool like [sigh](https://github.com/fastlane/fastlane/tree/master/sigh)

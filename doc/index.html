@@ -2425,7 +2425,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 </ul>
 <h3 id="am.quads" class="func-def">am.quads(n, spec)</h3>
 <p>Returns a node that renders a set of quads. The returned node is actually an <a href="#am.bind"><code>am.bind</code></a> node with an <a href="#am.draw"><code>am.draw</code></a> node child. i.e. no program or blending is defined -- these must be created separately as parent nodes.</p>
-<p><code>n</code> is initial capacity. Set this to the number of quads you think you'll want to render. It doesn't matter if it's too small as the capacity will be increased as required (though it's slightly faster no capacity increases are required).</p>
+<p><code>n</code> is the initial capacity. Set this to the number of quads you think you'll want to render. It doesn't matter if it's too small as the capacity will be increased as required, though it's slightly faster if no capacity increases are required.</p>
 <p><code>spec</code> is a table of attribute name and type pairs (the same as used for <a href="#am.struct_array"><code>am.struct_array</code></a> ).</p>
 <p>Fields:</p>
 <ul>
@@ -3133,15 +3133,14 @@ author <span class="ot">=</span> <span class="st">&quot;Your Name&quot;</span>
 appid <span class="ot">=</span> <span class="st">&quot;com.some-unique-id.123&quot;</span>
 version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span>
 
-<span class="do">-- iOS specific:</span>
 display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>
 dev_region <span class="ot">=</span> <span class="st">&quot;en&quot;</span>
-supported_languages <span class="ot">=</span> <span class="st">&quot;en,fr,nl,de,ja,zh,ko,sp,de&quot;</span>
+supported_languages <span class="ot">=</span> <span class="st">&quot;en,fr,nl,de,ja,zh-CN,zh-TW&quot;</span>
 icon <span class="ot">=</span> <span class="st">&quot;icon.png&quot;</span>
 launch_image <span class="ot">=</span> <span class="st">&quot;launch.png&quot;</span>
 orientation <span class="ot">=</span> <span class="st">&quot;any&quot;</span></code></pre></div>
 <p>then this will be used for various bits of meta-data in the generated packages. In particular <code>shortname</code> will be used in the name of the generated zip files (otherwise they will just be called &quot;Untitled&quot;).</p>
-<p>If you're generating an iOS package for submission to the App Store you'll need to fill out all the iOS specific settings.</p>
+<p>If you're generating an iOS package for submission to the App Store you'll need to fill out all the settings.</p>
 <p>Note that the generated iOS ipa package is not signed. You will need to sign it using a tool like <a href="https://github.com/fastlane/fastlane/tree/master/sigh">sigh</a> or <a href="https://raw.githubusercontent.com/fastlane/fastlane/master/sigh/lib/assets/resign.sh">this script</a> before submitting it to the app store or deploying on a device.</p>
 <p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work.</p>
 <h1 id="extra-table-functions">Extra table functions</h1>
@@ -3239,7 +3238,7 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <p>The platform Amulet is running on. It will be one of the strings <code>&quot;linux&quot;</code> <code>&quot;windows&quot;</code> <code>&quot;osx&quot;</code> <code>&quot;ios&quot;</code> <code>&quot;android&quot;</code> or <code>&quot;html&quot;</code>.</p>
 <h1 id="language">Language</h1>
 <h3 id="am.language" class="func-def">am.language()</h3>
-<p>Returns the user's preferred language code (e.g. <code>&quot;en&quot;</code>). This currently only returns a meaningful value on iOS (on all other platforms it returns <code>&quot;en&quot;</code>).</p>
+<p>Returns the user's preferred language code (e.g. <code>&quot;en&quot;</code>), possibly with a coutry suffix (e.g. <code>&quot;pt-PT&quot;</code>). The returned value will be one of the languages listed in the <code>conf.lua</code> file (see <a href="#exporting">Exporting</a>). This currently only returns a meaningful value on iOS and Android (on all other platforms it returns <code>&quot;en&quot;</code>).</p>
 <h1 id="game-center-ios-only">Game Center (iOS only)</h1>
 <p>The following functions are only available on iOS.</p>
 <h3 id="am.init_gamecenter" class="func-def">am.init_gamecenter()</h3>

@@ -44,10 +44,9 @@ static bool help_export() {
         "    appid = \"com.some-unique-id.123\"\n"
         "    version = \"1.0.0\"\n"
         "\n"
-        "    -- iOS specific:\n"
         "    display_name = \"My Game\"\n"
         "    dev_region = \"en\"\n"
-        "    supported_languages = \"en,fr,nl,de,ja,zh,ko,sp,de\"\n"
+        "    supported_languages = \"en,fr,nl,de,ja,zh-TW,zh-CN,ko\"\n"
         "    icon = \"icon.png\"\n"
         "    launch_image = \"launch.png\"\n"
         "    orientation = \"any\"\n"
@@ -136,8 +135,9 @@ static bool help_cmd(int *argc, char ***argv) {
         "\n"
         "Options:\n"
         "  -mute              Mute audio\n"
+        "  -lang <lang>       Pretend <lang> is the current system language\n"
         "\n"
-        "Other commands:\n"
+        "Commands:\n"
         "  help [ <command> ] Show help\n"
         "  version            Show version\n"
 #ifdef AM_EXPORT
@@ -211,6 +211,18 @@ static bool mute_opt(int *argc, char ***argv) {
     return true;
 }
 
+static bool lang_opt(int *argc, char ***argv) {
+    if (*argc > 0) {
+        am_conf_test_lang = am_format("%s", (*argv)[0]);
+        (*argc)--;
+        (*argv)++;
+        return true;
+    } else {
+        fprintf(stderr, "Missing -lang argument value.\n");
+        return false;
+    }
+}
+
 static bool gllog_opt(int *argc, char ***argv) {
     am_conf_log_gl_calls = true;
     return true;
@@ -231,6 +243,7 @@ static option options[] = {
     {"export",      export_cmd, true},
     {"pack",        pack_cmd, true},
     {"-mute",       mute_opt, false},
+    {"-lang",       lang_opt, false},
     {"-gllog",      gllog_opt, false},
     {"-nocloselua", nocloselua_opt, false},
 
