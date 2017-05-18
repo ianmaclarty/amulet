@@ -442,9 +442,12 @@ public class AmuletActivity extends Activity
         querySkus.putStringArrayList("ITEM_ID_LIST", skuList);
         try {
             // wait for connect
-            while (iapService == null) {
+            int i = 100;
+            while (iapService == null && i > 0) {
                 Thread.sleep(100);
+                i--;
             }
+            if (iapService == null) return;
             Bundle skuDetails = iapService.getSkuDetails(3,
                     getPackageName(), "inapp", querySkus);
             int response = skuDetails.getInt("RESPONSE_CODE");
