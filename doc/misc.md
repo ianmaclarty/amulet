@@ -128,12 +128,12 @@ The platform Amulet is running on. It will be one of the strings
 
 ### am.language() {#am.language .func-def}
 
-Returns the user's preferred language code (e.g. `"en"`),
-possibly with a coutry suffix (e.g. `"pt-PT"`).
+Returns the user's preferred ISO 639-1 language code in lower case(e.g. `"en"`),
+possibly followed by a dash and an ISO 3166-1 coutry code in upper case (e.g. `"fr-CA"`).
 The returned value will be one of the languages listed in
 the `conf.lua` file (see [Exporting](#exporting)).
 This currently only returns a meaningful value on iOS
-and Android (on all other platforms it returns `"en"`).
+and Android (on all other platforms it always returns `"en"`).
 
 # Game Center (iOS only)
 

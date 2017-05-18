@@ -59,20 +59,19 @@ void *am_read_file(const char *filename, size_t *len) {
         fprintf(stderr, "Error: unable to open file %s\n", filename);
         return NULL;
     }
-    size_t l = 0;
-    int c;
-    do {
-        c = fgetc(f);
-        if (c == EOF) break;
-        else l++;
-    } while (1);
+    fseek(f, 0, SEEK_END);
+    size_t l = ftell(f);
+    rewind(f);
     if (len != NULL) *len = l;
     unsigned char *buf = (unsigned char*)malloc(l + 1);
-    fseek(f, 0, SEEK_SET);
-    for (size_t i = 0; i < l; i++) {
-        buf[i] = fgetc(f);
-    }
+    size_t r = fread(buf, 1, l, f);
+    fclose(f);
     buf[l] = 0; // null terminate so text file data can be cast to string
+    if (r != l) {
+        free(buf);
+        fprintf(stderr, "Error: unable to read file %s\n", filename);
+        return NULL;
+    }
     return buf;
 }
 

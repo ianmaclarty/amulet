@@ -33,8 +33,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 
-import com.ianmaclarty.jellyjuggle.R; // XXX
-
 public class AmuletActivity extends Activity
         implements
         GoogleApiClient.ConnectionCallbacks,
@@ -84,8 +82,6 @@ public class AmuletActivity extends Activity
                 new Intent("com.android.vending.billing.InAppBillingService.BIND");
         serviceIntent.setPackage("com.android.vending");
         bindService(serviceIntent, iapServiceCon, Context.BIND_AUTO_CREATE);
-
-        initGoogleApiClient();
     }
 
     @Override
@@ -119,7 +115,11 @@ public class AmuletActivity extends Activity
             setEGLConfigChooser(new ConfigChooser());
             setRenderer(new AMRenderer());
             Context appContext = context;
-            jniInit(context.getAssets(), appContext.getFilesDir().getPath() + "/", context.getResources().getString(R.string.lang));
+            Configuration config = appContext.getResources().getConfiguration();
+            String lang = config.locale.getLanguage().toLowerCase();
+            String country = config.locale.getCountry();
+            if (country != null && country.length() > 0) lang += "-" + country.toUpperCase();
+            jniInit(context.getAssets(), appContext.getFilesDir().getPath() + "/", lang);
         }
 
         private static class ContextFactory implements GLSurfaceView.EGLContextFactory {
@@ -623,14 +623,18 @@ public class AmuletActivity extends Activity
 
     // -- Game services API ----------
 
-    void initGoogleApiClient() {
+    static void cppInitGoogleApiClient() {
         //  for leaderboards, achievements
-        googleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-                .build();
-        googleApiClient.connect();
+        singleton.runOnUiThread(new Runnable() {
+            public void run() {
+                singleton.googleApiClient = new GoogleApiClient.Builder(singleton)
+                        .addConnectionCallbacks(singleton)
+                        .addOnConnectionFailedListener(singleton)
+                        .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                        .build();
+                singleton.googleApiClient.connect();
+            }
+        });
     }
 
     @Override
@@ -669,7 +673,7 @@ public class AmuletActivity extends Activity
             // on my device it always fails to connect on first attempt after
             // installation and then works after that, so try again once.
             googleApiClientConnectionAttempts++;
-            initGoogleApiClient();
+            cppInitGoogleApiClient();
         }
     }
 

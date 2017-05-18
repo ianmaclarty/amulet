@@ -680,6 +680,13 @@ static int google_play_is_available(lua_State *L) {
     return 1;
 }
 
+static int init_google_play_services(lua_State *L) {
+    jclass cls = jni_env->FindClass("xyz/amulet/AmuletActivity");
+    jmethodID mid = jni_env->GetStaticMethodID(cls, "cppInitGoogleApiClient", "()V");
+    jni_env->CallStaticVoidMethod(cls, mid);
+    return 0;
+}
+
 static int show_google_play_leaderboard(lua_State *L) {
     am_check_nargs(L, 1);
     const char *leaderboard = lua_tostring(L, 1);
@@ -731,6 +738,7 @@ static void register_iap_product_mt(lua_State *L) {
 
 void am_open_android_module(lua_State *L) {
     luaL_Reg funcs[] = {
+        {"init_google_play_services", init_google_play_services},
         {"google_play_available", google_play_is_available},
         {"show_google_play_leaderboard", show_google_play_leaderboard},
         {"submit_google_play_score", submit_google_play_score},
