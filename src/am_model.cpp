@@ -91,14 +91,16 @@ static float* read_obj(const char *filename, char *str, int len,
                         str++;
                         if (*str == '/') {
                             fc.t = 0;
-                            str++;
                         } else {
                             fc.t = strtol(str, &str, 10);
                         }
-                        if (*str >= '0' && *str <= '9') {
-                            fc.n = strtol(str, &str, 10);
-                        } else {
-                            fc.n = 0;
+                        if (*str == '/') {
+                            str++;
+                            if (*str >= '0' && *str <= '9') {
+                                fc.n = strtol(str, &str, 10);
+                            } else {
+                                fc.n = 0;
+                            }
                         }
                     }
                     fa.push_back(fc);
@@ -127,7 +129,7 @@ static float* read_obj(const char *filename, char *str, int len,
     // Check all faces are triangles
     for (int i = 0; i < num_faces; i++) {
         if (faces[i].size() != 3) {
-            *errmsg = am_format("%s: sorry, only triangle faces are currently supported", filename);
+            *errmsg = am_format("%s: sorry, only triangle faces are currently supported (f%d=%d)", filename, i, faces[i].size());
             return NULL;
         }
     }
