@@ -416,6 +416,14 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
     rstate->active_color_mask_state.set(true, true, true, true);
     am_set_framebuffer_color_mask(true, true, true, true);
 
+    rstate->active_depth_test_state.set(has_depthbuffer, has_depthbuffer,
+        has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
+    rstate->bound_depth_test_state.set(has_depthbuffer, has_depthbuffer,
+        has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
+    am_set_framebuffer_depth_mask(has_depthbuffer);
+    am_set_depth_test_enabled(has_depthbuffer);
+    am_set_depth_func(has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
+
     bool is_margin = !(x == 0 && y == 0 && w == fbw && h == fbh);
 
     if (clear && is_margin) {
@@ -433,11 +441,6 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
     }
     rstate->active_scissor_test_state.set(scissor_enabled, x, y, w, h);
     rstate->bound_scissor_test_state.set(scissor_enabled, x, y, w, h);
-
-    rstate->active_depth_test_state.set(has_depthbuffer, has_depthbuffer,
-        has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
-    am_set_framebuffer_depth_mask(has_depthbuffer);
-    rstate->bound_depth_test_state.mask_enabled = has_depthbuffer;
 
     if (clear && (!is_margin ||
         clear_color.r != 0.0 || clear_color.g != 0.0 ||
@@ -479,6 +482,7 @@ static bool check_pass(am_render_state *rstate) {
 }
 
 void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_count) {
+    if (draw_array_count == 0) return;
     if (!check_pass(this)) { return; }
     if (active_program == NULL) {
         am_log1("%s", "WARNING: ignoring draw, "
@@ -506,13 +510,17 @@ void am_render_state::draw_arrays(am_draw_mode mode, int first, int draw_array_c
 void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
     am_buffer_view *indices_view, am_element_index_type type)
 {
+    if (count == 0) return;
     if (!check_pass(this)) return;
     if (active_program == NULL) {
         am_log1("%s", "WARNING: ignoring draw, "
             "because no shader program has been bound");
         return;
     }
-    update_state();
+    if (!update_state()) {
+        // warning would already have been emitted
+        return;
+    }
     if (validate_active_program(mode)) {
         if (indices_view->buffer->elembuf_id == 0) {
             indices_view->buffer->create_elembuf();

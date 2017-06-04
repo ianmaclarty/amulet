@@ -439,6 +439,9 @@ enum am_element_index_type {
 void am_draw_arrays(am_draw_mode mode, int first, int count);
 void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, int offset);
 
+// Other
+
+void am_gl_flush();
 void am_log_gl(const char *msg);
 void am_close_gllog();
 void am_reset_gl_frame_stats();
