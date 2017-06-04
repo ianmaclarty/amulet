@@ -7,7 +7,7 @@ static bool is_lang_char(char c) {
 static bool lang_is_supported(const char *lang) {
     int n = strlen(lang);
     const char *start = am_conf_app_supported_languages;
-    char *ptr = strstr(start, lang);
+    const char *ptr = strstr(start, lang);
     while (ptr != NULL) {
         if ((ptr == start || !is_lang_char(*(ptr-1))) && !is_lang_char(*(ptr + n))) {
             return true;
