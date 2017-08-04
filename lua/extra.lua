@@ -327,11 +327,22 @@ function log(fmt, ...)
     else
         msg = tostring(fmt)
     end
+
     local info = debug.getinfo(2, "Sl")
     if info then
         msg = info.short_src..":"..info.currentline..": "..msg
     end
     am.log(msg, false, 2)
+
+    -- write to log file if on desktop system
+    local plat = am.platform
+    if plat == "windows" or plat == "linux" or plat == "osx" then
+        local f = io.open(am.app_data_dir.."log.txt", "a")
+        f:write(msg)
+        f:write("\n")
+        f:close()
+    end
+    
     if am._main_window then
         local win = am._main_window
         if not log_overlay_node then

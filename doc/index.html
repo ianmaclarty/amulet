@@ -2809,7 +2809,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>This returns the time since the program started, in seconds. This value can change over the course of a frame.</p>
 <h1 id="saving-and-loading-state">Saving and loading state</h1>
 <h3 id="am.save_statekey-state-format">am.save_state(key, state [,format])</h3>
-<p>Save the table <code>state</code> under <code>key</code>. State may contain other tables, numbers, strings or bools.</p>
+<p>Save the table <code>state</code> under <code>key</code>.</p>
 <p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
 <p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code by modifying the save file.</p>
 <h3 id="am.load_statekey-format">am.load_state(key, [,format])</h3>
@@ -3189,7 +3189,7 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <p>Of course you can still return your own values from modules and they will be returned by <code>require</code> as with the default Lua <code>require</code> function.</p>
 <h1 id="logging">Logging</h1>
 <h3 id="log" class="func-def">log(msg, ...)</h3>
-<p>Log a message to the console.</p>
+<p>Log a message to the console. The message will also appear in an overlay on the main window.</p>
 <p><code>msg</code> may contain format specifiers like the standard Lua <code>string.format</code> function.</p>
 <p>The logged messages are prefixed with the file name and line number where <code>log</code> was called.</p>
 <p>Example:</p>
@@ -3238,7 +3238,7 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <p>The platform Amulet is running on. It will be one of the strings <code>&quot;linux&quot;</code> <code>&quot;windows&quot;</code> <code>&quot;osx&quot;</code> <code>&quot;ios&quot;</code> <code>&quot;android&quot;</code> or <code>&quot;html&quot;</code>.</p>
 <h1 id="language">Language</h1>
 <h3 id="am.language" class="func-def">am.language()</h3>
-<p>Returns the user's preferred language code (e.g. <code>&quot;en&quot;</code>), possibly with a coutry suffix (e.g. <code>&quot;pt-PT&quot;</code>). The returned value will be one of the languages listed in the <code>conf.lua</code> file (see <a href="#exporting">Exporting</a>). This currently only returns a meaningful value on iOS and Android (on all other platforms it returns <code>&quot;en&quot;</code>).</p>
+<p>Returns the user's preferred ISO 639-1 language code in lower case(e.g. <code>&quot;en&quot;</code>), possibly followed by a dash and an ISO 3166-1 coutry code in upper case (e.g. <code>&quot;fr-CA&quot;</code>). The returned value will be one of the languages listed in the <code>conf.lua</code> file (see <a href="#exporting">Exporting</a>). This currently only returns a meaningful value on iOS and Android (on all other platforms it always returns <code>&quot;en&quot;</code>).</p>
 <h1 id="game-center-ios-only">Game Center (iOS only)</h1>
 <p>The following functions are only available on iOS.</p>
 <h3 id="am.init_gamecenter" class="func-def">am.init_gamecenter()</h3>

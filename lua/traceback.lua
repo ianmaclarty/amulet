@@ -24,5 +24,15 @@ function am._traceback(msg, thread)
                 ^ am.text("ERROR:\n"..msg, vec4(1, 1, 1, 1), "left", "top")
         end)
     end
+
+    -- append stacktrace to log file
+    local plat = am.platform
+    if plat == "windows" or plat == "linux" or plat == "osx" then
+        local f = io.open(am.app_data_dir.."log.txt", "a")
+        f:write(msg)
+        f:write("\n")
+        f:close()
+    end
+
     return msg
 end

@@ -3,7 +3,8 @@
 
 ### log(msg, ...) {#log .func-def}
 
-Log a message to the console.
+Log a message to the console. The message will also appear
+in an overlay on the main window.
 
 `msg` may contain format specifiers like the standard Lua `string.format`
 function.

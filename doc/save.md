@@ -3,9 +3,7 @@
 
 ### am.save_state(key, state [,format])
 
-Save the table `state` under `key`. State 
-may contain other tables, numbers, strings
-or bools.
+Save the table `state` under `key`.
 
 `format` can be `json` or `lua`. The default is
 `lua`.
