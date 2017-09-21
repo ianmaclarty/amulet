@@ -558,6 +558,15 @@ Creates a 4x4 oblique projection matrix.
 near and far clipping plains (negative means behind the viewer).
 Their default values are `-1` and `1`.
 
+
+### math.translate4(pos) {#math.translate4 .func-def}
+
+Creates a 4x4 translation matrix. `pos` should be a `vec3`.
+
+### math.scale4(scl) {#math.scale4 .func-def}
+
+Creates a 4x4 scale matrix. `scl` should be a `vec3`.
+
 ### math.perlin(pos [, period]) {#math.perlin .func-def}
 
 Generate perlin noise. `pos` can be a 2, 3, or 4 dimensional vector,

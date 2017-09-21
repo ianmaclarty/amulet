@@ -106,6 +106,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#math.perspectivefovy-aspect-near-far">math.perspective(fovy, aspect, near, far)</a></li>
 <li><a href="#math.ortho">math.ortho(left, right, bottom, top [, near, far])</a></li>
 <li><a href="#math.oblique">math.oblique(angle, zscale, left, right, bottom, top [, near, far])</a></li>
+<li><a href="#math.translate4">math.translate4(pos)</a></li>
+<li><a href="#math.scale4">math.scale4(scl)</a></li>
 <li><a href="#math.perlin">math.perlin(pos [, period])</a></li>
 <li><a href="#math.simplex">math.simplex(pos)</a></li>
 <li><a href="#math.mix">math.mix(from, top, t)</a></li>
@@ -1292,6 +1294,10 @@ vec2(0, 2)</code></pre>
 <p>Creates a 4x4 orthographic projection matrix. <code>near</code> and <code>far</code> are the distance from the viewer of the near and far clipping plains (negative means behind the viewer). Their default values are <code>-1</code> and <code>1</code>.</p>
 <h3 id="math.oblique" class="func-def">math.oblique(angle, zscale, left, right, bottom, top [, near, far])</h3>
 <p>Creates a 4x4 oblique projection matrix. <code>near</code> and <code>far</code> are the distance from the viewer of the near and far clipping plains (negative means behind the viewer). Their default values are <code>-1</code> and <code>1</code>.</p>
+<h3 id="math.translate4" class="func-def">math.translate4(pos)</h3>
+<p>Creates a 4x4 translation matrix. <code>pos</code> should be a <code>vec3</code>.</p>
+<h3 id="math.scale4" class="func-def">math.scale4(scl)</h3>
+<p>Creates a 4x4 scale matrix. <code>scl</code> should be a <code>vec3</code>.</p>
 <h3 id="math.perlin" class="func-def">math.perlin(pos [, period])</h3>
 <p>Generate perlin noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number. If the second argument is supplied then the noise will be periodic with the given period. <code>period</code> should be of the same type as <code>pos</code> and its components should be integers greater than 1.</p>
 <p>The returned value is between -1 and 1.</p>

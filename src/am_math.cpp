@@ -1298,6 +1298,22 @@ static int rotate4(lua_State *L) {
     return 1;
 }
 
+static int translate4(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_vec3 *v = am_get_userdata(L, am_vec3, 1);
+    am_mat4 *result = am_new_userdata(L, am_mat4);
+    result->m = glm::translate(v->v);
+    return 1;
+}
+
+static int scale4(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_vec3 *v = am_get_userdata(L, am_vec3, 1);
+    am_mat4 *result = am_new_userdata(L, am_mat4);
+    result->m = glm::scale(v->v);
+    return 1;
+}
+
 static int euleryxz3(lua_State *L) {
     am_check_nargs(L, 1);
     am_vec3 *angles = am_get_userdata(L, am_vec3, 1);
@@ -1928,6 +1944,8 @@ void am_open_math_module(lua_State *L) {
         {"lookat",      lookat},
         {"rotate3",     rotate3},
         {"rotate4",     rotate4},
+        {"translate4",  translate4},
+        {"scale4",      scale4},
         {"euleryxz3",   euleryxz3},
         {"euleryxz4",   euleryxz4},
         {"sphere_visible", sphere_visible},

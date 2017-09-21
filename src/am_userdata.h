@@ -5,7 +5,7 @@
  * They are allocated as Lua userdata values.
  * They may contain references to other Lua managed
  * objects.
- * These references are maintained in the userdata's uservalue table so they
+ * These references are maintained in the userdata's uservalue (env) table so they
  * can be traced by the GC.
  */
 
