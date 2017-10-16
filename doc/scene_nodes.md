@@ -985,8 +985,8 @@ Fields:
 
 Methods:
 
-- `add_quad(data)`: adds a quad to be rendered. `data` is
-  a table where the keys are attribute names and the
+- `add_quad(data)`: adds a quad to be rendered and returns
+  the quad number. `data` is a table where the keys are attribute names and the
   values are the values of the 4 vertices of the quad.
   The values can be specified in several ways:
     - as a table where each each element is the value for the
@@ -997,7 +997,8 @@ Methods:
   As with the [`view:set`](#view:set) method, if the attribute
   is a vector, a table of numbers is also accepted.
   The quad number (starting at 1) is returned.
-- `remove_quad(n)`: Removes the nth quad.
+- `remove_quad(n [,count])`: Removes `count` quads starting with the `n`th.
+  `count` is 1 if omitted.
 - Additionally methods are created for each attribute
   of the form `quad_<attribute name>` that can be
   used to update the value of a quad attribute.

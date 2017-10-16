@@ -89,17 +89,18 @@ function am.quads(capacity, spec)
         draw_node.count = n * 6
         return n
     end
-    function bind_node:remove_quad(q)
-        if q < n then
-            local j = (q - 1) * 4 + 1
+    function bind_node:remove_quad(q, m)
+        m = m or 1
+        if q + m - 1 < n then
+            local j = (q - 1) * 4 + 1 
             for i = 1, num_attrs do
                 local view = views[i]
-                view:set(view:slice(j + 4), j)
+                view:set(view:slice(j + m * 4), j)
             end
-        elseif q > n then
-            error("cannot remove quad "..q..", because it doesn't exist", 2)
+        elseif q + m - 1 > n then
+            error("cannot remove quad "..(q + m - 1)..", because it doesn't exist", 2)
         end
-        n = n - 1
+        n = n - m
         draw_node.count = n * 6
     end
     function bind_node:get_num_quads()
