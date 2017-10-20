@@ -159,7 +159,7 @@ else ifeq ($(TARGET_PLATFORM),ios32)
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
 	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
-  LUA_CFLAGS += -DLUA_USE_POSIX
+  LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),ios64)
   CC = clang
@@ -177,7 +177,7 @@ else ifeq ($(TARGET_PLATFORM),ios64)
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
 	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
-  LUA_CFLAGS += -DLUA_USE_POSIX
+  LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),iossim)
   CC = clang
@@ -194,7 +194,7 @@ else ifeq ($(TARGET_PLATFORM),iossim)
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SystemConfiguration -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreVideo -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI \
 	     -Wl,-framework,GLKit $(GOOGLE_ADS_FRAMEWORK_OPT)
-  LUA_CFLAGS += -DLUA_USE_POSIX
+  LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),android)
   NDK_VER=$(NDK_HOME)/toolchains/arm-linux-androideabi-4.9
