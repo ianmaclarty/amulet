@@ -303,6 +303,7 @@ _metatable_registry.quat.__tostring = format_quat
 local log_overlay_node
 local log_overlay_lines
 local max_log_lines = 20
+local first_log = true
 local
 function log(fmt, ...)
     local msg
@@ -329,7 +330,7 @@ function log(fmt, ...)
     -- write to log file if on desktop system
     local plat = am.platform
     if plat == "windows" or plat == "linux" or plat == "osx" then
-        local f = io.open(am.app_data_dir.."log.txt", "a")
+        local f = io.open(am.app_data_dir.."log.txt", first_log and "w" or "a")
         f:write(msg)
         f:write("\n")
         f:close()
@@ -360,6 +361,8 @@ function log(fmt, ...)
         end
         log_overlay_node"text".text = str
     end
+
+    first_log = false
 end
 rawset(_G, "log", log)
 
