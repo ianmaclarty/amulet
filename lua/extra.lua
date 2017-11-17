@@ -131,13 +131,12 @@ function table.shuffle(t, r)
 end
 
 local
-function table_tostring(t, indent, seen, depth)
-    seen = seen or {}
+function table_tostring(field, t, indent, seen, depth)
     indent = indent or 0
     local tp = type(t)
     if tp == "table" then
         if seen[t] then
-            error("cycle detected", depth + 2)
+            error("cycle detected at field "..tostring(field), depth + 2)
         else
             seen[t] = true
         end
@@ -156,7 +155,7 @@ function table_tostring(t, indent, seen, depth)
         end
         if array_test then
             for i = 1, array_test - 1 do
-                str = str .. prefix .. tab .. table_tostring(t[i], indent + 1, seen, depth + 1) .. ",\n"
+                str = str .. prefix .. tab .. table_tostring(i, t[i], indent + 1, seen, depth + 1) .. ",\n"
             end
         else
             table.sort(keys, function(k1, k2)
@@ -182,13 +181,14 @@ function table_tostring(t, indent, seen, depth)
                 if type(key) == "string" and key:match"^[A-Za-z_][A-Za-z0-9_]*$" then
                     keystr = key
                 else
-                    keystr = "["..table_tostring(key, 0, seen, depth + 1).."]"
+                    keystr = "["..table_tostring("<key>", key, 0, seen, depth + 1).."]"
                 end
-                local valstr = table_tostring(value, indent + 1, seen, depth + 1)
+                local valstr = table_tostring(key, value, indent + 1, seen, depth + 1)
                 str = str .. prefix .. tab .. keystr .. " = " .. valstr .. ",\n"
             end
         end
         str = str .. prefix .. "}"
+        seen[t] = nil
         return str
     elseif tp == "string" then
         return '"' .. t:gsub("\"", "\\\""):gsub("%\n", "\\n") .. '"'
@@ -198,7 +198,7 @@ function table_tostring(t, indent, seen, depth)
 end
 
 table.tostring = function(t, indent)
-    return table_tostring(t, indent, nil, 1)
+    return table_tostring("<root>", t, indent, {}, 1)
 end
 
 -- extra math functions
@@ -303,6 +303,7 @@ _metatable_registry.quat.__tostring = format_quat
 local log_overlay_node
 local log_overlay_lines
 local max_log_lines = 20
+local first_log = true
 local
 function log(fmt, ...)
     local msg
@@ -329,7 +330,7 @@ function log(fmt, ...)
     -- write to log file if on desktop system
     local plat = am.platform
     if plat == "windows" or plat == "linux" or plat == "osx" then
-        local f = io.open(am.app_data_dir.."log.txt", "a")
+        local f = io.open(am.app_data_dir.."log.txt", first_log and "w" or "a")
         f:write(msg)
         f:write("\n")
         f:close()
@@ -360,6 +361,8 @@ function log(fmt, ...)
         end
         log_overlay_node"text".text = str
     end
+
+    first_log = false
 end
 rawset(_G, "log", log)
 

@@ -60,4 +60,4 @@
     val1 = vec2(1, 1),
     val2 = vec3(1, 2, 3),
 }
-cycle detected
+cycle detected at field f

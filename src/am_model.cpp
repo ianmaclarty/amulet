@@ -112,7 +112,7 @@ static float* read_obj(const char *filename, char *str, int len,
                 break;
             }
             default: {
-                am_log0("%s:%d: WARNING: unrecognised definition", filename, line);
+                //am_log0("%s:%d: WARNING: unrecognised definition", filename, line);
                 break;
             }
         }
