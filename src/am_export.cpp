@@ -174,6 +174,7 @@ static bool build_data_pak(export_config *conf) {
 }
 
 static const char *platform_luavm(const char *platform) {
+    if (am_conf_luavm != NULL) return am_conf_luavm;
     if (strcmp(platform, "msvc32") == 0) return "luajit";
     if (strcmp(platform, "linux32") == 0) return "luajit";
     if (strcmp(platform, "linux64") == 0) return "luajit";

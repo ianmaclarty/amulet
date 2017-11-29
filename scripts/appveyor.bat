@@ -9,6 +9,7 @@ call "C:\emscripten\emsdk_env.bat"
 make TARGET=html.release LUAVM=lua51
 if %errorlevel% neq 0 exit /b %errorlevel%
 make TARGET=msvc32.release LUAVM=lua51 test
+make TARGET=msvc32.release LUAVM=lua52 test
 make TARGET=msvc32.release LUAVM=luajit test
 if %errorlevel% neq 0 exit /b %errorlevel%
 if defined APPVEYOR_REPO_TAG_NAME (node scripts\upload_builds.js %APPVEYOR_REPO_TAG_NAME%)

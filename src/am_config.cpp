@@ -11,6 +11,7 @@ const char *am_conf_app_supported_languages = NULL;
 am_display_orientation am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_ANY;
 const char *am_conf_app_icon = NULL;
 const char *am_conf_app_launch_image = NULL;
+const char *am_conf_luavm = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -80,6 +81,7 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_app_supported_languages);
     free_if_not_null((void**)&am_conf_app_icon);
     free_if_not_null((void**)&am_conf_app_launch_image);
+    free_if_not_null((void**)&am_conf_luavm);
 }
 
 bool am_load_config() {
@@ -128,6 +130,7 @@ bool am_load_config() {
     }
     read_string_setting(eng->L, "icon", &am_conf_app_icon, NULL);
     read_string_setting(eng->L, "launch_image", &am_conf_app_launch_image, NULL);
+    read_string_setting(eng->L, "luavm", &am_conf_luavm, NULL);
     am_destroy_engine(eng);
     return true;
 }

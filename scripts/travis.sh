@@ -45,18 +45,26 @@ else
 
         # build
         make -j2 TARGET=android.release LUAVM=lua51
+        make -j2 TARGET=android.release LUAVM=lua52
         make -j2 TARGET=linux32.release LUAVM=lua51   test
-        make -j2 TARGET=linux64.release LUAVM=lua51   test
+        make -j2 TARGET=linux32.release LUAVM=lua52   test
         make -j2 TARGET=linux32.release LUAVM=luajit  test
+        make -j2 TARGET=linux64.release LUAVM=lua51   test
+        make -j2 TARGET=linux64.release LUAVM=lua52   test
         make -j2 TARGET=linux64.release LUAVM=luajit  test
         make -j2 TARGET=mingw32.release LUAVM=lua51
+        make -j2 TARGET=mingw32.release LUAVM=lua52
         scripts/gen_linux_universal.sh
     else
         make -j2 TARGET=osx.release     LUAVM=lua51   test
+        make -j2 TARGET=osx.release     LUAVM=lua52   test
         make -j2 TARGET=osx.release     LUAVM=luajit  test
-        scripts/build_ios.sh
-        rm -rf builds/ios32
-        rm -rf builds/ios64
+        scripts/build_ios.sh lua51
+        rm -rf builds/ios32/lua51
+        rm -rf builds/ios64/lua51
+        scripts/build_ios.sh lua52
+        rm -rf builds/ios32/lua52
+        rm -rf builds/ios64/lua52
     fi
     if [ -n "$TRAVIS_TAG" ]; then
         scripts/upload_builds.js $TRAVIS_TAG

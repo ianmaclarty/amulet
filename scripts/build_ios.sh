@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
-make TARGET=ios32.release
-make TARGET=ios64.release
-./scripts/gen_ios_universal.sh
-./scripts/gen_ios_info_plist.sh
+luavm=$1
+if [ "$1" = "" ]; then
+    luavm=lua51
+fi
+make TARGET=ios32.release LUAVM=$luavm
+make TARGET=ios64.release LUAVM=$luavm
+./scripts/gen_ios_universal.sh $luavm
+./scripts/gen_ios_info_plist.sh $luavm
