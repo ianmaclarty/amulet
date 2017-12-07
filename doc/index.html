@@ -409,6 +409,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul></li>
 <li><a href="#exporting">Exporting</a></li>
+<li><a href="#d-models">3D models</a><ul>
+<li><a href="#am.load_obj">am.load_obj(filename)</a></li>
+</ul></li>
 <li><a href="#extra-table-functions">Extra table functions</a><ul>
 <li><a href="#table.shallow_copy">table.shallow_copy(t)</a></li>
 <li><a href="#table.deep_copy">table.deep_copy(t)</a></li>
@@ -3149,6 +3152,64 @@ orientation <span class="ot">=</span> <span class="st">&quot;any&quot;</span></c
 <p>If you're generating an iOS package for submission to the App Store you'll need to fill out all the settings.</p>
 <p>Note that the generated iOS ipa package is not signed. You will need to sign it using a tool like <a href="https://github.com/fastlane/fastlane/tree/master/sigh">sigh</a> or <a href="https://raw.githubusercontent.com/fastlane/fastlane/master/sigh/lib/assets/resign.sh">this script</a> before submitting it to the app store or deploying on a device.</p>
 <p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work.</p>
+<h1 id="d-models">3D models</h1>
+<p>Amulet has some basic support for loading 3D models in Wavefront <code>.obj</code> format.</p>
+<h3 id="am.load_obj" class="func-def">am.load_obj(filename)</h3>
+<p>This loads the given <code>.obj</code> file and returns 4 things:</p>
+<ol style="list-style-type: decimal">
+<li>A buffer containing the vertex, normal and texture coordinate data.</li>
+<li>The stride in bytes.</li>
+<li>The offset of the normals in bytes.</li>
+<li>The offset of the texture coordinates in bytes.</li>
+</ol>
+<p>The vertex data is always at offset 0. If the normal or texture coordinate data is not present, the corresponding return value will be nil.</p>
+<p>The faces in the <code>.obj</code> file must all be triangles (quads aren't supported).</p>
+<p>Here's an example of how to load a model and display it. The example loads an model from <code>model.obj</code> and assumes it contains normal and texture coordinate data and the triangles have a counter-clockwise winding. It loads a texture from the file <code>texture.png</code>.</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> win <span class="ot">=</span> am<span class="ot">.</span>window<span class="ot">{</span>depth_buffer <span class="ot">=</span> <span class="kw">true</span><span class="ot">}</span>
+
+<span class="kw">local</span> buf<span class="ot">,</span> stride<span class="ot">,</span> norm_offset<span class="ot">,</span> tex_offset <span class="ot">=</span> am<span class="ot">.</span>load_obj<span class="ot">(</span><span class="st">&quot;model.obj&quot;</span><span class="ot">)</span>
+<span class="kw">local</span> verts <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;vec3&quot;</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> stride<span class="ot">)</span>
+<span class="kw">local</span> normals <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;vec3&quot;</span><span class="ot">,</span> norm_offset<span class="ot">,</span> stride<span class="ot">)</span>
+<span class="kw">local</span> uvs <span class="ot">=</span> buf:view<span class="ot">(</span><span class="st">&quot;vec2&quot;</span><span class="ot">,</span> tex_offset<span class="ot">,</span> stride<span class="ot">)</span>
+    
+<span class="kw">local</span> shader <span class="ot">=</span> am<span class="ot">.</span>program<span class="ot">(</span><span class="st">[[</span>
+<span class="st">precision mediump float;</span>
+<span class="st">attribute vec3 vert;</span>
+<span class="st">attribute vec2 uv;</span>
+<span class="st">attribute vec3 normal;</span>
+<span class="st">uniform mat4 MV;</span>
+<span class="st">uniform mat4 P;</span>
+<span class="st">varying vec3 v_shadow;</span>
+<span class="st">varying vec2 v_uv;</span>
+<span class="st">void main() {</span>
+<span class="st">    vec3 light = normalize(vec3(1, 0, 2));</span>
+<span class="st">    vec3 nm = normalize((MV * vec4(normal, 0.0)).xyz);</span>
+<span class="st">    v_shadow = vec3(max(0.1, dot(light, nm)));</span>
+<span class="st">    v_uv = uv;</span>
+<span class="st">    gl_Position = P * MV * vec4(vert, 1.0);</span>
+<span class="st">}</span>
+<span class="st">]]</span><span class="ot">,</span> <span class="st">[[</span>
+<span class="st">precision mediump float;</span>
+<span class="st">uniform sampler2D tex;</span>
+<span class="st">varying vec3 v_shadow;</span>
+<span class="st">varying vec2 v_uv;</span>
+<span class="st">void main() {</span>
+<span class="st">    gl_FragColor = texture2D(tex, v_uv) * vec4(v_shadow, 1.0);</span>
+<span class="st">}</span>
+<span class="st">]]</span><span class="ot">)</span>
+
+win<span class="ot">.</span>scene <span class="ot">=</span>
+    am<span class="ot">.</span>cull_face<span class="st">&quot;ccw&quot;</span>
+    <span class="ot">^</span> am<span class="ot">.</span>translate<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">5</span><span class="ot">)</span>
+    <span class="ot">^</span> am<span class="ot">.</span>use_program<span class="ot">(</span>shader<span class="ot">)</span>
+    <span class="ot">^</span> am<span class="ot">.</span>bind<span class="ot">{</span>
+        P <span class="ot">=</span> math<span class="ot">.</span>perspective<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">),</span> win<span class="ot">.</span>width<span class="ot">/</span>win<span class="ot">.</span>height<span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1000</span><span class="ot">),</span>
+        vert <span class="ot">=</span> verts<span class="ot">,</span>
+        normal <span class="ot">=</span> normals<span class="ot">,</span>
+        uv <span class="ot">=</span> uvs<span class="ot">,</span>
+        tex <span class="ot">=</span> am<span class="ot">.</span>texture2d<span class="ot">(</span><span class="st">&quot;texture.png&quot;</span><span class="ot">),</span>
+    <span class="ot">}</span>
+    <span class="ot">^</span>am<span class="ot">.</span>draw<span class="st">&quot;triangles&quot;</span></code></pre></div>
 <h1 id="extra-table-functions">Extra table functions</h1>
 <p>The following functions suplement the standard Lua table functions.</p>
 <h3 id="table.shallow_copy" class="func-def">table.shallow_copy(t)</h3>

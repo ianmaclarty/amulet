@@ -19,6 +19,7 @@ SECTIONS = header.md \
 	controller.md \
 	spritepack.md \
 	export.md \
+	models.md \
 	table.md \
 	require.md \
 	misc.md
