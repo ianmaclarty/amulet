@@ -414,6 +414,9 @@ static bool create_mac_info_plist(const char *filename, export_config *conf) {
 "\n"
 "  <key>LSMinimumSystemVersion</key>\n"
 "  <string>10.6.8</string>\n"
+"\n"
+"  <key>NSHighResolutionCapable</key>\n"
+"  <true/>\n"
 "</dict>\n"
 "</plist>\n",
         conf->shortname,
