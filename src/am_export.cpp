@@ -280,6 +280,7 @@ static bool build_ios_export(export_config *conf) {
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-568h@2x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-667h@2x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-736h@2x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Default-375w-812h@3x.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-Landscape@2x~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-Landscape~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Default-Portrait@2x~ipad.png", appdir, NULL, NULL, false, false, ZIP_PLATFORM_UNIX) &&
@@ -645,6 +646,7 @@ static bool create_ios_launch_images(const char *dir, export_config *conf) {
         || !resize_image(img_data, width, height, dir, "Default-568h@2x.png", 640, 1136)
         || !resize_image(img_data, width, height, dir, "Default-667h@2x.png", 750, 1334)
         || !resize_image(img_data, width, height, dir, "Default-736h@2x.png", 1242, 2208)
+        || !resize_image(img_data, width, height, dir, "Default-375w-812h@3x.png", 1125, 2436)
         || !resize_image(img_data, width, height, dir, "Default-Landscape@2x~ipad.png", 2048, 1536)
         || !resize_image(img_data, width, height, dir, "Default-Landscape~ipad.png", 1024, 768)
         || !resize_image(img_data, width, height, dir, "Default-Portrait@2x~ipad.png", 1536, 2048)

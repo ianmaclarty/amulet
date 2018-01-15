@@ -216,6 +216,16 @@ cat << EOF > $f/Info.plist
 			<key>UILaunchImageSize</key>
 			<string>{768, 1024}</string>
 		</dict>
+		<dict>
+			<key>UILaunchImageMinimumOSVersion</key>
+			<string>11.0</string>
+			<key>UILaunchImageName</key>
+			<string>Default-375w-812h</string>
+			<key>UILaunchImageOrientation</key>
+			<string>Portrait</string>
+			<key>UILaunchImageSize</key>
+			<string>{375, 812}</string>
+		</dict>
 	</array>
 </dict>
 </plist>
