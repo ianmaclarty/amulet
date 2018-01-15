@@ -17,13 +17,13 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-r] [-windows] [-mac] [-ios] [-linux] [-html] [ <dir> ]\n"
+        "Usage: amulet export [-r] [-windows] [-mac] [-ios] [-iossim] [-linux] [-html] [ <dir> ]\n"
         "\n"
         "  Generates distribution packages for the project in <dir>,\n"
         "  or the current directory if <dir> is omitted.\n"
         "  <dir> should contain main.lua.\n"
         "\n"
-        "  If none of the -windows, -mac, -ios, -linux or -html options are given\n"
+        "  If none of the -windows, -mac, -ios, -iossim -linux or -html options are given\n"
         "  then packages for all supported platforms will be generated,\n"
         "  otherwise only packages for the specified platforms will be generated.\n"
         "\n"
@@ -172,6 +172,8 @@ static bool export_cmd(int *argc, char ***argv) {
             flags |= AM_EXPORT_FLAG_LINUX;
         } else if (strcmp(arg, "-ios") == 0) {
             flags |= AM_EXPORT_FLAG_IOS;
+        } else if (strcmp(arg, "-iossim") == 0) {
+            flags |= AM_EXPORT_FLAG_IOSSIM;
         } else if (strcmp(arg, "-html") == 0) {
             flags |= AM_EXPORT_FLAG_HTML;
         } else if (strcmp(arg, "-r") == 0) {
@@ -182,7 +184,7 @@ static bool export_cmd(int *argc, char ***argv) {
     }
     *argc -= i;
     *argv += i;
-    if (flags == 0 || flags == AM_EXPORT_FLAG_RECURSE) flags = AM_EXPORT_FLAG_WINDOWS | AM_EXPORT_FLAG_OSX | AM_EXPORT_FLAG_LINUX | AM_EXPORT_FLAG_IOS | AM_EXPORT_FLAG_HTML;
+    if (flags == 0 || flags == AM_EXPORT_FLAG_RECURSE) flags |= AM_EXPORT_FLAG_WINDOWS | AM_EXPORT_FLAG_OSX | AM_EXPORT_FLAG_LINUX | AM_EXPORT_FLAG_IOS | AM_EXPORT_FLAG_HTML;
     char *dir = (char*)".";
     if (*argc > 0) {
         dir = (*argv)[0];

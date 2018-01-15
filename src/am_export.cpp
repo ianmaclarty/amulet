@@ -200,7 +200,7 @@ static char *get_bin_path(export_config *conf, const char *platform) {
 
 static char *get_export_zip_name(export_config *conf, const char *platname) {
     const char *ext = "zip";
-    if (strcmp(platname, "ios") == 0) ext = "ipa";
+    if (strcmp(platname, "ios") == 0 || strcmp(platname, "iossim") == 0) ext = "ipa";
     return am_format("%s-%s-%s.%s", conf->shortname, conf->version, platname, ext);
 }
 
@@ -244,10 +244,10 @@ static bool build_mac_export(export_config *conf) {
     return ok;
 }
 
-static bool build_ios_export(export_config *conf) {
-    char *zipname = get_export_zip_name(conf, "ios");
+static bool build_ios_export(export_config *conf, bool sim) {
+    char *zipname = get_export_zip_name(conf, sim ? "iossim" : "ios");
     if (am_file_exists(zipname)) am_delete_file(zipname);
-    char *binpath = get_bin_path(conf, "ios");
+    char *binpath = get_bin_path(conf, sim ? "iossim" : "ios");
     if (binpath == NULL) return true;
     if (!create_ios_info_plist(binpath, AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
     if (!create_ios_pkginfo(AM_TMP_DIR AM_PATH_SEP_STR "PkgInfo")) return false;
@@ -374,7 +374,8 @@ bool am_build_exports(uint32_t flags) {
     bool ok =
         ((!(flags & AM_EXPORT_FLAG_WINDOWS)) || build_windows_export(&conf)) &&
         ((!(flags & AM_EXPORT_FLAG_OSX))     || build_mac_export(&conf)) &&
-        ((!(flags & AM_EXPORT_FLAG_IOS))     || build_ios_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_IOS))     || build_ios_export(&conf, false)) &&
+        ((!(flags & AM_EXPORT_FLAG_IOSSIM))  || build_ios_export(&conf, true)) &&
         ((!(flags & AM_EXPORT_FLAG_LINUX))   || build_linux_export(&conf)) &&
         ((!(flags & AM_EXPORT_FLAG_HTML))    || build_html_export(&conf)) &&
         true;
