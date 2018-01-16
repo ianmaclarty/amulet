@@ -10,6 +10,7 @@ enum am_display_orientation {
     AM_DISPLAY_ORIENTATION_PORTRAIT,
     AM_DISPLAY_ORIENTATION_LANDSCAPE,
     AM_DISPLAY_ORIENTATION_ANY,
+    AM_DISPLAY_ORIENTATION_HYBRID,
 };
 
 am_native_window *am_create_native_window(

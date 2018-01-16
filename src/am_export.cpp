@@ -484,8 +484,19 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
 		"<string>UIInterfaceOrientationLandscapeRight</string>"
                 "</array>";
             break;
+        case AM_DISPLAY_ORIENTATION_HYBRID:
+            orientation_xml = 
+                "<key>UISupportedInterfaceOrientations</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                "</array>"
+                "<key>UISupportedInterfaceOrientations~ipad</key>"
+                "<array>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>";
+            break;
     }
-
 
     fprintf(f, template_fmt, 
         conf->title, // CFBundleName

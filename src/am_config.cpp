@@ -123,6 +123,8 @@ bool am_load_config() {
         am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_PORTRAIT;
     } else if (strcmp(orientation_str, "landscape") == 0) {
         am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_LANDSCAPE;
+    } else if (strcmp(orientation_str, "hybrid") == 0) {
+        am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_HYBRID;
     } else {
         fprintf(stderr, "Invalid orientation in conf.lua: %s\n", orientation_str);
         am_destroy_engine(eng);

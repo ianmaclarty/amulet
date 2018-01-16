@@ -700,6 +700,7 @@ void am_open_window_module(lua_State *L) {
         {"portrait",    AM_DISPLAY_ORIENTATION_PORTRAIT},
         {"landscape",   AM_DISPLAY_ORIENTATION_LANDSCAPE},
         {"any",         AM_DISPLAY_ORIENTATION_ANY},
+        {"hybrid",      AM_DISPLAY_ORIENTATION_HYBRID},
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_display_orientation, orientation_enum);

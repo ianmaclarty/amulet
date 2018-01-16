@@ -59,6 +59,14 @@ static double real_delta_time;
 
 //---------------------------------------------------------------------------
 
+static bool ios_is_ipad() {
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /*
 static float ios_scaling() {
     float scale = 1.0f;
@@ -66,14 +74,6 @@ static float ios_scaling() {
         scale = [[UIScreen mainScreen] scale];
     }
     return scale;
-}
-
-static bool ios_is_ipad() {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 static bool ios_is_retina_iphone() {
@@ -591,6 +591,15 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
                     || orientation == UIInterfaceOrientationPortrait
                     || orientation == UIInterfaceOrientationPortraitUpsideDown);
             break;
+        case AM_DISPLAY_ORIENTATION_HYBRID:
+            if (ios_is_ipad()) {
+                res = (orientation == UIInterfaceOrientationLandscapeRight
+                        || orientation == UIInterfaceOrientationLandscapeLeft);
+            } else {
+                res = (orientation == UIInterfaceOrientationPortrait
+                        || orientation == UIInterfaceOrientationPortraitUpsideDown);
+            }
+            break;
     }
     if (res == YES) {
         has_rotated = true;
@@ -627,6 +636,12 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
         case AM_DISPLAY_ORIENTATION_ANY:
             return UIInterfaceOrientationMaskLandscapeRight | UIInterfaceOrientationMaskLandscapeLeft
             | UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
+        case AM_DISPLAY_ORIENTATION_HYBRID:
+            if (ios_is_ipad()) {
+                return UIInterfaceOrientationMaskLandscapeRight | UIInterfaceOrientationMaskLandscapeLeft;
+            } else {
+                return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
+            }
     }
 }
 
@@ -640,6 +655,12 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
             return UIInterfaceOrientationLandscapeLeft;
         case AM_DISPLAY_ORIENTATION_ANY:
             return UIInterfaceOrientationPortrait;
+        case AM_DISPLAY_ORIENTATION_HYBRID:
+            if (ios_is_ipad()) {
+                return UIInterfaceOrientationLandscapeLeft;
+            } else {
+                return UIInterfaceOrientationPortrait;
+            }
     }
 }
 
