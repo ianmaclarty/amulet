@@ -20,6 +20,9 @@ endif
 ifdef GOOGLE_ADS
   AM_DEFS += AM_GOOGLE_ADS
 endif
+ifdef STEAMWORKS
+  AM_DEFS += AM_STEAMWORKS
+endif
 
 AMULET = $(BUILD_BIN_DIR)/amulet$(EXE_EXT)
 
@@ -33,7 +36,7 @@ ifeq ($(TARGET_PLATFORM),html)
 else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft tinymt
 else ifeq ($(TARGET_PLATFORM),msvc32)
-  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 $(STEAMWORKS_DEP)
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifdef ANDROID
   AM_DEPS = $(LUAVM) stb kissfft tinymt
@@ -150,6 +153,11 @@ $(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp -r $(ANGLE_WIN_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
 	cp $(ANGLE_WIN_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
 	touch $@
+
+$(STEAMWORKS_LIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
+	cp -r $(STEAMWORKS_INC_DIR)/steam $(BUILD_INC_DIR)/
+	cp $(STEAMWORKS_LIB_DIR)/*.dll $(BUILD_BIN_DIR)/
+	cp $(STEAMWORKS_LIB_DIR)/*.lib $(STEAMWORKS_LIB)
 
 $(LUA51_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LUA51_DIR) && $(MAKE) -f Makefile.custom clean

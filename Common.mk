@@ -69,13 +69,6 @@ ifndef LUAVM
   LUAVM = lua51
 endif
 
-ifeq (,$(wildcard $(THIRD_PARTY_DIR)/GoogleMobileAds.framework))
-  GOOGLE_ADS_FRAMEWORK_OPT=
-else
-  GOOGLE_ADS=1
-  GOOGLE_ADS_FRAMEWORK_OPT=-Wl,-framework,GoogleMobileAds
-endif
-
 SDL_ALIB = $(BUILD_LIB_DIR)/libsdl$(ALIB_EXT)
 ANGLE_ALIB = $(BUILD_LIB_DIR)/libangle$(ALIB_EXT)
 ANGLE_WIN_PREBUILT = $(BUILD_LIB_DIR)/angle-win-prebuilt.date
@@ -98,6 +91,26 @@ BUILD_LIB_DIR = $(BUILD_BASE_DIR)/lib
 BUILD_INC_DIR = $(BUILD_BASE_DIR)/include
 
 BUILD_DIRS = $(BUILD_BIN_DIR) $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_OBJ_DIR)
+
+ifeq (,$(wildcard $(THIRD_PARTY_DIR)/GoogleMobileAds.framework))
+  GOOGLE_ADS_FRAMEWORK_OPT=
+else
+  GOOGLE_ADS=1
+  GOOGLE_ADS_FRAMEWORK_OPT=-Wl,-framework,GoogleMobileAds
+endif
+
+ifeq (,$(wildcard $(THIRD_PARTY_DIR)/steamworks_sdk))
+  STEAMWORKS_LIB=
+  STEAMWORKS_LIB_DIR=
+  STEAMWORKS_INC_DIR=
+  STEAMWORKS_DEP=
+else
+  STEAMWORKS=1
+  STEAMWORKS_LIB=$(BUILD_LIB_DIR)/libsteam_api.lib
+  STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin
+  STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+  STEAMWORKS_DEP=steam_api
+endif
 
 EXE_EXT = 
 ALIB_EXT = .a

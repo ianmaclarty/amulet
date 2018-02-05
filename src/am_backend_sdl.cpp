@@ -493,6 +493,9 @@ restart:
         delta_time = am_min(am_conf_max_delta_time, real_delta_time); // fmin in case process was suspended, or last frame took very long
         t_debt += delta_time;
 
+#ifdef AM_STEAMWORKS
+    am_steam_step();
+#endif
         if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
                 double t0 = am_get_current_time();

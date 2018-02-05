@@ -69,6 +69,8 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_ios_module(L);
 #elif defined(AM_ANDROID)
         am_open_android_module(L);
+#elif defined(AM_STEAMWORKS)
+        am_open_steamworks_module(L);
 #endif
     }
     am_set_version(L);
@@ -87,6 +89,9 @@ void am_destroy_engine(am_engine *eng) {
         // closing the lua state will destroy the root audio node.
         am_log_gl("// destroy audio");
         am_destroy_audio();
+#if defined(AM_STEAMWORKS)
+        am_steam_teardown();
+#endif
     }
     if (!am_conf_no_close_lua) {
         am_log_gl("// close lua");

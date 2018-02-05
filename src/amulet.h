@@ -156,6 +156,7 @@ extern "C" {
 #include "am_glob.h"
 #include "am_i18n.h"
 #include "am_net.h"
+#include "am_steamworks.h"
 
 #undef near
 #undef far
