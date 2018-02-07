@@ -1064,7 +1064,7 @@ int am_next_video_capture_frame() {
 
 static bool gamecenter_available = false;
 
-@interface GameCenterLeaderboardViewController : GKLeaderboardViewController 
+@interface GameCenterLeaderboardViewController : GKGameCenterViewController 
 @end
 
 @implementation GameCenterLeaderboardViewController
@@ -1072,14 +1072,14 @@ static bool gamecenter_available = false;
 
 static GameCenterLeaderboardViewController *leaderboard_view_controller = nil;
 
-@interface GameCenterDelegate: NSObject<GKLeaderboardViewControllerDelegate>
-- (void)leaderboardViewControllerDidFinish:(GKLeaderboardViewController *)viewController;
+@interface GameCenterDelegate: NSObject<GKGameCenterControllerDelegate>
+- (void)gameCenterViewControllerDidFinish:(GKGameCenterViewController *)viewController;
 @end
 
 static GameCenterDelegate *gamecenter_delegate = nil;
 
 @implementation GameCenterDelegate
-- (void)leaderboardViewControllerDidFinish:(GKLeaderboardViewController *)viewController {
+- (void)gameCenterViewControllerDidFinish:(GKGameCenterViewController *)viewController {
     if (ios_view_controller != nil) {
         [ios_view_controller dismissViewControllerAnimated:YES completion:nil];
         if (ios_view != nil && ios_eng != NULL) {
@@ -1102,9 +1102,9 @@ static GameCenterDelegate *gamecenter_delegate = nil;
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     double score = [[data objectForKey:@"score"] doubleValue];
     NSString* leaderboardCategory = [data objectForKey:@"category"];
-    GKScore *scoreReporter = [[[GKScore alloc] initWithCategory:leaderboardCategory] autorelease];
+    GKScore *scoreReporter = [[[GKScore alloc] initWithLeaderboardIdentifier:leaderboardCategory] autorelease];
     scoreReporter.value = (int64_t)score;
-    [scoreReporter reportScoreWithCompletionHandler:^(NSError *error)
+    [GKScore reportScores:@[scoreReporter] withCompletionHandler:^(NSError *error)
        {
            if (error) {
                 NSLog(@"Game Center Score Error: %@", [error localizedDescription]);
@@ -1120,7 +1120,7 @@ static GameCenterDelegate *gamecenter_delegate = nil;
     NSString *name = [data objectForKey:@"achievement"];
     GKAchievement *achievement = [[[GKAchievement alloc] initWithIdentifier:name] autorelease];
     achievement.percentComplete = 100.0;
-    [achievement reportAchievementWithCompletionHandler:^(NSError *error)
+    [GKAchievement reportAchievements:@[achievement] withCompletionHandler:^(NSError *error)
        {
            if (error) {
                 NSLog(@"Game Center Achievement Error: %@", [error localizedDescription]);
@@ -1221,9 +1221,9 @@ static int show_gamecenter_leaderboard(lua_State *L) {
         if (leaderboard_view_controller == nil) {
             leaderboard_view_controller = [[GameCenterLeaderboardViewController alloc] init];
             [leaderboard_view_controller retain];
-            leaderboard_view_controller.leaderboardDelegate = gamecenter_delegate;
+            leaderboard_view_controller.gameCenterDelegate = gamecenter_delegate;
         }
-        leaderboard_view_controller.category = category;
+        leaderboard_view_controller.leaderboardIdentifier = category;
         [ios_view_controller presentViewController:leaderboard_view_controller animated:YES completion:nil];
     }
     return 0;
