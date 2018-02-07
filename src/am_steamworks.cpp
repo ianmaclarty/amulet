@@ -389,7 +389,7 @@ const char* am_get_steam_lang() {
     if (strcmp(lang, "hungarian") == 0) return "hu";
     if (strcmp(lang, "italian") == 0) return "it";
     if (strcmp(lang, "japanese") == 0) return "ja";
-    if (strcmp(lang, "koreana") == 0) return "ja";
+    if (strcmp(lang, "koreana") == 0) return "ko";
     if (strcmp(lang, "norwegian") == 0) return "no";
     if (strcmp(lang, "polish") == 0) return "pl";
     if (strcmp(lang, "portuguese") == 0) return "pt-PT";
