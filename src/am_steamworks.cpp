@@ -362,4 +362,47 @@ void am_open_steamworks_module(lua_State *L) {
     amSteamInit(L);
 }
 
+const char* am_get_steam_lang() {
+    ISteamApps *apps = SteamApps();
+    const char *lang = "";
+    if (apps != NULL) {
+        lang = apps->GetCurrentGameLanguage();
+    }
+    if (lang == NULL || strcmp(lang, "") == 0) {
+        ISteamUtils *utils = SteamUtils();
+        if (utils != NULL) {
+            lang = utils->GetSteamUILanguage();
+        }
+    }
+    if (lang == NULL) return "en";
+    if (strcmp(lang, "english") == 0) return "en";
+    if (strcmp(lang, "arabic") == 0) return "ar";
+    if (strcmp(lang, "bulgarian") == 0) return "br";
+    if (strcmp(lang, "schinese") == 0) return "zh-Hans";
+    if (strcmp(lang, "tchinese") == 0) return "zh-Hant";
+    if (strcmp(lang, "czech") == 0) return "cs";
+    if (strcmp(lang, "danish") == 0) return "da";
+    if (strcmp(lang, "dutch") == 0) return "nl";
+    if (strcmp(lang, "finnish") == 0) return "fi";
+    if (strcmp(lang, "french") == 0) return "fr";
+    if (strcmp(lang, "german") == 0) return "de";
+    if (strcmp(lang, "greek") == 0) return "el";
+    if (strcmp(lang, "hungarian") == 0) return "hu";
+    if (strcmp(lang, "italian") == 0) return "it";
+    if (strcmp(lang, "japanese") == 0) return "ja";
+    if (strcmp(lang, "koreana") == 0) return "ja";
+    if (strcmp(lang, "norwegian") == 0) return "no";
+    if (strcmp(lang, "polish") == 0) return "pl";
+    if (strcmp(lang, "portuguese") == 0) return "pt-PT";
+    if (strcmp(lang, "brazilian") == 0) return "pt-BR";
+    if (strcmp(lang, "romanian") == 0) return "ro";
+    if (strcmp(lang, "russian") == 0) return "ru";
+    if (strcmp(lang, "spanish") == 0) return "es";
+    if (strcmp(lang, "swedish") == 0) return "sv";
+    if (strcmp(lang, "thai") == 0) return "th";
+    if (strcmp(lang, "turkish") == 0) return "tr";
+    if (strcmp(lang, "ukrainian") == 0) return "uk";
+    return "en";
+}
+
 #endif

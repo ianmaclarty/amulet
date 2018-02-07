@@ -19,6 +19,7 @@ static bool lang_is_supported(const char *lang) {
 
 static char *get_supported_language(const char *lang) {
     if (am_conf_app_supported_languages == NULL) return am_format("%s", "en");
+    if (strcmp(lang, "") == 0) return am_format("%s", "en");
     if (lang_is_supported(lang)) return am_format("%s", lang);
     if (strchr(lang, '-') != NULL) {
         char *lang2 = am_format("%s", lang);

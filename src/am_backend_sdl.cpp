@@ -399,7 +399,11 @@ void am_copy_video_frame_to_texture() {
 #endif
 
 const char *am_preferred_language() {
+#if defined(AM_STEAMWORKS)
+    return am_get_steam_lang();
+#else
     return "en";
+#endif
 }
 
 int main( int argc, char *argv[] )
