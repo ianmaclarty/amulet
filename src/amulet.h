@@ -25,9 +25,9 @@
 #else
     #error unsupported target
 #endif
-#if defined(AM_OSX) || defined(AM_LINUX)
+#if defined(AM_OSX) || defined(AM_LINUX) || defined(AM_WINDOWS)
     #define AM_GLPROFILE_DESKTOP 1
-#elif defined(AM_WINDOWS) || defined(AM_ANDROID) || defined(AM_IOS) || defined(AM_HTML)
+#elif defined(AM_ANDROID) || defined(AM_IOS) || defined(AM_HTML)
     #define AM_GLPROFILE_ES 1
 #else
     #error unsupported target
@@ -39,7 +39,7 @@
     #define AM_SPRITEPACK
 #endif
 
-#if defined(AM_GLPROFILE_ES) && defined(AM_WINDOWS) || defined(AM_LINUX)
+#if defined(AM_WINDOWS) || defined(AM_LINUX)
 #define AM_NEED_GL_FUNC_PTRS
 #endif
 

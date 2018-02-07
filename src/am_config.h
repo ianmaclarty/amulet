@@ -25,6 +25,9 @@ extern double am_conf_max_delta_time;
 extern double am_conf_warn_delta_time;
 extern int am_conf_vsync;
 
+// graphics options
+extern bool am_conf_direct3d;
+
 // audio options
 extern int am_conf_audio_buffer_size;
 extern int am_conf_audio_channels;

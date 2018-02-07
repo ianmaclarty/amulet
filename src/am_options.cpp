@@ -235,6 +235,13 @@ static bool nocloselua_opt(int *argc, char ***argv) {
     return true;
 }
 
+#ifdef AM_WINDOWS
+static bool direct3d_opt(int *argc, char ***argv) {
+    am_conf_direct3d = true;
+    return true;
+}
+#endif
+
 static option options[] = {
     {"help",        help_cmd, true},
     {"-help",       help_cmd, true},
@@ -248,6 +255,9 @@ static option options[] = {
     {"-lang",       lang_opt, false},
     {"-gllog",      gllog_opt, false},
     {"-nocloselua", nocloselua_opt, false},
+#ifdef AM_WINDOWS
+    {"-direct3d",   direct3d_opt, false},
+#endif
 
     {NULL, NULL}
 };

@@ -70,9 +70,6 @@ static int create_window(lua_State *L) {
             if (msaa_samples < 0) {
                 return luaL_error(L, "msaa_samples can't be negative");
             }
-#ifdef AM_WINDOWS
-            msaa_samples = 0;
-#endif
         } else if (strcmp(key, "clear_color") == 0) {
             clear_color = am_get_userdata(L, am_vec4, -1)->v;
         } else if (strcmp(key, "projection") == 0) {

@@ -22,7 +22,9 @@ double am_conf_delta_time_step = -1.0; //1.0/240.0;
 double am_conf_min_delta_time = 1.0/240.0;
 double am_conf_max_delta_time = 1.0/15.0;
 double am_conf_warn_delta_time = -1.0; //1.0/30.0;
-int am_conf_vsync = true;
+int am_conf_vsync = 1;
+
+bool am_conf_direct3d = false;
 
 // am_conf_audio_buffer_size is number of samples for each channel
 int am_conf_audio_buffer_size = 1024;
