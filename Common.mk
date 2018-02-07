@@ -99,19 +99,6 @@ else
   GOOGLE_ADS_FRAMEWORK_OPT=-Wl,-framework,GoogleMobileAds
 endif
 
-ifeq (,$(wildcard $(THIRD_PARTY_DIR)/steamworks_sdk))
-  STEAMWORKS_LIB=
-  STEAMWORKS_LIB_DIR=
-  STEAMWORKS_INC_DIR=
-  STEAMWORKS_DEP=
-else
-  STEAMWORKS=1
-  STEAMWORKS_LIB=$(BUILD_LIB_DIR)/libsteam_api.lib
-  STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin
-  STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
-  STEAMWORKS_DEP=steam_api
-endif
-
 EXE_EXT = 
 ALIB_EXT = .a
 OBJ_EXT = .o
@@ -140,6 +127,31 @@ EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', 
 TARGET_CFLAGS=-ffast-math
 
 SDL_PREBUILT_SUBDIR=$(TARGET_PLATFORM)
+
+ifeq (,$(wildcard $(THIRD_PARTY_DIR)/steamworks_sdk))
+  STEAMWORKS_LIB=
+  STEAMWORKS_LIB_DIR=
+  STEAMWORKS_INC_DIR=
+  STEAMWORKS_DEP=
+else
+  STEAMWORKS=1
+  ifeq ($(TARGET_PLATFORM),msvc32)
+      STEAMWORKS_LIB=$(BUILD_LIB_DIR)/libsteam_api.lib
+      STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin
+      STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      STEAMWORKS_DEP=steam_api
+  else ifeq ($(TARGET_PLATFORM),linux64)
+      STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.so
+      XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
+      STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/linux64
+      STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+  else ifeq ($(TARGET_PLATFORM),linux32)
+      STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.so
+      XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
+      STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/linux32
+      STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+  endif
+endif
 
 # Adjust flags for target
 ifeq ($(TARGET_PLATFORM),osx)

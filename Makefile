@@ -47,7 +47,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
 else
   AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
   AM_DEFS += AM_USE_ANGLE
-  EXTRA_PREREQS = $(SIMPLEGLOB_H)
+  EXTRA_PREREQS = $(SIMPLEGLOB_H) $(STEAMWORKS_LIB)
 endif
 
 DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(AM_DEPS))
@@ -112,7 +112,7 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
-	rm -f `basename $@` && cp $@ `basename $@`
+	cp $(BUILD_BIN_DIR)/* .
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 
@@ -154,10 +154,16 @@ $(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp $(ANGLE_WIN_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
 	touch $@
 
+ifdef WINDOWS
 $(STEAMWORKS_LIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
 	cp -r $(STEAMWORKS_INC_DIR)/steam $(BUILD_INC_DIR)/
 	cp $(STEAMWORKS_LIB_DIR)/*.dll $(BUILD_BIN_DIR)/
 	cp $(STEAMWORKS_LIB_DIR)/*.lib $(STEAMWORKS_LIB)
+else
+$(STEAMWORKS_LIB): | $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
+	cp -r $(STEAMWORKS_INC_DIR)/steam $(BUILD_INC_DIR)/
+	cp $(STEAMWORKS_LIB_DIR)/*.so $(BUILD_BIN_DIR)
+endif
 
 $(LUA51_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LUA51_DIR) && $(MAKE) -f Makefile.custom clean

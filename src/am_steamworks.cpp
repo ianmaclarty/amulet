@@ -13,7 +13,6 @@ enum AMSteamLeaderboardQueryType {
 static lua_State *g_L = NULL;
 
 static void amSteamInit(lua_State *L);
-static void amSteamTeardown();
 static void amSteamSubmitScore(lua_State *L, int func_ref, int score, const char *leaderboard);
 static void amSteamQueryLeaderboard(lua_State *L, AMSteamLeaderboardQueryType t, int func_ref, const char *leaderboard, int before, int after);
 static void amSteamSubmitAchievement(const char *achievement);
@@ -248,11 +247,11 @@ static void amSteamInit(lua_State *L) {
     if (!steam_initialized) {
         steam_initialized = SteamAPI_Init();
         if (!steam_initialized) {
-            am_log1("Unable to initialize steam");
+            am_log1("%s", "Unable to initialize steam");
             return;
         }
         if (!SteamUserStats()->RequestCurrentStats()) {
-            am_log1("Unable to get steam user stats");
+            am_log1("%s", "Unable to get steam user stats");
             SteamAPI_Shutdown();
             steam_initialized = false;
             return;
