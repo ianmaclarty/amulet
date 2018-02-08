@@ -133,6 +133,7 @@ ifeq (,$(wildcard $(THIRD_PARTY_DIR)/steamworks_sdk))
   STEAMWORKS_LIB_DIR=
   STEAMWORKS_INC_DIR=
   STEAMWORKS_DEP=
+  STEAMWORKS_LINK_OPT=
 else
   STEAMWORKS=1
   ifeq ($(TARGET_PLATFORM),msvc32)
@@ -150,6 +151,11 @@ else
       XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/linux32
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+  else ifeq ($(TARGET_PLATFORM),osx)
+      STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.dylib
+      STEAMWORKS_LINK_OPT=-L$(BUILD_BIN_DIR) -lsteam_api 
+      STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/osx32
+      STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
   endif
 endif
 
@@ -160,7 +166,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   LINK = clang++
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -m64 -arch x86_64
-  XLDFLAGS = -lm -liconv -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
+  XLDFLAGS = -lm -liconv $(STEAMWORKS_LINK_OPT) -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia \
