@@ -967,22 +967,30 @@ static bool handle_events(lua_State *L) {
                 break;
             }
             case SDL_MOUSEBUTTONDOWN: {
-                if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    win_info *info = win_from_id(event.button.windowID);
-                    if (info) {
-                        am_find_window((am_native_window*)info->window)
-                            ->mouse_down(L, convert_mouse_button(event.button.button));
+                win_info *info = win_from_id(event.button.windowID);
+                if (info) {
+                    Uint8 button;
+                    if (event.button.which == SDL_TOUCH_MOUSEID) {
+                        button = SDL_BUTTON_LEFT;
+                    } else {
+                        button = event.button.button;
                     }
+                    am_find_window((am_native_window*)info->window)
+                        ->mouse_down(L, convert_mouse_button(button));
                 }
                 break;
             }
             case SDL_MOUSEBUTTONUP: {
-                if (event.button.which != SDL_TOUCH_MOUSEID) {
-                    win_info *info = win_from_id(event.button.windowID);
-                    if (info) {
-                        am_find_window((am_native_window*)info->window)
-                            ->mouse_up(L, convert_mouse_button(event.button.button));
+                win_info *info = win_from_id(event.button.windowID);
+                if (info) {
+                    Uint8 button;
+                    if (event.button.which == SDL_TOUCH_MOUSEID) {
+                        button = SDL_BUTTON_LEFT;
+                    } else {
+                        button = event.button.button;
                     }
+                    am_find_window((am_native_window*)info->window)
+                        ->mouse_up(L, convert_mouse_button(button));
                 }
                 break;
             }
