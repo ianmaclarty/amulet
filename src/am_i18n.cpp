@@ -27,7 +27,15 @@ static char *get_supported_language(const char *lang) {
         *dash = '\0';
         if (lang_is_supported(lang2)) {
             return lang2;
+        } else {
+            free(lang2);
         }
+    }
+    if (strcmp(lang, "zh-CN") == 0 && lang_is_supported("zh-Hans")) {
+        return am_format("%s", "zh-Hans");
+    }
+    if (strcmp(lang, "zh-TW") == 0 && lang_is_supported("zh-Hant")) {
+        return am_format("%s", "zh-Hant");
     }
     return am_format("%s", "en");
 }
