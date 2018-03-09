@@ -1436,6 +1436,13 @@ static int iap_product_local_price(lua_State *L) {
     return 1;
 }
 
+static int ios_request_review(lua_State *L) {
+    if([SKStoreReviewController class]){
+       [SKStoreReviewController requestReview] ;
+    } 
+    return 0;
+}
+
 void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},
@@ -1461,6 +1468,8 @@ void am_open_ios_module(lua_State *L) {
         {"restore_iap_purchases", restore_iap_purchases},
         {"can_make_iap_payments", can_make_iap_payments},
         {"iap_product_local_price", iap_product_local_price},
+
+        {"ios_request_review", ios_request_review},
 
         {NULL, NULL}
     };
