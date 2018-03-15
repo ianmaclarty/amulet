@@ -34,7 +34,7 @@ group:action(function()
 
     line.point1 = squares"translate".position2d
     line.point2 = ball.center
-    line.color = 1 - ball.color
+    line.color = (1 - ball.color){a = 1}
     line.thickness = (math.sin(t) + 2) * 4
 end)
 
