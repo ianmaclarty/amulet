@@ -72,7 +72,7 @@ example:
 ~~~ {.lua}
 local v = vec3(10, 20, 30)
 for i = 1, #v do
-    print(position[i])
+    print(v[i])
 end
 ~~~
 
