@@ -1036,8 +1036,39 @@ static l_mem atomic (lua_State *L) {
   return work;  /* estimate of memory marked by 'atomic' */
 }
 
+//#define LUA_GC_STEP_TIME 1
+#ifdef LUA_GC_STEP_TIME
+#include <stdio.h>
+#include <stdint.h>
+#include <mach/mach_time.h>
+static double gc_step_hwm = 0;
+static double get_proftime() {
+    uint64_t t = mach_absolute_time();
+    mach_timebase_info_data_t timebase;
+    mach_timebase_info(&timebase);
+    return (double)t * (double)timebase.numer / (double)timebase.denom / 1e9;
+}
+#endif
+
+#ifdef LUA_GC_STEP_TIME
+#define LOG_GC_STEP_TIME(msg) \
+    { \
+      double final = get_proftime(); \
+      double total = final - t0; \
+      if (total > gc_step_hwm) { \
+        fprintf(stderr, "gc step hwm: %0.6fs (%s)\n", total, msg); \
+        gc_step_hwm = total; \
+      } \
+    }
+#else
+#define LOG_GC_STEP_TIME(msg)
+#endif
+
 
 static lu_mem singlestep (lua_State *L) {
+#ifdef LUA_GC_STEP_TIME
+  double t0 = get_proftime();
+#endif 
   global_State *g = G(L);
   switch (g->gcstate) {
     case GCSpause: {
@@ -1046,12 +1077,14 @@ static lu_mem singlestep (lua_State *L) {
       lua_assert(!isgenerational(g));
       restartcollection(g);
       g->gcstate = GCSpropagate;
+      LOG_GC_STEP_TIME("pause")
       return g->GCmemtrav;
     }
     case GCSpropagate: {
       if (g->gray) {
         lu_mem oldtrav = g->GCmemtrav;
         propagatemark(g);
+        LOG_GC_STEP_TIME("mark")
         return g->GCmemtrav - oldtrav;  /* memory traversed in this step */
       }
       else {  /* no more `gray' objects */
@@ -1062,6 +1095,7 @@ static lu_mem singlestep (lua_State *L) {
         work = atomic(L);  /* add what was traversed by 'atomic' */
         g->GCestimate += work;  /* estimate of total memory traversed */ 
         sw = entersweep(L);
+        LOG_GC_STEP_TIME("atomic")
         return work + sw * GCSWEEPCOST;
       }
     }
@@ -1072,21 +1106,25 @@ static lu_mem singlestep (lua_State *L) {
       g->sweepstrgc += i;
       if (g->sweepstrgc >= g->strt.size)  /* no more strings to sweep? */
         g->gcstate = GCSsweepudata;
+      LOG_GC_STEP_TIME("sweep string")
       return i * GCSWEEPCOST;
     }
     case GCSsweepudata: {
       if (g->sweepfin) {
         g->sweepfin = sweeplist(L, g->sweepfin, GCSWEEPMAX);
+        LOG_GC_STEP_TIME("sweep udata")
         return GCSWEEPMAX*GCSWEEPCOST;
       }
       else {
         g->gcstate = GCSsweep;
+        LOG_GC_STEP_TIME("sweep udata")
         return 0;
       }
     }
     case GCSsweep: {
       if (g->sweepgc) {
         g->sweepgc = sweeplist(L, g->sweepgc, GCSWEEPMAX);
+        LOG_GC_STEP_TIME("sweep")
         return GCSWEEPMAX*GCSWEEPCOST;
       }
       else {
@@ -1095,6 +1133,7 @@ static lu_mem singlestep (lua_State *L) {
         sweeplist(L, &mt, 1);
         checkSizes(L);
         g->gcstate = GCSpause;  /* finish collection */
+        LOG_GC_STEP_TIME("sweep")
         return GCSWEEPCOST;
       }
     }
