@@ -11,12 +11,7 @@
 
 // Create variables for OpenGL ES 2 functions
 #ifdef AM_NEED_GL_FUNC_PTRS
-#if defined(AM_GLPROFILE_ES)
-#include <SDL_opengles2.h>
-#else
-#define GL_GLEXT_PROTOTYPES
 #include <SDL_opengl.h>
-#endif
 #define AM_GLPROC(ret,func,params) \
     typedef ret (APIENTRY *func##_ptr_t) params; \
     extern ret (APIENTRY *func##_ptr) params;
@@ -96,17 +91,15 @@ am_native_window *am_create_native_window(
         SDL_GL_MakeCurrent(main_window, gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     }
-#if defined(AM_GLPROFILE_ES)
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-#elif defined(AM_GLPROFILE_DESKTOP)
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-#else
-#error unknown gl profile
-#endif
+    if (am_conf_d3dangle) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    } else {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+    }
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -716,9 +709,11 @@ static void init_sdl() {
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
     init_audio();
     sdl_initialized = true;
-#if defined(AM_WINDOWS) && defined(AM_GLPROFILE_ES)
-    if (!SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "d3dcompiler_47.dll")) {
-        am_abort("unable to set SDL_HINT_VIDEO_WIN_D3DCOMPILER");
+#if defined(AM_WINDOWS)
+    if (am_conf_d3dangle) {
+        if (!SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "d3dcompiler_47.dll")) {
+            am_abort("unable to set SDL_HINT_VIDEO_WIN_D3DCOMPILER");
+        }
     }
 #endif
 }

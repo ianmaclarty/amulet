@@ -17,12 +17,14 @@ int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
 const char *am_conf_default_projection_matrix_name = "P";
 
+bool am_conf_d3dangle = false;
+
 double am_conf_fixed_delta_time = -1.0; //1.0 / 60.0;
 double am_conf_delta_time_step = -1.0; //1.0/240.0;
 double am_conf_min_delta_time = 1.0/240.0;
 double am_conf_max_delta_time = 1.0/15.0;
 double am_conf_warn_delta_time = -1.0; //1.0/30.0;
-int am_conf_vsync = true;
+bool am_conf_vsync = true;
 
 // am_conf_audio_buffer_size is number of samples for each channel
 int am_conf_audio_buffer_size = 1024;
@@ -60,6 +62,14 @@ static void read_string_setting(lua_State *L, const char *name, const char **val
     char **val = (char**)value;
     *val = (char*)malloc(strlen(lstr) + 1); // never freed
     memcpy(*val, lstr, strlen(lstr) + 1);
+    lua_pop(L, 1);
+}
+
+static void read_bool_setting(lua_State *L, const char *name, bool *value) {
+    lua_getglobal(L, name);
+    if (!lua_isnil(L, -1)) {
+        *value = lua_toboolean(L, -1);
+    }
     lua_pop(L, 1);
 }
 
@@ -133,6 +143,7 @@ bool am_load_config() {
     read_string_setting(eng->L, "icon", &am_conf_app_icon, NULL);
     read_string_setting(eng->L, "launch_image", &am_conf_app_launch_image, NULL);
     read_string_setting(eng->L, "luavm", &am_conf_luavm, NULL);
+    read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
     am_destroy_engine(eng);
     return true;
 }

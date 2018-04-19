@@ -4,7 +4,7 @@ MAIN_TARGET = libangle$(ALIB_EXT)
 
 all: $(MAIN_TARGET)
 
-ifeq ($(TARGET_PLATFORM),win32)
+ifdef WINDOWS
 OSSOURCE_SRC_FILE=src/compiler/translator/ossource_win.cpp
 else
 OSSOURCE_SRC_FILE=src/compiler/translator/ossource_posix.cpp
@@ -21,7 +21,7 @@ OFILES := $(patsubst %.cpp,%$(OBJ_EXT),$(CPPFILES))
 CFLAGS := $(COMMON_CFLAGS) -Iinclude -Isrc
 
 $(OFILES): %$(OBJ_EXT): %.cpp
-	$(CPP) $(CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT) $@
+	$(CPP) $(CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
 
 $(MAIN_TARGET): $(OFILES)
 	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@ $^

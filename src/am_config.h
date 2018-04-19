@@ -12,6 +12,9 @@ extern const char *am_conf_app_icon;
 extern const char *am_conf_app_launch_image;
 extern const char *am_conf_luavm;
 
+// graphic driver options
+extern bool am_conf_d3dangle;
+
 // scene options
 extern int am_conf_default_recursion_limit;
 extern const char *am_conf_default_modelview_matrix_name;
@@ -23,7 +26,7 @@ extern double am_conf_delta_time_step;
 extern double am_conf_min_delta_time;
 extern double am_conf_max_delta_time;
 extern double am_conf_warn_delta_time;
-extern int am_conf_vsync;
+extern bool am_conf_vsync;
 
 // audio options
 extern int am_conf_audio_buffer_size;

@@ -71,7 +71,10 @@ static int create_window(lua_State *L) {
                 return luaL_error(L, "msaa_samples can't be negative");
             }
 #ifdef AM_WINDOWS
-            msaa_samples = 0;
+            if (am_conf_d3dangle) {
+                // msaa not supported by angle driver
+                msaa_samples = 0;
+            }
 #endif
         } else if (strcmp(key, "clear_color") == 0) {
             clear_color = am_get_userdata(L, am_vec4, -1)->v;

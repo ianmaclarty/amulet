@@ -5,14 +5,8 @@
 #include "amulet.h"
 
 #if defined(AM_BACKEND_SDL)
-    #if defined(AM_GLPROFILE_ES)
-        #include <SDL_opengles2.h>
-    #elif defined(AM_GLPROFILE_DESKTOP)
-        #define GL_GLEXT_PROTOTYPES
-        #include <SDL_opengl.h>
-    #else
-        #error unknown gl profile
-    #endif
+    #define GL_GLEXT_PROTOTYPES
+    #include <SDL_opengl.h>
 #elif defined(AM_BACKEND_EMSCRIPTEN)
     #include <GLES2/gl2.h>
 #elif defined(AM_BACKEND_IOS)
@@ -37,7 +31,7 @@
 #define GLFUNC(func) func
 #endif
 
-#if defined(AM_USE_ANGLE)
+#if defined(AM_ANGLE_TRANSLATE_GL)
 #include "GLSLANG/ShaderLang.h"
 #endif
 
@@ -64,16 +58,11 @@ static void print_ptr(FILE* f, void* p, int len);
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
 
-#if defined(AM_USE_ANGLE)
+#if defined(AM_ANGLE_TRANSLATE_GL)
 static void init_angle();
 static void destroy_angle();
 static void angle_translate_shader(am_shader_type type,
     const char *src, char **objcode, char **errmsg);
-#endif
-
-#ifdef AM_GLPROFILE_DESKTOP
-#undef GL_RGB565
-#define GL_RGB565 GL_UNSIGNED_SHORT_5_6_5
 #endif
 
 int am_max_combined_texture_image_units = 0;
@@ -123,10 +112,12 @@ static void reset_gl() {
     // need to explicitly enable point sprites on desktop gl
     // (they are always enabled in opengles)
 #if defined(AM_GLPROFILE_DESKTOP)
-    log_gl("glEnable(%s);", "GL_POINT_SPRITE");
-    GLFUNC(glEnable)(GL_POINT_SPRITE);
-    log_gl("glEnable(%s);", "GL_VERTEX_PROGRAM_POINT_SIZE");
-    GLFUNC(glEnable)(GL_VERTEX_PROGRAM_POINT_SIZE);
+    if (!am_conf_d3dangle) {
+        log_gl("glEnable(%s);", "GL_POINT_SPRITE");
+        GLFUNC(glEnable)(GL_POINT_SPRITE);
+        log_gl("glEnable(%s);", "GL_VERTEX_PROGRAM_POINT_SIZE");
+        GLFUNC(glEnable)(GL_VERTEX_PROGRAM_POINT_SIZE);
+    }
 #endif
 }
 
@@ -191,9 +182,15 @@ void am_init_gl() {
     check_for_errors
     am_max_cube_map_texture_size = pval;
 #if defined(AM_GLPROFILE_DESKTOP)
-    GLFUNC(glGetIntegerv)(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &pval);
-    check_for_errors
-    am_max_fragment_uniform_vectors = pval/4;
+    if (am_conf_d3dangle) {
+        GLFUNC(glGetIntegerv)(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &pval);
+        check_for_errors
+        am_max_fragment_uniform_vectors = pval;
+    } else {
+        GLFUNC(glGetIntegerv)(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &pval);
+        check_for_errors
+        am_max_fragment_uniform_vectors = pval/4;
+    }
 #else
     GLFUNC(glGetIntegerv)(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &pval);
     check_for_errors
@@ -209,9 +206,15 @@ void am_init_gl() {
     check_for_errors
     am_max_texture_size = pval;
 #if defined(AM_GLPROFILE_DESKTOP)
-    GLFUNC(glGetIntegerv)(GL_MAX_VARYING_FLOATS, &pval);
-    check_for_errors
-    am_max_varying_vectors = pval/4;
+    if (am_conf_d3dangle) {
+        GLFUNC(glGetIntegerv)(GL_MAX_VARYING_VECTORS, &pval);
+        check_for_errors
+        am_max_varying_vectors = pval;
+    } else {
+        GLFUNC(glGetIntegerv)(GL_MAX_VARYING_FLOATS, &pval);
+        check_for_errors
+        am_max_varying_vectors = pval/4;
+    }
 #else
     GLFUNC(glGetIntegerv)(GL_MAX_VARYING_VECTORS, &pval);
     check_for_errors
@@ -224,9 +227,15 @@ void am_init_gl() {
     check_for_errors
     am_max_vertex_texture_image_units = pval;
 #if defined(AM_GLPROFILE_DESKTOP)
-    GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &pval);
-    check_for_errors
-    am_max_vertex_uniform_vectors = pval/4;
+    if (am_conf_d3dangle) {
+        GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_UNIFORM_VECTORS, &pval);
+        check_for_errors
+        am_max_vertex_uniform_vectors = pval;
+    } else {
+        GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &pval);
+        check_for_errors
+        am_max_vertex_uniform_vectors = pval/4;
+    }
 #else
     GLFUNC(glGetIntegerv)(GL_MAX_VERTEX_UNIFORM_VECTORS, &pval);
     check_for_errors
@@ -234,7 +243,7 @@ void am_init_gl() {
 #endif
 
     // initialize angle if using
-#if defined(AM_USE_ANGLE)
+#if defined(AM_ANGLE_TRANSLATE_GL)
     init_angle();
 #endif
 
@@ -258,7 +267,7 @@ void am_close_gllog() {
 void am_destroy_gl() {
     if (!gl_initialized) return;
     gl_initialized = false;
-#if defined(AM_USE_ANGLE)
+#if defined(AM_ANGLE_TRANSLATE_GL)
     destroy_angle();
 #endif
     log_gl_prog_footer();
@@ -705,8 +714,8 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
         goto end;
     }
     log_gl("/*\n%s\n*/", src);
-#if defined(AM_USE_ANGLE)
-    {
+#if defined(AM_ANGLE_TRANSLATE_GL)
+    if (!am_conf_d3dangle) {
         char *translate_objcode = NULL;
         char *translate_errmsg = NULL;
         angle_translate_shader(type, src, &translate_objcode, &translate_errmsg);
@@ -722,6 +731,10 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
         log_gl("glShaderSource(shader[%u], 1, (const char**)&ptr[%p], NULL);", shader, translate_objcode);
         GLFUNC(glShaderSource)(shader, 1, (const char**)&translate_objcode, NULL);
         free(translate_objcode);
+    } else {
+        log_gl_ptr(src, strlen(src));
+        log_gl("glShaderSource(shader[%u], 1, (const char**)&ptr[%p], NULL);", shader, src);
+        GLFUNC(glShaderSource)(shader, 1, &src, NULL);
     }
 #else
     log_gl_ptr(src, strlen(src));
@@ -1580,8 +1593,6 @@ static GLenum to_gl_texture_wrap(am_texture_wrap w) {
 static GLenum to_gl_renderbuffer_format(am_renderbuffer_format f) {
     switch (f) {
         case AM_RENDERBUFFER_FORMAT_RGBA4: return GL_RGBA4;
-        case AM_RENDERBUFFER_FORMAT_RGB565: return GL_RGB565;
-        case AM_RENDERBUFFER_FORMAT_RGB5_A1: return GL_RGB5_A1;
         case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT16: return GL_DEPTH_COMPONENT16;
 #if defined(GL_DEPTH_COMPONENT24)
         case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24: return GL_DEPTH_COMPONENT24;
@@ -1904,8 +1915,6 @@ static const char *gl_texture_wrap_str(GLenum e) {
 static const char *gl_renderbuffer_format_str(GLenum e) {
     switch (e) {
         case GL_RGBA4: return "GL_RGBA4";
-        case GL_RGB5_A1: return "GL_RGB5_A1";
-        case GL_RGB565: return "GL_RGB565";
         case GL_DEPTH_COMPONENT16: return "GL_DEPTH_COMPONENT16";
         case GL_STENCIL_INDEX8: return "GL_STENCIL_INDEX8";
     }
@@ -1992,7 +2001,7 @@ void am_log_gl(const char *msg) {
 
 //-------------------------------------------------------------------------------------------------
 // Angle shader translater
-#if defined(AM_USE_ANGLE)
+#if defined(AM_ANGLE_TRANSLATE_GL)
 
 static ShBuiltInResources angle_resources;
 static ShHandle angle_vcompiler;

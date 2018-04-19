@@ -36,7 +36,8 @@ ifeq ($(TARGET_PLATFORM),html)
 else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft tinymt
 else ifeq ($(TARGET_PLATFORM),msvc32)
-  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 $(STEAMWORKS_DEP)
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
+  AM_DEFS += AM_ANGLE_TRANSLATE_GL
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifdef ANDROID
   AM_DEPS = $(LUAVM) stb kissfft tinymt
@@ -46,7 +47,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else
   AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
-  AM_DEFS += AM_USE_ANGLE
+  AM_DEFS += AM_ANGLE_TRANSLATE_GL
   EXTRA_PREREQS = $(SIMPLEGLOB_H) $(STEAMWORKS_LIB)
 endif
 
