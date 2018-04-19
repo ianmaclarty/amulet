@@ -50,7 +50,11 @@ TString TType::buildMangledName() const
     mangledName += static_cast<char>('0' + getNominalSize());
     if (isArray()) {
         char buf[20];
+#if defined(_MSC_VER)
+        _snprintf(buf, sizeof(buf), "%d", arraySize);
+#else
         snprintf(buf, sizeof(buf), "%d", arraySize);
+#endif
         mangledName += '[';
         mangledName += buf;
         mangledName += ']';

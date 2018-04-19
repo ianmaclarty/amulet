@@ -85,7 +85,11 @@ inline TString str(T i)
     ASSERT(std::numeric_limits<T>::is_integer);
     char buffer[((8 * sizeof(T)) / 3) + 3];
     const char *formatStr = std::numeric_limits<T>::is_signed ? "%d" : "%u";
+#if defined(_MSC_VER)
+    _snprintf(buffer, sizeof(buffer), formatStr, i);
+#else
     snprintf(buffer, sizeof(buffer), formatStr, i);
+#endif
     return buffer;
 }
 
