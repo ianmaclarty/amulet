@@ -18,9 +18,14 @@ local view_type_size = {
 }
 
 function am.float_array(values)
-    local view = am.buffer(4 * #values):view("float", 0, 4)
-    view:set(values)
-    return view
+    if type(values) == "table" then
+        local view = am.buffer(4 * #values):view("float", 0, 4)
+        view:set(values)
+        return view
+    else
+        local view = am.buffer(4 * values):view("float", 0, 4)
+        return view
+    end
 end
 
 function am.byte_array(values)

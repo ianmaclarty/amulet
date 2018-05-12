@@ -728,6 +728,14 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 #define OP(a, b) ((a) - floor((a)/(b))*(b))
 #include "am_view_binop.inc"
 
+#define OPNAME sin
+#define OP(a) (sinf(a))
+#include "am_view_unop.inc"
+
+#define OPNAME cos
+#define OP(a) (cosf(a))
+#include "am_view_unop.inc"
+
 static void register_view_mt(lua_State *L) {
     lua_newtable(L);
     am_set_default_index_func(L);
@@ -766,6 +774,13 @@ void am_open_buffer_module(lua_State *L) {
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
+
+    luaL_Reg vfuncs[] = {
+        {"sin", view_sin},
+        {"cos", view_cos},
+        {NULL, NULL}
+    };
+    am_open_module(L, "mathv", vfuncs);
 
     am_enum_value view_type_enum[] = {
         {"float",           AM_VIEW_TYPE_FLOAT},
