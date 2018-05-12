@@ -15,7 +15,7 @@ local
 function print_view(view)
     str = "["
     for i = 1, #view do
-        str = str..view[i]
+        str = str..tostring(view[i])
         if i == #view then
             str = str.."]"
         else
@@ -192,5 +192,11 @@ print(struct_arr_buf:view("vec3", 4, 20)[5])
 print(struct_arr_buf:view("short", 16, 20)[7])
 print(struct_arr_buf:view("byte", 18, 20)[8])
 print(struct_arr_buf:view("byte", 19, 20)[10])
+
+print("view ops")
+print_view(am.float_array{1, 2, 3, 4} + 1)
+print_view(2 + am.float_array{1, 2, 3, 4})
+print_view(am.vec2_array{vec2(1, 2), vec2(3, 4)} + vec2(5, 6))
+print_view(am.vec3_array{vec3(1, 2, 3), vec3(4, 5, 6), vec3(7, 8, 9)} + am.vec3_array{vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1)})
 
 print("ok")

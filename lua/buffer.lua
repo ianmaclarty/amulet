@@ -110,18 +110,23 @@ end
 local
 function vec_array(values, name, components)
     local stride = components * 4
-    local len = #values
-    if len == 0 then
-        return am.buffer(0):view(name, 0, stride)
-    elseif type(values[1]) == "number" then
-        if len % components ~= 0 then
-            error("number of elements should be divisible by "..components, 2)
+    if type(values) == "table" then
+        local len = #values
+        if len == 0 then
+            return am.buffer(0):view(name, 0, stride)
+        elseif type(values[1]) == "number" then
+            if len % components ~= 0 then
+                error("number of elements should be divisible by "..components, 2)
+            end
+            len = len / components
         end
-        len = len / components
+        local view = am.buffer(len * stride):view(name, 0, stride)
+        view:set(values)
+        return view
+    else
+        -- values is length
+        return am.buffer(values * stride):view(name, 0, stride)
     end
-    local view = am.buffer(len * stride):view(name, 0, stride)
-    view:set(values)
-    return view
 end
 
 function am.vec2_array(values)

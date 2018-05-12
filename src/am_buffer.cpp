@@ -554,22 +554,6 @@ static int view_len(lua_State *L) {
     return 1;
 }
 
-static void register_view_mt(lua_State *L) {
-    lua_newtable(L);
-    am_set_default_index_func(L);
-    am_set_default_newindex_func(L);
-
-    lua_pushcclosure(L, view_len, 0);
-    lua_setfield(L, -2, "__len");
-
-    am_register_property(L, "buffer", &view_buffer_property);
-
-    lua_pushcclosure(L, view_slice, 0);
-    lua_setfield(L, -2, "slice");
-
-    am_register_metatable(L, "view", MT_am_buffer_view, 0);
-}
-
 static lua_Number read_num_float(uint8_t *ptr) {
     return *((float*)ptr);
 }
@@ -723,6 +707,53 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 #include "am_view_template.inc"
 
 #include "am_generated_view_defs.inc"
+
+#define OPNAME add
+#define OP(a, b) ((a) + (b))
+#include "am_view_binop.inc"
+
+#define OPNAME mul
+#define OP(a, b) ((a) * (b))
+#include "am_view_binop.inc"
+
+#define OPNAME sub
+#define OP(a, b) ((a) - (b))
+#include "am_view_binop.inc"
+
+#define OPNAME div
+#define OP(a, b) ((a) / (b))
+#include "am_view_binop.inc"
+
+#define OPNAME mod
+#define OP(a, b) ((a) - floor((a)/(b))*(b))
+#include "am_view_binop.inc"
+
+static void register_view_mt(lua_State *L) {
+    lua_newtable(L);
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
+
+    lua_pushcclosure(L, view_len, 0);
+    lua_setfield(L, -2, "__len");
+
+    lua_pushcclosure(L, view_add, 0);
+    lua_setfield(L, -2, "__add");
+    lua_pushcclosure(L, view_sub, 0);
+    lua_setfield(L, -2, "__sub");
+    lua_pushcclosure(L, view_mul, 0);
+    lua_setfield(L, -2, "__mul");
+    lua_pushcclosure(L, view_div, 0);
+    lua_setfield(L, -2, "__div");
+    lua_pushcclosure(L, view_mod, 0);
+    lua_setfield(L, -2, "__mod");
+
+    am_register_property(L, "buffer", &view_buffer_property);
+
+    lua_pushcclosure(L, view_slice, 0);
+    lua_setfield(L, -2, "slice");
+
+    am_register_metatable(L, "view", MT_am_buffer_view, 0);
+}
 
 void am_open_buffer_module(lua_State *L) {
     luaL_Reg funcs[] = {
