@@ -199,4 +199,12 @@ print_view(2 + am.float_array{1, 2, 3, 4})
 print_view(am.vec2_array{vec2(1, 2), vec2(3, 4)} + vec2(5, 6))
 print_view(am.vec3_array{vec3(1, 2, 3), vec3(4, 5, 6), vec3(7, 8, 9)} + am.vec3_array{vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1)})
 
+local _, err = pcall(function() 
+    local b = am.buffer(16)
+    local v = b:view("float", 0, 4)
+    b:free()
+    v[1] = 1
+end)
+print(err:gsub("^.*%: ", "").."")
+
 print("ok")

@@ -17,7 +17,7 @@ static int AM_CONCAT(view_, OPNAME)(lua_State *L) {
 
     switch (type1) {
         case MT_am_buffer_view:  {
-            am_buffer_view *view1 = am_get_userdata(L, am_buffer_view, 1);
+            am_buffer_view *view1 = check_buffer_view(L, 1);
             if (view1->offset & 3 || view1->stride & 3) {
                 return luaL_error(L, "view must be 4 byte aligned");
             }

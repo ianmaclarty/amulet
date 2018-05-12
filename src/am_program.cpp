@@ -123,25 +123,25 @@ bool am_program_param::bind(am_render_state *rstate) {
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT) {
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT && slot->value.value.arr->buffer != NULL) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.value.arr);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_2F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT2) {
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT2 && slot->value.value.arr->buffer != NULL) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.value.arr);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_3F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT3) {
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT3 && slot->value.value.arr->buffer != NULL) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.value.arr);
                 bound = true;
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_4F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT4) {
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT4 && slot->value.value.arr->buffer != NULL) {
                 bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.value.arr);
                 bound = true;
             }
@@ -760,24 +760,28 @@ const char *am_program_param_client_type_name(am_program_param_name_slot *slot) 
         case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT3: return "mat3";
         case AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4: return "mat4";
         case AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY: {
-            switch (slot->value.value.arr->type) {
-                case AM_VIEW_TYPE_FLOAT: return "array of floats";
-                case AM_VIEW_TYPE_FLOAT2: return "array of vec2s";
-                case AM_VIEW_TYPE_FLOAT3: return "array of vec3s";
-                case AM_VIEW_TYPE_FLOAT4: return "array of vec4s";
-                case AM_VIEW_TYPE_UBYTE: return "array of ubytes";
-                case AM_VIEW_TYPE_BYTE: return "array of bytes";
-                case AM_VIEW_TYPE_UBYTE_NORM: return "array of normalized ubytes";
-                case AM_VIEW_TYPE_BYTE_NORM: return "array of normalized bytes";
-                case AM_VIEW_TYPE_USHORT: return "array of ushorts";
-                case AM_VIEW_TYPE_SHORT: return "array of shorts";
-                case AM_VIEW_TYPE_USHORT_ELEM: return "array of ushort indices";
-                case AM_VIEW_TYPE_USHORT_NORM: return "array of normalized ushorts";
-                case AM_VIEW_TYPE_SHORT_NORM: return "array of normalized shorts";
-                case AM_VIEW_TYPE_UINT: return "array of uints";
-                case AM_VIEW_TYPE_INT: return "array of ints";
-                case AM_VIEW_TYPE_UINT_ELEM: return "array of uint indices";
-                case AM_NUM_VIEW_TYPES: assert(false); break;
+            if (slot->value.value.arr->buffer == NULL) {
+                return "freed buffer";
+            } else {
+                switch (slot->value.value.arr->type) {
+                    case AM_VIEW_TYPE_FLOAT: return "array of floats";
+                    case AM_VIEW_TYPE_FLOAT2: return "array of vec2s";
+                    case AM_VIEW_TYPE_FLOAT3: return "array of vec3s";
+                    case AM_VIEW_TYPE_FLOAT4: return "array of vec4s";
+                    case AM_VIEW_TYPE_UBYTE: return "array of ubytes";
+                    case AM_VIEW_TYPE_BYTE: return "array of bytes";
+                    case AM_VIEW_TYPE_UBYTE_NORM: return "array of normalized ubytes";
+                    case AM_VIEW_TYPE_BYTE_NORM: return "array of normalized bytes";
+                    case AM_VIEW_TYPE_USHORT: return "array of ushorts";
+                    case AM_VIEW_TYPE_SHORT: return "array of shorts";
+                    case AM_VIEW_TYPE_USHORT_ELEM: return "array of ushort indices";
+                    case AM_VIEW_TYPE_USHORT_NORM: return "array of normalized ushorts";
+                    case AM_VIEW_TYPE_SHORT_NORM: return "array of normalized shorts";
+                    case AM_VIEW_TYPE_UINT: return "array of uints";
+                    case AM_VIEW_TYPE_INT: return "array of ints";
+                    case AM_VIEW_TYPE_UINT_ELEM: return "array of uint indices";
+                    case AM_NUM_VIEW_TYPES: assert(false); break;
+                }
             }
             break;
         }

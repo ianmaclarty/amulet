@@ -33,6 +33,7 @@ am_buffer::am_buffer(int sz) {
 
 void am_buffer::destroy() {
     free(data);
+    data = NULL;
     if (arraybuf_id != 0) {
         am_bind_buffer(AM_ARRAY_BUFFER, 0);
         am_delete_buffer(arraybuf_id);
@@ -46,7 +47,7 @@ void am_buffer::destroy() {
 }
 
 void am_buffer::update_if_dirty() {
-    if (dirty_start < dirty_end) {
+    if (data != NULL && dirty_start < dirty_end) {
         if (arraybuf_id != 0) {
             am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
             am_set_buffer_sub_data(AM_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
@@ -122,6 +123,22 @@ static int create_buffer(lua_State *L) {
     return 1;
 }
 
+inline static am_buffer_view* check_buffer_view(lua_State *L, int idx) {
+    am_buffer_view *view = am_get_userdata(L, am_buffer_view, idx);
+    if (view->buffer->data == NULL) {
+        luaL_error(L, "attempt to access freed buffer");
+    }
+    return view;
+}
+
+inline static am_buffer* check_buffer(lua_State *L, int idx) {
+    am_buffer *buf = am_get_userdata(L, am_buffer, idx);
+    if (buf->data == NULL) {
+        luaL_error(L, "attempt to access freed buffer");
+    }
+    return buf;
+}
+
 static int load_buffer(lua_State *L) {
     am_check_nargs(L, 1);
     const char *filename = luaL_checkstring(L, 1);
@@ -177,7 +194,7 @@ static const char *base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy
 
 static int base64_encode(lua_State *L) {
     am_check_nargs(L, 1);
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = check_buffer(L, 1);
     uint8_t *data = buf->data;
     int buf_sz = buf->size;
     int b64_sz = (buf_sz + 2) / 3 * 4;
@@ -334,19 +351,21 @@ static int base64_decode(lua_State *L) {
 }
 
 static int buffer_len(lua_State *L) {
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = check_buffer(L, 1);
     lua_pushinteger(L, buf->size);
     return 1;
 }
 
-static int buffer_gc(lua_State *L) {
+static int free_buffer(lua_State *L) {
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
-    buf->destroy();
+    if (buf->data != NULL) {
+        buf->destroy();
+    }
     return 0;
 }
 
 static int release_vbo(lua_State *L) {
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = check_buffer(L, 1);
     if (buf->arraybuf_id != 0) {
         am_delete_buffer(buf->arraybuf_id);
         buf->arraybuf_id = 0;
@@ -356,7 +375,7 @@ static int release_vbo(lua_State *L) {
 
 static int mark_buffer_dirty(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = check_buffer(L, 1);
     int start = 0;
     int end = buf->size;
     if (nargs > 1) {
@@ -389,7 +408,7 @@ am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type) {
 static int create_buffer_view(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
 
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = check_buffer(L, 1);
     am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 2);
 
     int type_size = 0;
@@ -480,7 +499,7 @@ static int create_buffer_view(lua_State *L) {
 
 static int view_slice(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
-    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
+    am_buffer_view *view = check_buffer_view(L, 1);
     int start = luaL_checkinteger(L, 2);
     if (start < 1 || start > view->size) {
         return luaL_error(L, "slice start must be in the range [1, %d] (in fact %d)",
@@ -526,7 +545,7 @@ static void register_buffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, buffer_len, 0);
     lua_setfield(L, -2, "__len");
-    lua_pushcclosure(L, buffer_gc, 0);
+    lua_pushcclosure(L, free_buffer, 0);
     lua_setfield(L, -2, "__gc");
 
     am_register_property(L, "dataptr", &buffer_dataptr_property);
@@ -537,6 +556,8 @@ static void register_buffer_mt(lua_State *L) {
     lua_setfield(L, -2, "release_vbo");
     lua_pushcclosure(L, mark_buffer_dirty, 0);
     lua_setfield(L, -2, "mark_dirty");
+    lua_pushcclosure(L, free_buffer, 0);
+    lua_setfield(L, -2, "free");
 
     am_register_metatable(L, "buffer", MT_am_buffer, 0);
 }
@@ -549,7 +570,7 @@ static void get_view_buffer(lua_State *L, void *obj) {
 static am_property view_buffer_property = {get_view_buffer, NULL};
 
 static int view_len(lua_State *L) {
-    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
+    am_buffer_view *view = check_buffer_view(L, 1);
     lua_pushinteger(L, view->size);
     return 1;
 }
