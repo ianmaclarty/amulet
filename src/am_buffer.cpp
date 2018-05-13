@@ -1,5 +1,74 @@
 #include "amulet.h"
 
+am_buffer_data_allocator::am_buffer_data_allocator() {
+    pooled_buffers.owner = this;
+}
+
+am_buffer_data_allocator* get_buffer_data_allocator(lua_State *L) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_BUFFER_DATA_ALLOCATOR);
+    am_buffer_data_allocator *ballocator = (am_buffer_data_allocator*)lua_touserdata(L, -1);
+    lua_pop(L, 1);
+    return ballocator;
+}
+
+static void alloc_buffer_data(lua_State *L, int size, am_buffer *buf, int buf_idx) {
+    buf->size = size;
+    if (size == 0) {
+        buf->data = NULL;
+        return;
+    }
+    am_buffer_data_allocator *ballocator = get_buffer_data_allocator(L);
+    buf->data = (uint8_t*)malloc(size);
+    memset(buf->data, 0, size);
+    if (ballocator->pooled_buffers.size > 0) {
+        // we're using a pool, so add the buffer to the pool
+        am_pooled_buffer_slot slot;
+        slot.buf = buf;
+        slot.ref = ballocator->ref(L, buf_idx);
+        ballocator->pooled_buffers.push_back(L, slot);
+    }
+}
+
+static void free_buffer_data(lua_State *L, am_buffer *buf) {
+    if (buf->data == NULL) return;
+    free(buf->data);
+    buf->data = NULL;
+}
+
+static void push_buffer_pool(lua_State *L) {
+    am_buffer_data_allocator *ballocator = get_buffer_data_allocator(L);
+    am_pooled_buffer_slot slot;
+    // we use a NULL slot to mark the start of this pool
+    slot.buf = NULL;
+    slot.ref = LUA_NOREF;
+    ballocator->pooled_buffers.push_back(L, slot);
+}
+
+static void pop_buffer_pool(lua_State *L) {
+    am_buffer_data_allocator *ballocator = get_buffer_data_allocator(L);
+    for (int i = ballocator->pooled_buffers.size - 1; i >= 0; i--) {
+        am_pooled_buffer_slot slot = ballocator->pooled_buffers.arr[i];
+        ballocator->pooled_buffers.remove(i);
+        if (slot.buf != NULL) {
+            slot.buf->destroy(L);
+            ballocator->unref(L, slot.ref);
+        } else {
+            return; // start of pool marker reached
+        }
+    }
+}
+
+static int run_with_buffer_pool(lua_State *L) {
+    am_check_nargs(L, 1);
+    push_buffer_pool(L);
+    // XXX if the called function errors, pop_buffer_pool won't run and this will
+    // be a leak. Probably not a big deal though, since this would normally end
+    // the program too.
+    lua_call(L, 0, 0);
+    pop_buffer_pool(L);
+    return 0;
+}
+
 am_buffer::am_buffer() {
     size = 0;
     data = NULL;
@@ -15,25 +84,21 @@ am_buffer::am_buffer() {
     version = 1;
 }
 
-am_buffer::am_buffer(int sz) {
-    size = sz;
-    data = (uint8_t*)malloc(sz);
-    memset(data, 0, size);
-    origin = "unnamed buffer";
-    origin_ref = LUA_NOREF;
-    arraybuf_id = 0;
-    elembuf_id = 0;
-    texture2d = NULL;
-    texture2d_ref = LUA_NOREF;
-    dirty_start = INT_MAX;
-    dirty_end = 0;
-    track_dirty = false;
-    version = 1;
+am_buffer *am_push_new_buffer_and_init(lua_State *L, int size) {
+    am_buffer *buf = am_new_userdata(L, am_buffer);
+    alloc_buffer_data(L, size, buf, -1);
+    return buf;
 }
 
-void am_buffer::destroy() {
-    free(data);
-    data = NULL;
+am_buffer *am_push_new_buffer_with_data(lua_State *L, int size, void* data) {
+    am_buffer *buf = am_new_userdata(L, am_buffer);
+    buf->data = (uint8_t*)data;
+    buf->size = size;
+    return buf;
+}
+
+void am_buffer::destroy(lua_State *L) {
+    free_buffer_data(L, this);
     if (arraybuf_id != 0) {
         am_bind_buffer(AM_ARRAY_BUFFER, 0);
         am_delete_buffer(arraybuf_id);
@@ -119,13 +184,13 @@ static int create_buffer(lua_State *L) {
     am_check_nargs(L, 1);
     int size = luaL_checkinteger(L, 1);
     if (size <= 0) return luaL_error(L, "size should be greater than 0");
-    am_new_userdata(L, am_buffer, size);
+    am_push_new_buffer_and_init(L, size);
     return 1;
 }
 
 inline static am_buffer_view* check_buffer_view(lua_State *L, int idx) {
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, idx);
-    if (view->buffer->data == NULL) {
+    if (view->buffer->data == NULL && view->buffer->size > 0) {
         luaL_error(L, "attempt to access freed buffer");
     }
     return view;
@@ -133,7 +198,7 @@ inline static am_buffer_view* check_buffer_view(lua_State *L, int idx) {
 
 inline static am_buffer* check_buffer(lua_State *L, int idx) {
     am_buffer *buf = am_get_userdata(L, am_buffer, idx);
-    if (buf->data == NULL) {
+    if (buf->data == NULL && buf->size > 0) {
         luaL_error(L, "attempt to access freed buffer");
     }
     return buf;
@@ -149,9 +214,7 @@ static int load_buffer(lua_State *L) {
         free(errmsg);
         lua_pushnil(L);
     } else {
-        am_buffer *buf = am_new_userdata(L, am_buffer);
-        buf->data = (uint8_t*)data;
-        buf->size = len;
+        am_buffer *buf = am_push_new_buffer_with_data(L, len, data);
         buf->origin = filename;
         buf->origin_ref = buf->ref(L, 1);
     }
@@ -243,12 +306,12 @@ static int base64_decode(lua_State *L) {
     if (b64_sz % 4 != 0) return luaL_error(L, "string length should be divisble by 4");
     int buf_sz = b64_sz / 4 * 3;
     if (buf_sz == 0) {
-        am_new_userdata(L, am_buffer, 0);
+        am_push_new_buffer_and_init(L, 0);
         return 1;
     }
     if (b64_str[b64_sz-1] == '=') buf_sz--;
     if (b64_str[b64_sz-2] == '=') buf_sz--;
-    am_buffer *buf = am_new_userdata(L, am_buffer, buf_sz);
+    am_buffer *buf = am_push_new_buffer_and_init(L, buf_sz);
     uint8_t *data = buf->data;
     int i = 0;
     int j = 0;
@@ -359,7 +422,7 @@ static int buffer_len(lua_State *L) {
 static int free_buffer(lua_State *L) {
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
     if (buf->data != NULL) {
-        buf->destroy();
+        buf->destroy(L);
     }
     return 0;
 }
@@ -560,6 +623,11 @@ static void register_buffer_mt(lua_State *L) {
     lua_setfield(L, -2, "free");
 
     am_register_metatable(L, "buffer", MT_am_buffer, 0);
+}
+
+static void register_buffer_data_allocator_mt(lua_State *L) {
+    lua_newtable(L);
+    am_register_metatable(L, "buffer_data_allocator", MT_am_buffer_data_allocator, 0);
 }
 
 static void get_view_buffer(lua_State *L, void *obj) {
@@ -792,6 +860,7 @@ void am_open_buffer_module(lua_State *L) {
         {"load_script", load_script},
         {"base64_encode", base64_encode},
         {"base64_decode", base64_decode},
+        {"buffer_pool", run_with_buffer_pool},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
@@ -823,6 +892,10 @@ void am_open_buffer_module(lua_State *L) {
         {NULL, 0}
     };
     am_register_enum(L, ENUM_am_buffer_view_type, view_type_enum);
+
+    register_buffer_data_allocator_mt(L);
+    am_new_userdata(L, am_buffer_data_allocator); 
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_BUFFER_DATA_ALLOCATOR);
 
     register_buffer_mt(L);
     register_view_mt(L);

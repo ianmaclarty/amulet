@@ -422,9 +422,8 @@ static int gen_sfxr_buffer(lua_State *L) {
     sfxr.p_arp_speed = lua_tonumber(L, 24);
     sfxr.p_arp_mod = lua_tonumber(L, 25);
     int len;
-    am_buffer *buf = am_new_userdata(L, am_buffer);
-    buf->data = (uint8_t*)sfxr.gen_buffer(&len);
-    buf->size = len * sizeof(float);
+    void *data = sfxr.gen_buffer(&len);
+    am_buffer *buf = am_push_new_buffer_with_data(L, len * sizeof(float), data);
     am_audio_buffer *audio_buffer = am_new_userdata(L, am_audio_buffer);
     audio_buffer->sample_rate = 44100;
     audio_buffer->num_channels = 1;

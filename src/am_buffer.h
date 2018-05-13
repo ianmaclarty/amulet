@@ -37,8 +37,8 @@ struct am_buffer : am_nonatomic_userdata {
     uint32_t            version;
 
     am_buffer();
-    am_buffer(int sz);
-    void destroy();
+
+    void destroy(lua_State *L);
     void create_arraybuf();
     void create_elembuf();
     void update_if_dirty();
@@ -55,6 +55,16 @@ struct am_buffer : am_nonatomic_userdata {
             }
         }
     }
+};
+
+struct am_pooled_buffer_slot {
+    am_buffer *buf;
+    int ref;
+};
+
+struct am_buffer_data_allocator : am_nonatomic_userdata {
+    am_lua_array<am_pooled_buffer_slot> pooled_buffers;
+    am_buffer_data_allocator();
 };
 
 struct am_buffer_view : am_nonatomic_userdata {
@@ -159,6 +169,10 @@ struct am_buffer_view : am_nonatomic_userdata {
 
     void update_max_elem_if_required();
 };
+
+// use these instead of am_new_userdata to create a buffer
+am_buffer *am_push_new_buffer_and_init(lua_State *L, int size);
+am_buffer *am_push_new_buffer_with_data(lua_State *L, int size, void* data);
 
 // use this instead of am_new_userdata to create a view
 am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type);

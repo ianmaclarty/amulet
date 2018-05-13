@@ -90,7 +90,7 @@ static int AM_CONCAT(view_, OPNAME)(lua_State *L) {
 
     int size = size1;
 
-    am_buffer *result_buffer = am_new_userdata(L, am_buffer, size * 4 * components1);
+    am_buffer *result_buffer = am_push_new_buffer_and_init(L, size * 4 * components1);
     float *buf3 = (float*)result_buffer->data;
     am_buffer_view_type type;
 

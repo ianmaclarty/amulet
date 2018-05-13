@@ -45,7 +45,7 @@ static int create_image_buffer(lua_State *L) {
     int required_size = img->width * img->height * pixel_format_size(img->format);
     if (img->buffer == NULL) {
         // create new buffer
-        img->buffer = am_new_userdata(L, am_buffer, required_size);
+        img->buffer = am_push_new_buffer_and_init(L, required_size);
         img->buffer_ref = img->ref(L, -1);
         lua_pop(L, 1); // pop buffer;
     } else {
@@ -82,9 +82,7 @@ static int load_image(lua_State *L) {
     img->height = height;
     img->format = AM_PIXEL_FORMAT_RGBA8;
     int sz = width * height * pixel_format_size(img->format);
-    am_buffer *imgbuf = am_new_userdata(L, am_buffer);
-    imgbuf->size = sz;
-    imgbuf->data = img_data;
+    am_buffer *imgbuf = am_push_new_buffer_with_data(L, sz, img_data);
     img->buffer = imgbuf;
     img->buffer_ref = img->ref(L, -1);
     lua_pop(L, 1); // pop imgbuf
@@ -115,9 +113,7 @@ static int load_embedded_image(lua_State *L) {
     img->height = height;
     img->format = AM_PIXEL_FORMAT_RGBA8;
     int sz = width * height * pixel_format_size(img->format);
-    am_buffer *imgbuf = am_new_userdata(L, am_buffer);
-    imgbuf->size = sz;
-    imgbuf->data = img_data;
+    am_buffer *imgbuf = am_push_new_buffer_with_data(L, sz, img_data);
     img->buffer = imgbuf;
     img->buffer_ref = img->ref(L, -1);
     lua_pop(L, 1); // pop imgbuf
@@ -175,9 +171,7 @@ static int encode_png(lua_State *L) {
     size_t len;
     void *png_data = tdefl_write_image_to_png_file_in_memory_ex(
         img->buffer->data, img->width, img->height, 4, &len, MZ_DEFAULT_LEVEL, 1);
-    am_buffer *buf = am_new_userdata(L, am_buffer);
-    buf->size = len;
-    buf->data = (uint8_t*)png_data;
+    am_push_new_buffer_with_data(L, len, png_data);
     return 1;
 }
 
@@ -197,9 +191,7 @@ static int decode_png(lua_State *L) {
     img->height = height;
     img->format = AM_PIXEL_FORMAT_RGBA8;
     int sz = width * height * pixel_format_size(img->format);
-    am_buffer *imgbuf = am_new_userdata(L, am_buffer);
-    imgbuf->size = sz;
-    imgbuf->data = img_data;
+    am_buffer *imgbuf = am_push_new_buffer_with_data(L, sz, img_data);
     img->buffer = imgbuf;
     img->buffer_ref = img->ref(L, -1);
     lua_pop(L, 1); // pop imgbuf

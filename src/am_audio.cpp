@@ -1503,7 +1503,7 @@ static int load_audio(lua_State *L) {
             filename, sample_rate, am_conf_audio_sample_rate);
         double sample_rate_ratio = (double)sample_rate / (double)am_conf_audio_sample_rate;
         dest_samples = floor((double)num_samples / sample_rate_ratio);
-        dest_buf = am_new_userdata(L, am_buffer, dest_samples * num_channels * 4);
+        dest_buf = am_push_new_buffer_and_init(L, dest_samples * num_channels * 4);
         dest_data = (float*)dest_buf->data;
         for (int c = 0; c < num_channels; c++) {
             double pos = 0.0f;
@@ -1526,7 +1526,7 @@ static int load_audio(lua_State *L) {
         }
     } else {
         // no resample required
-        dest_buf = am_new_userdata(L, am_buffer, num_samples * num_channels * 4);
+        dest_buf = am_push_new_buffer_and_init(L, num_samples * num_channels * 4);
         dest_data = (float*)dest_buf->data;
         dest_samples = num_samples;
         for (int c = 0; c < num_channels; c++) {

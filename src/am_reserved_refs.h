@@ -8,6 +8,7 @@ typedef enum {
     AM_ACTION_TABLE,
     AM_METATABLE_REGISTRY,
     AM_ROOT_AUDIO_NODE,
+    AM_BUFFER_DATA_ALLOCATOR,
 
     MT_am_window,
     MT_am_program,
@@ -45,6 +46,7 @@ typedef enum {
     MT_am_spectrum_node,
     MT_am_capture_node,
 
+    MT_am_buffer_data_allocator,
     MT_am_buffer,
 
     MT_am_buffer_view,
