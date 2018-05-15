@@ -735,6 +735,89 @@ static const char *view_type_name[] = {
 };
 ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 
+static void view_float_iter_setup(lua_State *L, int arg, int *type, 
+        float **buf, int *stride, int *size, int *components, float *farr, const char *opname)
+{
+    am_check_nargs(L, arg);
+    *type = am_get_type(L, arg);
+
+    switch (*type) {
+        case MT_am_buffer_view:  {
+            am_buffer_view *view = check_buffer_view(L, arg);
+            if (view->offset & 3 || view->stride & 3) {
+                luaL_error(L, "view must be 4-byte aligned for op %s", opname);
+            }
+            *buf = (float*)(view->buffer->data + view->offset);
+            *stride = view->stride >> 2;
+            *size = view->size;
+            switch (view->type) {
+                case AM_VIEW_TYPE_FLOAT:
+                    *components = 1;
+                    break;
+                case AM_VIEW_TYPE_FLOAT2:
+                    *components = 2;
+                    break;
+                case AM_VIEW_TYPE_FLOAT3:
+                    *components = 3;
+                    break;
+                case AM_VIEW_TYPE_FLOAT4:
+                    *components = 4;
+                    break;
+                default:
+                    luaL_error(L, "op %s not supported for views of type %s", opname, view_type_name[view->type]);
+            }
+            break;
+        }
+        case LUA_TNUMBER: {
+            lua_Number n = lua_tonumber(L, arg);
+            farr[0] = (float)n;
+            farr[1] = (float)n;
+            farr[2] = (float)n;
+            farr[3] = (float)n;
+            *buf = farr;
+            *stride = 0;
+            *size = 1;
+            *components = 1;
+            break;
+        }
+        case MT_am_vec2: {
+            am_vec2 *v = am_get_userdata(L, am_vec2, arg);
+            farr[0] = v->v.x;
+            farr[1] = v->v.y;
+            *buf = farr;
+            *stride = 0;
+            *size = 1;
+            *components = 2;
+            break;
+        }
+        case MT_am_vec3: {
+            am_vec3 *v = am_get_userdata(L, am_vec3, arg);
+            farr[0] = v->v.x;
+            farr[1] = v->v.y;
+            farr[2] = v->v.z;
+            *buf = farr;
+            *stride = 0;
+            *size = 1;
+            *components = 3;
+            break;
+        }
+        case MT_am_vec4: {
+            am_vec4 *v = am_get_userdata(L, am_vec4, arg);
+            farr[0] = v->v.x;
+            farr[1] = v->v.y;
+            farr[2] = v->v.z;
+            farr[3] = v->v.w;
+            *buf = farr;
+            *stride = 0;
+            *size = 1;
+            *components = 4;
+            break;
+        }
+        default:
+            luaL_error(L, "op %s not supported for views of type %s", opname, am_get_typename(L, *type));
+    }
+}
+
 #define TNAME float
 #define CTYPE float
 #define LUA_TYPE LUA_TNUMBER
@@ -797,33 +880,54 @@ ct_check_array_size(view_type_name, AM_NUM_VIEW_TYPES);
 
 #include "am_generated_view_defs.inc"
 
-#define OPNAME add
+#define SUFFIX add
+#define OPNAME "+"
+#define ARGS 2
+#define COMPONENT_WISE
 #define OP(a, b) ((a) + (b))
-#include "am_view_binop.inc"
+#include "am_view_op.inc"
 
-#define OPNAME mul
+#define SUFFIX mul
+#define OPNAME "*"
+#define ARGS 2
+#define COMPONENT_WISE
 #define OP(a, b) ((a) * (b))
-#include "am_view_binop.inc"
+#include "am_view_op.inc"
 
-#define OPNAME sub
+#define SUFFIX sub
+#define OPNAME "-"
+#define ARGS 2
+#define COMPONENT_WISE
 #define OP(a, b) ((a) - (b))
-#include "am_view_binop.inc"
+#include "am_view_op.inc"
 
-#define OPNAME div
+#define SUFFIX div
+#define OPNAME "/"
+#define ARGS 2
+#define COMPONENT_WISE
 #define OP(a, b) ((a) / (b))
-#include "am_view_binop.inc"
+#include "am_view_op.inc"
 
-#define OPNAME mod
+#define SUFFIX mod
+#define OPNAME "%"
+#define ARGS 2
+#define COMPONENT_WISE
 #define OP(a, b) ((a) - floor((a)/(b))*(b))
-#include "am_view_binop.inc"
+#include "am_view_op.inc"
 
-#define OPNAME sin
+#define SUFFIX sin
+#define OPNAME "sin"
+#define ARGS 1
+#define COMPONENT_WISE
 #define OP(a) (sinf(a))
-#include "am_view_unop.inc"
+#include "am_view_op.inc"
 
-#define OPNAME cos
+#define SUFFIX cos
+#define OPNAME "cos"
+#define ARGS 1
+#define COMPONENT_WISE
 #define OP(a) (cosf(a))
-#include "am_view_unop.inc"
+#include "am_view_op.inc"
 
 static void register_view_mt(lua_State *L) {
     lua_newtable(L);
@@ -833,15 +937,15 @@ static void register_view_mt(lua_State *L) {
     lua_pushcclosure(L, view_len, 0);
     lua_setfield(L, -2, "__len");
 
-    lua_pushcclosure(L, view_add, 0);
+    lua_pushcclosure(L, view_op_add, 0);
     lua_setfield(L, -2, "__add");
-    lua_pushcclosure(L, view_sub, 0);
+    lua_pushcclosure(L, view_op_sub, 0);
     lua_setfield(L, -2, "__sub");
-    lua_pushcclosure(L, view_mul, 0);
+    lua_pushcclosure(L, view_op_mul, 0);
     lua_setfield(L, -2, "__mul");
-    lua_pushcclosure(L, view_div, 0);
+    lua_pushcclosure(L, view_op_div, 0);
     lua_setfield(L, -2, "__div");
-    lua_pushcclosure(L, view_mod, 0);
+    lua_pushcclosure(L, view_op_mod, 0);
     lua_setfield(L, -2, "__mod");
 
     am_register_property(L, "buffer", &view_buffer_property);
@@ -866,8 +970,8 @@ void am_open_buffer_module(lua_State *L) {
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
 
     luaL_Reg vfuncs[] = {
-        {"sin", view_sin},
-        {"cos", view_cos},
+        {"sin", view_op_sin},
+        {"cos", view_op_cos},
         {NULL, NULL}
     };
     am_open_module(L, "mathv", vfuncs);

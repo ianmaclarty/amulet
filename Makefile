@@ -53,7 +53,7 @@ endif
 
 DEP_ALIBS = $(patsubst %,$(BUILD_LIB_DIR)/lib%$(ALIB_EXT),$(AM_DEPS))
 
-VIEW_TEMPLATES = $(wildcard $(SRC_DIR)/am*view_template.inc)
+VIEW_TEMPLATES = $(wildcard $(SRC_DIR)/am_view_*.inc)
 
 VERSION_CPP_FILE = $(SRC_DIR)/am_version.cpp
 
