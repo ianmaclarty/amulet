@@ -583,7 +583,7 @@ or a number.
 
 The returned value is between -1 and 1.
 
-### math.mix(from, top, t) {#math.mix .func-def}
+### math.mix(from, to, t) {#math.mix .func-def}
 
 Returns the linear interpolation between `from` and `to` determined by
 `t`. `from` and `to` can be numbers or vectors, and must be the same
@@ -591,7 +591,7 @@ type. `t` should be a number between 0 and 1. `from` and `to` can also
 be quaternions. In this case `math.mix` returns the spherical linear
 interpolation of the two quaternions.
 
-### math.slerp(from, top, t) {#math.slerp .func-def}
+### math.slerp(from, to, t) {#math.slerp .func-def}
 
 Returns the spherical linear interpolation of the two quaternions
 `from` and `to`. `t` should be a number between 0 and 1.
