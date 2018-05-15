@@ -110,8 +110,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#math.scale4">math.scale4(scl)</a></li>
 <li><a href="#math.perlin">math.perlin(pos [, period])</a></li>
 <li><a href="#math.simplex">math.simplex(pos)</a></li>
-<li><a href="#math.mix">math.mix(from, top, t)</a></li>
-<li><a href="#math.slerp">math.slerp(from, top, t)</a></li>
+<li><a href="#math.mix">math.mix(from, to, t)</a></li>
+<li><a href="#math.slerp">math.slerp(from, to, t)</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#buffers-and-views">Buffers and views</a><ul>
@@ -1090,7 +1090,7 @@ win<span class="ot">.</span>scene:action<span class="ot">(</span>am<span class="
 <p>Vectors support the Lua length operator (<code>#</code>), which returns the number of components of the vector (not its magnitude). This allows for iterating through the components of a vector of unknown size, for example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> v <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">10</span><span class="ot">,</span> <span class="dv">20</span><span class="ot">,</span> <span class="dv">30</span><span class="ot">)</span>
 <span class="kw">for</span> i <span class="ot">=</span> <span class="dv">1</span><span class="ot">,</span> <span class="ot">#</span>v <span class="kw">do</span>
-    <span class="fu">print</span><span class="ot">(</span>position<span class="ot">[</span>i<span class="ot">])</span>
+    <span class="fu">print</span><span class="ot">(</span>v<span class="ot">[</span>i<span class="ot">])</span>
 <span class="kw">end</span></code></pre></div>
 <h3 id="swizzle-fields">Swizzle fields</h3>
 <p>Another way to construct vectors is to recombine the components of an existing vector using <em>swizzle fields</em>, which are special fields whose names consist of a combination of any of the component field characters. A new vector containing the named components will be returned. For example:</p>
@@ -1307,9 +1307,9 @@ vec2(0, 2)</code></pre>
 <h3 id="math.simplex" class="func-def">math.simplex(pos)</h3>
 <p>Generate simplex noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number.</p>
 <p>The returned value is between -1 and 1.</p>
-<h3 id="math.mix" class="func-def">math.mix(from, top, t)</h3>
+<h3 id="math.mix" class="func-def">math.mix(from, to, t)</h3>
 <p>Returns the linear interpolation between <code>from</code> and <code>to</code> determined by <code>t</code>. <code>from</code> and <code>to</code> can be numbers or vectors, and must be the same type. <code>t</code> should be a number between 0 and 1. <code>from</code> and <code>to</code> can also be quaternions. In this case <code>math.mix</code> returns the spherical linear interpolation of the two quaternions.</p>
-<h3 id="math.slerp" class="func-def">math.slerp(from, top, t)</h3>
+<h3 id="math.slerp" class="func-def">math.slerp(from, to, t)</h3>
 <p>Returns the spherical linear interpolation of the two quaternions <code>from</code> and <code>to</code>. <code>t</code> should be a number between 0 and 1. Unlike (<code>math.mix</code>)[#math.mix] this interpolation takes the shortest path.</p>
 <hr />
 <div class="figure">
