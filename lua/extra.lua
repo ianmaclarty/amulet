@@ -341,7 +341,10 @@ function log(fmt, ...)
         if not log_overlay_node then
             log_overlay_node = am.bind{P = math.ortho(0, win.pixel_width, 0, win.pixel_height)}
                 ^ am.translate(0, win.pixel_height)
-                ^ am.text("", vec4(0, 1, 0, 1), "left", "top")
+                ^ {
+                    am.rect(0, 0, 0, 0, vec4(0, 0, 0, 0.5)),
+                    am.text("", vec4(0, 1, 0, 1), "left", "top")
+                }
             log_overlay_node:action(function(node)
                 if win:resized() then
                     node.P = math.ortho(0, win.pixel_width, 0, win.pixel_height)
@@ -357,9 +360,16 @@ function log(fmt, ...)
         end
         local str = ""
         for i = 1, #log_overlay_lines do
-            str = str..log_overlay_lines[i].."\n"
+            str = str..log_overlay_lines[i]
+            if i < #log_overlay_lines then
+                str = str.."\n"
+            end
         end
-        log_overlay_node"text".text = str
+        local text_node = log_overlay_node"text"
+        text_node.text = str
+        local rect = log_overlay_node"rect"
+        rect.x2 = text_node.width
+        rect.y1 = -text_node.height
     end
 
     first_log = false
