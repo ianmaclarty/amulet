@@ -65,11 +65,14 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_renderer_module(L);
         am_open_audio_module(L);
         am_open_sfxr_module(L);
-#if defined(AM_IOS)
+#if defined(AM_BACKEND_IOS)
         am_open_ios_module(L);
-#elif defined(AM_ANDROID)
+#elif defined(AM_BACKEND_ANDROID)
         am_open_android_module(L);
-#elif defined(AM_STEAMWORKS)
+#elif defined(AM_BACKEND_SDL)
+        am_open_sdl_module(L);
+#endif
+#if defined(AM_STEAMWORKS)
         am_open_steamworks_module(L);
 #endif
     }

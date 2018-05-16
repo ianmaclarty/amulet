@@ -706,7 +706,7 @@ WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 #endif
 
 static void init_sdl() {
-    SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+    SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER);
     init_audio();
     sdl_initialized = true;
 #if defined(AM_WINDOWS)
@@ -1002,8 +1002,9 @@ static bool handle_events(lua_State *L) {
                 SDL_GameController *controller = SDL_GameControllerOpen(index);
                 if (controller) {
                     int joyid = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
+                    lua_pushinteger(L, index);
                     lua_pushinteger(L, joyid);
-                    am_call_amulet(L, "_controller_attached", 1, 0);
+                    am_call_amulet(L, "_controller_attached", 2, 0);
                 }
                 break;
             }
@@ -1201,6 +1202,21 @@ static am_controller_axis convert_controller_axis(Uint8 axis) {
     return AM_CONTROLLER_AXIS_UNKNOWN;
 }
 
+static int rumble(lua_State *L) {
+    am_check_nargs(L, 3);
+    int joyid = lua_tointeger(L, 1);
+    double duration = lua_tonumber(L, 2);
+    double strength = lua_tonumber(L, 3);
+    SDL_Joystick *joy = SDL_JoystickFromInstanceID(joyid);
+    if (joy == NULL) return 0;
+    SDL_Haptic *haptic = SDL_HapticOpenFromJoystick(joy);
+    if (haptic == NULL) return 0;
+    if (SDL_HapticRumbleInit(haptic) != 0) return 0;
+    SDL_HapticRumblePlay(haptic, strength, (int)(duration * 1000.0));
+    SDL_HapticClose(haptic);
+    return 0;
+}
+
 static bool check_for_package() {
     if (am_opt_main_module != NULL) {
         return true;
@@ -1239,6 +1255,14 @@ static win_info *win_from_id(Uint32 winid) {
         return &windows[0];
     }
     return NULL;
+}
+
+void am_open_sdl_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"_rumble", rumble},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
 }
 
 #endif // AM_BACKEND_SDL
