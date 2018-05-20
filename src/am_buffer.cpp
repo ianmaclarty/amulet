@@ -568,15 +568,27 @@ static int view_slice(lua_State *L) {
         return luaL_error(L, "slice start must be in the range [1, %d] (in fact %d)",
             view->size, start);
     }
-    int size;
-    if (nargs > 2) {
+    int size = -1;
+    if (nargs > 2 && !lua_isnil(L, 3)) {
         size = luaL_checkinteger(L, 3);
-        if (size < 0 || size > (view->size - start + 1)) {
-            return luaL_error(L, "slice size must be in the range [0, %d] (in fact %d)",
-                view->size - start + 1, size);
+        if (size < 0) {
+            return luaL_error(L, "size must be non-negative");
         }
+    }
+    int stride_multiplier = 1;
+    if (nargs > 3) {
+        stride_multiplier = luaL_checkinteger(L, 4);
+        if (stride_multiplier < 1) {
+            return luaL_error(L, "stride multiplier must be positive");
+        }
+    }
+    if (size == -1) {
+        size = (view->size - start) / stride_multiplier + 1;
     } else {
-        size = view->size - start + 1;
+        if (size > ((view->size - start) / stride_multiplier + 1)) {
+            return luaL_error(L, "slice size must be <= %d (in fact %d)",
+                (view->size - start) / stride_multiplier + 1, size);
+        }
     }
     am_buffer_view *slice = am_new_buffer_view(L, view->type);
     slice->buffer = view->buffer;
@@ -584,7 +596,7 @@ static int view_slice(lua_State *L) {
     slice->buffer_ref = slice->ref(L, -1);
     lua_pop(L, 1); // pop buffer
     slice->offset = view->offset + (start-1) * view->stride;
-    slice->stride = view->stride;
+    slice->stride = view->stride * stride_multiplier;
     slice->size = size;
     slice->type = view->type;
     slice->type_size = view->type_size;

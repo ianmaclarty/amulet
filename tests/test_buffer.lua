@@ -78,6 +78,8 @@ printvec(view3[2])
 view4:slice(3):set({103, 203, 303, 403, 503, 603, 703, 803})
 printvec(view4[3])
 printvec(view4[4])
+print_view(am.float_array{1, 2, 3, 4, 5, 6, 7, 8}:slice(2, 3, 2))
+print_view(am.vec2_array{vec2(1), vec2(2), vec2(3), vec2(4), vec2(5), vec2(6)}:slice(1, nil, 3))
 
 local buf2 = am.buffer(10)
 local viewub = buf2:view("ubyte", 0, 1)
