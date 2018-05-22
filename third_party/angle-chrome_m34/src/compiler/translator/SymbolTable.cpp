@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <algorithm>
 #include <climits>
+#include <set>
 
 TType::TType(const TPublicType &p) :
             type(p.type), precision(p.precision), qualifier(p.qualifier), size(p.size), matrix(p.matrix), array(p.array), arraySize(p.arraySize), structure(0)
@@ -174,8 +175,21 @@ TFunction::~TFunction()
 //
 TSymbolTableLevel::~TSymbolTableLevel()
 {
-    for (tLevel::iterator it = level.begin(); it != level.end(); ++it)
-        delete (*it).second;
+    //fprintf(stderr, "~TSymbolTableLevel()\n");
+    //fflush(stderr);
+    // This is a work-around for a double-free bug in the original Google code
+    // (workaround by Ian MacLarty)
+    std::set<TSymbol*> symbols;
+    for (tLevel::iterator it = level.begin(); it != level.end(); ++it) {
+        //fprintf(stderr, "(*it).second = %p\n", (*it).second);
+        //fflush(stderr);
+        symbols.insert((*it).second);
+    }
+    for (std::set<TSymbol*>::iterator it = symbols.begin(); it != symbols.end(); ++it) {
+        //fprintf(stderr, "delete TSymbol %p\n", (*it));
+        //fflush(stderr);
+        delete (*it);
+    }
 }
 
 //
