@@ -86,7 +86,7 @@ struct am_allocator {
     pool_stats heap_stats;
 #endif
 #ifdef AM_USE_DLMALLOC
-    mspace mspace;
+    mspace ms;
 #endif
     am_pool pools[NUM_POOLS];
 };
@@ -94,7 +94,7 @@ struct am_allocator {
 #ifndef AM_NO_SMALL_ALLOCATOR
 static void *am_malloc(am_allocator *allocator, size_t sz) {
 #ifdef AM_USE_DLMALLOC
-    return mspace_malloc(allocator->mspace, sz);
+    return mspace_malloc(allocator->ms, sz);
 #else
     return malloc(sz);
 #endif
@@ -103,7 +103,7 @@ static void *am_malloc(am_allocator *allocator, size_t sz) {
 
 static void am_free(am_allocator *allocator, void *ptr) {
 #ifdef AM_USE_DLMALLOC
-    return mspace_free(allocator->mspace, ptr);
+    return mspace_free(allocator->ms, ptr);
 #else
     return free(ptr);
 #endif
@@ -111,7 +111,7 @@ static void am_free(am_allocator *allocator, void *ptr) {
 
 static void *am_realloc(am_allocator *allocator, void *ptr, size_t sz) {
 #ifdef AM_USE_DLMALLOC
-    return mspace_realloc(allocator->mspace, ptr, sz);
+    return mspace_realloc(allocator->ms, ptr, sz);
 #else
     return realloc(ptr, sz);
 #endif
@@ -121,7 +121,7 @@ am_allocator *am_new_allocator() {
     am_allocator *allocator = new am_allocator();
     memset(allocator, 0, sizeof(am_allocator));
 #ifdef AM_USE_DLMALLOC
-    allocator->mspace = create_mspace(0, 0);
+    allocator->ms = create_mspace(0, 0);
 #endif
     int cellsize = 1 << CELL_SZ;
     for (int p = 0; p < NUM_POOLS; p++) {
@@ -305,7 +305,7 @@ void am_destroy_allocator(am_allocator *allocator) {
         free_pool_blocks(allocator, &allocator->pools[p]);
     }
 #ifdef AM_USE_DLMALLOC
-    destroy_mspace(allocator->mspace);
+    destroy_mspace(allocator->ms);
 #endif
     delete allocator;
 }

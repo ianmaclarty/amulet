@@ -32,6 +32,16 @@ struct win_info {
     int mouse_wheel_y;
 };
 
+struct controller_info {
+    bool active;
+    SDL_JoystickID joyid;
+    SDL_Haptic *haptic;
+};
+
+#define MAX_CONTROLLERS 8
+
+static controller_info controller_infos[MAX_CONTROLLERS];
+
 static bool have_focus = true;
 static SDL_AudioDeviceID audio_device = 0;
 static SDL_AudioDeviceID capture_device = 0;
@@ -54,6 +64,7 @@ static am_package *package = NULL;
 static void init_sdl();
 static void init_audio();
 static void init_audio_capture();
+static void init_controllers();
 static bool handle_events(lua_State *L);
 static am_key convert_key_scancode(SDL_Scancode key);
 static am_mouse_button convert_mouse_button(Uint8 button);
@@ -706,8 +717,9 @@ WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 #endif
 
 static void init_sdl() {
-    SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+    SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER);
     init_audio();
+    init_controllers();
     sdl_initialized = true;
 #if defined(AM_WINDOWS)
     if (am_conf_d3dangle) {
@@ -850,6 +862,14 @@ static void init_audio_capture() {
         return;
     }
     SDL_PauseAudioDevice(capture_device, 0);
+}
+
+static void init_controllers() {
+    for (int i = 0; i < MAX_CONTROLLERS; ++i) {
+        controller_infos[i].active = false;
+        controller_infos[i].joyid = 0;
+        controller_infos[i].haptic = NULL;
+    }
 }
 
 static void update_window_mouse_state(lua_State *L, win_info *info) {
@@ -999,11 +1019,20 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_CONTROLLERDEVICEADDED: {
                 int index = event.cdevice.which;
-                SDL_GameController *controller = SDL_GameControllerOpen(index);
-                if (controller) {
-                    int joyid = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
-                    lua_pushinteger(L, joyid);
-                    am_call_amulet(L, "_controller_attached", 1, 0);
+                if (index < MAX_CONTROLLERS) {
+                    SDL_GameController *controller = SDL_GameControllerOpen(index);
+                    if (controller) {
+                        int joyid = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
+                        controller_infos[index].active = true;
+                        controller_infos[index].joyid = joyid;
+                        SDL_Joystick *joy = SDL_JoystickFromInstanceID(joyid);
+                        if (joy != NULL) {
+                            controller_infos[index].haptic = SDL_HapticOpenFromJoystick(joy);
+                        }
+                        lua_pushinteger(L, index);
+                        lua_pushinteger(L, joyid);
+                        am_call_amulet(L, "_controller_attached", 2, 0);
+                    }
                 }
                 break;
             }
@@ -1011,6 +1040,17 @@ static bool handle_events(lua_State *L) {
                 int joyid = event.cdevice.which;
                 lua_pushinteger(L, joyid);
                 am_call_amulet(L, "_controller_detached", 1, 0);
+                for (int i = 0; i < MAX_CONTROLLERS; ++i) {
+                    if (controller_infos[i].active && controller_infos[i].joyid == joyid) {
+                        controller_infos[i].active = false;
+                        controller_infos[i].joyid = 0;
+                        if (controller_infos[i].haptic != NULL) {
+                            SDL_HapticClose(controller_infos[i].haptic);
+                            controller_infos[i].haptic = NULL;
+                        }
+                        break;
+                    }
+                }
                 break;
             }
             case SDL_CONTROLLERBUTTONDOWN: {
@@ -1201,6 +1241,23 @@ static am_controller_axis convert_controller_axis(Uint8 axis) {
     return AM_CONTROLLER_AXIS_UNKNOWN;
 }
 
+static int rumble(lua_State *L) {
+    am_check_nargs(L, 3);
+    int joyid = lua_tointeger(L, 1);
+    double duration = lua_tonumber(L, 2);
+    double strength = lua_tonumber(L, 3);
+    SDL_Haptic *haptic = NULL;
+    for (int i = 0; i < MAX_CONTROLLERS; ++i) {
+        if (controller_infos[i].active && controller_infos[i].joyid == joyid) {
+            haptic = controller_infos[i].haptic;
+        }
+    }
+    if (haptic == NULL) return 0;
+    if (SDL_HapticRumbleInit(haptic) != 0) return 0;
+    SDL_HapticRumblePlay(haptic, strength, (int)(duration * 1000.0));
+    return 0;
+}
+
 static bool check_for_package() {
     if (am_opt_main_module != NULL) {
         return true;
@@ -1239,6 +1296,14 @@ static win_info *win_from_id(Uint32 winid) {
         return &windows[0];
     }
     return NULL;
+}
+
+void am_open_sdl_module(lua_State *L) {
+    luaL_Reg funcs[] = {
+        {"_rumble", rumble},
+        {NULL, NULL}
+    };
+    am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
 }
 
 #endif // AM_BACKEND_SDL
