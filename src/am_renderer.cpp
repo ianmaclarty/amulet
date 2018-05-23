@@ -522,9 +522,6 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
         return;
     }
     if (validate_active_program(mode)) {
-        if (indices_view->buffer->elembuf_id == 0) {
-            indices_view->buffer->create_elembuf();
-        }
         indices_view->buffer->update_if_dirty();
         indices_view->update_max_elem_if_required();
         if (max_draw_array_size == INT_MAX) {
@@ -541,8 +538,8 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
         if (count > (indices_view->size - first)) {
             count = (indices_view->size - first);
         }
-        if (count > 0) {
-            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, indices_view->buffer->elembuf_id);
+        if (count > 0 && indices_view->buffer->elembuf != NULL && indices_view->buffer->elembuf->id != 0) {
+            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, indices_view->buffer->elembuf->id);
             am_draw_elements(mode, count, type, first * indices_view->stride);
         }
     }
@@ -682,6 +679,9 @@ static void set_indices(lua_State *L, am_draw_node *node, int idx) {
         node->view_ref = node->ref(L, idx);
     } else {
         node->reref(L, node->view_ref, idx);
+    }
+    if (indices_view->buffer->elembuf == NULL || indices_view->buffer->elembuf->id == 0) {
+        indices_view->buffer->create_elembuf(L);
     }
 }
 

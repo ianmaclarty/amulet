@@ -82,15 +82,13 @@ static int create_texture2d(lua_State *L) {
 
         image_buffer->buffer->update_if_dirty();
         image_buffer->buffer->texture2d = texture;
-        image_buffer->buffer->texture2d_ref = image_buffer->buffer->ref(L, -1);
-        image_buffer->buffer->track_dirty = true;
+        image_buffer->buffer->ref(L, -1);
     } else {
         void *data = malloc(required_size);
         memset(data, 0, required_size);
         am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, format, width, height, type, data);
         free(data);
         texture->image_buffer = NULL;
-        texture->image_buffer_ref = LUA_NOREF;
     }
 
     return 1;

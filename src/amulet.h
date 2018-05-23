@@ -133,6 +133,7 @@ extern "C" {
 #include "am_buffer.h"
 #include "am_image.h"
 #include "am_texture2d.h"
+#include "am_vbo.h"
 #include "am_audio.h"
 #include "am_action.h"
 #include "am_scene.h"

@@ -4,12 +4,13 @@ static void bind_attribute_array(am_render_state *rstate,
     am_gluint location, am_attribute_client_type type, int dims, am_buffer_view *view)
 {
     am_buffer *buf = view->buffer;
-    if (buf->arraybuf_id == 0) buf->create_arraybuf();
     buf->update_if_dirty();
-    am_bind_buffer(AM_ARRAY_BUFFER, buf->arraybuf_id);
-    am_set_attribute_pointer(location, dims, type, view->normalized, view->stride, view->offset);
-    if (view->size < rstate->max_draw_array_size) {
-        rstate->max_draw_array_size = view->size;
+    if (buf->arraybuf != NULL && buf->arraybuf->id != 0) {
+        am_bind_buffer(AM_ARRAY_BUFFER, buf->arraybuf->id);
+        am_set_attribute_pointer(location, dims, type, view->normalized, view->stride, view->offset);
+        if (view->size < rstate->max_draw_array_size) {
+            rstate->max_draw_array_size = view->size;
+        }
     }
 }
 
@@ -508,68 +509,6 @@ static void push_program_param_value(lua_State *L, am_program_param_value *param
     }
 }
 
-static void get_bind_node_value(lua_State *L, void *obj) {
-    am_bind_node *node = (am_bind_node*)obj;
-    node->pushuservalue(L);
-    lua_pushlightuserdata(L, (void*)lua_tostring(L, 2));
-    lua_rawget(L, -2);
-    int index = lua_tointeger(L, -1);
-    lua_pop(L, 2); // index, uservalue
-    am_program_param_value *param = &node->values[index];
-    push_program_param_value(L, param);
-}
-
-static void set_bind_node_value(lua_State *L, void *obj) {
-    am_bind_node *node = (am_bind_node*)obj;
-    node->pushuservalue(L);
-    lua_pushlightuserdata(L, (void*)lua_tostring(L, 2));
-    lua_rawget(L, -2);
-    assert(lua_type(L, -1) == LUA_TNUMBER);
-    int index = lua_tointeger(L, -1);
-    lua_pop(L, 2); // index, uservalue
-    am_program_param_value *param = &node->values[index];
-    if (node->refs[index] != LUA_NOREF) {
-        node->unref(L, node->refs[index]);
-        node->refs[index] = LUA_NOREF;
-    }
-    switch (am_get_type(L, 3)) {
-        case LUA_TNUMBER:
-            param->set_float(lua_tonumber(L, 3));
-            break;
-        case MT_am_vec2:
-            param->set_vec2(am_get_userdata(L, am_vec2, 3)->v);
-            break;
-        case MT_am_vec3:
-            param->set_vec3(am_get_userdata(L, am_vec3, 3)->v);
-            break;
-        case MT_am_vec4:
-            param->set_vec4(am_get_userdata(L, am_vec4, 3)->v);
-            break;
-        case MT_am_mat2:
-            param->set_mat2(am_get_userdata(L, am_mat2, 3)->m);
-            break;
-        case MT_am_mat3:
-            param->set_mat3(am_get_userdata(L, am_mat3, 3)->m);
-            break;
-        case MT_am_mat4:
-            param->set_mat4(am_get_userdata(L, am_mat4, 3)->m);
-            break;
-        case MT_am_buffer_view:
-            param->set_arr(am_get_userdata(L, am_buffer_view, 3));
-            node->refs[index] = node->ref(L, 3);
-            break;
-        case MT_am_texture2d:
-            param->set_samp2d(am_get_userdata(L, am_texture2d, 3));
-            node->refs[index] = node->ref(L, 3);
-            break;
-        default:
-            luaL_error(L, "invalid bind value for %s (%s)", lua_tostring(L, 2), am_get_typename(L, am_get_type(L, 3)));
-    }
-}
-
-static am_property bind_node_value_property =
-    {get_bind_node_value, set_bind_node_value};
-
 static void set_param_value(lua_State *L, am_program_param_value *param, int val_idx, int name_idx, int *ref, am_scene_node *node) {
     val_idx = am_absindex(L, val_idx);
     name_idx = am_absindex(L, name_idx);
@@ -596,10 +535,15 @@ static void set_param_value(lua_State *L, am_program_param_value *param, int val
         case MT_am_mat4:
             param->set_mat4(am_get_userdata(L, am_mat4, val_idx)->m);
             break;
-        case MT_am_buffer_view:
-            param->set_arr(am_get_userdata(L, am_buffer_view, val_idx));
+        case MT_am_buffer_view: {
+            am_buffer_view *view = am_get_userdata(L, am_buffer_view, val_idx);
+            if (view->buffer->arraybuf == NULL || view->buffer->arraybuf->id == 0) {
+                view->buffer->create_arraybuf(L);
+            }
+            param->set_arr(view);
             *ref = node->ref(L, val_idx);
             break;
+        }
         case MT_am_texture2d:
             param->set_samp2d(am_get_userdata(L, am_texture2d, val_idx));
             *ref = node->ref(L, val_idx);
@@ -608,6 +552,36 @@ static void set_param_value(lua_State *L, am_program_param_value *param, int val
             luaL_error(L, "invalid bind value for %s (%s)", lua_tostring(L, name_idx), am_get_typename(L, am_get_type(L, val_idx)));
     }
 }
+
+static void get_bind_node_value(lua_State *L, void *obj) {
+    am_bind_node *node = (am_bind_node*)obj;
+    node->pushuservalue(L);
+    lua_pushlightuserdata(L, (void*)lua_tostring(L, 2));
+    lua_rawget(L, -2);
+    int index = lua_tointeger(L, -1);
+    lua_pop(L, 2); // index, uservalue
+    am_program_param_value *param = &node->values[index];
+    push_program_param_value(L, param);
+}
+
+static void set_bind_node_value(lua_State *L, void *obj) {
+    am_bind_node *node = (am_bind_node*)obj;
+    node->pushuservalue(L);
+    lua_pushlightuserdata(L, (void*)lua_tostring(L, 2));
+    lua_rawget(L, -2);
+    assert(lua_type(L, -1) == LUA_TNUMBER);
+    int index = lua_tointeger(L, -1);
+    lua_pop(L, 2); // index, uservalue
+    am_program_param_value *param = &node->values[index];
+    if (node->refs[index] != LUA_NOREF) {
+        node->unref(L, node->refs[index]);
+        node->refs[index] = LUA_NOREF;
+    }
+    set_param_value(L, param, 3, 2, &node->refs[index], node);
+}
+
+static am_property bind_node_value_property =
+    {get_bind_node_value, set_bind_node_value};
 
 static am_bind_node *new_bind_node(lua_State *L, int num_params) {
     // allocate extra space for the shader paramter names, values and refs

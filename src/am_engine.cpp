@@ -51,6 +51,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_scene_module(L);
         am_open_program_module(L);
         am_open_texture2d_module(L);
+        am_open_vbo_module(L);
         am_open_framebuffer_module(L);
         am_open_image_module(L);
         am_open_model_module(L);

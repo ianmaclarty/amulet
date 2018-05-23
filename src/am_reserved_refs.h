@@ -13,6 +13,7 @@ typedef enum {
     MT_am_window,
     MT_am_program,
     MT_am_texture2d,
+    MT_am_vbo,
     MT_am_framebuffer,
     MT_am_image_buffer,
 
@@ -48,6 +49,7 @@ typedef enum {
 
     MT_am_buffer_data_allocator,
     MT_am_buffer,
+    MT_am_buffer_gc, // sames as MT_am_buffer, but with a gc metamethod
 
     MT_am_buffer_view,
     // The following list must be kept in sync with am_buffer_view_type

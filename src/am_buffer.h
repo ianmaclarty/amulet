@@ -20,39 +20,42 @@ enum am_buffer_view_type {
     AM_NUM_VIEW_TYPES,
 };
 
+enum am_buffer_alloc_method {
+    AM_BUF_ALLOC_MALLOC, // system malloc
+    AM_BUF_ALLOC_POOL_SCRATCH,
+    AM_BUF_ALLOC_LUA,
+};
+
 struct am_texture2d;
+struct am_vbo;
 
 struct am_buffer : am_nonatomic_userdata {
-    int                 size;  // in bytes
-    uint8_t             *data;
-    const char          *origin;
-    int                 origin_ref;
-    am_buffer_id        arraybuf_id;
-    am_buffer_id        elembuf_id;
-    am_texture2d        *texture2d;
-    int                 texture2d_ref;
-    int                 dirty_start;
-    int                 dirty_end;
-    bool                track_dirty;
-    uint32_t            version;
+    int                     size;  // in bytes
+    uint8_t                 *data;
+    am_vbo                  *arraybuf;
+    am_vbo                  *elembuf;
+    am_texture2d            *texture2d;
+    int                     dirty_start;
+    int                     dirty_end;
+    uint32_t                version;
+    am_buffer_alloc_method  alloc_method;
+    const char              *origin;
 
     am_buffer();
 
-    void destroy(lua_State *L);
-    void create_arraybuf();
-    void create_elembuf();
+    void free_data();
+    void create_arraybuf(lua_State *L);
+    void create_elembuf(lua_State *L);
     void update_if_dirty();
 
     void mark_dirty(int byte_start, int byte_end) {
         assert(byte_start >= 0);
         assert(byte_end <= size);
-        if (track_dirty) {
-            if (byte_start < dirty_start) {
-                dirty_start = byte_start;
-            } 
-            if (byte_end > dirty_end) {
-                dirty_end = byte_end;
-            }
+        if (byte_start < dirty_start) {
+            dirty_start = byte_start;
+        } 
+        if (byte_end > dirty_end) {
+            dirty_end = byte_end;
         }
     }
 };
@@ -64,6 +67,11 @@ struct am_pooled_buffer_slot {
 
 struct am_buffer_data_allocator : am_nonatomic_userdata {
     am_lua_array<am_pooled_buffer_slot> pooled_buffers;
+    uint8_t *pool_scratch;
+    int pool_scratch_capacity;
+    int pool_used;
+    int pool_hwm;
+    
     am_buffer_data_allocator();
 };
 

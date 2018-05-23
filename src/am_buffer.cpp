@@ -2,58 +2,79 @@
 
 am_buffer_data_allocator::am_buffer_data_allocator() {
     pooled_buffers.owner = this;
+    pool_scratch = NULL;
+    pool_scratch_capacity = 0;
+    pool_used = 0;
+    pool_hwm = 0;
 }
 
 am_buffer_data_allocator* get_buffer_data_allocator(lua_State *L) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, AM_BUFFER_DATA_ALLOCATOR);
-    am_buffer_data_allocator *ballocator = (am_buffer_data_allocator*)lua_touserdata(L, -1);
+    am_buffer_data_allocator *a = (am_buffer_data_allocator*)lua_touserdata(L, -1);
     lua_pop(L, 1);
-    return ballocator;
+    return a;
 }
 
-static void alloc_buffer_data(lua_State *L, int size, am_buffer *buf, int buf_idx) {
+static void prepare_pool(am_buffer_data_allocator *a) {
+    if (a->pool_used == 0 
+        && a->pool_hwm > a->pool_scratch_capacity)
+    {
+        // hwm has increased since last time we used the pool, so extend
+        if (a->pool_scratch != NULL) free(a->pool_scratch);
+        a->pool_scratch = (uint8_t*)malloc(a->pool_hwm);
+        a->pool_scratch_capacity = a->pool_hwm;
+        a->pool_hwm = 0;
+    } else if (a->pool_used == 0 && a->pool_scratch_capacity > 0) {
+        // starting to reuse an existing pool, reset hwm
+        assert(a->pool_scratch != NULL);
+        assert(a->pool_hwm > 0);
+        a->pool_hwm = 0;
+    }
+}
+
+static void alloc_from_pool(lua_State *L, am_buffer_data_allocator *a, am_buffer *buf, int size, int buf_idx) {
+    if (a->pool_used + size <= a->pool_scratch_capacity) {
+        // enough space in scratch area, so alloc there
+        buf->data = &a->pool_scratch[a->pool_used];
+        buf->alloc_method = AM_BUF_ALLOC_POOL_SCRATCH;
+    } else {
+        // scratch area full, so use malloc
+        buf->data = (uint8_t*)malloc(size);
+        buf->alloc_method = AM_BUF_ALLOC_MALLOC;
+    }
     buf->size = size;
-    if (size == 0) {
-        buf->data = NULL;
-        return;
-    }
-    am_buffer_data_allocator *ballocator = get_buffer_data_allocator(L);
-    buf->data = (uint8_t*)malloc(size);
-    memset(buf->data, 0, size);
-    if (ballocator->pooled_buffers.size > 0) {
-        // we're using a pool, so add the buffer to the pool
-        am_pooled_buffer_slot slot;
-        slot.buf = buf;
-        slot.ref = ballocator->ref(L, buf_idx);
-        ballocator->pooled_buffers.push_back(L, slot);
-    }
-}
-
-static void free_buffer_data(lua_State *L, am_buffer *buf) {
-    if (buf->data == NULL) return;
-    free(buf->data);
-    buf->data = NULL;
+    a->pool_used += size;
+    am_align_size(a->pool_used);
+    a->pool_hwm = am_max(a->pool_hwm, a->pool_used);
+    am_pooled_buffer_slot slot;
+    slot.buf = buf;
+    slot.ref = a->ref(L, buf_idx);
+    a->pooled_buffers.push_back(L, slot);
 }
 
 static void push_buffer_pool(lua_State *L) {
-    am_buffer_data_allocator *ballocator = get_buffer_data_allocator(L);
+    am_buffer_data_allocator *a = get_buffer_data_allocator(L);
+    prepare_pool(a);
     am_pooled_buffer_slot slot;
-    // we use a NULL slot to mark the start of this pool
+    // We use a NULL slot to mark the start of this pool
+    // We record the current used marker in the ref
     slot.buf = NULL;
-    slot.ref = LUA_NOREF;
-    ballocator->pooled_buffers.push_back(L, slot);
+    slot.ref = a->pool_used;
+    a->pooled_buffers.push_back(L, slot);
 }
 
 static void pop_buffer_pool(lua_State *L) {
-    am_buffer_data_allocator *ballocator = get_buffer_data_allocator(L);
-    for (int i = ballocator->pooled_buffers.size - 1; i >= 0; i--) {
-        am_pooled_buffer_slot slot = ballocator->pooled_buffers.arr[i];
-        ballocator->pooled_buffers.remove(i);
+    am_buffer_data_allocator *a = get_buffer_data_allocator(L);
+    for (int i = a->pooled_buffers.size - 1; i >= 0; i--) {
+        am_pooled_buffer_slot slot = a->pooled_buffers.arr[i];
+        a->pooled_buffers.remove(i);
         if (slot.buf != NULL) {
-            slot.buf->destroy(L);
-            ballocator->unref(L, slot.ref);
+            slot.buf->free_data();
+            a->unref(L, slot.ref);
         } else {
-            return; // start of pool marker reached
+            // start of pool marker reached, reset scratch area
+            a->pool_used = slot.ref;
+            return; 
         }
     }
 }
@@ -72,53 +93,83 @@ static int run_with_buffer_pool(lua_State *L) {
 am_buffer::am_buffer() {
     size = 0;
     data = NULL;
-    origin = "unnamed buffer";
-    origin_ref = LUA_NOREF;
-    arraybuf_id = 0;
-    elembuf_id = 0;
+    arraybuf = NULL;
+    elembuf = NULL;
     texture2d = NULL;
-    texture2d_ref = LUA_NOREF;
     dirty_start = INT_MAX;
     dirty_end = 0;
-    track_dirty = false;
     version = 1;
+    alloc_method = AM_BUF_ALLOC_LUA;
+    origin = "anonymous buffer";
 }
 
 am_buffer *am_push_new_buffer_and_init(lua_State *L, int size) {
-    am_buffer *buf = am_new_userdata(L, am_buffer);
-    alloc_buffer_data(L, size, buf, -1);
+    am_buffer *buf;
+    if (size == 0) {
+        buf = am_new_userdata(L, am_buffer);
+        buf->size = 0;
+        buf->data = NULL;
+        buf->alloc_method = AM_BUF_ALLOC_LUA;
+        return buf;
+    }
+    am_buffer_data_allocator *a = get_buffer_data_allocator(L);
+    if (a->pooled_buffers.size > 0) {
+        // we're using the pool
+        buf = am_new_userdata(L, am_buffer);
+        alloc_from_pool(L, a, buf, size, -1);
+    } else {
+        // alloc buffer and data as one lua userdata
+        int data_offset = sizeof(am_buffer);
+        am_align_size(data_offset);
+        buf = new(lua_newuserdata(L, data_offset + size)) am_buffer();
+        am_set_metatable(L, buf, MT_am_buffer);
+        buf->data = (uint8_t*)buf + data_offset;
+        buf->size = size;
+        buf->alloc_method = AM_BUF_ALLOC_LUA;
+    }
+    memset(buf->data, 0, size);
     return buf;
 }
 
+// the new buffer will own data and assumes it was allocated
+// with malloc.
 am_buffer *am_push_new_buffer_with_data(lua_State *L, int size, void* data) {
-    am_buffer *buf = am_new_userdata(L, am_buffer);
+    am_buffer *buf = new(lua_newuserdata(L, size)) am_buffer();
+    am_set_metatable(L, buf, MT_am_buffer_gc);
     buf->data = (uint8_t*)data;
     buf->size = size;
+    buf->alloc_method = AM_BUF_ALLOC_MALLOC;
     return buf;
 }
 
-void am_buffer::destroy(lua_State *L) {
-    free_buffer_data(L, this);
-    if (arraybuf_id != 0) {
-        am_bind_buffer(AM_ARRAY_BUFFER, 0);
-        am_delete_buffer(arraybuf_id);
-        arraybuf_id = 0;
+void am_buffer::free_data() {
+    if (data == NULL) return;
+    switch (alloc_method) {
+        case AM_BUF_ALLOC_MALLOC:
+            free(data);
+            break;
+        case AM_BUF_ALLOC_LUA:
+            break;
+        case AM_BUF_ALLOC_POOL_SCRATCH:
+            break;
     }
-    if (elembuf_id != 0) {
-        am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, 0);
-        am_delete_buffer(elembuf_id);
-        elembuf_id = 0;
-    }
+    data = NULL;
+}
+
+static int free_buffer(lua_State *L) {
+    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    buf->free_data();
+    return 0;
 }
 
 void am_buffer::update_if_dirty() {
     if (data != NULL && dirty_start < dirty_end) {
-        if (arraybuf_id != 0) {
-            am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
+        if (arraybuf != NULL && arraybuf->id != 0) {
+            am_bind_buffer(AM_ARRAY_BUFFER, arraybuf->id);
             am_set_buffer_sub_data(AM_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
         } 
-        if (elembuf_id != 0) {
-            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
+        if (elembuf != NULL && elembuf->id != 0) {
+            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf->id);
             am_set_buffer_sub_data(AM_ELEMENT_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
         } 
         if (texture2d != NULL) {
@@ -130,22 +181,32 @@ void am_buffer::update_if_dirty() {
     }
 }
 
-void am_buffer::create_arraybuf() {
-    assert(arraybuf_id == 0);
+void am_buffer::create_arraybuf(lua_State *L) {
+    assert(arraybuf == NULL || arraybuf->id == 0);
     update_if_dirty();
-    arraybuf_id = am_create_buffer_object();
-    am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
+    if (arraybuf == NULL) {
+        arraybuf = am_new_userdata(L, am_vbo);
+        arraybuf->target = AM_ARRAY_BUFFER;
+        ref(L, -1);
+        lua_pop(L, 1);
+    }
+    arraybuf->id = am_create_buffer_object();
+    am_bind_buffer(AM_ARRAY_BUFFER, arraybuf->id);
     am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
-    track_dirty = true;
 }
 
-void am_buffer::create_elembuf() {
-    assert(elembuf_id == 0);
+void am_buffer::create_elembuf(lua_State *L) {
+    assert(elembuf == NULL || arraybuf->id == 0);
     update_if_dirty();
-    elembuf_id = am_create_buffer_object();
-    am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
+    if (elembuf == NULL) {
+        elembuf = am_new_userdata(L, am_vbo);
+        ref(L, -1);
+        lua_pop(L, 1);
+        elembuf->target = AM_ELEMENT_ARRAY_BUFFER;
+    }
+    elembuf->id = am_create_buffer_object();
+    am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf->id);
     am_set_buffer_data(AM_ELEMENT_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
-    track_dirty = true;
 }
 
 void am_buffer_view::update_max_elem_if_required() {
@@ -216,7 +277,7 @@ static int load_buffer(lua_State *L) {
     } else {
         am_buffer *buf = am_push_new_buffer_with_data(L, len, data);
         buf->origin = filename;
-        buf->origin_ref = buf->ref(L, 1);
+        buf->ref(L, 1);
     }
     return 1;
 }
@@ -419,19 +480,11 @@ static int buffer_len(lua_State *L) {
     return 1;
 }
 
-static int free_buffer(lua_State *L) {
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
-    if (buf->data != NULL) {
-        buf->destroy(L);
-    }
-    return 0;
-}
-
 static int release_vbo(lua_State *L) {
     am_buffer *buf = check_buffer(L, 1);
-    if (buf->arraybuf_id != 0) {
-        am_delete_buffer(buf->arraybuf_id);
-        buf->arraybuf_id = 0;
+    if (buf->arraybuf != NULL && buf->arraybuf->id != 0) {
+        am_delete_buffer(buf->arraybuf->id);
+        buf->arraybuf->id = 0;
     }
     return 0;
 }
@@ -608,7 +661,11 @@ static int view_slice(lua_State *L) {
 
 static void get_buffer_dataptr(lua_State *L, void *obj) {
     am_buffer *buf = (am_buffer*)obj;
-    lua_pushlightuserdata(L, (void*)buf->data);
+    if (buf->data == NULL) {
+        lua_pushnil(L);
+    } else {
+        lua_pushlightuserdata(L, (void*)buf->data);
+    }
 }
 
 static am_property buffer_dataptr_property = {get_buffer_dataptr, NULL};
@@ -620,8 +677,6 @@ static void register_buffer_mt(lua_State *L) {
 
     lua_pushcclosure(L, buffer_len, 0);
     lua_setfield(L, -2, "__len");
-    lua_pushcclosure(L, free_buffer, 0);
-    lua_setfield(L, -2, "__gc");
 
     am_register_property(L, "dataptr", &buffer_dataptr_property);
 
@@ -635,6 +690,12 @@ static void register_buffer_mt(lua_State *L) {
     lua_setfield(L, -2, "free");
 
     am_register_metatable(L, "buffer", MT_am_buffer, 0);
+
+    // buffer with gc metamethod
+    lua_newtable(L);
+    lua_pushcclosure(L, free_buffer, 0);
+    lua_setfield(L, -2, "__gc");
+    am_register_metatable(L, "buffer_gc", MT_am_buffer_gc, MT_am_buffer);
 }
 
 static void register_buffer_data_allocator_mt(lua_State *L) {
