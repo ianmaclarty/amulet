@@ -14,7 +14,7 @@
 
 //#define AM_PRINT_ALLOC_STATS 1
 //#define AM_NO_SMALL_ALLOCATOR 1
-#define AM_USE_DLMALLOC 1
+//#define AM_USE_DLMALLOC 1
 
 #if defined(AM_USE_DLMALLOC)
 
@@ -29,7 +29,7 @@
 #define CELL_SZ 3
 
 // number of small object pools.
-#define NUM_POOLS 128
+#define NUM_POOLS 64
 
 // maximum contiguous freelist block size
 #define MAX_BLOCK_SIZE 10240

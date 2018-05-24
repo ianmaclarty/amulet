@@ -87,6 +87,7 @@ typedef enum {
     MT_am_iap_product,
 
     ENUM_am_buffer_view_type,
+    ENUM_am_buffer_usage,
     ENUM_am_texture_format,
     ENUM_am_texture_type,
     ENUM_am_texture_min_filter,

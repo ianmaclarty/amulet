@@ -683,6 +683,11 @@ static void set_indices(lua_State *L, am_draw_node *node, int idx) {
     } else {
         node->reref(L, node->view_ref, idx);
     }
+    if (indices_view->buffer->elembuf_id == 0 && am_gl_is_initialized()) {
+        // create vbo now if we can to avoid creating it
+        // while drawing, which may cause a stutter.
+        indices_view->buffer->create_elembuf();
+    }
 }
 
 static void get_draw_node_elements(lua_State *L, void *obj) {

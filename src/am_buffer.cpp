@@ -82,6 +82,7 @@ am_buffer::am_buffer() {
     dirty_end = 0;
     track_dirty = false;
     version = 1;
+    usage = AM_BUFFER_USAGE_STATIC_DRAW;
 }
 
 am_buffer *am_push_new_buffer_and_init(lua_State *L, int size) {
@@ -135,7 +136,7 @@ void am_buffer::create_arraybuf() {
     update_if_dirty();
     arraybuf_id = am_create_buffer_object();
     am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
-    am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
+    am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], usage);
     track_dirty = true;
 }
 
@@ -144,7 +145,7 @@ void am_buffer::create_elembuf() {
     update_if_dirty();
     elembuf_id = am_create_buffer_object();
     am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
-    am_set_buffer_data(AM_ELEMENT_ARRAY_BUFFER, size, &data[0], AM_BUFFER_USAGE_STATIC_DRAW);
+    am_set_buffer_data(AM_ELEMENT_ARRAY_BUFFER, size, &data[0], usage);
     track_dirty = true;
 }
 
@@ -613,6 +614,18 @@ static void get_buffer_dataptr(lua_State *L, void *obj) {
 
 static am_property buffer_dataptr_property = {get_buffer_dataptr, NULL};
 
+static void get_buffer_usage(lua_State *L, void *obj) {
+    am_buffer *buf = (am_buffer*)obj;
+    am_push_enum(L, am_buffer_usage, buf->usage);
+}
+
+static void set_buffer_usage(lua_State *L, void *obj) {
+    am_buffer *buf = (am_buffer*)obj;
+    buf->usage = am_get_enum(L, am_buffer_usage, 3);
+}
+
+static am_property buffer_usage_property = {get_buffer_usage, set_buffer_usage};
+
 static void register_buffer_mt(lua_State *L) {
     lua_newtable(L);
     am_set_default_index_func(L);
@@ -624,6 +637,7 @@ static void register_buffer_mt(lua_State *L) {
     lua_setfield(L, -2, "__gc");
 
     am_register_property(L, "dataptr", &buffer_dataptr_property);
+    am_register_property(L, "usage", &buffer_usage_property);
 
     lua_pushcclosure(L, create_buffer_view, 0);
     lua_setfield(L, -2, "view");
@@ -1012,6 +1026,14 @@ void am_open_buffer_module(lua_State *L) {
     register_buffer_data_allocator_mt(L);
     am_new_userdata(L, am_buffer_data_allocator); 
     lua_rawseti(L, LUA_REGISTRYINDEX, AM_BUFFER_DATA_ALLOCATOR);
+
+    am_enum_value buf_usage_enum[] = {
+        {"static",          AM_BUFFER_USAGE_STATIC_DRAW},
+        {"dynamic",         AM_BUFFER_USAGE_DYNAMIC_DRAW},
+        {"stream",          AM_BUFFER_USAGE_STREAM_DRAW},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_buffer_usage, buf_usage_enum);
 
     register_buffer_mt(L);
     register_view_mt(L);

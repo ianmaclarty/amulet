@@ -35,6 +35,7 @@ struct am_buffer : am_nonatomic_userdata {
     int                 dirty_end;
     bool                track_dirty;
     uint32_t            version;
+    am_buffer_usage     usage;
 
     am_buffer();
 
