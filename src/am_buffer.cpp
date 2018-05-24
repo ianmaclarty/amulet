@@ -133,6 +133,7 @@ void am_buffer::update_if_dirty() {
 
 void am_buffer::create_arraybuf() {
     assert(arraybuf_id == 0);
+    if (data == NULL) return;
     update_if_dirty();
     arraybuf_id = am_create_buffer_object();
     am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
@@ -142,6 +143,7 @@ void am_buffer::create_arraybuf() {
 
 void am_buffer::create_elembuf() {
     assert(elembuf_id == 0);
+    if (data == NULL) return;
     update_if_dirty();
     elembuf_id = am_create_buffer_object();
     am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
