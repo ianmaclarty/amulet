@@ -21,9 +21,15 @@ The `#` operator can be used to retrieve the size of a buffer in bytes.
 
 Fields:
 
+- `usage`: A hint to the graphics driver telling it how this buffer will be
+  used when it's used for vertex attribute data or element indices. 
+  Can be one of `"static"` (the data won't change often), `"dynamic"`
+  (the data will change frequenty), or `"stream"` (the data will only be
+  used a few times). The default is `"static"`.
+
 - `dataptr`: Returns a pointer to the buffer as a Lua `lightuserdata` value.
   The intended use for this is to manipulate the buffer using the
-  [LuaJIT FFI library](http://luajit.org/ext_ffi.html).
+  [LuaJIT FFI library](http://luajit.org/ext_ffi.html). Readonly.
 
 Methods:
 

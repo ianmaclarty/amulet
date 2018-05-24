@@ -963,7 +963,7 @@ Fields:
   the node hasn't been rendered yet,
   or the named uniform wasn't set in an ancestor node.
 
-### am.quads(n, spec) {#am.quads .func-def}
+### am.quads(n, spec [, usage]) {#am.quads .func-def}
 
 Returns a node that renders a set of quads. The returned node
 is actually an [`am.bind`](#am.bind) node with an [`am.draw`](#am.draw)
@@ -977,6 +977,10 @@ if no capacity increases are required.
 
 `spec` is a table of attribute name and type pairs (the same
 as used for [`am.struct_array`](#am.struct_array) ).
+
+`usage` is an optional hint to the graphics driver about how the
+quads will be used. See the `usage` property of [`am.buffer`](#am.buffer)
+for more details.
 
 Fields:
 
