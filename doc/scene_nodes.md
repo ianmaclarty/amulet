@@ -16,14 +16,14 @@ or execute a draw command, which renders something
 to the screen.
 
 Each scene node has a list of children, which are
-rendered in order.
+rendered in depth-first, left-to-right order.
 
 A scene node may be the child of multiple other scene nodes, so in general a
 scene node does not have a unique parent.  Cycles are also allowed and are
 handled by imposing a limit to the number of times a node can be recursively
 rendered.
 
-## Scene graph construction syntax
+## Scene graph construction syntax {#scene-graph-syntax}
 
 Special syntax is provided for constructing scene graphs
 from nodes. The expression:
@@ -168,8 +168,8 @@ removed from the node and not run again. Similarly if a coroutine
 yields `true` or finishes.
 
 Each action has an ID. If the `id` argument is
-omitted, then its ID is the value of the `action`
-argument. If present, `id` may be a value of any type besides nil, a function
+omitted, then its ID is the `action` argument itself. 
+If present, `id` may be a value of any type besides nil, a function
 or coroutine (typically it's a string).
 
 Multiple actions may be attached to a scene node, but they

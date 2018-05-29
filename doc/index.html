@@ -217,7 +217,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul></li>
 <li><a href="#scenes">Scenes</a><ul>
-<li><a href="#scene-graph-construction-syntax">Scene graph construction syntax</a></li>
+<li><a href="#scene-graph-syntax">Scene graph construction syntax</a></li>
 <li><a href="#scene-node-common-fields-and-methods">Scene node common fields and methods</a><ul>
 <li><a href="#node.hidden">node.hidden</a></li>
 <li><a href="#node.paused">node.paused</a></li>
@@ -561,6 +561,7 @@ title <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span></cod
 <span class="do">-- prints 1 2 3 4 5</span></code></pre></div>
 <p><strong>Operators:</strong></p>
 <p>The arithmetic operators are: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code> (exponent) and <code>%</code> (modulo).</p>
+<p>Note that Amulet also overloads the <code>^</code> operator for constructing scene graphs (see <a href="#scene-graph-syntax">here</a> for more details).</p>
 <p>The relational operators are: <code>==</code>, <code>~=</code> (not equal), <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code> and <code>&gt;=</code></p>
 <p>The logical operators are: <code>and</code>, <code>or</code> and <code>not</code>.</p>
 <p>The string concatenation operator is two dots (e.g. <code>&quot;abc&quot;..&quot;def&quot;</code>).</p>
@@ -1830,9 +1831,9 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h1 id="scenes">Scenes</h1>
 <p>Scene graphs are how you draw graphics in Amulet. <em>Scene nodes</em> are connected together to form a graph which is attached to a window (via the window's <a href="#window.scene"><code>scene</code></a> field). The window will then render the scene graph each frame.</p>
 <p>Scene nodes correspond to graphics commands. They either change the rendering state in some way, for example by applying a transformation or changing the blend mode, or execute a draw command, which renders something to the screen.</p>
-<p>Each scene node has a list of children, which are rendered in order.</p>
+<p>Each scene node has a list of children, which are rendered in depth-first, left-to-right order.</p>
 <p>A scene node may be the child of multiple other scene nodes, so in general a scene node does not have a unique parent. Cycles are also allowed and are handled by imposing a limit to the number of times a node can be recursively rendered.</p>
-<h2 id="scene-graph-construction-syntax">Scene graph construction syntax</h2>
+<h2 id="scene-graph-syntax">Scene graph construction syntax</h2>
 <p>Special syntax is provided for constructing scene graphs from nodes. The expression:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">node1 <span class="ot">^</span> node2</code></pre></div>
 <p>adds <code>node2</code> as a child of <code>node1</code> and returns <code>node1</code>. The resulting scene graph looks like this:</p>
@@ -1904,7 +1905,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>The action function will be called exactly once per frame as long as the node is part of a scene graph that is attached to a window. If a coroutine is used, it will be run until it yields or finishes. The action will be run for the first time on the frame after it was attached to the node.</p>
 <p>The action function may accept a single argument which is the node to which it is attached. If a coroutine is used, then the node is returned by <code>coroutine.yield()</code>.</p>
 <p>If the action function returns <code>true</code> then the action will be removed from the node and not run again. Similarly if a coroutine yields <code>true</code> or finishes.</p>
-<p>Each action has an ID. If the <code>id</code> argument is omitted, then its ID is the value of the <code>action</code> argument. If present, <code>id</code> may be a value of any type besides nil, a function or coroutine (typically it's a string).</p>
+<p>Each action has an ID. If the <code>id</code> argument is omitted, then its ID is the <code>action</code> argument itself. If present, <code>id</code> may be a value of any type besides nil, a function or coroutine (typically it's a string).</p>
 <p>Multiple actions may be attached to a scene node, but they must all have unique ids. If you attempt to attach an action with an ID that is already used by another action on the same node, then the other action will be removed before the new one is attached.</p>
 <p>The order that actions are run is determined by the node's position in the scene graph. Each node is visited in depth-first, left-to-right order and the actions on each node are run in the order they were added to the node. Each action is never run more than once per frame, even if the node occurs multiple times in the graph or is part of a cycle. For example, given the following scene graph:</p>
 <div class="figure">
