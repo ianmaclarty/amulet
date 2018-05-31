@@ -192,6 +192,7 @@ static char *get_bin_path(export_config *conf, const char *platform) {
     const char *luavm = platform_luavm(platform);
     char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", builds_path, platform, luavm, conf->grade);
     if (!am_file_exists(bin_path)) {
+        printf("WARNING: unable to find %s\n", bin_path);
         free(bin_path);
         return NULL;
     }
