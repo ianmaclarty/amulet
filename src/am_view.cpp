@@ -48,6 +48,14 @@ am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type) {
         am_set_metatable(L,
             new (lua_newuserdata(L, sizeof(am_buffer_view))) am_buffer_view(),
             mtid);
+    view->type = type;
+    view->buffer = NULL;
+    view->buffer_ref = LUA_NOREF;
+    view->offset = 0;
+    view->stride = 0;
+    view->size = 0;
+    view->max_elem = 0;
+    view->last_max_elem_version = 0;
     return view;
 }
 
@@ -174,9 +182,6 @@ int am_create_buffer_view(lua_State *L) {
     view->offset = offset;
     view->stride = stride;
     view->size = size;
-    view->type = type;
-    view->last_max_elem_version = 0;
-    view->max_elem = 0;
 
     return 1;
 }
@@ -219,9 +224,77 @@ static int view_slice(lua_State *L) {
     slice->offset = view->offset + (start-1) * view->stride;
     slice->stride = view->stride * stride_multiplier;
     slice->size = size;
-    slice->type = view->type;
     slice->max_elem = view->max_elem;
     slice->last_max_elem_version = view->last_max_elem_version;
+    return 1;
+}
+
+static int gen_range(lua_State *L) {
+    am_check_nargs(L, 3);
+    int n = luaL_checkinteger(L, 1);
+    if (n < 2) {
+        return luaL_error(L, "range count must be at least 2");
+    }
+    float start = (float)luaL_checknumber(L, 2);
+    float end = (float)luaL_checknumber(L, 3);
+    float inc = (end - start) / (float)(n-1);
+
+    am_buffer *res_buf = am_push_new_buffer_and_init(L, 4 * n);
+    float *data = (float*)res_buf->data;
+    float x = start;
+    for (int i = 0; i < n - 1; i++) {
+        data[i] = x;
+        x += inc;
+    }
+    data[n-1] = end;
+    am_buffer_view *res_view = am_new_buffer_view(L, AM_VIEW_TYPE_FLOAT);
+    res_view->buffer = res_buf;
+    res_view->buffer_ref = res_view->ref(L, -2);
+    lua_remove(L, -2); // buffer
+    res_view->stride = 4;
+    res_view->size = n;
+    return 1;
+}
+
+static int gen_random(lua_State *L) {
+    int nargs = am_check_nargs(L, 1);
+    am_rand *rand;
+    int arg0 = 1;
+    if (am_get_type(L, 1) == MT_am_rand) {
+        rand = am_get_userdata(L, am_rand, 1);
+        arg0 = 2;
+        nargs--;
+    } else {
+        rand = am_get_default_rand(L);
+    }
+    if (nargs == 0) {
+        return luaL_error(L, "expecting more arguments");
+    }
+    int n = luaL_checkinteger(L, arg0);
+    if (n < 1) {
+        return luaL_error(L, "number of random numbers to generate must be positive");
+    }
+    float lo = 0.0;
+    float hi = 1.0;
+    if (nargs > 1) {
+        lo = (float)luaL_checknumber(L, arg0 + 1);
+    }
+    if (nargs > 2) {
+        hi = (float)luaL_checknumber(L, arg0 + 2);
+    }
+    float range = hi - lo;
+
+    am_buffer *res_buf = am_push_new_buffer_and_init(L, 4 * n);
+    float *data = (float*)res_buf->data;
+    for (int i = 0; i < n; i++) {
+        data[i] = rand->get_randf() * range + lo;
+    }
+    am_buffer_view *res_view = am_new_buffer_view(L, AM_VIEW_TYPE_FLOAT);
+    res_view->buffer = res_buf;
+    res_view->buffer_ref = res_view->ref(L, -2);
+    lua_remove(L, -2); // buffer
+    res_view->stride = 4;
+    res_view->size = n;
     return 1;
 }
 
@@ -465,6 +538,10 @@ static void register_view_mt(lua_State *L) {
 
 void am_open_view_module(lua_State *L) {
     luaL_Reg vfuncs[] = {
+        // generators
+        {"range", gen_range},
+        {"random", gen_random},
+        // math functions
         {"sin", view_op_sin},
         {"cos", view_op_cos},
         {NULL, NULL}

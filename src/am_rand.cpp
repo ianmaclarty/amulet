@@ -8,6 +8,10 @@ double am_rand::get_rand() {
     return tinymt32_generate_32double(&state);
 }
 
+float am_rand::get_randf() {
+    return tinymt32_generate_float(&state);
+}
+
 static int create_rand(lua_State *L) {
     am_check_nargs(L, 1);
     int seed = lua_tointeger(L, 1);
@@ -43,6 +47,13 @@ static int get_random(lua_State *L) {
     return 1;
 }
 
+am_rand* am_get_default_rand(lua_State *L) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, AM_DEFAULT_RAND);
+    am_rand *r = am_get_userdata(L, am_rand, -1);
+    lua_pop(L, 1);
+    return r;
+}
+
 static void register_rand_mt(lua_State *L) {
     lua_newtable(L);
 
@@ -62,4 +73,8 @@ void am_open_rand_module(lua_State *L) {
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_rand_mt(L);
+
+    am_rand *default_rand = am_new_userdata(L, am_rand);
+    default_rand->init(1);
+    lua_rawseti(L, LUA_REGISTRYINDEX, AM_DEFAULT_RAND);
 }

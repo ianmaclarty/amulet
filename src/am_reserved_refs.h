@@ -9,6 +9,7 @@ typedef enum {
     AM_METATABLE_REGISTRY,
     AM_ROOT_AUDIO_NODE,
     AM_BUFFER_DATA_ALLOCATOR,
+    AM_DEFAULT_RAND,
 
     MT_am_window,
     MT_am_program,
