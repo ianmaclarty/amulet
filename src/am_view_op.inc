@@ -18,12 +18,17 @@
 #error ARGS must be <= 3
 #endif
 
+#ifdef EXPORT
+int AM_CONCAT(am_view_op_, SUFFIX)(lua_State *L) {
+#else
 static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
+#endif
     int type1;
     float *buf1;
     int stride1;
     int size1;
     int components1;
+    int component_move1 = 1;
     float farr1[4];
     view_float_iter_setup(L, 1, &type1, &buf1, &stride1, &size1, &components1, farr1, OPNAME);
 #if ARGS > 1
@@ -32,6 +37,7 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
     int stride2;
     int size2;
     int components2;
+    int component_move2 = 1;
     float farr2[4];
     view_float_iter_setup(L, 2, &type2, &buf2, &stride2, &size2, &components2, farr2, OPNAME);
 #endif
@@ -41,6 +47,7 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
     int stride3;
     int size3;
     int components3;
+    int component_move3 = 1;
     float farr3[4];
     view_float_iter_setup(L, 3, &type3, &buf3, &stride3, &size3, &components3, farr3, OPNAME);
 #endif
@@ -70,6 +77,8 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
         if (components != components2) {
             if (components1 == 1 || components2 == 1) {
                 components = am_max(components1, components2);
+                if (components1 == 1) component_move1 = 0;
+                if (components2 == 1) component_move2 = 0;
             } else {
                 return luaL_error(L, "view components mismatch for op %s (%d vs %d)", OPNAME,
                     components1, components2);
@@ -80,6 +89,9 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
         if (components != components3) {
             if (components1 == 1 || components2 == 1 || components3 == 1) {
                 components = am_max(components1, am_max(components2, components3));
+                if (components1 == 1) component_move1 = 0;
+                if (components2 == 1) component_move2 = 0;
+                if (components3 == 1) component_move3 = 0;
             } else {
                 return luaL_error(L, "view components mismatch for op %s (%d vs %d vs %d)", OPNAME,
                     components1, components2, components3);
@@ -92,13 +104,26 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
     am_buffer_view_type result_type = (am_buffer_view_type)(AM_VIEW_TYPE_FLOAT + (components - 1));
 
     for (int i = 0; i < size * components; i += components) {
+        int j1 = 0;
+        #if ARGS > 1
+        int j2 = 0;
+        #endif
+        #if ARGS > 2
+        int j3 = 0;
+        #endif
         for (int j = 0; j < components; ++j) {
             #if ARGS == 1
-                result_data[i + j] = OP(buf1[j]);
+                result_data[i + j] = OP(buf1[j1]);
+                j1 += component_move1;
             #elif ARGS == 2
-                result_data[i + j] = OP(buf1[j], buf2[j]);
+                result_data[i + j] = OP(buf1[j1], buf2[j2]);
+                j1 += component_move1;
+                j2 += component_move2;
             #elif ARGS == 3
-                result_data[i + j] = OP(buf1[j], buf2[j], buf3[j]);
+                result_data[i + j] = OP(buf1[j1], buf2[j2], buf3[j3]);
+                j1 += component_move1;
+                j2 += component_move2;
+                j3 += component_move3;
             #endif
         }
         buf1 += stride1;
@@ -136,3 +161,4 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
 #undef OPNAME
 #undef OP
 #undef SUFFIX
+#undef EXPORT

@@ -121,7 +121,7 @@ endif
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) $(DEP_ALIBS) $(EXTRA_PREREQS) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
 	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
 
-$(BUILD_OBJ_DIR)/am_buffer$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
+$(BUILD_OBJ_DIR)/am_view$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	echo $(SDL_PREBUILT_DIR)

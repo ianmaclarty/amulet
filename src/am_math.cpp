@@ -88,40 +88,28 @@ static int immutable_newindex(lua_State *L) {
 static int vec##D##_##OPNAME(lua_State *L) {                                    \
     am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
     if (lua_isnumber(L, 1)) {                                                   \
-        double x = lua_tonumber(L, 1);                                           \
-        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
+        double x = lua_tonumber(L, 1);                                          \
+        am_vec##D *y = (am_vec##D*)lua_touserdata(L, 2);                        \
         z->v = x OP y->v;                                                       \
-    } else if (lua_isnumber(L, 2)) {                                            \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        double y = lua_tonumber(L, 2);                                           \
-        z->v = x->v OP y;                                                       \
     } else {                                                                    \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
-        z->v = x->v OP y->v;                                                    \
-    }                                                                           \
-    return 1;                                                                   \
-}
-
-#define VEC_MUL_FUNC(D)                                                         \
-static int vec##D##_mul(lua_State *L) {                                         \
-    am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
-    if (lua_isnumber(L, 1)) {                                                   \
-        double x = lua_tonumber(L, 1);                                           \
-        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
-        z->v = x * y->v;                                                        \
-    } else if (lua_isnumber(L, 2)) {                                            \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        double y = lua_tonumber(L, 2);                                           \
-        z->v = x->v * y;                                                        \
-    } else if (am_get_type(L, 2) == MT_am_mat##D) {                             \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                        \
-        z->v = x->v * y->m;                                                     \
-    } else {                                                                    \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
-        z->v = x->v * y->v;                                                     \
+        switch (am_get_type(L, 2)) {                                            \
+            case LUA_TNUMBER: {                                                 \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                double y = lua_tonumber(L, 2);                                  \
+                z->v = x->v OP y;                                               \
+                break;                                                          \
+            }                                                                   \
+            case MT_am_buffer_view: {                                           \
+                return am_view_op_##OPNAME(L);                                  \
+                break;                                                          \
+            }                                                                   \
+            default: {                                                          \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                am_vec##D *y = (am_vec##D*)lua_touserdata(L, 2);                \
+                z->v = x->v OP y->v;                                            \
+                break;                                                          \
+            }                                                                   \
+        }                                                                       \
     }                                                                           \
     return 1;                                                                   \
 }
@@ -130,14 +118,14 @@ static int vec##D##_mul(lua_State *L) {                                         
 static int vec2_mul(lua_State *L) {                                             \
     am_vec2 *z = am_new_userdata(L, am_vec2);                                   \
     if (lua_isnumber(L, 1)) {                                                   \
-        double x = lua_tonumber(L, 1);                                           \
+        double x = lua_tonumber(L, 1);                                          \
         am_vec2 *y = am_get_userdata(L, am_vec2, 2);                            \
         z->v = x * y->v;                                                        \
     } else {                                                                    \
         switch (am_get_type(L, 2)) {                                            \
             case LUA_TNUMBER: {                                                 \
                 am_vec2 *x = am_get_userdata(L, am_vec2, 1);                    \
-                double y = lua_tonumber(L, 2);                                   \
+                double y = lua_tonumber(L, 2);                                  \
                 z->v = x->v * y;                                                \
                 break;                                                          \
             }                                                                   \
@@ -150,8 +138,12 @@ static int vec2_mul(lua_State *L) {                                             
             case MT_am_quat: {                                                  \
                 am_vec2 *x = am_get_userdata(L, am_vec2, 1);                    \
                 am_quat *y = am_get_userdata(L, am_quat, 2);                    \
-                glm::dvec3 v3 = glm::dvec3(x->v.x, x->v.y, 0.0) * y->q;          \
-                z->v = glm::dvec2(v3.x, v3.y);                                   \
+                glm::dvec3 v3 = glm::dvec3(x->v.x, x->v.y, 0.0) * y->q;         \
+                z->v = glm::dvec2(v3.x, v3.y);                                  \
+                break;                                                          \
+            }                                                                   \
+            case MT_am_buffer_view: {                                           \
+                return am_view_op_mul(L);                                       \
                 break;                                                          \
             }                                                                   \
             default: {                                                          \
@@ -168,7 +160,7 @@ static int vec2_mul(lua_State *L) {                                             
 static int vec##D##_mul(lua_State *L) {                                         \
     am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
     if (lua_isnumber(L, 1)) {                                                   \
-        double x = lua_tonumber(L, 1);                                           \
+        double x = lua_tonumber(L, 1);                                          \
         am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
         z->v = x * y->v;                                                        \
     } else {                                                                    \
@@ -191,6 +183,10 @@ static int vec##D##_mul(lua_State *L) {                                         
                 z->v = x->v * y->q;                                             \
                 break;                                                          \
             }                                                                   \
+            case MT_am_buffer_view: {                                           \
+                return am_view_op_mul(L);                                       \
+                break;                                                          \
+            }                                                                   \
             default: {                                                          \
                 am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
                 am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                \
@@ -205,21 +201,33 @@ static int vec##D##_mul(lua_State *L) {                                         
 static int vec##D##_div(lua_State *L) {                                         \
     am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
     if (lua_isnumber(L, 1)) {                                                   \
-        double x = lua_tonumber(L, 1);                                           \
+        double x = lua_tonumber(L, 1);                                          \
         am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
         z->v = x / y->v;                                                        \
-    } else if (lua_isnumber(L, 2)) {                                            \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        double y = lua_tonumber(L, 2);                                           \
-        z->v = x->v / y;                                                        \
-    } else if (am_get_type(L, 2) == MT_am_mat##D) {                             \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                        \
-        z->v = x->v * glm::inverse(y->m);                                       \
     } else {                                                                    \
-        am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                        \
-        am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                        \
-        z->v = x->v / y->v;                                                     \
+        switch (am_get_type(L, 2)) {                                            \
+            case LUA_TNUMBER: {                                                 \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                double y = lua_tonumber(L, 2);                                  \
+                z->v = x->v / y;                                                \
+                break;                                                          \
+            }                                                                   \
+            case MT_am_mat##D: {                                                \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                \
+                z->v = x->v * glm::inverse(y->m);                               \
+                break;                                                          \
+            }                                                                   \
+            case MT_am_buffer_view: {                                           \
+                return am_view_op_div(L);                                       \
+                break;                                                          \
+            }                                                                   \
+            default: {                                                          \
+                am_vec##D *x = am_get_userdata(L, am_vec##D, 1);                \
+                am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                \
+                z->v = x->v / y->v;                                             \
+            }                                                                   \
+        }                                                                       \
     }                                                                           \
     return 1;                                                                   \
 }
@@ -246,10 +254,10 @@ static int vec##D##_new(lua_State *L) {                                         
     }                                                                                   \
     if (n == 1 && lua_isnumber(L, 1)) {                                                 \
         am_vec##D *v = am_new_userdata(L, am_vec##D);                                   \
-        v->v = glm::dvec##D((double)lua_tonumber(L, 1));                                  \
+        v->v = glm::dvec##D((double)lua_tonumber(L, 1));                                \
     } else {                                                                            \
         am_vec##D *vv = am_new_userdata(L, am_vec##D);                                  \
-        glm::dvec##D *v = &vv->v;                                                        \
+        glm::dvec##D *v = &vv->v;                                                       \
         int i = 0;                                                                      \
         int j;                                                                          \
         for (j = 1; j <= n; j++) {                                                      \

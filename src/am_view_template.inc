@@ -21,7 +21,7 @@
 #endif
 
 static int AM_CONCAT(TNAME,_view_index)(lua_State *L) {
-    am_buffer_view *view = check_buffer_view(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
     int index = lua_tointeger(L, 2);
     if (index < 1 || index > view->size) {
         return am_default_index_func(L);
@@ -32,7 +32,7 @@ static int AM_CONCAT(TNAME,_view_index)(lua_State *L) {
 }
 
 static int AM_CONCAT(TNAME,_view_newindex)(lua_State *L) {
-    am_buffer_view *view = check_buffer_view(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
     int index = lua_tointeger(L, 2);
     if (index < 1 || index > view->size) {
         if (lua_isnumber(L, 2)) {
@@ -203,7 +203,7 @@ static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *d
 
 static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
-    am_buffer_view *view = check_buffer_view(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
     int sz = INT_MAX;
     int start = 1;
     if (nargs > 2) {
@@ -233,7 +233,7 @@ static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
             AM_CONCAT(TNAME,_view_set_from_single)(L, view, 2, start, sz);
             break;
         case MT_am_buffer_view:
-            AM_CONCAT(TNAME,_view_set_from_view)(L, view, check_buffer_view(L, 2), start, sz);
+            AM_CONCAT(TNAME,_view_set_from_view)(L, view, am_check_buffer_view(L, 2), start, sz);
             break;
         default:
             return luaL_error(L, "expecting a number, table or view in position 2 (got %s[%d])",
