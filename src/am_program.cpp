@@ -7,7 +7,7 @@ static void bind_attribute_array(am_render_state *rstate,
     if (buf->arraybuf_id == 0) buf->create_arraybuf();
     buf->update_if_dirty();
     am_bind_buffer(AM_ARRAY_BUFFER, buf->arraybuf_id);
-    am_set_attribute_pointer(location, dims, type, view->normalized, view->stride, view->offset);
+    am_set_attribute_pointer(location, dims, type, view->is_normalized(), view->stride, view->offset);
     if (view->size < rstate->max_draw_array_size) {
         rstate->max_draw_array_size = view->size;
     }

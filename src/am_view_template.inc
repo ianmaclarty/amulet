@@ -184,10 +184,10 @@ static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *d
     } else {
         // XXX handle the case where src and dest are vectors
         // of the same dimensions with different, but convertable, types.
-        lua_Number (*read_num)(uint8_t*) = view_number_reader[src->type];
+        lua_Number (*read_num)(uint8_t*) = view_type_infos[src->type].num_reader;
         if (read_num == NULL) {
             luaL_error(L, "cannot convert a %s view to a %s view",
-                view_type_name[src->type], view_type_name[dest->type]);
+                view_type_infos[src->type].name, view_type_infos[dest->type].name);
         }
         while (dest_ptr < dest_end && src_ptr < src_end) {
             lua_pushnumber(L, read_num(src_ptr));

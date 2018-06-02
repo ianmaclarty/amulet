@@ -21,18 +21,17 @@ enum am_buffer_view_type {
 };
 
 struct am_buffer_view : am_nonatomic_userdata {
+    am_buffer_view_type type;
     am_buffer           *buffer;
-    int                 buffer_ref;
     int                 offset; // in bytes
     int                 stride; // in bytes
     int                 size;   // number of elements
-    int                 max_size;
-    am_buffer_view_type type;
-    int                 type_size; // size of each element in bytes
-    bool                normalized;
+    int                 buffer_ref;
+
     uint32_t            max_elem;
     uint32_t            last_max_elem_version;
 
+    bool is_normalized();
     void update_max_elem_if_required();
 };
 

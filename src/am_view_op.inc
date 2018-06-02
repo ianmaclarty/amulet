@@ -146,8 +146,6 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
     view->stride = components * 4;
     view->size = size;
     view->type = result_type;
-    view->type_size = components * 4;
-    view->normalized = false;
     view->last_max_elem_version = 0;
     view->max_elem = 0;
 
