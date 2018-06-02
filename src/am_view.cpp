@@ -115,26 +115,28 @@ struct view_type_info {
     const char *name;
     int size;
     bool normalized;
+    int components;
+    am_buffer_view_type base_type;
     lua_Number(*num_reader)(uint8_t*);
 };
 
 static view_type_info view_type_infos[] = {
-    {"float",              4,  false,  &read_num_float,          },
-    {"vec2",               8,  false,  NULL,                     },
-    {"vec3",              12,  false,  NULL,                     },
-    {"vec4",              16,  false,  NULL,                     },
-    {"ubyte",              1,  false,  &read_num_ubyte,          },
-    {"byte",               1,  false,  &read_num_byte,           },
-    {"ubyte_norm",         1,  true,   &read_num_ubyte_norm,     },
-    {"byte_norm",          1,  true,   &read_num_byte_norm,      },
-    {"ushort",             2,  false,  &read_num_ushort,         },
-    {"short",              2,  false,  &read_num_short,          },
-    {"ushort_elem",        2,  false,  &read_num_ushort_elem,    },
-    {"ushort_norm",        2,  true,   &read_num_ushort_norm,    },
-    {"short_norm",         2,  true,   &read_num_short_norm,     },
-    {"uint",               4,  false,  &read_num_uint,           },
-    {"int",                4,  false,  &read_num_int,            },
-    {"uint_elem",          4,  false,  &read_num_uint_elem,      },
+    {"float",          4,  false,  1, AM_VIEW_TYPE_FLOAT,         &read_num_float,        },
+    {"vec2",           8,  false,  2, AM_VIEW_TYPE_FLOAT,         NULL,                   },
+    {"vec3",          12,  false,  3, AM_VIEW_TYPE_FLOAT,         NULL,                   },
+    {"vec4",          16,  false,  4, AM_VIEW_TYPE_FLOAT,         NULL,                   },
+    {"ubyte",          1,  false,  1, AM_VIEW_TYPE_UBYTE,         &read_num_ubyte,        },
+    {"byte",           1,  false,  1, AM_VIEW_TYPE_BYTE,          &read_num_byte,         },
+    {"ubyte_norm",     1,  true,   1, AM_VIEW_TYPE_UBYTE_NORM,    &read_num_ubyte_norm,   },
+    {"byte_norm",      1,  true,   1, AM_VIEW_TYPE_BYTE_NORM,     &read_num_byte_norm,    },
+    {"ushort",         2,  false,  1, AM_VIEW_TYPE_USHORT,        &read_num_ushort,       },
+    {"short",          2,  false,  1, AM_VIEW_TYPE_SHORT,         &read_num_short,        },
+    {"ushort_elem",    2,  false,  1, AM_VIEW_TYPE_USHORT_ELEM,   &read_num_ushort_elem,  },
+    {"ushort_norm",    2,  true,   1, AM_VIEW_TYPE_USHORT_NORM,   &read_num_ushort_norm,  },
+    {"short_norm",     2,  true,   1, AM_VIEW_TYPE_SHORT_NORM,    &read_num_short_norm,   },
+    {"uint",           4,  false,  1, AM_VIEW_TYPE_UINT,          &read_num_uint,         },
+    {"int",            4,  false,  1, AM_VIEW_TYPE_INT,           &read_num_int,          },
+    {"uint_elem",      4,  false,  1, AM_VIEW_TYPE_UINT_ELEM,     &read_num_uint_elem,    },
 };
 ct_check_array_size(view_type_infos, AM_NUM_VIEW_TYPES);
 
@@ -298,6 +300,59 @@ static int gen_random(lua_State *L) {
     return 1;
 }
 
+static int view_cart(lua_State *L) {
+    am_check_nargs(L, 2);
+    am_buffer_view *view1 = am_check_buffer_view(L, 1);
+    am_buffer_view *view2 = am_check_buffer_view(L, 2);
+    int type1 = view1->type;
+    int type2 = view2->type;
+    view_type_info info1 = view_type_infos[type1];
+    view_type_info info2 = view_type_infos[type2];
+    if (info1.base_type != AM_VIEW_TYPE_FLOAT || info2.base_type != AM_VIEW_TYPE_FLOAT) {
+        return luaL_error(L, "cart not supported for views of type %s and %s", info1.name, info2.name);
+    }
+    if (view1->offset & 3 || view1->stride & 3) {
+        return luaL_error(L, "view must be 4-byte aligned");
+    }
+    if (view2->offset & 3 || view2->stride & 3) {
+        return luaL_error(L, "view must be 4-byte aligned");
+    }
+    int components1 = view_type_infos[type1].components;
+    int components2 = view_type_infos[type2].components;
+    int components = components1 + components2;
+    if (components > 4) {
+        return luaL_error(L, "sum of cart view components must be <= 4");
+    }
+    am_buffer_view_type type = (am_buffer_view_type)((int)AM_VIEW_TYPE_FLOAT + (components - 1));
+    am_buffer *buf = am_push_new_buffer_and_init(L, 4 * components * view1->size * view2->size);
+    float *data1 = (float*)view1->buffer->data;
+    float *data2 = (float*)view2->buffer->data;
+    int stride1 = view1->stride >> 2;
+    int stride2 = view2->stride >> 2;
+    float *data = (float*)buf->data;
+    int d = 0;
+    for (int i = 0; i < view1->size; ++i) {
+        for (int j = 0; j < view2->size; ++j) {
+            for (int c = 0; c < components1; ++c) {
+                data[d++] = data1[c];
+            }
+            for (int c = 0; c < components2; ++c) {
+                data[d++] = data2[c];
+            }
+            data2 += stride2;
+        }
+        data2 = (float*)view2->buffer->data;
+        data1 += stride1;
+    }
+    am_buffer_view *view = am_new_buffer_view(L, type);
+    view->buffer = buf;
+    view->buffer_ref = view->ref(L, -2);
+    lua_remove(L, -2); // buffer
+    view->stride = 4 * components;
+    view->size = view1->size * view2->size;
+    return 1;
+}
+
 static void get_view_buffer(lua_State *L, void *obj) {
     am_buffer_view *view = (am_buffer_view*)obj;
     view->pushref(L, view->buffer_ref);
@@ -323,25 +378,13 @@ static void view_float_iter_setup(lua_State *L, int arg, int *type,
             if (view->offset & 3 || view->stride & 3) {
                 luaL_error(L, "view must be 4-byte aligned for op %s", opname);
             }
+            if (view_type_infos[view->type].base_type != AM_VIEW_TYPE_FLOAT) {
+                luaL_error(L, "op %s not supported for views of type %s", opname, view_type_infos[view->type].name);
+            }
             *buf = (float*)(view->buffer->data + view->offset);
             *stride = view->stride >> 2;
             *size = view->size;
-            switch (view->type) {
-                case AM_VIEW_TYPE_FLOAT:
-                    *components = 1;
-                    break;
-                case AM_VIEW_TYPE_FLOAT2:
-                    *components = 2;
-                    break;
-                case AM_VIEW_TYPE_FLOAT3:
-                    *components = 3;
-                    break;
-                case AM_VIEW_TYPE_FLOAT4:
-                    *components = 4;
-                    break;
-                default:
-                    luaL_error(L, "op %s not supported for views of type %s", opname, view_type_infos[view->type].name);
-            }
+            *components = view_type_infos[view->type].components;
             break;
         }
         case LUA_TNUMBER: {
@@ -541,6 +584,8 @@ void am_open_view_module(lua_State *L) {
         // generators
         {"range", gen_range},
         {"random", gen_random},
+        // shape changing
+        {"cart", view_cart},
         // math functions
         {"sin", view_op_sin},
         {"cos", view_op_cos},

@@ -215,6 +215,11 @@ print_view(mathv.random(10, -10, 10))
 print_view(mathv.random(am.rand(500), 5, 0, 3))
 print_view(mathv.random(am.rand(500), 5, 0, 3))
 
+print("view shape changers")
+print_view(mathv.cart(am.float_array{1, 10, 100}, am.float_array{2, 20, 200}))
+print_view(mathv.cart(am.vec2_array{1, 2, 10, 20, 100, 200}, am.float_array{3, 30, 300}))
+print_view(mathv.cart(am.float_array{3, 30, 300}, am.vec2_array{1, 2, 10, 20, 100, 200}))
+
 local _, err = pcall(function() 
     local b = am.buffer(16)
     local v = b:view("float", 0, 4)
