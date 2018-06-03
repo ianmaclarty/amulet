@@ -117,31 +117,46 @@ struct view_type_info {
     bool normalized;
     int components;
     am_buffer_view_type base_type;
+    bool can_be_gl_attrib;
+    am_attribute_client_type gl_client_type;
     lua_Number(*num_reader)(uint8_t*);
 };
 
 static view_type_info view_type_infos[] = {
-    {"float",          4,  false,  1, AM_VIEW_TYPE_FLOAT,         &read_num_float,        },
-    {"vec2",           8,  false,  2, AM_VIEW_TYPE_FLOAT,         NULL,                   },
-    {"vec3",          12,  false,  3, AM_VIEW_TYPE_FLOAT,         NULL,                   },
-    {"vec4",          16,  false,  4, AM_VIEW_TYPE_FLOAT,         NULL,                   },
-    {"ubyte",          1,  false,  1, AM_VIEW_TYPE_UBYTE,         &read_num_ubyte,        },
-    {"byte",           1,  false,  1, AM_VIEW_TYPE_BYTE,          &read_num_byte,         },
-    {"ubyte_norm",     1,  true,   1, AM_VIEW_TYPE_UBYTE_NORM,    &read_num_ubyte_norm,   },
-    {"byte_norm",      1,  true,   1, AM_VIEW_TYPE_BYTE_NORM,     &read_num_byte_norm,    },
-    {"ushort",         2,  false,  1, AM_VIEW_TYPE_USHORT,        &read_num_ushort,       },
-    {"short",          2,  false,  1, AM_VIEW_TYPE_SHORT,         &read_num_short,        },
-    {"ushort_elem",    2,  false,  1, AM_VIEW_TYPE_USHORT_ELEM,   &read_num_ushort_elem,  },
-    {"ushort_norm",    2,  true,   1, AM_VIEW_TYPE_USHORT_NORM,   &read_num_ushort_norm,  },
-    {"short_norm",     2,  true,   1, AM_VIEW_TYPE_SHORT_NORM,    &read_num_short_norm,   },
-    {"uint",           4,  false,  1, AM_VIEW_TYPE_UINT,          &read_num_uint,         },
-    {"int",            4,  false,  1, AM_VIEW_TYPE_INT,           &read_num_int,          },
-    {"uint_elem",      4,  false,  1, AM_VIEW_TYPE_UINT_ELEM,     &read_num_uint_elem,    },
+    {"float",          4,  false,  1, AM_VIEW_TYPE_FLOAT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_float,        },
+    {"vec2",           8,  false,  2, AM_VIEW_TYPE_FLOAT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   NULL,                   },
+    {"vec3",          12,  false,  3, AM_VIEW_TYPE_FLOAT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   NULL,                   },
+    {"vec4",          16,  false,  4, AM_VIEW_TYPE_FLOAT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   NULL,                   },
+    {"ubyte",          1,  false,  1, AM_VIEW_TYPE_UBYTE,         true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   &read_num_ubyte,        },
+    {"byte",           1,  false,  1, AM_VIEW_TYPE_BYTE,          true,  AM_ATTRIBUTE_CLIENT_TYPE_BYTE,    &read_num_byte,         },
+    {"ubyte_norm",     1,  true,   1, AM_VIEW_TYPE_UBYTE_NORM,    true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   &read_num_ubyte_norm,   },
+    {"ubyte_norm4",    4,  true,   4, AM_VIEW_TYPE_UBYTE_NORM,    true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   NULL,                   },
+    {"byte_norm",      1,  true,   1, AM_VIEW_TYPE_BYTE_NORM,     true,  AM_ATTRIBUTE_CLIENT_TYPE_BYTE,    &read_num_byte_norm,    },
+    {"ushort",         2,  false,  1, AM_VIEW_TYPE_USHORT,        true,  AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort,       },
+    {"short",          2,  false,  1, AM_VIEW_TYPE_SHORT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_SHORT,   &read_num_short,        },
+    {"ushort_elem",    2,  false,  1, AM_VIEW_TYPE_USHORT_ELEM,   false, AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort_elem,  },
+    {"ushort_norm",    2,  true,   1, AM_VIEW_TYPE_USHORT_NORM,   true,  AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort_norm,  },
+    {"short_norm",     2,  true,   1, AM_VIEW_TYPE_SHORT_NORM,    true,  AM_ATTRIBUTE_CLIENT_TYPE_SHORT,   &read_num_short_norm,   },
+    {"uint",           4,  false,  1, AM_VIEW_TYPE_UINT,          false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_uint,         },
+    {"int",            4,  false,  1, AM_VIEW_TYPE_INT,           false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_int,          },
+    {"uint_elem",      4,  false,  1, AM_VIEW_TYPE_UINT_ELEM,     false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_uint_elem,    },
 };
 ct_check_array_size(view_type_infos, AM_NUM_VIEW_TYPES);
 
 bool am_buffer_view::is_normalized() {
     return view_type_infos[type].normalized;
+}
+
+int am_buffer_view::num_components() {
+    return view_type_infos[type].components;
+}
+
+bool am_buffer_view::can_be_gl_attrib() {
+    return view_type_infos[type].can_be_gl_attrib;
+}
+
+am_attribute_client_type am_buffer_view::gl_client_type() {
+    return view_type_infos[type].gl_client_type;
 }
 
 int am_create_buffer_view(lua_State *L) {
@@ -471,6 +486,41 @@ static void view_float_iter_setup(lua_State *L, int arg, int *type,
 #define GET_VEC_COMPONENT(L, idx) ((float)(lua_tonumber(L, idx)))
 #include "am_view_template.inc"
 
+struct ubyte_norm4_ctype {
+    uint8_t vals[4];
+    uint8_t& operator[](int index) {
+        return vals[index];
+    }
+};
+
+static ubyte_norm4_ctype get_ubyte_norm4_ctype(am_vec4 *v) {
+    ubyte_norm4_ctype ub;
+    ub.vals[0] = (uint8_t)(v->v.x * 255.0);
+    ub.vals[1] = (uint8_t)(v->v.y * 255.0);
+    ub.vals[2] = (uint8_t)(v->v.z * 255.0);
+    ub.vals[3] = (uint8_t)(v->v.w * 255.0);
+    return ub;
+}
+
+static glm::dvec4 ubyte_norm4_ctype_to_vec4d(ubyte_norm4_ctype ub) {
+    glm::dvec4 v(
+        (double)ub.vals[0] / 255.0,
+        (double)ub.vals[1] / 255.0,
+        (double)ub.vals[2] / 255.0,
+        (double)ub.vals[3] / 255.0
+    );
+    return v;
+}
+
+#define TNAME ubyte_norm4
+#define CTYPE ubyte_norm4_ctype
+#define LUA_TYPE MT_am_vec4
+#define GET_CTYPE(L, idx) (get_ubyte_norm4_ctype(am_get_userdata(L, am_vec4, idx)))
+#define PUSH_CTYPE(L, x) am_new_userdata(L, am_vec4)->v = ubyte_norm4_ctype_to_vec4d(x)
+#define VEC_SZ 4
+#define GET_VEC_COMPONENT(L, idx) ((uint8_t)(lua_tonumber(L, idx)*255.0))
+#include "am_view_template.inc"
+
 #define TNAME uint
 #define CTYPE uint32_t
 #define MINVAL 0
@@ -557,10 +607,10 @@ static void view_float_iter_setup(lua_State *L, int arg, int *type,
 #define ARGS 1
 #define ELEMENT_WISE
 #define RESULT_COMPONENTS 1
-#define OP(dst, src) (*(dst) = glm::perlin(glm::vec2((src)[0], 0.0f)))
-#define OP2(dst, src) (*(dst) = glm::perlin(glm::vec2((src)[0], (src)[1])))
-#define OP3(dst, src) (*(dst) = glm::perlin(glm::vec3((src)[0], (src)[1], (src)[2])))
-#define OP4(dst, src) (*(dst) = glm::perlin(glm::vec4((src)[0], (src)[1], (src)[2], (src)[3])))
+#define OP1_1(dst, src) (*(dst) = glm::perlin(glm::vec2((src)[0], 0.0f)))
+#define OP1_2(dst, src) (*(dst) = glm::perlin(glm::vec2((src)[0], (src)[1])))
+#define OP1_3(dst, src) (*(dst) = glm::perlin(glm::vec3((src)[0], (src)[1], (src)[2])))
+#define OP1_4(dst, src) (*(dst) = glm::perlin(glm::vec4((src)[0], (src)[1], (src)[2], (src)[3])))
 #include "am_view_op.inc"
 
 #define SUFFIX simplex
@@ -568,10 +618,47 @@ static void view_float_iter_setup(lua_State *L, int arg, int *type,
 #define ARGS 1
 #define ELEMENT_WISE
 #define RESULT_COMPONENTS 1
-#define OP(dst, src) (*(dst) = glm::simplex(glm::vec2((src)[0], 0.0f)))
-#define OP2(dst, src) (*(dst) = glm::simplex(glm::vec2((src)[0], (src)[1])))
-#define OP3(dst, src) (*(dst) = glm::simplex(glm::vec3((src)[0], (src)[1], (src)[2])))
-#define OP4(dst, src) (*(dst) = glm::simplex(glm::vec4((src)[0], (src)[1], (src)[2], (src)[3])))
+#define OP1_1(dst, src) (*(dst) = glm::simplex(glm::vec2((src)[0], 0.0f)))
+#define OP1_2(dst, src) (*(dst) = glm::simplex(glm::vec2((src)[0], (src)[1])))
+#define OP1_3(dst, src) (*(dst) = glm::simplex(glm::vec3((src)[0], (src)[1], (src)[2])))
+#define OP1_4(dst, src) (*(dst) = glm::simplex(glm::vec4((src)[0], (src)[1], (src)[2], (src)[3])))
+#include "am_view_op.inc"
+
+#define SUFFIX dot
+#define OPNAME "dot"
+#define ARGS 2
+#define ELEMENT_WISE
+#define RESULT_COMPONENTS 1
+#define OP2_2(dst, src1, src2) (*(dst) = glm::dot(glm::vec2((src1)[0], (src1)[1]), glm::vec2((src2)[0], (src2)[1])))
+#define OP2_3(dst, src1, src2) (*(dst) = glm::dot(glm::vec3((src1)[0], (src1)[1], (src1)[2]), glm::vec3((src2)[0], (src2)[1], (src2)[2])))
+#define OP2_4(dst, src1, src2) (*(dst) = glm::dot(glm::vec4((src1)[0], (src1)[1], (src1)[2], (src1)[3]), glm::vec4((src2)[0], (src2)[1], (src2)[2], (src2)[3])))
+#include "am_view_op.inc"
+
+#define SUFFIX vec2
+#define OPNAME "vec2"
+#define MIN_ARGS 1
+#define MAX_ARGS 2
+#define VEC_BUILDER
+#define RESULT_COMPONENTS 2
+#define OP(dst, f1, f2) {(dst)[0] = f1; (dst)[1] = f2;}
+#include "am_view_op.inc"
+
+#define SUFFIX vec3
+#define OPNAME "vec3"
+#define MIN_ARGS 1
+#define MAX_ARGS 3
+#define VEC_BUILDER
+#define RESULT_COMPONENTS 3
+#define OP(dst, f1, f2, f3) {(dst)[0] = f1; (dst)[1] = f2; (dst)[2] = f3;}
+#include "am_view_op.inc"
+
+#define SUFFIX vec4
+#define OPNAME "vec4"
+#define MIN_ARGS 1
+#define MAX_ARGS 4
+#define VEC_BUILDER
+#define RESULT_COMPONENTS 4
+#define OP(dst, f1, f2, f3, f4) {(dst)[0] = f1; (dst)[1] = f2; (dst)[2] = f3; (dst)[3] = f4;}
 #include "am_view_op.inc"
 
 static void register_view_mt(lua_State *L) {
@@ -608,12 +695,16 @@ void am_open_view_module(lua_State *L) {
         {"random", gen_random},
         // shape changing
         {"cart", view_cart},
+        {"vec2", view_op_vec2},
+        {"vec3", view_op_vec3},
+        {"vec4", view_op_vec4},
         // math functions
         {"sin", view_op_sin},
         {"cos", view_op_cos},
-        // noise functions
+        // other functions
         {"perlin", view_op_perlin},
         {"simplex", view_op_simplex},
+        {"dot", view_op_dot},
         {NULL, NULL}
     };
     am_open_module(L, "mathv", vfuncs);
@@ -626,6 +717,7 @@ void am_open_view_module(lua_State *L) {
         {"ubyte",           AM_VIEW_TYPE_UBYTE},
         {"byte",            AM_VIEW_TYPE_BYTE},
         {"ubyte_norm",      AM_VIEW_TYPE_UBYTE_NORM},
+        {"ubyte_norm4",     AM_VIEW_TYPE_UBYTE_NORM4},
         {"byte_norm",       AM_VIEW_TYPE_BYTE_NORM},
         {"ushort",          AM_VIEW_TYPE_USHORT},
         {"short",           AM_VIEW_TYPE_SHORT},
@@ -647,6 +739,7 @@ void am_open_view_module(lua_State *L) {
     register_ubyte_view_mt(L);
     register_byte_view_mt(L);
     register_ubyte_norm_view_mt(L);
+    register_ubyte_norm4_view_mt(L);
     register_byte_norm_view_mt(L);
     register_ushort_view_mt(L);
     register_short_view_mt(L);

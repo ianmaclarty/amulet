@@ -59,6 +59,7 @@ typedef enum {
     MT_VIEW_TYPE_ubyte,
     MT_VIEW_TYPE_byte,
     MT_VIEW_TYPE_ubyte_norm,
+    MT_VIEW_TYPE_ubyte_norm4,
     MT_VIEW_TYPE_byte_norm,
     MT_VIEW_TYPE_ushort,
     MT_VIEW_TYPE_short,

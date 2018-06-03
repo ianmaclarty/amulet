@@ -7,6 +7,7 @@ enum am_buffer_view_type {
     AM_VIEW_TYPE_UBYTE,
     AM_VIEW_TYPE_BYTE,
     AM_VIEW_TYPE_UBYTE_NORM,
+    AM_VIEW_TYPE_UBYTE_NORM4,
     AM_VIEW_TYPE_BYTE_NORM,
     AM_VIEW_TYPE_USHORT,
     AM_VIEW_TYPE_SHORT,
@@ -32,6 +33,10 @@ struct am_buffer_view : am_nonatomic_userdata {
     uint32_t            last_max_elem_version;
 
     bool is_normalized();
+    int num_components();
+    bool can_be_gl_attrib();
+    am_attribute_client_type gl_client_type();
+
     void update_max_elem_if_required();
 };
 
