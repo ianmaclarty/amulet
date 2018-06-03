@@ -331,18 +331,18 @@ static int view_cart(lua_State *L) {
     int stride2 = view2->stride >> 2;
     float *data = (float*)buf->data;
     int d = 0;
-    for (int i = 0; i < view1->size; ++i) {
-        for (int j = 0; j < view2->size; ++j) {
+    for (int i = 0; i < view2->size; ++i) {
+        for (int j = 0; j < view1->size; ++j) {
             for (int c = 0; c < components1; ++c) {
                 data[d++] = data1[c];
             }
             for (int c = 0; c < components2; ++c) {
                 data[d++] = data2[c];
             }
-            data2 += stride2;
+            data1 += stride1;
         }
-        data2 = (float*)view2->buffer->data;
-        data1 += stride1;
+        data1 = (float*)view1->buffer->data;
+        data2 += stride2;
     }
     am_buffer_view *view = am_new_buffer_view(L, type);
     view->buffer = buf;
@@ -552,6 +552,28 @@ static void view_float_iter_setup(lua_State *L, int arg, int *type,
 #define OP(a) (cosf(a))
 #include "am_view_op.inc"
 
+#define SUFFIX perlin
+#define OPNAME "perlin"
+#define ARGS 1
+#define ELEMENT_WISE
+#define RESULT_COMPONENTS 1
+#define OP(dst, src) (*(dst) = glm::perlin(glm::vec2((src)[0], 0.0f)))
+#define OP2(dst, src) (*(dst) = glm::perlin(glm::vec2((src)[0], (src)[1])))
+#define OP3(dst, src) (*(dst) = glm::perlin(glm::vec3((src)[0], (src)[1], (src)[2])))
+#define OP4(dst, src) (*(dst) = glm::perlin(glm::vec4((src)[0], (src)[1], (src)[2], (src)[3])))
+#include "am_view_op.inc"
+
+#define SUFFIX simplex
+#define OPNAME "simplex"
+#define ARGS 1
+#define ELEMENT_WISE
+#define RESULT_COMPONENTS 1
+#define OP(dst, src) (*(dst) = glm::simplex(glm::vec2((src)[0], 0.0f)))
+#define OP2(dst, src) (*(dst) = glm::simplex(glm::vec2((src)[0], (src)[1])))
+#define OP3(dst, src) (*(dst) = glm::simplex(glm::vec3((src)[0], (src)[1], (src)[2])))
+#define OP4(dst, src) (*(dst) = glm::simplex(glm::vec4((src)[0], (src)[1], (src)[2], (src)[3])))
+#include "am_view_op.inc"
+
 static void register_view_mt(lua_State *L) {
     lua_newtable(L);
     am_set_default_index_func(L);
@@ -589,6 +611,9 @@ void am_open_view_module(lua_State *L) {
         // math functions
         {"sin", view_op_sin},
         {"cos", view_op_cos},
+        // noise functions
+        {"perlin", view_op_perlin},
+        {"simplex", view_op_simplex},
         {NULL, NULL}
     };
     am_open_module(L, "mathv", vfuncs);
