@@ -549,6 +549,13 @@ static glm::dvec4 ubyte_norm4_ctype_to_vec4d(ubyte_norm4_ctype ub) {
 
 #include "am_generated_view_defs.inc"
 
+#define SUFFIX unm
+#define OPNAME "-"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (-(a))
+#include "am_view_op.inc"
+
 #define SUFFIX add
 #define OPNAME "+"
 #define ARGS 2
@@ -585,7 +592,84 @@ static glm::dvec4 ubyte_norm4_ctype_to_vec4d(ubyte_norm4_ctype ub) {
 #define OPNAME "%"
 #define ARGS 2
 #define COMPONENT_WISE
-#define OP(a, b) ((a) - floor((a)/(b))*(b))
+#define OP(a, b) ((a) - floorf((a)/(b))*(b))
+#include "am_view_op.inc"
+
+#define SUFFIX pow
+#define OPNAME "^"
+#define ARGS 2
+#define COMPONENT_WISE
+#define OP(a, b) (powf((a), (b)))
+#include "am_view_op.inc"
+
+#define SUFFIX abs
+#define OPNAME "abs"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (fabs(a))
+#include "am_view_op.inc"
+
+#define SUFFIX acos
+#define OPNAME "acos"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (acosf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX asin
+#define OPNAME "asin"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (asinf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX ceil
+#define OPNAME "ceil"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (ceilf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX cos
+#define OPNAME "cos"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (cosf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX cosh
+#define OPNAME "cosh"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (coshf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX exp
+#define OPNAME "exp"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (expf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX floor
+#define OPNAME "floor"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (floorf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX fmod
+#define OPNAME "fmod"
+#define ARGS 2
+#define COMPONENT_WISE
+#define OP(a, b) (fmodf((a), (b)))
+#include "am_view_op.inc"
+
+#define SUFFIX log
+#define OPNAME "log"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (logf(a))
 #include "am_view_op.inc"
 
 #define SUFFIX sin
@@ -595,11 +679,88 @@ static glm::dvec4 ubyte_norm4_ctype_to_vec4d(ubyte_norm4_ctype ub) {
 #define OP(a) (sinf(a))
 #include "am_view_op.inc"
 
-#define SUFFIX cos
-#define OPNAME "cos"
+#define SUFFIX sinh
+#define OPNAME "sinh"
 #define ARGS 1
 #define COMPONENT_WISE
-#define OP(a) (cosf(a))
+#define OP(a) (sinhf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX sqrt
+#define OPNAME "sqrt"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (sqrtf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX atan
+#define OPNAME "atan"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (atanf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX atan2
+#define OPNAME "atan2"
+#define ARGS 2
+#define COMPONENT_WISE
+#define OP(a, b) (atan2f((a), (b)))
+#include "am_view_op.inc"
+
+#define SUFFIX tan
+#define OPNAME "tan"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (tanf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX tanh
+#define OPNAME "tanh"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (tanhf(a))
+#include "am_view_op.inc"
+
+#define SUFFIX sign
+#define OPNAME "sign"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) ((a) > 0.0f ? 1.0f : (a) < 0.0f ? -1.0 : 0.0f)
+#include "am_view_op.inc"
+
+#define SUFFIX fract
+#define OPNAME "fract"
+#define ARGS 1
+#define COMPONENT_WISE
+#define OP(a) (glm::fract(a))
+#include "am_view_op.inc"
+
+#define SUFFIX min
+#define OPNAME "min"
+#define ARGS 2
+#define COMPONENT_WISE
+#define OP(a, b) (am_min((a), (b)))
+#include "am_view_op.inc"
+
+#define SUFFIX max
+#define OPNAME "max"
+#define ARGS 2
+#define COMPONENT_WISE
+#define OP(a, b) (am_max((a), (b)))
+#include "am_view_op.inc"
+
+#define SUFFIX mix
+#define OPNAME "mix"
+#define ARGS 3
+#define COMPONENT_WISE
+#define OP(a, b, c) (glm::mix((a), (b), (c)))
+#include "am_view_op.inc"
+
+#define SUFFIX clamp
+#define OPNAME "clamp"
+#define ARGS 3
+#define COMPONENT_WISE
+#define OP(a, b, c) (glm::clamp((a), (b), (c)))
 #include "am_view_op.inc"
 
 #define SUFFIX perlin
@@ -679,6 +840,10 @@ static void register_view_mt(lua_State *L) {
     lua_setfield(L, -2, "__div");
     lua_pushcclosure(L, view_op_mod, 0);
     lua_setfield(L, -2, "__mod");
+    lua_pushcclosure(L, view_op_pow, 0);
+    lua_setfield(L, -2, "__pow");
+    lua_pushcclosure(L, view_op_unm, 0);
+    lua_setfield(L, -2, "__unm");
 
     am_register_property(L, "buffer", &view_buffer_property);
 
@@ -699,8 +864,29 @@ void am_open_view_module(lua_State *L) {
         {"vec3", view_op_vec3},
         {"vec4", view_op_vec4},
         // math functions
-        {"sin", view_op_sin},
+        {"abs", view_op_abs},
+        {"acos", view_op_acos},
+        {"asin", view_op_asin},
+        {"atan", view_op_atan},
+        {"atan2", view_op_atan2},
+        {"ceil", view_op_ceil},
         {"cos", view_op_cos},
+        {"cosh", view_op_cosh},
+        {"exp", view_op_exp},
+        {"floor", view_op_floor},
+        {"fmod", view_op_fmod},
+        {"log", view_op_log},
+        {"sin", view_op_sin},
+        {"sinh", view_op_sinh},
+        {"sqrt", view_op_sqrt},
+        {"tan", view_op_tan},
+        {"tanh", view_op_tanh},
+        {"sign", view_op_sign},
+        {"fract", view_op_fract},
+        {"min", view_op_min},
+        {"max", view_op_max},
+        {"mix", view_op_mix},
+        {"clamp", view_op_clamp},
         // other functions
         {"perlin", view_op_perlin},
         {"simplex", view_op_simplex},
