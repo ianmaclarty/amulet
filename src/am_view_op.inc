@@ -98,13 +98,20 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
             int mv1 = arg_component_move[0];
             int stride1 = arg_stride[0];
             float *data1 = arg_data[0];
-            for (int i = 0; i < size * components; i += components) {
-                int j1 = 0;
-                for (int j = 0; j < components; ++j) {
-                    data[i + j] = OP(data1[j1]);
-                    j1 += mv1;
+            if (stride1 == components && mv1 == 1) {
+                // fast path
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP(data1[i]);
                 }
-                data1 += stride1;
+            } else {
+                for (int i = 0; i < size * components; i += components) {
+                    int j1 = 0;
+                    for (int j = 0; j < components; ++j) {
+                        data[i + j] = OP(data1[j1]);
+                        j1 += mv1;
+                    }
+                    data1 += stride1;
+                }
             }
             break;
         }
@@ -117,16 +124,23 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
             int stride2 = arg_stride[1];
             float *data1 = arg_data[0];
             float *data2 = arg_data[1];
-            for (int i = 0; i < size * components; i += components) {
-                int j1 = 0;
-                int j2 = 0;
-                for (int j = 0; j < components; ++j) {
-                    data[i + j] = OP2(data1[j1], data2[j2]);
-                    j1 += mv1;
-                    j2 += mv2;
+            if (stride1 == components && stride2 == components && mv1 == 1 && mv2 == 1) {
+                // fast path
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP2(data1[i], data2[i]);
                 }
-                data1 += stride1;
-                data2 += stride2;
+            } else {
+                for (int i = 0; i < size * components; i += components) {
+                    int j1 = 0;
+                    int j2 = 0;
+                    for (int j = 0; j < components; ++j) {
+                        data[i + j] = OP2(data1[j1], data2[j2]);
+                        j1 += mv1;
+                        j2 += mv2;
+                    }
+                    data1 += stride1;
+                    data2 += stride2;
+                }
             }
             break;
         }
@@ -142,19 +156,28 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
             float *data1 = arg_data[0];
             float *data2 = arg_data[1];
             float *data3 = arg_data[2];
-            for (int i = 0; i < size * components; i += components) {
-                int j1 = 0;
-                int j2 = 0;
-                int j3 = 0;
-                for (int j = 0; j < components; ++j) {
-                    data[i + j] = OP3(data1[j1], data2[j2], data3[j3]);
-                    j1 += mv1;
-                    j2 += mv2;
-                    j3 += mv3;
+            if (stride1 == components && stride2 == components && stride3 == components && 
+                mv1 == 1 && mv2 == 1 && mv3 == 1)
+            {
+                // fast path
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP3(data1[i], data2[i], data3[i]);
                 }
-                data1 += stride1;
-                data2 += stride2;
-                data3 += stride3;
+            } else {
+                for (int i = 0; i < size * components; i += components) {
+                    int j1 = 0;
+                    int j2 = 0;
+                    int j3 = 0;
+                    for (int j = 0; j < components; ++j) {
+                        data[i + j] = OP3(data1[j1], data2[j2], data3[j3]);
+                        j1 += mv1;
+                        j2 += mv2;
+                        j3 += mv3;
+                    }
+                    data1 += stride1;
+                    data2 += stride2;
+                    data3 += stride3;
+                }
             }
             break;
         }
