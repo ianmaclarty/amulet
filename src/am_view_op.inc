@@ -125,9 +125,25 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
             float *data1 = arg_data[0];
             float *data2 = arg_data[1];
             if (stride1 == components && stride2 == components && mv1 == 1 && mv2 == 1) {
-                // fast path
+                // fast path 
                 for (int i = 0; i < size * components; ++i) {
                     data[i] = OP2(data1[i], data2[i]);
+                }
+            } else if (stride1 == components && mv1 == 1 && stride2 == 0 && mv2 == 1) {
+                // fast path
+                int j = 0;
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP2(data1[i], data2[j]);
+                    j++;
+                    if (j >= components) j = 0;
+                }
+            } else if (stride2 == components && mv2 == 1 && stride1 == 0 && mv1 == 1) {
+                // fast path
+                int j = 0;
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP2(data1[j], data2[i]);
+                    j++;
+                    if (j >= components) j = 0;
                 }
             } else {
                 for (int i = 0; i < size * components; i += components) {
@@ -162,6 +178,54 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
                 // fast path
                 for (int i = 0; i < size * components; ++i) {
                     data[i] = OP3(data1[i], data2[i], data3[i]);
+                }
+            } else if (stride1 == components && mv1 == 1 && stride2 == 0 && mv2 == 1 && stride3 == 0 && mv3 == 1) {
+                // fast path
+                int j = 0;
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP3(data1[i], data2[j], data3[j]);
+                    j++;
+                    if (j >= components) j = 0;
+                }
+            } else if (stride1 == components && mv1 == 1 && stride2 == components && mv2 == 1 && stride3 == 0 && mv3 == 1) {
+                // fast path
+                int j = 0;
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP3(data1[i], data2[i], data3[j]);
+                    j++;
+                    if (j >= components) j = 0;
+                }
+            } else if (stride1 == 0 && mv1 == 1 && stride2 == components && mv2 == 1 && stride3 == components && mv3 == 1) {
+                // fast path
+                int j = 0;
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP3(data1[j], data2[i], data3[i]);
+                    j++;
+                    if (j >= components) j = 0;
+                }
+            } else if (stride1 == 0 && mv1 == 1 && stride2 == components && mv2 == 1 && stride3 == 0 && mv3 == 1) {
+                // fast path
+                int j = 0;
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP3(data1[j], data2[i], data3[j]);
+                    j++;
+                    if (j >= components) j = 0;
+                }
+            } else if (stride1 == 0 && mv1 == 1 && stride2 == 0 && mv2 == 1 && stride3 == components && mv3 == 1) {
+                // fast path
+                int j = 0;
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP3(data1[j], data2[j], data3[i]);
+                    j++;
+                    if (j >= components) j = 0;
+                }
+            } else if (stride1 == components && mv1 == 1 && stride2 == 0 && mv2 == 1 && stride3 == components && mv3 == 1) {
+                // fast path
+                int j = 0;
+                for (int i = 0; i < size * components; ++i) {
+                    data[i] = OP3(data1[i], data2[j], data3[i]);
+                    j++;
+                    if (j >= components) j = 0;
                 }
             } else {
                 for (int i = 0; i < size * components; i += components) {
