@@ -9,6 +9,7 @@ typedef enum {
     AM_METATABLE_REGISTRY,
     AM_ROOT_AUDIO_NODE,
     AM_BUFFER_DATA_ALLOCATOR,
+    AM_DEFAULT_RAND,
 
     MT_am_window,
     MT_am_program,
@@ -60,6 +61,7 @@ typedef enum {
     MT_VIEW_TYPE_ubyte,
     MT_VIEW_TYPE_byte,
     MT_VIEW_TYPE_ubyte_norm,
+    MT_VIEW_TYPE_ubyte_norm4,
     MT_VIEW_TYPE_byte_norm,
     MT_VIEW_TYPE_ushort,
     MT_VIEW_TYPE_short,
@@ -89,6 +91,7 @@ typedef enum {
     MT_am_iap_product,
 
     ENUM_am_buffer_view_type,
+    ENUM_am_buffer_usage,
     ENUM_am_texture_format,
     ENUM_am_texture_type,
     ENUM_am_texture_min_filter,

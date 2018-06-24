@@ -662,10 +662,13 @@ am_spectrum_node::am_spectrum_node() : smoothing(0.9f) {
 void am_spectrum_node::sync_params() {
     if (arr->size < num_bins - 1) return;
     if (arr->type != AM_VIEW_TYPE_FLOAT) return;
+    if (arr->buffer->data == NULL) return;
+    float *farr = (float*)&arr->buffer->data[arr->offset];
     for (int i = 1; i < num_bins; i++) {
         float data = bin_data[i];
         float decibels = data == 0.0f ? -1000.0f : 20.0f * log10f(data);
-        arr->set_float(i-1, decibels);
+        *farr = decibels;
+        farr = (float*)(((uint8_t*)farr) + arr->stride);
     }
     smoothing.update_target();
     smoothing.update_current();
@@ -1273,7 +1276,7 @@ static int create_spectrum_node(lua_State *L) {
         return luaL_error(L, "array must have at least %d elements", freq_bins);
     }
     if (node->arr->type != AM_VIEW_TYPE_FLOAT) {
-        return luaL_error(L, "array must have of type float");
+        return luaL_error(L, "array must have type float");
     }
     if (nargs > 3) {
         node->smoothing.set_immediate(luaL_checknumber(L, 4));

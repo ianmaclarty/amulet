@@ -267,7 +267,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.cull_sphere">am.cull_sphere([uniforms...,] radius [, center])</a></li>
 <li><a href="#am.billboard">am.billboard([uniform,] [preserve_scaling])</a></li>
 <li><a href="#am.read_param">am.read_uniform(uniform)</a></li>
-<li><a href="#am.quads">am.quads(n, spec)</a></li>
+<li><a href="#am.quads">am.quads(n, spec [, usage])</a></li>
 <li><a href="#am.postprocess">am.postprocess(settings)</a></li>
 </ul></li>
 <li><a href="#creating-custom-scene-nodes">Creating custom scene nodes</a><ul>
@@ -1326,7 +1326,8 @@ vec2(0, 2)</code></pre>
 <p>The <code>#</code> operator can be used to retrieve the size of a buffer in bytes.</p>
 <p>Fields:</p>
 <ul>
-<li><code>dataptr</code>: Returns a pointer to the buffer as a Lua <code>lightuserdata</code> value. The intended use for this is to manipulate the buffer using the <a href="http://luajit.org/ext_ffi.html">LuaJIT FFI library</a>.</li>
+<li><p><code>usage</code>: A hint to the graphics driver telling it how this buffer will be used when it's used for vertex attribute data or element indices. Can be one of <code>&quot;static&quot;</code> (the data won't change often), <code>&quot;dynamic&quot;</code> (the data will change frequenty), or <code>&quot;stream&quot;</code> (the data will only be used a few times). The default is <code>&quot;static&quot;</code>.</p></li>
+<li><p><code>dataptr</code>: Returns a pointer to the buffer as a Lua <code>lightuserdata</code> value. The intended use for this is to manipulate the buffer using the <a href="http://luajit.org/ext_ffi.html">LuaJIT FFI library</a>. Readonly.</p></li>
 </ul>
 <p>Methods:</p>
 <ul>
@@ -2432,10 +2433,11 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <ul>
 <li><code>value</code>: The value of the uniform, or nil if the node hasn't been rendered yet, or the named uniform wasn't set in an ancestor node.</li>
 </ul>
-<h3 id="am.quads" class="func-def">am.quads(n, spec)</h3>
+<h3 id="am.quads" class="func-def">am.quads(n, spec [, usage])</h3>
 <p>Returns a node that renders a set of quads. The returned node is actually an <a href="#am.bind"><code>am.bind</code></a> node with an <a href="#am.draw"><code>am.draw</code></a> node child. i.e. no program or blending is defined -- these must be created separately as parent nodes.</p>
 <p><code>n</code> is the initial capacity. Set this to the number of quads you think you'll want to render. It doesn't matter if it's too small as the capacity will be increased as required, though it's slightly faster if no capacity increases are required.</p>
 <p><code>spec</code> is a table of attribute name and type pairs (the same as used for <a href="#am.struct_array"><code>am.struct_array</code></a> ).</p>
+<p><code>usage</code> is an optional hint to the graphics driver about how the quads will be used. See the <code>usage</code> property of <a href="#am.buffer"><code>am.buffer</code></a> for more details.</p>
 <p>Fields:</p>
 <ul>
 <li><code>num_quads</code>: The number of quads. This is zero initially.</li>

@@ -37,6 +37,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     am_open_math_module(L);
     am_open_time_module(L);
     am_open_buffer_module(L);
+    am_open_view_module(L);
     am_open_json_module(L);
     am_open_utf8_module(L);
     am_open_http_module(L);

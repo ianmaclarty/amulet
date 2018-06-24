@@ -1,17 +1,25 @@
 #include "amulet.h"
 
-static void bind_attribute_array(am_render_state *rstate,
-    am_gluint location, am_attribute_client_type type, int dims, am_buffer_view *view)
+static bool bind_attribute_array(am_render_state *rstate, am_gluint location,
+    am_buffer_view *view)
 {
-    am_buffer *buf = view->buffer;
-    buf->update_if_dirty();
-    if (buf->arraybuf != NULL && buf->arraybuf->id != 0) {
-        am_bind_buffer(AM_ARRAY_BUFFER, buf->arraybuf->id);
-        am_set_attribute_pointer(location, dims, type, view->normalized, view->stride, view->offset);
-        if (view->size < rstate->max_draw_array_size) {
-            rstate->max_draw_array_size = view->size;
-        }
+    if (!view->can_be_gl_attrib()) {
+        return false;
     }
+    am_buffer *buf = view->buffer;
+    if (buf->data == NULL || buf->arraybuf == NULL) {
+        return false;
+    }
+    buf->update_if_dirty();
+    if (buf->arraybuf->id == 0) {
+        buf->create_arraybuf(NULL);
+    }
+    am_bind_buffer(AM_ARRAY_BUFFER, buf->arraybuf->id);
+    am_set_attribute_pointer(location, view->num_components(), view->gl_client_type(), view->is_normalized(), view->stride, view->offset);
+    if (view->size < rstate->max_draw_array_size) {
+        rstate->max_draw_array_size = view->size;
+    }
+    return true;
 }
 
 static void bind_sampler2d(am_render_state *rstate,
@@ -124,27 +132,11 @@ bool am_program_param::bind(am_render_state *rstate) {
             }
             break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_1F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT && slot->value.value.arr->buffer != NULL) {
-                bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 1, slot->value.value.arr);
-                bound = true;
-            }
-            break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_2F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT2 && slot->value.value.arr->buffer != NULL) {
-                bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 2, slot->value.value.arr);
-                bound = true;
-            }
-            break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_3F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT3 && slot->value.value.arr->buffer != NULL) {
-                bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 3, slot->value.value.arr);
-                bound = true;
-            }
-            break;
         case AM_PROGRAM_PARAM_ATTRIBUTE_4F:
-            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY && slot->value.value.arr->type == AM_VIEW_TYPE_FLOAT4 && slot->value.value.arr->buffer != NULL) {
-                bind_attribute_array(rstate, location, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT, 4, slot->value.value.arr);
-                bound = true;
+            if (slot->value.type == AM_PROGRAM_PARAM_CLIENT_TYPE_ARRAY) {
+                bound = bind_attribute_array(rstate, location, slot->value.value.arr);
             }
             break;
     }
@@ -538,6 +530,8 @@ static void set_param_value(lua_State *L, am_program_param_value *param, int val
         case MT_am_buffer_view: {
             am_buffer_view *view = am_get_userdata(L, am_buffer_view, val_idx);
             if (view->buffer->arraybuf == NULL || view->buffer->arraybuf->id == 0) {
+                // create vbo now if we can to avoid creating it
+                // while drawing, which may cause a stutter.
                 view->buffer->create_arraybuf(L);
             }
             param->set_arr(view);
@@ -745,6 +739,7 @@ const char *am_program_param_client_type_name(am_program_param_name_slot *slot) 
                     case AM_VIEW_TYPE_UBYTE: return "array of ubytes";
                     case AM_VIEW_TYPE_BYTE: return "array of bytes";
                     case AM_VIEW_TYPE_UBYTE_NORM: return "array of normalized ubytes";
+                    case AM_VIEW_TYPE_UBYTE_NORM4: return "array of normalized ubyte4s";
                     case AM_VIEW_TYPE_BYTE_NORM: return "array of normalized bytes";
                     case AM_VIEW_TYPE_USHORT: return "array of ushorts";
                     case AM_VIEW_TYPE_SHORT: return "array of shorts";

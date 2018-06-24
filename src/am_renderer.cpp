@@ -521,7 +521,10 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
         // warning would already have been emitted
         return;
     }
-    if (validate_active_program(mode)) {
+    if (validate_active_program(mode) && indices_view->buffer->elembuf != NULL) {
+        if (indices_view->buffer->elembuf->id == 0) {
+            indices_view->buffer->create_elembuf(NULL);
+        }
         indices_view->buffer->update_if_dirty();
         indices_view->update_max_elem_if_required();
         if (max_draw_array_size == INT_MAX) {
@@ -538,7 +541,7 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
         if (count > (indices_view->size - first)) {
             count = (indices_view->size - first);
         }
-        if (count > 0 && indices_view->buffer->elembuf != NULL && indices_view->buffer->elembuf->id != 0) {
+        if (count > 0) {
             am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, indices_view->buffer->elembuf->id);
             am_draw_elements(mode, count, type, first * indices_view->stride);
         }
@@ -681,6 +684,10 @@ static void set_indices(lua_State *L, am_draw_node *node, int idx) {
         node->reref(L, node->view_ref, idx);
     }
     if (indices_view->buffer->elembuf == NULL || indices_view->buffer->elembuf->id == 0) {
+        // create vbo now if we can to avoid creating it
+        // while drawing, which may cause a stutter.
+        // (if gl hasn't been initialized, create_elembuf will just create the am_vbo object
+        // and not the actual gl vbo - this will be created when we draw)
         indices_view->buffer->create_elembuf(L);
     }
 }

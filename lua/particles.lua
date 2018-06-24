@@ -203,6 +203,7 @@ function am.particles2d(opts)
     local num_verts = max_particles * 4
     local stride = 12 + 16
     local vertbuf = am.buffer(num_verts * stride)
+    vertbuf.usage = "dynamic"
     local vertview = vertbuf:view("vec3", 0, stride)
     local x1_view  = vertbuf:view("float", 0, stride * 4)
     local y1_view  = vertbuf:view("float", 4, stride * 4)
