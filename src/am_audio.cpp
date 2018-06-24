@@ -441,6 +441,7 @@ static bool is_too_slow(float playback_speed) {
 void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     if (done_server) return;
     if (is_too_slow(playback_speed.current_value)) return;
+    if (audio_buffer->buffer->data == NULL) return;
     am_audio_bus tmp(bus);
     int buf_num_channels = audio_buffer->num_channels;
     int buf_num_samples = audio_buffer->buffer->size / (buf_num_channels * sizeof(float));
@@ -1131,7 +1132,7 @@ static void register_audio_track_node_mt(lua_State *L) {
 static int create_audio_stream_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_audio_stream_node *node = am_new_userdata(L, am_audio_stream_node);
-    node->buffer = am_get_userdata(L, am_buffer, 1);
+    node->buffer = am_check_buffer(L, 1);
     node->buffer_ref = node->ref(L, 1);
     if (nargs > 1) {
         node->loop = lua_toboolean(L, 2);
@@ -1408,7 +1409,7 @@ static void register_audio_node_mt(lua_State *L) {
 
 static int create_audio_buffer(lua_State *L) {
     am_check_nargs(L, 3);
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = am_check_buffer(L, 1);
     int channels = lua_tointeger(L, 2);
     int sample_rate = lua_tointeger(L, 3);
     luaL_argcheck(L, channels >= 1, 2, "channels must be a positive integer");

@@ -80,8 +80,9 @@ static int send_socket(lua_State *L) {
             data = (char*)lua_tolstring(L, 2, &len);
             break;
         }
-        case MT_am_buffer: {
-            am_buffer *buf = am_get_userdata(L, am_buffer, 2);
+        case MT_am_buffer:
+        case MT_am_buffer_gc: {
+            am_buffer *buf = am_check_buffer(L, 2);
             data = (char*)buf->data;
             len = (size_t)buf->size;
             break;

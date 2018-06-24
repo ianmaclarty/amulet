@@ -21,8 +21,9 @@ static int create_image_buffer(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_image_buffer *img = am_new_userdata(L, am_image_buffer);
     int arg = 1;
-    if (am_get_type(L, arg) == MT_am_buffer) {
-        img->buffer = am_get_userdata(L, am_buffer, arg);
+    int argt = am_get_type(L, arg);
+    if (argt == MT_am_buffer || argt == MT_am_buffer_gc) {
+        img->buffer = am_check_buffer(L, arg);
         img->buffer_ref = img->ref(L, arg);
         arg++;
     }
@@ -177,7 +178,7 @@ static int encode_png(lua_State *L) {
 
 static int decode_png(lua_State *L) {
     am_check_nargs(L, 1);
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = am_check_buffer(L, 1);
     int width, height;
     int components = 4;
     stbi_set_flip_vertically_on_load(1);
