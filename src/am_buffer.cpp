@@ -120,26 +120,27 @@ am_buffer *am_push_new_buffer_and_init(lua_State *L, int size) {
         alloc_from_pool(L, a, buf, size, -1);
     } else {
         // alloc buffer and data as one lua userdata
-        //int data_offset = sizeof(am_buffer);
-        //am_align_size(data_offset);
-        //buf = new(lua_newuserdata(L, data_offset + size)) am_buffer();
-        //am_set_metatable(L, buf, MT_am_buffer);
-        //buf->data = (uint8_t*)buf + data_offset;
-        //buf->size = size;
-        //buf->alloc_method = AM_BUF_ALLOC_LUA;
-
-        buf = new(lua_newuserdata(L, sizeof(am_buffer))) am_buffer();
-        am_set_metatable(L, buf, MT_am_buffer_gc);
-        buf->data = (uint8_t*)malloc(size);
+        int data_offset = sizeof(am_buffer);
+        am_align_size(data_offset);
+        buf = new(lua_newuserdata(L, data_offset + size)) am_buffer();
+        am_set_metatable(L, buf, MT_am_buffer);
+        buf->data = (uint8_t*)buf + data_offset;
         buf->size = size;
-        buf->alloc_method = AM_BUF_ALLOC_MALLOC;
+        buf->alloc_method = AM_BUF_ALLOC_LUA;
+
+        // alternative implementation using system malloc
+        //buf = new(lua_newuserdata(L, sizeof(am_buffer))) am_buffer();
+        //am_set_metatable(L, buf, MT_am_buffer_gc);
+        //buf->data = (uint8_t*)malloc(size);
+        //buf->size = size;
+        //buf->alloc_method = AM_BUF_ALLOC_MALLOC;
     }
     memset(buf->data, 0, size);
     return buf;
 }
 
 // the new buffer will own data and assumes it was allocated
-// with malloc.
+// with system malloc.
 am_buffer *am_push_new_buffer_with_data(lua_State *L, int size, void* data) {
     am_buffer *buf = new(lua_newuserdata(L, size)) am_buffer();
     am_set_metatable(L, buf, MT_am_buffer_gc);
