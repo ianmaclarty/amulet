@@ -4,6 +4,12 @@ struct t_face_component {
     int v;
     int t;
     int n;
+
+    t_face_component() {
+        v = 0;
+        t = 0;
+        n = 0;
+    }
 };
 
 typedef std::vector<t_face_component> t_face;
