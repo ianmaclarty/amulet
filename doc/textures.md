@@ -195,7 +195,7 @@ Creates framebuffer with the given texture attached.
 
 `depth_buf` and `stencil_buf` determine whether the
 framebuffer has a depth and/or stencil buffer. These should be
-`true` or `false`.
+`true` or `false` (default is `false`).
 
 ## Framebuffer fields
 
