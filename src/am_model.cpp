@@ -90,7 +90,7 @@ static float* read_obj(const char *filename, char *str, int len,
                 str++;
                 // face
                 t_face fa;
-                while (*str != '\n') {
+                while (*str != '\n' && *str != '\0') {
                     t_face_component fc;
                     fc.v = strtol(str, &str, 10);
                     if (*str == '/') {
@@ -110,7 +110,7 @@ static float* read_obj(const char *filename, char *str, int len,
                         }
                     }
                     fa.push_back(fc);
-                    while (*str == ' ') {
+                    while (*str != '\n' && *str != '\0' && *str != '/' && (*str < '0' || *str > '9')) {
                         str++;
                     }
                 }
@@ -118,7 +118,7 @@ static float* read_obj(const char *filename, char *str, int len,
                 break;
             }
             default: {
-                //am_log0("%s:%d: WARNING: unrecognised definition", filename, line);
+                //am_log0("%s:%d: WARNING: unrecognised charactor: %c", filename, line, *str);
                 break;
             }
         }
