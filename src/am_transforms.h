@@ -18,6 +18,12 @@ struct am_rotate_node : am_scene_node {
     virtual void render(am_render_state *rstate);
 };
 
+struct am_transform_node : am_scene_node {
+    am_param_name_id name;
+    glm::dmat4 mat;
+    virtual void render(am_render_state *rstate);
+};
+
 struct am_lookat_node : am_scene_node {
     am_param_name_id name;
     glm::dvec3 eye;

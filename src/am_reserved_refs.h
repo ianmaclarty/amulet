@@ -23,6 +23,7 @@ typedef enum {
     MT_am_translate_node,
     MT_am_scale_node,
     MT_am_rotate_node,
+    MT_am_transform_node,
     MT_am_lookat_node,
     MT_am_billboard_node,
     MT_am_blend_node,

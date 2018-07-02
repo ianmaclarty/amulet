@@ -253,6 +253,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.translate">am.translate([uniform,] position)</a></li>
 <li><a href="#am.scale">am.scale([uniform,] scaling)</a></li>
 <li><a href="#am.rotate">am.rotate([uniform,] rotation)</a></li>
+<li><a href="#am.transform">am.transform([uniform,] matrix)</a></li>
 </ul></li>
 <li><a href="#advanced-nodes">Advanced nodes</a><ul>
 <li><a href="#am.use_program">am.use_program(program)</a></li>
@@ -2196,6 +2197,13 @@ node4<span class="ot">.</span>scale <span class="ot">=</span> vec3<span class="o
 node1<span class="ot">.</span>angle <span class="ot">=</span> <span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">)</span>
 node2<span class="ot">.</span>axis <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span>
 node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class="ot">(</span><span class="fu">math.rad</span><span class="ot">(</span><span class="dv">60</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">))</span></code></pre></div>
+<h3 id="am.transform" class="func-def">am.transform([uniform,] matrix)</h3>
+<p>Pre-multiply a 4x4 matrix uniform by the given 4x4 matrix. <code>uniform</code> is the uniform name as a string (default is <code>&quot;MV&quot;</code>).</p>
+<p>Fields:</p>
+<ul>
+<li><code>mat</code>: The matrix to multiply the uniform by. Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;transform&quot;</code>.</p>
 <h2 id="advanced-nodes">Advanced nodes</h2>
 <h3 id="am.use_program" class="func-def">am.use_program(program)</h3>
 <p>Sets the <a href="#shader-programs">shader program</a> to use when rendering descendents. A <code>program</code> object can be created using the <a href="#am.program"><code>am.program</code></a> function.</p>

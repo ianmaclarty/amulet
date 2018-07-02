@@ -30,6 +30,7 @@ extern am_tag AM_TAG_USE_PROGRAM;
 extern am_tag AM_TAG_TRANSLATE;
 extern am_tag AM_TAG_ROTATE;
 extern am_tag AM_TAG_SCALE;
+extern am_tag AM_TAG_TRANSFORM;
 extern am_tag AM_TAG_BILLBOARD;
 extern am_tag AM_TAG_LOOKAT;
 extern am_tag AM_TAG_BLEND;

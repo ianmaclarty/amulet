@@ -6,6 +6,7 @@ am_tag AM_TAG_USE_PROGRAM;
 am_tag AM_TAG_TRANSLATE;
 am_tag AM_TAG_ROTATE;
 am_tag AM_TAG_SCALE;
+am_tag AM_TAG_TRANSFORM;
 am_tag AM_TAG_BILLBOARD;
 am_tag AM_TAG_LOOKAT;
 am_tag AM_TAG_BLEND;
@@ -485,6 +486,10 @@ static void init_default_tags(lua_State *L) {
 
     lua_pushstring(L, "scale");
     AM_TAG_SCALE = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "transform");
+    AM_TAG_TRANSFORM = lookup_tag(L, -1);
     lua_pop(L, 1);
 
     lua_pushstring(L, "billboard");

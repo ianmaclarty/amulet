@@ -657,6 +657,17 @@ node2.axis = vec3(0, 0, 1)
 node3.rotation = quat(math.rad(60), vec3(0, 0, 1))
 ~~~
 
+### am.transform([uniform,] matrix) {#am.transform .func-def}
+
+Pre-multiply a 4x4 matrix uniform by the given 4x4 matrix.
+`uniform` is the uniform name as a string (default is `"MV"`).
+
+Fields:
+
+- `mat`: The matrix to multiply the uniform by. Updatable.
+
+Default tag: `"transform"`.
+
 ## Advanced nodes
 
 ### am.use_program(program) {#am.use_program .func-def}

@@ -361,6 +361,56 @@ static void register_rotate_node_mt(lua_State *L) {
     am_register_metatable(L, "rotate", MT_am_rotate_node, MT_am_scene_node);
 }
 
+/* Transform */
+
+void am_transform_node::render(am_render_state *rstate) {
+    am_program_param_value *param = &rstate->param_name_map[name].value;
+    if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
+        glm::dmat4 *m = (glm::dmat4*)&param->value.m4[0];
+        glm::dmat4 old = *m;
+        *m = mat * (*m);
+        render_children(rstate);
+        *m = old;
+    } else {
+        log_ignored_transform(rstate, name, "transform");
+        render_children(rstate);
+    }
+}
+
+static int create_transform_node(lua_State *L) {
+    maybe_insert_default_mv(L);
+    am_check_nargs(L, 2);
+    am_transform_node *node = am_new_userdata(L, am_transform_node);
+    node->tags.push_back(L, AM_TAG_TRANSFORM);
+    node->name = am_lookup_param_name(L, 1);
+    node->mat = am_get_userdata(L, am_mat4, 2)->m;
+    return 1;
+}
+
+static void get_transform_mat(lua_State *L, void *obj) {
+    am_transform_node *node = (am_transform_node*)obj;
+    am_new_userdata(L, am_mat4)->m = node->mat;
+}
+
+static void set_transform_mat(lua_State *L, void *obj) {
+    am_transform_node *node = (am_transform_node*)obj;
+    node->mat = am_get_userdata(L, am_mat4, 3)->m;
+}
+
+static am_property transform_mat_property = {get_transform_mat, set_transform_mat};
+
+static void register_transform_node_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, am_scene_node_index, 0);
+    lua_setfield(L, -2, "__index");
+    lua_pushcclosure(L, am_scene_node_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
+
+    am_register_property(L, "mat", &transform_mat_property);
+
+    am_register_metatable(L, "transform", MT_am_transform_node, MT_am_scene_node);
+}
+
 /* Lookat */
 
 void am_lookat_node::render(am_render_state *rstate) {
@@ -495,6 +545,7 @@ void am_open_transforms_module(lua_State *L) {
         {"translate", create_translate_node},
         {"rotate", create_rotate_node},
         {"scale", create_scale_node},
+        {"transform", create_transform_node},
         {"billboard", create_billboard_node},
         {"lookat", create_lookat_node},
         {NULL, NULL}
@@ -503,6 +554,7 @@ void am_open_transforms_module(lua_State *L) {
     register_translate_node_mt(L);
     register_scale_node_mt(L);
     register_rotate_node_mt(L);
+    register_transform_node_mt(L);
     register_lookat_node_mt(L);
     register_billboard_node_mt(L);
 }
