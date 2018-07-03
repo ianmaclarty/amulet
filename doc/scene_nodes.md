@@ -635,7 +635,8 @@ It is `"MV"` by default.
 `rotation` can be either a quaternion, or
 an angle (in radians) followed by an optional `vec3` axis.
 If the axis is omitted it is assumed to be `vec3(0, 0, 1)`
-so the rotation becomes a 2D rotation in the xy plane.
+so the rotation becomes a 2D rotation in the xy plane about
+the z axis.
 
 Fields:
 

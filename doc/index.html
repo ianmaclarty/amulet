@@ -106,8 +106,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#math.perspectivefovy-aspect-near-far">math.perspective(fovy, aspect, near, far)</a></li>
 <li><a href="#math.ortho">math.ortho(left, right, bottom, top [, near, far])</a></li>
 <li><a href="#math.oblique">math.oblique(angle, zscale, left, right, bottom, top [, near, far])</a></li>
-<li><a href="#math.translate4">math.translate4(pos)</a></li>
-<li><a href="#math.scale4">math.scale4(scl)</a></li>
+<li><a href="#math.translate4">math.translate4(position)</a></li>
+<li><a href="#math.scale4">math.scale4(scaling)</a></li>
+<li><a href="#math.scale4">math.rotate4(rotation)</a></li>
 <li><a href="#math.perlin">math.perlin(pos [, period])</a></li>
 <li><a href="#math.simplex">math.simplex(pos)</a></li>
 <li><a href="#math.mix">math.mix(from, to, t)</a></li>
@@ -1299,10 +1300,16 @@ vec2(0, 2)</code></pre>
 <p>Creates a 4x4 orthographic projection matrix. <code>near</code> and <code>far</code> are the distance from the viewer of the near and far clipping plains (negative means behind the viewer). Their default values are <code>-1</code> and <code>1</code>.</p>
 <h3 id="math.oblique" class="func-def">math.oblique(angle, zscale, left, right, bottom, top [, near, far])</h3>
 <p>Creates a 4x4 oblique projection matrix. <code>near</code> and <code>far</code> are the distance from the viewer of the near and far clipping plains (negative means behind the viewer). Their default values are <code>-1</code> and <code>1</code>.</p>
-<h3 id="math.translate4" class="func-def">math.translate4(pos)</h3>
-<p>Creates a 4x4 translation matrix. <code>pos</code> should be a <code>vec3</code>.</p>
-<h3 id="math.scale4" class="func-def">math.scale4(scl)</h3>
-<p>Creates a 4x4 scale matrix. <code>scl</code> should be a <code>vec3</code>.</p>
+<h3 id="math.translate4" class="func-def">math.translate4(position)</h3>
+<p>Creates a 4x4 translation matrix.</p>
+<p><code>position</code> may be either 2 or 3 numbers (the x, y and z components) or a <code>vec2</code> or <code>vec3</code>.</p>
+<p>If the z component is omitted it is assumed to be 0.</p>
+<h3 id="math.scale4" class="func-def">math.scale4(scaling)</h3>
+<p>Creates a 4x4 scale matrix.</p>
+<p><code>scaling</code> may be 1, 2 or 3 numbers or a <code>vec2</code> or <code>vec3</code>. If 1 number is provided it is assume to be the x and y components of the scaling and the z scaling is assumed to be 1. If 2 numbers or a <code>vec2</code> is provided, they are the scaling for the x and y components and z is assumed to be 1.</p>
+<h3 id="math.scale4" class="func-def">math.rotate4(rotation)</h3>
+<p>Creates a 4x4 rotation matrix.</p>
+<p><code>rotation</code> can be either a quaternion, or an angle (in radians) followed by an optional <code>vec3</code> axis. If the axis is omitted it is assumed to be <code>vec3(0, 0, 1)</code> so the rotation becomes a 2D rotation in the xy plane about the z axis.</p>
 <h3 id="math.perlin" class="func-def">math.perlin(pos [, period])</h3>
 <p>Generate perlin noise. <code>pos</code> can be a 2, 3, or 4 dimensional vector, or a number. If the second argument is supplied then the noise will be periodic with the given period. <code>period</code> should be of the same type as <code>pos</code> and its components should be integers greater than 1.</p>
 <p>The returned value is between -1 and 1.</p>
@@ -2181,7 +2188,7 @@ node2<span class="ot">.</span>x <span class="ot">=</span> <span class="dv">3</sp
 node4<span class="ot">.</span>scale <span class="ot">=</span> vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">)</span></code></pre></div>
 <h3 id="am.rotate" class="func-def">am.rotate([uniform,] rotation)</h3>
 <p>Apply a rotation to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
-<p><code>rotation</code> can be either a quaternion, or an angle (in radians) followed by an optional <code>vec3</code> axis. If the axis is omitted it is assumed to be <code>vec3(0, 0, 1)</code> so the rotation becomes a 2D rotation in the xy plane.</p>
+<p><code>rotation</code> can be either a quaternion, or an angle (in radians) followed by an optional <code>vec3</code> axis. If the axis is omitted it is assumed to be <code>vec3(0, 0, 1)</code> so the rotation becomes a 2D rotation in the xy plane about the z axis.</p>
 <p>Fields:</p>
 <ul>
 <li><code>rotation</code>: The rotation as a <code>quat</code>. Updatable.</li>

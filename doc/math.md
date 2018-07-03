@@ -559,13 +559,37 @@ near and far clipping plains (negative means behind the viewer).
 Their default values are `-1` and `1`.
 
 
-### math.translate4(pos) {#math.translate4 .func-def}
+### math.translate4(position) {#math.translate4 .func-def}
 
-Creates a 4x4 translation matrix. `pos` should be a `vec3`.
+Creates a 4x4 translation matrix.
 
-### math.scale4(scl) {#math.scale4 .func-def}
+`position` may be either 2 or 3 numbers (the
+x, y and z components) or a `vec2` or `vec3`. 
 
-Creates a 4x4 scale matrix. `scl` should be a `vec3`.
+If the z component is omitted it is assumed to
+be 0.
+
+### math.scale4(scaling) {#math.scale4 .func-def}
+
+Creates a 4x4 scale matrix.
+
+`scaling` may be 1, 2 or 3 numbers or a
+`vec2` or `vec3`. If 1 number is provided
+it is assume to be the x and y components
+of the scaling and the z scaling is assumed
+to be 1. If 2 numbers or a `vec2` is provided,
+they are the scaling for the x and y components
+and z is assumed to be 1.
+
+### math.rotate4(rotation) {#math.scale4 .func-def}
+
+Creates a 4x4 rotation matrix.
+
+`rotation` can be either a quaternion, or
+an angle (in radians) followed by an optional `vec3` axis.
+If the axis is omitted it is assumed to be `vec3(0, 0, 1)`
+so the rotation becomes a 2D rotation in the xy plane about
+the z axis.
 
 ### math.perlin(pos [, period]) {#math.perlin .func-def}
 
