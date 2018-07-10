@@ -12,7 +12,7 @@ struct am_viewport_state {
     am_viewport_state();
     void set(int x, int y, int w, int h);
     void restore(am_viewport_state *old);
-    void bind(am_render_state *rstate);
+    void bind(am_render_state *rstate, bool force);
 };
 
 struct am_color_mask_state {
@@ -24,7 +24,7 @@ struct am_color_mask_state {
     am_color_mask_state();
     void set(bool r, bool g, bool b, bool a);
     void restore(am_color_mask_state *old);
-    void bind(am_render_state *rstate);
+    void bind(am_render_state *rstate, bool force);
 };
 
 struct am_depth_test_state {
@@ -35,7 +35,46 @@ struct am_depth_test_state {
     am_depth_test_state();
     void set(bool test_enabled, bool mask_enabled, am_depth_func func);
     void restore(am_depth_test_state *old);
-    void bind(am_render_state *rstate);
+    void bind(am_render_state *rstate, bool force);
+};
+
+struct am_stencil_test_state {
+    bool                    enabled;
+    am_stencil_func         func_back;
+    am_glint                ref_back;
+    am_gluint               read_mask_back;
+    am_gluint               write_mask_back;
+    am_stencil_func         func_front;
+    am_glint                ref_front;
+    am_gluint               read_mask_front;
+    am_gluint               write_mask_front;
+    am_stencil_op           op_fail_front;
+    am_stencil_op           op_zfail_front;
+    am_stencil_op           op_zpass_front;
+    am_stencil_op           op_fail_back;
+    am_stencil_op           op_zfail_back;
+    am_stencil_op           op_zpass_back;
+
+    am_stencil_test_state();
+    void set(
+        bool                    enabled,
+        am_stencil_func         func_back,
+        am_glint                ref_back,
+        am_gluint               read_mask_back,
+        am_gluint               write_mask_back,
+        am_stencil_func         func_front,
+        am_glint                ref_front,
+        am_gluint               read_mask_front,
+        am_gluint               write_mask_front,
+        am_stencil_op           op_fail_front,
+        am_stencil_op           op_zfail_front,
+        am_stencil_op           op_zpass_front,
+        am_stencil_op           op_fail_back,
+        am_stencil_op           op_zfail_back,
+        am_stencil_op           op_zpass_back
+    );
+    void restore(am_stencil_test_state *old);
+    void bind(am_render_state *rstate, bool force);
 };
 
 struct am_cull_face_state {
@@ -46,7 +85,7 @@ struct am_cull_face_state {
     am_cull_face_state();
     void set(bool enabled, am_face_winding winding, am_cull_face_side side);
     void restore(am_cull_face_state *old);
-    void bind(am_render_state *rstate);
+    void bind(am_render_state *rstate, bool force);
 };
 
 enum am_blend_mode {
@@ -88,23 +127,7 @@ struct am_blend_state {
         float             constant_b,
         float             constant_a);
     void restore(am_blend_state *old);
-    void bind(am_render_state *rstate);
-};
-
-struct am_stencil_test_state {
-    bool                    enabled;
-    am_stencil_func         func_back;
-    am_glint                ref_back;
-    am_gluint               mask_back;
-    am_stencil_func         func_front;
-    am_glint                ref_front;
-    am_gluint               mask_front;
-    am_stencil_op           op_fail_front;
-    am_stencil_op           op_zfail_front;
-    am_stencil_op           op_zpass_front;
-    am_stencil_op           op_fail_back;
-    am_stencil_op           op_zfail_back;
-    am_stencil_op           op_zpass_back;
+    void bind(am_render_state *rstate, bool force);
 };
 
 struct am_scissor_test_state {
@@ -116,7 +139,7 @@ struct am_scissor_test_state {
     am_scissor_test_state();
     void set(bool enabled, int x, int y, int w, int h);
     void restore(am_scissor_test_state *old);
-    void bind(am_render_state *rstate);
+    void bind(am_render_state *rstate, bool force);
 };
 
 struct am_sample_coverage_state {
@@ -153,6 +176,8 @@ struct am_render_state {
     am_color_mask_state     active_color_mask_state;
     am_depth_test_state     bound_depth_test_state;
     am_depth_test_state     active_depth_test_state;
+    am_stencil_test_state   bound_stencil_test_state;
+    am_stencil_test_state   active_stencil_test_state;
     am_cull_face_state      bound_cull_face_state;
     am_cull_face_state      active_cull_face_state;
     am_blend_state          bound_blend_state;

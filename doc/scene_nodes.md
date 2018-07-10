@@ -873,16 +873,16 @@ Fields:
 
 - `face`: Updatable.
 
-### am.depth_test(test [, mask]) {#am.depth_test .method-def}
+### am.depth_test(func [, mask]) {#am.depth_test .method-def}
 
-Sets the depth test and mask. The window
+Sets the depth test function and mask. The window
 or framebuffer being rendered to needs to have a depth
 buffer for this to have any effect.
 
-`test` is used to determine whether a fragment
+`func` is used to determine whether a fragment
 is rendered by comparing the depth value of the
 fragment to the value in the depth buffer.
-The possible values for `test` are:
+The possible values for `func` are:
 
 - `"never"`
 - `"always"`
@@ -893,9 +893,64 @@ The possible values for `test` are:
 - `"greater"`
 - `"gequal"`
 
-Mask determines whether the fragment depth is
+`mask` determines whether the fragment depth is
 written to the depth buffer. The possible
 values are `true` and `false`. The default is `true`.
+
+Fields:
+
+- `func`: Updatable.
+- `mask`: Updatable.
+
+### am.stencil_test(settings) {#am.stencil_test .method-def}
+
+Sets the stencil test and mask. The window
+or framebuffer being rendered to needs to have a stencil
+buffer for this to have any effect.
+
+`settings` should be a table with any combination of the following
+fields:
+
+- `enabled`: whether the stencil test is enabled (`true`/`false`, default `false`)
+- `func_front`: the test function to use for front-facing (CCW) triangles 
+  (`"never"`, `"always"`, `"equal"`, `"notequal"`, `"less"`, `"lequal"`,
+  `"greater"` or `"gequal"`, default `"always"`). The function compares
+  a supplied reference value with the value in the stencil buffer.
+- `ref_front`: the reference value to use for front-facing (CCW) triangles
+  (must be an integer between 0 and 255, default 0).
+- `read_mask_front`: a bitmask to apply to the reference value and the stencil buffer
+  value before doing the test (must be an integer between 0 and 255, default 255).
+- `op_fail_front`: The operation to perform if the stencil test fails
+  (see below for possible values).
+- `op_zfail_front`: The operation to perform if the stencil test passes, but the depth test fails 
+  (see below for possible values).
+- `op_zpass_front`: The operation to perform if the stencil test passes and the depth test passes
+  (see below for possible values).
+- `write_mask_front`: a bitmask that controls which stencil buffer bits can be written to
+  (must be an integer between 0 and 255, default 255).
+- `func_back`: same as `func_front`, but for back-facing (CW) triangles.
+- `ref_back`: same as `ref_front`, but for back-facing (CW) triangles.
+- `read_mask_back`: same as `read_mask_front`, but for back-facing (CW) triangles.
+- `op_fail_back`: same as `op_fail_front`, but for back-facing (CW) triangles.
+- `op_zfail_back`: same as `op_zfail_front`, but for back-facing (CW) triangles.
+- `op_zpass_back`: same as `op_zpass_front`, but for back-facing (CW) triangles.
+- `write_mask_back`: same as `write_mask_front`, but for back-facing (CW) triangles.
+
+The `op_fail_front`, `op_zfail_front` and `op_zpass_front` fields (and the analogous fields
+for back-facing triangles) determine how the stencil buffer is modified. They can be one of the
+following values:
+
+- `"keep"`: keeps the existing stencil buffer value
+- `"zero"`: sets the stencil buffer  to zero
+- `"replace"`: replaces the stencil buffer value with the supplied reference value
+- `"invert"`: invert the bits of the stencil buffer
+- `"incr"`: increment the stencil buffer value
+- `"decr"`: decrement the stencil buffer value
+- `"incr_wrap"`: increment the stencil buffer value, wrapping back to zero on overflow (> 255)
+- `"decr_wrap"`: decrement the stencil buffer value, wrapping to 255 on underflow
+
+All the settings can be updated after the depth test node has been created using
+fields on the node with the corresponding names.
 
 ### am.viewport(x, y, width, height) {#am.viewport .func-def}
 

@@ -20,8 +20,9 @@ void am_viewport_state::restore(am_viewport_state *old) {
     set(old->x, old->y, old->w, old->h);
 }
 
-void am_viewport_state::bind(am_render_state *rstate) {
-    if (x != rstate->bound_viewport_state.x ||
+void am_viewport_state::bind(am_render_state *rstate, bool force) {
+    if (force ||
+        x != rstate->bound_viewport_state.x ||
         y != rstate->bound_viewport_state.y ||
         w != rstate->bound_viewport_state.w ||
         h != rstate->bound_viewport_state.h)
@@ -51,8 +52,9 @@ void am_scissor_test_state::restore(am_scissor_test_state *old) {
     set(old->enabled, old->x, old->y, old->w, old->h);
 }
 
-void am_scissor_test_state::bind(am_render_state *rstate) {
-    if (enabled != rstate->bound_scissor_test_state.enabled ||
+void am_scissor_test_state::bind(am_render_state *rstate, bool force) {
+    if (force ||
+        enabled != rstate->bound_scissor_test_state.enabled ||
         x != rstate->bound_scissor_test_state.x ||
         y != rstate->bound_scissor_test_state.y ||
         w != rstate->bound_scissor_test_state.w ||
@@ -84,8 +86,9 @@ void am_color_mask_state::restore(am_color_mask_state *old) {
     set(old->r, old->g, old->b, old->a);
 }
 
-void am_color_mask_state::bind(am_render_state *rstate) {
-    if (r != rstate->bound_color_mask_state.r ||
+void am_color_mask_state::bind(am_render_state *rstate, bool force) {
+    if (force ||
+        r != rstate->bound_color_mask_state.r ||
         g != rstate->bound_color_mask_state.g ||
         b != rstate->bound_color_mask_state.b ||
         a != rstate->bound_color_mask_state.a)
@@ -111,18 +114,149 @@ void am_depth_test_state::restore(am_depth_test_state *old) {
     set(old->test_enabled, old->mask_enabled, old->func);
 }
 
-void am_depth_test_state::bind(am_render_state *rstate) {
-    if (test_enabled != rstate->bound_depth_test_state.test_enabled) {
+void am_depth_test_state::bind(am_render_state *rstate, bool force) {
+    if (force || test_enabled != rstate->bound_depth_test_state.test_enabled) {
         am_set_depth_test_enabled(test_enabled);
         rstate->bound_depth_test_state.test_enabled = test_enabled;
     }
-    if (mask_enabled != rstate->bound_depth_test_state.mask_enabled) {
+    if (force || mask_enabled != rstate->bound_depth_test_state.mask_enabled) {
         am_set_framebuffer_depth_mask(mask_enabled);
         rstate->bound_depth_test_state.mask_enabled = mask_enabled;
     }
-    if (func != rstate->bound_depth_test_state.func) {
+    if (force || func != rstate->bound_depth_test_state.func) {
         am_set_depth_func(func);
         rstate->bound_depth_test_state.func = func;
+    }
+}
+
+am_stencil_test_state::am_stencil_test_state() {
+    enabled = false;
+    func_back = AM_STENCIL_FUNC_ALWAYS;
+    ref_back = 0;
+    read_mask_back = 255;
+    write_mask_back = 255;
+    func_front = AM_STENCIL_FUNC_ALWAYS;
+    ref_front = 0;
+    read_mask_front = 255;
+    write_mask_front = 255;
+    op_fail_front = AM_STENCIL_OP_KEEP;
+    op_zfail_front = AM_STENCIL_OP_KEEP;
+    op_zpass_front = AM_STENCIL_OP_KEEP;
+    op_fail_back = AM_STENCIL_OP_KEEP;
+    op_zfail_back = AM_STENCIL_OP_KEEP;
+    op_zpass_back = AM_STENCIL_OP_KEEP;
+}
+
+void am_stencil_test_state::set(
+    bool                    enabled,
+    am_stencil_func         func_back,
+    am_glint                ref_back,
+    am_gluint               read_mask_back,
+    am_gluint               write_mask_back,
+    am_stencil_func         func_front,
+    am_glint                ref_front,
+    am_gluint               read_mask_front,
+    am_gluint               write_mask_front,
+    am_stencil_op           op_fail_front,
+    am_stencil_op           op_zfail_front,
+    am_stencil_op           op_zpass_front,
+    am_stencil_op           op_fail_back,
+    am_stencil_op           op_zfail_back,
+    am_stencil_op           op_zpass_back)
+{
+    am_stencil_test_state::enabled = enabled;
+    am_stencil_test_state::func_back = func_back;
+    am_stencil_test_state::ref_back = ref_back;
+    am_stencil_test_state::read_mask_back = read_mask_back;
+    am_stencil_test_state::write_mask_back = write_mask_back;
+    am_stencil_test_state::func_front = func_front;
+    am_stencil_test_state::ref_front = ref_front;
+    am_stencil_test_state::read_mask_front = read_mask_front;
+    am_stencil_test_state::write_mask_front = write_mask_front;
+    am_stencil_test_state::op_fail_front = op_fail_front;
+    am_stencil_test_state::op_zfail_front = op_zfail_front;
+    am_stencil_test_state::op_zpass_front = op_zpass_front;
+    am_stencil_test_state::op_fail_back = op_fail_back;
+    am_stencil_test_state::op_zfail_back = op_zfail_back;
+    am_stencil_test_state::op_zpass_back = op_zpass_back;
+}
+
+void am_stencil_test_state::restore(am_stencil_test_state *old) {
+    set(
+        old->enabled,
+        old->func_back,
+        old->ref_back,
+        old->read_mask_back,
+        old->write_mask_back,
+        old->func_front,
+        old->ref_front,
+        old->read_mask_front,
+        old->write_mask_front,
+        old->op_fail_front,
+        old->op_zfail_front,
+        old->op_zpass_front,
+        old->op_fail_back,
+        old->op_zfail_back,
+        old->op_zpass_back);
+}
+
+void am_stencil_test_state::bind(am_render_state *rstate, bool force) {
+    if (force || enabled != rstate->bound_stencil_test_state.enabled) {
+        am_set_stencil_test_enabled(enabled);
+        rstate->bound_stencil_test_state.enabled = enabled;
+    }
+    if (!force && !enabled) return;
+    if (force || 
+        func_back != rstate->bound_stencil_test_state.func_back ||
+        ref_back != rstate->bound_stencil_test_state.ref_back ||
+        read_mask_back != rstate->bound_stencil_test_state.read_mask_back) 
+    {
+        am_set_stencil_func(AM_STENCIL_FACE_BACK, func_back, ref_back, read_mask_back);
+        rstate->bound_stencil_test_state.func_back = func_back;
+        rstate->bound_stencil_test_state.ref_back = ref_back;
+        rstate->bound_stencil_test_state.read_mask_back = read_mask_back;
+    }
+    if (force || 
+        func_front != rstate->bound_stencil_test_state.func_front ||
+        ref_front != rstate->bound_stencil_test_state.ref_front ||
+        read_mask_front != rstate->bound_stencil_test_state.read_mask_front) 
+    {
+        am_set_stencil_func(AM_STENCIL_FACE_FRONT, func_front, ref_front, read_mask_front);
+        rstate->bound_stencil_test_state.func_front = func_front;
+        rstate->bound_stencil_test_state.ref_front = ref_front;
+        rstate->bound_stencil_test_state.read_mask_front = read_mask_front;
+    }
+    if (force || 
+        op_fail_back != rstate->bound_stencil_test_state.op_fail_back ||
+        op_zfail_back != rstate->bound_stencil_test_state.op_zfail_back ||
+        op_zpass_back != rstate->bound_stencil_test_state.op_zpass_back) 
+    {
+        am_set_stencil_op(AM_STENCIL_FACE_BACK, op_fail_back, op_zfail_back, op_zpass_back);
+        rstate->bound_stencil_test_state.op_fail_back = op_fail_back;
+        rstate->bound_stencil_test_state.op_zfail_back = op_zfail_back;
+        rstate->bound_stencil_test_state.op_zpass_back = op_zpass_back;
+    }
+    if (force || 
+        op_fail_front != rstate->bound_stencil_test_state.op_fail_front ||
+        op_zfail_front != rstate->bound_stencil_test_state.op_zfail_front ||
+        op_zpass_front != rstate->bound_stencil_test_state.op_zpass_front) 
+    {
+        am_set_stencil_op(AM_STENCIL_FACE_FRONT, op_fail_front, op_zfail_front, op_zpass_front);
+        rstate->bound_stencil_test_state.op_fail_front = op_fail_front;
+        rstate->bound_stencil_test_state.op_zfail_front = op_zfail_front;
+        rstate->bound_stencil_test_state.op_zpass_front = op_zpass_front;
+    }
+    if (force ||
+        write_mask_front != rstate->bound_stencil_test_state.write_mask_front)
+    {
+        am_set_framebuffer_stencil_mask(AM_STENCIL_FACE_FRONT, write_mask_front);
+        rstate->bound_stencil_test_state.write_mask_front = write_mask_front;
+    }
+    if (force ||
+        write_mask_back != rstate->bound_stencil_test_state.write_mask_back)
+    {
+        am_set_framebuffer_stencil_mask(AM_STENCIL_FACE_BACK, write_mask_back);
+        rstate->bound_stencil_test_state.write_mask_back = write_mask_back;
     }
 }
 
@@ -142,12 +276,12 @@ void am_cull_face_state::restore(am_cull_face_state *old) {
     set(old->enabled, old->winding, old->side);
 }
 
-void am_cull_face_state::bind(am_render_state *rstate) {
-    if (enabled != rstate->bound_cull_face_state.enabled) {
+void am_cull_face_state::bind(am_render_state *rstate, bool force) {
+    if (force || enabled != rstate->bound_cull_face_state.enabled) {
         am_set_cull_face_enabled(enabled);
         rstate->bound_cull_face_state.enabled = enabled;
     }
-    if (side != rstate->bound_cull_face_state.side) {
+    if (force || side != rstate->bound_cull_face_state.side) {
         am_set_cull_face_side(side);
         rstate->bound_cull_face_state.side = side;
     }
@@ -331,21 +465,23 @@ void am_blend_state::restore(am_blend_state *old) {
     );
 }
 
-void am_blend_state::bind(am_render_state *rstate) {
+void am_blend_state::bind(am_render_state *rstate, bool force) {
     am_blend_state *bound = &rstate->bound_blend_state;
-    if (enabled != bound->enabled) {
+    if (force || enabled != bound->enabled) {
         am_set_blend_enabled(enabled);
         bound->enabled = enabled;
     }
-    if (!enabled) return;
-    if (equation_rgb != bound->equation_rgb ||
+    if (!force && !enabled) return;
+    if (force ||
+        equation_rgb != bound->equation_rgb ||
         equation_alpha != bound->equation_alpha)
     {
         am_set_blend_equation(equation_rgb, equation_alpha);
         bound->equation_rgb = equation_rgb;
         bound->equation_alpha = equation_alpha;
     }
-    if (sfactor_rgb != bound->sfactor_rgb ||
+    if (force ||
+        sfactor_rgb != bound->sfactor_rgb ||
         dfactor_rgb != bound->dfactor_rgb ||
         sfactor_alpha != bound->sfactor_alpha ||
         dfactor_alpha != bound->dfactor_alpha)
@@ -356,7 +492,8 @@ void am_blend_state::bind(am_render_state *rstate) {
         bound->sfactor_alpha = sfactor_alpha;
         bound->dfactor_alpha = dfactor_alpha;
     }
-    if (constant_r != bound->constant_r ||
+    if (force ||
+        constant_r != bound->constant_r ||
         constant_g != bound->constant_g ||
         constant_b != bound->constant_b ||
         constant_a != bound->constant_a)
@@ -384,12 +521,13 @@ void am_render_state::enable_vaas(int n) {
 
 bool am_render_state::update_state() {
     assert(active_program != NULL);
-    active_viewport_state.bind(this);
-    active_scissor_test_state.bind(this);
-    active_color_mask_state.bind(this);
-    active_depth_test_state.bind(this);
-    active_cull_face_state.bind(this);
-    active_blend_state.bind(this);
+    active_viewport_state.bind(this, false);
+    active_scissor_test_state.bind(this, false);
+    active_color_mask_state.bind(this, false);
+    active_depth_test_state.bind(this, false);
+    active_stencil_test_state.bind(this, false);
+    active_cull_face_state.bind(this, false);
+    active_blend_state.bind(this, false);
     bind_active_program();
     if (!bind_active_program_params()) {
         return false;
@@ -408,21 +546,33 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
         am_bind_framebuffer(fb);
     }
 
-    am_set_viewport(x, y, w, h);
     rstate->active_viewport_state.set(x, y, w, h);
-    rstate->bound_viewport_state.set(x, y, w, h);
+    rstate->active_viewport_state.bind(rstate, true);
 
-    rstate->bound_color_mask_state.set(true, true, true, true);
     rstate->active_color_mask_state.set(true, true, true, true);
-    am_set_framebuffer_color_mask(true, true, true, true);
+    rstate->active_color_mask_state.bind(rstate, true);
 
     rstate->active_depth_test_state.set(has_depthbuffer, has_depthbuffer,
         has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
-    rstate->bound_depth_test_state.set(has_depthbuffer, has_depthbuffer,
-        has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
-    am_set_framebuffer_depth_mask(has_depthbuffer);
-    am_set_depth_test_enabled(has_depthbuffer);
-    am_set_depth_func(has_depthbuffer ? AM_DEPTH_FUNC_LESS : AM_DEPTH_FUNC_ALWAYS);
+    rstate->active_depth_test_state.bind(rstate, true);
+
+    rstate->active_stencil_test_state.set(
+        false,
+        AM_STENCIL_FUNC_ALWAYS,
+        0,
+        255,
+        255,
+        AM_STENCIL_FUNC_ALWAYS,
+        0,
+        255,
+        255,
+        AM_STENCIL_OP_KEEP,
+        AM_STENCIL_OP_KEEP,
+        AM_STENCIL_OP_KEEP,
+        AM_STENCIL_OP_KEEP,
+        AM_STENCIL_OP_KEEP,
+        AM_STENCIL_OP_KEEP);
+    rstate->active_stencil_test_state.bind(rstate, true);
 
     bool is_margin = !(x == 0 && y == 0 && w == fbw && h == fbh);
 
@@ -435,12 +585,8 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
     }
 
     bool scissor_enabled = is_margin;
-    am_set_scissor_test_enabled(scissor_enabled);
-    if (scissor_enabled) {
-        am_set_scissor(x, y, w, h);
-    }
     rstate->active_scissor_test_state.set(scissor_enabled, x, y, w, h);
-    rstate->bound_scissor_test_state.set(scissor_enabled, x, y, w, h);
+    rstate->active_scissor_test_state.bind(rstate, true);
 
     if (clear && (!is_margin ||
         clear_color.r != 0.0 || clear_color.g != 0.0 ||

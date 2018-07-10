@@ -263,7 +263,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.blend">am.blend(mode)</a></li>
 <li><a href="#am.color_maskred-green-blue-alpha">am.color_mask(red, green, blue, alpha)</a></li>
 <li><a href="#am.cull_faceface">am.cull_face(face)</a></li>
-<li><a href="#am.depth_test">am.depth_test(test [, mask])</a></li>
+<li><a href="#am.depth_test">am.depth_test(func [, mask])</a></li>
+<li><a href="#am.stencil_test">am.stencil_test(settings)</a></li>
 <li><a href="#am.viewport">am.viewport(x, y, width, height)</a></li>
 <li><a href="#am.lookat">am.lookat([uniform,] eye, center, up)</a></li>
 <li><a href="#am.cull_sphere">am.cull_sphere([uniforms...,] radius [, center])</a></li>
@@ -2397,9 +2398,9 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <ul>
 <li><code>face</code>: Updatable.</li>
 </ul>
-<h3 id="am.depth_test" class="method-def">am.depth_test(test [, mask])</h3>
-<p>Sets the depth test and mask. The window or framebuffer being rendered to needs to have a depth buffer for this to have any effect.</p>
-<p><code>test</code> is used to determine whether a fragment is rendered by comparing the depth value of the fragment to the value in the depth buffer. The possible values for <code>test</code> are:</p>
+<h3 id="am.depth_test" class="method-def">am.depth_test(func [, mask])</h3>
+<p>Sets the depth test function and mask. The window or framebuffer being rendered to needs to have a depth buffer for this to have any effect.</p>
+<p><code>func</code> is used to determine whether a fragment is rendered by comparing the depth value of the fragment to the value in the depth buffer. The possible values for <code>func</code> are:</p>
 <ul>
 <li><code>&quot;never&quot;</code></li>
 <li><code>&quot;always&quot;</code></li>
@@ -2410,7 +2411,43 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>&quot;greater&quot;</code></li>
 <li><code>&quot;gequal&quot;</code></li>
 </ul>
-<p>Mask determines whether the fragment depth is written to the depth buffer. The possible values are <code>true</code> and <code>false</code>. The default is <code>true</code>.</p>
+<p><code>mask</code> determines whether the fragment depth is written to the depth buffer. The possible values are <code>true</code> and <code>false</code>. The default is <code>true</code>.</p>
+<p>Fields:</p>
+<ul>
+<li><code>func</code>: Updatable.</li>
+<li><code>mask</code>: Updatable.</li>
+</ul>
+<h3 id="am.stencil_test" class="method-def">am.stencil_test(settings)</h3>
+<p>Sets the stencil test and mask. The window or framebuffer being rendered to needs to have a stencil buffer for this to have any effect.</p>
+<p><code>settings</code> should be a table with any combination of the following fields:</p>
+<ul>
+<li><code>enabled</code>: whether the stencil test is enabled (<code>true</code>/<code>false</code>, default <code>false</code>)</li>
+<li><code>func_front</code>: the test function to use for front-facing (CCW) triangles (<code>&quot;never&quot;</code>, <code>&quot;always&quot;</code>, <code>&quot;equal&quot;</code>, <code>&quot;notequal&quot;</code>, <code>&quot;less&quot;</code>, <code>&quot;lequal&quot;</code>, <code>&quot;greater&quot;</code> or <code>&quot;gequal&quot;</code>, default <code>&quot;always&quot;</code>). The function compares a supplied reference value with the value in the stencil buffer.</li>
+<li><code>ref_front</code>: the reference value to use for front-facing (CCW) triangles (must be an integer between 0 and 255, default 0).</li>
+<li><code>read_mask_front</code>: a bitmask to apply to the reference value and the stencil buffer value before doing the test (must be an integer between 0 and 255, default 255).</li>
+<li><code>op_fail_front</code>: The operation to perform if the stencil test fails (see below for possible values).</li>
+<li><code>op_zfail_front</code>: The operation to perform if the stencil test passes, but the depth test fails (see below for possible values).</li>
+<li><code>op_zpass_front</code>: The operation to perform if the stencil test passes and the depth test passes (see below for possible values).</li>
+<li><code>write_mask_front</code>: a bitmask that controls which stencil buffer bits can be written to (must be an integer between 0 and 255, default 255).</li>
+<li><code>func_back</code>: same as <code>func_front</code>, but for back-facing (CW) triangles.</li>
+<li><code>ref_back</code>: same as <code>ref_front</code>, but for back-facing (CW) triangles.</li>
+<li><code>read_mask_back</code>: same as <code>read_mask_front</code>, but for back-facing (CW) triangles.</li>
+<li><code>op_fail_back</code>: same as <code>op_fail_front</code>, but for back-facing (CW) triangles.</li>
+<li><code>op_zfail_back</code>: same as <code>op_zfail_front</code>, but for back-facing (CW) triangles.</li>
+<li><code>op_zpass_back</code>: same as <code>op_zpass_front</code>, but for back-facing (CW) triangles.</li>
+<li><code>write_mask_back</code>: same as <code>write_mask_front</code>, but for back-facing (CW) triangles.</li>
+</ul>
+<p>The <code>op_fail_front</code>, <code>op_zfail_front</code> and <code>op_zpass_front</code> fields (and the analogous fields for back-facing triangles) determine how the stencil buffer is modified. They can be one of the following values:</p>
+<ul>
+<li><code>&quot;keep&quot;</code>: keeps the existing stencil buffer value</li>
+<li><code>&quot;zero&quot;</code>: sets the stencil buffer to zero</li>
+<li><code>&quot;replace&quot;</code>: replaces the stencil buffer value with the supplied reference value</li>
+<li><code>&quot;invert&quot;</code>: invert the bits of the stencil buffer</li>
+<li><code>&quot;incr&quot;</code>: increment the stencil buffer value</li>
+<li><code>&quot;decr&quot;</code>: decrement the stencil buffer value</li>
+<li><code>&quot;incr_wrap&quot;</code>: increment the stencil buffer value, wrapping back to zero on overflow (&gt; 255)</li>
+<li><code>&quot;decr_wrap&quot;</code>: decrement the stencil buffer value, wrapping to 255 on underflow</li>
+</ul>
 <h3 id="am.viewport" class="func-def">am.viewport(x, y, width, height)</h3>
 <p>Set the viewport, which is the rectangular area of the window into which rendering will occur.</p>
 <p><code>x</code> and <code>y</code> is the bottom-left corner of the viewport in pixels, where the bottom-left corner of the window is (0, 0). <code>width</code> and <code>height</code> are also in pixels.</p>

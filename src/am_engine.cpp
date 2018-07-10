@@ -59,6 +59,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_image_module(L);
         am_open_model_module(L);
         am_open_depthbuffer_module(L);
+        am_open_stencilbuffer_module(L);
         am_open_culling_module(L);
         am_open_blending_module(L);
         am_open_transforms_module(L);
