@@ -49,7 +49,7 @@ static void sub_win_newlines(void **ptr, size_t *len) {
     char *str = (char*)(*ptr);
     unsigned int n = (unsigned int)(*len);
     unsigned int num_subs = 0;
-    for (int i = 0; i < n; i++) {
+    for (unsigned int i = 0; i < n; i++) {
         if (str[i] == '\n') num_subs++;
         if (str[i] == '\r') i++;
     }
