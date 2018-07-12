@@ -47,13 +47,13 @@ static void replace_backslashes(char *str) {
 
 static void sub_win_newlines(void **ptr, size_t *len) {
     char *str = (char*)(*ptr);
-    int n = (int)(*len);
-    int num_subs = 0;
+    unsigned int n = (unsigned int)(*len);
+    unsigned int num_subs = 0;
     for (int i = 0; i < n; i++) {
         if (str[i] == '\n') num_subs++;
         if (str[i] == '\r') i++;
     }
-    int new_n = n + num_subs;
+    unsigned int new_n = n + num_subs;
     char *new_str = (char*)malloc(new_n);
     int j = 0;
     for (int i = 0; i < n; i++) {
