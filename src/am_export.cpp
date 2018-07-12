@@ -55,8 +55,8 @@ static void sub_win_newlines(void **ptr, size_t *len) {
     }
     unsigned int new_n = n + num_subs;
     char *new_str = (char*)malloc(new_n);
-    int j = 0;
-    for (int i = 0; i < n; i++) {
+    unsigned int j = 0;
+    for (unsigned int i = 0; i < n; i++) {
         if (str[i] == '\r') {
             new_str[j++] = '\r';
             i++;
