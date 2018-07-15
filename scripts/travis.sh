@@ -34,7 +34,7 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
 else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         # build linux
-        #make -j2 TARGET=linux32.release LUAVM=lua51   test
+        make -j2 TARGET=linux32.release LUAVM=lua51   test
         #make -j2 TARGET=linux32.release LUAVM=lua52   test
         #make -j2 TARGET=linux32.release LUAVM=luajit  test
         #make -j2 TARGET=linux64.release LUAVM=lua51   test
@@ -56,8 +56,9 @@ else
         #make -j2 TARGET=android.release LUAVM=lua51
         #make -j2 TARGET=android.release LUAVM=lua52
 
+    else
         # build emscripten
-        EMSDK=sdk-tag-1.38.8-64bit
+        EMSDK=sdk-1.38.8-64bit
         git clone https://github.com/juj/emsdk.git emscripten
         cd emscripten
         ./emsdk install --enable-wasm $EMSDK
@@ -66,8 +67,7 @@ else
         cd ..
         make -j2 TARGET=html.release LUAVM=lua51
 
-    else
-        make -j2 TARGET=osx.release     LUAVM=lua51   test
+        #make -j2 TARGET=osx.release     LUAVM=lua51   test
         #make -j2 TARGET=osx.release     LUAVM=lua52   test
         #make -j2 TARGET=osx.release     LUAVM=luajit  test
         #scripts/build_ios.sh lua51
