@@ -333,6 +333,7 @@ static bool build_html_export(export_config *conf) {
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath, "amulet.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet.wasm", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath, "player.html", name, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
