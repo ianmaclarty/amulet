@@ -122,7 +122,7 @@ C99_OPT = -std=c99
 
 EMSCRIPTEN_LIBS = html/library_sdl.js
 EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
-EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_run_waiting', '_am_emscripten_pause', '_am_emscripten_resume', '_am_emscripten_resize']" -s EXTRA_EXPORTED_RUNTIME_METHODS="['Pointer_stringify']"
+EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_run_waiting', '_am_emscripten_pause', '_am_emscripten_resume', '_am_emscripten_resize']" -s EXTRA_EXPORTED_RUNTIME_METHODS="['Pointer_stringify', 'ccall', 'writeStringToMemory']" -s BINARYEN_TRAP_MODE=clamp
 
 TARGET_CFLAGS=-ffast-math
 

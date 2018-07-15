@@ -54,7 +54,6 @@
         <div class="button disabled"><a id="pause-resume">Pause</a></div>
         <div class="button disabled"><a id="stop">Stop</a></div>
         <div class="separator"></div>
-        <div class="button"><a id="share">Share</a></div>
         <div class="button"><a id="export">Export</a></div>
         <div class="separator"></div>
         <div class="button"><a id="doc" href="http://www.amulet.xyz/doc" target="_blank">Docs</a></div>
@@ -236,31 +235,6 @@ function init_controls() {
             log_output("Stopped.", "running");
             run_waiting_anim();
         }
-    });
-    $("#share").click(function() {
-        var code = editor.getDoc().getValue();
-        var req = {
-            description: "Amulet shared game. See http://www.amulet.xyz for more info.",
-            "public": true,
-            files: {"main.lua": {content: code}}
-        };
-        log_output("Sharing...", "info");
-        $.post("https://api.github.com/gists", JSON.stringify(req), function(resp) {
-            var res = JSON.parse(resp);
-            var id = res.id;
-            var playurl = qualifyURL("player.html?gist="+id);
-            var editurl = qualifyURL("editor.html?gist="+id);
-            log_output("Share successful!", "success", true);
-            log_output("Play at: <a target=\"_blank\" href=\"" + playurl + "\">" + playurl + "</a>", null, true);
-            log_output("Edit at: <a target=\"_blank\" href=\"" + editurl + "\">" + editurl + "</a>", null, true);
-        }, "text").fail(function(xhr) {
-            var res = JSON.parse(xhr.responseText);
-            var msg = "";
-            if (res.message) {
-                msg = res.message;
-            }
-            log_output("Share failed: " + msg, "error");
-        });
     });
     $("#export").click(function() {
         var code = editor.getDoc().getValue();
