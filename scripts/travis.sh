@@ -57,10 +57,11 @@ else
         #make -j2 TARGET=android.release LUAVM=lua52
 
         # build emscripten
+        EMSDK=sdk-tag-1.38.8-64bit
         git clone https://github.com/juj/emsdk.git emscripten
         cd emscripten
-        ./emsdk install sdk-1.38.8-64bit
-        ./emsdk activate sdk-1.38.8-64bit
+        ./emsdk install --enable-wasm $EMSDK
+        ./emsdk activate $EMSDK
         source ./emsdk_env.sh
         cd ..
         make -j2 TARGET=html.release LUAVM=lua51
