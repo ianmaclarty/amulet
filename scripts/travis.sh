@@ -66,7 +66,7 @@ else
         make -j2 TARGET=html.release LUAVM=lua51
 
     else
-        #make -j2 TARGET=osx.release     LUAVM=lua51   test
+        make -j2 TARGET=osx.release     LUAVM=lua51   test
         #make -j2 TARGET=osx.release     LUAVM=lua52   test
         #make -j2 TARGET=osx.release     LUAVM=luajit  test
         #scripts/build_ios.sh lua51
