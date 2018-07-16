@@ -2422,20 +2422,17 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <p><code>settings</code> should be a table with any combination of the following fields:</p>
 <ul>
 <li><code>enabled</code>: whether the stencil test is enabled (<code>true</code>/<code>false</code>, default <code>false</code>)</li>
+<li><code>ref</code>: the reference value to use in the test function (must be an integer between 0 and 255, default 0).</li>
+<li><code>read_mask</code>: a bitmask to apply to the reference value and the stencil buffer value before doing the test (must be an integer between 0 and 255, default 255).</li>
+<li><code>write_mask</code>: a bitmask that controls which stencil buffer bits can be written to (must be an integer between 0 and 255, default 255).</li>
 <li><code>func_front</code>: the test function to use for front-facing (CCW) triangles (<code>&quot;never&quot;</code>, <code>&quot;always&quot;</code>, <code>&quot;equal&quot;</code>, <code>&quot;notequal&quot;</code>, <code>&quot;less&quot;</code>, <code>&quot;lequal&quot;</code>, <code>&quot;greater&quot;</code> or <code>&quot;gequal&quot;</code>, default <code>&quot;always&quot;</code>). The function compares a supplied reference value with the value in the stencil buffer.</li>
-<li><code>ref_front</code>: the reference value to use for front-facing (CCW) triangles (must be an integer between 0 and 255, default 0).</li>
-<li><code>read_mask_front</code>: a bitmask to apply to the reference value and the stencil buffer value before doing the test (must be an integer between 0 and 255, default 255).</li>
 <li><code>op_fail_front</code>: The operation to perform if the stencil test fails (see below for possible values).</li>
 <li><code>op_zfail_front</code>: The operation to perform if the stencil test passes, but the depth test fails (see below for possible values).</li>
 <li><code>op_zpass_front</code>: The operation to perform if the stencil test passes and the depth test passes (see below for possible values).</li>
-<li><code>write_mask_front</code>: a bitmask that controls which stencil buffer bits can be written to (must be an integer between 0 and 255, default 255).</li>
 <li><code>func_back</code>: same as <code>func_front</code>, but for back-facing (CW) triangles.</li>
-<li><code>ref_back</code>: same as <code>ref_front</code>, but for back-facing (CW) triangles.</li>
-<li><code>read_mask_back</code>: same as <code>read_mask_front</code>, but for back-facing (CW) triangles.</li>
 <li><code>op_fail_back</code>: same as <code>op_fail_front</code>, but for back-facing (CW) triangles.</li>
 <li><code>op_zfail_back</code>: same as <code>op_zfail_front</code>, but for back-facing (CW) triangles.</li>
 <li><code>op_zpass_back</code>: same as <code>op_zpass_front</code>, but for back-facing (CW) triangles.</li>
-<li><code>write_mask_back</code>: same as <code>write_mask_front</code>, but for back-facing (CW) triangles.</li>
 </ul>
 <p>The <code>op_fail_front</code>, <code>op_zfail_front</code> and <code>op_zpass_front</code> fields (and the analogous fields for back-facing triangles) determine how the stencil buffer is modified. They can be one of the following values:</p>
 <ul>
@@ -2448,6 +2445,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>&quot;incr_wrap&quot;</code>: increment the stencil buffer value, wrapping back to zero on overflow (&gt; 255)</li>
 <li><code>&quot;decr_wrap&quot;</code>: decrement the stencil buffer value, wrapping to 255 on underflow</li>
 </ul>
+<p>All the settings can be updated after the depth test node has been created using fields on the node with the corresponding names.</p>
 <h3 id="am.viewport" class="func-def">am.viewport(x, y, width, height)</h3>
 <p>Set the viewport, which is the rectangular area of the window into which rendering will occur.</p>
 <p><code>x</code> and <code>y</code> is the bottom-left corner of the viewport in pixels, where the bottom-left corner of the window is (0, 0). <code>width</code> and <code>height</code> are also in pixels.</p>

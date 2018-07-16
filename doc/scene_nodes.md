@@ -912,29 +912,26 @@ buffer for this to have any effect.
 fields:
 
 - `enabled`: whether the stencil test is enabled (`true`/`false`, default `false`)
+- `ref`: the reference value to use in the test function
+  (must be an integer between 0 and 255, default 0).
+- `read_mask`: a bitmask to apply to the reference value and the stencil buffer
+  value before doing the test (must be an integer between 0 and 255, default 255).
+- `write_mask`: a bitmask that controls which stencil buffer bits can be written to
+  (must be an integer between 0 and 255, default 255).
 - `func_front`: the test function to use for front-facing (CCW) triangles 
   (`"never"`, `"always"`, `"equal"`, `"notequal"`, `"less"`, `"lequal"`,
   `"greater"` or `"gequal"`, default `"always"`). The function compares
   a supplied reference value with the value in the stencil buffer.
-- `ref_front`: the reference value to use for front-facing (CCW) triangles
-  (must be an integer between 0 and 255, default 0).
-- `read_mask_front`: a bitmask to apply to the reference value and the stencil buffer
-  value before doing the test (must be an integer between 0 and 255, default 255).
 - `op_fail_front`: The operation to perform if the stencil test fails
   (see below for possible values).
 - `op_zfail_front`: The operation to perform if the stencil test passes, but the depth test fails 
   (see below for possible values).
 - `op_zpass_front`: The operation to perform if the stencil test passes and the depth test passes
   (see below for possible values).
-- `write_mask_front`: a bitmask that controls which stencil buffer bits can be written to
-  (must be an integer between 0 and 255, default 255).
 - `func_back`: same as `func_front`, but for back-facing (CW) triangles.
-- `ref_back`: same as `ref_front`, but for back-facing (CW) triangles.
-- `read_mask_back`: same as `read_mask_front`, but for back-facing (CW) triangles.
 - `op_fail_back`: same as `op_fail_front`, but for back-facing (CW) triangles.
 - `op_zfail_back`: same as `op_zfail_front`, but for back-facing (CW) triangles.
 - `op_zpass_back`: same as `op_zpass_front`, but for back-facing (CW) triangles.
-- `write_mask_back`: same as `write_mask_front`, but for back-facing (CW) triangles.
 
 The `op_fail_front`, `op_zfail_front` and `op_zpass_front` fields (and the analogous fields
 for back-facing triangles) determine how the stencil buffer is modified. They can be one of the

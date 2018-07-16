@@ -1,13 +1,10 @@
 struct am_stencil_test_node : am_scene_node {
     bool                    enabled;
+    am_glint                ref;
+    am_gluint               read_mask;
+    am_gluint               write_mask;
     am_stencil_func         func_back;
-    am_glint                ref_back;
-    am_gluint               read_mask_back;
-    am_gluint               write_mask_back;
     am_stencil_func         func_front;
-    am_glint                ref_front;
-    am_gluint               read_mask_front;
-    am_gluint               write_mask_front;
     am_stencil_op           op_fail_front;
     am_stencil_op           op_zfail_front;
     am_stencil_op           op_zpass_front;
