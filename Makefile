@@ -14,6 +14,8 @@ else ifeq ($(LUAVM),lua52)
   AM_DEFS += AM_LUA52
 else ifeq ($(LUAVM),lua53)
   AM_DEFS += AM_LUA53
+else ifeq ($(LUAVM),lua54)
+  AM_DEFS += AM_LUA54
 else
   $(error invalid LUAVM: $(LUAVM))
 endif
@@ -187,6 +189,12 @@ $(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cd $(LUA53_DIR) && $(MAKE) -f Makefile.custom all
 	cp $(LUA53_DIR)/src/*.h $(BUILD_INC_DIR)/
 	cp $(LUA53_DIR)/src/liblua$(ALIB_EXT) $@
+
+$(LUA54_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(LUA54_DIR) && $(MAKE) -f Makefile.custom clean
+	cd $(LUA54_DIR) && $(MAKE) -f Makefile.custom all
+	cp $(LUA54_DIR)/src/*.h $(BUILD_INC_DIR)/
+	cp $(LUA54_DIR)/src/liblua$(ALIB_EXT) $@
 
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	BASE_DIR=`pwd`; \
