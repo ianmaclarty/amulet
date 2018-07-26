@@ -669,6 +669,11 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     return YES;
 }
 
+-(BOOL)prefersHomeIndicatorAutoHidden
+{
+    return YES;
+}
+
 @end
 
 
