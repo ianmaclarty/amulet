@@ -78,12 +78,11 @@ struct am_stencil_test_state {
 };
 
 struct am_cull_face_state {
-    am_face_winding         winding;
     bool                    enabled;
     am_cull_face_side       side;
 
     am_cull_face_state();
-    void set(bool enabled, am_face_winding winding, am_cull_face_side side);
+    void set(bool enabled, am_cull_face_side side);
     void restore(am_cull_face_state *old);
     void bind(am_render_state *rstate, bool force);
 };

@@ -874,10 +874,10 @@ Culls triangles with a specific winding.
 
 The possible values for `face` are:
 
+- `"back"`: Cull back-facing triangles (same as `"cw"` below)
+- `"front"`: Cull front-facing triangles (same as `"ccw"` below)
 - `"cw"`: Cull clockwise wound triangles.
 - `"ccw"`: Cull counter-clockwise wound triangles.
-- `"back"`: Cull back-facing triangles (same as `"cw"`)
-- `"front"`: Cull front-facing triangles (same as `"ccw"`)
 - `"none"`: Do not cull any triangles.
 
 Fields:

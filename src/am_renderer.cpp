@@ -262,18 +262,16 @@ void am_stencil_test_state::bind(am_render_state *rstate, bool force) {
 
 am_cull_face_state::am_cull_face_state() {
     enabled = false;
-    winding = AM_FACE_WIND_CCW;
     side = AM_CULL_FACE_BACK;
 }
 
-void am_cull_face_state::set(bool enabled, am_face_winding winding, am_cull_face_side side) {
+void am_cull_face_state::set(bool enabled, am_cull_face_side side) {
     am_cull_face_state::enabled = enabled;
-    am_cull_face_state::winding = winding;
     am_cull_face_state::side = side;
 }
 
 void am_cull_face_state::restore(am_cull_face_state *old) {
-    set(old->enabled, old->winding, old->side);
+    set(old->enabled, old->side);
 }
 
 void am_cull_face_state::bind(am_render_state *rstate, bool force) {

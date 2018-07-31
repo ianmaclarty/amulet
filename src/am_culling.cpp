@@ -6,13 +6,13 @@ void am_cull_face_node::render(am_render_state *rstate) {
     am_cull_face_state old_state = rstate->active_cull_face_state;
     switch (mode) {
         case AM_CULL_FACE_MODE_FRONT:
-            rstate->active_cull_face_state.set(true, AM_FACE_WIND_CCW, AM_CULL_FACE_FRONT);
+            rstate->active_cull_face_state.set(true, AM_CULL_FACE_FRONT);
             break;
         case AM_CULL_FACE_MODE_BACK:
-            rstate->active_cull_face_state.set(true, AM_FACE_WIND_CCW, AM_CULL_FACE_BACK);
+            rstate->active_cull_face_state.set(true, AM_CULL_FACE_BACK);
             break;
         case AM_CULL_FACE_MODE_NONE:
-            rstate->active_cull_face_state.set(false, AM_FACE_WIND_CCW, AM_CULL_FACE_BACK);
+            rstate->active_cull_face_state.set(false, AM_CULL_FACE_BACK);
             break;
     }
     render_children(rstate);
@@ -154,9 +154,9 @@ void am_open_culling_module(lua_State *L) {
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     am_enum_value cull_face_enum[] = {
         {"front", AM_CULL_FACE_MODE_FRONT},
-        {"cw", AM_CULL_FACE_MODE_FRONT},
+        {"ccw", AM_CULL_FACE_MODE_FRONT},
         {"back", AM_CULL_FACE_MODE_BACK},
-        {"ccw", AM_CULL_FACE_MODE_BACK},
+        {"cw", AM_CULL_FACE_MODE_BACK},
         {"none", AM_CULL_FACE_MODE_NONE},
         {NULL, 0}
     };
