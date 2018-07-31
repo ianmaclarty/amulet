@@ -37,6 +37,11 @@ extern am_tag AM_TAG_BLEND;
 extern am_tag AM_TAG_DRAW;
 extern am_tag AM_TAG_VIEWPORT;
 extern am_tag AM_TAG_COLOR_MASK;
+extern am_tag AM_TAG_CULL_FACE;
+extern am_tag AM_TAG_DEPTH_TEST;
+extern am_tag AM_TAG_STENCIL_TEST;
+extern am_tag AM_TAG_CULL_SPHERE;
+extern am_tag AM_TAG_READ_UNIFORM;
 
 struct am_scene_node : am_nonatomic_userdata {
     am_lua_array<am_node_child> children;

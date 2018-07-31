@@ -859,6 +859,15 @@ or framebuffer being rendered to).
 For example using a mask of `am.color_mask(false, true, false, true)`
 will cause only the green and alpha channels to be updated.
 
+Fields:
+
+- `red`: Updatable.
+- `green`: Updatable.
+- `blue`: Updatable.
+- `alpha`: Updatable.
+
+Default tag: `"color_mask"`.
+
 ### am.cull_face(face) {.func-def}
 
 Culls triangles with a specific winding.
@@ -867,11 +876,15 @@ The possible values for `face` are:
 
 - `"cw"`: Cull clockwise wound triangles.
 - `"ccw"`: Cull counter-clockwise wound triangles.
+- `"back"`: Cull back-facing triangles (same as `"cw"`)
+- `"front"`: Cull front-facing triangles (same as `"ccw"`)
 - `"none"`: Do not cull any triangles.
 
 Fields:
 
 - `face`: Updatable.
+
+Default tag: `"cull_face"`.
 
 ### am.depth_test(func [, mask]) {#am.depth_test .method-def}
 
@@ -901,6 +914,8 @@ Fields:
 
 - `func`: Updatable.
 - `mask`: Updatable.
+
+Default tag: `"depth_test"`.
 
 ### am.stencil_test(settings) {#am.stencil_test .method-def}
 
@@ -948,6 +963,8 @@ following values:
 
 All the settings can be updated after the depth test node has been created using
 fields on the node with the corresponding names.
+
+Default tag: `"stencil_test"`.
 
 ### am.viewport(x, y, width, height) {#am.viewport .func-def}
 
@@ -999,6 +1016,8 @@ Fields:
 - `radius`: Updatable.
 - `center`: Updatable.
 
+Default tag: `"cull_sphere"`.
+
 ### am.billboard([uniform,] [preserve_scaling]) {#am.billboard .func-def}
 
 Removes rotation from `uniform`, which should be a `mat4`.
@@ -1026,6 +1045,8 @@ Fields:
 - `value`: The value of the uniform, or nil if
   the node hasn't been rendered yet,
   or the named uniform wasn't set in an ancestor node.
+
+Default tag: `"read_uniform"`.
 
 ### am.quads(n, spec [, usage]) {#am.quads .func-def}
 
@@ -1073,6 +1094,8 @@ Methods:
   The signature of the method is: `quad_attr(n, values)`
   where `n` is the quad number and `values` has the
   same meaning as in the `add_quad` method.
+
+Default tag: `"quads"`.
 
 Example:
 
@@ -1151,6 +1174,8 @@ Fields:
 Methods:
 
 - `clear()`: Clear the texture manually.
+
+Default tag: `"postprocess"`.
 
 ## Creating custom scene nodes
 

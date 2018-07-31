@@ -13,6 +13,11 @@ am_tag AM_TAG_BLEND;
 am_tag AM_TAG_DRAW;
 am_tag AM_TAG_VIEWPORT;
 am_tag AM_TAG_COLOR_MASK;
+am_tag AM_TAG_CULL_FACE;
+am_tag AM_TAG_DEPTH_TEST;
+am_tag AM_TAG_STENCIL_TEST;
+am_tag AM_TAG_CULL_SPHERE;
+am_tag AM_TAG_READ_UNIFORM;
 
 static am_tag lookup_tag(lua_State *L, int name_idx);
 static am_scene_node *find_tag(am_scene_node *node, am_tag tag, am_scene_node **parent);
@@ -514,6 +519,26 @@ static void init_default_tags(lua_State *L) {
 
     lua_pushstring(L, "color_mask");
     AM_TAG_COLOR_MASK = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "cull_face");
+    AM_TAG_CULL_FACE = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "depth_test");
+    AM_TAG_DEPTH_TEST = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "stencil_test");
+    AM_TAG_STENCIL_TEST = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "cull_sphere");
+    AM_TAG_CULL_SPHERE = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "read_uniform");
+    AM_TAG_READ_UNIFORM = lookup_tag(L, -1);
     lua_pop(L, 1);
 }
 

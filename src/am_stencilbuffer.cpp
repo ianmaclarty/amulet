@@ -28,6 +28,7 @@ static int create_stencil_test_node(lua_State *L) {
     if (!lua_istable(L, 1)) {
         return luaL_error(L, "expecting a table in position 1");
     }
+    node->tags.push_back(L, AM_TAG_STENCIL_TEST);
     node->enabled = false;
     node->ref = 0;
     node->read_mask = 255;

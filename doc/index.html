@@ -2386,6 +2386,14 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <h3 id="am.color_maskred-green-blue-alpha" class="func-def">am.color_mask(red, green, blue, alpha)</h3>
 <p>Apply a color mask. The four arguments can be <code>true</code> or <code>false</code> and determine whether the corresponding color channel is updated in the rendering target (either the current window or framebuffer being rendered to).</p>
 <p>For example using a mask of <code>am.color_mask(false, true, false, true)</code> will cause only the green and alpha channels to be updated.</p>
+<p>Fields:</p>
+<ul>
+<li><code>red</code>: Updatable.</li>
+<li><code>green</code>: Updatable.</li>
+<li><code>blue</code>: Updatable.</li>
+<li><code>alpha</code>: Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;color_mask&quot;</code>.</p>
 <h3 id="am.cull_faceface" class="func-def">am.cull_face(face)</h3>
 <p>Culls triangles with a specific winding.</p>
 <p>The possible values for <code>face</code> are:</p>
@@ -2398,6 +2406,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <ul>
 <li><code>face</code>: Updatable.</li>
 </ul>
+<p>Default tag: <code>&quot;cull_face&quot;</code>.</p>
 <h3 id="am.depth_test" class="method-def">am.depth_test(func [, mask])</h3>
 <p>Sets the depth test function and mask. The window or framebuffer being rendered to needs to have a depth buffer for this to have any effect.</p>
 <p><code>func</code> is used to determine whether a fragment is rendered by comparing the depth value of the fragment to the value in the depth buffer. The possible values for <code>func</code> are:</p>
@@ -2417,6 +2426,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>func</code>: Updatable.</li>
 <li><code>mask</code>: Updatable.</li>
 </ul>
+<p>Default tag: <code>&quot;depth_test&quot;</code>.</p>
 <h3 id="am.stencil_test" class="method-def">am.stencil_test(settings)</h3>
 <p>Sets the stencil test and mask. The window or framebuffer being rendered to needs to have a stencil buffer for this to have any effect.</p>
 <p><code>settings</code> should be a table with any combination of the following fields:</p>
@@ -2446,6 +2456,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>&quot;decr_wrap&quot;</code>: decrement the stencil buffer value, wrapping to 255 on underflow</li>
 </ul>
 <p>All the settings can be updated after the depth test node has been created using fields on the node with the corresponding names.</p>
+<p>Default tag: <code>&quot;stencil_test&quot;</code>.</p>
 <h3 id="am.viewport" class="func-def">am.viewport(x, y, width, height)</h3>
 <p>Set the viewport, which is the rectangular area of the window into which rendering will occur.</p>
 <p><code>x</code> and <code>y</code> is the bottom-left corner of the viewport in pixels, where the bottom-left corner of the window is (0, 0). <code>width</code> and <code>height</code> are also in pixels.</p>
@@ -2473,6 +2484,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>radius</code>: Updatable.</li>
 <li><code>center</code>: Updatable.</li>
 </ul>
+<p>Default tag: <code>&quot;cull_sphere&quot;</code>.</p>
 <h3 id="am.billboard" class="func-def">am.billboard([uniform,] [preserve_scaling])</h3>
 <p>Removes rotation from <code>uniform</code>, which should be a <code>mat4</code>. By default <code>uniform</code> is <code>&quot;MV&quot;</code>.</p>
 <p>If <code>preserve_scaling</code> is <code>false</code> or omitted then any scaling will also be removed from the matrix. If it is <code>true</code>, then scaling will be preserved, as long as it's the same across all three axes.</p>
@@ -2484,6 +2496,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <ul>
 <li><code>value</code>: The value of the uniform, or nil if the node hasn't been rendered yet, or the named uniform wasn't set in an ancestor node.</li>
 </ul>
+<p>Default tag: <code>&quot;read_uniform&quot;</code>.</p>
 <h3 id="am.quads" class="func-def">am.quads(n, spec [, usage])</h3>
 <p>Returns a node that renders a set of quads. The returned node is actually an <a href="#am.bind"><code>am.bind</code></a> node with an <a href="#am.draw"><code>am.draw</code></a> node child. i.e. no program or blending is defined -- these must be created separately as parent nodes.</p>
 <p><code>n</code> is the initial capacity. Set this to the number of quads you think you'll want to render. It doesn't matter if it's too small as the capacity will be increased as required, though it's slightly faster if no capacity increases are required.</p>
@@ -2504,6 +2517,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>remove_quad(n [,count])</code>: Removes <code>count</code> quads starting with the <code>n</code>th. <code>count</code> is 1 if omitted.</li>
 <li>Additionally methods are created for each attribute of the form <code>quad_&lt;attribute name&gt;</code> that can be used to update the value of a quad attribute. The signature of the method is: <code>quad_attr(n, values)</code> where <code>n</code> is the quad number and <code>values</code> has the same meaning as in the <code>add_quad</code> method.</li>
 </ul>
+<p>Default tag: <code>&quot;quads&quot;</code>.</p>
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> quads <span class="ot">=</span> am<span class="ot">.</span>quads<span class="ot">(</span><span class="dv">2</span><span class="ot">,</span> <span class="ot">{</span><span class="st">&quot;vert&quot;</span><span class="ot">,</span> <span class="st">&quot;vec2&quot;</span><span class="ot">,</span> <span class="st">&quot;color&quot;</span><span class="ot">,</span> <span class="st">&quot;vec3&quot;</span><span class="ot">})</span>
 quads:add_quad<span class="ot">{</span>vert <span class="ot">=</span> <span class="ot">{</span>vec2<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">),</span>
@@ -2568,6 +2582,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span> am<span class="ot">.
 <ul>
 <li><code>clear()</code>: Clear the texture manually.</li>
 </ul>
+<p>Default tag: <code>&quot;postprocess&quot;</code>.</p>
 <h2 id="creating-custom-scene-nodes">Creating custom scene nodes</h2>
 <p>Creating a custom leaf node is relatively simple: just create a function that constructs the graph you want and return it.</p>
 <p>You can add custom methods by setting the appropriate fields on the root node of the returned graph (any node can have any number of custom fields set on it, as long as they don't clash with pre-defined fields).</p>
