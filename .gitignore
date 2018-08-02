@@ -60,6 +60,8 @@ third_party/stb/*.a
 third_party/stb/*.obj
 third_party/stb/*.o-*
 
+third_party/glsl-optimizer/*.a
+
 third_party/kiss_fft*/*.lib
 third_party/kiss_fft*/*.a
 third_party/kiss_fft*/*.obj
