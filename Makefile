@@ -34,20 +34,22 @@ ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = $(LUAVM) stb kissfft tinymt
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifdef IOS
-  AM_DEPS = $(LUAVM) stb kissfft tinymt
+  AM_DEPS = $(LUAVM) stb kissfft tinymt glslopt
+  AM_DEFS += AM_USE_GLSL_OPTIMIZER
 else ifeq ($(TARGET_PLATFORM),msvc32)
-  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
-  AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 glslopt $(STEAMWORKS_DEP)
+  AM_DEFS += AM_USE_GLSL_OPTIMIZER
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifdef ANDROID
-  AM_DEPS = $(LUAVM) stb kissfft tinymt
+  AM_DEPS = $(LUAVM) stb kissfft tinymt glslopt
+  AM_DEFS += AM_USE_GLSL_OPTIMIZER
   AMULET = $(BUILD_BIN_DIR)/libamulet.so
 else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else
-  AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
-  AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  AM_DEPS = $(LUAVM) sdl glslopt stb kissfft tinymt ft2
+  AM_DEFS += AM_USE_GLSL_OPTIMIZER
   EXTRA_PREREQS = $(SIMPLEGLOB_H) $(STEAMWORKS_LIB)
 endif
 
@@ -216,6 +218,11 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
+
+$(GLSLOPT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(GLSLOPT_DIR) && $(MAKE) clean all
+	cp $(GLSLOPT_DIR)/src/glsl/glsl_optimizer.h $(BUILD_INC_DIR)/
+	cp $(GLSLOPT_DIR)/libglslopt$(ALIB_EXT) $@
 
 $(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
 	cp $(SIMPLEOPT_DIR)/SimpleGlob.h $@

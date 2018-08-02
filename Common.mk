@@ -20,6 +20,7 @@ STB_DIR		 = $(THIRD_PARTY_DIR)/stb
 KISSFFT_DIR	 = $(THIRD_PARTY_DIR)/kiss_fft130
 TINYMT_DIR	 = $(THIRD_PARTY_DIR)/tinymt-1.0.3
 SIMPLEOPT_DIR    = $(THIRD_PARTY_DIR)/simpleopt
+GLSLOPT_DIR      = $(THIRD_PARTY_DIR)/glsl-optimizer
 
 # Host settings (this is the *build* host, not the host we want to run on)
 
@@ -81,6 +82,7 @@ FT2_ALIB = $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
 STB_ALIB = $(BUILD_LIB_DIR)/libstb$(ALIB_EXT)
 KISSFFT_ALIB = $(BUILD_LIB_DIR)/libkissfft$(ALIB_EXT)
 TINYMT_ALIB = $(BUILD_LIB_DIR)/libtinymt$(ALIB_EXT)
+GLSLOPT_ALIB = $(BUILD_LIB_DIR)/libglslopt$(ALIB_EXT)
 SIMPLEGLOB_H = $(BUILD_INC_DIR)/SimpleGlob.h
 
 SRC_DIR = src

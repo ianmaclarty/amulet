@@ -31,6 +31,10 @@
 #define GLFUNC(func) func
 #endif
 
+#if defined(AM_USE_GLSL_OPTIMIZER)
+#include "glsl_optimizer.h"
+#endif
+
 #if defined(AM_ANGLE_TRANSLATE_GL)
 #include "GLSLANG/ShaderLang.h"
 #endif
@@ -57,6 +61,13 @@ static void print_ptr(FILE* f, void* p, int len);
 
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
+
+#if defined(AM_USE_GLSL_OPTIMIZER)
+static void init_glslopt();
+static void destroy_glslopt();
+static void glslopt_translate_shader(am_shader_type type,
+    const char *src, char **objcode, char **errmsg, glslopt_shader **shader);
+#endif
 
 #if defined(AM_ANGLE_TRANSLATE_GL)
 static void init_angle();
@@ -242,6 +253,11 @@ void am_init_gl() {
     am_max_vertex_uniform_vectors = pval;
 #endif
 
+    // initialize glsl optimizer if using
+#if defined(AM_USE_GLSL_OPTIMIZER)
+    init_glslopt();
+#endif
+
     // initialize angle if using
 #if defined(AM_ANGLE_TRANSLATE_GL)
     init_angle();
@@ -267,6 +283,9 @@ void am_close_gllog() {
 void am_destroy_gl() {
     if (!gl_initialized) return;
     gl_initialized = false;
+#if defined(AM_USE_GLSL_OPTIMIZER)
+    destroy_glslopt();
+#endif
 #if defined(AM_ANGLE_TRANSLATE_GL)
     destroy_angle();
 #endif
@@ -714,7 +733,31 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
         goto end;
     }
     log_gl("/*\n%s\n*/", src);
-#if defined(AM_ANGLE_TRANSLATE_GL)
+#if defined(AM_USE_GLSL_OPTIMIZER)
+    if (!am_conf_d3dangle) {
+        char *translate_objcode = NULL;
+        char *translate_errmsg = NULL;
+        glslopt_shader *gshader = NULL;
+        glslopt_translate_shader(type, src, &translate_objcode, &translate_errmsg, &gshader);
+        if (translate_errmsg != NULL) {
+            *msg = am_format("%s", translate_errmsg);
+            glslopt_shader_delete(gshader);
+            get_src_error_line(*msg, src, line_no, line_str);
+            compiled = 0;
+            goto end;
+        }
+        assert(translate_objcode != NULL);
+        log_gl("/* GLSL Optimizer output:\n%s\n*/", translate_objcode);
+        log_gl_ptr(translate_objcode, strlen(translate_objcode));
+        log_gl("glShaderSource(shader[%u], 1, (const char**)&ptr[%p], NULL);", shader, translate_objcode);
+        GLFUNC(glShaderSource)(shader, 1, (const char**)&translate_objcode, NULL);
+        glslopt_shader_delete(gshader);
+    } else {
+        log_gl_ptr(src, strlen(src));
+        log_gl("glShaderSource(shader[%u], 1, (const char**)&ptr[%p], NULL);", shader, src);
+        GLFUNC(glShaderSource)(shader, 1, &src, NULL);
+    }
+#elif defined(AM_ANGLE_TRANSLATE_GL)
     if (!am_conf_d3dangle) {
         char *translate_objcode = NULL;
         char *translate_errmsg = NULL;
@@ -1998,6 +2041,54 @@ void am_log_gl(const char *msg) {
         log_gl("%s", msg);
     }
 }
+
+//-------------------------------------------------------------------------------------------------
+// GLSL-optimiser
+#if defined(AM_USE_GLSL_OPTIMIZER)
+
+static glslopt_ctx* glslopt_context = 0;
+
+static void init_glslopt() {
+#if defined(AM_GLPROFILE_DESKTOP)
+    glslopt_target target = kGlslTargetOpenGL;
+#elif defined(AM_GLPROFILE_ES)
+    glslopt_target target = kGlslTargetOpenGLES20;
+#else
+    #error unknown gl profile
+#endif
+    glslopt_target target = kGlslTargetOpenGLES20;
+    glslopt_context = glslopt_initialize(target);
+    if (!glslopt_context) {
+        am_abort("unable to initialize glsl optimizer");
+    }
+}
+
+static void destroy_glslopt() {
+    glslopt_cleanup(glslopt_context);
+}
+
+static void glslopt_translate_shader(am_shader_type type,
+    const char *src, char **objcode, char **errmsg, glslopt_shader **shader)
+{
+    *objcode = NULL;
+    *errmsg = NULL;
+    glslopt_shader_type gtype;
+
+    switch (type) {
+        case AM_VERTEX_SHADER: gtype = kGlslOptShaderVertex; break;
+        case AM_FRAGMENT_SHADER: gtype = kGlslOptShaderFragment; break;
+    }
+    unsigned options = 0;
+
+    *shader = glslopt_optimize(glslopt_context, gtype, src, options);
+
+    if (glslopt_get_status(*shader)) {
+        *objcode = (char*)glslopt_get_output(*shader);
+    } else {
+        *errmsg = (char*)glslopt_get_log(*shader);
+    }
+}
+#endif
 
 //-------------------------------------------------------------------------------------------------
 // Angle shader translater
