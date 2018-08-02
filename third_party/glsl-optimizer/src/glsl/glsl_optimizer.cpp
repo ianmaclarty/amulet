@@ -139,8 +139,8 @@ struct glslopt_shader
 	}
 
 	glslopt_shader ()
-		: rawOutput(0)
-		, optimizedOutput(0)
+		//: rawOutput(0)
+		: optimizedOutput(0)
 		, status(false)
 		, uniformCount(0)
 		, uniformsSize(0)
@@ -171,7 +171,7 @@ struct glslopt_shader
 		for (unsigned i = 0; i < MESA_SHADER_STAGES; i++)
 			ralloc_free(whole_program->_LinkedShaders[i]);
 		ralloc_free(whole_program);
-		ralloc_free(rawOutput);
+		//ralloc_free(rawOutput);
 		ralloc_free(optimizedOutput);
 	}
 	
@@ -189,7 +189,7 @@ struct glslopt_shader
 	int textureCount;
 	int statsMath, statsTex, statsFlow;
 
-	char*	rawOutput;
+	//char*	rawOutput;
 	char*	optimizedOutput;
 	const char*	infoLog;
 	bool	status;
@@ -654,6 +654,7 @@ glslopt_shader* glslopt_optimize (glslopt_ctx* ctx, glslopt_shader_type type, co
 		_mesa_ast_to_hir (ir, state);
 
 	// Un-optimized output
+        /*
 	if (!state->error) {
 		validate_ir_tree(ir);
 		if (ctx->target == kGlslTargetMetal)
@@ -661,6 +662,7 @@ glslopt_shader* glslopt_optimize (glslopt_ctx* ctx, glslopt_shader_type type, co
 		else
 			shader->rawOutput = _mesa_print_ir_glsl(ir, state, ralloc_strdup(shader, ""), printMode);
 	}
+        */
 	
 	// Link built-in functions
 	shader->shader->symbols = state->symbols;
@@ -736,7 +738,7 @@ const char* glslopt_get_output (glslopt_shader* shader)
 
 const char* glslopt_get_raw_output (glslopt_shader* shader)
 {
-	return shader->rawOutput;
+	return "<unavailable>";//shader->rawOutput;
 }
 
 const char* glslopt_get_log (glslopt_shader* shader)
