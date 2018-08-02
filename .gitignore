@@ -11,8 +11,8 @@ config.log
 config.status
 /amulet
 /amulet.exe
-libamulet.so
-builds/*
+/libamulet.so
+/builds/*
 tags
 settings
 tmp/*
@@ -31,13 +31,6 @@ vc*.pdb
 src/am_embedded_data.cpp
 src/am_version.cpp
 src/am_generated_view_defs.inc
-
-tools/embed
-tools/gen_view_defs
-tools/ampack
-ampack
-
-xcode/*
 
 third_party/SDL2-*/Makefile
 third_party/SDL2-*/Makefile.rules
