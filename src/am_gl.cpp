@@ -747,8 +747,6 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
             goto end;
         }
         assert(translate_objcode != NULL);
-        fprintf(stderr, "src: %s\n\n", src);
-        fprintf(stderr, "metal: %s\n\n", translate_objcode);
         log_gl("/* GLSL Optimizer output:\n%s\n*/", translate_objcode);
         log_gl_ptr(translate_objcode, strlen(translate_objcode));
         log_gl("glShaderSource(shader[%u], 1, (const char**)&ptr[%p], NULL);", shader, translate_objcode);
