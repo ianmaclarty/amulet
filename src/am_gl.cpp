@@ -747,6 +747,8 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
             goto end;
         }
         assert(translate_objcode != NULL);
+        fprintf(stderr, "src: %s\n\n", src);
+        fprintf(stderr, "metal: %s\n\n", translate_objcode);
         log_gl("/* GLSL Optimizer output:\n%s\n*/", translate_objcode);
         log_gl_ptr(translate_objcode, strlen(translate_objcode));
         log_gl("glShaderSource(shader[%u], 1, (const char**)&ptr[%p], NULL);", shader, translate_objcode);
@@ -2049,13 +2051,6 @@ void am_log_gl(const char *msg) {
 static glslopt_ctx* glslopt_context = 0;
 
 static void init_glslopt() {
-#if defined(AM_GLPROFILE_DESKTOP)
-    glslopt_target target = kGlslTargetOpenGL;
-#elif defined(AM_GLPROFILE_ES)
-    glslopt_target target = kGlslTargetOpenGLES20;
-#else
-    #error unknown gl profile
-#endif
     glslopt_target target = kGlslTargetOpenGLES20;
     glslopt_context = glslopt_initialize(target);
     if (!glslopt_context) {

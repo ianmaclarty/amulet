@@ -39,7 +39,7 @@ initialize_mesa_context(struct gl_context *ctx, glslopt_target api)
 			mesaAPI = API_OPENGL_CORE;
 			break;
 		case kGlslTargetMetal:
-			mesaAPI = API_OPENGL_CORE;
+			mesaAPI = API_OPENGLES2;
 			break;
 	}
 	initialize_context_to_defaults (ctx, mesaAPI);
