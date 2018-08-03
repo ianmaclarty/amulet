@@ -186,6 +186,8 @@ static void init_metal_view() {
     [view addSubview:metal_view];
 }
 
+#define check_initialized(...) {if (!metal_initialized) {am_log1("%s:%d: attempt to call %s before metal initialized", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
+
 static bool metal_initialized = false;
 
 void am_init_gl() {
@@ -254,60 +256,74 @@ void am_destroy_gl() {
 // Per-Fragment Operations
 
 void am_set_blend_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 void am_set_blend_color(float r, float g, float b, float a) {
+    check_initialized();
     // TODO
 }
 
 void am_set_blend_equation(am_blend_equation rgb, am_blend_equation alpha) {
+    check_initialized();
     // TODO
 }
 
 void am_set_blend_func(am_blend_sfactor src_rgb, am_blend_dfactor dst_rgb, am_blend_sfactor src_alpha, am_blend_dfactor dst_alpha) {
+    check_initialized();
     // TODO
 }
 
 void am_set_depth_test_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 void am_set_depth_func(am_depth_func func) {
+    check_initialized();
     // TODO
 }
 
 void am_set_stencil_test_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 void am_set_stencil_func(am_stencil_face_side face, am_stencil_func func, am_glint ref, am_gluint mask) {
+    check_initialized();
     // TODO
 }
 
 void am_set_stencil_op(am_stencil_face_side face, am_stencil_op fail, am_stencil_op zfail, am_stencil_op zpass) {
+    check_initialized();
     // TODO
 }
 
 void am_set_sample_alpha_to_coverage_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 void am_set_sample_coverage_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 void am_set_sample_coverage(float value, bool invert) {
+    check_initialized();
     // TODO
 }
 
 // Whole Framebuffer Operations
 
 void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
+    check_initialized();
     create_new_metal_encoder(clear_color_buf, clear_depth_buf, clear_stencil_buf);
 }
 
 void am_set_framebuffer_clear_color(float r, float g, float b, float a) {
+    check_initialized();
     metal_framebuffer *fb = get_metal_framebuffer(metal_active_framebuffer);
     fb->clear_r = r;
     fb->clear_g = g;
@@ -316,157 +332,191 @@ void am_set_framebuffer_clear_color(float r, float g, float b, float a) {
 }
 
 void am_set_framebuffer_clear_depth(float depth) {
+    check_initialized();
     // TODO
 }
 
 void am_set_framebuffer_clear_stencil_val(am_glint val) {
+    check_initialized();
     // TODO
 }
 
 void am_set_framebuffer_color_mask(bool r, bool g, bool b, bool a) {
+    check_initialized();
     // TODO
 }
 
 void am_set_framebuffer_depth_mask(bool flag) {
+    check_initialized();
     // TODO
 }
 
 void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) {
+    check_initialized();
     // TODO
 }
 
 // Buffer Objects
 
 am_buffer_id am_create_buffer_object() {
+    check_initialized(0);
     // XXX
     return 0;
 }
 
 void am_bind_buffer(am_buffer_target target, am_buffer_id buffer) {
+    check_initialized();
     // XXX
 }
 
 void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer_usage usage) {
+    check_initialized();
     // XXX
 }
 
 void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void *data) {
+    check_initialized();
     // XXX
 }
 
 void am_delete_buffer(am_buffer_id buffer) {
+    check_initialized();
     // XXX
 }
 
 // View and Clip
 
 void am_set_depth_range(float near, float far) {
+    check_initialized();
     // TODO
 }
 
 void am_set_scissor_test_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 void am_set_scissor(int x, int y, int w, int h) {
+    check_initialized();
     // TODO
 }
 
 void am_set_viewport(int x, int y, int w, int h) {
+    check_initialized();
     // XXX
 }
 
 // Rasterization
 
 void am_set_front_face_winding(am_face_winding mode) {
+    check_initialized();
     // TODO
 }
 
 void am_set_cull_face_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 void am_set_cull_face_side(am_cull_face_side face) {
+    check_initialized();
     // TODO
 }
 
 void am_set_line_width(float width) {
+    check_initialized();
     // TODO
 }
 
 void am_set_polygon_offset_fill_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 void am_set_polygon_offset(float factor, float units) {
+    check_initialized();
     // TODO
 }
 
 // Dithering
 
 void am_set_dither_enabled(bool enabled) {
+    check_initialized();
     // TODO
 }
 
 // Programs and Shaders
 
 am_program_id am_create_program() {
+    check_initialized(0);
     // XXX
     return 1;
 }
 
 am_shader_id am_create_shader(am_shader_type type) {
+    check_initialized(0);
     // XXX
     return 1;
 }
 
 bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg, int *line_no, char **line_str) {
+    check_initialized(false);
     // XXX
     return true;
 }
 
 void am_attach_shader(am_program_id program, am_shader_id shader) {
+    check_initialized();
     // XXX
 }
 
 bool am_link_program(am_program_id program) {
+    check_initialized(false);
     // XXX
     return true;
 }
 
 char *am_get_program_info_log(am_program_id program) {
+    check_initialized(NULL);
     // XXX
     return NULL;
 }
 
 int am_get_program_active_attributes(am_program_id program) {
+    check_initialized(0);
     // XXX
     return 0;
 }
 
 int am_get_program_active_uniforms(am_program_id program) {
+    check_initialized(0);
     // XXX
     return 0;
 }
 
 bool am_validate_program(am_program_id program) {
+    check_initialized(false);
     // TODO
     return true;
 }
 
 void am_use_program(am_program_id program) {
+    check_initialized();
     // XXX
 }
 
 void am_detach_shader(am_program_id program, am_shader_id shader) {
+    check_initialized();
     // XXX
 }
 
 void am_delete_shader(am_shader_id shader) {
+    check_initialized();
     // XXX
 }
 
 void am_delete_program(am_program_id program) {
+    check_initialized();
     // XXX
 }
 
@@ -484,15 +534,18 @@ int am_attribute_client_type_size(am_attribute_client_type t) {
 }
 
 void am_set_attribute_array_enabled(am_gluint location, bool enabled) {
+    check_initialized();
     // XXX
 }
 
 am_gluint am_get_attribute_location(am_program_id program, const char *name) {
+    check_initialized(0);
     // XXX
     return 0;
 }
 
 am_gluint am_get_uniform_location(am_program_id program, const char *name) {
+    check_initialized(0);
     // XXX
     return 0;
 }
@@ -500,107 +553,132 @@ am_gluint am_get_uniform_location(am_program_id program, const char *name) {
 void am_get_active_attribute(am_program_id program, am_gluint index,
     char **name, am_attribute_var_type *type, int *size)
 {
+    check_initialized();
     // XXX
 }
 
 void am_get_active_uniform(am_program_id program, am_gluint index,
     char **name, am_uniform_var_type *type, int *size)
 {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform1f(am_gluint location, float value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform2f(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform3f(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform4f(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform1i(am_gluint location, am_glint value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform2i(am_gluint location, const am_glint *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform3i(am_gluint location, const am_glint *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform4i(am_gluint location, const am_glint *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform_mat2(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform_mat3(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_uniform_mat4(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_attribute1f(am_gluint location, const float value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_attribute2f(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_attribute3f(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_attribute4f(am_gluint location, const float *value) {
+    check_initialized();
     // XXX
 }
 
 void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_type type, bool normalized, int stride, int offset) {
+    check_initialized();
     // XXX
 }
 
 // Texture Objects
 
 void am_set_active_texture_unit(int texture_unit) {
+    check_initialized();
     // TODO
 }
 
 am_texture_id am_create_texture() {
+    check_initialized(0);
     // TODO
     return 0;
 }
 
 void am_delete_texture(am_texture_id texture) {
+    check_initialized();
     // TODO
 }
 
 void am_bind_texture(am_texture_bind_target target, am_texture_id texture) {
+    check_initialized();
     // TODO
 }
 
 void am_copy_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int x, int y, int w, int h) {
+    check_initialized();
     // TODO
 }
 
 void am_copy_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int x, int y, int w, int h) {
+    check_initialized();
     // TODO
 }
 
 void am_generate_mipmap(am_texture_bind_target target) {
+    check_initialized();
     // TODO
 }
 
@@ -628,62 +706,75 @@ int am_compute_pixel_size(am_texture_format format, am_texture_type type) {
 }
 
 void am_set_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int w, int h, am_texture_type type, void *data) {
+    check_initialized();
     // TODO
 }
 
 void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int w, int h, am_texture_format format, am_texture_type type, void *data) {
+    check_initialized();
     // TODO
 }
 
 void am_set_texture_min_filter(am_texture_bind_target target, am_texture_min_filter filter) {
+    check_initialized();
     // TODO
 }
 
 void am_set_texture_mag_filter(am_texture_bind_target target, am_texture_mag_filter filter) {
+    check_initialized();
     // TODO
 }
 
 void am_set_texture_wrap(am_texture_bind_target target, am_texture_wrap s_wrap, am_texture_wrap t_wrap) {
+    check_initialized();
     // TODO
 }
 
 // Renderbuffer Objects
 
 am_renderbuffer_id am_create_renderbuffer() {
+    check_initialized(0);
     // TODO
     return 0;
 }
 
 void am_delete_renderbuffer(am_renderbuffer_id rb) {
+    check_initialized();
     // TODO
 }
 
 void am_bind_renderbuffer(am_renderbuffer_id rb) {
+    check_initialized();
     // TODO
 }
 
 void am_set_renderbuffer_storage(am_renderbuffer_format format, int w, int h) {
+    check_initialized();
     // TODO
 }
 
 // Read Back Pixels 
 
 void am_read_pixels(int x, int y, int w, int h, void *data) {
+    check_initialized();
     // TODO
 }
 
 // Framebuffer Objects
 
 am_framebuffer_id am_create_framebuffer() {
+    check_initialized(0);
     // TODO
     return 0;
 }
 
 void am_delete_framebuffer(am_framebuffer_id fb) {
+    check_initialized();
     // TODO
 }
 
 void am_bind_framebuffer(am_framebuffer_id fb) {
+    check_initialized();
     if (metal_active_framebuffer != fb) {
         if (metal_encoder != nil) {
             [metal_encoder endEncoding];
@@ -699,33 +790,40 @@ void am_bind_framebuffer(am_framebuffer_id fb) {
 }
 
 am_framebuffer_status am_check_framebuffer_status() {
+    check_initialized(AM_FRAMEBUFFER_STATUS_UNKNOWN);
     // TODO
     return AM_FRAMEBUFFER_STATUS_COMPLETE;
 }
 
 void am_set_framebuffer_renderbuffer(am_framebuffer_attachment attachment, am_renderbuffer_id rb) {
+    check_initialized();
     // TODO
 }
 
 void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_texture_copy_target target, am_texture_id texture) {
+    check_initialized();
     // TODO
 }
 
 // Writing to the Draw Buffer
 
 void am_draw_arrays(am_draw_mode mode, int first, int count) {
+    check_initialized();
     // XXX
 }
 
 void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, int offset) {
+    check_initialized();
     // XXX
 }
 
 void am_gl_flush() {
+    check_initialized();
     // XXX
 }
 
 void am_gl_end_drawing() {
+    check_initialized();
     if (metal_encoder != nil) {
         [metal_encoder endEncoding];
 
