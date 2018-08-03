@@ -4,6 +4,8 @@
 
 #include "amulet.h"
 
+#ifndef AM_USE_METAL
+
 #if defined(AM_BACKEND_SDL)
     #define GL_GLEXT_PROTOTYPES
     #include <SDL_opengl.h>
@@ -2156,3 +2158,5 @@ void am_reset_gl_frame_stats() {
     am_frame_draw_calls = 0;
     am_frame_use_program_calls = 0;
 }
+
+#endif  // AM_USE_METAL

@@ -43,6 +43,10 @@
 #define AM_NEED_GL_FUNC_PTRS
 #endif
 
+#if defined(AM_OSX)
+#define AM_USE_METAL
+#endif
+
 #if (UINTPTR_MAX == UINT64_MAX)
     #define AM_64BIT 1
 #elif (UINTPTR_MAX == UINT32_MAX)

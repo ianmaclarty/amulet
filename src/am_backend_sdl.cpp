@@ -4,9 +4,11 @@
 
 #define SDL_MAIN_HANDLED 1
 #include "SDL.h"
+#include "SDL_syswm.h"
 
 #ifdef AM_OSX
 #import <AppKit/AppKit.h>
+#import <Cocoa/Cocoa.h>
 #endif
 
 // Create variables for OpenGL ES 2 functions
@@ -55,9 +57,15 @@ static bool should_init_capture = false;
 static std::vector<win_info> windows;
 SDL_Window *main_window = NULL;
 static SDL_GLContext gl_context;
-static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
 static bool restart_triggered = false;
+
+#ifdef AM_USE_METAL
+extern NSWindow *am_metal_window;
+extern bool am_metal_use_highdpi;
+#else
+static bool gl_context_initialized = false;
+#endif
 
 static am_package *package = NULL;
 
@@ -98,6 +106,14 @@ am_native_window *am_create_native_window(
     if (!sdl_initialized) {
         init_sdl();
     }
+#ifdef AM_USE_METAL
+    Uint32 flags = 0;
+    if (main_window) {
+        am_log0("%s", "sorry, only one window is supported");
+        return NULL;
+    }
+#else
+    // using gl
     if (main_window != NULL) {
         SDL_GL_MakeCurrent(main_window, gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
@@ -132,6 +148,7 @@ am_native_window *am_create_native_window(
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     }
     Uint32 flags = SDL_WINDOW_OPENGL;
+#endif
     switch (mode) {
         case AM_WINDOW_MODE_WINDOWED: break;
         case AM_WINDOW_MODE_FULLSCREEN: flags |= SDL_WINDOW_FULLSCREEN; break;
@@ -156,6 +173,13 @@ am_native_window *am_create_native_window(
         am_log0("%s", SDL_GetError());
         return NULL;
     }
+#ifdef AM_USE_METAL
+    SDL_SysWMinfo sdl_info;
+    SDL_VERSION(&sdl_info.version);
+    SDL_GetWindowWMInfo(win, &sdl_info);
+    am_metal_window = sdl_info.info.cocoa.window;
+    am_metal_use_highdpi = highdpi;
+#else
     if (!gl_context_initialized) {
         gl_context = SDL_GL_CreateContext(win);
 #ifdef AM_NEED_GL_FUNC_PTRS
@@ -164,6 +188,7 @@ am_native_window *am_create_native_window(
         gl_context_initialized = true;
     }
     SDL_GL_MakeCurrent(win, gl_context);
+#endif
     if (!am_gl_is_initialized()) {
         am_init_gl();
     }
