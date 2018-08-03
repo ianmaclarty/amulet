@@ -616,6 +616,7 @@ void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
     // do_render.
     bound_program_id = 0;
     am_use_program(0);
+    am_gl_end_drawing();
 
     assert(active_program == NULL);
     assert(next_free_texture_unit == 0);

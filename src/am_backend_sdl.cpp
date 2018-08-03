@@ -56,7 +56,6 @@ static bool capture_initialized = false;
 static bool should_init_capture = false;
 static std::vector<win_info> windows;
 SDL_Window *main_window = NULL;
-static SDL_GLContext gl_context;
 static bool sdl_initialized = false;
 static bool restart_triggered = false;
 
@@ -64,6 +63,7 @@ static bool restart_triggered = false;
 extern NSWindow *am_metal_window;
 extern bool am_metal_use_highdpi;
 #else
+static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
 #endif
 
@@ -215,8 +215,19 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *sh = 0;
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window == (SDL_Window*)window) {
-            SDL_GL_GetDrawableSize(windows[i].window, pw, ph);
             SDL_GetWindowSize(windows[i].window, sw, sh);
+#ifdef AM_USE_METAL
+            CGFloat scale = 1.0;
+            if (am_metal_use_highdpi) {
+                if ([am_metal_window.screen respondsToSelector:@selector(backingScaleFactor)]) {
+                    scale = am_metal_window.screen.backingScaleFactor;
+                }
+            }
+            *pw = (int)(scale * (float)*sw);
+            *ph = (int)(scale * (float)*sh);
+#else
+            SDL_GL_GetDrawableSize(windows[i].window, pw, ph);
+#endif
             return;
         }
     }
@@ -327,12 +338,17 @@ void am_destroy_native_window(am_native_window* window) {
 }
 
 void am_native_window_bind_framebuffer(am_native_window* window) {
+#if !defined(AM_USE_METAL)
     SDL_GL_MakeCurrent((SDL_Window*)window, gl_context);
+#endif
     am_bind_framebuffer(0);
 }
 
 void am_native_window_swap_buffers(am_native_window* window) {
+#if !defined(AM_USE_METAL)
     SDL_GL_SwapWindow((SDL_Window*)window);
+#endif
+    am_gl_end_drawing();
 }
 
 double am_get_current_time() {
@@ -449,9 +465,6 @@ int main( int argc, char *argv[] )
 
     int exit_status = EXIT_SUCCESS;
 
-#ifdef AM_OSX
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#endif
 #ifdef AM_WINDOWS
     SDL_SetMainReady();
 #endif
@@ -497,10 +510,15 @@ restart:
     vsync = -2;
 
     while (windows.size() > 0 && !restart_triggered) {
+#ifdef AM_OSX
+        @autoreleasepool {
+#endif
+#if !defined(AM_USE_METAL)
         if (vsync != (am_conf_vsync ? 1 : 0)) {
             vsync = (am_conf_vsync ? 1 : 0);
             SDL_GL_SetSwapInterval(vsync);
         }
+#endif
 
         if (!am_update_windows(L)) {
             goto quit;
@@ -560,6 +578,9 @@ restart:
             usleep(10 * 1000); // 10 milliseconds
 #endif
         }
+#ifdef AM_OSX
+    }
+#endif
     }
 
     if (restart_triggered) {
@@ -620,9 +641,6 @@ quit:
     }
     am_log_gl("// free expanded args");
     am_free_expanded_args(expanded_argc, expanded_argv);
-#ifdef AM_OSX
-    [pool release];
-#endif
     am_log_gl("// exit");
     am_close_gllog();
     exit(exit_status);

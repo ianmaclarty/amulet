@@ -1418,6 +1418,9 @@ void am_gl_flush() {
     check_for_errors
 }
 
+void am_gl_end_drawing() {
+}
+
 static GLenum to_gl_blend_equation(am_blend_equation eq) {
     switch (eq) {
         case AM_BLEND_EQUATION_ADD: return GL_FUNC_ADD;
