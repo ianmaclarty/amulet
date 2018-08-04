@@ -4,6 +4,9 @@
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
+#include "glsl_optimizer.h"
+
+static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str);
 
 template<typename T>
 union freelist_item {
@@ -22,12 +25,12 @@ struct freelist {
         if (first == 0) {
             freelist_item<T> it;
             it.item = item;
-            items.push_back(item);
+            items.push_back(it);
             return items.size();
         } else {
             int next = items[first-1].next;
             int index = first;
-            *items[first-1].item = item;
+            items[first-1].item = item;
             first = next;
             return index;
         }
@@ -113,13 +116,16 @@ static id<CAMetalDrawable> metal_active_drawable = nil;
 static am_render_state *rstate = NULL;
 
 static am_framebuffer_id metal_active_framebuffer = 0;
+
 struct metal_framebuffer {
     float clear_r;
     float clear_g;
     float clear_b;
     float clear_a;
 };
+
 static freelist<metal_framebuffer> metal_framebuffer_freelist;
+
 static metal_framebuffer default_metal_framebuffer;
 
 static metal_framebuffer *get_metal_framebuffer(int id) {
@@ -148,6 +154,50 @@ static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
 
     return renderdesc;
 }
+
+static glslopt_ctx* glslopt_context = NULL;
+
+struct metal_shader {
+    id<MTLLibrary> lib;
+    id<MTLFunction> func;
+    am_shader_type type;
+    glslopt_shader *gshader;
+    int gshader_refs;
+};
+
+static freelist<metal_shader> metal_shader_freelist;
+
+static void metal_shader_init(metal_shader *shader, am_shader_type type) {
+    shader->type = type;
+    shader->lib = nil;
+    shader->func = nil;
+    shader->gshader = NULL;
+    shader->gshader_refs = 0;
+}
+
+static void metal_shader_retain(metal_shader *shader) {
+    if (shader->lib != nil) [shader->lib retain];
+    if (shader->func != nil) [shader->func retain];
+    if (shader->gshader != NULL) shader->gshader_refs++;
+}
+
+static void metal_shader_release(metal_shader *shader) {
+    if (shader->lib != nil) [shader->lib release];
+    if (shader->func != nil) [shader->func release];
+    if (shader->gshader != NULL) {
+        shader->gshader_refs--;
+        if (shader->gshader_refs <= 0) {
+            glslopt_shader_delete(shader->gshader);
+        }
+    }
+}
+
+struct metal_program {
+    metal_shader vert_shader;
+    metal_shader frag_shader;
+};
+
+static freelist<metal_program> metal_program_freelist;
 
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     if (metal_encoder != nil) {
@@ -215,6 +265,11 @@ void am_init_gl() {
     default_metal_framebuffer.clear_b = 0.0f;
     default_metal_framebuffer.clear_a = 1.0f;
 
+    glslopt_context = glslopt_initialize(kGlslTargetMetal);
+    if (glslopt_context == NULL) {
+        am_abort("unable to initialize glsl optimizer");
+    }
+
     // TODO
     am_max_combined_texture_image_units = 0;
     am_max_cube_map_texture_size = 0;
@@ -244,11 +299,13 @@ void am_close_gllog() {
 
 void am_destroy_gl() {
     rstate = NULL;
-    metal_queue = nil;
     metal_command_buffer = nil;
     metal_encoder = nil;
     metal_active_framebuffer = 0;
-    metal_framebuffer_freelist.clear();
+    [metal_queue release];
+    [metal_device release];
+
+    glslopt_cleanup(glslopt_context);
 
     metal_initialized = false;
 }
@@ -449,25 +506,67 @@ void am_set_dither_enabled(bool enabled) {
 
 am_program_id am_create_program() {
     check_initialized(0);
-    // XXX
-    return 1;
+    metal_program prog;
+    metal_shader_init(&prog.vert_shader, AM_VERTEX_SHADER);
+    metal_shader_init(&prog.frag_shader, AM_FRAGMENT_SHADER);
+    return metal_program_freelist.add(prog);
 }
 
 am_shader_id am_create_shader(am_shader_type type) {
     check_initialized(0);
-    // XXX
-    return 1;
+    metal_shader shader;
+    metal_shader_init(&shader, type);
+    return metal_shader_freelist.add(shader);
 }
 
-bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src, char **msg, int *line_no, char **line_str) {
+bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, char **msg, int *line_no, char **line_str) {
     check_initialized(false);
-    // XXX
-    return true;
+    metal_shader *shader = metal_shader_freelist.get(id);
+    *msg = NULL;
+    *line_no = 0;
+    *line_str = NULL;
+    glslopt_shader_type gtype;
+    switch (type) {
+        case AM_VERTEX_SHADER: gtype = kGlslOptShaderVertex; break;
+        case AM_FRAGMENT_SHADER: gtype = kGlslOptShaderFragment; break;
+    }
+    shader->gshader = glslopt_optimize(glslopt_context, gtype, src, 0);
+    bool success;
+    if (glslopt_get_status(shader->gshader)) {
+        NSError *error = nil;
+        const char *metal_src = glslopt_get_output(shader->gshader);
+        am_debug("metal: %s", metal_src);
+        shader->lib = [metal_device newLibraryWithSource:[NSString stringWithUTF8String:metal_src] options: nil error:&error];
+        if (shader->lib == nil) {
+            *msg = am_format("%s", [[error localizedDescription] UTF8String]);
+            get_src_error_line(*msg, src, line_no, line_str);
+            success = false;
+        } else {
+            shader->func = [shader->lib newFunctionWithName:@"xlatMtlMain"];
+            metal_shader_retain(shader);
+            success = true;
+        }
+    } else {
+        *msg = am_format("%s", glslopt_get_log(shader->gshader));
+        get_src_error_line(*msg, src, line_no, line_str);
+        success = false;
+    }
+    return success;
 }
 
-void am_attach_shader(am_program_id program, am_shader_id shader) {
+void am_attach_shader(am_program_id program_id, am_shader_id shader_id) {
     check_initialized();
-    // XXX
+    metal_program *prog = metal_program_freelist.get(program_id);
+    metal_shader *shader = metal_shader_freelist.get(shader_id);
+    switch (shader->type) {
+        case AM_VERTEX_SHADER: 
+            prog->vert_shader = *shader;
+            break;
+        case AM_FRAGMENT_SHADER:
+            prog->frag_shader = *shader;
+            break;
+    }
+    metal_shader_retain(shader);
 }
 
 bool am_link_program(am_program_id program) {
@@ -507,17 +606,22 @@ void am_use_program(am_program_id program) {
 
 void am_detach_shader(am_program_id program, am_shader_id shader) {
     check_initialized();
-    // XXX
+    // nop
 }
 
-void am_delete_shader(am_shader_id shader) {
+void am_delete_shader(am_shader_id id) {
     check_initialized();
-    // XXX
+    metal_shader *shader = metal_shader_freelist.get(id);
+    metal_shader_release(shader);
+    metal_shader_freelist.remove(id);
 }
 
-void am_delete_program(am_program_id program) {
+void am_delete_program(am_program_id id) {
     check_initialized();
-    // XXX
+    metal_program *prog = metal_program_freelist.get(id);
+    metal_shader_release(&prog->vert_shader);
+    metal_shader_release(&prog->frag_shader);
+    metal_program_freelist.remove(id);
 }
 
 // Uniforms and Attributes 
@@ -850,6 +954,29 @@ void am_log_gl(const char *msg) {
 void am_reset_gl_frame_stats() {
     am_frame_draw_calls = 0;
     am_frame_use_program_calls = 0;
+}
+
+static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str) {
+    *line_no = -1;
+    *line_str = NULL;
+    int res = sscanf(errmsg, "ERROR: 0:%d:", line_no);
+    if (res == 0 || *line_no < 1) return;
+    const char *ptr = src;
+    int l = 1;
+    while (*ptr != '\0') {   
+        if (l == *line_no) {
+            const char *start = ptr;
+            while (*ptr != '\0' && *ptr != '\n') ptr++;
+            const char *end = ptr;
+            size_t len = end - start;
+            *line_str = (char*)malloc(len+1);
+            memcpy(*line_str, start, len);
+            (*line_str)[len] = '\0';
+            return;
+        }
+        if (*ptr == '\n') l++;
+        ptr++;
+    }
 }
 
 #endif // AM_USE_METAL

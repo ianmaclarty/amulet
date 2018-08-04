@@ -519,6 +519,7 @@ void am_render_state::enable_vaas(int n) {
 
 bool am_render_state::update_state() {
     assert(active_program != NULL);
+    bind_active_program();
     active_viewport_state.bind(this, false);
     active_scissor_test_state.bind(this, false);
     active_color_mask_state.bind(this, false);
@@ -526,7 +527,6 @@ bool am_render_state::update_state() {
     active_stencil_test_state.bind(this, false);
     active_cull_face_state.bind(this, false);
     active_blend_state.bind(this, false);
-    bind_active_program();
     if (!bind_active_program_params()) {
         return false;
     }

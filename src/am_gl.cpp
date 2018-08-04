@@ -2051,7 +2051,7 @@ void am_log_gl(const char *msg) {
 // GLSL-optimiser
 #if defined(AM_USE_GLSL_OPTIMIZER)
 
-static glslopt_ctx* glslopt_context = 0;
+static glslopt_ctx* glslopt_context = NULL;
 
 static void init_glslopt() {
     glslopt_target target = kGlslTargetOpenGLES20;
