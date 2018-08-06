@@ -9,7 +9,7 @@
 static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str);
 
 template<typename T>
-union freelist_item {
+struct freelist_item {
     int next;
     T item;
 };
@@ -17,34 +17,30 @@ union freelist_item {
 template<typename T>
 struct freelist {
     std::vector<freelist_item<T> > items;
-    int first;
+    am_gluint first;
     freelist() {
         first = 0;
     }
-    int add(T item) {
+    am_gluint add(T item) {
         if (first == 0) {
             freelist_item<T> it;
             it.item = item;
             items.push_back(it);
             return items.size();
         } else {
-            int next = items[first-1].next;
-            int index = first;
+            am_gluint next = items[first-1].next;
+            am_gluint index = first;
             items[first-1].item = item;
             first = next;
             return index;
         }
     }
-    void remove(int index) {
+    void remove(am_gluint index) {
         items[index-1].next = first;
         first = index;
     }
-    T* get(int index) {
+    T* get(am_gluint index) {
         return &items[index-1].item;   
-    }
-    void clear() {
-        first = 0;
-        items.clear();
     }
 };
 
@@ -147,7 +143,6 @@ static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
     MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
     MTLRenderPassColorAttachmentDescriptor *colorattachment = renderdesc.colorAttachments[0];
 
-    /* Clear to a red-orange color when beginning the render pass. */
     colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
     colorattachment.loadAction  = MTLLoadActionLoad;
     colorattachment.storeAction = MTLStoreActionStore;
@@ -158,46 +153,60 @@ static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
 static glslopt_ctx* glslopt_context = NULL;
 
 struct metal_shader {
+    am_shader_type type;
+    int ref_count;
+
     id<MTLLibrary> lib;
     id<MTLFunction> func;
-    am_shader_type type;
     glslopt_shader *gshader;
-    int gshader_refs;
 };
 
 static freelist<metal_shader> metal_shader_freelist;
 
 static void metal_shader_init(metal_shader *shader, am_shader_type type) {
     shader->type = type;
+    shader->ref_count = 0;
+
     shader->lib = nil;
     shader->func = nil;
     shader->gshader = NULL;
-    shader->gshader_refs = 0;
 }
 
 static void metal_shader_retain(metal_shader *shader) {
     if (shader->lib != nil) [shader->lib retain];
     if (shader->func != nil) [shader->func retain];
-    if (shader->gshader != NULL) shader->gshader_refs++;
+    shader->ref_count++;
 }
 
 static void metal_shader_release(metal_shader *shader) {
     if (shader->lib != nil) [shader->lib release];
     if (shader->func != nil) [shader->func release];
-    if (shader->gshader != NULL) {
-        shader->gshader_refs--;
-        if (shader->gshader_refs <= 0) {
-            glslopt_shader_delete(shader->gshader);
-        }
+    shader->ref_count--;
+    if (shader->ref_count <= 0) {
+        if (shader->gshader != NULL) glslopt_shader_delete(shader->gshader);
     }
 }
+
+struct uniform_descr {
+    am_uniform_var_type type;
+    int vert_location;
+    int frag_location;
+    const char *name;
+};
 
 struct metal_program {
     metal_shader vert_shader;
     metal_shader frag_shader;
+    uint8_t *vert_uniform_data;
+    uint8_t *frag_uniform_data;
+    int num_uniforms;
+    uniform_descr *uniforms;
+    char *log;
 };
 
 static freelist<metal_program> metal_program_freelist;
+
+static am_program_id metal_active_program = 0;
 
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     if (metal_encoder != nil) {
@@ -509,7 +518,13 @@ am_program_id am_create_program() {
     metal_program prog;
     metal_shader_init(&prog.vert_shader, AM_VERTEX_SHADER);
     metal_shader_init(&prog.frag_shader, AM_FRAGMENT_SHADER);
-    return metal_program_freelist.add(prog);
+    prog.vert_uniform_data = NULL;
+    prog.frag_uniform_data = NULL;
+    prog.num_uniforms = 0;
+    prog.uniforms = NULL;
+    prog.log = NULL;
+    int prog_id = metal_program_freelist.add(prog);
+    return prog_id;
 }
 
 am_shader_id am_create_shader(am_shader_type type) {
@@ -517,6 +532,32 @@ am_shader_id am_create_shader(am_shader_type type) {
     metal_shader shader;
     metal_shader_init(&shader, type);
     return metal_shader_freelist.add(shader);
+}
+
+static const char* glslopt_type_str(glslopt_basic_type t) {
+    switch (t) {
+	case kGlslTypeFloat: return "float";
+	case kGlslTypeInt: return "int";
+	case kGlslTypeBool: return "bool";
+	case kGlslTypeTex2D: return "tex2d";
+	case kGlslTypeTex3D: return "tex3d";
+	case kGlslTypeTexCube: return "texcube";
+	case kGlslTypeTex2DShadow: return "tex2dshadow";
+	case kGlslTypeTex2DArray: return "tex2darray";
+	case kGlslTypeOther: return "other";
+	default:
+            return "<error>";
+    }
+}
+
+static const char* glslopt_prec_str(glslopt_precision p) {
+    switch (p) {
+	case kGlslPrecHigh: return "high";
+	case kGlslPrecMedium: return "medium";
+	case kGlslPrecLow: return "low";
+	default:
+            return "<error>";
+    }
 }
 
 bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, char **msg, int *line_no, char **line_str) {
@@ -535,7 +576,9 @@ bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, ch
     if (glslopt_get_status(shader->gshader)) {
         NSError *error = nil;
         const char *metal_src = glslopt_get_output(shader->gshader);
-        am_debug("metal: %s", metal_src);
+        printf("%s", "----------------------------------------------------------------------------------\n");
+        printf("GLSL:\n%s\n", src);
+        printf("Metal:\n%s\n", metal_src);
         shader->lib = [metal_device newLibraryWithSource:[NSString stringWithUTF8String:metal_src] options: nil error:&error];
         if (shader->lib == nil) {
             *msg = am_format("%s", [[error localizedDescription] UTF8String]);
@@ -544,7 +587,50 @@ bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, ch
         } else {
             shader->func = [shader->lib newFunctionWithName:@"xlatMtlMain"];
             metal_shader_retain(shader);
+            int n = glslopt_shader_get_input_count(shader->gshader);
+            printf("\n%d Inputs:\n", n);
+            for (int i = 0; i < n; i++) {
+                const char *name;
+                glslopt_basic_type type;
+                glslopt_precision precision;
+                int vecsize;
+                int matsize;
+                int arraysize;
+                int location;
+                glslopt_shader_get_input_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
+                printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
+                    arraysize, location);
+            }
+            n = glslopt_shader_get_uniform_count(shader->gshader);
+            printf("\n%d Uniforms (%d bytes):\n", n, glslopt_shader_get_uniform_total_size(shader->gshader));
+            for (int i = 0; i < n; i++) {
+                const char *name;
+                glslopt_basic_type type;
+                glslopt_precision precision;
+                int vecsize;
+                int matsize;
+                int arraysize;
+                int location;
+                glslopt_shader_get_uniform_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
+                printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
+                    arraysize, location);
+            }
+            n = glslopt_shader_get_texture_count(shader->gshader);
+            printf("\n%d Textures:\n", n);
+            for (int i = 0; i < n; i++) {
+                const char *name;
+                glslopt_basic_type type;
+                glslopt_precision precision;
+                int vecsize;
+                int matsize;
+                int arraysize;
+                int location;
+                glslopt_shader_get_texture_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
+                printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
+                    arraysize, location);
+            }
             success = true;
+            printf("%s", "==================================================================================\n");
         }
     } else {
         *msg = am_format("%s", glslopt_get_log(shader->gshader));
@@ -569,39 +655,170 @@ void am_attach_shader(am_program_id program_id, am_shader_id shader_id) {
     metal_shader_retain(shader);
 }
 
-bool am_link_program(am_program_id program) {
-    check_initialized(false);
-    // XXX
+static bool set_uniform_type(metal_program *prog, uniform_descr* uni, glslopt_basic_type type, 
+    glslopt_precision prec, int msize, int vsize, int asize, const char *name)
+{
+    switch (type) {
+        case kGlslTypeFloat:
+            if (prec != kGlslPrecHigh) {
+                prog->log = am_format("uniform %s is not high precision (sorry, only high precision uniforms supported)", name);
+                return false;
+            }
+            if (asize > 1) {
+                prog->log = am_format("uniform %s is an array (sorry, uniforms arrays not supported)", name);
+                return false;
+            }
+            switch (msize) {
+                case 1:
+                    switch (vsize) {
+                        case 1:
+                            uni->type = AM_UNIFORM_VAR_TYPE_FLOAT;
+                            break;
+                        case 2:
+                            uni->type = AM_UNIFORM_VAR_TYPE_FLOAT_VEC2;
+                            break;
+                        case 3:
+                            uni->type = AM_UNIFORM_VAR_TYPE_FLOAT_VEC3;
+                            break;
+                        case 4:
+                            uni->type = AM_UNIFORM_VAR_TYPE_FLOAT_VEC4;
+                            break;
+                        default:
+                            prog->log = am_format("uniform %s has unsupported type", name);
+                            return false;
+                    }
+                case 2:
+                     uni->type = AM_UNIFORM_VAR_TYPE_FLOAT_MAT2;
+                     break;
+                case 3:
+                     uni->type = AM_UNIFORM_VAR_TYPE_FLOAT_MAT3;
+                     break;
+                case 4:
+                     uni->type = AM_UNIFORM_VAR_TYPE_FLOAT_MAT4;
+                     break;
+                default:
+                     prog->log = am_format("uniform %s has unsupported type", name);
+                     return false;
+            }
+            break;
+        case kGlslTypeTex2D:
+            uni->type = AM_UNIFORM_VAR_TYPE_SAMPLER_2D;
+            break;
+        case kGlslTypeTexCube:
+            uni->type = AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE;
+            break;
+        default:
+            prog->log = am_format("uniform %s has unsupported type", name);
+            return false;
+    }
     return true;
 }
 
-char *am_get_program_info_log(am_program_id program) {
+bool am_link_program(am_program_id program_id) {
+    check_initialized(false);
+    metal_program *prog = metal_program_freelist.get(program_id);
+    metal_shader *vert = &prog->vert_shader;
+    metal_shader *frag = &prog->frag_shader;
+    int vert_bytes = glslopt_shader_get_uniform_total_size(vert->gshader);
+    int frag_bytes = glslopt_shader_get_uniform_total_size(frag->gshader);
+    if (vert_bytes > 0) {
+        prog->vert_uniform_data = (uint8_t*)malloc(vert_bytes);
+        memset(prog->vert_uniform_data, 0, vert_bytes);
+    }
+    if (frag_bytes > 0) {
+        prog->frag_uniform_data = (uint8_t*)malloc(frag_bytes);
+        memset(prog->frag_uniform_data, 0, frag_bytes);
+    }
+    int num_vert_uniforms = glslopt_shader_get_uniform_count(vert->gshader);
+    int num_frag_uniforms = glslopt_shader_get_uniform_count(frag->gshader);
+    prog->uniforms = (uniform_descr*)malloc((num_vert_uniforms + num_frag_uniforms) * sizeof(uniform_descr));
+    for (int i = 0; i < num_vert_uniforms + num_frag_uniforms; i++) {
+        uniform_descr *uni = &prog->uniforms[i];
+        uni->type = AM_UNIFORM_VAR_TYPE_UNKNOWN;
+        uni->vert_location = -1;
+        uni->frag_location = -1;
+        uni->name = NULL;
+    }
+    for (int i = 0; i < num_vert_uniforms; i++) {
+        uniform_descr *uni = &prog->uniforms[i];
+        const char *name;
+        glslopt_basic_type type;
+        glslopt_precision prec;
+        int vsize;
+        int msize;
+        int asize;
+        int loc;
+        glslopt_shader_get_uniform_desc(vert->gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        if (!set_uniform_type(prog, uni, type, prec, msize, vsize, asize, name)) {
+            return false;
+        }
+        uni->vert_location = loc;
+        uni->name = name;
+    }
+    int num_uniforms = num_vert_uniforms;
+    for (int i = 0; i < num_frag_uniforms; i++) {
+        uniform_descr *uni = &prog->uniforms[num_uniforms];
+        const char *name;
+        glslopt_basic_type type;
+        glslopt_precision prec;
+        int vsize;
+        int msize;
+        int asize;
+        int loc;
+        glslopt_shader_get_uniform_desc(frag->gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        if (!set_uniform_type(prog, uni, type, prec, msize, vsize, asize, name)) {
+            return false;
+        }
+        // see if this is already a vertex shader uniform
+        bool found = false;
+        for (int j = 0; j < num_vert_uniforms; j++) {
+            if (strcmp(prog->uniforms[j].name, name) == 0) {
+                if (uni->type != prog->uniforms[j].type) {
+                    prog->log = am_format("uniform %s has different types in vertex and fragment shaders", name);
+                    return false;
+                }
+                prog->uniforms[j].frag_location = loc;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            uni->frag_location = loc;
+            uni->name = name;
+            num_uniforms++;
+        }
+    }
+    prog->num_uniforms = num_uniforms;
+    return true;
+}
+
+char *am_get_program_info_log(am_program_id program_id) {
     check_initialized(NULL);
-    // XXX
-    return NULL;
+    metal_program *prog = metal_program_freelist.get(program_id);
+    return prog->log;
 }
 
-int am_get_program_active_attributes(am_program_id program) {
+int am_get_program_active_attributes(am_program_id program_id) {
     check_initialized(0);
-    // XXX
-    return 0;
+    metal_program *prog = metal_program_freelist.get(program_id);
+    return glslopt_shader_get_input_count(prog->vert_shader.gshader);
 }
 
-int am_get_program_active_uniforms(am_program_id program) {
+int am_get_program_active_uniforms(am_program_id program_id) {
     check_initialized(0);
-    // XXX
-    return 0;
+    metal_program *prog = metal_program_freelist.get(program_id);
+    return prog->num_uniforms;
 }
 
 bool am_validate_program(am_program_id program) {
     check_initialized(false);
-    // TODO
+    // nop
     return true;
 }
 
 void am_use_program(am_program_id program) {
     check_initialized();
-    // XXX
+    metal_active_program = program;
 }
 
 void am_detach_shader(am_program_id program, am_shader_id shader) {
@@ -621,7 +838,14 @@ void am_delete_program(am_program_id id) {
     metal_program *prog = metal_program_freelist.get(id);
     metal_shader_release(&prog->vert_shader);
     metal_shader_release(&prog->frag_shader);
+    if (prog->vert_uniform_data != NULL) free(prog->vert_uniform_data);
+    if (prog->frag_uniform_data != NULL) free(prog->frag_uniform_data);
+    if (prog->uniforms != NULL) free(prog->uniforms);
+    if (prog->log != NULL) free(prog->log);
     metal_program_freelist.remove(id);
+    if (metal_active_program == id) {
+        metal_active_program = 0;
+    }
 }
 
 // Uniforms and Attributes 
@@ -642,50 +866,102 @@ void am_set_attribute_array_enabled(am_gluint location, bool enabled) {
     // XXX
 }
 
-am_gluint am_get_attribute_location(am_program_id program, const char *name) {
-    check_initialized(0);
-    // XXX
-    return 0;
-}
-
-am_gluint am_get_uniform_location(am_program_id program, const char *name) {
-    check_initialized(0);
-    // XXX
-    return 0;
-}
-
-void am_get_active_attribute(am_program_id program, am_gluint index,
-    char **name, am_attribute_var_type *type, int *size)
+void am_get_active_attribute(am_program_id program_id, am_gluint index,
+    char **name, am_attribute_var_type *type, int *size, am_gluint *loc)
 {
     check_initialized();
-    // XXX
+    metal_program *prog = metal_program_freelist.get(program_id);
+    const char *gname;
+    glslopt_basic_type gtype;
+    glslopt_precision prec;
+    int vsize;
+    int msize;
+    int asize;
+    int gloc;
+    glslopt_shader_get_input_desc(prog->vert_shader.gshader, index, &gname, &gtype, &prec, &vsize, &msize, &asize, &gloc);
+    switch (gtype) {
+        case kGlslTypeFloat: {
+            switch (msize) {
+                case 1:
+                    switch (vsize) {
+                        case 1:
+                            *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT;
+                            break;
+                        case 2:
+                            *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2;
+                            break;
+                        case 3:
+                            *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC3;
+                            break;
+                        case 4:
+                            *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC4;
+                            break;
+                        default:
+                            *type = AM_ATTRIBUTE_VAR_TYPE_UNKNOWN;
+                            break;
+                    }
+                    break;
+                case 2:
+                    *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT2;
+                    break;
+                case 3:
+                    *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3;
+                    break;
+                case 4:
+                    *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4;
+                    break;
+                default:
+                    *type = AM_ATTRIBUTE_VAR_TYPE_UNKNOWN;
+                    break;
+            }
+            break;
+        }
+        default:
+            *type = AM_ATTRIBUTE_VAR_TYPE_UNKNOWN;
+            break;
+    }
+    *loc = gloc;
+    *size = asize;
+    *name = am_format("%s", gname);
 }
 
-void am_get_active_uniform(am_program_id program, am_gluint index,
-    char **name, am_uniform_var_type *type, int *size)
+void am_get_active_uniform(am_program_id program_id, am_gluint index,
+    char **name, am_uniform_var_type *type, int *size, am_gluint *loc)
 {
     check_initialized();
-    // XXX
+    metal_program *prog = metal_program_freelist.get(program_id);
+    uniform_descr *uni = &prog->uniforms[index];
+    *name = am_format("%s", uni->name);
+    *type = uni->type;
+    *size = 1;
+    *loc = index;
 }
 
+static void set_float_uniform(am_gluint location, const float *value, int n) {
+    if (metal_active_program == 0) return;
+    metal_program *prog = metal_program_freelist.get(metal_active_program);
+    uniform_descr *uni = &prog->uniforms[location];
+    if (uni->vert_location >= 0) memcpy(&prog->vert_uniform_data[uni->vert_location], value, n * 4);
+    if (uni->frag_location >= 0) memcpy(&prog->frag_uniform_data[uni->frag_location], value, n * 4);
+}
 void am_set_uniform1f(am_gluint location, float value) {
     check_initialized();
-    // XXX
+    set_float_uniform(location, &value, 1);
 }
 
 void am_set_uniform2f(am_gluint location, const float *value) {
     check_initialized();
-    // XXX
+    set_float_uniform(location, value, 2);
 }
 
 void am_set_uniform3f(am_gluint location, const float *value) {
     check_initialized();
-    // XXX
+    set_float_uniform(location, value, 3);
 }
 
 void am_set_uniform4f(am_gluint location, const float *value) {
     check_initialized();
-    // XXX
+    set_float_uniform(location, value, 4);
 }
 
 void am_set_uniform1i(am_gluint location, am_glint value) {
@@ -710,17 +986,17 @@ void am_set_uniform4i(am_gluint location, const am_glint *value) {
 
 void am_set_uniform_mat2(am_gluint location, const float *value) {
     check_initialized();
-    // XXX
+    set_float_uniform(location, value, 4);
 }
 
 void am_set_uniform_mat3(am_gluint location, const float *value) {
     check_initialized();
-    // XXX
+    set_float_uniform(location, value, 9);
 }
 
 void am_set_uniform_mat4(am_gluint location, const float *value) {
     check_initialized();
-    // XXX
+    set_float_uniform(location, value, 16);
 }
 
 void am_set_attribute1f(am_gluint location, const float value) {
@@ -959,7 +1235,7 @@ void am_reset_gl_frame_stats() {
 static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str) {
     *line_no = -1;
     *line_str = NULL;
-    int res = sscanf(errmsg, "ERROR: 0:%d:", line_no);
+    int res = sscanf(errmsg, "(%d:", line_no);
     if (res == 0 || *line_no < 1) return;
     const char *ptr = src;
     int l = 1;

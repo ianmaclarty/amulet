@@ -171,8 +171,11 @@ ifeq ($(TARGET_PLATFORM),osx)
   XLDFLAGS = -lm -liconv $(STEAMWORKS_LINK_OPT) -Wl,-framework,OpenGL -Wl,-framework,Metal -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
-	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia \
-	     -pagezero_size 10000 -image_base 100000000
+	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia
+ifeq ($(LUAVM),luajit)
+  XLDFLAGS += -pagezero_size 10000 -image_base 100000000
+endif
+
   LUA_CFLAGS += -DLUA_USE_MACOSX
   MACOSX_DEPLOYMENT_TARGET=10.11
   export MACOSX_DEPLOYMENT_TARGET
@@ -336,6 +339,11 @@ ifeq ($(GRADE),debug)
   else ifeq ($(TARGET_PLATFORM),msvc32)
     GRADE_CFLAGS = -MTd -Zi
     GRADE_LDFLAGS = -DEBUG
+    LUA_CFLAGS += -DLUA_USE_APICHECK
+    LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
+  else ifeq ($(TARGET_PLATFORM),osx)
+    GRADE_CFLAGS = -g -O0 -fsanitize=address
+    GRADE_LDFLAGS = -g -fsanitize=address
     LUA_CFLAGS += -DLUA_USE_APICHECK
     LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
   else

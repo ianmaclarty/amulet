@@ -941,7 +941,7 @@ void am_set_attribute_array_enabled(am_gluint location, bool enabled) {
     check_for_errors
 }
 
-am_gluint am_get_attribute_location(am_program_id program, const char *name) {
+static am_gluint get_attribute_location(am_program_id program, const char *name) {
     check_initialized(0);
     log_gl("%s", "// about to call glGetAttribLocation");
     am_gluint l = GLFUNC(glGetAttribLocation)(program, name);
@@ -950,7 +950,7 @@ am_gluint am_get_attribute_location(am_program_id program, const char *name) {
     return l;
 }
 
-am_gluint am_get_uniform_location(am_program_id program, const char *name) {
+static am_gluint get_uniform_location(am_program_id program, const char *name) {
     check_initialized(0);
     log_gl("%s", "// about to call glGetUniformLocation");
     am_gluint l = GLFUNC(glGetUniformLocation)(program, name);
@@ -960,7 +960,7 @@ am_gluint am_get_uniform_location(am_program_id program, const char *name) {
 }
 
 void am_get_active_attribute(am_program_id program, am_gluint index,
-    char **name, am_attribute_var_type *type, int *size)
+    char **name, am_attribute_var_type *type, int *size, am_gluint *loc)
 {
     check_initialized();
     GLchar gl_name[ATTR_NAME_SIZE];
@@ -977,10 +977,11 @@ void am_get_active_attribute(am_program_id program, am_gluint index,
     strcpy(*name, gl_name);
     *size = gl_size;
     *type = from_gl_attribute_var_type(gl_type);
+    *loc = get_attribute_location(program, *name);
 }
 
 void am_get_active_uniform(am_program_id program, am_gluint index,
-    char **name, am_uniform_var_type *type, int *size)
+    char **name, am_uniform_var_type *type, int *size, am_gluint *loc)
 {
     check_initialized();
     GLchar gl_name[UNI_NAME_SIZE];
@@ -997,6 +998,7 @@ void am_get_active_uniform(am_program_id program, am_gluint index,
     strcpy(*name, gl_name);
     *size = gl_size;
     *type = from_gl_uniform_var_type(gl_type);
+    *loc = get_uniform_location(program, *name);
 }
 
 void am_set_uniform1f(am_gluint location, float value) {
