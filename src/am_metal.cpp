@@ -194,19 +194,60 @@ struct uniform_descr {
     const char *name;
 };
 
+struct attr_layout {
+    am_attribute_client_type type;
+    int dims;
+    bool normalized;
+    int stride;
+};
+
+struct attr_descr {
+    am_attribute_var_type type;
+    int location;
+    const char *name;
+};
+
+struct attr_state {
+    attr_descr descr;
+    am_buffer_id bufid;
+    int offset;
+    attr_layout layout;
+};
+
+struct metal_pipeline {
+    attr_layout *layouts;
+    id<MTLRenderPipelineState> mtlpipeline;
+};
+
 struct metal_program {
     metal_shader vert_shader;
     metal_shader frag_shader;
+    int vert_uniform_size;
     uint8_t *vert_uniform_data;
+    int frag_uniform_size;
     uint8_t *frag_uniform_data;
     int num_uniforms;
     uniform_descr *uniforms;
+    int num_attrs;
+    attr_state *attrs;
+    std::vector<metal_pipeline> pipeline_cache;
     char *log;
 };
 
 static freelist<metal_program> metal_program_freelist;
 
 static am_program_id metal_active_program = 0;
+
+static int metal_active_pipeline = -1;
+
+struct metal_buffer {
+    int size;
+    id<MTLBuffer> mtlbuf;
+};
+
+static freelist<metal_buffer> metal_buffer_freelist;
+
+static am_buffer_id metal_active_buffer = 0;
 
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     if (metal_encoder != nil) {
@@ -251,7 +292,6 @@ static bool metal_initialized = false;
 
 void am_init_gl() {
     metal_device = MTLCreateSystemDefaultDevice();
-    [metal_device retain];
     if (metal_device == nil) {
         am_log0("%s", "unable to create metal device");
         return;
@@ -267,7 +307,6 @@ void am_init_gl() {
     //metal_layer.displaySyncEnabled = (am_conf_vsync ? YES : NO);
 
     metal_queue = [metal_device newCommandQueue];
-    [metal_queue retain];
 
     default_metal_framebuffer.clear_r = 0.0f;
     default_metal_framebuffer.clear_g = 0.0f;
@@ -426,28 +465,50 @@ void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) 
 
 am_buffer_id am_create_buffer_object() {
     check_initialized(0);
-    // XXX
-    return 0;
+    metal_buffer buf;
+    buf.size = 0;
+    buf.mtlbuf = nil;
+    return metal_buffer_freelist.add(buf);
 }
 
 void am_bind_buffer(am_buffer_target target, am_buffer_id buffer) {
     check_initialized();
-    // XXX
+    metal_active_buffer = buffer;
 }
 
 void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer_usage usage) {
     check_initialized();
-    // XXX
+    if (metal_active_buffer == 0) return;
+    metal_buffer *buf = metal_buffer_freelist.get(metal_active_buffer);
+    if (buf->size != size) {
+        if (buf->mtlbuf != nil) {
+            [buf->mtlbuf release];
+            buf->mtlbuf = nil;
+        }
+        buf->mtlbuf = [metal_device newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
+    } else {
+        memcpy([buf->mtlbuf contents], data, size);
+        [buf->mtlbuf didModifyRange: NSMakeRange(0, size)];
+    }
 }
 
 void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void *data) {
     check_initialized();
-    // XXX
+    if (metal_active_buffer == 0) return;
+    metal_buffer *buf = metal_buffer_freelist.get(metal_active_buffer);
+    if (buf->mtlbuf == nil) return;
+    if (buf->size - offset < size) return;
+    uint8_t *contents = (uint8_t*)[buf->mtlbuf contents];
+    memcpy(&contents[offset], data, size);
+    [buf->mtlbuf didModifyRange: NSMakeRange(offset, size)];
 }
 
-void am_delete_buffer(am_buffer_id buffer) {
+void am_delete_buffer(am_buffer_id id) {
     check_initialized();
-    // XXX
+    metal_buffer *buf = metal_buffer_freelist.get(id);
+    if (buf->mtlbuf != nil) [buf->mtlbuf release];
+    metal_buffer_freelist.remove(id);
+    if (metal_active_buffer == id) metal_active_buffer = 0;
 }
 
 // View and Clip
@@ -518,13 +579,16 @@ am_program_id am_create_program() {
     metal_program prog;
     metal_shader_init(&prog.vert_shader, AM_VERTEX_SHADER);
     metal_shader_init(&prog.frag_shader, AM_FRAGMENT_SHADER);
+    prog.vert_uniform_size = 0;
     prog.vert_uniform_data = NULL;
+    prog.frag_uniform_size = 0;
     prog.frag_uniform_data = NULL;
     prog.num_uniforms = 0;
     prog.uniforms = NULL;
+    prog.num_attrs = 0;
+    prog.attrs = NULL;
     prog.log = NULL;
-    int prog_id = metal_program_freelist.add(prog);
-    return prog_id;
+    return metal_program_freelist.add(prog);
 }
 
 am_shader_id am_create_shader(am_shader_type type) {
@@ -586,7 +650,7 @@ bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, ch
             success = false;
         } else {
             shader->func = [shader->lib newFunctionWithName:@"xlatMtlMain"];
-            metal_shader_retain(shader);
+            shader->ref_count = 1;
             int n = glslopt_shader_get_input_count(shader->gshader);
             printf("\n%d Inputs:\n", n);
             for (int i = 0; i < n; i++) {
@@ -719,13 +783,17 @@ bool am_link_program(am_program_id program_id) {
     metal_program *prog = metal_program_freelist.get(program_id);
     metal_shader *vert = &prog->vert_shader;
     metal_shader *frag = &prog->frag_shader;
+
+    // setup uniforms
     int vert_bytes = glslopt_shader_get_uniform_total_size(vert->gshader);
     int frag_bytes = glslopt_shader_get_uniform_total_size(frag->gshader);
     if (vert_bytes > 0) {
+        prog->vert_uniform_size = vert_bytes;
         prog->vert_uniform_data = (uint8_t*)malloc(vert_bytes);
         memset(prog->vert_uniform_data, 0, vert_bytes);
     }
     if (frag_bytes > 0) {
+        prog->frag_uniform_size = frag_bytes;
         prog->frag_uniform_data = (uint8_t*)malloc(frag_bytes);
         memset(prog->frag_uniform_data, 0, frag_bytes);
     }
@@ -789,6 +857,71 @@ bool am_link_program(am_program_id program_id) {
         }
     }
     prog->num_uniforms = num_uniforms;
+
+    // setup attributes
+    prog->num_attrs = glslopt_shader_get_input_count(prog->vert_shader.gshader);
+    prog->attrs = (attr_state*)malloc(prog->num_attrs * sizeof(attr_state));
+    for (int i = 0; i < prog->num_attrs; i++) {
+        attr_state *attr = &prog->attrs[i];
+        attr->bufid = 0;
+        attr->offset = 0;
+        const char *name;
+        glslopt_basic_type type;
+        glslopt_precision prec;
+        int vsize;
+        int msize;
+        int asize;
+        int loc;
+        glslopt_shader_get_input_desc(prog->vert_shader.gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        if (asize > 1) {
+            prog->log = am_format("attribute %s has unsupported type", name);
+            return false;
+        }
+        switch (type) {
+            case kGlslTypeFloat: {
+                switch (msize) {
+                    case 1:
+                        switch (vsize) {
+                            case 1:
+                                attr->descr.type = AM_ATTRIBUTE_VAR_TYPE_FLOAT;
+                                break;
+                            case 2:
+                                attr->descr.type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2;
+                                break;
+                            case 3:
+                                attr->descr.type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC3;
+                                break;
+                            case 4:
+                                attr->descr.type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC4;
+                                break;
+                            default:
+                                prog->log = am_format("attribute %s has unsupported type", name);
+                                return false;
+                        }
+                        break;
+                    case 2:
+                        attr->descr.type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT2;
+                        break;
+                    case 3:
+                        attr->descr.type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3;
+                        break;
+                    case 4:
+                        attr->descr.type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4;
+                        break;
+                    default:
+                        prog->log = am_format("attribute %s has unsupported type", name);
+                        return false;
+                }
+                break;
+            }
+            default:
+                prog->log = am_format("attribute %s has unsupported type", name);
+                return false;
+        }
+        attr->descr.location = loc;
+        attr->descr.name = name;
+    }
+
     return true;
 }
 
@@ -801,7 +934,7 @@ char *am_get_program_info_log(am_program_id program_id) {
 int am_get_program_active_attributes(am_program_id program_id) {
     check_initialized(0);
     metal_program *prog = metal_program_freelist.get(program_id);
-    return glslopt_shader_get_input_count(prog->vert_shader.gshader);
+    return prog->num_attrs;
 }
 
 int am_get_program_active_uniforms(am_program_id program_id) {
@@ -816,9 +949,11 @@ bool am_validate_program(am_program_id program) {
     return true;
 }
 
-void am_use_program(am_program_id program) {
+void am_use_program(am_program_id program_id) {
     check_initialized();
-    metal_active_program = program;
+    if (program_id == metal_active_program) return;
+    metal_active_program = program_id;
+    metal_active_pipeline = -1;
 }
 
 void am_detach_shader(am_program_id program, am_shader_id shader) {
@@ -841,6 +976,11 @@ void am_delete_program(am_program_id id) {
     if (prog->vert_uniform_data != NULL) free(prog->vert_uniform_data);
     if (prog->frag_uniform_data != NULL) free(prog->frag_uniform_data);
     if (prog->uniforms != NULL) free(prog->uniforms);
+    if (prog->attrs != NULL) free(prog->attrs);
+    for (int i = 0; i < prog->pipeline_cache.size(); i++) {
+        [prog->pipeline_cache[i].mtlpipeline release];
+    }
+    prog->pipeline_cache.clear();
     if (prog->log != NULL) free(prog->log);
     metal_program_freelist.remove(id);
     if (metal_active_program == id) {
@@ -863,7 +1003,7 @@ int am_attribute_client_type_size(am_attribute_client_type t) {
 
 void am_set_attribute_array_enabled(am_gluint location, bool enabled) {
     check_initialized();
-    // XXX
+    // nop
 }
 
 void am_get_active_attribute(am_program_id program_id, am_gluint index,
@@ -871,58 +1011,11 @@ void am_get_active_attribute(am_program_id program_id, am_gluint index,
 {
     check_initialized();
     metal_program *prog = metal_program_freelist.get(program_id);
-    const char *gname;
-    glslopt_basic_type gtype;
-    glslopt_precision prec;
-    int vsize;
-    int msize;
-    int asize;
-    int gloc;
-    glslopt_shader_get_input_desc(prog->vert_shader.gshader, index, &gname, &gtype, &prec, &vsize, &msize, &asize, &gloc);
-    switch (gtype) {
-        case kGlslTypeFloat: {
-            switch (msize) {
-                case 1:
-                    switch (vsize) {
-                        case 1:
-                            *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT;
-                            break;
-                        case 2:
-                            *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC2;
-                            break;
-                        case 3:
-                            *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC3;
-                            break;
-                        case 4:
-                            *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_VEC4;
-                            break;
-                        default:
-                            *type = AM_ATTRIBUTE_VAR_TYPE_UNKNOWN;
-                            break;
-                    }
-                    break;
-                case 2:
-                    *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT2;
-                    break;
-                case 3:
-                    *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3;
-                    break;
-                case 4:
-                    *type = AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4;
-                    break;
-                default:
-                    *type = AM_ATTRIBUTE_VAR_TYPE_UNKNOWN;
-                    break;
-            }
-            break;
-        }
-        default:
-            *type = AM_ATTRIBUTE_VAR_TYPE_UNKNOWN;
-            break;
-    }
-    *loc = gloc;
-    *size = asize;
-    *name = am_format("%s", gname);
+    attr_state *attr = &prog->attrs[index];
+    *name = am_format("%s", attr->descr.name);
+    *type = attr->descr.type;
+    *size = 1;
+    *loc = index;
 }
 
 void am_get_active_uniform(am_program_id program_id, am_gluint index,
@@ -944,6 +1037,7 @@ static void set_float_uniform(am_gluint location, const float *value, int n) {
     if (uni->vert_location >= 0) memcpy(&prog->vert_uniform_data[uni->vert_location], value, n * 4);
     if (uni->frag_location >= 0) memcpy(&prog->frag_uniform_data[uni->frag_location], value, n * 4);
 }
+
 void am_set_uniform1f(am_gluint location, float value) {
     check_initialized();
     set_float_uniform(location, &value, 1);
@@ -1019,9 +1113,18 @@ void am_set_attribute4f(am_gluint location, const float *value) {
     // XXX
 }
 
-void am_set_attribute_pointer(am_gluint location, int size, am_attribute_client_type type, bool normalized, int stride, int offset) {
+void am_set_attribute_pointer(am_gluint location, int dims, am_attribute_client_type type, bool normalized, int stride, int offset) {
     check_initialized();
-    // XXX
+    if (metal_active_program == 0) return;
+    if (metal_active_buffer == 0) return;
+    metal_program *prog = metal_program_freelist.get(metal_active_program);
+    attr_state *attr = &prog->attrs[location];
+    attr->bufid = metal_active_buffer;
+    attr->offset = offset;
+    attr->layout.type = type;
+    attr->layout.dims = dims;
+    attr->layout.normalized = normalized;
+    attr->layout.stride = stride;
 }
 
 // Texture Objects
@@ -1187,9 +1290,221 @@ void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_textu
 
 // Writing to the Draw Buffer
 
+static MTLVertexFormat get_attr_format(attr_layout *attr) {
+    switch (attr->type) {
+        // commented out formats only available in OSX 10.13+
+        case AM_ATTRIBUTE_CLIENT_TYPE_BYTE:
+            switch (attr->dims) {
+                //case 1:
+                //    if (attr->normalized) return MTLVertexFormatInvalid;
+                //    else                  return MTLVertexFormatChar;
+                case 2:
+                    if (attr->normalized) return MTLVertexFormatChar2Normalized;
+                    else                  return MTLVertexFormatChar2;
+                case 3:
+                    if (attr->normalized) return MTLVertexFormatChar3Normalized;
+                    else                  return MTLVertexFormatChar3;
+                case 4:
+                    if (attr->normalized) return MTLVertexFormatChar4Normalized;
+                    else                  return MTLVertexFormatChar4;
+                default:
+                    return MTLVertexFormatInvalid;
+            }
+        case AM_ATTRIBUTE_CLIENT_TYPE_SHORT:
+            switch (attr->dims) {
+                //case 1:
+                //    if (attr->normalized) return MTLVertexFormatShortNormalized;
+                //    else                  return MTLVertexFormatShort;
+                case 2:
+                    if (attr->normalized) return MTLVertexFormatShort2Normalized;
+                    else                  return MTLVertexFormatShort2;
+                case 3:
+                    if (attr->normalized) return MTLVertexFormatShort3Normalized;
+                    else                  return MTLVertexFormatShort3;
+                case 4:
+                    if (attr->normalized) return MTLVertexFormatShort4Normalized;
+                    else                  return MTLVertexFormatShort4;
+                default:
+                    return MTLVertexFormatInvalid;
+            }
+        case AM_ATTRIBUTE_CLIENT_TYPE_UBYTE:
+            switch (attr->dims) {
+                //case 1:
+                //    if (attr->normalized) return MTLVertexFormatUCharNormalized;
+                //    else                  return MTLVertexFormatUChar;
+                case 2:
+                    if (attr->normalized) return MTLVertexFormatUChar2Normalized;
+                    else                  return MTLVertexFormatUChar2;
+                case 3:
+                    if (attr->normalized) return MTLVertexFormatUChar3Normalized;
+                    else                  return MTLVertexFormatUChar3;
+                case 4:
+                    if (attr->normalized) return MTLVertexFormatUChar4Normalized;
+                    else                  return MTLVertexFormatUChar4;
+                default:
+                    return MTLVertexFormatInvalid;
+            }
+        case AM_ATTRIBUTE_CLIENT_TYPE_USHORT:
+            switch (attr->dims) {
+                //case 1:
+                //    if (attr->normalized) return MTLVertexFormatUShortNormalized;
+                //    else                  return MTLVertexFormatUShort;
+                case 2:
+                    if (attr->normalized) return MTLVertexFormatUShort2Normalized;
+                    else                  return MTLVertexFormatUShort2;
+                case 3:
+                    if (attr->normalized) return MTLVertexFormatUShort3Normalized;
+                    else                  return MTLVertexFormatUShort3;
+                case 4:
+                    if (attr->normalized) return MTLVertexFormatUShort4Normalized;
+                    else                  return MTLVertexFormatUShort4;
+                default:
+                    return MTLVertexFormatInvalid;
+            }
+        case AM_ATTRIBUTE_CLIENT_TYPE_FLOAT:
+            switch (attr->dims) {
+                case 1:
+                    return MTLVertexFormatFloat;
+                case 2:
+                    return MTLVertexFormatFloat2;
+                case 3:
+                    return MTLVertexFormatFloat3;
+                case 4:
+                    return MTLVertexFormatFloat4;
+                default:
+                    return MTLVertexFormatInvalid;
+            }
+        default:
+            return MTLVertexFormatInvalid;
+    }
+}
+
+static bool setup_pipeline(metal_program *prog) {
+    int nattrs = prog->num_attrs;
+    int selected_pipeline = -1;
+    for (int i = 0; i < prog->pipeline_cache.size(); i++) {
+        metal_pipeline *cached_pipeline = &prog->pipeline_cache[i];
+        attr_layout *cached_layouts = cached_pipeline->layouts;
+        bool match = true;
+        for (int j = 0; j < nattrs; j++) {
+            attr_layout *cached_layout = &cached_layouts[j];
+            attr_layout *active_layout = &prog->attrs[j].layout;
+            if (cached_layout->type != active_layout->type ||
+                cached_layout->dims != active_layout->dims ||
+                cached_layout->stride != active_layout->stride ||
+                cached_layout->normalized != active_layout->normalized)
+            {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            selected_pipeline = i;
+            break;
+        }
+    }
+    if (selected_pipeline == -1) {
+        // no appropriate pipeline found, so create a new one.
+        MTLRenderPipelineDescriptor *pldescr = [[MTLRenderPipelineDescriptor alloc] init];
+        pldescr.vertexFunction = prog->vert_shader.func;
+        pldescr.fragmentFunction = prog->frag_shader.func;
+
+        // XXX need to check active framebuffer pixelformat
+        pldescr.colorAttachments[0].pixelFormat = metal_layer.pixelFormat;
+
+        MTLVertexDescriptor *vertdescr = [[MTLVertexDescriptor alloc] init];
+        for (int i = 0; i < nattrs; i++) {
+            attr_state *attr = &prog->attrs[i];
+            MTLVertexAttributeDescriptor *attrdescr = [[MTLVertexAttributeDescriptor alloc] init];
+            attrdescr.format = get_attr_format(&attr->layout);
+            attrdescr.offset = 0;
+            attrdescr.bufferIndex = i + 1; // buffer 0 is always the uniforms
+            [[vertdescr attributes] setObject:attrdescr atIndexedSubscript:attr->descr.location];
+            [attrdescr release];
+            MTLVertexBufferLayoutDescriptor *layoutdescr = [[MTLVertexBufferLayoutDescriptor alloc] init];
+            layoutdescr.stepFunction = MTLVertexStepFunctionPerVertex;
+            layoutdescr.stepRate = 1;
+            layoutdescr.stride = attr->layout.stride;
+            [[vertdescr layouts] setObject:layoutdescr atIndexedSubscript:i + 1];
+            [layoutdescr release];
+        }
+        pldescr.vertexDescriptor = vertdescr;
+        [vertdescr release];
+        NSError *error = nil;
+        id<MTLRenderPipelineState> pl = [metal_device newRenderPipelineStateWithDescriptor:pldescr error:&error];
+        [pldescr release];
+        if (pl == nil) {
+            am_log1("Metal pipeline creation error: %s\n", [[error localizedDescription] UTF8String]);
+            return false;
+        }
+        metal_pipeline cached_pipeline;
+        cached_pipeline.layouts = (attr_layout*)malloc(nattrs * sizeof(attr_layout));
+        for (int i = 0; i < nattrs; i++) {
+            cached_pipeline.layouts[i] = prog->attrs[i].layout;
+        }
+        cached_pipeline.mtlpipeline = pl;
+        selected_pipeline = prog->pipeline_cache.size();
+        prog->pipeline_cache.push_back(cached_pipeline);
+    }
+    if (selected_pipeline != metal_active_pipeline) {
+        [metal_encoder setRenderPipelineState: prog->pipeline_cache[selected_pipeline].mtlpipeline];
+        metal_active_pipeline = selected_pipeline;
+    }
+    return true;
+}
+
 void am_draw_arrays(am_draw_mode mode, int first, int count) {
     check_initialized();
-    // XXX
+    if (metal_active_program == 0) return;
+    metal_program *prog = metal_program_freelist.get(metal_active_program);
+
+    // pipeline
+    if (!setup_pipeline(prog)) return;
+
+    // uniforms
+    if (prog->vert_uniform_data != NULL) {
+        [metal_encoder setVertexBytes:prog->vert_uniform_data length:prog->vert_uniform_size atIndex:0];
+    }
+    if (prog->frag_uniform_data != NULL) {
+        [metal_encoder setFragmentBytes:prog->frag_uniform_data length:prog->frag_uniform_size atIndex:0];
+    }
+
+    // attributes
+    for (int i = 0; i < prog->num_attrs; i++) {
+        attr_state *attr = &prog->attrs[i];
+        if (attr->bufid == 0) continue;
+        metal_buffer *buf = metal_buffer_freelist.get(attr->bufid);
+        [metal_encoder setVertexBuffer:buf->mtlbuf offset:attr->offset atIndex:i + 1];
+    }
+    
+    // draw
+    MTLPrimitiveType prim;
+    switch (mode) {
+        case AM_DRAWMODE_POINTS:
+            prim = MTLPrimitiveTypePoint;
+            break;
+        case AM_DRAWMODE_LINES:
+            prim = MTLPrimitiveTypeLine;
+            break;
+        case AM_DRAWMODE_LINE_STRIP:
+            prim = MTLPrimitiveTypeLineStrip;
+            break;
+        case AM_DRAWMODE_LINE_LOOP:
+            am_log1("%s", "WARNING: line_loop primitives are not supported on Metal, using line_strip instead");
+            prim = MTLPrimitiveTypeLineStrip;
+            break;
+        case AM_DRAWMODE_TRIANGLES:
+            prim = MTLPrimitiveTypeTriangle;
+            break;
+        case AM_DRAWMODE_TRIANGLE_STRIP:
+            prim = MTLPrimitiveTypeTriangleStrip;
+            break;
+        case AM_DRAWMODE_TRIANGLE_FAN:
+            am_log1("%s", "WARNING: triangle_fan primitives are not supported on Metal, using triangle_strip instead");
+            prim = MTLPrimitiveTypeTriangleStrip;
+            break;
+    }
+    [metal_encoder drawPrimitives:prim vertexStart: first vertexCount: count];
 }
 
 void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, int offset) {
