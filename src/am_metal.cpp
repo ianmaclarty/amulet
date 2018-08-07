@@ -521,7 +521,6 @@ void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void 
     metal_buffer *buf = get_active_buffer(target);
     if (buf == NULL) return;
     if (buf->mtlbuf == nil) return;
-    if (buf->size - offset < size) return;
     uint8_t *contents = (uint8_t*)[buf->mtlbuf contents];
     memcpy(&contents[offset], data, size);
     [buf->mtlbuf didModifyRange: NSMakeRange(offset, size)];
