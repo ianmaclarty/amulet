@@ -191,6 +191,7 @@ struct uniform_descr {
     am_uniform_var_type type;
     int vert_location;
     int frag_location;
+    int tex_unit;
     const char *name;
 };
 
@@ -214,6 +215,10 @@ struct attr_state {
     attr_layout layout;
 };
 
+struct tex_uniform_descr {
+    int location;
+};
+
 struct metal_pipeline {
     attr_layout *layouts;
     id<MTLRenderPipelineState> mtlpipeline;
@@ -228,6 +233,8 @@ struct metal_program {
     uint8_t *frag_uniform_data;
     int num_uniforms;
     uniform_descr *uniforms;
+    int num_tex_uniforms;
+    tex_uniform_descr *tex_uniforms;
     int num_attrs;
     attr_state *attrs;
     std::vector<metal_pipeline> pipeline_cache;
@@ -252,11 +259,16 @@ static am_buffer_id metal_active_element_buffer = 0;
 
 struct metal_texture {
     id<MTLTexture> tex;
+    id<MTLSamplerState> sampler;
 };
 
 static freelist<metal_texture> metal_texture_freelist;
 
 static am_texture_id metal_active_texture = 0;
+
+#define NUM_TEXTURE_UNITS 32
+static am_texture_id texture_units[NUM_TEXTURE_UNITS];
+static int active_texture_unit = -1;
 
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     if (metal_encoder != nil) {
@@ -343,6 +355,10 @@ void am_init_gl() {
     am_frame_use_program_calls = 0;
 
     rstate = am_global_render_state;
+
+    for (int i = 0; i < NUM_TEXTURE_UNITS; i++) {
+        texture_units[i] = -1;
+    }
 
     metal_initialized = true;
 }
@@ -609,6 +625,8 @@ am_program_id am_create_program() {
     prog.frag_uniform_data = NULL;
     prog.num_uniforms = 0;
     prog.uniforms = NULL;
+    prog.num_tex_uniforms = 0;
+    prog.tex_uniforms = NULL;
     prog.num_attrs = 0;
     prog.attrs = NULL;
     prog.log = NULL;
@@ -823,16 +841,20 @@ bool am_link_program(am_program_id program_id) {
         memset(prog->frag_uniform_data, 0, frag_bytes);
     }
     int num_vert_uniforms = glslopt_shader_get_uniform_count(vert->gshader);
+    int num_vert_textures = glslopt_shader_get_texture_count(vert->gshader);
     int num_frag_uniforms = glslopt_shader_get_uniform_count(frag->gshader);
-    prog->uniforms = (uniform_descr*)malloc((num_vert_uniforms + num_frag_uniforms) * sizeof(uniform_descr));
-    for (int i = 0; i < num_vert_uniforms + num_frag_uniforms; i++) {
+    int num_frag_textures = glslopt_shader_get_texture_count(frag->gshader);
+    int max_uniform_count = num_vert_uniforms + num_vert_textures + num_frag_uniforms + num_frag_textures;
+    prog->uniforms = (uniform_descr*)malloc(max_uniform_count * sizeof(uniform_descr));
+    for (int i = 0; i < max_uniform_count; i++) {
         uniform_descr *uni = &prog->uniforms[i];
         uni->type = AM_UNIFORM_VAR_TYPE_UNKNOWN;
         uni->vert_location = -1;
         uni->frag_location = -1;
+        uni->tex_unit = -1;
         uni->name = NULL;
     }
-    for (int i = 0; i < num_vert_uniforms; i++) {
+    for (int i = 0; i < num_vert_uniforms + num_vert_textures; i++) {
         uniform_descr *uni = &prog->uniforms[i];
         const char *name;
         glslopt_basic_type type;
@@ -841,15 +863,19 @@ bool am_link_program(am_program_id program_id) {
         int msize;
         int asize;
         int loc;
-        glslopt_shader_get_uniform_desc(vert->gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        if (i < num_vert_uniforms) {
+            glslopt_shader_get_uniform_desc(vert->gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        } else {
+            glslopt_shader_get_texture_desc(vert->gshader, i - num_vert_uniforms, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        }
         if (!set_uniform_type(prog, uni, type, prec, msize, vsize, asize, name)) {
             return false;
         }
         uni->vert_location = loc;
         uni->name = name;
     }
-    int num_uniforms = num_vert_uniforms;
-    for (int i = 0; i < num_frag_uniforms; i++) {
+    int num_uniforms = num_vert_uniforms + num_vert_textures;
+    for (int i = 0; i < num_frag_uniforms + num_frag_textures; i++) {
         uniform_descr *uni = &prog->uniforms[num_uniforms];
         const char *name;
         glslopt_basic_type type;
@@ -858,7 +884,11 @@ bool am_link_program(am_program_id program_id) {
         int msize;
         int asize;
         int loc;
-        glslopt_shader_get_uniform_desc(frag->gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        if (i < num_frag_uniforms) {
+            glslopt_shader_get_uniform_desc(frag->gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        } else {
+            glslopt_shader_get_texture_desc(frag->gshader, i - num_frag_uniforms, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+        }
         if (!set_uniform_type(prog, uni, type, prec, msize, vsize, asize, name)) {
             return false;
         }
@@ -1083,9 +1113,21 @@ void am_set_uniform4f(am_gluint location, const float *value) {
     set_float_uniform(location, value, 4);
 }
 
+static void set_int_uniform(am_gluint location, const am_glint *value, int n) {
+    if (metal_active_program == 0) return;
+    metal_program *prog = metal_program_freelist.get(metal_active_program);
+    uniform_descr *uni = &prog->uniforms[location];
+    if (n == 1 && (uni->type == AM_UNIFORM_VAR_TYPE_SAMPLER_2D || uni->type == AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE)) {
+        // value is texture unit
+        uni->tex_unit = *value;
+    } else {
+        // TODO
+    }
+}
+
 void am_set_uniform1i(am_gluint location, am_glint value) {
     check_initialized();
-    // XXX
+    set_int_uniform(location, &value, 1);
 }
 
 void am_set_uniform2i(am_gluint location, const am_glint *value) {
@@ -1156,13 +1198,16 @@ void am_set_attribute_pointer(am_gluint location, int dims, am_attribute_client_
 
 void am_set_active_texture_unit(int texture_unit) {
     check_initialized();
-    // TODO
+    if (texture_unit < NUM_TEXTURE_UNITS) {
+        active_texture_unit = texture_unit;
+    }
 }
 
 am_texture_id am_create_texture() {
     check_initialized(0);
     metal_texture tex;
     tex.tex = nil;
+    tex.sampler = nil;
     return metal_texture_freelist.add(tex);
 }
 
@@ -1171,24 +1216,25 @@ void am_delete_texture(am_texture_id id) {
     metal_texture *tex = metal_texture_freelist.get(id);
     if (tex->tex != nil) {
         [tex->tex release];
+        [tex->sampler release];
         tex->tex = nil;
+        tex->sampler = nil;
     }
     metal_texture_freelist.remove(id);
+    if (metal_active_texture == id) metal_active_texture = 0;
 }
 
 void am_bind_texture(am_texture_bind_target target, am_texture_id texture) {
     check_initialized();
+    if (active_texture_unit >= 0) {
+        texture_units[active_texture_unit] = texture;
+    }
     metal_active_texture = texture;
 }
 
 void am_copy_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int x, int y, int w, int h) {
     check_initialized();
-    if (metal_active_texture == 0) return;
-    metal_texture *tex = metal_texture_freelist.get(metal_active_texture);
-    if (tex->tex == nil) {
-        MTLTextureDescriptor *texdescr = [[MTLTextureDescriptor alloc] init];
-        [texdescr release];
-    }
+    // TODO
 }
 
 void am_copy_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int x, int y, int w, int h) {
@@ -1226,7 +1272,16 @@ int am_compute_pixel_size(am_texture_format format, am_texture_type type) {
 
 void am_set_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int w, int h, am_texture_type type, void *data) {
     check_initialized();
-    // TODO
+    if (metal_active_texture == 0) return;
+    metal_texture *tex = metal_texture_freelist.get(metal_active_texture);
+    if (tex->tex == nil) {
+        MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:w height:h mipmapped:NO];
+        tex->tex = [metal_device newTextureWithDescriptor:texdescr];
+        MTLSamplerDescriptor *samplerdescr = [[MTLSamplerDescriptor alloc] init];
+        tex->sampler = [metal_device newSamplerStateWithDescriptor:samplerdescr];
+        [samplerdescr release];
+        [tex->tex replaceRegion:MTLRegionMake2D(0, 0, w, h) mipmapLevel:level withBytes:data bytesPerRow:w*4];
+    }
 }
 
 void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int w, int h, am_texture_format format, am_texture_type type, void *data) {
@@ -1502,6 +1557,23 @@ static bool pre_draw_setup() {
     }
     if (prog->frag_uniform_data != NULL) {
         [metal_encoder setFragmentBytes:prog->frag_uniform_data length:prog->frag_uniform_size atIndex:0];
+    }
+    
+    // textures
+    for (int i = 0; i < prog->num_uniforms; i++) {
+        uniform_descr *uni = &prog->uniforms[i];
+        if (uni->tex_unit >= 0) {
+            am_texture_id texid = texture_units[uni->tex_unit];
+            metal_texture *tex = metal_texture_freelist.get(texid);
+            if (uni->vert_location >= 0) {
+                [metal_encoder setVertexTexture:tex->tex atIndex:uni->vert_location];
+                [metal_encoder setVertexSamplerState:tex->sampler atIndex:uni->vert_location];
+            }
+            if (uni->frag_location >= 0) {
+                [metal_encoder setFragmentTexture:tex->tex atIndex:uni->frag_location];
+                [metal_encoder setFragmentSamplerState:tex->sampler atIndex:uni->frag_location];
+            }
+        }
     }
 
     // attributes
