@@ -1680,7 +1680,6 @@ static GLenum to_gl_draw_mode(am_draw_mode m) {
 
 static GLenum to_gl_element_index_type(am_element_index_type t) {
     switch (t) {
-        case AM_ELEMENT_TYPE_UBYTE: return GL_UNSIGNED_BYTE;
         case AM_ELEMENT_TYPE_USHORT: return GL_UNSIGNED_SHORT;
         case AM_ELEMENT_TYPE_UINT: return GL_UNSIGNED_INT;
     }
