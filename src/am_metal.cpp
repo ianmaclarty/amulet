@@ -247,7 +247,16 @@ struct metal_buffer {
 
 static freelist<metal_buffer> metal_buffer_freelist;
 
-static am_buffer_id metal_active_buffer = 0;
+static am_buffer_id metal_active_array_buffer = 0;
+static am_buffer_id metal_active_element_buffer = 0;
+
+struct metal_texture {
+    id<MTLTexture> tex;
+};
+
+static freelist<metal_texture> metal_texture_freelist;
+
+static am_texture_id metal_active_texture = 0;
 
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     if (metal_encoder != nil) {
@@ -473,13 +482,28 @@ am_buffer_id am_create_buffer_object() {
 
 void am_bind_buffer(am_buffer_target target, am_buffer_id buffer) {
     check_initialized();
-    metal_active_buffer = buffer;
+    switch (target) {
+        case AM_ARRAY_BUFFER: metal_active_array_buffer = buffer; break;
+        case AM_ELEMENT_ARRAY_BUFFER: metal_active_element_buffer = buffer; break;
+    }
+}
+
+static metal_buffer *get_active_buffer(am_buffer_target target) {
+    switch (target) {
+        case AM_ARRAY_BUFFER: 
+            if (metal_active_array_buffer == 0) return NULL;
+            else return metal_buffer_freelist.get(metal_active_array_buffer);
+        case AM_ELEMENT_ARRAY_BUFFER:
+            if (metal_active_element_buffer == 0) return NULL;
+            else return metal_buffer_freelist.get(metal_active_element_buffer);
+    }
+    return NULL;
 }
 
 void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer_usage usage) {
     check_initialized();
-    if (metal_active_buffer == 0) return;
-    metal_buffer *buf = metal_buffer_freelist.get(metal_active_buffer);
+    metal_buffer *buf = get_active_buffer(target);
+    if (buf == NULL) return;
     if (buf->size != size) {
         if (buf->mtlbuf != nil) {
             [buf->mtlbuf release];
@@ -494,8 +518,8 @@ void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer
 
 void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void *data) {
     check_initialized();
-    if (metal_active_buffer == 0) return;
-    metal_buffer *buf = metal_buffer_freelist.get(metal_active_buffer);
+    metal_buffer *buf = get_active_buffer(target);
+    if (buf == NULL) return;
     if (buf->mtlbuf == nil) return;
     if (buf->size - offset < size) return;
     uint8_t *contents = (uint8_t*)[buf->mtlbuf contents];
@@ -508,7 +532,8 @@ void am_delete_buffer(am_buffer_id id) {
     metal_buffer *buf = metal_buffer_freelist.get(id);
     if (buf->mtlbuf != nil) [buf->mtlbuf release];
     metal_buffer_freelist.remove(id);
-    if (metal_active_buffer == id) metal_active_buffer = 0;
+    if (metal_active_array_buffer == id) metal_active_array_buffer = 0;
+    if (metal_active_element_buffer == id) metal_active_element_buffer = 0;
 }
 
 // View and Clip
@@ -751,6 +776,7 @@ static bool set_uniform_type(metal_program *prog, uniform_descr* uni, glslopt_ba
                             prog->log = am_format("uniform %s has unsupported type", name);
                             return false;
                     }
+                    break;
                 case 2:
                      uni->type = AM_UNIFORM_VAR_TYPE_FLOAT_MAT2;
                      break;
@@ -1116,10 +1142,10 @@ void am_set_attribute4f(am_gluint location, const float *value) {
 void am_set_attribute_pointer(am_gluint location, int dims, am_attribute_client_type type, bool normalized, int stride, int offset) {
     check_initialized();
     if (metal_active_program == 0) return;
-    if (metal_active_buffer == 0) return;
+    if (metal_active_array_buffer == 0) return;
     metal_program *prog = metal_program_freelist.get(metal_active_program);
     attr_state *attr = &prog->attrs[location];
-    attr->bufid = metal_active_buffer;
+    attr->bufid = metal_active_array_buffer;
     attr->offset = offset;
     attr->layout.type = type;
     attr->layout.dims = dims;
@@ -1136,23 +1162,34 @@ void am_set_active_texture_unit(int texture_unit) {
 
 am_texture_id am_create_texture() {
     check_initialized(0);
-    // TODO
-    return 0;
+    metal_texture tex;
+    tex.tex = nil;
+    return metal_texture_freelist.add(tex);
 }
 
-void am_delete_texture(am_texture_id texture) {
+void am_delete_texture(am_texture_id id) {
     check_initialized();
-    // TODO
+    metal_texture *tex = metal_texture_freelist.get(id);
+    if (tex->tex != nil) {
+        [tex->tex release];
+        tex->tex = nil;
+    }
+    metal_texture_freelist.remove(id);
 }
 
 void am_bind_texture(am_texture_bind_target target, am_texture_id texture) {
     check_initialized();
-    // TODO
+    metal_active_texture = texture;
 }
 
 void am_copy_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int x, int y, int w, int h) {
     check_initialized();
-    // TODO
+    if (metal_active_texture == 0) return;
+    metal_texture *tex = metal_texture_freelist.get(metal_active_texture);
+    if (tex->tex == nil) {
+        MTLTextureDescriptor *texdescr = [[MTLTextureDescriptor alloc] init];
+        [texdescr release];
+    }
 }
 
 void am_copy_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int x, int y, int w, int h) {
@@ -1453,13 +1490,12 @@ static bool setup_pipeline(metal_program *prog) {
     return true;
 }
 
-void am_draw_arrays(am_draw_mode mode, int first, int count) {
-    check_initialized();
-    if (metal_active_program == 0) return;
+static bool pre_draw_setup() {
+    if (metal_active_program == 0) return false;
     metal_program *prog = metal_program_freelist.get(metal_active_program);
 
     // pipeline
-    if (!setup_pipeline(prog)) return;
+    if (!setup_pipeline(prog)) return false;
 
     // uniforms
     if (prog->vert_uniform_data != NULL) {
@@ -1476,40 +1512,51 @@ void am_draw_arrays(am_draw_mode mode, int first, int count) {
         metal_buffer *buf = metal_buffer_freelist.get(attr->bufid);
         [metal_encoder setVertexBuffer:buf->mtlbuf offset:attr->offset atIndex:i + 1];
     }
-    
-    // draw
-    MTLPrimitiveType prim;
+    return true;
+}
+
+static MTLPrimitiveType to_metal_prim(am_draw_mode mode) {
     switch (mode) {
         case AM_DRAWMODE_POINTS:
-            prim = MTLPrimitiveTypePoint;
-            break;
+            return MTLPrimitiveTypePoint;
         case AM_DRAWMODE_LINES:
-            prim = MTLPrimitiveTypeLine;
-            break;
+            return MTLPrimitiveTypeLine;
         case AM_DRAWMODE_LINE_STRIP:
-            prim = MTLPrimitiveTypeLineStrip;
-            break;
+            return MTLPrimitiveTypeLineStrip;
         case AM_DRAWMODE_LINE_LOOP:
             am_log1("%s", "WARNING: line_loop primitives are not supported on Metal, using line_strip instead");
-            prim = MTLPrimitiveTypeLineStrip;
-            break;
+            return MTLPrimitiveTypeLineStrip;
         case AM_DRAWMODE_TRIANGLES:
-            prim = MTLPrimitiveTypeTriangle;
-            break;
+            return MTLPrimitiveTypeTriangle;
         case AM_DRAWMODE_TRIANGLE_STRIP:
-            prim = MTLPrimitiveTypeTriangleStrip;
-            break;
+            return MTLPrimitiveTypeTriangleStrip;
         case AM_DRAWMODE_TRIANGLE_FAN:
             am_log1("%s", "WARNING: triangle_fan primitives are not supported on Metal, using triangle_strip instead");
-            prim = MTLPrimitiveTypeTriangleStrip;
-            break;
+            return MTLPrimitiveTypeTriangleStrip;
     }
-    [metal_encoder drawPrimitives:prim vertexStart: first vertexCount: count];
+}
+
+void am_draw_arrays(am_draw_mode mode, int first, int count) {
+    check_initialized();
+    if (!pre_draw_setup()) return;
+    [metal_encoder drawPrimitives:to_metal_prim(mode) vertexStart: first vertexCount: count];
 }
 
 void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, int offset) {
     check_initialized();
-    // XXX
+    if (metal_active_element_buffer == 0) return;
+    metal_buffer *elembuf = metal_buffer_freelist.get(metal_active_element_buffer);
+    if (!pre_draw_setup()) return;
+    MTLIndexType itype = MTLIndexTypeUInt32;
+    switch (type) {
+        case AM_ELEMENT_TYPE_USHORT: itype = MTLIndexTypeUInt16; break;
+        case AM_ELEMENT_TYPE_UINT: itype = MTLIndexTypeUInt32; break;
+    }
+    [metal_encoder drawIndexedPrimitives:to_metal_prim(mode)
+                   indexCount:count
+                    indexType:itype
+                  indexBuffer:elembuf->mtlbuf
+            indexBufferOffset:offset];
 }
 
 void am_gl_flush() {
@@ -1530,6 +1577,7 @@ void am_gl_end_drawing() {
             [metal_command_buffer presentDrawable:get_active_metal_drawable()];
         }
         [metal_command_buffer commit];
+        //[metal_command_buffer waitUntilCompleted];
 
         // XXX auto-releases?
         metal_command_buffer = nil;
