@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, bool stencil_buf, glm::dvec4 clear_color) {
+void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, bool stencil_buf, glm::dvec4 clear_color, int stencil_clear_value) {
     framebuffer_id = am_create_framebuffer();
     if (texture->image_buffer != NULL) {
         texture->image_buffer->buffer->update_if_dirty();
@@ -31,6 +31,7 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, b
         luaL_error(L, "framebuffer incomplete");
     }
     am_framebuffer::clear_color = clear_color;
+    am_framebuffer::stencil_clear_value = stencil_clear_value;
     user_projection = false;
     double w = (double)width;
     double h = (double)height;
@@ -44,6 +45,9 @@ void am_framebuffer::clear(bool clear_colorbuf, bool clear_depth, bool clear_ste
     }
     if (clear_depth) {
         am_set_framebuffer_depth_mask(true);
+    }
+    if (clear_stencil) {
+        am_set_framebuffer_clear_stencil_val(stencil_clear_value);
     }
     if (clear_colorbuf || clear_depth || clear_stencil) {
         am_clear_framebuffer(clear_colorbuf, clear_depth, clear_stencil);
@@ -69,7 +73,8 @@ static int create_framebuffer(lua_State *L) {
     bool depth_buf = nargs > 1 && lua_toboolean(L, 2);
     bool stencil_buf = nargs > 2 && lua_toboolean(L, 3);
     glm::dvec4 clear_color = glm::dvec4(0.0f, 0.0f, 0.0f, 1.0f);
-    fb->init(L, texture, depth_buf, stencil_buf, clear_color);
+    int stencil_clear_value = 0;
+    fb->init(L, texture, depth_buf, stencil_buf, clear_color, stencil_clear_value);
     fb->clear(false, depth_buf, stencil_buf);
     return 1;
 }
@@ -81,7 +86,7 @@ static int render_node_to_framebuffer(lua_State *L) {
     if (fb->color_attachment0->image_buffer != NULL) {
         fb->color_attachment0->image_buffer->buffer->update_if_dirty();
     }
-    rstate->do_render(node, fb->framebuffer_id, false, fb->clear_color,
+    rstate->do_render(node, fb->framebuffer_id, false, fb->clear_color, fb->stencil_clear_value,
         0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
     if (fb->color_attachment0->has_mipmap) {
         am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, fb->color_attachment0->texture_id);
@@ -99,7 +104,7 @@ static int render_children_to_framebuffer(lua_State *L) {
     }
     am_scene_node tmpnode;
     tmpnode.children = node->children;
-    rstate->do_render(&tmpnode, fb->framebuffer_id, false, fb->clear_color,
+    rstate->do_render(&tmpnode, fb->framebuffer_id, false, fb->clear_color, fb->stencil_clear_value,
         0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
     if (fb->color_attachment0->has_mipmap) {
         am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, fb->color_attachment0->texture_id);
@@ -170,10 +175,11 @@ static int resize(lua_State *L) {
     bool depth_buf = fb->depth_renderbuffer_id != 0;
     bool stencil_buf = fb->stencil_renderbuffer_id != 0;
     glm::dvec4 clear_color = fb->clear_color;
+    int stencil_clear_value = fb->stencil_clear_value;
     bool user_proj = fb->user_projection;
     glm::dmat4 old_proj = fb->projection;
     fb->destroy(L);
-    fb->init(L, color_at, depth_buf, stencil_buf, clear_color);
+    fb->init(L, color_at, depth_buf, stencil_buf, clear_color, stencil_clear_value);
     fb->clear(true, depth_buf, stencil_buf);
     if (user_proj) {
         // restore user-specified projection
@@ -209,6 +215,17 @@ static void set_clear_color(lua_State *L, void *obj) {
 }
 
 static am_property clear_color_property = {get_clear_color, set_clear_color};
+
+static void get_stencil_clear_value(lua_State *L, void *obj) {
+    am_framebuffer *fb = (am_framebuffer*)obj;
+    lua_pushinteger(L, fb->stencil_clear_value);
+}
+static void set_stencil_clear_value(lua_State *L, void *obj) {
+    am_framebuffer *fb = (am_framebuffer*)obj;
+    fb->stencil_clear_value = luaL_checkinteger(L, 3);
+}
+
+static am_property stencil_clear_value_property = {get_stencil_clear_value, set_stencil_clear_value};
 
 static void get_projection(lua_State *L, void *obj) {
     am_framebuffer *fb = (am_framebuffer*)obj;
@@ -252,6 +269,7 @@ static void register_framebuffer_mt(lua_State *L) {
     lua_setfield(L, -2, "__gc");
 
     am_register_property(L, "clear_color", &clear_color_property);
+    am_register_property(L, "stencil_clear_value", &stencil_clear_value_property);
     am_register_property(L, "projection", &projection_property);
     am_register_property(L, "pixel_width", &pixel_width_property);
     am_register_property(L, "pixel_height", &pixel_height_property);

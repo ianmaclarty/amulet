@@ -22,6 +22,7 @@ static int create_window(lua_State *L) {
     bool borderless = false;
     bool depth_buffer = false;
     bool stencil_buffer = false;
+    int stencil_clear_value = 0;
     bool letterbox = true;
     glm::dvec4 clear_color(0.0, 0.0, 0.0, 1.0);
     glm::dmat4 projection;
@@ -59,6 +60,8 @@ static int create_window(lua_State *L) {
             depth_buffer = lua_toboolean(L, -1);
         } else if (strcmp(key, "stencil_buffer") == 0) {
             stencil_buffer = lua_toboolean(L, -1);
+        } else if (strcmp(key, "stencil_clear_value") == 0) {
+            stencil_clear_value = luaL_checkinteger(L, -1);
         } else if (strcmp(key, "letterbox") == 0) {
             letterbox = lua_toboolean(L, -1);
         } else if (strcmp(key, "lock_pointer") == 0) {
@@ -91,6 +94,7 @@ static int create_window(lua_State *L) {
     win->requested_width = requested_width;
     win->requested_height = requested_height;
     win->clear_color = clear_color;
+    win->stencil_clear_value = stencil_clear_value;
     win->letterbox = letterbox;
     win->native_win = am_create_native_window(
         mode,
@@ -406,12 +410,13 @@ static void draw_windows() {
         if (!win->needs_closing) {
             am_native_window_bind_framebuffer(win->native_win);
             am_render_state *rstate = am_global_render_state;
-            rstate->do_render(win->scene, 0, true, win->clear_color,
+            rstate->do_render(win->scene, 0, true, win->clear_color, win->stencil_clear_value,
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                 win->pixel_width, win->pixel_height,
                 win->projection, win->has_depth_buffer);
             if (win->overlay != NULL) {
                 rstate->do_render(win->overlay, 0, false, win->clear_color,
+                    win->stencil_clear_value, 
                     win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                     win->pixel_width, win->pixel_height,
                     win->projection, false);
@@ -633,6 +638,17 @@ static void set_clear_color(lua_State *L, void *obj) {
 
 static am_property clear_color_property = {get_clear_color, set_clear_color};
 
+static void get_stencil_clear_value(lua_State *L, void *obj) {
+    am_window *win = (am_window*)obj;
+    lua_pushinteger(L, win->stencil_clear_value);
+}
+static void set_stencil_clear_value(lua_State *L, void *obj) {
+    am_window *win = (am_window*)obj;
+    win->stencil_clear_value = luaL_checkinteger(L, 3);
+}
+
+static am_property stencil_clear_value_property = {get_stencil_clear_value, set_stencil_clear_value};
+
 static void get_letterbox(lua_State *L, void *obj) {
     am_window *win = (am_window*)obj;
     lua_pushboolean(L, win->letterbox ? 1 : 0);
@@ -665,6 +681,7 @@ static void register_window_mt(lua_State *L) {
     am_register_property(L, "height", &height_property);
     am_register_property(L, "mode", &window_mode_property);
     am_register_property(L, "clear_color", &clear_color_property);
+    am_register_property(L, "stencil_clear_value", &stencil_clear_value_property);
     am_register_property(L, "letterbox", &letterbox_property);
     am_register_property(L, "projection", &projection_property);
 

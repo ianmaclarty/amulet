@@ -167,6 +167,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#window.pixel_height">window.pixel_height</a></li>
 <li><a href="#window.mode">window.mode</a></li>
 <li><a href="#window.clear_color">window.clear_color</a></li>
+<li><a href="#window.stencil_clear_value">window.stencil_clear_value</a></li>
 <li><a href="#window.letterbox">window.letterbox</a></li>
 <li><a href="#window.lock_pointer">window.lock_pointer</a></li>
 <li><a href="#window.show_cursor">window.show_cursor</a></li>
@@ -322,6 +323,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#framebuffer-fields">Framebuffer fields</a><ul>
 <li><a href="#framebuffer.clear_color">framebuffer.clear_color</a></li>
+<li><a href="#framebuffer.stencil_clear_value">framebuffer.stencil_clear_value</a></li>
 <li><a href="#framebuffer.projection">framebuffer.projection</a></li>
 <li><a href="#framebuffer.pixel_width">framebuffer.pixel_width</a></li>
 <li><a href="#framebuffer.pixel_height">framebuffer.pixel_height</a></li>
@@ -1572,6 +1574,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <li><p><strong><code>highdpi</code></strong>: Whether to use high DPI resolution if available (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
 <li><p><strong><code>depth_buffer</code></strong>: Whether the window has a depth buffer (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
 <li><p><strong><code>stencil_buffer</code></strong>: Whether the window has a stencil buffer (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
+<li><p><strong><code>stencil_clear_value</code></strong>: The value to clear the stencil buffer with before drawing each frame (an integer between 0 and 255). The default is 0.</p></li>
 <li><p><strong><code>lock_pointer</code></strong>: <code>true</code> or <code>false</code>. When pointer lock is enabled the cursor will be hidden and mouse movement will be set to &quot;relative&quot; mode. In this mode the mouse is tracked infinitely in all directions, i.e. as if there is no edge of the screen to stop the mouse cursor. This is useful for implementing first-person style mouse-look. The default is <code>false</code>.</p></li>
 <li><p><strong><code>show_cursor</code></strong>: Whether to show the mouse cursor (<code>true</code> or <code>false</code>, default <code>true</code>).</p></li>
 <li><p><strong><code>clear_color</code></strong>: The color (a <code>vec4</code>) used to clear the window each frame before drawing. The default clear color is black (<code>vec4(0, 0, 0, 1)</code>).</p></li>
@@ -1609,6 +1612,9 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
 <h3 id="window.clear_color" class="field-def">window.clear_color</h3>
+<p>See <a href="#am.window">window settings</a>.</p>
+<p>Updatable.</p>
+<h3 id="window.stencil_clear_value" class="field-def">window.stencil_clear_value</h3>
 <p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
 <h3 id="window.letterbox" class="field-def">window.letterbox</h3>
@@ -2398,6 +2404,8 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <p>Culls triangles with a specific winding.</p>
 <p>The possible values for <code>face</code> are:</p>
 <ul>
+<li><code>&quot;back&quot;</code>: Cull back-facing triangles (same as <code>&quot;cw&quot;</code> below)</li>
+<li><code>&quot;front&quot;</code>: Cull front-facing triangles (same as <code>&quot;ccw&quot;</code> below)</li>
 <li><code>&quot;cw&quot;</code>: Cull clockwise wound triangles.</li>
 <li><code>&quot;ccw&quot;</code>: Cull counter-clockwise wound triangles.</li>
 <li><code>&quot;none&quot;</code>: Do not cull any triangles.</li>
@@ -2791,6 +2799,9 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h2 id="framebuffer-fields">Framebuffer fields</h2>
 <h3 id="framebuffer.clear_color" class="field-def">framebuffer.clear_color</h3>
 <p>The color to use when clearing the framebuffer (a <code>vec4</code>).</p>
+<p>Updatable.</p>
+<h3 id="framebuffer.stencil_clear_value" class="field-def">framebuffer.stencil_clear_value</h3>
+<p>The value to use when clearing the framebuffer's stencil buffer (an integer between 0 and 255).</p>
 <p>Updatable.</p>
 <h3 id="framebuffer.projection" class="field-def">framebuffer.projection</h3>
 <p>A <code>mat4</code> projection matrix to use when rendering nodes into this framebuffer. The <code>&quot;P&quot;</code> uniform will be set to this. If this is not specified then the projection <code>math.ortho(-width/2, width/2, -height/2, height/2)</code> is used.</p>

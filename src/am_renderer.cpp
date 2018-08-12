@@ -535,7 +535,7 @@ bool am_render_state::update_state() {
 }
 
 static void setup(am_render_state *rstate, am_framebuffer_id fb,
-    bool clear, glm::dvec4 clear_color,
+    bool clear, glm::dvec4 clear_color, int stencil_clear_val,
     int x, int y, int w, int h, int fbw, int fbh, glm::dmat4 proj,
     bool has_depthbuffer)
 {
@@ -591,6 +591,7 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
         clear_color.b != 0.0 || clear_color.a != 1.0))
     {
         am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
+        am_set_framebuffer_clear_stencil_val(stencil_clear_val);
         am_clear_framebuffer(true, true, true);
     }
 
@@ -599,10 +600,10 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
 }
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
-    bool clear, glm::dvec4 clear_color, int x, int y, int w, int h, int fbw, int fbh,
+    bool clear, glm::dvec4 clear_color, int stencil_clear_val, int x, int y, int w, int h, int fbw, int fbh,
     glm::dmat4 proj, bool has_depthbuffer)
 {
-    setup(this, fb, clear, clear_color, x, y, w, h, fbw, fbh, proj, has_depthbuffer);
+    setup(this, fb, clear, clear_color, stencil_clear_val, x, y, w, h, fbw, fbh, proj, has_depthbuffer);
     if (root == NULL || am_node_hidden(root)) return;
     next_pass = 1;
     do {
