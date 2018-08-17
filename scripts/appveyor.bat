@@ -1,7 +1,6 @@
-dir c:\
-dir c:\MinGW
+dir c:\mingw-w64
 call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
-set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;"C:\Program Files (x86)\Inno Setup 5";%PATH%
+set PATH=C:\mingw-w64\bin;C:\mingw-w64\msys\1.0\bin;"C:\Program Files (x86)\Inno Setup 5";%PATH%
 
 if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
 
