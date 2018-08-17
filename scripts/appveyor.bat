@@ -1,5 +1,5 @@
-dir "%programfiles%"
-dir "%programfiles%\Microsoft Visual Studio\"
+dir "%programfiles(x86)%"
+dir "%programfiles(x86)%\Microsoft Visual Studio\"
 call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vsvars32.bat"
 set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;"C:\Program Files (x86)\Inno Setup 5";%PATH%
 
