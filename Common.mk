@@ -341,6 +341,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   WINDOWS_SUBSYSTEM_OPT = -mwindows
   CONSOLE_SUBSYSTEM_OPT =
   SDL_PREBUILT_SUBDIR=win32
+  ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/32
 else ifeq ($(TARGET_PLATFORM),mingw64)
   EXE_EXT = .exe
   CC = x86_64-w64-mingw32-gcc
@@ -353,6 +354,8 @@ else ifeq ($(TARGET_PLATFORM),mingw64)
   WINDOWS = 1
   WINDOWS_SUBSYSTEM_OPT = -mwindows
   CONSOLE_SUBSYSTEM_OPT =
+  SDL_PREBUILT_SUBDIR=win64
+  ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/64
 else ifeq ($(TARGET_PLATFORM),linux32)
   TARGET_CFLAGS += -m32
   LDFLAGS += -m32
