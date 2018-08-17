@@ -39,6 +39,10 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
   AM_DEFS += AM_ANGLE_TRANSLATE_GL
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+else ifeq ($(TARGET_PLATFORM),msvc64)
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
+  AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifdef ANDROID
   AM_DEPS = $(LUAVM) stb kissfft tinymt
   AMULET = $(BUILD_BIN_DIR)/libamulet.so
@@ -191,6 +195,12 @@ $(LUA53_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	BASE_DIR=`pwd`; \
 	if [ "$(TARGET_PLATFORM)" = "msvc32" ]; then \
+	    cd $(LUAJIT_DIR)/src; \
+	    PATH='$(VC_CL_DIR):$(PATH)' cmd /c 'msvcbuild.bat static'; \
+	    cd $$BASE_DIR; \
+	    cp $(LUAJIT_DIR)/src/lua51.lib $@; \
+	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
+	elif [ "$(TARGET_PLATFORM)" = "msvc64" ]; then \
 	    cd $(LUAJIT_DIR)/src; \
 	    PATH='$(VC_CL_DIR):$(PATH)' cmd /c 'msvcbuild.bat static'; \
 	    cd $$BASE_DIR; \

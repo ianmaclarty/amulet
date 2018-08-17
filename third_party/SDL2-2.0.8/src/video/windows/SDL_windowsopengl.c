@@ -450,13 +450,17 @@ WIN_GL_InitExtensions(_THIS)
         _this->gl_data->wglGetSwapIntervalEXT = NULL;
     }
 
-    /* Check for WGL_EXT_create_context_es2_profile */
+    /*
+     * [AMULET] Always use ANGLE
+     *
+     * // Check for WGL_EXT_create_context_es2_profile
     if (HasExtension("WGL_EXT_create_context_es2_profile", extensions)) {
         SDL_GL_DeduceMaxSupportedESProfile(
             &_this->gl_data->es_profile_max_supported_version.major,
             &_this->gl_data->es_profile_max_supported_version.minor
         );
     }
+    */
 
     /* Check for WGL_ARB_context_flush_control */
     if (HasExtension("WGL_ARB_context_flush_control", extensions)) {

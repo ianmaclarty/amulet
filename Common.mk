@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 msvc32 osx ios32 ios64 iossim android html mingw32 mingw64
+TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios32 ios64 iossim android html mingw32 mingw64
 
 # Directories
 
@@ -141,6 +141,11 @@ else
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
       STEAMWORKS_DEP=steam_api
+  else ifeq ($(TARGET_PLATFORM),msvc64)
+      STEAMWORKS_LIB=$(BUILD_LIB_DIR)/libsteam_api64.lib
+      STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/win64
+      STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      STEAMWORKS_DEP=steam_api64
   else ifeq ($(TARGET_PLATFORM),linux64)
       STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.so
       XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
@@ -291,6 +296,32 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   CONSOLE_SUBSYSTEM_OPT = -SUBSYSTEM:CONSOLE
   SDL_PREBUILT_SUBDIR=win32
   C99_OPT =
+else ifeq ($(TARGET_PLATFORM),msvc64)
+  VC_CL = cl.exe
+  VC_CL_PATH = $(shell which $(VC_CL))
+  VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")
+  VC_LINK = "$(VC_CL_DIR)/link.exe"
+  VC_LIB = "$(VC_CL_DIR)/lib.exe"
+  EXE_EXT = .exe
+  ALIB_EXT = .lib
+  OBJ_EXT = .obj
+  OBJ_OUT_OPT = -Fo
+  EXE_OUT_OPT = /OUT:
+  CC = $(VC_CL)
+  CPP = $(VC_CL)
+  LINK = $(VC_LINK)
+  AR = $(VC_LIB)
+  AR_OPTS = -nologo
+  AR_OUT_OPT = -OUT:
+  XCFLAGS = -MT -DLUA_COMPAT_ALL -WX 
+  XLDFLAGS = -NODEFAULTLIB:msvcrt.lib \
+	$(BUILD_LIB_DIR)/SDL2.lib
+  TARGET_CFLAGS = -nologo -EHsc -fp:fast
+  WINDOWS = 1
+  WINDOWS_SUBSYSTEM_OPT = -SUBSYSTEM:WINDOWS
+  CONSOLE_SUBSYSTEM_OPT = -SUBSYSTEM:CONSOLE
+  SDL_PREBUILT_SUBDIR=win64
+  C99_OPT =
 else ifeq ($(TARGET_PLATFORM),mingw32)
   EXE_EXT = .exe
   CC = i686-w64-mingw32-gcc
@@ -336,6 +367,11 @@ ifeq ($(GRADE),debug)
     GRADE_LDFLAGS = -DEBUG
     LUA_CFLAGS += -DLUA_USE_APICHECK
     LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
+  else ifeq ($(TARGET_PLATFORM),msvc64)
+    GRADE_CFLAGS = -MTd -Zi
+    GRADE_LDFLAGS = -DEBUG
+    LUA_CFLAGS += -DLUA_USE_APICHECK
+    LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
   else
     GRADE_CFLAGS = -g -O0
     GRADE_LDFLAGS = -g 
@@ -349,6 +385,9 @@ else
     GRADE_CFLAGS = -O2 $(EM_PROFILING) -DNDEBUG
     GRADE_LDFLAGS = -O2 $(EM_PROFILING) 
   else ifeq ($(TARGET_PLATFORM),msvc32)
+    GRADE_CFLAGS = -Ox -DNDEBUG
+    GRADE_LDFLAGS =
+  else ifeq ($(TARGET_PLATFORM),msvc64)
     GRADE_CFLAGS = -Ox -DNDEBUG
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),osx)
