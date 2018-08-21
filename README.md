@@ -18,7 +18,7 @@ It currently runs on the following platforms:
 - iOS
 - HTML5
 
-Android support will also be added at some point.
+The engine technically works on Android too, but exporting to Android is not yet supported.
 
 ## Binary distributions
 
@@ -27,6 +27,12 @@ These are available from <http://www.amulet.xyz>.
 ## Documentation
 
 See <http://www.amulet.xyz/doc/>.
+
+## Reporting bugs or requesting features
+
+I don't use the github issue tracker. Instead please email bug reports
+or feature requests to me at ian -at- ianmaclarty.com, or use the
+<a href="https://groups.google.com/forum/#!forum/amulet-forum">forum</a>.
 
 ## Building from source
 
