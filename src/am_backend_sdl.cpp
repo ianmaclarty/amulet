@@ -721,13 +721,11 @@ static void init_sdl() {
     init_audio();
     init_controllers();
     sdl_initialized = true;
-#if defined(AM_WINDOWS)
     if (am_conf_d3dangle) {
         if (!SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "d3dcompiler_47.dll")) {
             am_abort("unable to set SDL_HINT_VIDEO_WIN_D3DCOMPILER");
         }
     }
-#endif
 }
 
 #ifdef AM_NEED_GL_FUNC_PTRS

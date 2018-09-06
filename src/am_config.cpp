@@ -65,6 +65,7 @@ static void read_string_setting(lua_State *L, const char *name, const char **val
     lua_pop(L, 1);
 }
 
+#ifdef AM_WINDOWS
 static void read_bool_setting(lua_State *L, const char *name, bool *value) {
     lua_getglobal(L, name);
     if (!lua_isnil(L, -1)) {
@@ -72,6 +73,7 @@ static void read_bool_setting(lua_State *L, const char *name, bool *value) {
     }
     lua_pop(L, 1);
 }
+#endif
 
 static void free_if_not_null(void **ptr) {
     if (*ptr != NULL) {
@@ -143,7 +145,9 @@ bool am_load_config() {
     read_string_setting(eng->L, "icon", &am_conf_app_icon, NULL);
     read_string_setting(eng->L, "launch_image", &am_conf_app_launch_image, NULL);
     read_string_setting(eng->L, "luavm", &am_conf_luavm, NULL);
+#ifdef AM_WINDOWS
     read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
+#endif
     am_destroy_engine(eng);
     return true;
 }
