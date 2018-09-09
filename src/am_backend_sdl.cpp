@@ -461,8 +461,9 @@ restart:
     lua_pushcclosure(L, am_require, 0);
     lua_pushstring(L, am_opt_main_module);
     if (!am_call(L, 1, 0)) {
-        exit_status = EXIT_FAILURE;
-        goto quit;
+        if (windows.size() == 0) {
+            exit_status = EXIT_FAILURE;
+        }
     }
     if (windows.size() == 0) goto quit;
 
@@ -507,10 +508,7 @@ restart:
         if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
                 double t0 = am_get_current_time();
-                if (!am_execute_actions(L, am_conf_fixed_delta_time)) {
-                    exit_status = EXIT_FAILURE;
-                    goto quit;
-                }
+                am_execute_actions(L, am_conf_fixed_delta_time);
                 double t = am_get_current_time() - t0;
                 t_debt -= am_max(t, am_conf_fixed_delta_time);
             }
@@ -519,10 +517,7 @@ restart:
                 if (am_conf_delta_time_step > 0.0) {
                     t_debt = floor(t_debt / am_conf_delta_time_step + 0.5) * am_conf_delta_time_step;
                 }
-                if (!am_execute_actions(L, t_debt)) {
-                    exit_status = EXIT_FAILURE;
-                    goto quit;
-                }
+                am_execute_actions(L, t_debt);
                 t_debt = 0.0;
             }
         }

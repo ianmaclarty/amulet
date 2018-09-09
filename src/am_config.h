@@ -11,6 +11,7 @@ extern am_display_orientation am_conf_app_display_orientation;
 extern const char *am_conf_app_icon;
 extern const char *am_conf_app_launch_image;
 extern const char *am_conf_luavm;
+extern const char *am_conf_support_email;
 
 // graphic driver options
 extern bool am_conf_d3dangle;

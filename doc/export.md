@@ -42,6 +42,7 @@ shortname = "mygame"
 author = "Your Name"
 appid = "com.some-unique-id.123"
 version = "1.0.0"
+support_email = "support@example.com"
 
 display_name = "My Game"
 dev_region = "en"
