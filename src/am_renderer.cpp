@@ -943,6 +943,7 @@ static void register_pass_filter_node_mt(lua_State *L) {
 }
 
 static void init_param_name_map(am_render_state *rstate, lua_State *L) {
+    if (rstate->param_name_map != NULL) free(rstate->param_name_map);
     rstate->param_name_map_capacity = 32;
     rstate->param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * rstate->param_name_map_capacity);
     memset(rstate->param_name_map, 0, sizeof(am_program_param_name_slot) * rstate->param_name_map_capacity);

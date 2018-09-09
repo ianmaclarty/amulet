@@ -533,7 +533,6 @@ restart:
 
     if (restart_triggered) {
         am_destroy_engine(eng);
-        eng = am_init_engine(false, argc, argv);
         goto restart;
     }
 
