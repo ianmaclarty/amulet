@@ -3,6 +3,7 @@ set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;"C:\Program Files (x86)\Inno Se
 zip -r test.zip Makefile
 find /c/msys64 -type f -name "zip.exe"
 find /c/msys64 -type f -name "zip.*"
+find /c/msys64 -type f -name "unzip.*"
 echo DONE
 REM 
 REM if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
