@@ -294,8 +294,8 @@ static int close_window(lua_State *L) {
 }
 
 static bool close_windows(lua_State *L) {
-    unsigned int i = 0;
-    while (i < windows.size()) {
+    int i = (int)windows.size() - 1;
+    while (i >= 0) {
         am_window *win = windows[i];
         if (win->needs_closing) {
             if (i == 0) {
@@ -314,7 +314,7 @@ static bool close_windows(lua_State *L) {
                 continue;
             }
         }
-        i++;
+        i--;
     }
     return true;
 }

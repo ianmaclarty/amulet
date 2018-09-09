@@ -87,12 +87,8 @@ am_native_window *am_create_native_window(
     bool stencil_buffer,
     int msaa_samples)
 {
-    if (windows.size() == 0 && main_window != NULL) {
-        win_info winfo;
-        memset(&winfo, 0, sizeof(win_info));
-        winfo.window = main_window;
-        SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
-        windows.push_back(winfo);
+    if (restart_triggered && main_window != NULL) {
+        // restarting, return existing window
         return (am_native_window*)main_window;
     }
     if (!sdl_initialized) {
@@ -447,13 +443,14 @@ int main( int argc, char *argv[] )
         exit_status = EXIT_FAILURE;
         goto quit;
     }
+
+restart:
     eng = am_init_engine(false, argc, argv);
     if (eng == NULL) {
         exit_status = EXIT_FAILURE;
         goto quit;
     }
 
-restart:
     L = eng->L;
 
     frame_time = am_get_current_time();
@@ -466,6 +463,8 @@ restart:
         }
     }
     if (windows.size() == 0) goto quit;
+
+    restart_triggered = false;
 
     t0 = am_get_current_time();
     frame_time = t0;
@@ -503,7 +502,7 @@ restart:
         t_debt += delta_time;
 
 #ifdef AM_STEAMWORKS
-    am_steam_step();
+        am_steam_step();
 #endif
         if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
@@ -533,7 +532,6 @@ restart:
     }
 
     if (restart_triggered) {
-        restart_triggered = false;
         am_destroy_engine(eng);
         eng = am_init_engine(false, argc, argv);
         goto restart;
@@ -943,7 +941,7 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
-                    if (am_conf_allow_restart && event.key.keysym.scancode == SDL_SCANCODE_F5) {
+                    if (!package && event.key.keysym.scancode == SDL_SCANCODE_F5) {
                         restart_triggered = true;
                     } else {
                         win_info *info = win_from_id(event.key.windowID);
