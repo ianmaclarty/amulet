@@ -1,5 +1,6 @@
 call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
 set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;"C:\Program Files (x86)\Inno Setup 5";%PATH%
+pacman -S zip
 zip -r test.zip Makefile
 find /c/msys64 -type f -name "zip.exe"
 find /c/msys64 -type f -name "zip.*"
