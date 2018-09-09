@@ -4,6 +4,9 @@ zip -r test.zip Makefile
 find /c/msys64 -type f -name "zip.exe"
 find /c/msys64 -type f -name "zip.*"
 find /c/msys64 -type f -name "unzip.*"
+which unzip
+find /c -type f -name "zip.exe"
+find /c -type f -name "unzip.exe"
 echo DONE
 REM 
 REM if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
