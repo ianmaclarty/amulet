@@ -457,12 +457,12 @@ public class AmuletActivity extends Activity
 
                 prodIds = new String[responseList.size()];
                 prices = new String[responseList.size()];
-                int i = 0;
+                int ii = 0;
                 for (String thisResponse : responseList) {
                     JSONObject object = new JSONObject(thisResponse);
-                    prodIds[i] = object.getString("productId");
-                    prices[i] = object.getString("price");
-                    i++;
+                    prodIds[ii] = object.getString("productId");
+                    prices[ii] = object.getString("price");
+                    ii++;
                     Log.i("AMULET", thisResponse);
                 }
 
