@@ -175,13 +175,13 @@ ifeq ($(TARGET_PLATFORM),osx)
   LINK = clang++
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -m64 -arch x86_64
-  XLDFLAGS = -lm -liconv $(STEAMWORKS_LINK_OPT) -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
+  XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT) -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia \
 	     -pagezero_size 10000 -image_base 100000000
   LUA_CFLAGS += -DLUA_USE_MACOSX
-  MACOSX_DEPLOYMENT_TARGET=10.6
+  MACOSX_DEPLOYMENT_TARGET=10.9
   export MACOSX_DEPLOYMENT_TARGET
 else ifeq ($(TARGET_PLATFORM),ios32)
   CC = clang

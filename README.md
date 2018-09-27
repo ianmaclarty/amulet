@@ -13,7 +13,7 @@ am.window{}.scene = am.text("Hello World!")
 It currently runs on the following platforms:
 
 - Windows 7+
-- Mac OS X 10.6+
+- Mac OS X 10.9+
 - Linux
 - iOS
 - HTML5
