@@ -178,6 +178,8 @@ static bool export_cmd(int *argc, char ***argv) {
             flags |= AM_EXPORT_FLAG_HTML;
         } else if (strcmp(arg, "-r") == 0) {
             flags |= AM_EXPORT_FLAG_RECURSE;
+        } else if (strcmp(arg, "-nozipdir") == 0) {
+            am_conf_no_zip_dir = true;
         } else {
             break;
         }

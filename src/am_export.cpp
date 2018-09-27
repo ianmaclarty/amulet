@@ -19,6 +19,7 @@ struct export_config {
     const char *pakfile;
     const char *title;
     const char *shortname;
+    const char *zipdir;
     const char *appid;
     const char *version;
     const char *display_name;
@@ -113,13 +114,20 @@ static bool add_files_to_dist(const char *zipfile, const char *dir, const char *
             free(tmp);
         }
         char *name;
-        if (newname == NULL) {
-            name = am_format("%s/%s", newdir, file + strlen(dir) + 1);
-        } else if (newext == NULL) {
-            name = am_format("%s/%s", newdir, newname);
+        char *dirprefix;
+        if (newdir == NULL) {
+            dirprefix = am_format("%s", "");
         } else {
-            name = am_format("%s/%s%s", newdir, newname, newext);
+            dirprefix = am_format("%s/", newdir);
         }
+        if (newname == NULL) {
+            name = am_format("%s%s", dirprefix, file + strlen(dir) + 1);
+        } else if (newext == NULL) {
+            name = am_format("%s%s", dirprefix, newname);
+        } else {
+            name = am_format("%s%s%s", dirprefix, newname, newext);
+        }
+        free(dirprefix);
         if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, name, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, executable ? 0100755 : 0100644, platform)) {
             free(buf);
             free(name);
@@ -211,12 +219,13 @@ static bool build_windows_export(export_config *conf) {
     char *binpath = get_bin_path(conf, "msvc32");
     if (binpath == NULL) return true;
     const char *name = conf->shortname;
+    const char *zipdir = conf->zipdir;
     bool ok =
-        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
-        add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
-        add_files_to_dist(zipname, binpath, "amulet.exe", name, name, ".exe", true, true, ZIP_PLATFORM_DOS) &&
-        add_files_to_dist(zipname, binpath, "*.dll", name, NULL, NULL, true, true, ZIP_PLATFORM_DOS) &&
-        add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_DOS) &&
+        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
+        add_files_to_dist(zipname, binpath, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_DOS) &&
+        add_files_to_dist(zipname, binpath, "amulet.exe", zipdir, name, ".exe", true, true, ZIP_PLATFORM_DOS) &&
+        add_files_to_dist(zipname, binpath, "*.dll", zipdir, NULL, NULL, true, true, ZIP_PLATFORM_DOS) &&
+        add_files_to_dist(zipname, ".", conf->pakfile, zipdir, "data.pak", NULL, false, false, ZIP_PLATFORM_DOS) &&
         true;
     printf("Generated %s\n", zipname);
     free(zipname);
@@ -231,12 +240,13 @@ static bool build_mac_export(export_config *conf) {
     if (binpath == NULL) return true;
     if (!create_mac_info_plist(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
     const char *name = conf->shortname;
+    const char *zipdir = conf->zipdir;
     bool ok =
-        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet", name, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, ".", conf->pakfile, name, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", name, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet", zipdir, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, ".", conf->pakfile, zipdir, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", zipdir, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
         true;
     am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
     printf("Generated %s\n", zipname);
@@ -304,17 +314,18 @@ static bool build_linux_export(export_config *conf) {
     char *binpath32 = get_bin_path(conf, "linux32");
     if (binpath64 == NULL && binpath32 == NULL) return true;
     const char *name = conf->shortname;
+    const char *zipdir = conf->zipdir;
     bool ok =
-        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath64, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath64, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, ".", conf->pakfile, zipdir, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
     if (ok && binpath32 != NULL) {
-        ok = add_files_to_dist(zipname, binpath32, "amulet", name, name, ".i686", true, true, ZIP_PLATFORM_UNIX);
+        ok = add_files_to_dist(zipname, binpath32, "amulet", zipdir, name, ".i686", true, true, ZIP_PLATFORM_UNIX);
     }
     if (ok && binpath64 != NULL) {
-        ok = add_files_to_dist(zipname, binpath64, "amulet", name, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX)
-            && add_files_to_dist(zipname, binpath64, "amulet.sh", name, name, "", true, true, ZIP_PLATFORM_UNIX);
+        ok = add_files_to_dist(zipname, binpath64, "amulet", zipdir, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX)
+            && add_files_to_dist(zipname, binpath64, "amulet.sh", zipdir, name, "", true, true, ZIP_PLATFORM_UNIX);
     }
     printf("Generated %s\n", zipname);
     free(zipname);
@@ -328,14 +339,14 @@ static bool build_html_export(export_config *conf) {
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "html");
     if (binpath == NULL) return true;
-    const char *name = conf->shortname;
+    const char *zipdir = conf->zipdir;
     bool ok =
-        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet_license.txt", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet.js", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet.wasm", name, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "player.html", name, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, ".", conf->pakfile, name, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet.js", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet.wasm", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "player.html", zipdir, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, ".", conf->pakfile, zipdir, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
     printf("Generated %s\n", zipname);
     free(zipname);
@@ -361,6 +372,11 @@ bool am_build_exports(uint32_t flags) {
     conf.basepath = (const char*)am_get_base_path();
     conf.title = am_conf_app_title;
     conf.shortname = am_conf_app_shortname;
+    if (am_conf_no_zip_dir) {
+        conf.zipdir = NULL;
+    } else {
+        conf.zipdir = am_conf_app_shortname;
+    }
     conf.appid = am_conf_app_id;
     conf.version = am_conf_app_version;
     conf.display_name = am_conf_app_display_name;
