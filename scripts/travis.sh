@@ -84,4 +84,6 @@ else
         scripts/upload_builds.js $TRAVIS_TAG
     fi
 fi
-scripts/update_site.sh
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then # don't update site for pull requests
+    scripts/update_site.sh
+fi
