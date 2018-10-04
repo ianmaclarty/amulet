@@ -708,7 +708,12 @@ WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 }
 #endif
 
+static void add_extra_controller_mappings() {
+    SDL_GameControllerAddMapping("03000000c0160000e105000000040000,Xinmoteck 1 Player,a:b1,b:b2,y:b3,x:b0,start:b9,guide:b12,back:b8,leftx:a0,lefty:a1,rightx:a2,righty:a3,leftshoulder:b4,rightshoulder:b5,lefttrigger:b6,righttrigger:b7");
+}
+
 static void init_sdl() {
+    add_extra_controller_mappings();
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER);
     init_audio();
     init_controllers();
@@ -1069,6 +1074,41 @@ static bool handle_events(lua_State *L) {
                 am_call_amulet(L, "_controller_axis_motion", 3, 0);
                 break;
             }
+            /*
+            case SDL_JOYDEVICEADDED: {
+                int joy_index = event.jdevice.which;
+                SDL_JoystickGUID guid = SDL_JoystickGetDeviceGUID(joy_index);
+                char name[100];
+                SDL_JoystickGetGUIDString(guid, name, 100);
+                am_debug("joy added '%s'", name);
+                SDL_JoystickOpen(joy_index);
+                break;
+            }
+            case SDL_JOYDEVICEREMOVED: {
+                am_debug("%s", "joy removed");
+                break;
+            }
+            case SDL_JOYBUTTONDOWN: {
+                am_debug("joy button down %d", event.jbutton.button);
+                break;
+            }
+            case SDL_JOYBUTTONUP: {
+                am_debug("%s", "joy button up");
+                break;
+            }
+            case SDL_JOYAXISMOTION: {
+                am_debug("joy axis %d %d", event.jaxis.axis, event.jaxis.value);
+                break;
+            }
+            case SDL_JOYBALLMOTION: {
+                am_debug("%s", "joy ball");
+                break;
+            }
+            case SDL_JOYHATMOTION: {
+                am_debug("%s", "joy hat");
+                break;
+            }
+            */
         }
     }
     for (unsigned i = 0; i < windows.size(); i++) {
