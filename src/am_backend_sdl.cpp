@@ -401,6 +401,15 @@ void am_copy_video_frame_to_texture() {
 const char *am_preferred_language() {
 #if defined(AM_STEAMWORKS)
     return am_get_steam_lang();
+#elif defined(AM_OSX)
+    NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
+    bool in_osx_bundle = (bundleIdentifier != nil);
+    if (in_osx_bundle) {
+        NSString *languageID = [[NSBundle mainBundle] preferredLocalizations].firstObject;
+        return [languageID UTF8String];
+    } else {
+        return "en";
+    }
 #else
     return "en";
 #endif
