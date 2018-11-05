@@ -120,6 +120,9 @@ void am_free_expanded_args(int argc, char **argv) {
 #endif
 
 bool am_execute_shell_cmd(const char *fmt, ...) {
+#ifdef AM_IOS
+    return false; // system not allowed on iOS
+#else
     char cmd[MAX_CMD_LEN];
     va_list argp;
     va_start(argp, fmt);
@@ -130,4 +133,5 @@ bool am_execute_shell_cmd(const char *fmt, ...) {
         fprintf(stderr, "Error running shell command: %s\n", cmd);
     }
     return rt == 0;
+#endif
 }
