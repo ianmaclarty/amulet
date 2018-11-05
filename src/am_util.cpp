@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 
 #define MAX_MSG_LEN 10240
+#define MAX_CMD_LEN 51200
 
 char *am_format(const char *fmt, ...) {
     char msg[MAX_MSG_LEN];
@@ -117,3 +118,16 @@ void am_free_expanded_args(int argc, char **argv) {
     free(argv);
 }
 #endif
+
+bool am_execute_shell_cmd(const char *fmt, ...) {
+    char cmd[MAX_CMD_LEN];
+    va_list argp;
+    va_start(argp, fmt);
+    vsnprintf(cmd, MAX_CMD_LEN, fmt, argp);
+    va_end(argp);
+    int rt = system(cmd);
+    if (rt != 0) {
+        fprintf(stderr, "Error running shell command: %s\n", cmd);
+    }
+    return rt == 0;
+}

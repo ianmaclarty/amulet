@@ -3105,7 +3105,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>or a numeric seed. Use the sfxr example in the <a href="http://www.amulet.xyz/editor.html">online editor</a> to generate seeds.</p>
 <h2 id="audio-graphs">Audio graphs</h2>
 <p>TODO</p>
-<p>(Amulet has support for building graphs of audio effect nodes, however it is currently undocumented because it will probably be changing shortly to use syntax more consistent with the way scene graphs are constructed.)</p>
+<p>(Amulet has support for building graphs of audio effect nodes, however it is currently undocumented because the API is unstable).</p>
 <h2 id="audio-graph-nodes">Audio graph nodes</h2>
 <p>TODO</p>
 <h2 id="analysing-audio">Analysing audio</h2>
@@ -3230,10 +3230,11 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <span class="st">]]</span></code></pre></div>
 <p>then the image contains 9 glyphs in 3 rows and 3 columns. If the image has height 30 and width 36 then each glyph has width 10 and height 12.</p>
 <h1 id="exporting">Exporting</h1>
-<p>To generate distribution packages for Windows, Mac OS X, iOS, Linux and HTML5, use the amulet export command.</p>
-<p>Run the following command from the directory containing your lua, image and audio files:</p>
-<pre class="console"><code>&gt; amulet export</code></pre>
-<p>This will generate package files for each supported platform in the current directory. If you just want to generate a package for one platform you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-ios</code>, <code>-linux</code> or <code>-html</code>.</p>
+<p>To generate distribution packages, use the amulet export command like so:</p>
+<pre class="console"><code>&gt; amulet export [&lt;dir&gt;]</code></pre>
+<p><code>&lt;dir&gt;</code> is the directory containing your lua, image and audio files. It defaults to the current directory.</p>
+<p>This will generate package files for Windows, Mac and Linux in the current directory. Alternatively you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-mac-app-store</code>, <code>-ios</code>, <code>-linux</code> or <code>-html</code> to generate packages for a specific platform.</p>
+<p>Note that the <code>-mac-app-store</code> option only works when run on Mac OS X.</p>
 <p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.json</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
 <p>If the <code>-r</code> option is given then all subdirectories will also be included (recursively), otherwise only the files in current directory are included.</p>
 <p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>

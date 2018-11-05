@@ -30,10 +30,14 @@ struct export_config {
     const char *launch_image;
     const char *grade;
     const char *basepath;
+    const char *mac_category;
     bool recurse;
 };
 
-static bool create_mac_info_plist(const char *filename, export_config *conf);
+static bool create_mac_info_plist(const char *binpath, const char *filename, export_config *conf);
+static bool create_mac_icons(export_config *conf);
+static bool create_mac_entitlements(export_config *conf);
+
 static bool create_ios_info_plist(const char *binpath, const char *filename, export_config *conf);
 static bool create_ios_pkginfo(const char *filename);
 static bool create_ios_icon_files(const char *dir, export_config *conf);
@@ -235,12 +239,13 @@ static bool build_windows_export(export_config *conf) {
     return ok;
 }
 
-static bool build_mac_export(export_config *conf) {
+static bool build_mac_export(export_config *conf, bool print_message) {
     char *zipname = get_export_zip_name(conf, "mac");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "osx");
     if (binpath == NULL) return true;
-    if (!create_mac_info_plist(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
+    if (!create_mac_info_plist(binpath, AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
+    bool icon_created = create_mac_icons(conf);
     const char *name = conf->shortname;
     const char *zipdir = conf->zipdir;
     bool ok =
@@ -249,12 +254,50 @@ static bool build_mac_export(export_config *conf) {
         add_files_to_dist(zipname, binpath, "amulet", zipdir, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, zipdir, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", zipdir, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
+        (!icon_created || 
+            add_files_to_dist(zipname, AM_TMP_DIR, "icon.icns", zipdir, name, ".app/Contents/Resources/icon.icns", true, false, ZIP_PLATFORM_UNIX)) &&
         true;
     am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
-    printf("Generated %s\n", zipname);
+    if (print_message) printf("Generated %s\n", zipname);
     free(zipname);
     free(binpath);
     return ok;
+}
+
+static bool build_mac_app_store_export(export_config *conf) {
+    if (am_conf_mac_application_cert_identity == NULL) {
+        fprintf(stderr, "Error: please set mac_application_cert_identity in conf.lua\n");
+        return false;
+    }
+    if (am_conf_mac_installer_cert_identity == NULL) {
+        fprintf(stderr, "Error: please set mac_installer_cert_identity in conf.lua\n");
+        return false;
+    }
+    if (!build_mac_export(conf, false)) {
+        return false;
+    }
+    am_execute_shell_cmd("rm -rf %s/*", AM_TMP_DIR);
+    if (!create_mac_entitlements(conf)) return false;
+    char *zipname = get_export_zip_name(conf, "mac");
+    if (!am_execute_shell_cmd("unzip %s -d %s", zipname, AM_TMP_DIR)) {
+        am_delete_file(zipname);
+        free(zipname);
+        return false;
+    }
+    am_delete_file(zipname);
+    free(zipname);
+    if (!am_execute_shell_cmd("cd %s/%s && codesign -f --deep -s '%s' --entitlements ../%s.entitlements %s.app",
+        AM_TMP_DIR, conf->shortname, am_conf_mac_application_cert_identity, conf->shortname, conf->shortname)
+    ) {
+        return false;
+    }
+    if (!am_execute_shell_cmd("cd %s/%s && productbuild --component %s.app /Applications --sign '%s' ../../%s-%s-mac-app-store.pkg",
+        AM_TMP_DIR, conf->shortname, conf->shortname, am_conf_mac_installer_cert_identity, conf->shortname, conf->version)
+    ) {
+        return false;
+    }
+    printf("Generated %s-%s-mac-app-store.pkg\n", conf->shortname, conf->version);
+    return true;
 }
 
 static bool build_ios_export(export_config *conf, bool sim) {
@@ -389,15 +432,17 @@ bool am_build_exports(uint32_t flags) {
     conf.launch_image = am_conf_app_launch_image;
     conf.grade = "release";
     conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
+    conf.mac_category = am_conf_mac_category;
     conf.recurse = flags & AM_EXPORT_FLAG_RECURSE;
     if (!build_data_pak(&conf)) return false;
     bool ok =
-        ((!(flags & AM_EXPORT_FLAG_WINDOWS)) || build_windows_export(&conf)) &&
-        ((!(flags & AM_EXPORT_FLAG_OSX))     || build_mac_export(&conf)) &&
-        ((!(flags & AM_EXPORT_FLAG_IOS))     || build_ios_export(&conf, false)) &&
-        ((!(flags & AM_EXPORT_FLAG_IOSSIM))  || build_ios_export(&conf, true)) &&
-        ((!(flags & AM_EXPORT_FLAG_LINUX))   || build_linux_export(&conf)) &&
-        ((!(flags & AM_EXPORT_FLAG_HTML))    || build_html_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_WINDOWS))        || build_windows_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_OSX))            || build_mac_export(&conf, true)) &&
+        ((!(flags & AM_EXPORT_FLAG_MAC_APP_STORE))  || build_mac_app_store_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_IOS))            || build_ios_export(&conf, false)) &&
+        ((!(flags & AM_EXPORT_FLAG_IOSSIM))         || build_ios_export(&conf, true)) &&
+        ((!(flags & AM_EXPORT_FLAG_LINUX))          || build_linux_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_HTML))           || build_html_export(&conf)) &&
         true;
     am_delete_file(conf.pakfile);
     am_delete_empty_dir(AM_TMP_DIR);
@@ -405,47 +450,29 @@ bool am_build_exports(uint32_t flags) {
     return ok;
 }
 
-static bool create_mac_info_plist(const char *filename, export_config *conf) {
+static bool create_mac_info_plist(const char *binpath, const char *filename, export_config *conf) {
     FILE *f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to create file %s", filename);
         return false;
     }
-    fprintf(f,
-"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-"<plist version=\"1.0\">\n"
-"<dict>\n"
-"  <key>CFBundleName</key>\n"
-"  <string>%s</string>\n"
-"\n"
-"  <key>CFBundleDisplayName</key>\n"
-"  <string>%s</string>\n"
-"\n"
-"  <key>CFBundleIdentifier</key>\n"
-"  <string>%s</string>\n"
-"\n"
-"  <key>CFBundleVersion</key>\n"
-"  <string>%s</string>\n"
-"\n"
-"  <key>CFBundlePackageType</key>\n"
-"  <string>APPL</string>\n"
-"\n"
-"  <key>CFBundleExecutable</key>\n"
-"  <string>amulet</string>\n"
-"\n"
-"  <key>LSMinimumSystemVersion</key>\n"
-"  <string>10.6.8</string>\n"
-"\n"
-"  <key>NSHighResolutionCapable</key>\n"
-"  <true/>\n"
-"</dict>\n"
-"</plist>\n",
-        conf->shortname,
-        conf->title,
-        conf->appid,
-        conf->version);
+    char *template_filename = am_format("%s%c%s", binpath, AM_PATH_SEP, "Info.plist");
+    char *template_fmt = (char*)am_read_file(template_filename, NULL);
+    free(template_filename);
+    if (template_fmt == NULL) return false;
+
+    fprintf(f, template_fmt, 
+        conf->title, // CFBundleName
+        conf->display_name, // CFBundleDisplayName
+        conf->dev_region, // CFBundleDevelopmentRegion
+        conf->version, // CFBundleShortVersionString
+        conf->version, // CFBundleVersion
+        conf->appid, // CFBundleIdentifier
+        conf->mac_category // LSApplicationCategoryType
+    );
+    free(template_fmt);
     fclose(f);
+
     return true;
 }
 
@@ -528,6 +555,7 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
         conf->appid, // CFBundleIdentifier
         orientation_xml
     );
+    free(template_fmt);
     fclose(f);
 
     return true;
@@ -654,6 +682,81 @@ static bool create_ios_icon_files(const char *dir, export_config *conf) {
     return true;
 }
 
+static bool create_mac_entitlements(export_config *conf) {
+    char *filename = am_format("%s/%s.entitlements", AM_TMP_DIR, conf->shortname);
+    FILE *f = fopen(filename, "w");
+    if (f == NULL) {
+        fprintf(stderr, "Error: unable to create file %s", filename);
+        free(filename);
+        return false;
+    }
+    free(filename);
+    fprintf(f,
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+"<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
+"<plist version=\"1.0\">"
+"<dict>"
+"<key>com.apple.security.app-sandbox</key> <true/>"
+"</dict>"
+"</plist>");
+    fclose(f);
+
+    return true;
+}
+
+static bool create_mac_icons(export_config *conf) {
+    if (!am_file_exists("/usr/bin/iconutil")) return false;
+
+    size_t len;
+    stbi_uc *img_data;
+    int width, height;
+    if (conf->icon == NULL) {
+        width = 1024;
+        height = 1024;
+        len = width * height * 4;
+        img_data = (stbi_uc*)malloc(len);
+        memset(img_data, 255, len);
+    } else {
+        void *data = am_read_file(conf->icon, &len);
+        int components = 4;
+        stbi_set_flip_vertically_on_load(0);
+        img_data =
+            stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+        free(data);
+        if (img_data == NULL) return false;
+    }
+
+    char *iconset_dir = am_format("%s%c%s", AM_TMP_DIR, AM_PATH_SEP, "icon.iconset");
+    am_make_dir(iconset_dir);
+
+    if (!resize_image(img_data, width, height, iconset_dir,    "icon_16x16.png", 16, 16)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_16x16@2x.png", 32, 32)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_32x32.png", 32, 32)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_32x32@2x.png", 64, 64)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_64x64.png", 64, 64)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_64x64@2x.png", 128, 128)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_128x128.png", 128, 128)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_128x128@2x.png", 256, 256)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_256x256.png", 256, 256)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_256x256@2x.png", 512, 512)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_512x512.png", 512, 512)
+        || !resize_image(img_data, width, height, iconset_dir, "icon_512x512@2x.png", 1024, 1024)
+    ) {
+	free(img_data);
+        free(iconset_dir);
+	return false;
+    }
+    free(img_data);
+
+    if (!am_execute_shell_cmd("/usr/bin/iconutil -c icns %s", iconset_dir)) {
+        free(iconset_dir);
+        return false;
+    }
+
+    free(iconset_dir);
+    return true;
+}
+
 static bool create_ios_launch_images(const char *dir, export_config *conf) {
     size_t len;
     stbi_uc *img_data;
@@ -683,7 +786,10 @@ static bool create_ios_launch_images(const char *dir, export_config *conf) {
         || !resize_image(img_data, width, height, dir, "Default-Landscape~ipad.png", 1024, 768)
         || !resize_image(img_data, width, height, dir, "Default-Portrait@2x~ipad.png", 1536, 2048)
         || !resize_image(img_data, width, height, dir, "Default-Portrait~ipad.png", 768, 1024)
-        ) return false;
+    ) {
+	free(img_data);
+	return false;
+    }
     free(img_data);
     return true;
 }

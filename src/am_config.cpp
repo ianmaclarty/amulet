@@ -13,6 +13,9 @@ const char *am_conf_app_icon = NULL;
 const char *am_conf_app_launch_image = NULL;
 const char *am_conf_luavm = NULL;
 const char *am_conf_support_email = NULL;
+const char *am_conf_mac_category = NULL;
+const char *am_conf_mac_application_cert_identity = NULL;
+const char *am_conf_mac_installer_cert_identity = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -148,6 +151,9 @@ bool am_load_config() {
     read_string_setting(eng->L, "launch_image", &am_conf_app_launch_image, NULL);
     read_string_setting(eng->L, "luavm", &am_conf_luavm, NULL);
     read_string_setting(eng->L, "support_email", &am_conf_support_email, NULL);
+    read_string_setting(eng->L, "mac_category", &am_conf_mac_category, "public.app-category.games");
+    read_string_setting(eng->L, "mac_application_cert_identity", &am_conf_mac_application_cert_identity, NULL);
+    read_string_setting(eng->L, "mac_installer_cert_identity", &am_conf_mac_installer_cert_identity, NULL);
 #ifdef AM_WINDOWS
     read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
 #endif

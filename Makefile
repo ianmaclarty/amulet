@@ -119,6 +119,7 @@ else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	cp $(BUILD_BIN_DIR)/* .
+	@rm -f Info.plist # this being in the same dir as amulet makes amulet think it's in a bundle
 	@$(PRINT_BUILD_DONE_MSG)
 endif
 

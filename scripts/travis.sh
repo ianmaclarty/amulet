@@ -18,6 +18,7 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
     else
         cp -r builds/osx/luajit/release/bin/* amulet-${TAG}/
         chmod a+x amulet-${TAG}/amulet
+        rm amulet-${TAG}/Info.plist
     fi
     mv builds amulet-${TAG}/
     zip -r amulet-${TAG}-${TRAVIS_OS_NAME}.zip amulet-${TAG}
@@ -60,6 +61,7 @@ else
         make -j2 TARGET=osx.release     LUAVM=lua51   test
         make -j2 TARGET=osx.release     LUAVM=lua52   test
         make -j2 TARGET=osx.release     LUAVM=luajit  test
+        ./scripts/gen_mac_info_plist.sh
 
         # build ios
         scripts/build_ios.sh lua51
