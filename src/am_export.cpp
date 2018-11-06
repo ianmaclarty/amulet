@@ -254,8 +254,13 @@ static bool build_mac_export(export_config *conf, bool print_message) {
         add_files_to_dist(zipname, binpath, "amulet", zipdir, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, zipdir, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", zipdir, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
-        (!icon_created || 
-            add_files_to_dist(zipname, AM_TMP_DIR, "icon.icns", zipdir, name, ".app/Contents/Resources/icon.icns", true, false, ZIP_PLATFORM_UNIX)) &&
+        (
+        (icon_created && 
+            add_files_to_dist(zipname, AM_TMP_DIR, "icon.icns", zipdir, name, ".app/Contents/Resources/icon.icns", true, false, ZIP_PLATFORM_UNIX))
+        ||
+        ((!icon_created) &&
+            add_files_to_dist(zipname, binpath, "amulet.icns", zipdir, name, ".app/Contents/Resources/icon.icns", true, false, ZIP_PLATFORM_UNIX))
+        ) &&
         true;
     am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
     if (print_message) printf("Generated %s\n", zipname);
@@ -705,26 +710,19 @@ static bool create_mac_entitlements(export_config *conf) {
 }
 
 static bool create_mac_icons(export_config *conf) {
+    if (conf->icon == NULL) return false;
     if (!am_file_exists("/usr/bin/iconutil")) return false;
 
     size_t len;
     stbi_uc *img_data;
     int width, height;
-    if (conf->icon == NULL) {
-        width = 1024;
-        height = 1024;
-        len = width * height * 4;
-        img_data = (stbi_uc*)malloc(len);
-        memset(img_data, 255, len);
-    } else {
-        void *data = am_read_file(conf->icon, &len);
-        int components = 4;
-        stbi_set_flip_vertically_on_load(0);
-        img_data =
-            stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
-        free(data);
-        if (img_data == NULL) return false;
-    }
+    void *data = am_read_file(conf->icon, &len);
+    int components = 4;
+    stbi_set_flip_vertically_on_load(0);
+    img_data =
+        stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+    free(data);
+    if (img_data == NULL) return false;
 
     char *iconset_dir = am_format("%s%c%s", AM_TMP_DIR, AM_PATH_SEP, "icon.iconset");
     am_make_dir(iconset_dir);

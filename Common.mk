@@ -183,6 +183,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   LUA_CFLAGS += -DLUA_USE_MACOSX
   MACOSX_DEPLOYMENT_TARGET=10.9
   export MACOSX_DEPLOYMENT_TARGET
+  OSX = 1
 else ifeq ($(TARGET_PLATFORM),ios32)
   CC = clang
   CPP = clang++
