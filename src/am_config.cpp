@@ -3,6 +3,8 @@
 const char *am_conf_app_title = NULL;
 const char *am_conf_app_author = NULL;
 const char *am_conf_app_id = NULL;
+const char *am_conf_app_id_ios = NULL;
+const char *am_conf_app_id_mac = NULL;
 const char *am_conf_app_version = NULL;
 const char *am_conf_app_shortname = NULL;
 const char *am_conf_app_display_name = NULL;
@@ -93,6 +95,8 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_app_title);
     free_if_not_null((void**)&am_conf_app_author);
     free_if_not_null((void**)&am_conf_app_id);
+    free_if_not_null((void**)&am_conf_app_id_ios);
+    free_if_not_null((void**)&am_conf_app_id_mac);
     free_if_not_null((void**)&am_conf_app_version);
     free_if_not_null((void**)&am_conf_app_shortname);
     free_if_not_null((void**)&am_conf_app_display_name);
@@ -136,6 +140,8 @@ bool am_load_config() {
     read_string_setting(eng->L, "author", &am_conf_app_author, "Unknown");
     read_string_setting(eng->L, "shortname", &am_conf_app_shortname, am_conf_app_title);
     read_string_setting(eng->L, "appid", &am_conf_app_id, "null");
+    read_string_setting(eng->L, "appid_ios", &am_conf_app_id_ios, am_conf_app_id);
+    read_string_setting(eng->L, "appid_mac", &am_conf_app_id_mac, am_conf_app_id);
     read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");
     read_string_setting(eng->L, "display_name", &am_conf_app_display_name, am_conf_app_title);
     read_string_setting(eng->L, "dev_region", &am_conf_app_dev_region, "en");

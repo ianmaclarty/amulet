@@ -20,7 +20,6 @@ struct export_config {
     const char *title;
     const char *shortname;
     const char *zipdir;
-    const char *appid;
     const char *version;
     const char *display_name;
     const char *dev_region;
@@ -426,7 +425,6 @@ bool am_build_exports(uint32_t flags) {
     } else {
         conf.zipdir = am_conf_app_shortname;
     }
-    conf.appid = am_conf_app_id;
     conf.version = am_conf_app_version;
     conf.display_name = am_conf_app_display_name;
     conf.dev_region = am_conf_app_dev_region;
@@ -470,7 +468,7 @@ static bool create_mac_info_plist(const char *binpath, const char *filename, exp
         conf->dev_region, // CFBundleDevelopmentRegion
         conf->version, // CFBundleShortVersionString
         conf->version, // CFBundleVersion
-        conf->appid, // CFBundleIdentifier
+        am_conf_app_id_mac, // CFBundleIdentifier
         conf->mac_category // LSApplicationCategoryType
     );
     free(template_fmt);
@@ -555,7 +553,7 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
         conf->version, // CFBundleShortVersionString
         conf->version, // CFBundleVersion
         conf->shortname, // CFBundleExecutable
-        conf->appid, // CFBundleIdentifier
+        am_conf_app_id_ios, // CFBundleIdentifier
         orientation_xml
     );
     free(template_fmt);
