@@ -108,12 +108,17 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	for f in $(DEP_ALIBS); do ff=`basename $$f`; cp $$f $(BUILD_BIN_DIR)/`echo $$ff | sed 's/^lib//'`; done
 	@$(PRINT_BUILD_DONE_MSG)
-else ifdef WINDOWS
-# build both console and windows versions
+else ifdef MSVC
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	rc amulet.rc
 	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) amulet.res $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
 	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) amulet.res $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	cp $(BUILD_BIN_DIR)/* .
+	@$(PRINT_BUILD_DONE_MSG)
+else ifdef MINGW
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
+	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
+	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	cp $(BUILD_BIN_DIR)/* .
 	@$(PRINT_BUILD_DONE_MSG)
 else ifdef OSX
