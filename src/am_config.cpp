@@ -10,6 +10,8 @@ const char *am_conf_app_dev_region = NULL;
 const char *am_conf_app_supported_languages = NULL;
 am_display_orientation am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_ANY;
 const char *am_conf_app_icon = NULL;
+const char *am_conf_app_icon_mac = NULL;
+const char *am_conf_app_icon_ios = NULL;
 const char *am_conf_app_launch_image = NULL;
 const char *am_conf_luavm = NULL;
 const char *am_conf_support_email = NULL;
@@ -97,8 +99,14 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_app_dev_region);
     free_if_not_null((void**)&am_conf_app_supported_languages);
     free_if_not_null((void**)&am_conf_app_icon);
+    free_if_not_null((void**)&am_conf_app_icon_mac);
+    free_if_not_null((void**)&am_conf_app_icon_ios);
     free_if_not_null((void**)&am_conf_app_launch_image);
     free_if_not_null((void**)&am_conf_luavm);
+    free_if_not_null((void**)&am_conf_support_email);
+    free_if_not_null((void**)&am_conf_mac_category);
+    free_if_not_null((void**)&am_conf_mac_application_cert_identity);
+    free_if_not_null((void**)&am_conf_mac_installer_cert_identity);
 }
 
 bool am_load_config() {
@@ -148,6 +156,8 @@ bool am_load_config() {
         return false;
     }
     read_string_setting(eng->L, "icon", &am_conf_app_icon, NULL);
+    read_string_setting(eng->L, "icon_mac", &am_conf_app_icon_mac, am_conf_app_icon);
+    read_string_setting(eng->L, "icon_ios", &am_conf_app_icon_ios, am_conf_app_icon);
     read_string_setting(eng->L, "launch_image", &am_conf_app_launch_image, NULL);
     read_string_setting(eng->L, "luavm", &am_conf_luavm, NULL);
     read_string_setting(eng->L, "support_email", &am_conf_support_email, NULL);

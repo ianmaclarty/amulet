@@ -26,7 +26,6 @@ struct export_config {
     const char *dev_region;
     const char *supported_languages;
     am_display_orientation orientation;
-    const char *icon;
     const char *launch_image;
     const char *grade;
     const char *basepath;
@@ -246,7 +245,7 @@ static bool build_mac_export(export_config *conf, bool print_message) {
     if (binpath == NULL) return true;
     if (!create_mac_info_plist(binpath, AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
     bool icon_created = create_mac_icons(conf);
-    const char *name = conf->shortname;
+    const char *name = conf->title;
     const char *zipdir = conf->zipdir;
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
@@ -291,13 +290,13 @@ static bool build_mac_app_store_export(export_config *conf) {
     }
     am_delete_file(zipname);
     free(zipname);
-    if (!am_execute_shell_cmd("cd %s/%s && codesign -f --deep -s '%s' --entitlements ../%s.entitlements %s.app",
-        AM_TMP_DIR, conf->shortname, am_conf_mac_application_cert_identity, conf->shortname, conf->shortname)
+    if (!am_execute_shell_cmd("cd %s/%s && codesign -f --deep -s '%s' --entitlements ../%s.entitlements '%s.app'",
+        AM_TMP_DIR, conf->shortname, am_conf_mac_application_cert_identity, conf->shortname, conf->title)
     ) {
         return false;
     }
-    if (!am_execute_shell_cmd("cd %s/%s && productbuild --component %s.app /Applications --sign '%s' ../../%s-%s-mac-app-store.pkg",
-        AM_TMP_DIR, conf->shortname, conf->shortname, am_conf_mac_installer_cert_identity, conf->shortname, conf->version)
+    if (!am_execute_shell_cmd("cd %s/%s && productbuild --component '%s.app' /Applications --sign '%s' ../../%s-%s-mac-app-store.pkg",
+        AM_TMP_DIR, conf->shortname, conf->title, am_conf_mac_installer_cert_identity, conf->shortname, conf->version)
     ) {
         return false;
     }
@@ -433,7 +432,6 @@ bool am_build_exports(uint32_t flags) {
     conf.dev_region = am_conf_app_dev_region;
     conf.supported_languages = am_conf_app_supported_languages;
     conf.orientation = am_conf_app_display_orientation;
-    conf.icon = am_conf_app_icon;
     conf.launch_image = am_conf_app_launch_image;
     conf.grade = "release";
     conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
@@ -654,14 +652,14 @@ static bool create_ios_icon_files(const char *dir, export_config *conf) {
     size_t len;
     stbi_uc *img_data;
     int width, height;
-    if (conf->icon == NULL) {
+    if (am_conf_app_icon_ios == NULL) {
         width = 1024;
         height = 1024;
         len = width * height * 4;
         img_data = (stbi_uc*)malloc(len);
         memset(img_data, 255, len);
     } else {
-        void *data = am_read_file(conf->icon, &len);
+        void *data = am_read_file(am_conf_app_icon_ios, &len);
         int components = 4;
         stbi_set_flip_vertically_on_load(0);
         img_data =
@@ -710,13 +708,13 @@ static bool create_mac_entitlements(export_config *conf) {
 }
 
 static bool create_mac_icons(export_config *conf) {
-    if (conf->icon == NULL) return false;
+    if (am_conf_app_icon_mac == NULL) return false;
     if (!am_file_exists("/usr/bin/iconutil")) return false;
 
     size_t len;
     stbi_uc *img_data;
     int width, height;
-    void *data = am_read_file(conf->icon, &len);
+    void *data = am_read_file(am_conf_app_icon_mac, &len);
     int components = 4;
     stbi_set_flip_vertically_on_load(0);
     img_data =
