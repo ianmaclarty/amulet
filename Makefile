@@ -111,8 +111,9 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 else ifdef WINDOWS
 # build both console and windows versions
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
-	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
-	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	rc amulet.rc
+	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) amulet.res $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
+	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) amulet.res $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	cp $(BUILD_BIN_DIR)/* .
 	@$(PRINT_BUILD_DONE_MSG)
 else ifdef OSX
