@@ -16,9 +16,8 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
         chmod a+x amulet-${TAG}/amulet
         chmod a+x amulet-${TAG}/amulet.i686
     else
-        cp -r builds/osx/luajit/release/bin/* amulet-${TAG}/
+        cp -r builds/osx/luajit/release/bin/amulet amulet-${TAG}/
         chmod a+x amulet-${TAG}/amulet
-        rm amulet-${TAG}/Info.plist
     fi
     mv builds amulet-${TAG}/
     zip -r amulet-${TAG}-${TRAVIS_OS_NAME}.zip amulet-${TAG}
