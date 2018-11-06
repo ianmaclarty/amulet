@@ -461,7 +461,7 @@ static bool create_mac_info_plist(const char *binpath, const char *filename, exp
         fprintf(stderr, "Error: unable to create file %s", filename);
         return false;
     }
-    char *template_filename = am_format("%s%c%s", binpath, AM_PATH_SEP, "Info.plist");
+    char *template_filename = am_format("%s%c%s", binpath, AM_PATH_SEP, "Info.plist.tmpl");
     char *template_fmt = (char*)am_read_file(template_filename, NULL);
     free(template_filename);
     if (template_fmt == NULL) return false;

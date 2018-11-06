@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 for f in `find builds/osx -name "bin" -type d`; do
-cat << EOF > $f/Info.plist
+cat << EOF > $f/Info.plist.tmpl
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
