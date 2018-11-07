@@ -35,6 +35,7 @@ struct export_config {
 static bool create_mac_info_plist(const char *binpath, const char *filename, export_config *conf);
 static bool create_mac_icons(export_config *conf);
 static bool create_mac_entitlements(export_config *conf);
+static bool create_mac_lproj_dirs(const char *zipname, const char *dir, export_config *conf);
 
 static bool create_ios_info_plist(const char *binpath, const char *filename, export_config *conf);
 static bool create_ios_pkginfo(const char *filename);
@@ -246,6 +247,7 @@ static bool build_mac_export(export_config *conf, bool print_message) {
     bool icon_created = create_mac_icons(conf);
     const char *name = conf->title;
     const char *zipdir = conf->zipdir;
+    char *resource_dir = am_format("%s.app/Contents/Resources", name);
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
@@ -259,11 +261,13 @@ static bool build_mac_export(export_config *conf, bool print_message) {
         ((!icon_created) &&
             add_files_to_dist(zipname, binpath, "amulet.icns", zipdir, name, ".app/Contents/Resources/icon.icns", true, false, ZIP_PLATFORM_UNIX))
         ) &&
+        create_mac_lproj_dirs(zipname, resource_dir, conf) &&
         true;
     am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
     if (print_message) printf("Generated %s\n", zipname);
     free(zipname);
     free(binpath);
+    free(resource_dir);
     return ok;
 }
 
@@ -570,6 +574,33 @@ static bool create_ios_pkginfo(const char *filename) {
     }
     fprintf(f, "APPL????");
     fclose(f);
+    return true;
+}
+
+static bool create_mac_lproj_dirs(const char *zipname, const char *dir, export_config *conf) {
+    const char *ptr = conf->supported_languages;
+    char lang[100];
+    while (*ptr == ' ') ptr++;
+    while (*ptr != 0) {
+        int i = 0;
+        while (*ptr != 0 && *ptr != ',') {
+            if (i >= 100) {
+                fprintf(stderr, "conf.lua: language id too long\n");
+                return false;
+            }
+            lang[i] = *ptr;
+            i++;
+            ptr++;
+        }
+        lang[i] = 0;
+        char *name = am_format("%s/%s.lproj/x", dir, lang);
+        if (!mz_zip_add_mem_to_archive_file_in_place(zipname, name, "x", 1, "", 0, 0, 0100644, ZIP_PLATFORM_UNIX)) {
+            free(name);
+            return false;
+        }
+        free(name);
+        while (*ptr == ',' || *ptr == ' ') ptr++;
+    }
     return true;
 }
 

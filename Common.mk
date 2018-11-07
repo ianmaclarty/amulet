@@ -8,7 +8,7 @@ TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios32 ios64 iossim android 
 # Directories
 
 THIRD_PARTY_DIR         = third_party
-SDL_DIR          = $(THIRD_PARTY_DIR)/SDL2-2.0.8
+SDL_DIR          = $(THIRD_PARTY_DIR)/SDL2-2.0.9
 LUA51_DIR        = $(THIRD_PARTY_DIR)/lua-5.1.5
 LUA52_DIR        = $(THIRD_PARTY_DIR)/lua-5.2.4
 LUA53_DIR        = $(THIRD_PARTY_DIR)/lua-5.3.1
