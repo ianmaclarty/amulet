@@ -155,6 +155,7 @@ $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	fi
 
 $(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
+	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
 	cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
 	-cp $(SDL_PREBUILT_DIR)/lib/*.lib $(BUILD_LIB_DIR)/
 	-cp $(SDL_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
