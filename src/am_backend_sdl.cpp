@@ -431,7 +431,7 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
     }
 }
 
-#if !defined (AM_OSX) // see am_videocapture_osx.cpp for OSX definition
+#if !(defined (AM_OSX) && !defined(AM_USE_METAL))// see am_videocapture_osx.cpp for OSX (opengl) definition
 int am_next_video_capture_frame() {
     return 0;
 }
