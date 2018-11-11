@@ -13,12 +13,12 @@ am.window{}.scene = am.text("Hello World!")
 It currently runs on the following platforms:
 
 - Windows 7+
-- Mac OS X 10.6+
+- Mac OS X 10.9+
 - Linux
 - iOS
 - HTML5
 
-Android support will also be added at some point.
+The engine technically works on Android too, but exporting to Android is not yet supported.
 
 ## Binary distributions
 
@@ -27,6 +27,12 @@ These are available from <http://www.amulet.xyz>.
 ## Documentation
 
 See <http://www.amulet.xyz/doc/>.
+
+## Reporting bugs or requesting features
+
+I don't use the github issue tracker. Instead please email bug reports
+or feature requests to me at ian -at- ianmaclarty.com, or use the
+<a href="https://groups.google.com/forum/#!forum/amulet-forum">forum</a>.
 
 ## Building from source
 
@@ -112,5 +118,5 @@ The Amulet logo was designed by [Bethany Wilksch](http://www.plumb-bob.com.au).
 
 | System |  Status |
 |:-------------|:------------|
-|Travis (Linux, OSX, iOS, MinGW) | [![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet) |
-|Appveyor (MSVC, Emscripten) | [![Build Status](https://ci.appveyor.com/api/projects/status/tp1ifjl53cy86gyu?svg=true)](https://ci.appveyor.com/project/ianmaclarty/amulet) |
+|Travis (Linux, OSX, iOS, MinGW, HTML) | [![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet) |
+|Appveyor (MSVC) | [![Build Status](https://ci.appveyor.com/api/projects/status/tp1ifjl53cy86gyu?svg=true)](https://ci.appveyor.com/project/ianmaclarty/amulet) |

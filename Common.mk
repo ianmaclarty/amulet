@@ -3,16 +3,16 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 msvc32 osx ios32 ios64 iossim android html mingw32 mingw64
+TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios32 ios64 iossim android html mingw32 mingw64
 
 # Directories
 
 THIRD_PARTY_DIR         = third_party
-SDL_DIR          = $(THIRD_PARTY_DIR)/SDL2-2.0.8
+SDL_DIR          = $(THIRD_PARTY_DIR)/SDL2-2.0.9
 LUA51_DIR        = $(THIRD_PARTY_DIR)/lua-5.1.5
 LUA52_DIR        = $(THIRD_PARTY_DIR)/lua-5.2.4
 LUA53_DIR        = $(THIRD_PARTY_DIR)/lua-5.3.1
-LUAJIT_DIR       = $(THIRD_PARTY_DIR)/LuaJIT-2.0.4
+LUAJIT_DIR       = $(THIRD_PARTY_DIR)/LuaJIT-2.0.5
 ANGLE_DIR        = $(THIRD_PARTY_DIR)/angle-chrome_m34
 GLM_DIR          = $(THIRD_PARTY_DIR)/glm-0.9.7.1
 FT2_DIR          = $(THIRD_PARTY_DIR)/freetype-2.5.5
@@ -28,6 +28,10 @@ PATH_SEP = :
 
 UNAME := $(shell uname)
 ifneq (,$(findstring W32,$(UNAME)))
+  HOST_PLATFORM = msvc32
+  IS_WINDOWS = yes
+  PATH_SEP = ;
+else ifneq (,$(findstring MSYS_NT,$(UNAME)))
   HOST_PLATFORM = msvc32
   IS_WINDOWS = yes
   PATH_SEP = ;
@@ -143,6 +147,11 @@ else
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
       STEAMWORKS_DEP=steam_api
+  else ifeq ($(TARGET_PLATFORM),msvc64)
+      STEAMWORKS_LIB=$(BUILD_LIB_DIR)/libsteam_api64.lib
+      STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/win64
+      STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      STEAMWORKS_DEP=steam_api64
   else ifeq ($(TARGET_PLATFORM),linux64)
       STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.so
       XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
@@ -168,7 +177,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   LINK = clang++
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -m64 -arch x86_64
-  XLDFLAGS = -lm -liconv $(STEAMWORKS_LINK_OPT) -Wl,-framework,OpenGL -Wl,-framework,Metal -Wl,-framework,ForceFeedback -lobjc \
+  XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT)  -Wl,-framework,Metal -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia
@@ -179,6 +188,7 @@ endif
   LUA_CFLAGS += -DLUA_USE_MACOSX
   MACOSX_DEPLOYMENT_TARGET=10.11
   export MACOSX_DEPLOYMENT_TARGET
+  OSX = 1
 else ifeq ($(TARGET_PLATFORM),ios32)
   CC = clang
   CPP = clang++
@@ -292,10 +302,40 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
 	$(BUILD_LIB_DIR)/SDL2.lib
   TARGET_CFLAGS = -nologo -EHsc -fp:fast
   WINDOWS = 1
+  MSVC = 1
   WINDOWS_SUBSYSTEM_OPT = -SUBSYSTEM:WINDOWS
   CONSOLE_SUBSYSTEM_OPT = -SUBSYSTEM:CONSOLE
   SDL_PREBUILT_SUBDIR=win32
   C99_OPT =
+  ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/32
+else ifeq ($(TARGET_PLATFORM),msvc64)
+  VC_CL = cl.exe
+  VC_CL_PATH = $(shell which $(VC_CL))
+  VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")
+  VC_LINK = "$(VC_CL_DIR)/link.exe"
+  VC_LIB = "$(VC_CL_DIR)/lib.exe"
+  EXE_EXT = .exe
+  ALIB_EXT = .lib
+  OBJ_EXT = .obj
+  OBJ_OUT_OPT = -Fo
+  EXE_OUT_OPT = /OUT:
+  CC = $(VC_CL)
+  CPP = $(VC_CL)
+  LINK = $(VC_LINK)
+  AR = $(VC_LIB)
+  AR_OPTS = -nologo
+  AR_OUT_OPT = -OUT:
+  XCFLAGS = -MT -DLUA_COMPAT_ALL -WX 
+  XLDFLAGS = -NODEFAULTLIB:msvcrt.lib \
+	$(BUILD_LIB_DIR)/SDL2.lib
+  TARGET_CFLAGS = -nologo -EHsc -fp:fast
+  WINDOWS = 1
+  MSVC = 1
+  WINDOWS_SUBSYSTEM_OPT = -SUBSYSTEM:WINDOWS
+  CONSOLE_SUBSYSTEM_OPT = -SUBSYSTEM:CONSOLE
+  SDL_PREBUILT_SUBDIR=win64
+  C99_OPT =
+  ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/64
 else ifeq ($(TARGET_PLATFORM),mingw32)
   EXE_EXT = .exe
   CC = i686-w64-mingw32-gcc
@@ -306,9 +346,11 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   XCFLAGS = -Wall -Werror -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m32" CROSS=i686-w64-mingw32- TARGET_SYS=Windows
   WINDOWS = 1
+  MINGW = 1
   WINDOWS_SUBSYSTEM_OPT = -mwindows
   CONSOLE_SUBSYSTEM_OPT =
   SDL_PREBUILT_SUBDIR=win32
+  ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/32
 else ifeq ($(TARGET_PLATFORM),mingw64)
   EXE_EXT = .exe
   CC = x86_64-w64-mingw32-gcc
@@ -319,8 +361,11 @@ else ifeq ($(TARGET_PLATFORM),mingw64)
   XCFLAGS = -Wall -Werror -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m64" CROSS=x86_64-w64-mingw32- TARGET_SYS=Windows
   WINDOWS = 1
+  MINGW = 1
   WINDOWS_SUBSYSTEM_OPT = -mwindows
   CONSOLE_SUBSYSTEM_OPT =
+  SDL_PREBUILT_SUBDIR=win64
+  ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/64
 else ifeq ($(TARGET_PLATFORM),linux32)
   TARGET_CFLAGS += -m32
   LDFLAGS += -m32
@@ -344,6 +389,9 @@ ifeq ($(GRADE),debug)
   else ifeq ($(TARGET_PLATFORM),osx)
     GRADE_CFLAGS = -g -O0 -fsanitize=address
     GRADE_LDFLAGS = -g -fsanitize=address
+  else ifeq ($(TARGET_PLATFORM),msvc64)
+    GRADE_CFLAGS = -MTd -Zi
+    GRADE_LDFLAGS = -DEBUG
     LUA_CFLAGS += -DLUA_USE_APICHECK
     LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
   else
@@ -359,6 +407,9 @@ else
     GRADE_CFLAGS = -O2 $(EM_PROFILING) -DNDEBUG
     GRADE_LDFLAGS = -O2 $(EM_PROFILING) 
   else ifeq ($(TARGET_PLATFORM),msvc32)
+    GRADE_CFLAGS = -Ox -DNDEBUG
+    GRADE_LDFLAGS =
+  else ifeq ($(TARGET_PLATFORM),msvc64)
     GRADE_CFLAGS = -Ox -DNDEBUG
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),osx)
@@ -382,4 +433,3 @@ endif
 COMMON_CFLAGS := $(TARGET_CFLAGS) $(GRADE_CFLAGS) $(CFLAGS)
 
 SDL_PREBUILT_DIR = $(THIRD_PARTY_DIR)/SDL2-prebuilt/$(SDL_PREBUILT_SUBDIR)
-ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt

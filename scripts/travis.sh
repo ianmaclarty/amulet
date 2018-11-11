@@ -16,7 +16,7 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
         chmod a+x amulet-${TAG}/amulet
         chmod a+x amulet-${TAG}/amulet.i686
     else
-        cp -r builds/osx/luajit/release/bin/* amulet-${TAG}/
+        cp -r builds/osx/luajit/release/bin/amulet amulet-${TAG}/
         chmod a+x amulet-${TAG}/amulet
     fi
     mv builds amulet-${TAG}/
@@ -84,4 +84,6 @@ else
         scripts/upload_builds.js $TRAVIS_TAG
     fi
 fi
-scripts/update_site.sh
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then # don't update site for pull requests
+    scripts/update_site.sh
+fi

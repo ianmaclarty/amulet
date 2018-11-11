@@ -95,12 +95,8 @@ am_native_window *am_create_native_window(
     bool stencil_buffer,
     int msaa_samples)
 {
-    if (windows.size() == 0 && main_window != NULL) {
-        win_info winfo;
-        memset(&winfo, 0, sizeof(win_info));
-        winfo.window = main_window;
-        SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
-        windows.push_back(winfo);
+    if (restart_triggered && main_window != NULL) {
+        // restarting, return existing window
         return (am_native_window*)main_window;
     }
     if (!sdl_initialized) {
@@ -446,6 +442,15 @@ void am_copy_video_frame_to_texture() {
 const char *am_preferred_language() {
 #if defined(AM_STEAMWORKS)
     return am_get_steam_lang();
+#elif defined(AM_OSX)
+    NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
+    bool in_osx_bundle = (bundleIdentifier != nil);
+    if (in_osx_bundle) {
+        NSString *languageID = [[NSBundle mainBundle] preferredLocalizations].firstObject;
+        return [languageID UTF8String];
+    } else {
+        return "en";
+    }
 #else
     return "en";
 #endif
@@ -485,13 +490,14 @@ int main( int argc, char *argv[] )
         exit_status = EXIT_FAILURE;
         goto quit;
     }
+
+restart:
     eng = am_init_engine(false, argc, argv);
     if (eng == NULL) {
         exit_status = EXIT_FAILURE;
         goto quit;
     }
 
-restart:
     L = eng->L;
 
     frame_time = am_get_current_time();
@@ -499,10 +505,13 @@ restart:
     lua_pushcclosure(L, am_require, 0);
     lua_pushstring(L, am_opt_main_module);
     if (!am_call(L, 1, 0)) {
-        exit_status = EXIT_FAILURE;
-        goto quit;
+        if (windows.size() == 0) {
+            exit_status = EXIT_FAILURE;
+        }
     }
     if (windows.size() == 0) goto quit;
+
+    restart_triggered = false;
 
     t0 = am_get_current_time();
     frame_time = t0;
@@ -545,15 +554,12 @@ restart:
         t_debt += delta_time;
 
 #ifdef AM_STEAMWORKS
-    am_steam_step();
+        am_steam_step();
 #endif
         if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
                 double t0 = am_get_current_time();
-                if (!am_execute_actions(L, am_conf_fixed_delta_time)) {
-                    exit_status = EXIT_FAILURE;
-                    goto quit;
-                }
+                am_execute_actions(L, am_conf_fixed_delta_time);
                 double t = am_get_current_time() - t0;
                 t_debt -= am_max(t, am_conf_fixed_delta_time);
             }
@@ -562,10 +568,7 @@ restart:
                 if (am_conf_delta_time_step > 0.0) {
                     t_debt = floor(t_debt / am_conf_delta_time_step + 0.5) * am_conf_delta_time_step;
                 }
-                if (!am_execute_actions(L, t_debt)) {
-                    exit_status = EXIT_FAILURE;
-                    goto quit;
-                }
+                am_execute_actions(L, t_debt);
                 t_debt = 0.0;
             }
         }
@@ -584,9 +587,7 @@ restart:
     }
 
     if (restart_triggered) {
-        restart_triggered = false;
         am_destroy_engine(eng);
-        eng = am_init_engine(false, argc, argv);
         goto restart;
     }
 
@@ -759,18 +760,21 @@ WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 }
 #endif
 
+static void add_extra_controller_mappings() {
+    SDL_GameControllerAddMapping("03000000c0160000e105000000040000,Xinmoteck 1 Player,a:b1,b:b2,y:b3,x:b0,start:b9,guide:b12,back:b8,leftx:a0,lefty:a1,rightx:a2,righty:a3,leftshoulder:b4,rightshoulder:b5,lefttrigger:b6,righttrigger:b7");
+}
+
 static void init_sdl() {
+    add_extra_controller_mappings();
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER);
     init_audio();
     init_controllers();
     sdl_initialized = true;
-#if defined(AM_WINDOWS)
     if (am_conf_d3dangle) {
         if (!SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "d3dcompiler_47.dll")) {
             am_abort("unable to set SDL_HINT_VIDEO_WIN_D3DCOMPILER");
         }
     }
-#endif
 }
 
 #ifdef AM_NEED_GL_FUNC_PTRS
@@ -993,7 +997,7 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
-                    if (am_conf_allow_restart && event.key.keysym.scancode == SDL_SCANCODE_F5) {
+                    if (!package && event.key.keysym.scancode == SDL_SCANCODE_F5) {
                         restart_triggered = true;
                     } else {
                         win_info *info = win_from_id(event.key.windowID);
@@ -1122,6 +1126,41 @@ static bool handle_events(lua_State *L) {
                 am_call_amulet(L, "_controller_axis_motion", 3, 0);
                 break;
             }
+            /*
+            case SDL_JOYDEVICEADDED: {
+                int joy_index = event.jdevice.which;
+                SDL_JoystickGUID guid = SDL_JoystickGetDeviceGUID(joy_index);
+                char name[100];
+                SDL_JoystickGetGUIDString(guid, name, 100);
+                am_debug("joy added '%s'", name);
+                SDL_JoystickOpen(joy_index);
+                break;
+            }
+            case SDL_JOYDEVICEREMOVED: {
+                am_debug("%s", "joy removed");
+                break;
+            }
+            case SDL_JOYBUTTONDOWN: {
+                am_debug("joy button down %d", event.jbutton.button);
+                break;
+            }
+            case SDL_JOYBUTTONUP: {
+                am_debug("%s", "joy button up");
+                break;
+            }
+            case SDL_JOYAXISMOTION: {
+                am_debug("joy axis %d %d", event.jaxis.axis, event.jaxis.value);
+                break;
+            }
+            case SDL_JOYBALLMOTION: {
+                am_debug("%s", "joy ball");
+                break;
+            }
+            case SDL_JOYHATMOTION: {
+                am_debug("%s", "joy hat");
+                break;
+            }
+            */
         }
     }
     for (unsigned i = 0; i < windows.size(); i++) {

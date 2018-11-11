@@ -73,4 +73,6 @@ void am_expand_args(int *argc_ptr, char ***argv_ptr);
 void am_free_expanded_args(int argc, char **argv);
 #endif
 
+bool am_execute_shell_cmd(const char *fmt, ...);
+
 #define am_always_assert(c) {if (!(c)) {am_abort("%s:%d: assertion failed: %s\n", __FILE__, __LINE__, #c);}}

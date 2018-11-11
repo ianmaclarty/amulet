@@ -2,6 +2,8 @@
 extern const char *am_conf_app_title;
 extern const char *am_conf_app_author;
 extern const char *am_conf_app_id;
+extern const char *am_conf_app_id_ios;
+extern const char *am_conf_app_id_mac;
 extern const char *am_conf_app_version;
 extern const char *am_conf_app_shortname;
 extern const char *am_conf_app_display_name;
@@ -9,8 +11,14 @@ extern const char *am_conf_app_dev_region;
 extern const char *am_conf_app_supported_languages;
 extern am_display_orientation am_conf_app_display_orientation;
 extern const char *am_conf_app_icon;
+extern const char *am_conf_app_icon_mac;
+extern const char *am_conf_app_icon_ios;
 extern const char *am_conf_app_launch_image;
 extern const char *am_conf_luavm;
+extern const char *am_conf_support_email;
+extern const char *am_conf_mac_category;
+extern const char *am_conf_mac_application_cert_identity;
+extern const char *am_conf_mac_installer_cert_identity;
 
 // graphic driver options
 extern bool am_conf_d3dangle;
@@ -41,8 +49,9 @@ extern bool am_conf_check_gl_errors;
 extern bool am_conf_dump_translated_shaders;
 extern bool am_conf_log_gl_calls;
 extern int am_conf_log_gl_frames;
-extern bool am_conf_allow_restart;
 extern bool am_conf_no_close_lua;
 extern char *am_conf_test_lang;
+
+extern bool am_conf_no_zip_dir;
 
 bool am_load_config();
