@@ -325,7 +325,9 @@ void am_init_gl() {
 
     metal_layer = (CAMetalLayer *)[metal_view layer];
     metal_layer.device = metal_device;
-    //metal_layer.displaySyncEnabled = (am_conf_vsync ? YES : NO);
+    if (@available(macOS 10.13, *)) {
+        metal_layer.displaySyncEnabled = (am_conf_vsync ? YES : NO);
+    }
 
     metal_queue = [metal_device newCommandQueue];
 
