@@ -216,6 +216,15 @@ See also [node:action](#node:action).
 
 Cancels an action.
 
+### node:update() {#node:update .method-def}
+
+Executes actions on a node and its descendents. Actions are still only run
+once per frame, so if the give node's actions have already been run, they
+won't run again.
+
+Use this method to execute actions on nodes that are not attached to the window,
+for example nodes that are being manually rendered into a framebuffer.
+
 ### node:append(child) {.func-def}
 
 Appends `child` to the end of `node`'s child list and returns `node`.

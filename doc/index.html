@@ -232,6 +232,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#node:action">node:action([id,] action)</a></li>
 <li><a href="#node:late_action">node:late_action([id,] action)</a></li>
 <li><a href="#node:cancel">node:cancel(id)</a></li>
+<li><a href="#node:update">node:update()</a></li>
 <li><a href="#nodeappendchild">node:append(child)</a></li>
 <li><a href="#nodeprependchild">node:prepend(child)</a></li>
 <li><a href="#noderemovechild">node:remove(child)</a></li>
@@ -1953,6 +1954,9 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>See also <a href="#node:action">node:action</a>.</p>
 <h3 id="node:cancel" class="method-def">node:cancel(id)</h3>
 <p>Cancels an action.</p>
+<h3 id="node:update" class="method-def">node:update()</h3>
+<p>Executes actions on a node and its descendents. Actions are still only run once per frame, so if the give node's actions have already been run, they won't run again.</p>
+<p>Use this method to execute actions on nodes that are not attached to the window, for example nodes that are being manually rendered into a framebuffer.</p>
 <h3 id="nodeappendchild" class="func-def">node:append(child)</h3>
 <p>Appends <code>child</code> to the end of <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="nodeprependchild" class="func-def">node:prepend(child)</h3>
