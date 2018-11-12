@@ -1,6 +1,8 @@
 #include "amulet.h"
 #ifdef AM_USE_METAL
 
+// https://developer.apple.com/documentation/metal?language=objc
+
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
@@ -220,7 +222,14 @@ struct tex_uniform_descr {
 };
 
 struct metal_pipeline {
-    attr_layout *layouts;
+    attr_layout *attr_layouts;
+    bool blend_enabled;
+    am_blend_equation blend_eq_rgb;
+    am_blend_equation blend_eq_alpha;
+    am_blend_sfactor blend_sfactor_rgb;
+    am_blend_sfactor blend_sfactor_alpha;
+    am_blend_dfactor blend_dfactor_rgb;
+    am_blend_dfactor blend_dfactor_alpha;
     id<MTLRenderPipelineState> mtlpipeline;
 };
 
@@ -269,6 +278,68 @@ static am_texture_id metal_active_texture = 0;
 #define NUM_TEXTURE_UNITS 32
 static am_texture_id texture_units[NUM_TEXTURE_UNITS];
 static int active_texture_unit = -1;
+
+static bool metal_blend_enabled;
+static am_blend_equation metal_blend_eq_rgb;
+static am_blend_equation metal_blend_eq_alpha;
+static am_blend_sfactor metal_blend_sfactor_rgb;
+static am_blend_sfactor metal_blend_sfactor_alpha;
+static am_blend_dfactor metal_blend_dfactor_rgb;
+static am_blend_dfactor metal_blend_dfactor_alpha;
+
+static BOOL to_objc_bool(bool b) {
+    return b ? YES : NO;
+}
+
+static MTLBlendFactor to_metal_blend_sfactor(am_blend_sfactor f) {
+    switch (f) {
+        case AM_BLEND_SFACTOR_ZERO: return MTLBlendFactorZero;
+        case AM_BLEND_SFACTOR_ONE: return MTLBlendFactorOne;
+        case AM_BLEND_SFACTOR_SRC_COLOR: return MTLBlendFactorSourceColor;
+        case AM_BLEND_SFACTOR_ONE_MINUS_SRC_COLOR: return MTLBlendFactorOneMinusSourceColor;
+        case AM_BLEND_SFACTOR_DST_COLOR: return MTLBlendFactorDestinationColor;
+        case AM_BLEND_SFACTOR_ONE_MINUS_DST_COLOR: return MTLBlendFactorOneMinusDestinationColor;
+        case AM_BLEND_SFACTOR_SRC_ALPHA: return MTLBlendFactorSourceAlpha;
+        case AM_BLEND_SFACTOR_ONE_MINUS_SRC_ALPHA: return MTLBlendFactorOneMinusSourceAlpha;
+        case AM_BLEND_SFACTOR_DST_ALPHA: return MTLBlendFactorDestinationAlpha;
+        case AM_BLEND_SFACTOR_ONE_MINUS_DST_ALPHA: return MTLBlendFactorOneMinusDestinationAlpha;
+        case AM_BLEND_SFACTOR_CONSTANT_COLOR: return MTLBlendFactorBlendColor;
+        case AM_BLEND_SFACTOR_ONE_MINUS_CONSTANT_COLOR: return MTLBlendFactorOneMinusBlendColor;
+        case AM_BLEND_SFACTOR_CONSTANT_ALPHA: return MTLBlendFactorBlendAlpha;
+        case AM_BLEND_SFACTOR_ONE_MINUS_CONSTANT_ALPHA: return MTLBlendFactorOneMinusBlendAlpha;
+        case AM_BLEND_SFACTOR_SRC_ALPHA_SATURATE: return MTLBlendFactorSourceAlphaSaturated;
+    }
+    return MTLBlendFactorZero;
+}
+
+static MTLBlendFactor to_metal_blend_dfactor(am_blend_dfactor f) {
+    switch (f) {
+        case AM_BLEND_DFACTOR_ZERO: return MTLBlendFactorZero;
+        case AM_BLEND_DFACTOR_ONE: return MTLBlendFactorOne;
+        case AM_BLEND_DFACTOR_SRC_COLOR: return MTLBlendFactorSourceColor;
+        case AM_BLEND_DFACTOR_ONE_MINUS_SRC_COLOR: return MTLBlendFactorOneMinusSourceColor;
+        case AM_BLEND_DFACTOR_DST_COLOR: return MTLBlendFactorDestinationColor;
+        case AM_BLEND_DFACTOR_ONE_MINUS_DST_COLOR: return MTLBlendFactorOneMinusDestinationColor;
+        case AM_BLEND_DFACTOR_SRC_ALPHA: return MTLBlendFactorSourceAlpha;
+        case AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA: return MTLBlendFactorOneMinusSourceAlpha;
+        case AM_BLEND_DFACTOR_DST_ALPHA: return MTLBlendFactorDestinationAlpha;
+        case AM_BLEND_DFACTOR_ONE_MINUS_DST_ALPHA: return MTLBlendFactorOneMinusDestinationAlpha;
+        case AM_BLEND_DFACTOR_CONSTANT_COLOR: return MTLBlendFactorBlendColor;
+        case AM_BLEND_DFACTOR_ONE_MINUS_CONSTANT_COLOR: return MTLBlendFactorOneMinusBlendColor;
+        case AM_BLEND_DFACTOR_CONSTANT_ALPHA: return MTLBlendFactorBlendAlpha;
+        case AM_BLEND_DFACTOR_ONE_MINUS_CONSTANT_ALPHA: return MTLBlendFactorOneMinusBlendAlpha;
+    }
+    return MTLBlendFactorZero;
+}
+
+static MTLBlendOperation to_metal_blend_op(am_blend_equation e) {
+    switch (e) {
+        case AM_BLEND_EQUATION_ADD: return MTLBlendOperationAdd;
+        case AM_BLEND_EQUATION_SUBTRACT: return MTLBlendOperationSubtract;
+        case AM_BLEND_EQUATION_REVERSE_SUBTRACT: return MTLBlendOperationReverseSubtract;
+    }
+    return MTLBlendOperationAdd;
+}
 
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     if (metal_encoder != nil) {
@@ -362,6 +433,22 @@ void am_init_gl() {
         texture_units[i] = -1;
     }
 
+    metal_active_texture = 0;
+    metal_active_framebuffer = 0;
+    metal_active_element_buffer = 0;
+    metal_active_array_buffer = 0;
+    metal_active_pipeline = -1;
+    metal_active_program = 0;
+    metal_active_drawable = nil;
+
+    metal_blend_enabled = false;
+    metal_blend_eq_rgb = AM_BLEND_EQUATION_ADD;
+    metal_blend_eq_alpha = AM_BLEND_EQUATION_ADD;
+    metal_blend_sfactor_rgb = AM_BLEND_SFACTOR_SRC_ALPHA;
+    metal_blend_sfactor_alpha = AM_BLEND_SFACTOR_SRC_ALPHA;
+    metal_blend_dfactor_rgb = AM_BLEND_DFACTOR_SRC_ALPHA;
+    metal_blend_dfactor_alpha = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+
     metal_initialized = true;
 }
 
@@ -389,7 +476,7 @@ void am_destroy_gl() {
 
 void am_set_blend_enabled(bool enabled) {
     check_initialized();
-    // TODO
+    metal_blend_enabled = enabled;
 }
 
 void am_set_blend_color(float r, float g, float b, float a) {
@@ -399,12 +486,16 @@ void am_set_blend_color(float r, float g, float b, float a) {
 
 void am_set_blend_equation(am_blend_equation rgb, am_blend_equation alpha) {
     check_initialized();
-    // TODO
+    metal_blend_eq_rgb = rgb;
+    metal_blend_eq_alpha = alpha;
 }
 
 void am_set_blend_func(am_blend_sfactor src_rgb, am_blend_dfactor dst_rgb, am_blend_sfactor src_alpha, am_blend_dfactor dst_alpha) {
     check_initialized();
-    // TODO
+    metal_blend_sfactor_rgb = src_rgb;
+    metal_blend_dfactor_rgb = dst_rgb;
+    metal_blend_sfactor_alpha = src_alpha;
+    metal_blend_dfactor_alpha = dst_alpha;
 }
 
 void am_set_depth_test_enabled(bool enabled) {
@@ -1477,7 +1568,19 @@ static bool setup_pipeline(metal_program *prog) {
     int selected_pipeline = -1;
     for (int i = 0; i < prog->pipeline_cache.size(); i++) {
         metal_pipeline *cached_pipeline = &prog->pipeline_cache[i];
-        attr_layout *cached_layouts = cached_pipeline->layouts;
+        if (
+            cached_pipeline->blend_enabled != metal_blend_enabled ||
+            cached_pipeline->blend_eq_rgb != metal_blend_eq_rgb ||
+            cached_pipeline->blend_eq_alpha != metal_blend_eq_alpha ||
+            cached_pipeline->blend_sfactor_rgb != metal_blend_sfactor_rgb ||
+            cached_pipeline->blend_sfactor_alpha != metal_blend_sfactor_alpha ||
+            cached_pipeline->blend_dfactor_rgb != metal_blend_dfactor_rgb ||
+            cached_pipeline->blend_dfactor_alpha != metal_blend_dfactor_alpha ||
+            false)
+        {
+            continue;
+        }
+        attr_layout *cached_layouts = cached_pipeline->attr_layouts;
         bool match = true;
         for (int j = 0; j < nattrs; j++) {
             attr_layout *cached_layout = &cached_layouts[j];
@@ -1504,6 +1607,13 @@ static bool setup_pipeline(metal_program *prog) {
 
         // XXX need to check active framebuffer pixelformat
         pldescr.colorAttachments[0].pixelFormat = metal_layer.pixelFormat;
+        pldescr.colorAttachments[0].blendingEnabled = to_objc_bool(metal_blend_enabled);
+        pldescr.colorAttachments[0].rgbBlendOperation = to_metal_blend_op(metal_blend_eq_rgb);
+        pldescr.colorAttachments[0].alphaBlendOperation = to_metal_blend_op(metal_blend_eq_alpha);
+        pldescr.colorAttachments[0].sourceRGBBlendFactor = to_metal_blend_sfactor(metal_blend_sfactor_rgb);
+        pldescr.colorAttachments[0].sourceAlphaBlendFactor = to_metal_blend_sfactor(metal_blend_sfactor_alpha);
+        pldescr.colorAttachments[0].destinationRGBBlendFactor = to_metal_blend_dfactor(metal_blend_dfactor_rgb);
+        pldescr.colorAttachments[0].destinationAlphaBlendFactor = to_metal_blend_dfactor(metal_blend_dfactor_alpha);
 
         MTLVertexDescriptor *vertdescr = [[MTLVertexDescriptor alloc] init];
         for (int i = 0; i < nattrs; i++) {
@@ -1531,10 +1641,17 @@ static bool setup_pipeline(metal_program *prog) {
             return false;
         }
         metal_pipeline cached_pipeline;
-        cached_pipeline.layouts = (attr_layout*)malloc(nattrs * sizeof(attr_layout));
+        cached_pipeline.attr_layouts = (attr_layout*)malloc(nattrs * sizeof(attr_layout));
         for (int i = 0; i < nattrs; i++) {
-            cached_pipeline.layouts[i] = prog->attrs[i].layout;
+            cached_pipeline.attr_layouts[i] = prog->attrs[i].layout;
         }
+        cached_pipeline.blend_enabled = metal_blend_enabled;
+        cached_pipeline.blend_eq_rgb = metal_blend_eq_rgb;
+        cached_pipeline.blend_eq_alpha = metal_blend_eq_alpha;
+        cached_pipeline.blend_sfactor_rgb = metal_blend_sfactor_rgb;
+        cached_pipeline.blend_sfactor_alpha = metal_blend_sfactor_alpha;
+        cached_pipeline.blend_dfactor_rgb = metal_blend_dfactor_rgb;
+        cached_pipeline.blend_dfactor_alpha = metal_blend_dfactor_alpha;
         cached_pipeline.mtlpipeline = pl;
         selected_pipeline = prog->pipeline_cache.size();
         prog->pipeline_cache.push_back(cached_pipeline);
