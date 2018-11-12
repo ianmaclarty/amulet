@@ -107,9 +107,9 @@ children. The resulting scene graph looks like this:
 
 ![](graphs/scene1.png)
 
-The translate node moves its descendents to the right 150 and up 100 (by
+The translate node moves its descendants to the right 150 and up 100 (by
 convention the y axis increases in upward direction). The scale node
-doubles its descendent's size and the rotate node rotates its descendents by
+doubles its descendant's size and the rotate node rotates its descendants by
 90 degrees (`math.rad` converts degrees to radians).
 Finally the text node renders some text to the screen.
 

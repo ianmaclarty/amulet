@@ -99,7 +99,7 @@ Determines whether the node and its children's [actions](#node:action)
 are executed. The default is `false`, meaning the actions
 are executed.
 
-Note that a descendent node's actions might still be executed
+Note that a descendant node's actions might still be executed
 if it is has another, non-paused, parent.
 
 Updatable.
@@ -134,12 +134,12 @@ Removes a tag from a node and returns the node.
 
 ### node:all(tagname) {#node:all .method-def}
 
-Searches `node` and all its descendents for any nodes
+Searches `node` and all its descendants for any nodes
 with the tag `tagname` and returns them as a table.
 
 ### node(tagname) {#node:tagsearch .method-def}
 
-Searches `node` and its descendents for `tagname`
+Searches `node` and its descendants for `tagname`
 and returns the first matching node found, or `nil`
 if no matching nodes were found. The search is depth-first
 left-to-right.
@@ -218,7 +218,7 @@ Cancels an action.
 
 ### node:update() {#node:update .method-def}
 
-Executes actions on a node and its descendents. Actions are still only run
+Executes actions on a node and its descendants. Actions are still only run
 once per frame, so if the give node's actions have already been run, they
 won't run again.
 
@@ -240,7 +240,7 @@ and returns `node`.
 
 ### node:remove(tagname) {.func-def}
 
-Searches for a node with tag `tagname` in the descendents
+Searches for a node with tag `tagname` in the descendants
 of `node` and removes the first one it finds. 
 Then returns `node`.
 
@@ -255,7 +255,7 @@ in `node`'s child list and returns `node`.
 
 ### node:replace(tagname, replacement) {.func-def}
 
-Searches for a node with tag `tagname` in the descendents
+Searches for a node with tag `tagname` in the descendants
 of `node` and replaces the first one it finds with
 `replacement`. Then returns `node`.
 
@@ -560,7 +560,7 @@ Default tag: `"particles2d"`.
 ## Transformation nodes
 
 The following nodes apply transformations to all
-their descendents.
+their descendants.
 
 **Note**:
 These nodes have an optional `uniform` argument in the
@@ -683,7 +683,7 @@ Default tag: `"transform"`.
 ### am.use_program(program) {#am.use_program .func-def}
 
 Sets the [shader program](#shader-programs) to use when
-rendering descendents. A `program` object can be
+rendering descendants. A `program` object can be
 created using the [`am.program`](#am.program) function.
 
 Fields:

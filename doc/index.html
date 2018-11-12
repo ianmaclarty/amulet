@@ -735,7 +735,7 @@ main.lua:1: It works!</code></pre>
 <img src="graphs/scene1.png" />
 
 </div>
-<p>The translate node moves its descendents to the right 150 and up 100 (by convention the y axis increases in upward direction). The scale node doubles its descendent's size and the rotate node rotates its descendents by 90 degrees (<code>math.rad</code> converts degrees to radians). Finally the text node renders some text to the screen.</p>
+<p>The translate node moves its descendants to the right 150 and up 100 (by convention the y axis increases in upward direction). The scale node doubles its descendant's size and the rotate node rotates its descendants by 90 degrees (<code>math.rad</code> converts degrees to radians). Finally the text node renders some text to the screen.</p>
 <p>When you run the program you should see something like this:</p>
 <div class="figure">
 <img src="images/hello2.png" />
@@ -1906,7 +1906,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>Updatable.</p>
 <h3 id="node.paused" class="func-def">node.paused</h3>
 <p>Determines whether the node and its children's <a href="#node:action">actions</a> are executed. The default is <code>false</code>, meaning the actions are executed.</p>
-<p>Note that a descendent node's actions might still be executed if it is has another, non-paused, parent.</p>
+<p>Note that a descendant node's actions might still be executed if it is has another, non-paused, parent.</p>
 <p>Updatable.</p>
 <h3 id="node.num_children" class="func-def">node.num_children</h3>
 <p>Returns the node's child count.</p>
@@ -1921,9 +1921,9 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="node:untag" class="method-def">node:untag(tagname)</h3>
 <p>Removes a tag from a node and returns the node.</p>
 <h3 id="node:all" class="method-def">node:all(tagname)</h3>
-<p>Searches <code>node</code> and all its descendents for any nodes with the tag <code>tagname</code> and returns them as a table.</p>
+<p>Searches <code>node</code> and all its descendants for any nodes with the tag <code>tagname</code> and returns them as a table.</p>
 <h3 id="node:tagsearch" class="method-def">node(tagname)</h3>
-<p>Searches <code>node</code> and its descendents for <code>tagname</code> and returns the first matching node found, or <code>nil</code> if no matching nodes were found. The search is depth-first left-to-right.</p>
+<p>Searches <code>node</code> and its descendants for <code>tagname</code> and returns the first matching node found, or <code>nil</code> if no matching nodes were found. The search is depth-first left-to-right.</p>
 <p>The found node's parent is also returned as a second value, unless the found node was the root of the given subgraph.</p>
 <h3 id="node:action" class="method-def">node:action([id,] action)</h3>
 <p>Attaches an action to a node and returns the node.</p>
@@ -1955,7 +1955,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="node:cancel" class="method-def">node:cancel(id)</h3>
 <p>Cancels an action.</p>
 <h3 id="node:update" class="method-def">node:update()</h3>
-<p>Executes actions on a node and its descendents. Actions are still only run once per frame, so if the give node's actions have already been run, they won't run again.</p>
+<p>Executes actions on a node and its descendants. Actions are still only run once per frame, so if the give node's actions have already been run, they won't run again.</p>
 <p>Use this method to execute actions on nodes that are not attached to the window, for example nodes that are being manually rendered into a framebuffer.</p>
 <h3 id="nodeappendchild" class="func-def">node:append(child)</h3>
 <p>Appends <code>child</code> to the end of <code>node</code>'s child list and returns <code>node</code>.</p>
@@ -1964,13 +1964,13 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="noderemovechild" class="func-def">node:remove(child)</h3>
 <p>Removes the first occurrence of <code>child</code> from <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="noderemovetagname" class="func-def">node:remove(tagname)</h3>
-<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and removes the first one it finds. Then returns <code>node</code>.</p>
+<p>Searches for a node with tag <code>tagname</code> in the descendants of <code>node</code> and removes the first one it finds. Then returns <code>node</code>.</p>
 <h3 id="noderemove_all" class="func-def">node:remove_all()</h3>
 <p>Removes all of <code>node</code>'s children and returns <code>node</code>.</p>
 <h3 id="nodereplacechild-replacement" class="func-def">node:replace(child, replacement)</h3>
 <p>Replaces the first occurrence of <code>child</code> with <code>replacement</code> in <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="nodereplacetagname-replacement" class="func-def">node:replace(tagname, replacement)</h3>
-<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and replaces the first one it finds with <code>replacement</code>. Then returns <code>node</code>.</p>
+<p>Searches for a node with tag <code>tagname</code> in the descendants of <code>node</code> and replaces the first one it finds with <code>replacement</code>. Then returns <code>node</code>.</p>
 <h3 id="nodechildn" class="func-def">node:child(n)</h3>
 <p>Returns the nth child of <code>node</code> (or <code>nil</code> if there is no such child).</p>
 <h3 id="nodechild_pairs" class="func-def">node:child_pairs()</h3>
@@ -2167,7 +2167,7 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 
 </div>
 <h2 id="transformation-nodes-1">Transformation nodes</h2>
-<p>The following nodes apply transformations to all their descendents.</p>
+<p>The following nodes apply transformations to all their descendants.</p>
 <p><strong>Note</strong>: These nodes have an optional <code>uniform</code> argument in the first position of their construction functions. This argument is only relevant if you're writing your own shader programs. Otherwise you can ignore it.</p>
 <h3 id="am.translate" class="func-def">am.translate([uniform,] position)</h3>
 <p>Apply a translation to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
@@ -2234,7 +2234,7 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
 <p>Default tag: <code>&quot;transform&quot;</code>.</p>
 <h2 id="advanced-nodes">Advanced nodes</h2>
 <h3 id="am.use_program" class="func-def">am.use_program(program)</h3>
-<p>Sets the <a href="#shader-programs">shader program</a> to use when rendering descendents. A <code>program</code> object can be created using the <a href="#am.program"><code>am.program</code></a> function.</p>
+<p>Sets the <a href="#shader-programs">shader program</a> to use when rendering descendants. A <code>program</code> object can be created using the <a href="#am.program"><code>am.program</code></a> function.</p>
 <p>Fields:</p>
 <ul>
 <li><code>program</code>: The shader program to use. Updatable.</li>
