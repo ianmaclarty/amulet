@@ -61,6 +61,7 @@ int am_frame_use_program_calls;
 
 NSWindow *am_metal_window = nil;
 bool am_metal_use_highdpi = false;
+bool am_metal_window_depth_buffer = false;
 
 @interface MetalView : NSView
 
@@ -116,10 +117,16 @@ static am_render_state *rstate = NULL;
 static am_framebuffer_id metal_active_framebuffer = 0;
 
 struct metal_framebuffer {
+    int width;
+    int height;
     float clear_r;
     float clear_g;
     float clear_b;
     float clear_a;
+    MTLPixelFormat color_pixel_format;
+    MTLPixelFormat depth_pixel_format;
+    id<MTLTexture> color_texture; // nil for default framebuffer
+    id<MTLTexture> depth_texture;
 };
 
 static freelist<metal_framebuffer> metal_framebuffer_freelist;
@@ -145,9 +152,18 @@ static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
     MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
     MTLRenderPassColorAttachmentDescriptor *colorattachment = renderdesc.colorAttachments[0];
 
+    if (fb->color_texture != nil) {
+        colorattachment.texture = fb->color_texture;
+    } else {
+        colorattachment.texture = get_active_metal_drawable().texture;
+    }
     colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
     colorattachment.loadAction  = MTLLoadActionLoad;
     colorattachment.storeAction = MTLStoreActionStore;
+
+    if (fb->depth_texture != nil) {
+        renderdesc.depthAttachment.texture = fb->depth_texture;
+    }
 
     return renderdesc;
 }
@@ -231,6 +247,11 @@ struct metal_pipeline {
     am_blend_dfactor blend_dfactor_rgb;
     am_blend_dfactor blend_dfactor_alpha;
     id<MTLRenderPipelineState> mtlpipeline;
+
+    bool depth_test_enabled;
+    bool depth_mask;
+    am_depth_func depth_func;
+    id<MTLDepthStencilState> mtldepthstencilstate;
 };
 
 struct metal_program {
@@ -287,6 +308,10 @@ static am_blend_sfactor metal_blend_sfactor_alpha;
 static am_blend_dfactor metal_blend_dfactor_rgb;
 static am_blend_dfactor metal_blend_dfactor_alpha;
 
+static bool metal_depth_test_enabled;
+static bool metal_depth_mask;
+static am_depth_func metal_depth_func;
+
 static BOOL to_objc_bool(bool b) {
     return b ? YES : NO;
 }
@@ -341,6 +366,20 @@ static MTLBlendOperation to_metal_blend_op(am_blend_equation e) {
     return MTLBlendOperationAdd;
 }
 
+static MTLCompareFunction to_metal_depth_func(am_depth_func f) {
+    switch (f) {
+        case AM_DEPTH_FUNC_NEVER: return MTLCompareFunctionNever;
+        case AM_DEPTH_FUNC_ALWAYS: return MTLCompareFunctionAlways;
+        case AM_DEPTH_FUNC_EQUAL: return MTLCompareFunctionEqual;
+        case AM_DEPTH_FUNC_NOTEQUAL: return MTLCompareFunctionNotEqual;
+        case AM_DEPTH_FUNC_LESS: return MTLCompareFunctionLess;
+        case AM_DEPTH_FUNC_LEQUAL: return MTLCompareFunctionLessEqual;
+        case AM_DEPTH_FUNC_GREATER: return MTLCompareFunctionGreater;
+        case AM_DEPTH_FUNC_GEQUAL: return MTLCompareFunctionGreaterEqual;
+    }
+    return MTLCompareFunctionAlways;
+}
+
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     if (metal_encoder != nil) {
         // in metal clear can only be done when creating the encoder,
@@ -358,10 +397,11 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
     if (clear_color_buf) {
         renderdesc.colorAttachments[0].loadAction = MTLLoadActionClear;
     }
-    if (metal_active_framebuffer == 0) {
-        renderdesc.colorAttachments[0].texture = get_active_metal_drawable().texture;
+    if (clear_depth_buf) {
+        renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
     }
     metal_encoder = [metal_command_buffer renderCommandEncoderWithDescriptor:renderdesc];
+    metal_active_pipeline = -1;
 }
 
 static void init_metal_view() {
@@ -402,10 +442,26 @@ void am_init_gl() {
 
     metal_queue = [metal_device newCommandQueue];
 
+    get_active_metal_drawable(); // needed so metal_layer.drawableSize returns non-zero dimensions
+    default_metal_framebuffer.width = metal_layer.drawableSize.width;
+    default_metal_framebuffer.height = metal_layer.drawableSize.height;
     default_metal_framebuffer.clear_r = 0.0f;
     default_metal_framebuffer.clear_g = 0.0f;
     default_metal_framebuffer.clear_b = 0.0f;
     default_metal_framebuffer.clear_a = 1.0f;
+    default_metal_framebuffer.color_pixel_format = metal_layer.pixelFormat;
+    default_metal_framebuffer.color_texture = nil;
+    if (am_metal_window_depth_buffer) {
+        default_metal_framebuffer.depth_pixel_format = MTLPixelFormatDepth32Float;
+        MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:default_metal_framebuffer.depth_pixel_format 
+            width:default_metal_framebuffer.width height:default_metal_framebuffer.height mipmapped:NO];
+        texdescr.usage = MTLTextureUsageRenderTarget;
+        texdescr.storageMode = MTLStorageModePrivate;
+        default_metal_framebuffer.depth_texture = [metal_device newTextureWithDescriptor:texdescr];
+    } else {
+        default_metal_framebuffer.depth_texture = nil;
+        default_metal_framebuffer.depth_pixel_format = MTLPixelFormatInvalid;
+    }
 
     glslopt_context = glslopt_initialize(kGlslTargetMetal);
     if (glslopt_context == NULL) {
@@ -448,6 +504,10 @@ void am_init_gl() {
     metal_blend_sfactor_alpha = AM_BLEND_SFACTOR_SRC_ALPHA;
     metal_blend_dfactor_rgb = AM_BLEND_DFACTOR_SRC_ALPHA;
     metal_blend_dfactor_alpha = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
+
+    metal_depth_test_enabled = false;
+    metal_depth_mask = false;
+    metal_depth_func = AM_DEPTH_FUNC_ALWAYS;
 
     metal_initialized = true;
 }
@@ -500,12 +560,12 @@ void am_set_blend_func(am_blend_sfactor src_rgb, am_blend_dfactor dst_rgb, am_bl
 
 void am_set_depth_test_enabled(bool enabled) {
     check_initialized();
-    // TODO
+    metal_depth_test_enabled = enabled;
 }
 
 void am_set_depth_func(am_depth_func func) {
     check_initialized();
-    // TODO
+    metal_depth_func = func;
 }
 
 void am_set_stencil_test_enabled(bool enabled) {
@@ -571,7 +631,7 @@ void am_set_framebuffer_color_mask(bool r, bool g, bool b, bool a) {
 
 void am_set_framebuffer_depth_mask(bool flag) {
     check_initialized();
-    // TODO
+    metal_depth_mask = flag;
 }
 
 void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) {
@@ -1576,6 +1636,9 @@ static bool setup_pipeline(metal_program *prog) {
             cached_pipeline->blend_sfactor_alpha != metal_blend_sfactor_alpha ||
             cached_pipeline->blend_dfactor_rgb != metal_blend_dfactor_rgb ||
             cached_pipeline->blend_dfactor_alpha != metal_blend_dfactor_alpha ||
+            cached_pipeline->depth_test_enabled != metal_depth_test_enabled ||
+            cached_pipeline->depth_mask != metal_depth_mask ||
+            cached_pipeline->depth_func != metal_depth_func ||
             false)
         {
             continue;
@@ -1653,11 +1716,28 @@ static bool setup_pipeline(metal_program *prog) {
         cached_pipeline.blend_dfactor_rgb = metal_blend_dfactor_rgb;
         cached_pipeline.blend_dfactor_alpha = metal_blend_dfactor_alpha;
         cached_pipeline.mtlpipeline = pl;
+
+        cached_pipeline.depth_test_enabled = metal_depth_test_enabled;;
+        cached_pipeline.depth_mask = metal_depth_mask;;
+        cached_pipeline.depth_func = metal_depth_func;
+        if (metal_depth_test_enabled) {
+            MTLDepthStencilDescriptor *descr = [[MTLDepthStencilDescriptor alloc] init];
+            descr.depthCompareFunction = to_metal_depth_func(metal_depth_func);
+            descr.depthWriteEnabled = to_objc_bool(metal_depth_mask);
+            cached_pipeline.mtldepthstencilstate = [metal_device newDepthStencilStateWithDescriptor: descr];
+            [descr release];
+        } else {
+            cached_pipeline.mtldepthstencilstate = nil;
+        }
         selected_pipeline = prog->pipeline_cache.size();
         prog->pipeline_cache.push_back(cached_pipeline);
     }
     if (selected_pipeline != metal_active_pipeline) {
-        [metal_encoder setRenderPipelineState: prog->pipeline_cache[selected_pipeline].mtlpipeline];
+        metal_pipeline *pipeline = &prog->pipeline_cache[selected_pipeline];
+        [metal_encoder setRenderPipelineState: pipeline->mtlpipeline];
+        if (pipeline->mtldepthstencilstate != nil) {
+            [metal_encoder setDepthStencilState:pipeline->mtldepthstencilstate];
+        }
         metal_active_pipeline = selected_pipeline;
     }
     return true;
