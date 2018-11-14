@@ -1194,9 +1194,10 @@ static void print_texture_uv (ir_print_metal_visitor* vis, ir_texture* ir, bool 
 		if (!is_proj && !is_array)
 		{
 			// regular UV
-			vis->buffer.asprintf_append (sampler_uv_dim == 3 ? "(float3)(" : "(float2)(");
+                        // AMULET change: we invert the y uv coordinate here.
+			vis->buffer.asprintf_append (sampler_uv_dim == 3 ? "(float3)((" : "(float2)(float2(0.0, 1.0) + float2(1.0, -1.0) * (");
 			ir->coordinate->accept(vis);
-			vis->buffer.asprintf_append (")");
+			vis->buffer.asprintf_append ("))");
 		}
 		else if (is_array)
 		{

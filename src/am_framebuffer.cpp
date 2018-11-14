@@ -58,6 +58,11 @@ void am_framebuffer::destroy(lua_State *L) {
     am_delete_framebuffer(framebuffer_id);
     if (depth_renderbuffer_id != 0) {
         am_delete_renderbuffer(depth_renderbuffer_id);
+        depth_renderbuffer_id = 0;
+    }
+    if (stencil_renderbuffer_id != 0) {
+        am_delete_renderbuffer(stencil_renderbuffer_id);
+        stencil_renderbuffer_id = 0;
     }
     color_attachment0 = NULL;
     unref(L, color_attachment0_ref);

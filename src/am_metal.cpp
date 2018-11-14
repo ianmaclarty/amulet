@@ -114,6 +114,7 @@ static CAMetalLayer *metal_layer = nil;
 static id<CAMetalDrawable> metal_active_drawable = nil;
 static am_render_state *rstate = NULL;
 
+static am_framebuffer_id metal_bound_framebuffer = 0;
 static am_framebuffer_id metal_active_framebuffer = 0;
 
 struct metal_framebuffer {
@@ -124,8 +125,6 @@ struct metal_framebuffer {
     float clear_g;
     float clear_b;
     float clear_a;
-    MTLPixelFormat color_pixel_format;
-    MTLPixelFormat depth_pixel_format;
     id<MTLTexture> color_texture; // nil for default framebuffer
     id<MTLTexture> depth_texture;
 };
@@ -142,6 +141,18 @@ static metal_framebuffer *get_metal_framebuffer(int id) {
     }
 }
 
+struct metal_renderbuffer {
+    bool initialized;
+    am_renderbuffer_format format;
+    int width;
+    int height;
+    id<MTLTexture> texture;
+};
+
+int metal_bound_renderbuffer = 0;
+
+static freelist<metal_renderbuffer> metal_renderbuffer_freelist;
+
 static id<CAMetalDrawable> get_active_metal_drawable() {
     if (metal_active_drawable != nil) return metal_active_drawable;
     metal_active_drawable = [metal_layer nextDrawable];
@@ -149,7 +160,7 @@ static id<CAMetalDrawable> get_active_metal_drawable() {
 }
 
 static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
-    metal_framebuffer *fb = get_metal_framebuffer(metal_active_framebuffer);
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
     if (!fb->complete) return NULL;
     MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
     MTLRenderPassColorAttachmentDescriptor *colorattachment = renderdesc.colorAttachments[0];
@@ -433,6 +444,7 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
     }
     metal_encoder = [metal_command_buffer renderCommandEncoderWithDescriptor:renderdesc];
     metal_active_pipeline = -1;
+    metal_active_framebuffer = metal_bound_framebuffer;
 }
 
 static void init_metal_view() {
@@ -481,18 +493,15 @@ void am_init_gl() {
     default_metal_framebuffer.clear_g = 0.0f;
     default_metal_framebuffer.clear_b = 0.0f;
     default_metal_framebuffer.clear_a = 1.0f;
-    default_metal_framebuffer.color_pixel_format = metal_layer.pixelFormat;
     default_metal_framebuffer.color_texture = nil;
     if (am_metal_window_depth_buffer) {
-        default_metal_framebuffer.depth_pixel_format = MTLPixelFormatDepth32Float;
-        MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:default_metal_framebuffer.depth_pixel_format 
+        MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth16Unorm
             width:default_metal_framebuffer.width height:default_metal_framebuffer.height mipmapped:NO];
         texdescr.usage = MTLTextureUsageRenderTarget;
         texdescr.storageMode = MTLStorageModePrivate;
         default_metal_framebuffer.depth_texture = [metal_device newTextureWithDescriptor:texdescr];
     } else {
         default_metal_framebuffer.depth_texture = nil;
-        default_metal_framebuffer.depth_pixel_format = MTLPixelFormatInvalid;
     }
 
     glslopt_context = glslopt_initialize(kGlslTargetMetal);
@@ -522,7 +531,7 @@ void am_init_gl() {
     }
 
     metal_active_texture = 0;
-    metal_active_framebuffer = 0;
+    metal_bound_framebuffer = 0;
     metal_active_element_buffer = 0;
     metal_active_array_buffer = 0;
     metal_active_pipeline = -1;
@@ -559,7 +568,11 @@ void am_destroy_gl() {
     rstate = NULL;
     metal_command_buffer = nil;
     metal_encoder = nil;
-    metal_active_framebuffer = 0;
+    metal_bound_framebuffer = 0;
+    if (default_metal_framebuffer.depth_texture != nil) {
+        [default_metal_framebuffer.depth_texture release];
+        default_metal_framebuffer.depth_texture = nil;
+    }
     [metal_queue release];
     [metal_device release];
 
@@ -643,7 +656,7 @@ void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear
 
 void am_set_framebuffer_clear_color(float r, float g, float b, float a) {
     check_initialized();
-    metal_framebuffer *fb = get_metal_framebuffer(metal_active_framebuffer);
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
     fb->clear_r = r;
     fb->clear_g = g;
     fb->clear_b = b;
@@ -829,6 +842,7 @@ am_shader_id am_create_shader(am_shader_type type) {
     return metal_shader_freelist.add(shader);
 }
 
+/*
 static const char* glslopt_type_str(glslopt_basic_type t) {
     switch (t) {
 	case kGlslTypeFloat: return "float";
@@ -854,6 +868,7 @@ static const char* glslopt_prec_str(glslopt_precision p) {
             return "<error>";
     }
 }
+*/
 
 bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, char **msg, int *line_no, char **line_str) {
     check_initialized(false);
@@ -871,9 +886,9 @@ bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, ch
     if (glslopt_get_status(shader->gshader)) {
         NSError *error = nil;
         const char *metal_src = glslopt_get_output(shader->gshader);
-        printf("%s", "----------------------------------------------------------------------------------\n");
-        printf("GLSL:\n%s\n", src);
-        printf("Metal:\n%s\n", metal_src);
+        //printf("%s", "----------------------------------------------------------------------------------\n");
+        //printf("GLSL:\n%s\n", src);
+        //printf("Metal:\n%s\n", metal_src);
         shader->lib = [metal_device newLibraryWithSource:[NSString stringWithUTF8String:metal_src] options: nil error:&error];
         if (shader->lib == nil) {
             *msg = am_format("%s", [[error localizedDescription] UTF8String]);
@@ -882,50 +897,50 @@ bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, ch
         } else {
             shader->func = [shader->lib newFunctionWithName:@"xlatMtlMain"];
             shader->ref_count = 1;
-            int n = glslopt_shader_get_input_count(shader->gshader);
-            printf("\n%d Inputs:\n", n);
-            for (int i = 0; i < n; i++) {
-                const char *name;
-                glslopt_basic_type type;
-                glslopt_precision precision;
-                int vecsize;
-                int matsize;
-                int arraysize;
-                int location;
-                glslopt_shader_get_input_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
-                printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
-                    arraysize, location);
-            }
-            n = glslopt_shader_get_uniform_count(shader->gshader);
-            printf("\n%d Uniforms (%d bytes):\n", n, glslopt_shader_get_uniform_total_size(shader->gshader));
-            for (int i = 0; i < n; i++) {
-                const char *name;
-                glslopt_basic_type type;
-                glslopt_precision precision;
-                int vecsize;
-                int matsize;
-                int arraysize;
-                int location;
-                glslopt_shader_get_uniform_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
-                printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
-                    arraysize, location);
-            }
-            n = glslopt_shader_get_texture_count(shader->gshader);
-            printf("\n%d Textures:\n", n);
-            for (int i = 0; i < n; i++) {
-                const char *name;
-                glslopt_basic_type type;
-                glslopt_precision precision;
-                int vecsize;
-                int matsize;
-                int arraysize;
-                int location;
-                glslopt_shader_get_texture_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
-                printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
-                    arraysize, location);
-            }
+            //int n = glslopt_shader_get_input_count(shader->gshader);
+            //printf("\n%d Inputs:\n", n);
+            //for (int i = 0; i < n; i++) {
+            //    const char *name;
+            //    glslopt_basic_type type;
+            //    glslopt_precision precision;
+            //    int vecsize;
+            //    int matsize;
+            //    int arraysize;
+            //    int location;
+            //    glslopt_shader_get_input_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
+            //    printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
+            //        arraysize, location);
+            //}
+            //n = glslopt_shader_get_uniform_count(shader->gshader);
+            //printf("\n%d Uniforms (%d bytes):\n", n, glslopt_shader_get_uniform_total_size(shader->gshader));
+            //for (int i = 0; i < n; i++) {
+            //    const char *name;
+            //    glslopt_basic_type type;
+            //    glslopt_precision precision;
+            //    int vecsize;
+            //    int matsize;
+            //    int arraysize;
+            //    int location;
+            //    glslopt_shader_get_uniform_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
+            //    printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
+            //        arraysize, location);
+            //}
+            //n = glslopt_shader_get_texture_count(shader->gshader);
+            //printf("\n%d Textures:\n", n);
+            //for (int i = 0; i < n; i++) {
+            //    const char *name;
+            //    glslopt_basic_type type;
+            //    glslopt_precision precision;
+            //    int vecsize;
+            //    int matsize;
+            //    int arraysize;
+            //    int location;
+            //    glslopt_shader_get_texture_desc (shader->gshader, i, &name, &type, &precision, &vecsize, &matsize, &arraysize, &location);
+            //    printf("  %i %s %s %s v:%d m:%d a:%d l:%d\n", i, name, glslopt_type_str(type), glslopt_prec_str(precision), vecsize, matsize,
+            //        arraysize, location);
+            //}
+            //printf("%s", "==================================================================================\n");
             success = true;
-            printf("%s", "==================================================================================\n");
         }
     } else {
         *msg = am_format("%s", glslopt_get_log(shader->gshader));
@@ -1500,23 +1515,58 @@ void am_set_texture_wrap(am_texture_bind_target target, am_texture_wrap s_wrap, 
 
 am_renderbuffer_id am_create_renderbuffer() {
     check_initialized(0);
-    // TODO
-    return 0;
+    metal_renderbuffer renderbuffer;
+    renderbuffer.initialized = false;
+    renderbuffer.format = AM_RENDERBUFFER_FORMAT_RGBA4;
+    renderbuffer.width = 0;
+    renderbuffer.height = 0;
+    renderbuffer.texture = nil;
+    return metal_renderbuffer_freelist.add(renderbuffer);
 }
 
-void am_delete_renderbuffer(am_renderbuffer_id rb) {
+void am_delete_renderbuffer(am_renderbuffer_id id) {
     check_initialized();
-    // TODO
+    if (metal_bound_renderbuffer == id) metal_bound_renderbuffer = 0;
+    metal_renderbuffer *renderbuffer = metal_renderbuffer_freelist.get(id);
+    if (renderbuffer->texture != nil) {
+        [renderbuffer->texture release];
+        renderbuffer->texture = nil;
+    }
+    metal_renderbuffer_freelist.remove(id);
 }
 
-void am_bind_renderbuffer(am_renderbuffer_id rb) {
+void am_bind_renderbuffer(am_renderbuffer_id id) {
     check_initialized();
-    // TODO
+    metal_bound_renderbuffer = id;
 }
 
 void am_set_renderbuffer_storage(am_renderbuffer_format format, int w, int h) {
     check_initialized();
-    // TODO
+    if (metal_bound_renderbuffer == 0) {
+        am_log1("%s", "error: attempt to set renderbuffer storage without first binding a renderbuffer");
+        return;
+    }
+    metal_renderbuffer *renderbuffer = metal_renderbuffer_freelist.get(metal_bound_renderbuffer);
+    if (renderbuffer->initialized) {
+        am_log1("%s", "error: attempt to set renderbuffer storage twice");
+        return;
+    }
+    renderbuffer->width = w;
+    renderbuffer->height = h;
+    renderbuffer->format = format;
+    MTLPixelFormat pxlfmt;
+    switch (format) {
+        case AM_RENDERBUFFER_FORMAT_RGBA4: pxlfmt = MTLPixelFormatInvalid; break;
+        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT16: pxlfmt = MTLPixelFormatDepth16Unorm; break;
+        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24: pxlfmt = MTLPixelFormatInvalid; break;
+        case AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8: pxlfmt = MTLPixelFormatStencil8; break;
+    }
+    MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pxlfmt 
+            width:w height:h mipmapped:NO];
+    texdescr.usage = MTLTextureUsageRenderTarget;
+    texdescr.storageMode = MTLStorageModePrivate;
+    renderbuffer->texture = [metal_device newTextureWithDescriptor:texdescr];
+    renderbuffer->initialized = true;
 }
 
 // Read Back Pixels 
@@ -1530,45 +1580,97 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
 
 am_framebuffer_id am_create_framebuffer() {
     check_initialized(0);
-    // TODO
-    return 0;
+    metal_framebuffer fb;
+    fb.complete = false;
+    fb.width = 0;
+    fb.height = 0;
+    fb.clear_r = 0.0f;
+    fb.clear_g = 0.0f;
+    fb.clear_b = 0.0f;
+    fb.clear_a = 1.0f;
+    fb.color_texture = nil;
+    fb.depth_texture = nil;
+    return metal_framebuffer_freelist.add(fb);
 }
 
-void am_delete_framebuffer(am_framebuffer_id fb) {
+void am_delete_framebuffer(am_framebuffer_id id) {
     check_initialized();
-    // TODO
+    if (metal_bound_framebuffer == id) metal_bound_framebuffer = 0;
+    // textures are not owned by the framebuffer and will be released elsewhere
+    metal_framebuffer_freelist.remove(id);
 }
 
 void am_bind_framebuffer(am_framebuffer_id fb) {
     check_initialized();
-    if (metal_active_framebuffer != fb) {
-        if (metal_encoder != nil) {
-            [metal_encoder endEncoding];
-
-            // XXX auto-releases?
-            metal_encoder = nil;
-        }
-    }
-    metal_active_framebuffer = fb;
-    if (metal_encoder == nil) {
-        create_new_metal_encoder(false, false, false);
-    }
+    metal_bound_framebuffer = fb;
 }
 
 am_framebuffer_status am_check_framebuffer_status() {
     check_initialized(AM_FRAMEBUFFER_STATUS_UNKNOWN);
-    // TODO
-    return AM_FRAMEBUFFER_STATUS_COMPLETE;
+    if (metal_bound_framebuffer == 0) {
+        // default framebuffer
+        return AM_FRAMEBUFFER_STATUS_COMPLETE;
+    }
+    metal_framebuffer *fb = metal_framebuffer_freelist.get(metal_bound_framebuffer);
+    if (fb->complete) {
+        return AM_FRAMEBUFFER_STATUS_COMPLETE;
+    } else {
+        return AM_FRAMEBUFFER_STATUS_INCOMPLETE_MISSING_ATTACHMENT;
+    }
 }
 
 void am_set_framebuffer_renderbuffer(am_framebuffer_attachment attachment, am_renderbuffer_id rb) {
     check_initialized();
-    // TODO
+    metal_renderbuffer *renderbuffer = metal_renderbuffer_freelist.get(rb);
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+    switch (attachment) {
+        case AM_FRAMEBUFFER_COLOR_ATTACHMENT0:
+            // unsupported
+            break;
+        case AM_FRAMEBUFFER_DEPTH_ATTACHMENT:
+            fb->depth_texture = renderbuffer->texture;
+            break;
+        case AM_FRAMEBUFFER_STENCIL_ATTACHMENT:
+            // TODO
+            //fb->stencil_texture = renderbuffer->texture;
+            break;
+    }
+    if (fb->width > 0) {
+        if (fb->width != renderbuffer->width || fb->height != renderbuffer->height) {
+            am_log1("error: setting framebuffer renderbuffer with incompatible dimensions (%dx%d vs %dx%d)",
+                renderbuffer->width, renderbuffer->height, fb->width, fb->height);
+        }
+    }
 }
 
-void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_texture_copy_target target, am_texture_id texture) {
+void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_texture_copy_target target, am_texture_id texid) {
     check_initialized();
-    // TODO
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+    metal_texture *tex = metal_texture_freelist.get(texid);
+    switch (attachment) {
+        case AM_FRAMEBUFFER_COLOR_ATTACHMENT0:
+            if (fb->color_texture != nil) {
+                am_log1("%s", "error: attempt to set framebuffer color attachement twice");
+                return;
+            }
+            fb->color_texture = tex->tex;
+            if (fb->width > 0) {
+                if (fb->width != tex->tex.width || fb->height != tex->tex.height) {
+                    am_log1("error: setting framebuffer texture with incompatible dimensions (%dx%d vs %dx%d)",
+                        tex->tex.width, tex->tex.height, fb->width, fb->height);
+                }
+            }
+            fb->width = tex->tex.width;
+            fb->height = tex->tex.height;
+            fb->complete = true;
+            break;
+        case AM_FRAMEBUFFER_DEPTH_ATTACHMENT:
+            // unsupported
+            break;
+        case AM_FRAMEBUFFER_STENCIL_ATTACHMENT:
+            // unsupported
+            break;
+    }
 }
 
 // Writing to the Draw Buffer
@@ -1710,8 +1812,11 @@ static bool setup_pipeline(metal_program *prog) {
         pldescr.vertexFunction = prog->vert_shader.func;
         pldescr.fragmentFunction = prog->frag_shader.func;
 
-        // XXX need to check active framebuffer pixelformat
-        pldescr.colorAttachments[0].pixelFormat = metal_layer.pixelFormat;
+        if (metal_bound_framebuffer == 0) {
+            pldescr.colorAttachments[0].pixelFormat = metal_layer.pixelFormat;
+        } else {
+            pldescr.colorAttachments[0].pixelFormat = get_metal_framebuffer(metal_bound_framebuffer)->color_texture.pixelFormat;
+        }
         pldescr.colorAttachments[0].blendingEnabled = to_objc_bool(metal_blend_enabled);
         pldescr.colorAttachments[0].rgbBlendOperation = to_metal_blend_op(metal_blend_eq_rgb);
         pldescr.colorAttachments[0].alphaBlendOperation = to_metal_blend_op(metal_blend_eq_alpha);
@@ -1795,6 +1900,14 @@ static bool setup_pipeline(metal_program *prog) {
 }
 
 static bool pre_draw_setup() {
+    if (metal_bound_framebuffer != metal_active_framebuffer) {
+        if (metal_encoder != nil) {
+            [metal_encoder endEncoding];
+            // XXX auto-releases?
+            metal_encoder = nil;
+        }
+        create_new_metal_encoder(false, false, false);
+    }
     if (metal_active_program == 0) return false;
     metal_program *prog = metal_program_freelist.get(metal_active_program);
 
@@ -1894,7 +2007,7 @@ void am_gl_end_drawing() {
         metal_encoder = nil;
     }
     if (metal_command_buffer != nil) {
-        if (metal_active_framebuffer == 0) {
+        if (metal_bound_framebuffer == 0) {
             [metal_command_buffer presentDrawable:get_active_metal_drawable()];
         }
         [metal_command_buffer commit];
@@ -1902,7 +2015,7 @@ void am_gl_end_drawing() {
 
         // XXX auto-releases?
         metal_command_buffer = nil;
-        if (metal_active_framebuffer == 0) {
+        if (metal_bound_framebuffer == 0) {
             metal_active_drawable = nil;
         }
     }
