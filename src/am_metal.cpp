@@ -888,7 +888,7 @@ bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, ch
         const char *metal_src = glslopt_get_output(shader->gshader);
         //printf("%s", "----------------------------------------------------------------------------------\n");
         //printf("GLSL:\n%s\n", src);
-        //printf("Metal:\n%s\n", metal_src);
+        printf("Metal:\n%s\n", metal_src);
         shader->lib = [metal_device newLibraryWithSource:[NSString stringWithUTF8String:metal_src] options: nil error:&error];
         if (shader->lib == nil) {
             *msg = am_format("%s", [[error localizedDescription] UTF8String]);

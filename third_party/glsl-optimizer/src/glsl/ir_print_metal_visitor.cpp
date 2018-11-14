@@ -771,7 +771,12 @@ void ir_print_metal_visitor::visit(ir_function_signature *ir)
 	if (isMain)
 	{
 		// return stuff
-		indent(); buffer.asprintf_append ("return _mtl_o;\n");
+                if (this->mode_whole == kPrintGlslVertex) {
+                    // AMULET: adjust clip z range to [0, 1] (it's [-1, 1] in OpenGL)
+                    // from: https://mellinoe.github.io/veldrid-docs/articles/backend-differences.html
+                    indent(); buffer.asprintf_append ("_mtl_o.gl_Position.z = 0.5 * (_mtl_o.gl_Position.z + _mtl_o.gl_Position.w);\n");
+                }
+                indent(); buffer.asprintf_append ("return _mtl_o;\n");
 	}
 
    indentation--;
