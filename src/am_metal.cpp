@@ -117,6 +117,7 @@ static am_render_state *rstate = NULL;
 static am_framebuffer_id metal_active_framebuffer = 0;
 
 struct metal_framebuffer {
+    bool complete;
     int width;
     int height;
     float clear_r;
@@ -149,6 +150,7 @@ static id<CAMetalDrawable> get_active_metal_drawable() {
 
 static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
     metal_framebuffer *fb = get_metal_framebuffer(metal_active_framebuffer);
+    if (!fb->complete) return NULL;
     MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
     MTLRenderPassColorAttachmentDescriptor *colorattachment = renderdesc.colorAttachments[0];
 
@@ -252,6 +254,10 @@ struct metal_pipeline {
     bool depth_mask;
     am_depth_func depth_func;
     id<MTLDepthStencilState> mtldepthstencilstate;
+
+    bool face_culling_enabled;
+    am_cull_face_side face_cull_side;
+    am_face_winding face_winding;
 };
 
 struct metal_program {
@@ -311,6 +317,10 @@ static am_blend_dfactor metal_blend_dfactor_alpha;
 static bool metal_depth_test_enabled;
 static bool metal_depth_mask;
 static am_depth_func metal_depth_func;
+
+static bool metal_face_culling_enabled;
+static am_cull_face_side metal_face_cull_side;
+static am_face_winding metal_face_winding;
 
 static BOOL to_objc_bool(bool b) {
     return b ? YES : NO;
@@ -380,6 +390,23 @@ static MTLCompareFunction to_metal_depth_func(am_depth_func f) {
     return MTLCompareFunctionAlways;
 }
 
+static MTLCullMode to_metal_cull_mode(bool enabled, am_cull_face_side side) {
+    if (!enabled) return MTLCullModeNone;
+    switch (side) {
+        case AM_CULL_FACE_FRONT: return MTLCullModeFront;
+        case AM_CULL_FACE_BACK: return MTLCullModeBack;
+    }
+    return MTLCullModeNone;
+}
+
+static MTLWinding to_metal_winding(am_face_winding w) {
+    switch (w) {
+        case AM_FACE_WIND_CW: return MTLWindingClockwise;
+        case AM_FACE_WIND_CCW: return MTLWindingCounterClockwise;
+    }
+    return MTLWindingCounterClockwise;
+}
+
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     if (metal_encoder != nil) {
         // in metal clear can only be done when creating the encoder,
@@ -394,6 +421,10 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
     }
 
     MTLRenderPassDescriptor *renderdesc = make_active_framebuffer_render_desc();
+    if (renderdesc == NULL) {
+        am_log1("%s", "error: attempt to use incomplete framebuffer");
+        return;
+    }
     if (clear_color_buf) {
         renderdesc.colorAttachments[0].loadAction = MTLLoadActionClear;
     }
@@ -443,6 +474,7 @@ void am_init_gl() {
     metal_queue = [metal_device newCommandQueue];
 
     get_active_metal_drawable(); // needed so metal_layer.drawableSize returns non-zero dimensions
+    default_metal_framebuffer.complete = true;
     default_metal_framebuffer.width = metal_layer.drawableSize.width;
     default_metal_framebuffer.height = metal_layer.drawableSize.height;
     default_metal_framebuffer.clear_r = 0.0f;
@@ -508,6 +540,10 @@ void am_init_gl() {
     metal_depth_test_enabled = false;
     metal_depth_mask = false;
     metal_depth_func = AM_DEPTH_FUNC_ALWAYS;
+
+    metal_face_culling_enabled = false;
+    metal_face_cull_side = AM_CULL_FACE_BACK;
+    metal_face_winding = AM_FACE_WIND_CCW;
 
     metal_initialized = true;
 }
@@ -730,17 +766,17 @@ void am_set_viewport(int x, int y, int w, int h) {
 
 void am_set_front_face_winding(am_face_winding mode) {
     check_initialized();
-    // TODO
+    metal_face_winding = mode;
 }
 
 void am_set_cull_face_enabled(bool enabled) {
     check_initialized();
-    // TODO
+    metal_face_culling_enabled = enabled;
 }
 
 void am_set_cull_face_side(am_cull_face_side face) {
     check_initialized();
-    // TODO
+    metal_face_cull_side = face;
 }
 
 void am_set_line_width(float width) {
@@ -1187,6 +1223,9 @@ void am_delete_program(am_program_id id) {
     if (prog->attrs != NULL) free(prog->attrs);
     for (int i = 0; i < prog->pipeline_cache.size(); i++) {
         [prog->pipeline_cache[i].mtlpipeline release];
+        if (prog->pipeline_cache[i].mtldepthstencilstate != nil) {
+            [prog->pipeline_cache[i].mtldepthstencilstate release];
+        }
     }
     prog->pipeline_cache.clear();
     if (prog->log != NULL) free(prog->log);
@@ -1639,6 +1678,9 @@ static bool setup_pipeline(metal_program *prog) {
             cached_pipeline->depth_test_enabled != metal_depth_test_enabled ||
             cached_pipeline->depth_mask != metal_depth_mask ||
             cached_pipeline->depth_func != metal_depth_func ||
+            cached_pipeline->face_culling_enabled != metal_face_culling_enabled ||
+            cached_pipeline->face_cull_side != metal_face_cull_side ||
+            cached_pipeline->face_winding != metal_face_winding ||
             false)
         {
             continue;
@@ -1729,6 +1771,11 @@ static bool setup_pipeline(metal_program *prog) {
         } else {
             cached_pipeline.mtldepthstencilstate = nil;
         }
+
+        cached_pipeline.face_culling_enabled = metal_face_culling_enabled;
+        cached_pipeline.face_cull_side = metal_face_cull_side;
+        cached_pipeline.face_winding = metal_face_winding;
+
         selected_pipeline = prog->pipeline_cache.size();
         prog->pipeline_cache.push_back(cached_pipeline);
     }
@@ -1737,7 +1784,11 @@ static bool setup_pipeline(metal_program *prog) {
         [metal_encoder setRenderPipelineState: pipeline->mtlpipeline];
         if (pipeline->mtldepthstencilstate != nil) {
             [metal_encoder setDepthStencilState:pipeline->mtldepthstencilstate];
+        } else {
+            [metal_encoder setDepthStencilState:nil];
         }
+        [metal_encoder setFrontFacingWinding: to_metal_winding(pipeline->face_winding)];
+        [metal_encoder setCullMode: to_metal_cull_mode(pipeline->face_culling_enabled, pipeline->face_cull_side)];
         metal_active_pipeline = selected_pipeline;
     }
     return true;

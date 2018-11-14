@@ -172,7 +172,6 @@ void am_set_front_face_winding(am_face_winding mode);
 enum am_cull_face_side {
     AM_CULL_FACE_FRONT,
     AM_CULL_FACE_BACK,
-    AM_CULL_FACE_FRONT_AND_BACK,
 };
 
 void am_set_cull_face_enabled(bool enabled);

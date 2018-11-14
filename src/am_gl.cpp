@@ -1553,7 +1553,6 @@ static GLenum to_gl_cull_face_side(am_cull_face_side fs) {
     switch (fs) {
         case AM_CULL_FACE_FRONT: return GL_FRONT;
         case AM_CULL_FACE_BACK: return GL_BACK;
-        case AM_CULL_FACE_FRONT_AND_BACK: return GL_FRONT_AND_BACK;
     }
     return 0;
 }
