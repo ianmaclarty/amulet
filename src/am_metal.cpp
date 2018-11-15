@@ -285,12 +285,13 @@ static am_buffer_id metal_active_element_buffer = 0;
 
 struct metal_texture {
     id<MTLTexture> tex;
+    MTLSamplerDescriptor *samplerdescr;
     id<MTLSamplerState> sampler;
 };
 
 static freelist<metal_texture> metal_texture_freelist;
 
-static am_texture_id metal_active_texture = 0;
+static am_texture_id metal_bound_texture = 0;
 
 #define NUM_TEXTURE_UNITS 32
 static am_texture_id texture_units[NUM_TEXTURE_UNITS];
@@ -395,6 +396,35 @@ static MTLWinding to_metal_winding(bool invert, am_face_winding w) {
         case AM_FACE_WIND_CCW: return invert ? MTLWindingClockwise : MTLWindingCounterClockwise;
     }
     return MTLWindingCounterClockwise;
+}
+
+static MTLSamplerMinMagFilter to_metal_min_filter(am_texture_min_filter f) {
+    switch (f) {
+        case AM_MIN_FILTER_NEAREST: return MTLSamplerMinMagFilterNearest;
+        case AM_MIN_FILTER_LINEAR: return MTLSamplerMinMagFilterLinear;
+        case AM_MIN_FILTER_NEAREST_MIPMAP_NEAREST: return MTLSamplerMinMagFilterNearest;
+        case AM_MIN_FILTER_LINEAR_MIPMAP_NEAREST: return MTLSamplerMinMagFilterLinear;
+        case AM_MIN_FILTER_NEAREST_MIPMAP_LINEAR: return MTLSamplerMinMagFilterNearest;
+        case AM_MIN_FILTER_LINEAR_MIPMAP_LINEAR: return MTLSamplerMinMagFilterLinear;
+    }
+    return MTLSamplerMinMagFilterNearest;
+}
+
+static MTLSamplerMinMagFilter to_metal_mag_filter(am_texture_mag_filter f) {
+    switch (f) {
+        case AM_MAG_FILTER_NEAREST: return MTLSamplerMinMagFilterNearest;
+        case AM_MAG_FILTER_LINEAR: return MTLSamplerMinMagFilterLinear;
+    }
+    return MTLSamplerMinMagFilterNearest;
+}
+
+static MTLSamplerAddressMode to_metal_wrap(am_texture_wrap w) {
+    switch (w) {
+        case AM_TEXTURE_WRAP_CLAMP_TO_EDGE: return MTLSamplerAddressModeClampToEdge;
+        case AM_TEXTURE_WRAP_MIRRORED_REPEAT: return MTLSamplerAddressModeMirrorRepeat;
+        case AM_TEXTURE_WRAP_REPEAT: return MTLSamplerAddressModeRepeat;
+    }
+    return MTLSamplerAddressModeClampToEdge;
 }
 
 /*
@@ -574,7 +604,7 @@ void am_init_gl() {
         texture_units[i] = -1;
     }
 
-    metal_active_texture = 0;
+    metal_bound_texture = 0;
     metal_bound_framebuffer = 0;
     metal_active_element_buffer = 0;
     metal_active_array_buffer = 0;
@@ -1469,6 +1499,7 @@ am_texture_id am_create_texture() {
     check_initialized(0);
     metal_texture tex;
     tex.tex = nil;
+    tex.samplerdescr = [[MTLSamplerDescriptor alloc] init];
     tex.sampler = nil;
     return metal_texture_freelist.add(tex);
 }
@@ -1478,12 +1509,14 @@ void am_delete_texture(am_texture_id id) {
     metal_texture *tex = metal_texture_freelist.get(id);
     if (tex->tex != nil) {
         [tex->tex release];
+        [tex->samplerdescr release];
         [tex->sampler release];
         tex->tex = nil;
+        tex->samplerdescr = nil;
         tex->sampler = nil;
     }
     metal_texture_freelist.remove(id);
-    if (metal_active_texture == id) metal_active_texture = 0;
+    if (metal_bound_texture == id) metal_bound_texture = 0;
 }
 
 void am_bind_texture(am_texture_bind_target target, am_texture_id texture) {
@@ -1491,7 +1524,7 @@ void am_bind_texture(am_texture_bind_target target, am_texture_id texture) {
     if (active_texture_unit >= 0) {
         texture_units[active_texture_unit] = texture;
     }
-    metal_active_texture = texture;
+    metal_bound_texture = texture;
 }
 
 void am_copy_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int x, int y, int w, int h) {
@@ -1534,14 +1567,11 @@ int am_compute_pixel_size(am_texture_format format, am_texture_type type) {
 
 void am_set_texture_image_2d(am_texture_copy_target target, int level, am_texture_format format, int w, int h, am_texture_type type, void *data) {
     check_initialized();
-    if (metal_active_texture == 0) return;
-    metal_texture *tex = metal_texture_freelist.get(metal_active_texture);
+    if (metal_bound_texture == 0) return;
+    metal_texture *tex = metal_texture_freelist.get(metal_bound_texture);
     if (tex->tex == nil) {
         MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:w height:h mipmapped:NO];
         tex->tex = [metal_device newTextureWithDescriptor:texdescr];
-        MTLSamplerDescriptor *samplerdescr = [[MTLSamplerDescriptor alloc] init];
-        tex->sampler = [metal_device newSamplerStateWithDescriptor:samplerdescr];
-        [samplerdescr release];
         [tex->tex replaceRegion:MTLRegionMake2D(0, 0, w, h) mipmapLevel:level withBytes:data bytesPerRow:w*4];
     }
 }
@@ -1553,17 +1583,33 @@ void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int x
 
 void am_set_texture_min_filter(am_texture_bind_target target, am_texture_min_filter filter) {
     check_initialized();
-    // TODO
+    metal_texture *tex = metal_texture_freelist.get(metal_bound_texture);
+    tex->samplerdescr.minFilter = to_metal_min_filter(filter);
+    if (tex->sampler != nil) {
+        [tex->sampler release];
+        tex->sampler = nil;
+    }
 }
 
 void am_set_texture_mag_filter(am_texture_bind_target target, am_texture_mag_filter filter) {
     check_initialized();
-    // TODO
+    metal_texture *tex = metal_texture_freelist.get(metal_bound_texture);
+    tex->samplerdescr.magFilter = to_metal_mag_filter(filter);
+    if (tex->sampler != nil) {
+        [tex->sampler release];
+        tex->sampler = nil;
+    }
 }
 
 void am_set_texture_wrap(am_texture_bind_target target, am_texture_wrap s_wrap, am_texture_wrap t_wrap) {
     check_initialized();
-    // TODO
+    metal_texture *tex = metal_texture_freelist.get(metal_bound_texture);
+    tex->samplerdescr.sAddressMode = to_metal_wrap(s_wrap);
+    tex->samplerdescr.tAddressMode = to_metal_wrap(t_wrap);
+    if (tex->sampler != nil) {
+        [tex->sampler release];
+        tex->sampler = nil;
+    }
 }
 
 // Renderbuffer Objects
@@ -1994,6 +2040,9 @@ static bool pre_draw_setup() {
         if (uni->tex_unit >= 0) {
             am_texture_id texid = texture_units[uni->tex_unit];
             metal_texture *tex = metal_texture_freelist.get(texid);
+            if (tex->sampler == nil) {
+                tex->sampler = [metal_device newSamplerStateWithDescriptor:tex->samplerdescr];
+            }
             if (uni->vert_location >= 0) {
                 [metal_encoder setVertexTexture:tex->tex atIndex:uni->vert_location];
                 [metal_encoder setVertexSamplerState:tex->sampler atIndex:uni->vert_location];
