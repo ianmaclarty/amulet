@@ -392,6 +392,44 @@ static MTLWinding to_metal_winding(bool invert, am_face_winding w) {
     return MTLWindingCounterClockwise;
 }
 
+/*
+static const char* to_metal_blend_op_str(MTLBlendOperation op) {
+    switch (op) {
+        case MTLBlendOperationAdd: return "add";
+        case MTLBlendOperationSubtract: return "sub";
+        case MTLBlendOperationReverseSubtract: return "rsub";
+        case MTLBlendOperationMin: return "min";
+        case MTLBlendOperationMax : return "max";
+    }
+    return "unknown";
+}
+
+static const char* to_metal_blend_fact_str(MTLBlendFactor op) {
+    switch (op) {
+        case MTLBlendFactorZero: return "zero";
+        case MTLBlendFactorOne: return "one";
+        case MTLBlendFactorSourceColor: return "scolor";
+        case MTLBlendFactorOneMinusSourceColor: return "1-scolor";
+        case MTLBlendFactorSourceAlpha: return "salpha";
+        case MTLBlendFactorOneMinusSourceAlpha: return "1-salpha";
+        case MTLBlendFactorDestinationColor: return "dcolor";
+        case MTLBlendFactorOneMinusDestinationColor: return "1-dcolor";
+        case MTLBlendFactorDestinationAlpha: return "dalpha";
+        case MTLBlendFactorOneMinusDestinationAlpha: return "1-dalpha";
+        case MTLBlendFactorSourceAlphaSaturated: return "salphasat";
+        case MTLBlendFactorBlendColor: return "blendcolor";
+        case MTLBlendFactorOneMinusBlendColor: return "1-blendcolor";
+        case MTLBlendFactorBlendAlpha: return "blendalpha";
+        case MTLBlendFactorOneMinusBlendAlpha: return "1-blendalpha";
+        case MTLBlendFactorSource1Color: return "s1color";
+        case MTLBlendFactorOneMinusSource1Color: return "1-s1color";
+        case MTLBlendFactorSource1Alpha: return "s1alpha";
+        case MTLBlendFactorOneMinusSource1Alpha: return "1-s1alpha";
+    }
+    return "unknown";
+}
+*/
+
 static id<CAMetalDrawable> get_active_metal_drawable() {
     if (metal_active_drawable != nil) return metal_active_drawable;
     metal_active_drawable = [metal_layer nextDrawable];
@@ -545,7 +583,7 @@ void am_init_gl() {
     metal_blend_eq_alpha = AM_BLEND_EQUATION_ADD;
     metal_blend_sfactor_rgb = AM_BLEND_SFACTOR_SRC_ALPHA;
     metal_blend_sfactor_alpha = AM_BLEND_SFACTOR_SRC_ALPHA;
-    metal_blend_dfactor_rgb = AM_BLEND_DFACTOR_SRC_ALPHA;
+    metal_blend_dfactor_rgb = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
     metal_blend_dfactor_alpha = AM_BLEND_DFACTOR_ONE_MINUS_SRC_ALPHA;
 
     metal_depth_test_enabled = false;
@@ -1825,6 +1863,16 @@ static bool setup_pipeline(metal_program *prog) {
         pldescr.colorAttachments[0].sourceAlphaBlendFactor = to_metal_blend_sfactor(metal_blend_sfactor_alpha);
         pldescr.colorAttachments[0].destinationRGBBlendFactor = to_metal_blend_dfactor(metal_blend_dfactor_rgb);
         pldescr.colorAttachments[0].destinationAlphaBlendFactor = to_metal_blend_dfactor(metal_blend_dfactor_alpha);
+        /*
+        am_debug(
+            "\nrgbBlendOperation = %s\nalphaBlendOperation = %s\nsourceRGBBlendFactor = %s\nsourceAlphaBlendFactor = %s\ndestinationRGBBlendFactor = %s\ndestinationAlphaBlendFactor = %s\n",
+            to_metal_blend_op_str(pldescr.colorAttachments[0].rgbBlendOperation),
+            to_metal_blend_op_str(pldescr.colorAttachments[0].alphaBlendOperation),
+            to_metal_blend_fact_str(pldescr.colorAttachments[0].sourceRGBBlendFactor),
+            to_metal_blend_fact_str(pldescr.colorAttachments[0].sourceAlphaBlendFactor),
+            to_metal_blend_fact_str(pldescr.colorAttachments[0].destinationRGBBlendFactor),
+            to_metal_blend_fact_str(pldescr.colorAttachments[0].destinationAlphaBlendFactor));
+        */
 
         MTLVertexDescriptor *vertdescr = [[MTLVertexDescriptor alloc] init];
         for (int i = 0; i < nattrs; i++) {
