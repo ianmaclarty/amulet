@@ -1981,15 +1981,17 @@ static bool setup_pipeline(metal_program *prog) {
         cached_pipeline.depth_test_enabled = metal_depth_test_enabled;;
         cached_pipeline.depth_mask = metal_depth_mask;;
         cached_pipeline.depth_func = metal_depth_func;
+
+        MTLDepthStencilDescriptor *depthdescr = [[MTLDepthStencilDescriptor alloc] init];
         if (metal_depth_test_enabled) {
-            MTLDepthStencilDescriptor *descr = [[MTLDepthStencilDescriptor alloc] init];
-            descr.depthCompareFunction = to_metal_depth_func(metal_depth_func);
-            descr.depthWriteEnabled = to_objc_bool(metal_depth_mask);
-            cached_pipeline.mtldepthstencilstate = [metal_device newDepthStencilStateWithDescriptor: descr];
-            [descr release];
+            depthdescr.depthCompareFunction = to_metal_depth_func(metal_depth_func);
+            depthdescr.depthWriteEnabled = to_objc_bool(metal_depth_mask);
         } else {
-            cached_pipeline.mtldepthstencilstate = nil;
+            depthdescr.depthCompareFunction = MTLCompareFunctionAlways;
+            depthdescr.depthWriteEnabled = NO;
         }
+        cached_pipeline.mtldepthstencilstate = [metal_device newDepthStencilStateWithDescriptor: depthdescr];
+        [depthdescr release];
 
         cached_pipeline.face_culling_enabled = metal_face_culling_enabled;
         cached_pipeline.face_cull_side = metal_face_cull_side;
@@ -2001,10 +2003,9 @@ static bool setup_pipeline(metal_program *prog) {
     if (selected_pipeline != metal_active_pipeline) {
         metal_pipeline *pipeline = &prog->pipeline_cache[selected_pipeline];
         [metal_encoder setRenderPipelineState: pipeline->mtlpipeline];
-        if (pipeline->mtldepthstencilstate != nil) {
+        metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+        if (fb->depth_texture != nil) {
             [metal_encoder setDepthStencilState:pipeline->mtldepthstencilstate];
-        } else {
-            [metal_encoder setDepthStencilState:nil];
         }
         [metal_encoder setFrontFacingWinding: to_metal_winding(metal_bound_framebuffer != 0, pipeline->face_winding)];
         [metal_encoder setCullMode: to_metal_cull_mode(pipeline->face_culling_enabled, pipeline->face_cull_side)];
