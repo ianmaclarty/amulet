@@ -80,7 +80,7 @@ static int create_framebuffer(lua_State *L) {
     glm::dvec4 clear_color = glm::dvec4(0.0f, 0.0f, 0.0f, 1.0f);
     int stencil_clear_value = 0;
     fb->init(L, texture, depth_buf, stencil_buf, clear_color, stencil_clear_value);
-    fb->clear(false, depth_buf, stencil_buf);
+    fb->clear(true, depth_buf, stencil_buf);
     return 1;
 }
 

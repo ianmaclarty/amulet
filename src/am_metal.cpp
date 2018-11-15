@@ -64,6 +64,7 @@ int am_frame_use_program_calls;
 NSWindow *am_metal_window = nil;
 bool am_metal_use_highdpi = false;
 bool am_metal_window_depth_buffer = false;
+bool am_metal_window_stencil_buffer = false;
 
 @interface MetalView : NSView
 
@@ -127,6 +128,10 @@ struct metal_framebuffer {
     float clear_g;
     float clear_b;
     float clear_a;
+    bool require_clear_color_buffer;
+    bool require_clear_depth_buffer;
+    bool require_clear_stencil_buffer;
+
     id<MTLTexture> color_texture; // nil for default framebuffer
     id<MTLTexture> depth_texture;
 };
@@ -436,7 +441,7 @@ static id<CAMetalDrawable> get_active_metal_drawable() {
     return metal_active_drawable;
 }
 
-static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
+static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
     metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
     if (!fb->complete) return NULL;
     MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
@@ -455,32 +460,28 @@ static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
         renderdesc.depthAttachment.texture = fb->depth_texture;
     }
 
+    if (fb->require_clear_color_buffer) {
+        colorattachment.loadAction = MTLLoadActionClear;
+    }
+    if (fb->require_clear_depth_buffer) {
+        renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
+    }
+    if (fb->require_clear_stencil_buffer) {
+        renderdesc.stencilAttachment.loadAction = MTLLoadActionClear;
+    }
     return renderdesc;
 }
 
-static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
-    if (metal_encoder != nil) {
-        // in metal clear can only be done when creating the encoder,
-        // so if there is already an encoder finish it and create a new one.
-        [metal_encoder endEncoding];
+static void create_new_metal_encoder() {
+    assert(metal_encoder == nil);
+    assert(metal_command_buffer == nil);
 
-        // XXX auto-releases?
-        metal_encoder = nil;
-    }
-    if (metal_command_buffer == nil) {
-        metal_command_buffer = [metal_queue commandBuffer];
-    }
+    metal_command_buffer = [metal_queue commandBuffer];
 
-    MTLRenderPassDescriptor *renderdesc = make_active_framebuffer_render_desc();
+    MTLRenderPassDescriptor *renderdesc = make_bound_framebuffer_render_desc();
     if (renderdesc == NULL) {
         am_log1("%s", "error: attempt to use incomplete framebuffer");
         return;
-    }
-    if (clear_color_buf) {
-        renderdesc.colorAttachments[0].loadAction = MTLLoadActionClear;
-    }
-    if (clear_depth_buf) {
-        renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
     }
     metal_encoder = [metal_command_buffer renderCommandEncoderWithDescriptor:renderdesc];
     metal_active_pipeline = -1;
@@ -533,6 +534,9 @@ void am_init_gl() {
     default_metal_framebuffer.clear_g = 0.0f;
     default_metal_framebuffer.clear_b = 0.0f;
     default_metal_framebuffer.clear_a = 1.0f;
+    default_metal_framebuffer.require_clear_color_buffer = true;
+    default_metal_framebuffer.require_clear_depth_buffer = am_metal_window_depth_buffer;
+    default_metal_framebuffer.require_clear_stencil_buffer = am_metal_window_stencil_buffer;
     default_metal_framebuffer.color_texture = nil;
     if (am_metal_window_depth_buffer) {
         MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth16Unorm
@@ -691,7 +695,19 @@ void am_set_sample_coverage(float value, bool invert) {
 
 void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     check_initialized();
-    create_new_metal_encoder(clear_color_buf, clear_depth_buf, clear_stencil_buf);
+    if (metal_bound_framebuffer == 0) return; // we always clear default fb when creating the encoder
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+    fb->require_clear_color_buffer = clear_color_buf;
+    fb->require_clear_depth_buffer = clear_depth_buf;
+    fb->require_clear_stencil_buffer = clear_stencil_buf;
+    create_new_metal_encoder();
+    fb->require_clear_color_buffer = false;
+    fb->require_clear_depth_buffer = false;
+    fb->require_clear_stencil_buffer = false;
+    [metal_encoder endEncoding];
+    [metal_command_buffer commit];
+    metal_encoder = nil;
+    metal_command_buffer = nil;
 }
 
 void am_set_framebuffer_clear_color(float r, float g, float b, float a) {
@@ -1627,6 +1643,9 @@ am_framebuffer_id am_create_framebuffer() {
     fb.clear_g = 0.0f;
     fb.clear_b = 0.0f;
     fb.clear_a = 1.0f;
+    fb.require_clear_color_buffer = false;
+    fb.require_clear_depth_buffer = false;
+    fb.require_clear_stencil_buffer = false;
     fb.color_texture = nil;
     fb.depth_texture = nil;
     return metal_framebuffer_freelist.add(fb);
@@ -1949,15 +1968,7 @@ static bool setup_pipeline(metal_program *prog) {
 }
 
 static bool pre_draw_setup() {
-    if (metal_bound_framebuffer != metal_active_framebuffer) {
-        if (metal_encoder != nil) {
-            [metal_encoder endEncoding];
-            // XXX auto-releases?
-            metal_encoder = nil;
-        }
-        create_new_metal_encoder(false, false, false);
-    }
-    if (metal_active_program == 0) return false;
+    if (metal_encoder == nil) create_new_metal_encoder();
     metal_program *prog = metal_program_freelist.get(metal_active_program);
 
     // pipeline
@@ -2057,8 +2068,6 @@ void am_gl_end_drawing() {
     check_initialized();
     if (metal_encoder != nil) {
         [metal_encoder endEncoding];
-
-        // XXX auto-releases?
         metal_encoder = nil;
     }
     if (metal_command_buffer != nil) {
@@ -2067,8 +2076,6 @@ void am_gl_end_drawing() {
         }
         [metal_command_buffer commit];
         //[metal_command_buffer waitUntilCompleted];
-
-        // XXX auto-releases?
         metal_command_buffer = nil;
         if (metal_bound_framebuffer == 0) {
             metal_active_drawable = nil;
