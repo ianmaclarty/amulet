@@ -8,6 +8,8 @@
 #import <QuartzCore/CAMetalLayer.h>
 #include "glsl_optimizer.h"
 
+#define AM_METAL_EXTRA_VERT_UNIFORMS_SIZE 16
+
 static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str);
 
 template<typename T>
@@ -152,34 +154,6 @@ struct metal_renderbuffer {
 int metal_bound_renderbuffer = 0;
 
 static freelist<metal_renderbuffer> metal_renderbuffer_freelist;
-
-static id<CAMetalDrawable> get_active_metal_drawable() {
-    if (metal_active_drawable != nil) return metal_active_drawable;
-    metal_active_drawable = [metal_layer nextDrawable];
-    return metal_active_drawable;
-}
-
-static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
-    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
-    if (!fb->complete) return NULL;
-    MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
-    MTLRenderPassColorAttachmentDescriptor *colorattachment = renderdesc.colorAttachments[0];
-
-    if (fb->color_texture != nil) {
-        colorattachment.texture = fb->color_texture;
-    } else {
-        colorattachment.texture = get_active_metal_drawable().texture;
-    }
-    colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
-    colorattachment.loadAction  = MTLLoadActionLoad;
-    colorattachment.storeAction = MTLStoreActionStore;
-
-    if (fb->depth_texture != nil) {
-        renderdesc.depthAttachment.texture = fb->depth_texture;
-    }
-
-    return renderdesc;
-}
 
 static glslopt_ctx* glslopt_context = NULL;
 
@@ -410,12 +384,40 @@ static MTLCullMode to_metal_cull_mode(bool enabled, am_cull_face_side side) {
     return MTLCullModeNone;
 }
 
-static MTLWinding to_metal_winding(am_face_winding w) {
+static MTLWinding to_metal_winding(bool invert, am_face_winding w) {
     switch (w) {
-        case AM_FACE_WIND_CW: return MTLWindingClockwise;
-        case AM_FACE_WIND_CCW: return MTLWindingCounterClockwise;
+        case AM_FACE_WIND_CW: return invert ? MTLWindingCounterClockwise : MTLWindingClockwise;
+        case AM_FACE_WIND_CCW: return invert ? MTLWindingClockwise : MTLWindingCounterClockwise;
     }
     return MTLWindingCounterClockwise;
+}
+
+static id<CAMetalDrawable> get_active_metal_drawable() {
+    if (metal_active_drawable != nil) return metal_active_drawable;
+    metal_active_drawable = [metal_layer nextDrawable];
+    return metal_active_drawable;
+}
+
+static MTLRenderPassDescriptor *make_active_framebuffer_render_desc() {
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+    if (!fb->complete) return NULL;
+    MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
+    MTLRenderPassColorAttachmentDescriptor *colorattachment = renderdesc.colorAttachments[0];
+
+    if (fb->color_texture != nil) {
+        colorattachment.texture = fb->color_texture;
+    } else {
+        colorattachment.texture = get_active_metal_drawable().texture;
+    }
+    colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
+    colorattachment.loadAction  = MTLLoadActionLoad;
+    colorattachment.storeAction = MTLStoreActionStore;
+
+    if (fb->depth_texture != nil) {
+        renderdesc.depthAttachment.texture = fb->depth_texture;
+    }
+
+    return renderdesc;
 }
 
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
@@ -888,7 +890,7 @@ bool am_compile_shader(am_shader_id id, am_shader_type type, const char *src, ch
         const char *metal_src = glslopt_get_output(shader->gshader);
         //printf("%s", "----------------------------------------------------------------------------------\n");
         //printf("GLSL:\n%s\n", src);
-        printf("Metal:\n%s\n", metal_src);
+        //printf("Metal:\n%s\n", metal_src);
         shader->lib = [metal_device newLibraryWithSource:[NSString stringWithUTF8String:metal_src] options: nil error:&error];
         if (shader->lib == nil) {
             *msg = am_format("%s", [[error localizedDescription] UTF8String]);
@@ -1032,13 +1034,11 @@ bool am_link_program(am_program_id program_id) {
     metal_shader *frag = &prog->frag_shader;
 
     // setup uniforms
-    int vert_bytes = glslopt_shader_get_uniform_total_size(vert->gshader);
+    int vert_bytes = glslopt_shader_get_uniform_total_size(vert->gshader) + AM_METAL_EXTRA_VERT_UNIFORMS_SIZE;
     int frag_bytes = glslopt_shader_get_uniform_total_size(frag->gshader);
-    if (vert_bytes > 0) {
-        prog->vert_uniform_size = vert_bytes;
-        prog->vert_uniform_data = (uint8_t*)malloc(vert_bytes);
-        memset(prog->vert_uniform_data, 0, vert_bytes);
-    }
+    prog->vert_uniform_size = vert_bytes;
+    prog->vert_uniform_data = (uint8_t*)malloc(vert_bytes);
+    memset(prog->vert_uniform_data, 0, vert_bytes);
     if (frag_bytes > 0) {
         prog->frag_uniform_size = frag_bytes;
         prog->frag_uniform_data = (uint8_t*)malloc(frag_bytes);
@@ -1069,6 +1069,7 @@ bool am_link_program(am_program_id program_id) {
         int loc;
         if (i < num_vert_uniforms) {
             glslopt_shader_get_uniform_desc(vert->gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+            loc += AM_METAL_EXTRA_VERT_UNIFORMS_SIZE;
         } else {
             glslopt_shader_get_texture_desc(vert->gshader, i - num_vert_uniforms, &name, &type, &prec, &vsize, &msize, &asize, &loc);
         }
@@ -1892,7 +1893,7 @@ static bool setup_pipeline(metal_program *prog) {
         } else {
             [metal_encoder setDepthStencilState:nil];
         }
-        [metal_encoder setFrontFacingWinding: to_metal_winding(pipeline->face_winding)];
+        [metal_encoder setFrontFacingWinding: to_metal_winding(metal_bound_framebuffer != 0, pipeline->face_winding)];
         [metal_encoder setCullMode: to_metal_cull_mode(pipeline->face_culling_enabled, pipeline->face_cull_side)];
         metal_active_pipeline = selected_pipeline;
     }
@@ -1916,6 +1917,12 @@ static bool pre_draw_setup() {
 
     // uniforms
     if (prog->vert_uniform_data != NULL) {
+        // set _am_y_flip to flip y if rendering to a texture
+        if (metal_bound_framebuffer == 0) {
+            *((float*)(prog->vert_uniform_data)) = 1.0f;
+        } else {
+            *((float*)(prog->vert_uniform_data)) = -1.0f;
+        }
         [metal_encoder setVertexBytes:prog->vert_uniform_data length:prog->vert_uniform_size atIndex:0];
     }
     if (prog->frag_uniform_data != NULL) {

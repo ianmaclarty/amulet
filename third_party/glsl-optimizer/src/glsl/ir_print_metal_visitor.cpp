@@ -218,6 +218,14 @@ _mesa_print_ir_metal(exec_list *instructions,
 	ctx.outputStr.asprintf_append("struct xlatMtlShaderOutput {\n");
 	ctx.uniformStr.asprintf_append("struct xlatMtlShaderUniform {\n");
 
+        if (state->stage == MESA_SHADER_VERTEX) {
+            ctx.uniformStr.asprintf_append("  float _am_y_flip;\n");
+            // the following are just to ensure 16 byte alignment of subsequent fields
+            ctx.uniformStr.asprintf_append("  float _am_align1;\n");
+            ctx.uniformStr.asprintf_append("  float _am_align2;\n");
+            ctx.uniformStr.asprintf_append("  float _am_align3;\n");
+        }
+
 	// remove unused struct declarations
 	do_remove_unused_typedecls(instructions);
 
@@ -775,6 +783,8 @@ void ir_print_metal_visitor::visit(ir_function_signature *ir)
                     // AMULET: adjust clip z range to [0, 1] (it's [-1, 1] in OpenGL)
                     // from: https://mellinoe.github.io/veldrid-docs/articles/backend-differences.html
                     indent(); buffer.asprintf_append ("_mtl_o.gl_Position.z = 0.5 * (_mtl_o.gl_Position.z + _mtl_o.gl_Position.w);\n");
+                    // AMULET: flip y axis if we're rendering into a texture
+                    indent(); buffer.asprintf_append ("_mtl_o.gl_Position.y *= _mtl_u._am_y_flip;\n");
                 }
                 indent(); buffer.asprintf_append ("return _mtl_o;\n");
 	}
@@ -1199,10 +1209,9 @@ static void print_texture_uv (ir_print_metal_visitor* vis, ir_texture* ir, bool 
 		if (!is_proj && !is_array)
 		{
 			// regular UV
-                        // AMULET change: we invert the y uv coordinate here.
-			vis->buffer.asprintf_append (sampler_uv_dim == 3 ? "(float3)((" : "(float2)(float2(0.0, 1.0) + float2(1.0, -1.0) * (");
+			vis->buffer.asprintf_append (sampler_uv_dim == 3 ? "(float3)(" : "(float2)(");
 			ir->coordinate->accept(vis);
-			vis->buffer.asprintf_append ("))");
+			vis->buffer.asprintf_append (")");
 		}
 		else if (is_array)
 		{
