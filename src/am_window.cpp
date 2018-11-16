@@ -413,13 +413,13 @@ static void draw_windows() {
             rstate->do_render(win->scene, 0, true, win->clear_color, win->stencil_clear_value,
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                 win->pixel_width, win->pixel_height,
-                win->projection, win->has_depth_buffer);
+                win->projection, win->has_depth_buffer, win->overlay == NULL);
             if (win->overlay != NULL) {
                 rstate->do_render(win->overlay, 0, false, win->clear_color,
                     win->stencil_clear_value, 
                     win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                     win->pixel_width, win->pixel_height,
-                    win->projection, false);
+                    win->projection, false, true);
             }
             am_native_window_swap_buffers(win->native_win);
         }

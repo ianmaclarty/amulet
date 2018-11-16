@@ -207,7 +207,8 @@ struct am_render_state {
     void enable_vaas(int n);
     void do_render(am_scene_node *root, am_framebuffer_id fb, 
         bool clear, glm::dvec4 clear_color, int stencil_clear_val,
-        int x, int y, int w, int h, int fbw, int fbh, glm::dmat4 proj, bool has_depthbuffer);
+        int x, int y, int w, int h, int fbw, int fbh, glm::dmat4 proj, bool has_depthbuffer,
+        bool end_drawing);
 };
 
 struct am_draw_node : am_scene_node {

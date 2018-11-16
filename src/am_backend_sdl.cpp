@@ -345,6 +345,7 @@ void am_native_window_bind_framebuffer(am_native_window* window) {
 }
 
 void am_native_window_swap_buffers(am_native_window* window) {
+    am_gl_flush();
 #if !defined(AM_USE_METAL)
     SDL_GL_SwapWindow((SDL_Window*)window);
 #endif

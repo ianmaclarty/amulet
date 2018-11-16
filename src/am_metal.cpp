@@ -564,9 +564,9 @@ void am_init_gl() {
     default_metal_framebuffer.clear_g = 0.0f;
     default_metal_framebuffer.clear_b = 0.0f;
     default_metal_framebuffer.clear_a = 1.0f;
-    default_metal_framebuffer.require_clear_color_buffer = true;
-    default_metal_framebuffer.require_clear_depth_buffer = am_metal_window_depth_buffer;
-    default_metal_framebuffer.require_clear_stencil_buffer = am_metal_window_stencil_buffer;
+    default_metal_framebuffer.require_clear_color_buffer = false;
+    default_metal_framebuffer.require_clear_depth_buffer = false;
+    default_metal_framebuffer.require_clear_stencil_buffer = false;
     default_metal_framebuffer.color_texture = nil;
     if (am_metal_window_depth_buffer) {
         MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth16Unorm
@@ -725,7 +725,6 @@ void am_set_sample_coverage(float value, bool invert) {
 
 void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     check_initialized();
-    if (metal_bound_framebuffer == 0) return; // we always clear default fb when creating the encoder
     metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
     fb->require_clear_color_buffer = clear_color_buf;
     fb->require_clear_depth_buffer = clear_depth_buf;

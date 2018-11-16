@@ -102,7 +102,7 @@ function main_action()
         win.lock_pointer = not win.lock_pointer
     end
     update_camera()
-    log(am.perf_stats().avg_fps)
+    --log(am.perf_stats().avg_fps)
 end
 
 local
