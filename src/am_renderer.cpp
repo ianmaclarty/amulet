@@ -601,7 +601,7 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
     bool clear, glm::dvec4 clear_color, int stencil_clear_val, int x, int y, int w, int h, int fbw, int fbh,
-    glm::dmat4 proj, bool has_depthbuffer, bool end_drawing)
+    glm::dmat4 proj, bool has_depthbuffer)
 {
     setup(this, fb, clear, clear_color, stencil_clear_val, x, y, w, h, fbw, fbh, proj, has_depthbuffer);
     if (root == NULL || am_node_hidden(root)) return;
@@ -617,7 +617,7 @@ void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
     // do_render.
     bound_program_id = 0;
     am_use_program(0);
-    if (end_drawing) am_gl_end_drawing();
+    am_gl_end_framebuffer_render();
 
     assert(active_program == NULL);
     assert(next_free_texture_unit == 0);

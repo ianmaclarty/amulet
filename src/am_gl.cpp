@@ -1414,13 +1414,10 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
     am_frame_draw_calls++;
 }
 
-void am_gl_flush() {
-    check_initialized();
-    GLFUNC(glFlush)();
-    check_for_errors
+void am_gl_end_framebuffer_render() {
 }
 
-void am_gl_end_drawing() {
+void am_gl_end_frame() {
 }
 
 static GLenum to_gl_blend_equation(am_blend_equation eq) {

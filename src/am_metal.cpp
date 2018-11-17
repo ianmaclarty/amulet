@@ -465,13 +465,10 @@ static const char* to_metal_blend_fact_str(MTLBlendFactor op) {
 }
 */
 
-static id<CAMetalDrawable> get_active_metal_drawable() {
-    if (metal_active_drawable != nil) return metal_active_drawable;
-    metal_active_drawable = [metal_layer nextDrawable];
-    return metal_active_drawable;
-}
-
 static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
+    assert(metal_active_drawable != nil);
+    assert(metal_command_buffer != nil);
+
     metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
     if (!fb->complete) return NULL;
     MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
@@ -480,7 +477,8 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
     if (fb->color_texture != nil) {
         colorattachment.texture = fb->color_texture;
     } else {
-        colorattachment.texture = get_active_metal_drawable().texture;
+        assert(metal_bound_framebuffer == 0);
+        colorattachment.texture = metal_active_drawable.texture;
     }
     colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
     colorattachment.loadAction  = MTLLoadActionLoad;
@@ -504,9 +502,12 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
 
 static void create_new_metal_encoder() {
     assert(metal_encoder == nil);
-    assert(metal_command_buffer == nil);
 
-    metal_command_buffer = [metal_queue commandBuffer];
+    if (metal_command_buffer == nil) {
+        assert(metal_active_drawable == nil);
+        metal_command_buffer = [metal_queue commandBuffer];
+        metal_active_drawable = [metal_layer nextDrawable];
+    }
 
     MTLRenderPassDescriptor *renderdesc = make_bound_framebuffer_render_desc();
     if (renderdesc == NULL) {
@@ -555,8 +556,9 @@ void am_init_gl() {
     }
 
     metal_queue = [metal_device newCommandQueue];
+    metal_command_buffer = [metal_queue commandBuffer];
+    metal_active_drawable = [metal_layer nextDrawable];
 
-    get_active_metal_drawable(); // needed so metal_layer.drawableSize returns non-zero dimensions
     default_metal_framebuffer.complete = true;
     default_metal_framebuffer.width = metal_layer.drawableSize.width;
     default_metal_framebuffer.height = metal_layer.drawableSize.height;
@@ -610,7 +612,6 @@ void am_init_gl() {
     metal_active_array_buffer = 0;
     metal_active_pipeline = -1;
     metal_active_program = 0;
-    metal_active_drawable = nil;
 
     metal_blend_enabled = false;
     metal_blend_eq_rgb = AM_BLEND_EQUATION_ADD;
@@ -734,9 +735,7 @@ void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear
     fb->require_clear_depth_buffer = false;
     fb->require_clear_stencil_buffer = false;
     [metal_encoder endEncoding];
-    [metal_command_buffer commit];
     metal_encoder = nil;
-    metal_command_buffer = nil;
 }
 
 void am_set_framebuffer_clear_color(float r, float g, float b, float a) {
@@ -2108,27 +2107,23 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
             indexBufferOffset:offset];
 }
 
-void am_gl_flush() {
-    check_initialized();
-    // XXX
-}
-
-void am_gl_end_drawing() {
+void am_gl_end_framebuffer_render() {
     check_initialized();
     if (metal_encoder != nil) {
         [metal_encoder endEncoding];
         metal_encoder = nil;
     }
+}
+
+void am_gl_end_frame() {
+    check_initialized();
     if (metal_command_buffer != nil) {
-        if (metal_bound_framebuffer == 0) {
-            [metal_command_buffer presentDrawable:get_active_metal_drawable()];
-        }
+        assert(metal_active_drawable != nil);
+        [metal_command_buffer presentDrawable:metal_active_drawable];
         [metal_command_buffer commit];
         //[metal_command_buffer waitUntilCompleted];
         metal_command_buffer = nil;
-        if (metal_bound_framebuffer == 0) {
-            metal_active_drawable = nil;
-        }
+        metal_active_drawable = nil;
     }
 }
 

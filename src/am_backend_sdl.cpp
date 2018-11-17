@@ -345,7 +345,7 @@ void am_native_window_bind_framebuffer(am_native_window* window) {
 }
 
 void am_native_window_swap_buffers(am_native_window* window) {
-    am_gl_flush();
+    am_gl_end_frame();
 #if !defined(AM_USE_METAL)
     SDL_GL_SwapWindow((SDL_Window*)window);
 #endif
@@ -482,6 +482,10 @@ int main( int argc, char *argv[] )
     int expanded_argc = argc;
     char **expanded_argv = argv;
 
+#ifdef AM_OSX
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
+
     if (!am_process_args(&argc, &argv, &exit_status)) {
         goto quit;
     }
@@ -523,9 +527,6 @@ restart:
     vsync = -2;
 
     while (windows.size() > 0 && !restart_triggered) {
-#ifdef AM_OSX
-        @autoreleasepool {
-#endif
 #if !defined(AM_USE_METAL)
         if (vsync != (am_conf_vsync ? 1 : 0)) {
             vsync = (am_conf_vsync ? 1 : 0);
@@ -537,6 +538,12 @@ restart:
             goto quit;
         }
 
+#ifdef AM_OSX
+        // release pool after updating windows, so that some metal objects, such as the layer,
+        // persist for the entire frame.
+        [pool release];
+        pool = [[NSAutoreleasePool alloc] init];
+#endif
         SDL_LockAudioDevice(audio_device);
         am_sync_audio_graph(L);
         if (should_init_capture) {
@@ -585,9 +592,6 @@ restart:
             usleep(10 * 1000); // 10 milliseconds
 #endif
         }
-#ifdef AM_OSX
-    }
-#endif
     }
 
     if (restart_triggered) {
@@ -648,6 +652,7 @@ quit:
     am_free_expanded_args(expanded_argc, expanded_argv);
     am_log_gl("// exit");
     am_close_gllog();
+    [pool release];
     exit(exit_status);
     return exit_status;
 }
