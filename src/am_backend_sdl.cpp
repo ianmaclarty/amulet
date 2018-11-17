@@ -652,7 +652,9 @@ quit:
     am_free_expanded_args(expanded_argc, expanded_argv);
     am_log_gl("// exit");
     am_close_gllog();
+#ifdef AM_OSX
     [pool release];
+#endif
     exit(exit_status);
     return exit_status;
 }

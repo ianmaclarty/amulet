@@ -1054,13 +1054,16 @@ void ir_print_metal_visitor::visit(ir_expression *ir)
 		} else if (ir->operation == ir_unop_rcp) {
 			const bool halfCast = (arg_prec == glsl_precision_medium || arg_prec == glsl_precision_low);
 			buffer.asprintf_append (halfCast ? "((half)1.0/(" : "(1.0/(");
+                } else if (ir->operation == ir_unop_dFdy || ir->operation == ir_unop_dFdy_coarse || ir->operation == ir_unop_dFdy_fine) {
+                        // AMULET: dfdy seems to be inverted in metal??
+			buffer.asprintf_append ("(-%s(", operator_glsl_strs[ir->operation]);
 		} else {
 			buffer.asprintf_append ("%s(", operator_glsl_strs[ir->operation]);
 		}
 		if (ir->operands[0])
 			ir->operands[0]->accept(this);
 		buffer.asprintf_append (")");
-		if (ir->operation == ir_unop_rcp) {
+		if (ir->operation == ir_unop_rcp || ir->operation == ir_unop_dFdy || ir->operation == ir_unop_dFdy_coarse || ir->operation == ir_unop_dFdy_fine) {
 			buffer.asprintf_append (")");
 		}
 	}
