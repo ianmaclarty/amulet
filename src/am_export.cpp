@@ -247,7 +247,7 @@ static bool build_mac_export(export_config *conf, bool print_message) {
     bool icon_created = create_mac_icons(conf);
     const char *name = conf->title;
     const char *zipdir = conf->zipdir;
-    char *resource_dir = am_format("%s.app/Contents/Resources", name);
+    char *resource_dir = am_format("%s/%s.app/Contents/Resources", zipdir, name);
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
