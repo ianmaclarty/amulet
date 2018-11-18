@@ -65,6 +65,7 @@ NSWindow *am_metal_window = nil;
 bool am_metal_use_highdpi = false;
 bool am_metal_window_depth_buffer = false;
 bool am_metal_window_stencil_buffer = false;
+int am_metal_window_msaa_samples = 1;
 
 static void metal_handle_resize(int w, int h);
 
@@ -135,8 +136,11 @@ struct metal_framebuffer {
     bool require_clear_depth_buffer;
     bool require_clear_stencil_buffer;
 
-    id<MTLTexture> color_texture; // nil for default framebuffer
+    id<MTLTexture> color_texture; // nil for default framebuffer, since the framework cycles between multiple textures 
     id<MTLTexture> depth_texture;
+
+    int msaa_samples;
+    id<MTLTexture> msaa_texture;
 };
 
 static freelist<metal_framebuffer> metal_framebuffer_freelist;
@@ -242,6 +246,9 @@ struct metal_pipeline {
     am_blend_dfactor blend_dfactor_rgb;
     am_blend_dfactor blend_dfactor_alpha;
     id<MTLRenderPipelineState> mtlpipeline;
+
+    MTLPixelFormat color_pixel_format;
+    int msaa_samples;
 
     bool depth_test_enabled;
     bool depth_mask;
@@ -473,6 +480,22 @@ static const char* to_metal_blend_fact_str(MTLBlendFactor op) {
 }
 */
 
+MTLPixelFormat get_framebuffer_color_pixel_format(metal_framebuffer *fb) {
+    if (fb->color_texture == nil) {
+        return metal_layer.pixelFormat;
+    } else {
+        return fb->color_texture.pixelFormat;
+    }
+}
+
+id<MTLTexture> get_framebuffer_color_texture(metal_framebuffer *fb) {
+    if (fb->color_texture == nil) {
+        return metal_active_drawable.texture;
+    } else {
+        return fb->color_texture;
+    }
+}
+
 static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
     assert(metal_active_drawable != nil);
     assert(metal_command_buffer != nil);
@@ -482,20 +505,21 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
     MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
     MTLRenderPassColorAttachmentDescriptor *colorattachment = renderdesc.colorAttachments[0];
 
-    if (fb->color_texture != nil) {
-        colorattachment.texture = fb->color_texture;
+    if (fb->msaa_texture != nil) {
+        colorattachment.texture = fb->msaa_texture;
+        colorattachment.resolveTexture = get_framebuffer_color_texture(fb);
+        colorattachment.storeAction = MTLStoreActionMultisampleResolve;
     } else {
-        assert(metal_bound_framebuffer == 0);
-        colorattachment.texture = metal_active_drawable.texture;
+        colorattachment.texture = get_framebuffer_color_texture(fb);
+        colorattachment.storeAction = MTLStoreActionStore;
     }
-    colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
-    colorattachment.loadAction  = MTLLoadActionLoad;
-    colorattachment.storeAction = MTLStoreActionStore;
 
     if (fb->depth_texture != nil) {
         renderdesc.depthAttachment.texture = fb->depth_texture;
     }
 
+    colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
+    colorattachment.loadAction  = MTLLoadActionLoad;
     if (fb->require_clear_color_buffer) {
         colorattachment.loadAction = MTLLoadActionClear;
     }
@@ -505,6 +529,7 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
     if (fb->require_clear_stencil_buffer) {
         renderdesc.stencilAttachment.loadAction = MTLLoadActionClear;
     }
+
     return renderdesc;
 }
 
@@ -545,16 +570,52 @@ static void init_metal_view() {
 
 static bool metal_initialized = false;
 
-static void create_default_framebuffer_depth_texture() {
-    if (default_metal_framebuffer.depth_texture != nil) {
-        [default_metal_framebuffer.depth_texture release];
-        default_metal_framebuffer.depth_texture = nil;
+static void create_framebuffer_depth_texture(metal_framebuffer *fb) {
+    if (fb->depth_texture != nil) {
+        [fb->depth_texture release];
+        fb->depth_texture = nil;
     }
     MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth16Unorm
-        width:default_metal_framebuffer.width height:default_metal_framebuffer.height mipmapped:NO];
+        width:fb->width height:fb->height mipmapped:NO];
     texdescr.usage = MTLTextureUsageRenderTarget;
     texdescr.storageMode = MTLStorageModePrivate;
-    default_metal_framebuffer.depth_texture = [metal_device newTextureWithDescriptor:texdescr];
+    if (fb->msaa_samples > 1) {
+        texdescr.sampleCount = fb->msaa_samples;
+        texdescr.textureType = MTLTextureType2DMultisample;
+    }
+    fb->depth_texture = [metal_device newTextureWithDescriptor:texdescr];
+}
+
+static void create_framebuffer_msaa_texture(metal_framebuffer *fb) {
+    if (fb->msaa_texture != nil) {
+        [fb->msaa_texture release];
+        fb->msaa_texture = nil;
+    }
+    if (fb->msaa_samples == 1) return;
+    MTLPixelFormat pxlfmt = get_framebuffer_color_pixel_format(fb);
+    MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pxlfmt
+        width:fb->width height:fb->height mipmapped:NO];
+    texdescr.usage = MTLTextureUsageRenderTarget;
+    texdescr.storageMode = MTLStorageModePrivate;
+    texdescr.sampleCount = fb->msaa_samples;
+    texdescr.textureType = MTLTextureType2DMultisample;
+    fb->msaa_texture = [metal_device newTextureWithDescriptor:texdescr];
+}
+
+static void set_framebuffer_msaa_samples(metal_framebuffer *fb, int samples) {
+    if (metal_device == nil) {
+        fb->msaa_samples = 1;
+        return;
+    }
+    while (samples > 1) {
+        if ([metal_device supportsTextureSampleCount:samples]) {
+            fb->msaa_samples = samples;
+            return;
+        } else {
+            samples--;
+        }
+    }
+    fb->msaa_samples = 1;
 }
 
 void am_init_gl() {
@@ -589,12 +650,14 @@ void am_init_gl() {
     default_metal_framebuffer.require_clear_color_buffer = false;
     default_metal_framebuffer.require_clear_depth_buffer = false;
     default_metal_framebuffer.require_clear_stencil_buffer = false;
+    set_framebuffer_msaa_samples(&default_metal_framebuffer, am_metal_window_msaa_samples);
     default_metal_framebuffer.color_texture = nil;
     if (am_metal_window_depth_buffer) {
-        create_default_framebuffer_depth_texture();
+        create_framebuffer_depth_texture(&default_metal_framebuffer);
     } else {
         default_metal_framebuffer.depth_texture = nil;
     }
+    create_framebuffer_msaa_texture(&default_metal_framebuffer);
 
     glslopt_context = glslopt_initialize(kGlslTargetMetal);
     if (glslopt_context == NULL) {
@@ -1711,6 +1774,8 @@ am_framebuffer_id am_create_framebuffer() {
     fb.require_clear_stencil_buffer = false;
     fb.color_texture = nil;
     fb.depth_texture = nil;
+    set_framebuffer_msaa_samples(&fb, 1);
+    fb.msaa_texture = nil;
     return metal_framebuffer_freelist.add(fb);
 }
 
@@ -1888,6 +1953,8 @@ static MTLVertexFormat get_attr_format(attr_layout *attr) {
 static bool setup_pipeline(metal_program *prog) {
     int nattrs = prog->num_attrs;
     int selected_pipeline = -1;
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+    MTLPixelFormat colorpxlfmt = get_framebuffer_color_pixel_format(fb);
     for (int i = 0; i < prog->pipeline_cache.size(); i++) {
         metal_pipeline *cached_pipeline = &prog->pipeline_cache[i];
         if (
@@ -1898,6 +1965,8 @@ static bool setup_pipeline(metal_program *prog) {
             cached_pipeline->blend_sfactor_alpha != metal_blend_sfactor_alpha ||
             cached_pipeline->blend_dfactor_rgb != metal_blend_dfactor_rgb ||
             cached_pipeline->blend_dfactor_alpha != metal_blend_dfactor_alpha ||
+            cached_pipeline->color_pixel_format != colorpxlfmt ||
+            cached_pipeline->msaa_samples != fb->msaa_samples ||
             cached_pipeline->depth_test_enabled != metal_depth_test_enabled ||
             cached_pipeline->depth_mask != metal_depth_mask ||
             cached_pipeline->depth_func != metal_depth_func ||
@@ -1932,12 +2001,9 @@ static bool setup_pipeline(metal_program *prog) {
         MTLRenderPipelineDescriptor *pldescr = [[MTLRenderPipelineDescriptor alloc] init];
         pldescr.vertexFunction = prog->vert_shader.func;
         pldescr.fragmentFunction = prog->frag_shader.func;
+        pldescr.sampleCount = fb->msaa_samples;
 
-        if (metal_bound_framebuffer == 0) {
-            pldescr.colorAttachments[0].pixelFormat = metal_layer.pixelFormat;
-        } else {
-            pldescr.colorAttachments[0].pixelFormat = get_metal_framebuffer(metal_bound_framebuffer)->color_texture.pixelFormat;
-        }
+        pldescr.colorAttachments[0].pixelFormat = colorpxlfmt;
         pldescr.colorAttachments[0].blendingEnabled = to_objc_bool(metal_blend_enabled);
         pldescr.colorAttachments[0].rgbBlendOperation = to_metal_blend_op(metal_blend_eq_rgb);
         pldescr.colorAttachments[0].alphaBlendOperation = to_metal_blend_op(metal_blend_eq_alpha);
@@ -1993,6 +2059,8 @@ static bool setup_pipeline(metal_program *prog) {
         cached_pipeline.blend_sfactor_alpha = metal_blend_sfactor_alpha;
         cached_pipeline.blend_dfactor_rgb = metal_blend_dfactor_rgb;
         cached_pipeline.blend_dfactor_alpha = metal_blend_dfactor_alpha;
+        cached_pipeline.color_pixel_format = colorpxlfmt;
+        cached_pipeline.msaa_samples = fb->msaa_samples;
         cached_pipeline.mtlpipeline = pl;
 
         cached_pipeline.depth_test_enabled = metal_depth_test_enabled;;
@@ -2197,6 +2265,7 @@ static void metal_handle_resize(int w, int h) {
     metal_layer.drawableSize = CGSizeMake(w, h);
     default_metal_framebuffer.width = w;
     default_metal_framebuffer.height = h;
-    create_default_framebuffer_depth_texture();
+    create_framebuffer_msaa_texture(&default_metal_framebuffer);
+    create_framebuffer_depth_texture(&default_metal_framebuffer);
 }
 #endif // AM_USE_METAL

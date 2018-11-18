@@ -64,6 +64,7 @@ extern NSWindow *am_metal_window;
 extern bool am_metal_use_highdpi;
 extern bool am_metal_window_depth_buffer;
 extern bool am_metal_window_stencil_buffer;
+extern int am_metal_window_msaa_samples;
 #else
 static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
@@ -179,6 +180,7 @@ am_native_window *am_create_native_window(
     am_metal_use_highdpi = highdpi;
     am_metal_window_depth_buffer = depth_buffer;
     am_metal_window_stencil_buffer = stencil_buffer;
+    am_metal_window_msaa_samples = msaa_samples;
 #else
     if (!gl_context_initialized) {
         gl_context = SDL_GL_CreateContext(win);
