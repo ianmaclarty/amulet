@@ -316,6 +316,11 @@ static bool metal_face_culling_enabled;
 static am_cull_face_side metal_face_cull_side;
 static am_face_winding metal_face_winding;
 
+static int metal_bound_viewport_x = -1;
+static int metal_bound_viewport_y = -1;
+static int metal_bound_viewport_w = -1;
+static int metal_bound_viewport_h = -1;
+
 static BOOL to_objc_bool(bool b) {
     return b ? YES : NO;
 }
@@ -867,7 +872,10 @@ void am_set_scissor(int x, int y, int w, int h) {
 
 void am_set_viewport(int x, int y, int w, int h) {
     check_initialized();
-    // XXX
+    metal_bound_viewport_x = x;
+    metal_bound_viewport_y = y;
+    metal_bound_viewport_w = w;
+    metal_bound_viewport_h = h;
 }
 
 // Rasterization
@@ -2026,6 +2034,18 @@ static bool setup_pipeline(metal_program *prog) {
 static bool pre_draw_setup() {
     if (metal_encoder == nil) create_new_metal_encoder();
     metal_program *prog = metal_program_freelist.get(metal_active_program);
+
+    if (metal_bound_viewport_x != -1) {
+        metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+        MTLViewport vp;
+        vp.originX = metal_bound_viewport_x;
+        vp.originY = fb->height - metal_bound_viewport_y - metal_bound_viewport_h;
+        vp.width = metal_bound_viewport_w;
+        vp.height = metal_bound_viewport_h;
+        vp.znear = 0;
+        vp.zfar = 1;
+        [metal_encoder setViewport:vp];
+    }
 
     // pipeline
     if (!setup_pipeline(prog)) return false;
