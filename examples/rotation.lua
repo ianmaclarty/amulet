@@ -77,3 +77,6 @@ local scene =
     ^ scene_group
 
 win.scene = scene
+scene:action(function()
+    scene"bind".P = math.perspective(math.rad(85), win.width/win.height, 0.1, 10)
+end)

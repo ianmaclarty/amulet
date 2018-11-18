@@ -66,6 +66,8 @@ bool am_metal_use_highdpi = false;
 bool am_metal_window_depth_buffer = false;
 bool am_metal_window_stencil_buffer = false;
 
+static void metal_handle_resize(int w, int h);
+
 @interface MetalView : NSView
 
 - (instancetype)initWithFrame:(NSRect)frame
@@ -104,6 +106,7 @@ bool am_metal_window_stencil_buffer = false;
 - (void)resizeWithOldSuperviewSize:(NSSize)oldSize
 {
     [super resizeWithOldSuperviewSize:oldSize];
+    metal_handle_resize(self.bounds.size.width, self.bounds.size.height);
 }
 
 @end
@@ -537,6 +540,18 @@ static void init_metal_view() {
 
 static bool metal_initialized = false;
 
+static void create_default_framebuffer_depth_texture() {
+    if (default_metal_framebuffer.depth_texture != nil) {
+        [default_metal_framebuffer.depth_texture release];
+        default_metal_framebuffer.depth_texture = nil;
+    }
+    MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth16Unorm
+        width:default_metal_framebuffer.width height:default_metal_framebuffer.height mipmapped:NO];
+    texdescr.usage = MTLTextureUsageRenderTarget;
+    texdescr.storageMode = MTLStorageModePrivate;
+    default_metal_framebuffer.depth_texture = [metal_device newTextureWithDescriptor:texdescr];
+}
+
 void am_init_gl() {
     metal_device = MTLCreateSystemDefaultDevice();
     if (metal_device == nil) {
@@ -571,11 +586,7 @@ void am_init_gl() {
     default_metal_framebuffer.require_clear_stencil_buffer = false;
     default_metal_framebuffer.color_texture = nil;
     if (am_metal_window_depth_buffer) {
-        MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth16Unorm
-            width:default_metal_framebuffer.width height:default_metal_framebuffer.height mipmapped:NO];
-        texdescr.usage = MTLTextureUsageRenderTarget;
-        texdescr.storageMode = MTLStorageModePrivate;
-        default_metal_framebuffer.depth_texture = [metal_device newTextureWithDescriptor:texdescr];
+        create_default_framebuffer_depth_texture();
     } else {
         default_metal_framebuffer.depth_texture = nil;
     }
@@ -2158,4 +2169,14 @@ static void get_src_error_line(char *errmsg, const char *src, int *line_no, char
     }
 }
 
+static void metal_handle_resize(int w, int h) {
+    if (metal_layer == nil) return;
+    float scale = metal_layer.contentsScale;
+    w = (int)(scale * w);
+    h = (int)(scale * h);
+    metal_layer.drawableSize = CGSizeMake(w, h);
+    default_metal_framebuffer.width = w;
+    default_metal_framebuffer.height = h;
+    create_default_framebuffer_depth_texture();
+}
 #endif // AM_USE_METAL
