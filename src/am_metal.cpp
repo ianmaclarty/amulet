@@ -1657,16 +1657,21 @@ void am_set_texture_image_2d(am_texture_copy_target target, int level, am_textur
     check_initialized();
     if (metal_bound_texture == 0) return;
     metal_texture *tex = metal_texture_freelist.get(metal_bound_texture);
-    if (tex->tex == nil) {
-        MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:w height:h mipmapped:NO];
-        tex->tex = [metal_device newTextureWithDescriptor:texdescr];
-        [tex->tex replaceRegion:MTLRegionMake2D(0, 0, w, h) mipmapLevel:level withBytes:data bytesPerRow:w*4];
+    if (tex->tex != nil) {
+        [tex->tex release];
+        tex->tex = nil;
     }
+    MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:w height:h mipmapped:NO];
+    tex->tex = [metal_device newTextureWithDescriptor:texdescr];
+    [tex->tex replaceRegion:MTLRegionMake2D(0, 0, w, h) mipmapLevel:level withBytes:data bytesPerRow:w*4];
 }
 
 void am_set_texture_sub_image_2d(am_texture_copy_target target, int level, int xoffset, int yoffset, int w, int h, am_texture_format format, am_texture_type type, void *data) {
     check_initialized();
-    // TODO
+    if (metal_bound_texture == 0) return;
+    metal_texture *tex = metal_texture_freelist.get(metal_bound_texture);
+    if (tex->tex == nil) return;
+    [tex->tex replaceRegion:MTLRegionMake2D(xoffset, yoffset, w, h) mipmapLevel:level withBytes:data bytesPerRow:w*4];
 }
 
 void am_set_texture_min_filter(am_texture_bind_target target, am_texture_min_filter filter) {
