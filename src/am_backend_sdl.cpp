@@ -65,6 +65,10 @@ extern bool am_metal_use_highdpi;
 extern bool am_metal_window_depth_buffer;
 extern bool am_metal_window_stencil_buffer;
 extern int am_metal_window_msaa_samples;
+extern int am_metal_window_pwidth;
+extern int am_metal_window_pheight;
+extern int am_metal_window_swidth;
+extern int am_metal_window_sheight;
 #else
 static SDL_GLContext gl_context;
 static bool gl_context_initialized = false;
@@ -215,24 +219,20 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *ph = 0;
     *sw = 0;
     *sh = 0;
+#ifdef AM_USE_METAL
+    *pw = am_metal_window_pwidth;
+    *ph = am_metal_window_pheight;
+    *sw = am_metal_window_swidth;
+    *sh = am_metal_window_sheight;
+#else
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window == (SDL_Window*)window) {
             SDL_GetWindowSize(windows[i].window, sw, sh);
-#ifdef AM_USE_METAL
-            CGFloat scale = 1.0;
-            if (am_metal_use_highdpi) {
-                if ([am_metal_window.screen respondsToSelector:@selector(backingScaleFactor)]) {
-                    scale = am_metal_window.screen.backingScaleFactor;
-                }
-            }
-            *pw = (int)(scale * (float)*sw);
-            *ph = (int)(scale * (float)*sh);
-#else
             SDL_GL_GetDrawableSize(windows[i].window, pw, ph);
-#endif
             return;
         }
     }
+#endif
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {

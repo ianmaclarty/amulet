@@ -67,6 +67,10 @@ bool am_metal_use_highdpi = false;
 bool am_metal_window_depth_buffer = false;
 bool am_metal_window_stencil_buffer = false;
 int am_metal_window_msaa_samples = 1;
+int am_metal_window_swidth = 0;
+int am_metal_window_sheight = 0;
+int am_metal_window_pwidth = 0;
+int am_metal_window_pheight = 0;
 
 static void metal_handle_resize(int w, int h);
 
@@ -643,6 +647,11 @@ void am_init_gl() {
     default_metal_framebuffer.complete = true;
     default_metal_framebuffer.width = metal_layer.drawableSize.width;
     default_metal_framebuffer.height = metal_layer.drawableSize.height;
+    am_metal_window_pwidth = default_metal_framebuffer.width;
+    am_metal_window_pheight = default_metal_framebuffer.height;
+    float scale = metal_layer.contentsScale;
+    am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
+    am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
     default_metal_framebuffer.clear_r = 0.0f;
     default_metal_framebuffer.clear_g = 0.0f;
     default_metal_framebuffer.clear_b = 0.0f;
@@ -2294,5 +2303,9 @@ static void metal_handle_resize(int w, int h) {
     default_metal_framebuffer.height = h;
     create_framebuffer_msaa_texture(&default_metal_framebuffer);
     create_framebuffer_depth_texture(&default_metal_framebuffer);
+    am_metal_window_pwidth = default_metal_framebuffer.width;
+    am_metal_window_pheight = default_metal_framebuffer.height;
+    am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
+    am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
 }
 #endif // AM_USE_METAL
