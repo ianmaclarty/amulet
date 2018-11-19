@@ -414,7 +414,8 @@ void ir_print_metal_visitor::print_var_name (ir_variable* v)
 
 static void print_type_precision(string_buffer& buffer, const glsl_type *t, glsl_precision prec, bool arraySize)
 {
-	const bool halfPrec = (prec == glsl_precision_medium || prec == glsl_precision_low);
+        // AMULET: hack to avoid link errors when vertex outputs have different precisions to fragment inputs.
+	const bool halfPrec = false; //(prec == glsl_precision_medium || prec == glsl_precision_low);
 
 	const char* typeName = t->name;
 	// scalars
