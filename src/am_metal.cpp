@@ -538,7 +538,6 @@ static void create_new_metal_encoder() {
     assert(metal_encoder == nil);
 
     if (metal_command_buffer == nil) {
-        assert(metal_active_drawable == nil);
         metal_command_buffer = [metal_queue commandBuffer];
         metal_active_drawable = [metal_layer nextDrawable];
     }
@@ -1756,6 +1755,23 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
     check_initialized();
     metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
     if (fb->color_texture == nil) return;
+
+    if (metal_encoder != nil) {
+        [metal_encoder endEncoding];
+        metal_encoder = nil;
+    }
+    bool was_command_buffer = true;
+    if (metal_command_buffer == nil) {
+        metal_command_buffer = [metal_queue commandBuffer];
+        was_command_buffer = false;
+    }
+    id<MTLBlitCommandEncoder> blit_encoder = [metal_command_buffer blitCommandEncoder];
+    [blit_encoder synchronizeTexture:fb->color_texture slice:0 level:0];
+    [blit_encoder endEncoding];
+    [metal_command_buffer commit];
+    [metal_command_buffer waitUntilCompleted];
+    metal_command_buffer = nil;
+
     MTLRegion region;
     region.origin.x = x;
     region.origin.y = y;
@@ -1764,6 +1780,10 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
     region.size.height = h;
     region.size.depth = 1;
     [fb->color_texture getBytes:data bytesPerRow:w*4 fromRegion:region mipmapLevel: 0];
+
+    if (was_command_buffer) {
+        metal_command_buffer = [metal_queue commandBuffer];
+    }
 }
 
 // Framebuffer Objects
