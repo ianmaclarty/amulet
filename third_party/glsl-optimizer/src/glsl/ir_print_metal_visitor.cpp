@@ -218,13 +218,11 @@ _mesa_print_ir_metal(exec_list *instructions,
 	ctx.outputStr.asprintf_append("struct xlatMtlShaderOutput {\n");
 	ctx.uniformStr.asprintf_append("struct xlatMtlShaderUniform {\n");
 
-        if (state->stage == MESA_SHADER_VERTEX) {
-            ctx.uniformStr.asprintf_append("  float _am_y_flip;\n");
-            // the following are just to ensure 16 byte alignment of subsequent fields
-            ctx.uniformStr.asprintf_append("  float _am_align1;\n");
-            ctx.uniformStr.asprintf_append("  float _am_align2;\n");
-            ctx.uniformStr.asprintf_append("  float _am_align3;\n");
-        }
+        ctx.uniformStr.asprintf_append("  float _am_y_flip;\n");
+        // the following are just to ensure 16 byte alignment of subsequent fields
+        ctx.uniformStr.asprintf_append("  float _am_align1;\n");
+        ctx.uniformStr.asprintf_append("  float _am_align2;\n");
+        ctx.uniformStr.asprintf_append("  float _am_align3;\n");
 
 	// remove unused struct declarations
 	do_remove_unused_typedecls(instructions);
@@ -1056,7 +1054,7 @@ void ir_print_metal_visitor::visit(ir_expression *ir)
 			buffer.asprintf_append (halfCast ? "((half)1.0/(" : "(1.0/(");
                 } else if (ir->operation == ir_unop_dFdy || ir->operation == ir_unop_dFdy_coarse || ir->operation == ir_unop_dFdy_fine) {
                         // AMULET: dfdy seems to be inverted in metal??
-			buffer.asprintf_append ("(-%s(", operator_glsl_strs[ir->operation]);
+			buffer.asprintf_append ("(-_mtl_u._am_y_flip * %s(", operator_glsl_strs[ir->operation]);
 		} else {
 			buffer.asprintf_append ("%s(", operator_glsl_strs[ir->operation]);
 		}

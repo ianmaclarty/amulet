@@ -9,6 +9,7 @@
 #include "glsl_optimizer.h"
 
 #define AM_METAL_EXTRA_VERT_UNIFORMS_SIZE 16
+#define AM_METAL_EXTRA_FRAG_UNIFORMS_SIZE 16
 
 static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str);
 
@@ -1199,15 +1200,13 @@ bool am_link_program(am_program_id program_id) {
 
     // setup uniforms
     int vert_bytes = glslopt_shader_get_uniform_total_size(vert->gshader) + AM_METAL_EXTRA_VERT_UNIFORMS_SIZE;
-    int frag_bytes = glslopt_shader_get_uniform_total_size(frag->gshader);
+    int frag_bytes = glslopt_shader_get_uniform_total_size(frag->gshader) + AM_METAL_EXTRA_FRAG_UNIFORMS_SIZE;
     prog->vert_uniform_size = vert_bytes;
     prog->vert_uniform_data = (uint8_t*)malloc(vert_bytes);
     memset(prog->vert_uniform_data, 0, vert_bytes);
-    if (frag_bytes > 0) {
-        prog->frag_uniform_size = frag_bytes;
-        prog->frag_uniform_data = (uint8_t*)malloc(frag_bytes);
-        memset(prog->frag_uniform_data, 0, frag_bytes);
-    }
+    prog->frag_uniform_size = frag_bytes;
+    prog->frag_uniform_data = (uint8_t*)malloc(frag_bytes);
+    memset(prog->frag_uniform_data, 0, frag_bytes);
     int num_vert_uniforms = glslopt_shader_get_uniform_count(vert->gshader);
     int num_vert_textures = glslopt_shader_get_texture_count(vert->gshader);
     int num_frag_uniforms = glslopt_shader_get_uniform_count(frag->gshader);
@@ -1255,6 +1254,7 @@ bool am_link_program(am_program_id program_id) {
         int loc;
         if (i < num_frag_uniforms) {
             glslopt_shader_get_uniform_desc(frag->gshader, i, &name, &type, &prec, &vsize, &msize, &asize, &loc);
+            loc += AM_METAL_EXTRA_FRAG_UNIFORMS_SIZE;
         } else {
             glslopt_shader_get_texture_desc(frag->gshader, i - num_frag_uniforms, &name, &type, &prec, &vsize, &msize, &asize, &loc);
         }
@@ -1754,7 +1754,16 @@ void am_set_renderbuffer_storage(am_renderbuffer_format format, int w, int h) {
 
 void am_read_pixels(int x, int y, int w, int h, void *data) {
     check_initialized();
-    // TODO
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+    if (fb->color_texture == nil) return;
+    MTLRegion region;
+    region.origin.x = x;
+    region.origin.y = y;
+    region.origin.z = 0;
+    region.size.width = w;
+    region.size.height = h;
+    region.size.depth = 1;
+    [fb->color_texture getBytes:data bytesPerRow:w*4 fromRegion:region mipmapLevel: 0];
 }
 
 // Framebuffer Objects
@@ -2119,18 +2128,16 @@ static bool pre_draw_setup() {
     if (!setup_pipeline(prog)) return false;
 
     // uniforms
-    if (prog->vert_uniform_data != NULL) {
-        // set _am_y_flip to flip y if rendering to a texture
-        if (metal_bound_framebuffer == 0) {
-            *((float*)(prog->vert_uniform_data)) = 1.0f;
-        } else {
-            *((float*)(prog->vert_uniform_data)) = -1.0f;
-        }
-        [metal_encoder setVertexBytes:prog->vert_uniform_data length:prog->vert_uniform_size atIndex:0];
+    // set _am_y_flip to flip y if rendering to a texture
+    if (metal_bound_framebuffer == 0) {
+        *((float*)(prog->vert_uniform_data)) = 1.0f;
+        *((float*)(prog->frag_uniform_data)) = 1.0f;
+    } else {
+        *((float*)(prog->vert_uniform_data)) = -1.0f;
+        *((float*)(prog->frag_uniform_data)) = -1.0f;
     }
-    if (prog->frag_uniform_data != NULL) {
-        [metal_encoder setFragmentBytes:prog->frag_uniform_data length:prog->frag_uniform_size atIndex:0];
-    }
+    [metal_encoder setVertexBytes:prog->vert_uniform_data length:prog->vert_uniform_size atIndex:0];
+    [metal_encoder setFragmentBytes:prog->frag_uniform_data length:prog->frag_uniform_size atIndex:0];
     
     // textures
     for (int i = 0; i < prog->num_uniforms; i++) {
