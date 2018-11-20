@@ -579,7 +579,7 @@ static void create_framebuffer_depth_texture(metal_framebuffer *fb) {
         [fb->depth_texture release];
         fb->depth_texture = nil;
     }
-    MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth16Unorm
+    MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
         width:fb->width height:fb->height mipmapped:NO];
     texdescr.usage = MTLTextureUsageRenderTarget;
     texdescr.storageMode = MTLStorageModePrivate;
@@ -1711,7 +1711,7 @@ am_renderbuffer_id am_create_renderbuffer() {
     check_initialized(0);
     metal_renderbuffer renderbuffer;
     renderbuffer.initialized = false;
-    renderbuffer.format = AM_RENDERBUFFER_FORMAT_RGBA4;
+    renderbuffer.format = AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT;
     renderbuffer.width = 0;
     renderbuffer.height = 0;
     renderbuffer.texture = nil;
@@ -1750,9 +1750,7 @@ void am_set_renderbuffer_storage(am_renderbuffer_format format, int w, int h) {
     renderbuffer->format = format;
     MTLPixelFormat pxlfmt;
     switch (format) {
-        case AM_RENDERBUFFER_FORMAT_RGBA4: pxlfmt = MTLPixelFormatInvalid; break;
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT16: pxlfmt = MTLPixelFormatDepth16Unorm; break;
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24: pxlfmt = MTLPixelFormatInvalid; break;
+        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT: pxlfmt = MTLPixelFormatDepth32Float; break;
         case AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8: pxlfmt = MTLPixelFormatStencil8; break;
     }
     MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pxlfmt 

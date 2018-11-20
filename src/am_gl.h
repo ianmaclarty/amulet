@@ -365,9 +365,7 @@ void am_set_texture_wrap(am_texture_bind_target target, am_texture_wrap s_wrap, 
 // Renderbuffer Objects
 
 enum am_renderbuffer_format {
-    AM_RENDERBUFFER_FORMAT_RGBA4,
-    AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT16,
-    AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24,
+    AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT,
     AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8,
 };
 

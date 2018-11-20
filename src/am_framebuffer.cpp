@@ -15,7 +15,7 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, b
     if (depth_buf) {
         depth_renderbuffer_id = am_create_renderbuffer();
         am_bind_renderbuffer(depth_renderbuffer_id);
-        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT16, width, height);
+        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT, width, height);
         am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_DEPTH_ATTACHMENT, depth_renderbuffer_id);
         am_set_framebuffer_depth_mask(true);
     }
