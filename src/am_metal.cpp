@@ -636,7 +636,8 @@ void am_init_gl() {
 
     metal_layer = (CAMetalLayer *)[metal_view layer];
     metal_layer.device = metal_device;
-    if (@available(macOS 10.13, *)) {
+    if (@available(macOS 10.13, iOS 11.0, *)) {
+        metal_layer.allowsNextDrawableTimeout = NO;
         metal_layer.displaySyncEnabled = (am_conf_vsync ? YES : NO);
     }
 
