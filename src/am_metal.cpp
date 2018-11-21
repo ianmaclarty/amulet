@@ -152,9 +152,6 @@ struct metal_framebuffer {
     float clear_g;
     float clear_b;
     float clear_a;
-    bool require_clear_color_buffer;
-    bool require_clear_depth_buffer;
-    bool require_clear_stencil_buffer;
 
     id<MTLTexture> color_texture;
     id<MTLTexture> depth_texture;
@@ -500,7 +497,7 @@ static const char* to_metal_blend_fact_str(MTLBlendFactor op) {
 }
 */
 
-static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
+static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     assert(metal_active_drawable != nil);
     assert(metal_command_buffer != nil);
 
@@ -524,13 +521,13 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
 
     colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
     colorattachment.loadAction  = MTLLoadActionLoad;
-    if (fb->require_clear_color_buffer) {
+    if (clear_color_buf) {
         colorattachment.loadAction = MTLLoadActionClear;
     }
-    if (fb->require_clear_depth_buffer) {
+    if (clear_depth_buf) {
         renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
     }
-    if (fb->require_clear_stencil_buffer) {
+    if (clear_stencil_buf) {
         renderdesc.stencilAttachment.loadAction = MTLLoadActionClear;
     }
 
@@ -572,7 +569,7 @@ static void create_framebuffer_msaa_texture(metal_framebuffer *fb) {
 }
 #endif
 
-static void create_new_metal_encoder() {
+static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     assert(metal_encoder == nil);
 
     if (metal_command_buffer == nil) {
@@ -581,7 +578,6 @@ static void create_new_metal_encoder() {
         bool resized = false;
 #endif
         if (default_metal_framebuffer.width != am_metal_window_pwidth || default_metal_framebuffer.height != am_metal_window_pheight) {
-            am_debug("resize %d %d", am_metal_window_pwidth, am_metal_window_pheight);
             default_metal_framebuffer.width = am_metal_window_pwidth;
             default_metal_framebuffer.height = am_metal_window_pheight;
 #if defined(AM_OSX)
@@ -611,7 +607,7 @@ static void create_new_metal_encoder() {
         metal_command_buffer = [metal_queue commandBuffer];
     }
 
-    MTLRenderPassDescriptor *renderdesc = make_bound_framebuffer_render_desc();
+    MTLRenderPassDescriptor *renderdesc = make_bound_framebuffer_render_desc(clear_color_buf, clear_depth_buf, clear_stencil_buf);
     if (renderdesc == NULL) {
         am_log1("%s", "error: attempt to use incomplete framebuffer");
         return;
@@ -707,9 +703,6 @@ void am_init_gl() {
     default_metal_framebuffer.clear_g = 0.0f;
     default_metal_framebuffer.clear_b = 0.0f;
     default_metal_framebuffer.clear_a = 1.0f;
-    default_metal_framebuffer.require_clear_color_buffer = false;
-    default_metal_framebuffer.require_clear_depth_buffer = false;
-    default_metal_framebuffer.require_clear_stencil_buffer = false;
     default_metal_framebuffer.color_texture = metal_active_drawable.texture;
     default_metal_framebuffer.depth_texture = nil;
     default_metal_framebuffer.msaa_samples = 1;
@@ -879,14 +872,7 @@ void am_set_sample_coverage(float value, bool invert) {
 
 void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     check_initialized();
-    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
-    fb->require_clear_color_buffer = clear_color_buf;
-    fb->require_clear_depth_buffer = clear_depth_buf;
-    fb->require_clear_stencil_buffer = clear_stencil_buf;
-    create_new_metal_encoder();
-    fb->require_clear_color_buffer = false;
-    fb->require_clear_depth_buffer = false;
-    fb->require_clear_stencil_buffer = false;
+    create_new_metal_encoder(clear_color_buf, clear_depth_buf, clear_stencil_buf);
     [metal_encoder endEncoding];
     metal_encoder = nil;
 }
@@ -1884,9 +1870,6 @@ am_framebuffer_id am_create_framebuffer() {
     fb.clear_g = 0.0f;
     fb.clear_b = 0.0f;
     fb.clear_a = 1.0f;
-    fb.require_clear_color_buffer = false;
-    fb.require_clear_depth_buffer = false;
-    fb.require_clear_stencil_buffer = false;
     fb.color_texture = nil;
     fb.depth_texture = nil;
     set_framebuffer_msaa_samples(&fb, 1);
@@ -2216,7 +2199,7 @@ static bool setup_pipeline(metal_program *prog) {
 }
 
 static bool pre_draw_setup() {
-    if (metal_encoder == nil) create_new_metal_encoder();
+    if (metal_encoder == nil) create_new_metal_encoder(false, false, false);
     metal_program *prog = metal_program_freelist.get(metal_active_program);
 
     if (metal_bound_viewport_x != -1) {
