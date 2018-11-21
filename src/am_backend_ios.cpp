@@ -5,22 +5,29 @@
 #import <objc/runtime.h>
 #import <QuartzCore/QuartzCore.h>
 
-#import <OpenGLES/EAGL.h>
-#import <OpenGLES/EAGLDrawable.h>
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 #import <AudioToolbox/AudioServices.h>
 #import <AudioUnit/AudioUnit.h>
 #import <AVFoundation/AVFoundation.h>
 #import <CoreMotion/CoreMotion.h>
-#import <GLKit/GLKit.h>
+#import <MetalKit/MetalKit.h>
 #import <GameKit/GameKit.h>
 #import <StoreKit/StoreKit.h>
 
-#include <OpenGLES/ES2/gl.h>
-#include <OpenGLES/ES2/glext.h>
+#import <Metal/Metal.h>
 
 #include <mach/mach_time.h>
+
+extern bool am_metal_use_highdpi;
+extern bool am_metal_window_depth_buffer;
+extern bool am_metal_window_stencil_buffer;
+extern int am_metal_window_msaa_samples;
+extern int am_metal_window_pwidth;
+extern int am_metal_window_pheight;
+extern int am_metal_window_swidth;
+extern int am_metal_window_sheight;
+void am_metal_handle_resize();
 
 static am_engine *ios_eng = NULL;
 static am_package *package = NULL;
@@ -44,14 +51,16 @@ static bool banner_ad_is_visible = false;
 static id banner_delegate = nil;
 #endif
 
-static GLKView *ios_view = nil;
-static GLKViewController *ios_view_controller = nil;
+static MTKView *ios_view = nil;
+static UIViewController *ios_view_controller = nil;
 
 static double t0;
 static double t_debt;
 static double frame_time = 0.0;
 static double delta_time;
 static double real_delta_time;
+
+extern MTKView *am_metal_ios_view;
 
 //static void init_gamecenter();
 
@@ -564,7 +573,7 @@ static void show_banner() {
 
 static CMMotionManager *motionManager = nil;
 
-@interface AMViewController : GLKViewController { }
+@interface AMViewController : UIViewController { }
 @end
 
 static UIInterfaceOrientation last_orientation = UIInterfaceOrientationLandscapeLeft;
@@ -677,7 +686,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 @end
 
 
-@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, GLKViewDelegate, GLKViewControllerDelegate
+@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, MTKViewDelegate
 #ifdef AM_GOOGLE_ADS
     , GADAdDelegate
 #endif
@@ -690,6 +699,8 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 @implementation AMAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    application.delegate = self;
+
     // Prevent rotate animation when application launches.
     [UIView setAnimationsEnabled:NO];
 
@@ -699,12 +710,14 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
  
-    EAGLContext * context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    GLKView *view = [[GLKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    view.context = context;
+    MTKView *view = [[MTKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    view.device = MTLCreateSystemDefaultDevice();
     view.delegate = self;
-    ios_view = view;
+    view.preferredFramesPerSecond = 60;
+    view.preferredFramesPerSecond = 60;
     [view setMultipleTouchEnabled:YES]; 
+    ios_view = view;
+    am_metal_ios_view = ios_view;
 
     if ([ios_view respondsToSelector: NSSelectorFromString(@"traitCollection")] &&
         [[ios_view traitCollection] respondsToSelector: NSSelectorFromString(@"forceTouchCapability")])
@@ -712,15 +725,11 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
         ios_force_touch_recognised = true;
     }
 
-    [EAGLContext setCurrentContext:context];
-
     ios_init_engine();
     ios_init_audio();
  
-    GLKViewController * viewController = [[AMViewController alloc] initWithNibName:nil bundle:nil];
+    AMViewController * viewController = [[AMViewController alloc] initWithNibName:nil bundle:nil];
     viewController.view = view;
-    viewController.delegate = self;
-    viewController.preferredFramesPerSecond = 60;
     self.window.rootViewController = viewController;
     ios_view_controller = viewController;
 
@@ -730,17 +739,20 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     return YES;
 }
 
-- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect {
-    //am_debug("%s", "draw"); 
-    ios_draw();
-    ios_done_first_draw = true;
+- (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
+    am_metal_handle_resize();
 }
 
-- (void)glkViewControllerUpdate:(GLKViewController *)controller {
-    //am_debug("%s", "update"); 
-    if (ios_done_first_draw) {
-        // make sure we do a draw before our first update
-        ios_update();
+- (void)drawInMTKView:(MTKView *)view {
+    @autoreleasepool {
+        //am_debug("%s", "draw"); 
+        if (ios_done_first_draw) {
+            // make sure we do a draw before our first update
+            ios_update();
+        }
+        ios_draw();
+        am_gl_end_frame();
+        ios_done_first_draw = true;
     }
 }
 
@@ -976,23 +988,33 @@ am_native_window *am_create_native_window(
         am_log0("%s", "ios_view not initialized!");
         return NULL;
     }
+
+    am_metal_use_highdpi = highdpi;
+    am_metal_window_depth_buffer = depth_buffer;
+    am_metal_window_stencil_buffer = stencil_buffer;
+    am_metal_window_msaa_samples = msaa_samples;
+
+    if (depth_buffer && stencil_buffer) {
+        ios_view.depthStencilPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+    } else if (depth_buffer) {
+        ios_view.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
+    } else if (stencil_buffer) {
+        ios_view.depthStencilPixelFormat = MTLPixelFormatStencil8;
+    }
+    if (msaa_samples > 1) {
+        while (msaa_samples > 1 && ![ios_view.device supportsTextureSampleCount:msaa_samples]) {
+            msaa_samples--;
+        }
+        ios_view.sampleCount = msaa_samples;
+    }
     if (!am_gl_is_initialized()) {
         am_init_gl();
-    }
-    if (depth_buffer) {
-        ios_view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-    }
-    if (stencil_buffer) {
-        ios_view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
-    }
-    if (msaa_samples >= 4) {
-        ios_view.drawableMultisample = GLKViewDrawableMultisample4X;
     }
     return (am_native_window*)ios_view;
 }
 
 void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *sw, int *sh) {
-    GLKView *view = (GLKView*)window;
+    MTKView *view = (MTKView*)window;
     CGRect bounds = view.bounds;
     float scale = view.contentScaleFactor;
     *sw = bounds.size.width;
@@ -1023,9 +1045,6 @@ void am_destroy_native_window(am_native_window *window) {
 }
 
 void am_native_window_bind_framebuffer(am_native_window *window) {
-    if (ios_view != nil) {
-        [ios_view bindDrawable];
-    }
 }
 
 void am_native_window_swap_buffers(am_native_window *window) {

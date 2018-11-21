@@ -9,10 +9,6 @@ static void compute_viewport(am_window *win);
 
 static bool update_size(am_window *win);
 
-#if defined(AM_USE_METAL)
-void am_metal_handle_resize();
-#endif
-
 static int create_window(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
@@ -447,9 +443,6 @@ bool am_update_windows(lua_State *L) {
 }
 
 bool am_execute_actions(lua_State *L, double dt) {
-#if defined(AM_USE_METAL)
-    am_metal_handle_resize();
-#endif
     am_pre_frame(L, dt);
     unsigned int n = windows.size();
     bool res = true;

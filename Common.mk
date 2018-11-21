@@ -198,13 +198,13 @@ else ifeq ($(TARGET_PLATFORM),ios32)
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
   TARGET_CFLAGS += -Fthird_party -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=8.0
   XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,Metal -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
 	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
+	     -Wl,-framework,MetalKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),ios64)
@@ -216,13 +216,13 @@ else ifeq ($(TARGET_PLATFORM),ios64)
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
   TARGET_CFLAGS += -Fthird_party -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=8.0
   XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,Metal -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
 	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
+	     -Wl,-framework,MetalKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),iossim)
@@ -234,13 +234,13 @@ else ifeq ($(TARGET_PLATFORM),iossim)
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDK_VERSION).sdk
   TARGET_CFLAGS += -Fthird_party -arch x86_64 -isysroot $(SDK_PATH) -miphoneos-version-min=8.0
   XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,Metal -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
 	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
+	     -Wl,-framework,MetalKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),android)

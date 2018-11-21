@@ -3,9 +3,13 @@
 
 // https://developer.apple.com/documentation/metal?language=objc
 
+#if defined(AM_OSX)
 #import <Cocoa/Cocoa.h>
-#import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
+#elif defined(AM_IOS)
+#import <MetalKit/MetalKit.h>
+#endif
+#import <Metal/Metal.h>
 #include "glsl_optimizer.h"
 
 #define AM_METAL_EXTRA_VERT_UNIFORMS_SIZE 16
@@ -62,7 +66,6 @@ int am_max_vertex_uniform_vectors;
 int am_frame_draw_calls;
 int am_frame_use_program_calls;
 
-NSWindow *am_metal_window = nil;
 bool am_metal_use_highdpi = false;
 bool am_metal_window_depth_buffer = false;
 bool am_metal_window_stencil_buffer = false;
@@ -71,10 +74,9 @@ int am_metal_window_swidth = 0;
 int am_metal_window_sheight = 0;
 int am_metal_window_pwidth = 0;
 int am_metal_window_pheight = 0;
-int am_metal_window_prev_pwidth = 0;
-int am_metal_window_prev_pheight = 0;
 
-static void metal_update_size(int w, int h);
+#if defined(AM_OSX)
+NSWindow *am_metal_window = nil;
 
 @interface MetalView : NSView
 
@@ -114,25 +116,36 @@ static void metal_update_size(int w, int h);
 - (void)resizeWithOldSuperviewSize:(NSSize)oldSize
 {
     [super resizeWithOldSuperviewSize:oldSize];
-    metal_update_size(self.bounds.size.width, self.bounds.size.height);
+    int w = self.bounds.size.width;
+    int h = self.bounds.size.height;
+    float scale = self.layer.contentsScale;
+    am_metal_window_pwidth = (int)(w * scale);
+    am_metal_window_pheight = (int)(h * scale);
+    am_metal_window_swidth = w;
+    am_metal_window_sheight = h;
 }
 
 @end
 
+static CAMetalLayer *metal_layer = nil;
 static MetalView* metal_view = nil;
+
+#elif defined(AM_IOS)
+
+MTKView *am_metal_ios_view = NULL;
+
+#endif
+
 static id<MTLDevice> metal_device = nil;
 static id <MTLRenderCommandEncoder> metal_encoder = nil;
 static id <MTLCommandBuffer> metal_command_buffer = nil;
 static id <MTLCommandQueue> metal_queue = nil;
-static CAMetalLayer *metal_layer = nil;
 static id<CAMetalDrawable> metal_active_drawable = nil;
-static am_render_state *rstate = NULL;
 
 static am_framebuffer_id metal_bound_framebuffer = 0;
 static am_framebuffer_id metal_active_framebuffer = 0;
 
 struct metal_framebuffer {
-    bool complete;
     int width;
     int height;
     float clear_r;
@@ -143,7 +156,7 @@ struct metal_framebuffer {
     bool require_clear_depth_buffer;
     bool require_clear_stencil_buffer;
 
-    id<MTLTexture> color_texture; // nil for default framebuffer, since the framework cycles between multiple textures 
+    id<MTLTexture> color_texture;
     id<MTLTexture> depth_texture;
 
     int msaa_samples;
@@ -487,37 +500,21 @@ static const char* to_metal_blend_fact_str(MTLBlendFactor op) {
 }
 */
 
-MTLPixelFormat get_framebuffer_color_pixel_format(metal_framebuffer *fb) {
-    if (fb->color_texture == nil) {
-        return metal_layer.pixelFormat;
-    } else {
-        return fb->color_texture.pixelFormat;
-    }
-}
-
-id<MTLTexture> get_framebuffer_color_texture(metal_framebuffer *fb) {
-    if (fb->color_texture == nil) {
-        return metal_active_drawable.texture;
-    } else {
-        return fb->color_texture;
-    }
-}
-
 static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
     assert(metal_active_drawable != nil);
     assert(metal_command_buffer != nil);
 
     metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
-    if (!fb->complete) return NULL;
+    assert(fb->color_texture != nil);
     MTLRenderPassDescriptor *renderdesc = [MTLRenderPassDescriptor renderPassDescriptor];
     MTLRenderPassColorAttachmentDescriptor *colorattachment = renderdesc.colorAttachments[0];
 
     if (fb->msaa_texture != nil) {
         colorattachment.texture = fb->msaa_texture;
-        colorattachment.resolveTexture = get_framebuffer_color_texture(fb);
+        colorattachment.resolveTexture = fb->color_texture;
         colorattachment.storeAction = MTLStoreActionMultisampleResolve;
     } else {
-        colorattachment.texture = get_framebuffer_color_texture(fb);
+        colorattachment.texture = fb->color_texture;
         colorattachment.storeAction = MTLStoreActionStore;
     }
 
@@ -540,42 +537,7 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc() {
     return renderdesc;
 }
 
-static void create_new_metal_encoder() {
-    assert(metal_encoder == nil);
-
-    if (metal_command_buffer == nil) {
-        metal_command_buffer = [metal_queue commandBuffer];
-        metal_active_drawable = [metal_layer nextDrawable];
-    }
-
-    MTLRenderPassDescriptor *renderdesc = make_bound_framebuffer_render_desc();
-    if (renderdesc == NULL) {
-        am_log1("%s", "error: attempt to use incomplete framebuffer");
-        return;
-    }
-    metal_encoder = [metal_command_buffer renderCommandEncoderWithDescriptor:renderdesc];
-    metal_active_pipeline = -1;
-    metal_active_framebuffer = metal_bound_framebuffer;
-}
-
-static void init_metal_view() {
-    if (am_metal_window == nil) return;
-
-    NSView *view = am_metal_window.contentView;
-    CGFloat scale = 1.0;
-    if (am_metal_use_highdpi) {
-        if ([am_metal_window.screen respondsToSelector:@selector(backingScaleFactor)]) {
-            scale = am_metal_window.screen.backingScaleFactor;
-        }
-    }
-    metal_view = [[MetalView alloc] initWithFrame:view.frame scale:scale];
-    [view addSubview:metal_view];
-}
-
-#define check_initialized(...) {if (!metal_initialized) {am_log1("%s:%d: attempt to call %s before metal initialized", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
-
-static bool metal_initialized = false;
-
+#if defined(AM_OSX)
 static void create_framebuffer_depth_texture(metal_framebuffer *fb) {
     if (fb->depth_texture != nil) {
         [fb->depth_texture release];
@@ -593,12 +555,13 @@ static void create_framebuffer_depth_texture(metal_framebuffer *fb) {
 }
 
 static void create_framebuffer_msaa_texture(metal_framebuffer *fb) {
+    assert(fb->color_texture != nil);
     if (fb->msaa_texture != nil) {
         [fb->msaa_texture release];
         fb->msaa_texture = nil;
     }
     if (fb->msaa_samples == 1) return;
-    MTLPixelFormat pxlfmt = get_framebuffer_color_pixel_format(fb);
+    MTLPixelFormat pxlfmt = fb->color_texture.pixelFormat;
     MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pxlfmt
         width:fb->width height:fb->height mipmapped:NO];
     texdescr.usage = MTLTextureUsageRenderTarget;
@@ -607,6 +570,76 @@ static void create_framebuffer_msaa_texture(metal_framebuffer *fb) {
     texdescr.textureType = MTLTextureType2DMultisample;
     fb->msaa_texture = [metal_device newTextureWithDescriptor:texdescr];
 }
+#endif
+
+static void create_new_metal_encoder() {
+    assert(metal_encoder == nil);
+
+    if (metal_command_buffer == nil) {
+        assert(default_metal_framebuffer.color_texture == nil);
+#if defined(AM_OSX)
+        bool resized = false;
+#endif
+        if (default_metal_framebuffer.width != am_metal_window_pwidth || default_metal_framebuffer.height != am_metal_window_pheight) {
+            am_debug("resize %d %d", am_metal_window_pwidth, am_metal_window_pheight);
+            default_metal_framebuffer.width = am_metal_window_pwidth;
+            default_metal_framebuffer.height = am_metal_window_pheight;
+#if defined(AM_OSX)
+            metal_layer.drawableSize = CGSizeMake(am_metal_window_pwidth, am_metal_window_pheight);
+            resized = true;
+#endif
+        }
+
+#if defined(AM_OSX)
+        metal_active_drawable = [metal_layer nextDrawable];
+#elif defined(AM_IOS)
+        metal_active_drawable = am_metal_ios_view.currentDrawable;
+#endif
+        default_metal_framebuffer.color_texture = metal_active_drawable.texture;
+#if defined(AM_OSX)
+        if (resized) {
+            create_framebuffer_msaa_texture(&default_metal_framebuffer);
+            if (am_metal_window_depth_buffer) {
+                create_framebuffer_depth_texture(&default_metal_framebuffer);
+            }
+        }
+#elif defined(AM_IOS)
+        default_metal_framebuffer.depth_texture = am_metal_ios_view.depthStencilTexture;
+        default_metal_framebuffer.msaa_texture = am_metal_ios_view.multisampleColorTexture;
+#endif
+
+        metal_command_buffer = [metal_queue commandBuffer];
+    }
+
+    MTLRenderPassDescriptor *renderdesc = make_bound_framebuffer_render_desc();
+    if (renderdesc == NULL) {
+        am_log1("%s", "error: attempt to use incomplete framebuffer");
+        return;
+    }
+    metal_encoder = [metal_command_buffer renderCommandEncoderWithDescriptor:renderdesc];
+    metal_active_pipeline = -1;
+    metal_active_framebuffer = metal_bound_framebuffer;
+}
+
+#if defined(AM_OSX)
+static void init_metal_view() {
+    if (am_metal_window == nil) return;
+
+    NSView *view = am_metal_window.contentView;
+    CGFloat scale = 1.0;
+    if (am_metal_use_highdpi) {
+        if ([am_metal_window.screen respondsToSelector:@selector(backingScaleFactor)]) {
+            scale = am_metal_window.screen.backingScaleFactor;
+        }
+    }
+    metal_view = [[MetalView alloc] initWithFrame:view.frame scale:scale];
+    [view addSubview:metal_view];
+}
+#endif
+
+#define check_initialized(...) {if (!metal_initialized) {am_log1("%s:%d: attempt to call %s before metal initialized", __FILE__, __LINE__, __func__); return __VA_ARGS__;}}
+
+static bool metal_initialized = false;
 
 static void set_framebuffer_msaa_samples(metal_framebuffer *fb, int samples) {
     if (metal_device == nil) {
@@ -625,6 +658,7 @@ static void set_framebuffer_msaa_samples(metal_framebuffer *fb, int samples) {
 }
 
 void am_init_gl() {
+#if defined (AM_OSX)
     metal_device = MTLCreateSystemDefaultDevice();
     if (metal_device == nil) {
         am_log0("%s", "unable to create metal device");
@@ -643,21 +677,32 @@ void am_init_gl() {
         metal_layer.allowsNextDrawableTimeout = NO;
         metal_layer.displaySyncEnabled = (am_conf_vsync ? YES : NO);
     }
+    metal_active_drawable = [metal_layer nextDrawable];
+#elif defined(AM_IOS)
+    metal_device = am_metal_ios_view.device;
+    metal_active_drawable = am_metal_ios_view.currentDrawable;
+#endif
 
     metal_queue = [metal_device newCommandQueue];
     metal_command_buffer = [metal_queue commandBuffer];
-    metal_active_drawable = [metal_layer nextDrawable];
 
-    default_metal_framebuffer.complete = true;
+#if defined(AM_OSX)
     default_metal_framebuffer.width = metal_layer.drawableSize.width;
     default_metal_framebuffer.height = metal_layer.drawableSize.height;
+#elif defined(AM_IOS)
+    default_metal_framebuffer.width = am_metal_ios_view.drawableSize.width;
+    default_metal_framebuffer.height = am_metal_ios_view.drawableSize.height;
+#endif
     am_metal_window_pwidth = default_metal_framebuffer.width;
     am_metal_window_pheight = default_metal_framebuffer.height;
-    am_metal_window_prev_pwidth = am_metal_window_pwidth;
-    am_metal_window_prev_pheight = am_metal_window_pheight;
+#if defined(AM_OSX)
     float scale = metal_layer.contentsScale;
     am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
     am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
+#elif defined(AM_IOS)
+    am_metal_window_swidth = am_metal_window_pwidth;
+    am_metal_window_sheight = am_metal_window_pheight;
+#endif
     default_metal_framebuffer.clear_r = 0.0f;
     default_metal_framebuffer.clear_g = 0.0f;
     default_metal_framebuffer.clear_b = 0.0f;
@@ -665,14 +710,21 @@ void am_init_gl() {
     default_metal_framebuffer.require_clear_color_buffer = false;
     default_metal_framebuffer.require_clear_depth_buffer = false;
     default_metal_framebuffer.require_clear_stencil_buffer = false;
+    default_metal_framebuffer.color_texture = metal_active_drawable.texture;
+    default_metal_framebuffer.depth_texture = nil;
+    default_metal_framebuffer.msaa_samples = 1;
+    default_metal_framebuffer.msaa_texture = nil;
     set_framebuffer_msaa_samples(&default_metal_framebuffer, am_metal_window_msaa_samples);
-    default_metal_framebuffer.color_texture = nil;
+#if defined(AM_OSX)
     if (am_metal_window_depth_buffer) {
         create_framebuffer_depth_texture(&default_metal_framebuffer);
     } else {
         default_metal_framebuffer.depth_texture = nil;
     }
     create_framebuffer_msaa_texture(&default_metal_framebuffer);
+#elif defined(AM_IOS)
+    // textures are created by MTKView
+#endif
 
     glslopt_context = glslopt_initialize(kGlslTargetMetal);
     if (glslopt_context == NULL) {
@@ -693,8 +745,6 @@ void am_init_gl() {
 
     am_frame_draw_calls = 0;
     am_frame_use_program_calls = 0;
-
-    rstate = am_global_render_state;
 
     for (int i = 0; i < NUM_TEXTURE_UNITS; i++) {
         texture_units[i] = -1;
@@ -734,14 +784,23 @@ void am_close_gllog() {
 }
 
 void am_destroy_gl() {
-    rstate = NULL;
     metal_command_buffer = nil;
     metal_encoder = nil;
     metal_bound_framebuffer = 0;
+#if defined (AM_OSX)
     if (default_metal_framebuffer.depth_texture != nil) {
         [default_metal_framebuffer.depth_texture release];
         default_metal_framebuffer.depth_texture = nil;
     }
+    if (default_metal_framebuffer.msaa_texture != nil) {
+        [default_metal_framebuffer.msaa_texture release];
+        default_metal_framebuffer.msaa_texture = nil;
+    }
+#elif defined(AM_IOS)
+    // in iOS the MTKView will release the textures
+    default_metal_framebuffer.depth_texture = nil;
+    default_metal_framebuffer.msaa_texture = nil;
+#endif
     [metal_queue release];
     [metal_device release];
 
@@ -908,7 +967,9 @@ void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer
         buf->mtlbuf = [metal_device newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
     } else {
         memcpy([buf->mtlbuf contents], data, size);
+#if defined(AM_OSX)
         [buf->mtlbuf didModifyRange: NSMakeRange(0, size)];
+#endif
     }
 }
 
@@ -919,7 +980,9 @@ void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void 
     if (buf->mtlbuf == nil) return;
     uint8_t *contents = (uint8_t*)[buf->mtlbuf contents];
     memcpy(&contents[offset], data, size);
+#if defined(AM_OSX)
     [buf->mtlbuf didModifyRange: NSMakeRange(offset, size)];
+#endif
 }
 
 void am_delete_buffer(am_buffer_id id) {
@@ -1771,8 +1834,11 @@ void am_set_renderbuffer_storage(am_renderbuffer_format format, int w, int h) {
 
 void am_read_pixels(int x, int y, int w, int h, void *data) {
     check_initialized();
+
     metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
-    if (fb->color_texture == nil) return;
+    assert(fb->color_texture != nil);
+
+#if defined(AM_OSX)
 
     if (metal_encoder != nil) {
         [metal_encoder endEncoding];
@@ -1789,6 +1855,7 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
     [metal_command_buffer commit];
     [metal_command_buffer waitUntilCompleted];
     metal_command_buffer = nil;
+#endif
 
     MTLRegion region;
     region.origin.x = x;
@@ -1799,9 +1866,11 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
     region.size.depth = 1;
     [fb->color_texture getBytes:data bytesPerRow:w*4 fromRegion:region mipmapLevel: 0];
 
+#if defined(AM_OSX)
     if (was_command_buffer) {
         metal_command_buffer = [metal_queue commandBuffer];
     }
+#endif
 }
 
 // Framebuffer Objects
@@ -1809,7 +1878,6 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
 am_framebuffer_id am_create_framebuffer() {
     check_initialized(0);
     metal_framebuffer fb;
-    fb.complete = false;
     fb.width = 0;
     fb.height = 0;
     fb.clear_r = 0.0f;
@@ -1840,16 +1908,17 @@ void am_bind_framebuffer(am_framebuffer_id fb) {
 
 am_framebuffer_status am_check_framebuffer_status() {
     check_initialized(AM_FRAMEBUFFER_STATUS_UNKNOWN);
-    if (metal_bound_framebuffer == 0) {
-        // default framebuffer
-        return AM_FRAMEBUFFER_STATUS_COMPLETE;
-    }
     metal_framebuffer *fb = metal_framebuffer_freelist.get(metal_bound_framebuffer);
-    if (fb->complete) {
-        return AM_FRAMEBUFFER_STATUS_COMPLETE;
-    } else {
+    if (fb->color_texture == nil) {
         return AM_FRAMEBUFFER_STATUS_INCOMPLETE_MISSING_ATTACHMENT;
     }
+    if (fb->msaa_samples > 1 && fb->msaa_texture == nil) {
+        return AM_FRAMEBUFFER_STATUS_INCOMPLETE_MISSING_ATTACHMENT;
+    }
+    if (fb->width == 0 || fb->height == 0) {
+        return AM_FRAMEBUFFER_STATUS_INCOMPLETE_DIMENSIONS;
+    }
+    return AM_FRAMEBUFFER_STATUS_COMPLETE;
 }
 
 void am_set_framebuffer_renderbuffer(am_framebuffer_attachment attachment, am_renderbuffer_id rb) {
@@ -1895,7 +1964,6 @@ void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_textu
             }
             fb->width = tex->tex.width;
             fb->height = tex->tex.height;
-            fb->complete = true;
             break;
         case AM_FRAMEBUFFER_DEPTH_ATTACHMENT:
             // unsupported
@@ -2001,7 +2069,8 @@ static bool setup_pipeline(metal_program *prog) {
     int nattrs = prog->num_attrs;
     int selected_pipeline = -1;
     metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
-    MTLPixelFormat colorpxlfmt = get_framebuffer_color_pixel_format(fb);
+    assert(fb->color_texture != nil);
+    MTLPixelFormat colorpxlfmt = fb->color_texture.pixelFormat;
     for (int i = 0; i < prog->pipeline_cache.size(); i++) {
         metal_pipeline *cached_pipeline = &prog->pipeline_cache[i];
         if (
@@ -2263,11 +2332,13 @@ void am_gl_end_frame() {
     check_initialized();
     if (metal_command_buffer != nil) {
         assert(metal_active_drawable != nil);
+        assert(default_metal_framebuffer.color_texture != nil);
         [metal_command_buffer presentDrawable:metal_active_drawable];
         [metal_command_buffer commit];
         [metal_command_buffer waitUntilCompleted];
         metal_command_buffer = nil;
         metal_active_drawable = nil;
+        default_metal_framebuffer.color_texture = nil;
     }
 }
 
@@ -2300,27 +2371,6 @@ static void get_src_error_line(char *errmsg, const char *src, int *line_no, char
         if (*ptr == '\n') l++;
         ptr++;
     }
-}
-
-static void metal_update_size(int w, int h) {
-    if (metal_layer == nil) return;
-    float scale = metal_layer.contentsScale;
-    am_metal_window_pwidth = (int)(w * scale);
-    am_metal_window_pheight = (int)(h * scale);
-    am_metal_window_swidth = w;
-    am_metal_window_sheight = h;
-}
-
-void am_metal_handle_resize() {
-    if (metal_layer == nil) return;
-    if (am_metal_window_prev_pwidth == am_metal_window_pwidth && am_metal_window_prev_pheight == am_metal_window_pheight) return;
-    metal_layer.drawableSize = CGSizeMake(am_metal_window_pwidth, am_metal_window_pheight);
-    default_metal_framebuffer.width = am_metal_window_pwidth;
-    default_metal_framebuffer.height = am_metal_window_pheight;
-    create_framebuffer_msaa_texture(&default_metal_framebuffer);
-    create_framebuffer_depth_texture(&default_metal_framebuffer);
-    am_metal_window_prev_pwidth = am_metal_window_pwidth;
-    am_metal_window_prev_pheight = am_metal_window_pheight;
 }
 
 #endif // AM_USE_METAL
