@@ -9,6 +9,10 @@ static void compute_viewport(am_window *win);
 
 static bool update_size(am_window *win);
 
+#if defined(AM_USE_METAL)
+void am_metal_handle_resize();
+#endif
+
 static int create_window(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
@@ -408,7 +412,6 @@ static void draw_windows() {
     for (unsigned int i = 0; i < windows.size(); i++) {
         am_window *win = windows[i];
         if (!win->needs_closing) {
-            update_size(win);
             am_native_window_bind_framebuffer(win->native_win);
             am_render_state *rstate = am_global_render_state;
             rstate->do_render(win->scene, 0, true, win->clear_color, win->stencil_clear_value,
@@ -444,6 +447,9 @@ bool am_update_windows(lua_State *L) {
 }
 
 bool am_execute_actions(lua_State *L, double dt) {
+#if defined(AM_USE_METAL)
+    am_metal_handle_resize();
+#endif
     am_pre_frame(L, dt);
     unsigned int n = windows.size();
     bool res = true;

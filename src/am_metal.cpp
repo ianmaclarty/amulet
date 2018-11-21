@@ -71,8 +71,10 @@ int am_metal_window_swidth = 0;
 int am_metal_window_sheight = 0;
 int am_metal_window_pwidth = 0;
 int am_metal_window_pheight = 0;
+int am_metal_window_prev_pwidth = 0;
+int am_metal_window_prev_pheight = 0;
 
-static void metal_handle_resize(int w, int h);
+static void metal_update_size(int w, int h);
 
 @interface MetalView : NSView
 
@@ -112,7 +114,7 @@ static void metal_handle_resize(int w, int h);
 - (void)resizeWithOldSuperviewSize:(NSSize)oldSize
 {
     [super resizeWithOldSuperviewSize:oldSize];
-    metal_handle_resize(self.bounds.size.width, self.bounds.size.height);
+    metal_update_size(self.bounds.size.width, self.bounds.size.height);
 }
 
 @end
@@ -635,6 +637,7 @@ void am_init_gl() {
     }
 
     metal_layer = (CAMetalLayer *)[metal_view layer];
+
     metal_layer.device = metal_device;
     if (@available(macOS 10.13, iOS 11.0, *)) {
         metal_layer.allowsNextDrawableTimeout = NO;
@@ -650,6 +653,8 @@ void am_init_gl() {
     default_metal_framebuffer.height = metal_layer.drawableSize.height;
     am_metal_window_pwidth = default_metal_framebuffer.width;
     am_metal_window_pheight = default_metal_framebuffer.height;
+    am_metal_window_prev_pwidth = am_metal_window_pwidth;
+    am_metal_window_prev_pheight = am_metal_window_pheight;
     float scale = metal_layer.contentsScale;
     am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
     am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
@@ -2260,7 +2265,7 @@ void am_gl_end_frame() {
         assert(metal_active_drawable != nil);
         [metal_command_buffer presentDrawable:metal_active_drawable];
         [metal_command_buffer commit];
-        //[metal_command_buffer waitUntilCompleted];
+        [metal_command_buffer waitUntilCompleted];
         metal_command_buffer = nil;
         metal_active_drawable = nil;
     }
@@ -2297,19 +2302,25 @@ static void get_src_error_line(char *errmsg, const char *src, int *line_no, char
     }
 }
 
-static void metal_handle_resize(int w, int h) {
+static void metal_update_size(int w, int h) {
     if (metal_layer == nil) return;
     float scale = metal_layer.contentsScale;
-    w = (int)(scale * w);
-    h = (int)(scale * h);
-    metal_layer.drawableSize = CGSizeMake(w, h);
-    default_metal_framebuffer.width = w;
-    default_metal_framebuffer.height = h;
+    am_metal_window_pwidth = (int)(w * scale);
+    am_metal_window_pheight = (int)(h * scale);
+    am_metal_window_swidth = w;
+    am_metal_window_sheight = h;
+}
+
+void am_metal_handle_resize() {
+    if (metal_layer == nil) return;
+    if (am_metal_window_prev_pwidth == am_metal_window_pwidth && am_metal_window_prev_pheight == am_metal_window_pheight) return;
+    metal_layer.drawableSize = CGSizeMake(am_metal_window_pwidth, am_metal_window_pheight);
+    default_metal_framebuffer.width = am_metal_window_pwidth;
+    default_metal_framebuffer.height = am_metal_window_pheight;
     create_framebuffer_msaa_texture(&default_metal_framebuffer);
     create_framebuffer_depth_texture(&default_metal_framebuffer);
-    am_metal_window_pwidth = default_metal_framebuffer.width;
-    am_metal_window_pheight = default_metal_framebuffer.height;
-    am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
-    am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
+    am_metal_window_prev_pwidth = am_metal_window_pwidth;
+    am_metal_window_prev_pheight = am_metal_window_pheight;
 }
+
 #endif // AM_USE_METAL
