@@ -2,7 +2,7 @@ include ../../Common.mk
 
 all: libglslopt$(ALIB_EXT)
 
-CPP_FILES:=$(shell find src/glsl -name "*.cpp")
+CPP_FILES:=$(shell find src/glsl -name "*.cpp" | grep -v "src/glsl/main\.cpp")
 O_CPP_FILES:=$(patsubst %.cpp,%$(OBJ_EXT),$(CPP_FILES))
 C_FILES:=$(shell find src -name "*.c")
 O_C_FILES:=$(patsubst %.c,%$(OBJ_EXT),$(C_FILES))

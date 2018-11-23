@@ -27,7 +27,6 @@ extern int am_metal_window_pwidth;
 extern int am_metal_window_pheight;
 extern int am_metal_window_swidth;
 extern int am_metal_window_sheight;
-void am_metal_handle_resize();
 
 static am_engine *ios_eng = NULL;
 static am_package *package = NULL;
@@ -382,6 +381,8 @@ static void ios_init_engine() {
     if (am_call(ios_eng->L, 1, 0)) {
         ios_running = true;
     }
+    am_gl_end_framebuffer_render();
+    am_gl_end_frame(false);
     t0 = am_get_current_time();
     frame_time = t0;
     t_debt = 0.0;
@@ -740,7 +741,11 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
-    am_metal_handle_resize();
+    am_metal_window_pwidth = ios_view.drawableSize.width;
+    am_metal_window_pheight = ios_view.drawableSize.width;
+    float scale = am_metal_ios_view.contentScaleFactor;
+    am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
+    am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
 }
 
 - (void)drawInMTKView:(MTKView *)view {
@@ -751,7 +756,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
             ios_update();
         }
         ios_draw();
-        am_gl_end_frame();
+        am_gl_end_frame(true);
         ios_done_first_draw = true;
     }
 }
@@ -1014,13 +1019,10 @@ am_native_window *am_create_native_window(
 }
 
 void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *sw, int *sh) {
-    MTKView *view = (MTKView*)window;
-    CGRect bounds = view.bounds;
-    float scale = view.contentScaleFactor;
-    *sw = bounds.size.width;
-    *sh = bounds.size.height;
-    *pw = *sw * scale;
-    *ph = *sh * scale;
+    *pw = am_metal_window_pwidth;
+    *ph = am_metal_window_pheight;
+    *sw = am_metal_window_swidth;
+    *sh = am_metal_window_sheight;
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
@@ -1045,6 +1047,7 @@ void am_destroy_native_window(am_native_window *window) {
 }
 
 void am_native_window_bind_framebuffer(am_native_window *window) {
+    am_bind_framebuffer(0);
 }
 
 void am_native_window_swap_buffers(am_native_window *window) {

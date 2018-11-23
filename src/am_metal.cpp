@@ -519,15 +519,16 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc(bool clear_co
         renderdesc.depthAttachment.texture = fb->depth_texture;
     }
 
-    colorattachment.clearColor  = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
-    colorattachment.loadAction  = MTLLoadActionLoad;
     if (clear_color_buf) {
         colorattachment.loadAction = MTLLoadActionClear;
+        colorattachment.clearColor = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
+    } else {
+        colorattachment.loadAction  = MTLLoadActionLoad;
     }
-    if (clear_depth_buf) {
+    if (clear_depth_buf && fb->depth_texture != nil) {
         renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
     }
-    if (clear_stencil_buf) {
+    if (clear_stencil_buf /*&& fb->stencil_texture != nil*/) {
         renderdesc.stencilAttachment.loadAction = MTLLoadActionClear;
     }
 
@@ -574,6 +575,7 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
 
     if (metal_command_buffer == nil) {
         assert(default_metal_framebuffer.color_texture == nil);
+        assert(metal_active_drawable == nil);
 #if defined(AM_OSX)
         bool resized = false;
 #endif
@@ -601,7 +603,9 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
         }
 #elif defined(AM_IOS)
         default_metal_framebuffer.depth_texture = am_metal_ios_view.depthStencilTexture;
-        default_metal_framebuffer.msaa_texture = am_metal_ios_view.multisampleColorTexture;
+        if (default_metal_framebuffer.msaa_samples > 1) {
+            default_metal_framebuffer.msaa_texture = am_metal_ios_view.multisampleColorTexture;
+        }
 #endif
 
         metal_command_buffer = [metal_queue commandBuffer];
@@ -676,7 +680,7 @@ void am_init_gl() {
     metal_active_drawable = [metal_layer nextDrawable];
 #elif defined(AM_IOS)
     metal_device = am_metal_ios_view.device;
-    metal_active_drawable = am_metal_ios_view.currentDrawable;
+    metal_active_drawable = [am_metal_ios_view currentDrawable];
 #endif
 
     metal_queue = [metal_device newCommandQueue];
@@ -693,12 +697,11 @@ void am_init_gl() {
     am_metal_window_pheight = default_metal_framebuffer.height;
 #if defined(AM_OSX)
     float scale = metal_layer.contentsScale;
+#elif defined(AM_IOS)
+    float scale = am_metal_ios_view.contentScaleFactor;
+#endif
     am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
     am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
-#elif defined(AM_IOS)
-    am_metal_window_swidth = am_metal_window_pwidth;
-    am_metal_window_sheight = am_metal_window_pheight;
-#endif
     default_metal_framebuffer.clear_r = 0.0f;
     default_metal_framebuffer.clear_g = 0.0f;
     default_metal_framebuffer.clear_b = 0.0f;
@@ -872,6 +875,10 @@ void am_set_sample_coverage(float value, bool invert) {
 
 void am_clear_framebuffer(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     check_initialized();
+    // We'll clear the default framebuffer when we create the encoder.
+    // Creating a separate encoder to clear the default framebuffer doesn't seem to
+    // work on iOS, though it works on macOS.
+    if (metal_bound_framebuffer == 0) return;
     create_new_metal_encoder(clear_color_buf, clear_depth_buf, clear_stencil_buf);
     [metal_encoder endEncoding];
     metal_encoder = nil;
@@ -2199,7 +2206,11 @@ static bool setup_pipeline(metal_program *prog) {
 }
 
 static bool pre_draw_setup() {
-    if (metal_encoder == nil) create_new_metal_encoder(false, false, false);
+    if (metal_encoder == nil) {
+        bool clear = metal_bound_framebuffer == 0;
+        create_new_metal_encoder(clear, clear, clear);
+    }
+
     metal_program *prog = metal_program_freelist.get(metal_active_program);
 
     if (metal_bound_viewport_x != -1) {
@@ -2311,14 +2322,16 @@ void am_gl_end_framebuffer_render() {
     }
 }
 
-void am_gl_end_frame() {
+void am_gl_end_frame(bool present) {
     check_initialized();
     if (metal_command_buffer != nil) {
         assert(metal_active_drawable != nil);
         assert(default_metal_framebuffer.color_texture != nil);
-        [metal_command_buffer presentDrawable:metal_active_drawable];
+        if (present) {
+            [metal_command_buffer presentDrawable:metal_active_drawable];
+        }
         [metal_command_buffer commit];
-        [metal_command_buffer waitUntilCompleted];
+        //[metal_command_buffer waitUntilCompleted];
         metal_command_buffer = nil;
         metal_active_drawable = nil;
         default_metal_framebuffer.color_texture = nil;

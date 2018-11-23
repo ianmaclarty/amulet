@@ -433,7 +433,7 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
 // Other
 
 void am_gl_end_framebuffer_render();
-void am_gl_end_frame();
+void am_gl_end_frame(bool present);
 
 void am_log_gl(const char *msg);
 void am_close_gllog();

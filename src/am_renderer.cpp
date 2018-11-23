@@ -599,18 +599,22 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
     rstate->param_name_map[rstate->modelview_param_index].value.set_mat4(glm::dmat4(1.0));
 }
 
-void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
+void am_render_state::do_render(am_scene_node **roots, int num_roots, am_framebuffer_id fb,
     bool clear, glm::dvec4 clear_color, int stencil_clear_val, int x, int y, int w, int h, int fbw, int fbh,
     glm::dmat4 proj, bool has_depthbuffer)
 {
     setup(this, fb, clear, clear_color, stencil_clear_val, x, y, w, h, fbw, fbh, proj, has_depthbuffer);
-    if (root == NULL || am_node_hidden(root)) return;
-    next_pass = 1;
-    do {
-        pass = next_pass;
-        pass_mask = 1;
-        root->render(this);
-    } while (next_pass > pass);
+
+    for (int i = 0; i < num_roots; i++) {
+        am_scene_node *root = roots[i];
+        if (root == NULL || am_node_hidden(root)) continue;
+        next_pass = 1;
+        do {
+            pass = next_pass;
+            pass_mask = 1;
+            root->render(this);
+        } while (next_pass > pass);
+    }
 
     // Unbind the current program, because it might be
     // deleted and the id reused before the next call to

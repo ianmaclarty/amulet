@@ -91,7 +91,7 @@ static int render_node_to_framebuffer(lua_State *L) {
     if (fb->color_attachment0->image_buffer != NULL) {
         fb->color_attachment0->image_buffer->buffer->update_if_dirty();
     }
-    rstate->do_render(node, fb->framebuffer_id, false, fb->clear_color, fb->stencil_clear_value,
+    rstate->do_render(&node, 1, fb->framebuffer_id, false, fb->clear_color, fb->stencil_clear_value,
         0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
     if (fb->color_attachment0->has_mipmap) {
         am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, fb->color_attachment0->texture_id);
@@ -109,7 +109,8 @@ static int render_children_to_framebuffer(lua_State *L) {
     }
     am_scene_node tmpnode;
     tmpnode.children = node->children;
-    rstate->do_render(&tmpnode, fb->framebuffer_id, false, fb->clear_color, fb->stencil_clear_value,
+    am_scene_node *tmparr = &tmpnode;
+    rstate->do_render(&tmparr, 1, fb->framebuffer_id, false, fb->clear_color, fb->stencil_clear_value,
         0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
     if (fb->color_attachment0->has_mipmap) {
         am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, fb->color_attachment0->texture_id);
