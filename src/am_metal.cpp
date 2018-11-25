@@ -515,21 +515,25 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc(bool clear_co
         colorattachment.storeAction = MTLStoreActionStore;
     }
 
-    if (fb->depth_texture != nil) {
-        renderdesc.depthAttachment.texture = fb->depth_texture;
-    }
-
     if (clear_color_buf) {
         colorattachment.loadAction = MTLLoadActionClear;
         colorattachment.clearColor = MTLClearColorMake(fb->clear_r, fb->clear_g, fb->clear_b, fb->clear_a);
     } else {
-        colorattachment.loadAction  = MTLLoadActionLoad;
+        colorattachment.loadAction = MTLLoadActionLoad;
     }
-    if (clear_depth_buf && fb->depth_texture != nil) {
-        renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
-    }
-    if (clear_stencil_buf /*&& fb->stencil_texture != nil*/) {
-        renderdesc.stencilAttachment.loadAction = MTLLoadActionClear;
+
+    if (fb->depth_texture != nil) {
+        renderdesc.depthAttachment.texture = fb->depth_texture;
+        if (clear_depth_buf) {
+            renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
+        } else {
+            renderdesc.depthAttachment.loadAction = MTLLoadActionLoad;
+        }
+        if (metal_bound_framebuffer == 0) {
+            renderdesc.depthAttachment.storeAction = MTLStoreActionDontCare;
+        } else {
+            renderdesc.depthAttachment.storeAction = MTLStoreActionStore;
+        }
     }
 
     return renderdesc;
