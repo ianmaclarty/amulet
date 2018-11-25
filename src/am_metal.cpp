@@ -1835,8 +1835,6 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
     metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
     assert(fb->color_texture != nil);
 
-#if defined(AM_OSX)
-
     if (metal_encoder != nil) {
         [metal_encoder endEncoding];
         metal_encoder = nil;
@@ -1846,13 +1844,14 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
         metal_command_buffer = [metal_queue commandBuffer];
         was_command_buffer = false;
     }
+#if defined(AM_OSX)
     id<MTLBlitCommandEncoder> blit_encoder = [metal_command_buffer blitCommandEncoder];
     [blit_encoder synchronizeTexture:fb->color_texture slice:0 level:0];
     [blit_encoder endEncoding];
+#endif
     [metal_command_buffer commit];
     [metal_command_buffer waitUntilCompleted];
     metal_command_buffer = nil;
-#endif
 
     MTLRegion region;
     region.origin.x = x;
@@ -1863,11 +1862,9 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
     region.size.depth = 1;
     [fb->color_texture getBytes:data bytesPerRow:w*4 fromRegion:region mipmapLevel: 0];
 
-#if defined(AM_OSX)
     if (was_command_buffer) {
         metal_command_buffer = [metal_queue commandBuffer];
     }
-#endif
 }
 
 // Framebuffer Objects
