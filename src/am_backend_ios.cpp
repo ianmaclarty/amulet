@@ -715,7 +715,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     view.device = MTLCreateSystemDefaultDevice();
     view.delegate = self;
     view.preferredFramesPerSecond = 60;
-    view.preferredFramesPerSecond = 60;
     [view setMultipleTouchEnabled:YES]; 
     ios_view = view;
     am_metal_ios_view = ios_view;
