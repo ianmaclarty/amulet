@@ -1,4 +1,5 @@
 #!/bin/sh
+# for launch image sizes see https://wiki.starling-framework.org/manual/ios_launch_images
 set -e
 luavm=$1
 DTXcodeBuild=`xcodebuild -version | grep "Build version" | sed 's/^Build version //'`
