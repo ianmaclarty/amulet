@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios32 ios64 iossim android html mingw32 mingw64
+TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios android html mingw32 mingw64
 
 # Directories
 
@@ -189,50 +189,14 @@ endif
   MACOSX_DEPLOYMENT_TARGET=10.11
   export MACOSX_DEPLOYMENT_TARGET
   OSX = 1
-else ifeq ($(TARGET_PLATFORM),ios32)
+else ifeq ($(TARGET_PLATFORM),ios)
   CC = clang
   CPP = clang++
   LINK = $(CPP)
   XCODE_PATH = $(shell xcode-select --print-path)
   SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -Fthird_party -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=8.0
-  XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,Metal -lobjc \
-	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
-	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
-	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
-	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony \
-	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
-	     -Wl,-framework,MetalKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
-  LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
-  IOS = 1
-else ifeq ($(TARGET_PLATFORM),ios64)
-  CC = clang
-  CPP = clang++
-  LINK = $(CPP)
-  XCODE_PATH = $(shell xcode-select --print-path)
-  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
-  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -Fthird_party -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=8.0
-  XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,Metal -lobjc \
-	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
-	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
-	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
-	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
-	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
-	     -Wl,-framework,MetalKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
-  LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
-  IOS = 1
-else ifeq ($(TARGET_PLATFORM),iossim)
-  CC = clang
-  CPP = clang++
-  LINK = $(CPP)
-  XCODE_PATH = $(shell xcode-select --print-path)
-  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
-  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -Fthird_party -arch x86_64 -isysroot $(SDK_PATH) -miphoneos-version-min=8.0
+  TARGET_CFLAGS += -Fthird_party -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=11.0
   XCFLAGS += -ObjC++
   XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,Metal -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
@@ -415,10 +379,7 @@ else
   else ifeq ($(TARGET_PLATFORM),osx)
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =
-  else ifeq ($(TARGET_PLATFORM),ios32)
-    GRADE_CFLAGS = -O3 -DNDEBUG
-    GRADE_LDFLAGS =
-  else ifeq ($(TARGET_PLATFORM),ios64)
+  else ifeq ($(TARGET_PLATFORM),ios)
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),android)
