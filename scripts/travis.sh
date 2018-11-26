@@ -62,12 +62,8 @@ else
         make -j2 TARGET=osx.release     LUAVM=luajit  test
 
         # build ios
-        scripts/build_ios.sh lua51
-        rm -rf builds/ios32/lua51
-        rm -rf builds/ios64/lua51
-        scripts/build_ios.sh lua52
-        rm -rf builds/ios32/lua52
-        rm -rf builds/ios64/lua52
+        make -j2 TARGET=ios.release     LUAVM=lua51
+        make -j2 TARGET=ios.release     LUAVM=lua52
 
         # build emscripten
         # (building on osx, because the pre-built llvm binaries don't work on linux due to incompatible glibc version)
