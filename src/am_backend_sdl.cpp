@@ -462,6 +462,16 @@ const char *am_preferred_language() {
 #endif
 }
 
+#if defined (AM_OSX)
+static int launch_url(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *url = lua_tostring(L, 1);
+    if (url == NULL) return 0;
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url]]];
+    return 0;
+}
+#endif
+
 int main( int argc, char *argv[] )
 {
     int vsync;
@@ -1396,6 +1406,9 @@ static win_info *win_from_id(Uint32 winid) {
 void am_open_sdl_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"_rumble", rumble},
+#if defined(AM_OSX)
+        {"launch_url", launch_url},
+#endif
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
