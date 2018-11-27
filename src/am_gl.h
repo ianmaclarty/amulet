@@ -109,11 +109,10 @@ enum am_stencil_op {
 enum am_stencil_face_side {
     AM_STENCIL_FACE_FRONT,
     AM_STENCIL_FACE_BACK,
-    AM_STENCIL_FACE_FRONT_AND_BACK,
 };
 
 void am_set_stencil_test_enabled(bool enabled);
-void am_set_stencil_func(am_stencil_face_side face, am_stencil_func func, am_glint ref, am_gluint mask);
+void am_set_stencil_func(am_glint ref, am_gluint mask, am_stencil_func func_front, am_stencil_func func_back);
 void am_set_stencil_op(am_stencil_face_side face, am_stencil_op fail, am_stencil_op zfail, am_stencil_op zpass);
 
 void am_set_sample_alpha_to_coverage_enabled(bool enabled);
@@ -128,7 +127,7 @@ void am_set_framebuffer_clear_depth(float depth);
 void am_set_framebuffer_clear_stencil_val(am_glint val);
 void am_set_framebuffer_color_mask(bool r, bool g, bool b, bool a);
 void am_set_framebuffer_depth_mask(bool flag);
-void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask);
+void am_set_framebuffer_stencil_mask(am_gluint mask);
 
 // Buffer Objects
 

@@ -156,6 +156,9 @@ struct metal_framebuffer {
     id<MTLTexture> color_texture;
     id<MTLTexture> depth_texture;
 
+    int stencil_clear_value;
+    id<MTLTexture> stencil_texture;
+
     int msaa_samples;
     id<MTLTexture> msaa_texture;
 };
@@ -275,6 +278,18 @@ struct metal_pipeline {
     bool face_culling_enabled;
     am_cull_face_side face_cull_side;
     am_face_winding face_winding;
+
+    bool                    stencil_test_enabled;
+    am_gluint               stencil_read_mask;
+    am_gluint               stencil_write_mask;
+    am_stencil_func         stencil_func_back;
+    am_stencil_func         stencil_func_front;
+    am_stencil_op           stencil_op_fail_front;
+    am_stencil_op           stencil_op_zfail_front;
+    am_stencil_op           stencil_op_zpass_front;
+    am_stencil_op           stencil_op_fail_back;
+    am_stencil_op           stencil_op_zfail_back;
+    am_stencil_op           stencil_op_zpass_back;
 };
 
 struct metal_program {
@@ -335,6 +350,19 @@ static am_blend_dfactor metal_blend_dfactor_alpha;
 static bool metal_depth_test_enabled;
 static bool metal_depth_mask;
 static am_depth_func metal_depth_func;
+
+static bool                    metal_stencil_test_enabled;
+static am_glint                metal_stencil_ref;
+static am_gluint               metal_stencil_read_mask;
+static am_gluint               metal_stencil_write_mask;
+static am_stencil_func         metal_stencil_func_back;
+static am_stencil_func         metal_stencil_func_front;
+static am_stencil_op           metal_stencil_op_fail_front;
+static am_stencil_op           metal_stencil_op_zfail_front;
+static am_stencil_op           metal_stencil_op_zpass_front;
+static am_stencil_op           metal_stencil_op_fail_back;
+static am_stencil_op           metal_stencil_op_zfail_back;
+static am_stencil_op           metal_stencil_op_zpass_back;
 
 static bool metal_face_culling_enabled;
 static am_cull_face_side metal_face_cull_side;
@@ -459,6 +487,34 @@ static MTLSamplerAddressMode to_metal_wrap(am_texture_wrap w) {
     return MTLSamplerAddressModeClampToEdge;
 }
 
+static MTLStencilOperation to_metal_stencil_op(am_stencil_op o) {
+    switch (o) {
+        case AM_STENCIL_OP_KEEP: return MTLStencilOperationKeep;
+        case AM_STENCIL_OP_ZERO: return MTLStencilOperationZero;
+        case AM_STENCIL_OP_REPLACE: return MTLStencilOperationReplace;
+        case AM_STENCIL_OP_INCR: return MTLStencilOperationIncrementClamp;
+        case AM_STENCIL_OP_DECR: return MTLStencilOperationDecrementClamp;
+        case AM_STENCIL_OP_INVERT: return MTLStencilOperationInvert;
+        case AM_STENCIL_OP_INCR_WRAP: return MTLStencilOperationIncrementWrap;
+        case AM_STENCIL_OP_DECR_WRAP: return MTLStencilOperationDecrementWrap;
+    }
+    return MTLStencilOperationKeep;
+}
+
+static MTLCompareFunction to_metal_stencil_func(am_stencil_func f) {
+    switch (f) {
+        case AM_STENCIL_FUNC_NEVER: return MTLCompareFunctionNever;
+        case AM_STENCIL_FUNC_ALWAYS: return MTLCompareFunctionAlways;
+        case AM_STENCIL_FUNC_EQUAL: return MTLCompareFunctionEqual;
+        case AM_STENCIL_FUNC_NOTEQUAL: return MTLCompareFunctionNotEqual;
+        case AM_STENCIL_FUNC_LESS: return MTLCompareFunctionLess;
+        case AM_STENCIL_FUNC_LEQUAL: return MTLCompareFunctionLessEqual;
+        case AM_STENCIL_FUNC_GREATER: return MTLCompareFunctionGreater;
+        case AM_STENCIL_FUNC_GEQUAL: return MTLCompareFunctionGreaterEqual;
+    }
+    return MTLCompareFunctionAlways;
+}
+
 /*
 static const char* to_metal_blend_op_str(MTLBlendOperation op) {
     switch (op) {
@@ -536,6 +592,21 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc(bool clear_co
         }
     }
 
+    if (fb->stencil_texture != nil) {
+        renderdesc.stencilAttachment.texture = fb->stencil_texture;
+        if (clear_stencil_buf) {
+            renderdesc.stencilAttachment.clearStencil = (uint32_t)fb->stencil_clear_value;
+            renderdesc.stencilAttachment.loadAction = MTLLoadActionClear;
+        } else {
+            renderdesc.stencilAttachment.loadAction = MTLLoadActionLoad;
+        }
+        if (metal_bound_framebuffer == 0) {
+            renderdesc.stencilAttachment.storeAction = MTLStoreActionDontCare;
+        } else {
+            renderdesc.stencilAttachment.storeAction = MTLStoreActionStore;
+        }
+    }
+
     return renderdesc;
 }
 
@@ -554,6 +625,22 @@ static void create_framebuffer_depth_texture(metal_framebuffer *fb) {
         texdescr.textureType = MTLTextureType2DMultisample;
     }
     fb->depth_texture = [metal_device newTextureWithDescriptor:texdescr];
+}
+
+static void create_framebuffer_stencil_texture(metal_framebuffer *fb) {
+    if (fb->stencil_texture != nil) {
+        [fb->stencil_texture release];
+        fb->stencil_texture = nil;
+    }
+    MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatStencil8
+        width:fb->width height:fb->height mipmapped:NO];
+    texdescr.usage = MTLTextureUsageRenderTarget;
+    texdescr.storageMode = MTLStorageModePrivate;
+    if (fb->msaa_samples > 1) {
+        texdescr.sampleCount = fb->msaa_samples;
+        texdescr.textureType = MTLTextureType2DMultisample;
+    }
+    fb->stencil_texture = [metal_device newTextureWithDescriptor:texdescr];
 }
 
 static void create_framebuffer_msaa_texture(metal_framebuffer *fb) {
@@ -607,6 +694,7 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
         }
 #elif defined(AM_IOS)
         default_metal_framebuffer.depth_texture = am_metal_ios_view.depthStencilTexture;
+        default_metal_framebuffer.stencil_texture = am_metal_ios_view.depthStencilTexture;
         if (default_metal_framebuffer.msaa_samples > 1) {
             default_metal_framebuffer.msaa_texture = am_metal_ios_view.multisampleColorTexture;
         }
@@ -712,14 +800,17 @@ void am_init_gl() {
     default_metal_framebuffer.clear_a = 1.0f;
     default_metal_framebuffer.color_texture = metal_active_drawable.texture;
     default_metal_framebuffer.depth_texture = nil;
+    default_metal_framebuffer.stencil_clear_value = 0;
+    default_metal_framebuffer.stencil_texture = nil;
     default_metal_framebuffer.msaa_samples = 1;
     default_metal_framebuffer.msaa_texture = nil;
     set_framebuffer_msaa_samples(&default_metal_framebuffer, am_metal_window_msaa_samples);
 #if defined(AM_OSX)
     if (am_metal_window_depth_buffer) {
         create_framebuffer_depth_texture(&default_metal_framebuffer);
-    } else {
-        default_metal_framebuffer.depth_texture = nil;
+    }
+    if (am_metal_window_stencil_buffer) {
+        create_framebuffer_stencil_texture(&default_metal_framebuffer);
     }
     create_framebuffer_msaa_texture(&default_metal_framebuffer);
 #elif defined(AM_IOS)
@@ -769,6 +860,19 @@ void am_init_gl() {
     metal_depth_mask = false;
     metal_depth_func = AM_DEPTH_FUNC_ALWAYS;
 
+    metal_stencil_test_enabled = false;
+    metal_stencil_ref = 0;
+    metal_stencil_read_mask = 255;
+    metal_stencil_write_mask = 255;
+    metal_stencil_func_front = AM_STENCIL_FUNC_ALWAYS;
+    metal_stencil_op_fail_front = AM_STENCIL_OP_KEEP;
+    metal_stencil_op_zfail_front = AM_STENCIL_OP_KEEP;
+    metal_stencil_op_zpass_front = AM_STENCIL_OP_KEEP;
+    metal_stencil_func_back = AM_STENCIL_FUNC_ALWAYS;
+    metal_stencil_op_fail_back = AM_STENCIL_OP_KEEP;
+    metal_stencil_op_zfail_back = AM_STENCIL_OP_KEEP;
+    metal_stencil_op_zpass_back = AM_STENCIL_OP_KEEP;
+
     metal_face_culling_enabled = false;
     metal_face_cull_side = AM_CULL_FACE_BACK;
     metal_face_winding = AM_FACE_WIND_CCW;
@@ -792,6 +896,10 @@ void am_destroy_gl() {
         [default_metal_framebuffer.depth_texture release];
         default_metal_framebuffer.depth_texture = nil;
     }
+    if (default_metal_framebuffer.stencil_texture != nil) {
+        [default_metal_framebuffer.stencil_texture release];
+        default_metal_framebuffer.stencil_texture = nil;
+    }
     if (default_metal_framebuffer.msaa_texture != nil) {
         [default_metal_framebuffer.msaa_texture release];
         default_metal_framebuffer.msaa_texture = nil;
@@ -799,6 +907,7 @@ void am_destroy_gl() {
 #elif defined(AM_IOS)
     // in iOS the MTKView will release the textures
     default_metal_framebuffer.depth_texture = nil;
+    default_metal_framebuffer.stencil_texture = nil;
     default_metal_framebuffer.msaa_texture = nil;
 #endif
     [metal_queue release];
@@ -847,17 +956,31 @@ void am_set_depth_func(am_depth_func func) {
 
 void am_set_stencil_test_enabled(bool enabled) {
     check_initialized();
-    // TODO
+    metal_stencil_test_enabled = true;
 }
 
-void am_set_stencil_func(am_stencil_face_side face, am_stencil_func func, am_glint ref, am_gluint mask) {
+void am_set_stencil_func(am_glint ref, am_gluint mask, am_stencil_func func_front, am_stencil_func func_back) {
     check_initialized();
-    // TODO
+    metal_stencil_ref = ref;
+    metal_stencil_read_mask = mask;
+    metal_stencil_func_front = func_front;
+    metal_stencil_func_back = func_back;
 }
 
 void am_set_stencil_op(am_stencil_face_side face, am_stencil_op fail, am_stencil_op zfail, am_stencil_op zpass) {
     check_initialized();
-    // TODO
+    switch (face) {
+        case AM_STENCIL_FACE_FRONT:
+            metal_stencil_op_fail_front = fail;
+            metal_stencil_op_zfail_front = zfail;
+            metal_stencil_op_zpass_front = zpass;
+            break;
+        case AM_STENCIL_FACE_BACK:
+            metal_stencil_op_fail_back = fail;
+            metal_stencil_op_zfail_back = zfail;
+            metal_stencil_op_zpass_back = zpass;
+            break;
+    }
 }
 
 void am_set_sample_alpha_to_coverage_enabled(bool enabled) {
@@ -904,7 +1027,8 @@ void am_set_framebuffer_clear_depth(float depth) {
 
 void am_set_framebuffer_clear_stencil_val(am_glint val) {
     check_initialized();
-    // TODO
+    metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
+    fb->stencil_clear_value = val;
 }
 
 void am_set_framebuffer_color_mask(bool r, bool g, bool b, bool a) {
@@ -917,9 +1041,9 @@ void am_set_framebuffer_depth_mask(bool flag) {
     metal_depth_mask = flag;
 }
 
-void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) {
+void am_set_framebuffer_stencil_mask(am_gluint mask) {
     check_initialized();
-    // TODO
+    metal_stencil_write_mask = mask;
 }
 
 // Buffer Objects
@@ -1880,6 +2004,8 @@ am_framebuffer_id am_create_framebuffer() {
     fb.clear_a = 1.0f;
     fb.color_texture = nil;
     fb.depth_texture = nil;
+    fb.stencil_clear_value = 0;
+    fb.stencil_texture = nil;
     set_framebuffer_msaa_samples(&fb, 1);
     fb.msaa_texture = nil;
     return metal_framebuffer_freelist.add(fb);
@@ -1924,8 +2050,7 @@ void am_set_framebuffer_renderbuffer(am_framebuffer_attachment attachment, am_re
             fb->depth_texture = renderbuffer->texture;
             break;
         case AM_FRAMEBUFFER_STENCIL_ATTACHMENT:
-            // TODO
-            //fb->stencil_texture = renderbuffer->texture;
+            fb->stencil_texture = renderbuffer->texture;
             break;
     }
     if (fb->width > 0) {
@@ -2080,6 +2205,19 @@ static bool setup_pipeline(metal_program *prog) {
             cached_pipeline->face_culling_enabled != metal_face_culling_enabled ||
             cached_pipeline->face_cull_side != metal_face_cull_side ||
             cached_pipeline->face_winding != metal_face_winding ||
+            cached_pipeline->stencil_test_enabled      != metal_stencil_test_enabled ||
+            cached_pipeline->stencil_read_mask         != metal_stencil_read_mask ||
+            cached_pipeline->stencil_write_mask        != metal_stencil_write_mask ||
+            cached_pipeline->stencil_func_back         != metal_stencil_func_back ||
+            cached_pipeline->stencil_func_front        != metal_stencil_func_front ||
+            cached_pipeline->stencil_op_fail_front     != metal_stencil_op_fail_front ||
+            cached_pipeline->stencil_op_zfail_front    != metal_stencil_op_zfail_front ||
+            cached_pipeline->stencil_op_zpass_front    != metal_stencil_op_zpass_front ||
+            cached_pipeline->stencil_op_fail_back      != metal_stencil_op_fail_back ||
+            cached_pipeline->stencil_op_zfail_back     != metal_stencil_op_zfail_back ||
+            cached_pipeline->stencil_op_zpass_back     != metal_stencil_op_zpass_back ||
+
+
             false)
         {
             continue;
@@ -2174,16 +2312,55 @@ static bool setup_pipeline(metal_program *prog) {
         cached_pipeline.depth_mask = metal_depth_mask;;
         cached_pipeline.depth_func = metal_depth_func;
 
-        MTLDepthStencilDescriptor *depthdescr = [[MTLDepthStencilDescriptor alloc] init];
+        cached_pipeline.stencil_test_enabled      = metal_stencil_test_enabled;
+        cached_pipeline.stencil_read_mask         = metal_stencil_read_mask;
+        cached_pipeline.stencil_write_mask        = metal_stencil_write_mask;
+        cached_pipeline.stencil_func_back         = metal_stencil_func_back;
+        cached_pipeline.stencil_func_front        = metal_stencil_func_front;
+        cached_pipeline.stencil_op_fail_front     = metal_stencil_op_fail_front;
+        cached_pipeline.stencil_op_zfail_front    = metal_stencil_op_zfail_front;
+        cached_pipeline.stencil_op_zpass_front    = metal_stencil_op_zpass_front;
+        cached_pipeline.stencil_op_fail_back      = metal_stencil_op_fail_back;
+        cached_pipeline.stencil_op_zfail_back     = metal_stencil_op_zfail_back;
+        cached_pipeline.stencil_op_zpass_back     = metal_stencil_op_zpass_back;
+
+        MTLDepthStencilDescriptor *depthstencildescr = [[MTLDepthStencilDescriptor alloc] init];
         if (metal_depth_test_enabled) {
-            depthdescr.depthCompareFunction = to_metal_depth_func(metal_depth_func);
-            depthdescr.depthWriteEnabled = to_objc_bool(metal_depth_mask);
+            depthstencildescr.depthCompareFunction = to_metal_depth_func(metal_depth_func);
+            depthstencildescr.depthWriteEnabled = to_objc_bool(metal_depth_mask);
         } else {
-            depthdescr.depthCompareFunction = MTLCompareFunctionAlways;
-            depthdescr.depthWriteEnabled = NO;
+            depthstencildescr.depthCompareFunction = MTLCompareFunctionAlways;
+            depthstencildescr.depthWriteEnabled = NO;
         }
-        cached_pipeline.mtldepthstencilstate = [metal_device newDepthStencilStateWithDescriptor: depthdescr];
-        [depthdescr release];
+        if (metal_stencil_test_enabled) {
+            MTLStencilDescriptor *sdescr = [[MTLStencilDescriptor alloc] init];
+            sdescr.readMask = metal_stencil_read_mask;
+            sdescr.writeMask = metal_stencil_write_mask;
+            sdescr.stencilFailureOperation = to_metal_stencil_op(metal_stencil_op_fail_front);
+            sdescr.depthFailureOperation = to_metal_stencil_op(metal_stencil_op_zfail_front);
+            sdescr.depthStencilPassOperation = to_metal_stencil_op(metal_stencil_op_zpass_front);
+            sdescr.stencilCompareFunction = to_metal_stencil_func(metal_stencil_func_front);
+            depthstencildescr.frontFaceStencil = sdescr;
+            sdescr.stencilFailureOperation = to_metal_stencil_op(metal_stencil_op_fail_back);
+            sdescr.depthFailureOperation = to_metal_stencil_op(metal_stencil_op_zfail_back);
+            sdescr.depthStencilPassOperation = to_metal_stencil_op(metal_stencil_op_zpass_back);
+            sdescr.stencilCompareFunction = to_metal_stencil_func(metal_stencil_func_back);
+            depthstencildescr.backFaceStencil = sdescr;
+            [sdescr release];
+        } else {
+            MTLStencilDescriptor *sdescr = [[MTLStencilDescriptor alloc] init];
+            sdescr.readMask = 0;
+            sdescr.writeMask = 0;
+            sdescr.stencilFailureOperation = MTLStencilOperationKeep;
+            sdescr.depthFailureOperation = MTLStencilOperationKeep;
+            sdescr.depthStencilPassOperation = MTLStencilOperationKeep;
+            sdescr.stencilCompareFunction = MTLCompareFunctionAlways;
+            depthstencildescr.frontFaceStencil = sdescr;
+            depthstencildescr.backFaceStencil = sdescr;
+            [sdescr release];
+        }
+        cached_pipeline.mtldepthstencilstate = [metal_device newDepthStencilStateWithDescriptor: depthstencildescr];
+        [depthstencildescr release];
 
         cached_pipeline.face_culling_enabled = metal_face_culling_enabled;
         cached_pipeline.face_cull_side = metal_face_cull_side;
@@ -2196,7 +2373,7 @@ static bool setup_pipeline(metal_program *prog) {
         metal_pipeline *pipeline = &prog->pipeline_cache[selected_pipeline];
         [metal_encoder setRenderPipelineState: pipeline->mtlpipeline];
         metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
-        if (fb->depth_texture != nil) {
+        if (fb->depth_texture != nil || fb->stencil_texture != nil) {
             [metal_encoder setDepthStencilState:pipeline->mtldepthstencilstate];
         }
         [metal_encoder setFrontFacingWinding: to_metal_winding(metal_bound_framebuffer != 0, pipeline->face_winding)];
@@ -2228,6 +2405,11 @@ static bool pre_draw_setup() {
 
     // pipeline
     if (!setup_pipeline(prog)) return false;
+
+    // stencil ref value
+    if (metal_stencil_test_enabled) {
+        [metal_encoder setStencilReferenceValue:(uint32_t)metal_stencil_ref];
+    }
 
     // uniforms
     // set _am_y_flip to flip y if rendering to a texture

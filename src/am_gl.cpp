@@ -439,10 +439,16 @@ void am_set_stencil_test_enabled(bool enabled) {
     check_for_errors
 }
 
-void am_set_stencil_func(am_stencil_face_side face, am_stencil_func func, am_glint ref, am_gluint mask) {
+void am_set_stencil_func(am_glint ref, am_gluint mask, am_stencil_func func_front, am_stencil_func func_back) {
     check_initialized();
-    GLenum gl_face = to_gl_stencil_face_side(face);
-    GLenum gl_func = to_gl_stencil_func(func);
+    GLenum gl_face = GL_FRONT;
+    GLenum gl_func = to_gl_stencil_func(func_front);
+    log_gl("glStencilFuncSeparate(%s, %s, %d, %u);",
+        gl_face_side_str(gl_face), 
+        gl_stencil_func_str(gl_func), ref, mask);
+    GLFUNC(glStencilFuncSeparate)(gl_face, gl_func, ref, mask);
+    gl_face = GL_BACK;
+    gl_func = to_gl_stencil_func(func_back);
     log_gl("glStencilFuncSeparate(%s, %s, %d, %u);",
         gl_face_side_str(gl_face), 
         gl_stencil_func_str(gl_func), ref, mask);
@@ -542,11 +548,10 @@ void am_set_framebuffer_depth_mask(bool flag) {
     check_for_errors
 }
 
-void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) {
+void am_set_framebuffer_stencil_mask(am_gluint mask) {
     check_initialized();
-    GLenum gl_face = to_gl_stencil_face_side(face);
-    log_gl("glStencilMaskSeparate(%s, %u);", gl_face_side_str(gl_face), mask);
-    GLFUNC(glStencilMaskSeparate)(gl_face, mask);
+    log_gl("glStencilMask(%u);", mask);
+    GLFUNC(glStencilMask)(mask);
     check_for_errors
 }
 

@@ -131,17 +131,14 @@ void am_depth_test_state::bind(am_render_state *rstate, bool force) {
 
 am_stencil_test_state::am_stencil_test_state() {
     enabled = false;
-    func_back = AM_STENCIL_FUNC_ALWAYS;
-    ref_back = 0;
-    read_mask_back = 255;
-    write_mask_back = 255;
+    ref = 0;
+    read_mask = 255;
+    write_mask = 255;
     func_front = AM_STENCIL_FUNC_ALWAYS;
-    ref_front = 0;
-    read_mask_front = 255;
-    write_mask_front = 255;
     op_fail_front = AM_STENCIL_OP_KEEP;
     op_zfail_front = AM_STENCIL_OP_KEEP;
     op_zpass_front = AM_STENCIL_OP_KEEP;
+    func_back = AM_STENCIL_FUNC_ALWAYS;
     op_fail_back = AM_STENCIL_OP_KEEP;
     op_zfail_back = AM_STENCIL_OP_KEEP;
     op_zpass_back = AM_STENCIL_OP_KEEP;
@@ -149,33 +146,27 @@ am_stencil_test_state::am_stencil_test_state() {
 
 void am_stencil_test_state::set(
     bool                    enabled,
-    am_stencil_func         func_back,
-    am_glint                ref_back,
-    am_gluint               read_mask_back,
-    am_gluint               write_mask_back,
+    am_glint                ref,
+    am_gluint               read_mask,
+    am_gluint               write_mask,
     am_stencil_func         func_front,
-    am_glint                ref_front,
-    am_gluint               read_mask_front,
-    am_gluint               write_mask_front,
     am_stencil_op           op_fail_front,
     am_stencil_op           op_zfail_front,
     am_stencil_op           op_zpass_front,
+    am_stencil_func         func_back,
     am_stencil_op           op_fail_back,
     am_stencil_op           op_zfail_back,
     am_stencil_op           op_zpass_back)
 {
     am_stencil_test_state::enabled = enabled;
-    am_stencil_test_state::func_back = func_back;
-    am_stencil_test_state::ref_back = ref_back;
-    am_stencil_test_state::read_mask_back = read_mask_back;
-    am_stencil_test_state::write_mask_back = write_mask_back;
+    am_stencil_test_state::ref = ref;
+    am_stencil_test_state::read_mask = read_mask;
+    am_stencil_test_state::write_mask = write_mask;
     am_stencil_test_state::func_front = func_front;
-    am_stencil_test_state::ref_front = ref_front;
-    am_stencil_test_state::read_mask_front = read_mask_front;
-    am_stencil_test_state::write_mask_front = write_mask_front;
     am_stencil_test_state::op_fail_front = op_fail_front;
     am_stencil_test_state::op_zfail_front = op_zfail_front;
     am_stencil_test_state::op_zpass_front = op_zpass_front;
+    am_stencil_test_state::func_back = func_back;
     am_stencil_test_state::op_fail_back = op_fail_back;
     am_stencil_test_state::op_zfail_back = op_zfail_back;
     am_stencil_test_state::op_zpass_back = op_zpass_back;
@@ -184,17 +175,14 @@ void am_stencil_test_state::set(
 void am_stencil_test_state::restore(am_stencil_test_state *old) {
     set(
         old->enabled,
-        old->func_back,
-        old->ref_back,
-        old->read_mask_back,
-        old->write_mask_back,
+        old->ref,
+        old->read_mask,
+        old->write_mask,
         old->func_front,
-        old->ref_front,
-        old->read_mask_front,
-        old->write_mask_front,
         old->op_fail_front,
         old->op_zfail_front,
         old->op_zpass_front,
+        old->func_back,
         old->op_fail_back,
         old->op_zfail_back,
         old->op_zpass_back);
@@ -205,26 +193,17 @@ void am_stencil_test_state::bind(am_render_state *rstate, bool force) {
         am_set_stencil_test_enabled(enabled);
         rstate->bound_stencil_test_state.enabled = enabled;
     }
-    if (!force && !enabled) return;
-    if (force || 
-        func_back != rstate->bound_stencil_test_state.func_back ||
-        ref_back != rstate->bound_stencil_test_state.ref_back ||
-        read_mask_back != rstate->bound_stencil_test_state.read_mask_back) 
-    {
-        am_set_stencil_func(AM_STENCIL_FACE_BACK, func_back, ref_back, read_mask_back);
-        rstate->bound_stencil_test_state.func_back = func_back;
-        rstate->bound_stencil_test_state.ref_back = ref_back;
-        rstate->bound_stencil_test_state.read_mask_back = read_mask_back;
-    }
     if (force || 
         func_front != rstate->bound_stencil_test_state.func_front ||
-        ref_front != rstate->bound_stencil_test_state.ref_front ||
-        read_mask_front != rstate->bound_stencil_test_state.read_mask_front) 
+        func_back != rstate->bound_stencil_test_state.func_back ||
+        ref != rstate->bound_stencil_test_state.ref ||
+        read_mask != rstate->bound_stencil_test_state.read_mask) 
     {
-        am_set_stencil_func(AM_STENCIL_FACE_FRONT, func_front, ref_front, read_mask_front);
+        am_set_stencil_func(ref, read_mask, func_front, func_back);
         rstate->bound_stencil_test_state.func_front = func_front;
-        rstate->bound_stencil_test_state.ref_front = ref_front;
-        rstate->bound_stencil_test_state.read_mask_front = read_mask_front;
+        rstate->bound_stencil_test_state.func_back = func_back;
+        rstate->bound_stencil_test_state.ref = ref;
+        rstate->bound_stencil_test_state.read_mask = read_mask;
     }
     if (force || 
         op_fail_back != rstate->bound_stencil_test_state.op_fail_back ||
@@ -247,16 +226,10 @@ void am_stencil_test_state::bind(am_render_state *rstate, bool force) {
         rstate->bound_stencil_test_state.op_zpass_front = op_zpass_front;
     }
     if (force ||
-        write_mask_front != rstate->bound_stencil_test_state.write_mask_front)
+        write_mask != rstate->bound_stencil_test_state.write_mask)
     {
-        am_set_framebuffer_stencil_mask(AM_STENCIL_FACE_FRONT, write_mask_front);
-        rstate->bound_stencil_test_state.write_mask_front = write_mask_front;
-    }
-    if (force ||
-        write_mask_back != rstate->bound_stencil_test_state.write_mask_back)
-    {
-        am_set_framebuffer_stencil_mask(AM_STENCIL_FACE_BACK, write_mask_back);
-        rstate->bound_stencil_test_state.write_mask_back = write_mask_back;
+        am_set_framebuffer_stencil_mask(write_mask);
+        rstate->bound_stencil_test_state.write_mask = write_mask;
     }
 }
 
@@ -556,17 +529,14 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
 
     rstate->active_stencil_test_state.set(
         false,
-        AM_STENCIL_FUNC_ALWAYS,
         0,
         255,
         255,
         AM_STENCIL_FUNC_ALWAYS,
-        0,
-        255,
-        255,
         AM_STENCIL_OP_KEEP,
         AM_STENCIL_OP_KEEP,
         AM_STENCIL_OP_KEEP,
+        AM_STENCIL_FUNC_ALWAYS,
         AM_STENCIL_OP_KEEP,
         AM_STENCIL_OP_KEEP,
         AM_STENCIL_OP_KEEP);
