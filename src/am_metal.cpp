@@ -691,6 +691,9 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
             if (am_metal_window_depth_buffer) {
                 create_framebuffer_depth_texture(&default_metal_framebuffer);
             }
+            if (am_metal_window_stencil_buffer) {
+                create_framebuffer_stencil_texture(&default_metal_framebuffer);
+            }
         }
 #elif defined(AM_IOS)
         default_metal_framebuffer.depth_texture = am_metal_ios_view.depthStencilTexture;
