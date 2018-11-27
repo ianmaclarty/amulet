@@ -1493,7 +1493,6 @@ static GLenum to_gl_stencil_face_side(am_stencil_face_side fs) {
     switch (fs) {
         case AM_STENCIL_FACE_FRONT: return GL_FRONT;
         case AM_STENCIL_FACE_BACK: return GL_BACK;
-        case AM_STENCIL_FACE_FRONT_AND_BACK: return GL_FRONT_AND_BACK;
     }
     return 0;
 }
