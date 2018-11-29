@@ -19,6 +19,7 @@ extern const char *am_conf_support_email;
 extern const char *am_conf_mac_category;
 extern const char *am_conf_mac_application_cert_identity;
 extern const char *am_conf_mac_installer_cert_identity;
+extern const char *am_conf_copyright_message;
 
 // graphic driver options
 extern bool am_conf_d3dangle;

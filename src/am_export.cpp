@@ -473,7 +473,8 @@ static bool create_mac_info_plist(const char *binpath, const char *filename, exp
         conf->version, // CFBundleShortVersionString
         conf->version, // CFBundleVersion
         am_conf_app_id_mac, // CFBundleIdentifier
-        conf->mac_category // LSApplicationCategoryType
+        conf->mac_category, // LSApplicationCategoryType
+        am_conf_copyright_message // NSHumanReadableCopyright
     );
     free(template_fmt);
     fclose(f);
