@@ -740,14 +740,15 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
-    am_metal_window_pwidth = ios_view.drawableSize.width;
-    am_metal_window_pheight = ios_view.drawableSize.width;
-    float scale = am_metal_ios_view.contentScaleFactor;
-    am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
-    am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
 }
 
 - (void)drawInMTKView:(MTKView *)view {
+    if (ios_view == nil) return;
+    am_metal_window_pwidth = ios_view.drawableSize.width;
+    am_metal_window_pheight = ios_view.drawableSize.height;
+    float scale = am_metal_ios_view.contentScaleFactor;
+    am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
+    am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
     @autoreleasepool {
         //am_debug("%s", "draw"); 
         if (ios_done_first_draw) {
