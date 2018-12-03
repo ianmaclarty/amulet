@@ -541,7 +541,9 @@ restart:
     }
 
     if (restart_triggered) {
+        SDL_LockAudioDevice(audio_device);
         am_destroy_engine(eng);
+        SDL_UnlockAudioDevice(audio_device);
         goto restart;
     }
 
