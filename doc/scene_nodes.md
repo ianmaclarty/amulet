@@ -132,10 +132,13 @@ No more than 65535 unique tag names may be created in a single application.
 
 Removes a tag from a node and returns the node.
 
-### node:all(tagname) {#node:all .method-def}
+### node:all(tagname [, recurse]) {#node:all .method-def}
 
 Searches `node` and all its descendants for any nodes
 with the tag `tagname` and returns them as a table.
+
+The `recurse` boolean argument determines if `all` recursively searches the
+descendents of matched nodes. The default value is `false`.
 
 ### node(tagname) {#node:tagsearch .method-def}
 
