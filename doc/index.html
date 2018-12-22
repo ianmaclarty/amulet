@@ -1923,6 +1923,8 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="node:all" class="method-def">node:all(tagname [, recurse])</h3>
 <p>Searches <code>node</code> and all its descendants for any nodes with the tag <code>tagname</code> and returns them as a table.</p>
 <p>The <code>recurse</code> boolean argument determines if <code>all</code> recursively searches the descendents of matched nodes. The default value is <code>false</code>.</p>
+<p>The returned table has a metatable that allows setting a field on all nodes by setting the corresponding field on the table. So for example to set the color of all sprite nodes that are descendents of a parent node, one might do the following:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">parent_node:all<span class="st">&quot;sprite&quot;</span><span class="ot">.</span>color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span></code></pre></div>
 <h3 id="node:tagsearch" class="method-def">node(tagname)</h3>
 <p>Searches <code>node</code> and its descendants for <code>tagname</code> and returns the first matching node found, or <code>nil</code> if no matching nodes were found. The search is depth-first left-to-right.</p>
 <p>The found node's parent is also returned as a second value, unless the found node was the root of the given subgraph.</p>

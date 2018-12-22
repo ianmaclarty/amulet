@@ -140,6 +140,15 @@ with the tag `tagname` and returns them as a table.
 The `recurse` boolean argument determines if `all` recursively searches the
 descendents of matched nodes. The default value is `false`.
 
+The returned table has a metatable that allows setting a field on all
+nodes by setting the corresponding field on the table. So for example
+to set the color of all sprite nodes that are descendents of
+a parent node, one might do the following:
+
+~~~ {.lua}
+parent_node:all"sprite".color = vec4(1, 0, 0, 1)
+~~~
+
 ### node(tagname) {#node:tagsearch .method-def}
 
 Searches `node` and its descendants for `tagname`

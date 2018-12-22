@@ -35,6 +35,7 @@ typedef enum {
     MT_am_cull_sphere_node,
     MT_am_draw_node,
     MT_am_pass_filter_node,
+    MT_tag_search_result,
 
     MT_am_audio_buffer,
     MT_am_audio_node,
