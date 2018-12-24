@@ -3,6 +3,8 @@
 const char *am_conf_app_title = NULL;
 const char *am_conf_app_author = NULL;
 const char *am_conf_app_id = NULL;
+const char *am_conf_app_id_ios = NULL;
+const char *am_conf_app_id_mac = NULL;
 const char *am_conf_app_version = NULL;
 const char *am_conf_app_shortname = NULL;
 const char *am_conf_app_display_name = NULL;
@@ -10,8 +12,14 @@ const char *am_conf_app_dev_region = NULL;
 const char *am_conf_app_supported_languages = NULL;
 am_display_orientation am_conf_app_display_orientation = AM_DISPLAY_ORIENTATION_ANY;
 const char *am_conf_app_icon = NULL;
+const char *am_conf_app_icon_mac = NULL;
+const char *am_conf_app_icon_ios = NULL;
 const char *am_conf_app_launch_image = NULL;
 const char *am_conf_luavm = NULL;
+const char *am_conf_support_email = NULL;
+const char *am_conf_mac_category = NULL;
+const char *am_conf_mac_application_cert_identity = NULL;
+const char *am_conf_mac_installer_cert_identity = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -47,9 +55,10 @@ bool am_conf_dump_translated_shaders = false;
 bool am_conf_log_gl_calls = false;
 int am_conf_log_gl_frames = 1000000;
 
-bool am_conf_allow_restart = false;
 bool am_conf_no_close_lua = false;
 char *am_conf_test_lang = NULL;
+
+bool am_conf_no_zip_dir = false;
 
 static void read_string_setting(lua_State *L, const char *name, const char **value, const char *default_val) {
     lua_getglobal(L, name);
@@ -65,6 +74,7 @@ static void read_string_setting(lua_State *L, const char *name, const char **val
     lua_pop(L, 1);
 }
 
+#ifdef AM_WINDOWS
 static void read_bool_setting(lua_State *L, const char *name, bool *value) {
     lua_getglobal(L, name);
     if (!lua_isnil(L, -1)) {
@@ -72,6 +82,7 @@ static void read_bool_setting(lua_State *L, const char *name, bool *value) {
     }
     lua_pop(L, 1);
 }
+#endif
 
 static void free_if_not_null(void **ptr) {
     if (*ptr != NULL) {
@@ -84,14 +95,22 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_app_title);
     free_if_not_null((void**)&am_conf_app_author);
     free_if_not_null((void**)&am_conf_app_id);
+    free_if_not_null((void**)&am_conf_app_id_ios);
+    free_if_not_null((void**)&am_conf_app_id_mac);
     free_if_not_null((void**)&am_conf_app_version);
     free_if_not_null((void**)&am_conf_app_shortname);
     free_if_not_null((void**)&am_conf_app_display_name);
     free_if_not_null((void**)&am_conf_app_dev_region);
     free_if_not_null((void**)&am_conf_app_supported_languages);
     free_if_not_null((void**)&am_conf_app_icon);
+    free_if_not_null((void**)&am_conf_app_icon_mac);
+    free_if_not_null((void**)&am_conf_app_icon_ios);
     free_if_not_null((void**)&am_conf_app_launch_image);
     free_if_not_null((void**)&am_conf_luavm);
+    free_if_not_null((void**)&am_conf_support_email);
+    free_if_not_null((void**)&am_conf_mac_category);
+    free_if_not_null((void**)&am_conf_mac_application_cert_identity);
+    free_if_not_null((void**)&am_conf_mac_installer_cert_identity);
 }
 
 bool am_load_config() {
@@ -121,6 +140,8 @@ bool am_load_config() {
     read_string_setting(eng->L, "author", &am_conf_app_author, "Unknown");
     read_string_setting(eng->L, "shortname", &am_conf_app_shortname, am_conf_app_title);
     read_string_setting(eng->L, "appid", &am_conf_app_id, "null");
+    read_string_setting(eng->L, "appid_ios", &am_conf_app_id_ios, am_conf_app_id);
+    read_string_setting(eng->L, "appid_mac", &am_conf_app_id_mac, am_conf_app_id);
     read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");
     read_string_setting(eng->L, "display_name", &am_conf_app_display_name, am_conf_app_title);
     read_string_setting(eng->L, "dev_region", &am_conf_app_dev_region, "en");
@@ -141,9 +162,17 @@ bool am_load_config() {
         return false;
     }
     read_string_setting(eng->L, "icon", &am_conf_app_icon, NULL);
+    read_string_setting(eng->L, "icon_mac", &am_conf_app_icon_mac, am_conf_app_icon);
+    read_string_setting(eng->L, "icon_ios", &am_conf_app_icon_ios, am_conf_app_icon);
     read_string_setting(eng->L, "launch_image", &am_conf_app_launch_image, NULL);
     read_string_setting(eng->L, "luavm", &am_conf_luavm, NULL);
+    read_string_setting(eng->L, "support_email", &am_conf_support_email, NULL);
+    read_string_setting(eng->L, "mac_category", &am_conf_mac_category, "public.app-category.games");
+    read_string_setting(eng->L, "mac_application_cert_identity", &am_conf_mac_application_cert_identity, NULL);
+    read_string_setting(eng->L, "mac_installer_cert_identity", &am_conf_mac_installer_cert_identity, NULL);
+#ifdef AM_WINDOWS
     read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
+#endif
     am_destroy_engine(eng);
     return true;
 }

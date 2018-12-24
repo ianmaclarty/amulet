@@ -4,7 +4,6 @@ import android.app.PendingIntent;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 import android.view.WindowManager;
 import android.content.*;
@@ -15,8 +14,6 @@ import android.view.*;
 
 import android.graphics.Color;
 import android.widget.*;
-
-import android.util.DisplayMetrics;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -457,12 +454,12 @@ public class AmuletActivity extends Activity
 
                 prodIds = new String[responseList.size()];
                 prices = new String[responseList.size()];
-                int i = 0;
+                int ii = 0;
                 for (String thisResponse : responseList) {
                     JSONObject object = new JSONObject(thisResponse);
-                    prodIds[i] = object.getString("productId");
-                    prices[i] = object.getString("price");
-                    i++;
+                    prodIds[ii] = object.getString("productId");
+                    prices[ii] = object.getString("price");
+                    ii++;
                     Log.i("AMULET", thisResponse);
                 }
 

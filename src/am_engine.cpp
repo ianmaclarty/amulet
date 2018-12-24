@@ -9,6 +9,7 @@ static void set_arg_global(lua_State *L, int argc, char** argv);
 static void am_set_version(lua_State *L);
 static void am_set_dirs(lua_State *L);
 static void am_set_platform(lua_State *L);
+static void am_set_support_email(lua_State *L);
 
 am_engine *am_init_engine(bool worker, int argc, char** argv) {
 #if defined(AM_LUAJIT)
@@ -80,6 +81,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     am_set_version(L);
     am_set_dirs(L);
     am_set_platform(L);
+    am_set_support_email(L);
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
         return NULL;
@@ -184,6 +186,15 @@ static void am_set_version(lua_State *L) {
     }
     lua_setfield(L, -2, "version");
     lua_pop(L, 1); // am table
+}
+
+static void am_set_support_email(lua_State *L) {
+    if (am_conf_support_email != NULL) {
+        lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+        lua_pushstring(L, am_conf_support_email);
+        lua_setfield(L, -2, "support_email");
+        lua_pop(L, 1); // am table
+    }
 }
 
 static void am_set_dirs(lua_State *L) {

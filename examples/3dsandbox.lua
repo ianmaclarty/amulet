@@ -59,7 +59,7 @@ function init()
         am.lookat(vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0)) ^ objects
 
     win.scene = 
-        am.cull_face("ccw")
+        am.cull_face("back")
         ^am.use_program(shader)
         ^am.bind{P = math.perspective(math.rad(70), win.width/win.height, near_clip, far_clip)}
         ^camera

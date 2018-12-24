@@ -168,6 +168,8 @@ static bool export_cmd(int *argc, char ***argv) {
             flags |= AM_EXPORT_FLAG_WINDOWS;
         } else if (strcmp(arg, "-mac") == 0) {
             flags |= AM_EXPORT_FLAG_OSX;
+        } else if (strcmp(arg, "-mac-app-store") == 0) {
+            flags |= AM_EXPORT_FLAG_MAC_APP_STORE;
         } else if (strcmp(arg, "-linux") == 0) {
             flags |= AM_EXPORT_FLAG_LINUX;
         } else if (strcmp(arg, "-ios") == 0) {
@@ -178,13 +180,17 @@ static bool export_cmd(int *argc, char ***argv) {
             flags |= AM_EXPORT_FLAG_HTML;
         } else if (strcmp(arg, "-r") == 0) {
             flags |= AM_EXPORT_FLAG_RECURSE;
+        } else if (strcmp(arg, "-nozipdir") == 0) {
+            am_conf_no_zip_dir = true;
         } else {
             break;
         }
     }
     *argc -= i;
     *argv += i;
-    if (flags == 0 || flags == AM_EXPORT_FLAG_RECURSE) flags |= AM_EXPORT_FLAG_WINDOWS | AM_EXPORT_FLAG_OSX | AM_EXPORT_FLAG_LINUX | AM_EXPORT_FLAG_IOS | AM_EXPORT_FLAG_HTML;
+    if (flags == 0 || flags == AM_EXPORT_FLAG_RECURSE) {
+        flags |= AM_EXPORT_FLAG_WINDOWS | AM_EXPORT_FLAG_OSX | AM_EXPORT_FLAG_LINUX;
+    }
     char *dir = (char*)".";
     if (*argc > 0) {
         dir = (*argv)[0];

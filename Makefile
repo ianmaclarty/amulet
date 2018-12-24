@@ -41,6 +41,10 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
   AM_DEFS += AM_ANGLE_TRANSLATE_GL
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+else ifeq ($(TARGET_PLATFORM),msvc64)
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
+  AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifdef ANDROID
   AM_DEPS = $(LUAVM) stb kissfft tinymt
   AMULET = $(BUILD_BIN_DIR)/libamulet.so
@@ -106,12 +110,25 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	for f in $(DEP_ALIBS); do ff=`basename $$f`; cp $$f $(BUILD_BIN_DIR)/`echo $$ff | sed 's/^lib//'`; done
 	@$(PRINT_BUILD_DONE_MSG)
-else ifdef WINDOWS
-# build both console and windows versions
+else ifdef MSVC
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
+	rc amulet.rc
+	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) amulet.res $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
+	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) amulet.res $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	cp $(BUILD_BIN_DIR)/* .
+	@$(PRINT_BUILD_DONE_MSG)
+else ifdef MINGW
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
 	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	cp $(BUILD_BIN_DIR)/* .
+	@$(PRINT_BUILD_DONE_MSG)
+else ifdef OSX
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
+	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	scripts/gen_mac_info_plist.sh
+	cp icons/amulet.icns $(BUILD_BIN_DIR)/
+	cp $(BUILD_BIN_DIR)/amulet .
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
@@ -140,6 +157,7 @@ $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	fi
 
 $(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
+	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
 	cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
 	-cp $(SDL_PREBUILT_DIR)/lib/*.lib $(BUILD_LIB_DIR)/
 	-cp $(SDL_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
@@ -154,7 +172,7 @@ $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(ANGLE_DIR)/libangle$(ALIB_EXT) $@
 
 $(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
-	cp $(ANGLE_WIN_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
+	cp $(ANGLE_WIN_PREBUILT_DIR)/*.dll $(BUILD_BIN_DIR)/
 	touch $@
 
 ifdef WINDOWS
@@ -199,6 +217,12 @@ $(LUA54_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	BASE_DIR=`pwd`; \
 	if [ "$(TARGET_PLATFORM)" = "msvc32" ]; then \
+	    cd $(LUAJIT_DIR)/src; \
+	    PATH='$(VC_CL_DIR):$(PATH)' cmd /c 'msvcbuild.bat static'; \
+	    cd $$BASE_DIR; \
+	    cp $(LUAJIT_DIR)/src/lua51.lib $@; \
+	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
+	elif [ "$(TARGET_PLATFORM)" = "msvc64" ]; then \
 	    cd $(LUAJIT_DIR)/src; \
 	    PATH='$(VC_CL_DIR):$(PATH)' cmd /c 'msvcbuild.bat static'; \
 	    cd $$BASE_DIR; \

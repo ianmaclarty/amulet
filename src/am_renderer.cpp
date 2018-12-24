@@ -262,18 +262,16 @@ void am_stencil_test_state::bind(am_render_state *rstate, bool force) {
 
 am_cull_face_state::am_cull_face_state() {
     enabled = false;
-    winding = AM_FACE_WIND_CCW;
     side = AM_CULL_FACE_BACK;
 }
 
-void am_cull_face_state::set(bool enabled, am_face_winding winding, am_cull_face_side side) {
+void am_cull_face_state::set(bool enabled, am_cull_face_side side) {
     am_cull_face_state::enabled = enabled;
-    am_cull_face_state::winding = winding;
     am_cull_face_state::side = side;
 }
 
 void am_cull_face_state::restore(am_cull_face_state *old) {
-    set(old->enabled, old->winding, old->side);
+    set(old->enabled, old->side);
 }
 
 void am_cull_face_state::bind(am_render_state *rstate, bool force) {
@@ -537,7 +535,7 @@ bool am_render_state::update_state() {
 }
 
 static void setup(am_render_state *rstate, am_framebuffer_id fb,
-    bool clear, glm::dvec4 clear_color,
+    bool clear, glm::dvec4 clear_color, int stencil_clear_val,
     int x, int y, int w, int h, int fbw, int fbh, glm::dmat4 proj,
     bool has_depthbuffer)
 {
@@ -593,6 +591,7 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
         clear_color.b != 0.0 || clear_color.a != 1.0))
     {
         am_set_framebuffer_clear_color(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
+        am_set_framebuffer_clear_stencil_val(stencil_clear_val);
         am_clear_framebuffer(true, true, true);
     }
 
@@ -601,10 +600,10 @@ static void setup(am_render_state *rstate, am_framebuffer_id fb,
 }
 
 void am_render_state::do_render(am_scene_node *root, am_framebuffer_id fb,
-    bool clear, glm::dvec4 clear_color, int x, int y, int w, int h, int fbw, int fbh,
+    bool clear, glm::dvec4 clear_color, int stencil_clear_val, int x, int y, int w, int h, int fbw, int fbh,
     glm::dmat4 proj, bool has_depthbuffer)
 {
-    setup(this, fb, clear, clear_color, x, y, w, h, fbw, fbh, proj, has_depthbuffer);
+    setup(this, fb, clear, clear_color, stencil_clear_val, x, y, w, h, fbw, fbh, proj, has_depthbuffer);
     if (root == NULL || am_node_hidden(root)) return;
     next_pass = 1;
     do {
@@ -944,6 +943,7 @@ static void register_pass_filter_node_mt(lua_State *L) {
 }
 
 static void init_param_name_map(am_render_state *rstate, lua_State *L) {
+    if (rstate->param_name_map != NULL) free(rstate->param_name_map);
     rstate->param_name_map_capacity = 32;
     rstate->param_name_map = (am_program_param_name_slot*)malloc(sizeof(am_program_param_name_slot) * rstate->param_name_map_capacity);
     memset(rstate->param_name_map, 0, sizeof(am_program_param_name_slot) * rstate->param_name_map_capacity);

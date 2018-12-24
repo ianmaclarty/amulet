@@ -10,6 +10,7 @@ void am_depth_test_node::render(am_render_state *rstate) {
 static int create_depth_test_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_depth_test_node *node = am_new_userdata(L, am_depth_test_node);
+    node->tags.push_back(L, AM_TAG_DEPTH_TEST);
     node->func = am_get_enum(L, am_depth_func, 1);
     node->mask_enabled = true;
     if (nargs > 1) {

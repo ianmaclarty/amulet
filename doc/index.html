@@ -167,6 +167,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#window.pixel_height">window.pixel_height</a></li>
 <li><a href="#window.mode">window.mode</a></li>
 <li><a href="#window.clear_color">window.clear_color</a></li>
+<li><a href="#window.stencil_clear_value">window.stencil_clear_value</a></li>
 <li><a href="#window.letterbox">window.letterbox</a></li>
 <li><a href="#window.lock_pointer">window.lock_pointer</a></li>
 <li><a href="#window.show_cursor">window.show_cursor</a></li>
@@ -226,11 +227,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#node.recursion_limit">node.recursion_limit</a></li>
 <li><a href="#node:tag">node:tag(tagname)</a></li>
 <li><a href="#node:untag">node:untag(tagname)</a></li>
-<li><a href="#node:all">node:all(tagname)</a></li>
+<li><a href="#node:all">node:all(tagname [, recurse])</a></li>
 <li><a href="#node:tagsearch">node(tagname)</a></li>
 <li><a href="#node:action">node:action([id,] action)</a></li>
 <li><a href="#node:late_action">node:late_action([id,] action)</a></li>
 <li><a href="#node:cancel">node:cancel(id)</a></li>
+<li><a href="#node:update">node:update()</a></li>
 <li><a href="#nodeappendchild">node:append(child)</a></li>
 <li><a href="#nodeprependchild">node:prepend(child)</a></li>
 <li><a href="#noderemovechild">node:remove(child)</a></li>
@@ -322,6 +324,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 <li><a href="#framebuffer-fields">Framebuffer fields</a><ul>
 <li><a href="#framebuffer.clear_color">framebuffer.clear_color</a></li>
+<li><a href="#framebuffer.stencil_clear_value">framebuffer.stencil_clear_value</a></li>
 <li><a href="#framebuffer.projection">framebuffer.projection</a></li>
 <li><a href="#framebuffer.pixel_width">framebuffer.pixel_width</a></li>
 <li><a href="#framebuffer.pixel_height">framebuffer.pixel_height</a></li>
@@ -377,8 +380,18 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#audio_buffer.length">audio_buffer.length</a></li>
 <li><a href="#audio_buffer.buffer">audio_buffer.buffer</a></li>
 </ul></li>
+<li><a href="#audio-tracks">Audio tracks</a><ul>
+<li><a href="#am.track">am.track(buffer [, loop [, playback_speed [, volume]]])</a></li>
+</ul></li>
+<li><a href="#audio-track-fields">Audio track fields</a><ul>
+<li><a href="#track.playback_speed">track.playback_speed</a></li>
+<li><a href="#track.volume">track.volume</a></li>
+</ul></li>
+<li><a href="#audio-track-methods">Audio track methods</a><ul>
+<li><a href="#track:reset">track:reset([position])</a></li>
+</ul></li>
 <li><a href="#playing-audio-1">Playing audio</a><ul>
-<li><a href="#am.playsource-loop-pitch-gain">am.play(source, loop, pitch, gain)</a></li>
+<li><a href="#am.play">am.play(source, loop, pitch, volume)</a></li>
 </ul></li>
 <li><a href="#generating-sound-effects">Generating sound effects</a><ul>
 <li><a href="#am.sfxr_synth">am.sfxr_synth(settings)</a></li>
@@ -722,7 +735,7 @@ main.lua:1: It works!</code></pre>
 <img src="graphs/scene1.png" />
 
 </div>
-<p>The translate node moves its descendents to the right 150 and up 100 (by convention the y axis increases in upward direction). The scale node doubles its descendent's size and the rotate node rotates its descendents by 90 degrees (<code>math.rad</code> converts degrees to radians). Finally the text node renders some text to the screen.</p>
+<p>The translate node moves its descendants to the right 150 and up 100 (by convention the y axis increases in upward direction). The scale node doubles its descendant's size and the rotate node rotates its descendants by 90 degrees (<code>math.rad</code> converts degrees to radians). Finally the text node renders some text to the screen.</p>
 <p>When you run the program you should see something like this:</p>
 <div class="figure">
 <img src="images/hello2.png" />
@@ -1572,6 +1585,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <li><p><strong><code>highdpi</code></strong>: Whether to use high DPI resolution if available (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
 <li><p><strong><code>depth_buffer</code></strong>: Whether the window has a depth buffer (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
 <li><p><strong><code>stencil_buffer</code></strong>: Whether the window has a stencil buffer (<code>true</code> or <code>false</code>, default <code>false</code>).</p></li>
+<li><p><strong><code>stencil_clear_value</code></strong>: The value to clear the stencil buffer with before drawing each frame (an integer between 0 and 255). The default is 0.</p></li>
 <li><p><strong><code>lock_pointer</code></strong>: <code>true</code> or <code>false</code>. When pointer lock is enabled the cursor will be hidden and mouse movement will be set to &quot;relative&quot; mode. In this mode the mouse is tracked infinitely in all directions, i.e. as if there is no edge of the screen to stop the mouse cursor. This is useful for implementing first-person style mouse-look. The default is <code>false</code>.</p></li>
 <li><p><strong><code>show_cursor</code></strong>: Whether to show the mouse cursor (<code>true</code> or <code>false</code>, default <code>true</code>).</p></li>
 <li><p><strong><code>clear_color</code></strong>: The color (a <code>vec4</code>) used to clear the window each frame before drawing. The default clear color is black (<code>vec4(0, 0, 0, 1)</code>).</p></li>
@@ -1609,6 +1623,9 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
 <h3 id="window.clear_color" class="field-def">window.clear_color</h3>
+<p>See <a href="#am.window">window settings</a>.</p>
+<p>Updatable.</p>
+<h3 id="window.stencil_clear_value" class="field-def">window.stencil_clear_value</h3>
 <p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
 <h3 id="window.letterbox" class="field-def">window.letterbox</h3>
@@ -1889,7 +1906,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>Updatable.</p>
 <h3 id="node.paused" class="func-def">node.paused</h3>
 <p>Determines whether the node and its children's <a href="#node:action">actions</a> are executed. The default is <code>false</code>, meaning the actions are executed.</p>
-<p>Note that a descendent node's actions might still be executed if it is has another, non-paused, parent.</p>
+<p>Note that a descendant node's actions might still be executed if it is has another, non-paused, parent.</p>
 <p>Updatable.</p>
 <h3 id="node.num_children" class="func-def">node.num_children</h3>
 <p>Returns the node's child count.</p>
@@ -1903,10 +1920,13 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>No more than 65535 unique tag names may be created in a single application.</p>
 <h3 id="node:untag" class="method-def">node:untag(tagname)</h3>
 <p>Removes a tag from a node and returns the node.</p>
-<h3 id="node:all" class="method-def">node:all(tagname)</h3>
-<p>Searches <code>node</code> and all its descendents for any nodes with the tag <code>tagname</code> and returns them as a table.</p>
+<h3 id="node:all" class="method-def">node:all(tagname [, recurse])</h3>
+<p>Searches <code>node</code> and all its descendants for any nodes with the tag <code>tagname</code> and returns them as a table.</p>
+<p>The <code>recurse</code> boolean argument determines if <code>all</code> recursively searches the descendents of matched nodes. The default value is <code>false</code>.</p>
+<p>The returned table has a metatable that allows setting a field on all nodes by setting the corresponding field on the table. So for example to set the color of all sprite nodes that are descendents of a parent node, one might do the following:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">parent_node:all<span class="st">&quot;sprite&quot;</span><span class="ot">.</span>color <span class="ot">=</span> vec4<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">)</span></code></pre></div>
 <h3 id="node:tagsearch" class="method-def">node(tagname)</h3>
-<p>Searches <code>node</code> and its descendents for <code>tagname</code> and returns the first matching node found, or <code>nil</code> if no matching nodes were found. The search is depth-first left-to-right.</p>
+<p>Searches <code>node</code> and its descendants for <code>tagname</code> and returns the first matching node found, or <code>nil</code> if no matching nodes were found. The search is depth-first left-to-right.</p>
 <p>The found node's parent is also returned as a second value, unless the found node was the root of the given subgraph.</p>
 <h3 id="node:action" class="method-def">node:action([id,] action)</h3>
 <p>Attaches an action to a node and returns the node.</p>
@@ -1937,6 +1957,9 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>See also <a href="#node:action">node:action</a>.</p>
 <h3 id="node:cancel" class="method-def">node:cancel(id)</h3>
 <p>Cancels an action.</p>
+<h3 id="node:update" class="method-def">node:update()</h3>
+<p>Executes actions on a node and its descendants. Actions are still only run once per frame, so if the give node's actions have already been run, they won't run again.</p>
+<p>Use this method to execute actions on nodes that are not attached to the window, for example nodes that are being manually rendered into a framebuffer.</p>
 <h3 id="nodeappendchild" class="func-def">node:append(child)</h3>
 <p>Appends <code>child</code> to the end of <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="nodeprependchild" class="func-def">node:prepend(child)</h3>
@@ -1944,13 +1967,13 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="noderemovechild" class="func-def">node:remove(child)</h3>
 <p>Removes the first occurrence of <code>child</code> from <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="noderemovetagname" class="func-def">node:remove(tagname)</h3>
-<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and removes the first one it finds. Then returns <code>node</code>.</p>
+<p>Searches for a node with tag <code>tagname</code> in the descendants of <code>node</code> and removes the first one it finds. Then returns <code>node</code>.</p>
 <h3 id="noderemove_all" class="func-def">node:remove_all()</h3>
 <p>Removes all of <code>node</code>'s children and returns <code>node</code>.</p>
 <h3 id="nodereplacechild-replacement" class="func-def">node:replace(child, replacement)</h3>
 <p>Replaces the first occurrence of <code>child</code> with <code>replacement</code> in <code>node</code>'s child list and returns <code>node</code>.</p>
 <h3 id="nodereplacetagname-replacement" class="func-def">node:replace(tagname, replacement)</h3>
-<p>Searches for a node with tag <code>tagname</code> in the descendents of <code>node</code> and replaces the first one it finds with <code>replacement</code>. Then returns <code>node</code>.</p>
+<p>Searches for a node with tag <code>tagname</code> in the descendants of <code>node</code> and replaces the first one it finds with <code>replacement</code>. Then returns <code>node</code>.</p>
 <h3 id="nodechildn" class="func-def">node:child(n)</h3>
 <p>Returns the nth child of <code>node</code> (or <code>nil</code> if there is no such child).</p>
 <h3 id="nodechild_pairs" class="func-def">node:child_pairs()</h3>
@@ -2147,7 +2170,7 @@ am<span class="ot">.</span>window<span class="ot">{}.</span>scene <span class="o
 
 </div>
 <h2 id="transformation-nodes-1">Transformation nodes</h2>
-<p>The following nodes apply transformations to all their descendents.</p>
+<p>The following nodes apply transformations to all their descendants.</p>
 <p><strong>Note</strong>: These nodes have an optional <code>uniform</code> argument in the first position of their construction functions. This argument is only relevant if you're writing your own shader programs. Otherwise you can ignore it.</p>
 <h3 id="am.translate" class="func-def">am.translate([uniform,] position)</h3>
 <p>Apply a translation to a 4x4 matrix uniform. <code>uniform</code> is the uniform name as a string. It is <code>&quot;MV&quot;</code> by default.</p>
@@ -2214,7 +2237,7 @@ node3<span class="ot">.</span>rotation <span class="ot">=</span> quat<span class
 <p>Default tag: <code>&quot;transform&quot;</code>.</p>
 <h2 id="advanced-nodes">Advanced nodes</h2>
 <h3 id="am.use_program" class="func-def">am.use_program(program)</h3>
-<p>Sets the <a href="#shader-programs">shader program</a> to use when rendering descendents. A <code>program</code> object can be created using the <a href="#am.program"><code>am.program</code></a> function.</p>
+<p>Sets the <a href="#shader-programs">shader program</a> to use when rendering descendants. A <code>program</code> object can be created using the <a href="#am.program"><code>am.program</code></a> function.</p>
 <p>Fields:</p>
 <ul>
 <li><code>program</code>: The shader program to use. Updatable.</li>
@@ -2386,10 +2409,20 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <h3 id="am.color_maskred-green-blue-alpha" class="func-def">am.color_mask(red, green, blue, alpha)</h3>
 <p>Apply a color mask. The four arguments can be <code>true</code> or <code>false</code> and determine whether the corresponding color channel is updated in the rendering target (either the current window or framebuffer being rendered to).</p>
 <p>For example using a mask of <code>am.color_mask(false, true, false, true)</code> will cause only the green and alpha channels to be updated.</p>
+<p>Fields:</p>
+<ul>
+<li><code>red</code>: Updatable.</li>
+<li><code>green</code>: Updatable.</li>
+<li><code>blue</code>: Updatable.</li>
+<li><code>alpha</code>: Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;color_mask&quot;</code>.</p>
 <h3 id="am.cull_faceface" class="func-def">am.cull_face(face)</h3>
 <p>Culls triangles with a specific winding.</p>
 <p>The possible values for <code>face</code> are:</p>
 <ul>
+<li><code>&quot;back&quot;</code>: Cull back-facing triangles (same as <code>&quot;cw&quot;</code> below)</li>
+<li><code>&quot;front&quot;</code>: Cull front-facing triangles (same as <code>&quot;ccw&quot;</code> below)</li>
 <li><code>&quot;cw&quot;</code>: Cull clockwise wound triangles.</li>
 <li><code>&quot;ccw&quot;</code>: Cull counter-clockwise wound triangles.</li>
 <li><code>&quot;none&quot;</code>: Do not cull any triangles.</li>
@@ -2398,6 +2431,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <ul>
 <li><code>face</code>: Updatable.</li>
 </ul>
+<p>Default tag: <code>&quot;cull_face&quot;</code>.</p>
 <h3 id="am.depth_test" class="method-def">am.depth_test(func [, mask])</h3>
 <p>Sets the depth test function and mask. The window or framebuffer being rendered to needs to have a depth buffer for this to have any effect.</p>
 <p><code>func</code> is used to determine whether a fragment is rendered by comparing the depth value of the fragment to the value in the depth buffer. The possible values for <code>func</code> are:</p>
@@ -2417,6 +2451,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>func</code>: Updatable.</li>
 <li><code>mask</code>: Updatable.</li>
 </ul>
+<p>Default tag: <code>&quot;depth_test&quot;</code>.</p>
 <h3 id="am.stencil_test" class="method-def">am.stencil_test(settings)</h3>
 <p>Sets the stencil test and mask. The window or framebuffer being rendered to needs to have a stencil buffer for this to have any effect.</p>
 <p><code>settings</code> should be a table with any combination of the following fields:</p>
@@ -2446,6 +2481,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>&quot;decr_wrap&quot;</code>: decrement the stencil buffer value, wrapping to 255 on underflow</li>
 </ul>
 <p>All the settings can be updated after the depth test node has been created using fields on the node with the corresponding names.</p>
+<p>Default tag: <code>&quot;stencil_test&quot;</code>.</p>
 <h3 id="am.viewport" class="func-def">am.viewport(x, y, width, height)</h3>
 <p>Set the viewport, which is the rectangular area of the window into which rendering will occur.</p>
 <p><code>x</code> and <code>y</code> is the bottom-left corner of the viewport in pixels, where the bottom-left corner of the window is (0, 0). <code>width</code> and <code>height</code> are also in pixels.</p>
@@ -2473,6 +2509,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>radius</code>: Updatable.</li>
 <li><code>center</code>: Updatable.</li>
 </ul>
+<p>Default tag: <code>&quot;cull_sphere&quot;</code>.</p>
 <h3 id="am.billboard" class="func-def">am.billboard([uniform,] [preserve_scaling])</h3>
 <p>Removes rotation from <code>uniform</code>, which should be a <code>mat4</code>. By default <code>uniform</code> is <code>&quot;MV&quot;</code>.</p>
 <p>If <code>preserve_scaling</code> is <code>false</code> or omitted then any scaling will also be removed from the matrix. If it is <code>true</code>, then scaling will be preserved, as long as it's the same across all three axes.</p>
@@ -2484,6 +2521,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <ul>
 <li><code>value</code>: The value of the uniform, or nil if the node hasn't been rendered yet, or the named uniform wasn't set in an ancestor node.</li>
 </ul>
+<p>Default tag: <code>&quot;read_uniform&quot;</code>.</p>
 <h3 id="am.quads" class="func-def">am.quads(n, spec [, usage])</h3>
 <p>Returns a node that renders a set of quads. The returned node is actually an <a href="#am.bind"><code>am.bind</code></a> node with an <a href="#am.draw"><code>am.draw</code></a> node child. i.e. no program or blending is defined -- these must be created separately as parent nodes.</p>
 <p><code>n</code> is the initial capacity. Set this to the number of quads you think you'll want to render. It doesn't matter if it's too small as the capacity will be increased as required, though it's slightly faster if no capacity increases are required.</p>
@@ -2504,6 +2542,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>remove_quad(n [,count])</code>: Removes <code>count</code> quads starting with the <code>n</code>th. <code>count</code> is 1 if omitted.</li>
 <li>Additionally methods are created for each attribute of the form <code>quad_&lt;attribute name&gt;</code> that can be used to update the value of a quad attribute. The signature of the method is: <code>quad_attr(n, values)</code> where <code>n</code> is the quad number and <code>values</code> has the same meaning as in the <code>add_quad</code> method.</li>
 </ul>
+<p>Default tag: <code>&quot;quads&quot;</code>.</p>
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> quads <span class="ot">=</span> am<span class="ot">.</span>quads<span class="ot">(</span><span class="dv">2</span><span class="ot">,</span> <span class="ot">{</span><span class="st">&quot;vert&quot;</span><span class="ot">,</span> <span class="st">&quot;vec2&quot;</span><span class="ot">,</span> <span class="st">&quot;color&quot;</span><span class="ot">,</span> <span class="st">&quot;vec3&quot;</span><span class="ot">})</span>
 quads:add_quad<span class="ot">{</span>vert <span class="ot">=</span> <span class="ot">{</span>vec2<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">),</span> vec2<span class="ot">(-</span><span class="dv">100</span><span class="ot">,</span> <span class="ot">-</span><span class="dv">100</span><span class="ot">),</span>
@@ -2568,6 +2607,7 @@ win<span class="ot">.</span>scene <span class="ot">=</span> am<span class="ot">.
 <ul>
 <li><code>clear()</code>: Clear the texture manually.</li>
 </ul>
+<p>Default tag: <code>&quot;postprocess&quot;</code>.</p>
 <h2 id="creating-custom-scene-nodes">Creating custom scene nodes</h2>
 <p>Creating a custom leaf node is relatively simple: just create a function that constructs the graph you want and return it.</p>
 <p>You can add custom methods by setting the appropriate fields on the root node of the returned graph (any node can have any number of custom fields set on it, as long as they don't clash with pre-defined fields).</p>
@@ -2777,6 +2817,9 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h3 id="framebuffer.clear_color" class="field-def">framebuffer.clear_color</h3>
 <p>The color to use when clearing the framebuffer (a <code>vec4</code>).</p>
 <p>Updatable.</p>
+<h3 id="framebuffer.stencil_clear_value" class="field-def">framebuffer.stencil_clear_value</h3>
+<p>The value to use when clearing the framebuffer's stencil buffer (an integer between 0 and 255).</p>
+<p>Updatable.</p>
 <h3 id="framebuffer.projection" class="field-def">framebuffer.projection</h3>
 <p>A <code>mat4</code> projection matrix to use when rendering nodes into this framebuffer. The <code>&quot;P&quot;</code> uniform will be set to this. If this is not specified then the projection <code>math.ortho(-width/2, width/2, -height/2, height/2)</code> is used.</p>
 <p>Updatable.</p>
@@ -2882,7 +2925,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h2 id="audio-buffers">Audio buffers</h2>
 <p>An audio buffer is a block of memory that stores an uncompressed audio sample.</p>
 <p>An audio buffer may have any number of channels, although Amulet will currently only play up to two channels.</p>
-<p>An audio buffer also has a sample rate. Amulet currently plays all audio at a sample rate 44.1kHz and will resample an audio buffer if it has a different sample rate.</p>
+<p>An audio buffer also has a sample rate. Amulet currently plays all audio at a sample rate 44.1kHz and will resample an audio buffer if it has a different sample rate (this requires extra processing).</p>
 <p>The audio data itself is stored in a raw <a href="#buffers-and-views">buffer</a> as a series of single precision floats (4 bytes each). The samples for each channel are contiguous. The first channel's data comes first, then the second channel's data, etc (the channels are not interleaved).</p>
 <p>If the sample data is stored in the buffer <code>buf</code>, and there are two channels, then the following code will create <a href="#buffers-and-views">views</a> that can be used to update or read the samples for each channel:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> c <span class="ot">=</span> <span class="dv">2</span> <span class="do">-- channels</span>
@@ -2905,13 +2948,26 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>The length of the audio in seconds. Readonly.</p>
 <h3 id="audio_buffer.buffer" class="field-def">audio_buffer.buffer</h3>
 <p>The underlying raw <a href="#buffers-and-views">buffer</a> where the audio data is stored. Readonly.</p>
+<h2 id="audio-tracks">Audio tracks</h2>
+<p>An audio track contains the playback state of an audio buffer - that is the current position and speed of playback. The same audio buffer can be used with multiple audio tracks.</p>
+<p>Note that you normally don't need to explicitly create tracks to play audio, unless you want to change the speed and position during playback.</p>
+<h3 id="am.track" class="func-def">am.track(buffer [, loop [, playback_speed [, volume]]])</h3>
+<p>Creates a new track with the given buffer, loop setting (<code>true</code>/<code>false</code>), playback_speed and volume. This doesn't cause the track to start playing, use <a href="#am.play"><code>am.play</code></a> for that.</p>
+<h2 id="audio-track-fields">Audio track fields</h2>
+<h3 id="track.playback_speed" class="field-def">track.playback_speed</h3>
+<p>Playback speed as a multiplier of the normal speed (e.g. 0.5 means half speed and 2 means double speed). Updatable.</p>
+<h3 id="track.volume" class="field-def">track.volume</h3>
+<p>Playback volume (1 is normal volume). Updatable.</p>
+<h2 id="audio-track-methods">Audio track methods</h2>
+<h3 id="track:reset" class="method-def">track:reset([position])</h3>
+<p>Sets playback to the given position, measured in seconds. If the argument is omitted, playback is reset to the start.</p>
 <h2 id="playing-audio-1">Playing audio</h2>
-<h3 id="am.playsource-loop-pitch-gain">am.play(source, loop, pitch, gain)</h3>
+<h3 id="am.play" class="func-def">am.play(source, loop, pitch, volume)</h3>
 <p>Returns an action that plays audio. Like any other <a href="#node:action">action</a> it needs to be attached to a scene node that's connected to a window to run.</p>
-<p><code>source</code> can either be an <a href="#audio-buffers">audio buffer</a>, the name of a &quot;.ogg&quot; file or a seed generated by the sfxr tool (there's an online version of that tool in the examples list of the <a href="http://www.amulet.xyz/editor.html">online editor</a>).</p>
+<p><code>source</code> can either be an <a href="#audio-tracks">audio track</a>, an <a href="#audio-buffers">audio buffer</a>, the name of a &quot;.ogg&quot; file or a seed generated by the sfxr tool (there's an online version of that tool in the examples list of the <a href="http://www.amulet.xyz/editor.html">online editor</a>).</p>
 <p><code>loop</code> can be <code>true</code> or <code>false</code>.</p>
 <p><code>pitch</code> is a multiplier applied to the playback speed. 1.0 mean play at the original speed. 2.0 means play twice as fast and 0.5 means play at half the original speed.</p>
-<p><code>gain</code> should be between 0 and 1.</p>
+<p><code>volume</code> should be between 0 and 1.</p>
 <p><strong>Note</strong>: When the source is an sfxr seed or a filename, an <a href="#audio-buffers">audio buffer</a> is generated behind the scenes and cached. Therefore there might be a short delay the first time this function is called with a given seed or filename (though for short audio clips this will probably not be noticeable). Also avoid calling this function many times with different seeds or filenames, because that will cause unbounded memory growth.</p>
 <h2 id="generating-sound-effects">Generating sound effects</h2>
 <h3 id="am.sfxr_synth" class="func-def">am.sfxr_synth(settings)</h3>
@@ -3056,7 +3112,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>or a numeric seed. Use the sfxr example in the <a href="http://www.amulet.xyz/editor.html">online editor</a> to generate seeds.</p>
 <h2 id="audio-graphs">Audio graphs</h2>
 <p>TODO</p>
-<p>(Amulet has support for building graphs of audio effect nodes, however it is currently undocumented because it will probably be changing shortly to use syntax more consistent with the way scene graphs are constructed.)</p>
+<p>(Amulet has support for building graphs of audio effect nodes, however it is currently undocumented because the API is unstable).</p>
 <h2 id="audio-graph-nodes">Audio graph nodes</h2>
 <p>TODO</p>
 <h2 id="analysing-audio">Analysing audio</h2>
@@ -3181,10 +3237,11 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <span class="st">]]</span></code></pre></div>
 <p>then the image contains 9 glyphs in 3 rows and 3 columns. If the image has height 30 and width 36 then each glyph has width 10 and height 12.</p>
 <h1 id="exporting">Exporting</h1>
-<p>To generate distribution packages for Windows, Mac OS X, iOS, Linux and HTML5, use the amulet export command.</p>
-<p>Run the following command from the directory containing your lua, image and audio files:</p>
-<pre class="console"><code>&gt; amulet export</code></pre>
-<p>This will generate package files for each supported platform in the current directory. If you just want to generate a package for one platform you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-ios</code>, <code>-linux</code> or <code>-html</code>.</p>
+<p>To generate distribution packages, use the amulet export command like so:</p>
+<pre class="console"><code>&gt; amulet export [&lt;dir&gt;]</code></pre>
+<p><code>&lt;dir&gt;</code> is the directory containing your lua, image and audio files. It defaults to the current directory.</p>
+<p>This will generate package files for Windows, Mac and Linux in the current directory. Alternatively you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-mac-app-store</code>, <code>-ios</code>, <code>-linux</code> or <code>-html</code> to generate packages for a specific platform.</p>
+<p>Note that the <code>-mac-app-store</code> option only works when run on Mac OS X.</p>
 <p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.json</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
 <p>If the <code>-r</code> option is given then all subdirectories will also be included (recursively), otherwise only the files in current directory are included.</p>
 <p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
@@ -3194,6 +3251,7 @@ shortname <span class="ot">=</span> <span class="st">&quot;mygame&quot;</span>
 author <span class="ot">=</span> <span class="st">&quot;Your Name&quot;</span>
 appid <span class="ot">=</span> <span class="st">&quot;com.some-unique-id.123&quot;</span>
 version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span>
+support_email <span class="ot">=</span> <span class="st">&quot;support@example.com&quot;</span>
 
 display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>
 dev_region <span class="ot">=</span> <span class="st">&quot;en&quot;</span>

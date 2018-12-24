@@ -81,5 +81,6 @@ function am.postprocess(opts)
     function wrap:clear()
         fb:clear()
     end
+    wrap:tag"postprocess"
     return wrap
 end

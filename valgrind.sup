@@ -390,3 +390,155 @@
    fun:_Z10am_requireP9lua_State
    fun:luaD_precall
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+   obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:_XlcDefaultMapModifiers
+   fun:XSetLocaleModifiers
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+   fun:SDL_InitSubSystem_REAL
+   fun:_ZL8init_sdlv
+   fun:_Z23am_create_native_window14am_window_mode22am_display_orientationiiiiPKcbbbbbi
+   fun:_ZL13create_windowP9lua_State
+   fun:luaD_precall
+   fun:luaV_execute
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:_ZL19read_string_settingP9lua_StatePKcPS2_S2_
+   fun:_Z14am_load_configv
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:SDL_JoystickOpen_REAL
+   fun:SDL_GameControllerOpen_REAL
+   fun:_ZL13handle_eventsP9lua_State
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:XkbGetMap
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+   fun:SDL_InitSubSystem_REAL
+   fun:_ZL8init_sdlv
+   fun:_Z23am_create_native_window14am_window_mode22am_display_orientationiiiiPKcbbbbbi
+   fun:_ZL13create_windowP9lua_State
+   fun:luaD_precall
+   fun:luaV_execute
+   fun:luaD_call
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:glXChooseFBConfig
+   fun:X11_GL_CreateContext
+   fun:SDL_GL_CreateContext_REAL
+   fun:_Z23am_create_native_window14am_window_mode22am_display_orientationiiiiPKcbbbbbi
+   fun:_ZL13create_windowP9lua_State
+   fun:luaD_precall
+   fun:luaV_execute
+   fun:luaD_call
+   fun:lua_callk
+   fun:_Z10am_requireP9lua_State
+   fun:luaD_precall
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XlcCurrentLC
+   fun:XSetLocaleModifiers
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XlcCurrentLC
+   fun:XSetLocaleModifiers
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+}

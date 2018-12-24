@@ -99,7 +99,7 @@ Determines whether the node and its children's [actions](#node:action)
 are executed. The default is `false`, meaning the actions
 are executed.
 
-Note that a descendent node's actions might still be executed
+Note that a descendant node's actions might still be executed
 if it is has another, non-paused, parent.
 
 Updatable.
@@ -132,14 +132,26 @@ No more than 65535 unique tag names may be created in a single application.
 
 Removes a tag from a node and returns the node.
 
-### node:all(tagname) {#node:all .method-def}
+### node:all(tagname [, recurse]) {#node:all .method-def}
 
-Searches `node` and all its descendents for any nodes
+Searches `node` and all its descendants for any nodes
 with the tag `tagname` and returns them as a table.
+
+The `recurse` boolean argument determines if `all` recursively searches the
+descendents of matched nodes. The default value is `false`.
+
+The returned table has a metatable that allows setting a field on all
+nodes by setting the corresponding field on the table. So for example
+to set the color of all sprite nodes that are descendents of
+a parent node, one might do the following:
+
+~~~ {.lua}
+parent_node:all"sprite".color = vec4(1, 0, 0, 1)
+~~~
 
 ### node(tagname) {#node:tagsearch .method-def}
 
-Searches `node` and its descendents for `tagname`
+Searches `node` and its descendants for `tagname`
 and returns the first matching node found, or `nil`
 if no matching nodes were found. The search is depth-first
 left-to-right.
@@ -216,6 +228,15 @@ See also [node:action](#node:action).
 
 Cancels an action.
 
+### node:update() {#node:update .method-def}
+
+Executes actions on a node and its descendants. Actions are still only run
+once per frame, so if the give node's actions have already been run, they
+won't run again.
+
+Use this method to execute actions on nodes that are not attached to the window,
+for example nodes that are being manually rendered into a framebuffer.
+
 ### node:append(child) {.func-def}
 
 Appends `child` to the end of `node`'s child list and returns `node`.
@@ -231,7 +252,7 @@ and returns `node`.
 
 ### node:remove(tagname) {.func-def}
 
-Searches for a node with tag `tagname` in the descendents
+Searches for a node with tag `tagname` in the descendants
 of `node` and removes the first one it finds. 
 Then returns `node`.
 
@@ -246,7 +267,7 @@ in `node`'s child list and returns `node`.
 
 ### node:replace(tagname, replacement) {.func-def}
 
-Searches for a node with tag `tagname` in the descendents
+Searches for a node with tag `tagname` in the descendants
 of `node` and replaces the first one it finds with
 `replacement`. Then returns `node`.
 
@@ -551,7 +572,7 @@ Default tag: `"particles2d"`.
 ## Transformation nodes
 
 The following nodes apply transformations to all
-their descendents.
+their descendants.
 
 **Note**:
 These nodes have an optional `uniform` argument in the
@@ -674,7 +695,7 @@ Default tag: `"transform"`.
 ### am.use_program(program) {#am.use_program .func-def}
 
 Sets the [shader program](#shader-programs) to use when
-rendering descendents. A `program` object can be
+rendering descendants. A `program` object can be
 created using the [`am.program`](#am.program) function.
 
 Fields:
@@ -859,12 +880,23 @@ or framebuffer being rendered to).
 For example using a mask of `am.color_mask(false, true, false, true)`
 will cause only the green and alpha channels to be updated.
 
+Fields:
+
+- `red`: Updatable.
+- `green`: Updatable.
+- `blue`: Updatable.
+- `alpha`: Updatable.
+
+Default tag: `"color_mask"`.
+
 ### am.cull_face(face) {.func-def}
 
 Culls triangles with a specific winding.
 
 The possible values for `face` are:
 
+- `"back"`: Cull back-facing triangles (same as `"cw"` below)
+- `"front"`: Cull front-facing triangles (same as `"ccw"` below)
 - `"cw"`: Cull clockwise wound triangles.
 - `"ccw"`: Cull counter-clockwise wound triangles.
 - `"none"`: Do not cull any triangles.
@@ -872,6 +904,8 @@ The possible values for `face` are:
 Fields:
 
 - `face`: Updatable.
+
+Default tag: `"cull_face"`.
 
 ### am.depth_test(func [, mask]) {#am.depth_test .method-def}
 
@@ -901,6 +935,8 @@ Fields:
 
 - `func`: Updatable.
 - `mask`: Updatable.
+
+Default tag: `"depth_test"`.
 
 ### am.stencil_test(settings) {#am.stencil_test .method-def}
 
@@ -948,6 +984,8 @@ following values:
 
 All the settings can be updated after the depth test node has been created using
 fields on the node with the corresponding names.
+
+Default tag: `"stencil_test"`.
 
 ### am.viewport(x, y, width, height) {#am.viewport .func-def}
 
@@ -999,6 +1037,8 @@ Fields:
 - `radius`: Updatable.
 - `center`: Updatable.
 
+Default tag: `"cull_sphere"`.
+
 ### am.billboard([uniform,] [preserve_scaling]) {#am.billboard .func-def}
 
 Removes rotation from `uniform`, which should be a `mat4`.
@@ -1026,6 +1066,8 @@ Fields:
 - `value`: The value of the uniform, or nil if
   the node hasn't been rendered yet,
   or the named uniform wasn't set in an ancestor node.
+
+Default tag: `"read_uniform"`.
 
 ### am.quads(n, spec [, usage]) {#am.quads .func-def}
 
@@ -1073,6 +1115,8 @@ Methods:
   The signature of the method is: `quad_attr(n, values)`
   where `n` is the quad number and `values` has the
   same meaning as in the `add_quad` method.
+
+Default tag: `"quads"`.
 
 Example:
 
@@ -1151,6 +1195,8 @@ Fields:
 Methods:
 
 - `clear()`: Clear the texture manually.
+
+Default tag: `"postprocess"`.
 
 ## Creating custom scene nodes
 

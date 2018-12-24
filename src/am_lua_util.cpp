@@ -344,9 +344,11 @@ int luaL_typerror (lua_State *L, int narg, const char *tname) {
 
 #ifdef AM_LUAJIT
 
+#define AM_AVOID_MSVC_LJ_ERRORS 1
 #include "lj_gc.h"
 #include "lj_obj.h"
 #include "lj_state.h"
+#undef AM_AVOID_MSVC_LJ_ERRORS
 
 void lua_unsafe_pushuserdata(lua_State *L, void *v) {
     assert(v != NULL);

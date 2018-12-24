@@ -78,12 +78,11 @@ struct am_stencil_test_state {
 };
 
 struct am_cull_face_state {
-    am_face_winding         winding;
     bool                    enabled;
     am_cull_face_side       side;
 
     am_cull_face_state();
-    void set(bool enabled, am_face_winding winding, am_cull_face_side side);
+    void set(bool enabled, am_cull_face_side side);
     void restore(am_cull_face_state *old);
     void bind(am_render_state *rstate, bool force);
 };
@@ -206,7 +205,8 @@ struct am_render_state {
     bool bind_active_program_params();
     bool update_state();
     void enable_vaas(int n);
-    void do_render(am_scene_node *root, am_framebuffer_id fb, bool clear, glm::dvec4 clear_color,
+    void do_render(am_scene_node *root, am_framebuffer_id fb, 
+        bool clear, glm::dvec4 clear_color, int stencil_clear_val,
         int x, int y, int w, int h, int fbw, int fbh, glm::dmat4 proj, bool has_depthbuffer);
 };
 

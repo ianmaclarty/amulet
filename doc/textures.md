@@ -205,6 +205,12 @@ The color to use when clearing the framebuffer (a `vec4`).
 
 Updatable.
 
+### framebuffer.stencil_clear_value {#framebuffer.stencil_clear_value .field-def}
+
+The value to use when clearing the framebuffer's stencil buffer (an integer between 0 and 255).
+
+Updatable.
+
 ### framebuffer.projection {#framebuffer.projection .field-def}
 
 A `mat4` projection matrix to use when rendering nodes into

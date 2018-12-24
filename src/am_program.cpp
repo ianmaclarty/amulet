@@ -683,6 +683,7 @@ static int create_read_uniform_node(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_isstring(L, 1)) return luaL_error(L, "expecting a string in position 2");
     am_read_uniform_node *node = am_new_userdata(L, am_read_uniform_node);
+    node->tags.push_back(L, AM_TAG_READ_UNIFORM);
     node->name = am_lookup_param_name(L, 1);
     return 1;
 }
