@@ -374,7 +374,11 @@ void lua_unsafe_pushuserdata(lua_State *L, void *v) {
     assert(v != NULL);
     Udata *u = ((Udata*)v)-1;
     lua_lock(L);
+#ifdef AM_LUA54
+    setuvalue(L, s2v(L->top), u);
+#else
     setuvalue(L, L->top, u);
+#endif
 #ifdef AM_LUA51
     L->top++;
 #else

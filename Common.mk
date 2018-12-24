@@ -120,6 +120,9 @@ AR_OUT_OPT =
 XCFLAGS = -Wall -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
+ifeq ($(LUAVM),lua54)
+    LUA_CFLAGS += -DLUA_COMPAT_APIINTCASTS
+endif
 LUAJIT_FLAGS = 
 OBJ_OUT_OPT = -o
 EXE_OUT_OPT = -o
