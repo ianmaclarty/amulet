@@ -1,3 +1,5 @@
+require "format"
+
 local
 function print_graph2(node, visited, indent)
     if visited[node] then
@@ -63,9 +65,9 @@ print("")
 print_graph(node)
 
 print("")
-print(node"nodeA".A.x)
-print(node"nodeB".B.rgb.rg.r)
-print(node"nodeC".C.pq[2])
+printf(node"nodeA".A.x)
+printf(node"nodeB".B.rgb.rg.r)
+printf(node"nodeC".C.pq[2])
 
 node:replace("nodeA", nodeD)
 print_graph(node)
@@ -96,13 +98,13 @@ print("")
 print_graph(cycle"nodeC")
 
 print("")
-print(cycle"nodeA".f1.f)
-print(cycle"nodeB".f2.f)
-print(cycle"nodeC".f3.f)
-print(cycle"nodeB""nodeA".f1.f)
-print(cycle"nodeB""nodeB".f2.f)
-print(cycle"nodeB""nodeC".f3.f)
+printf(cycle"nodeA".f1.f)
+printf(cycle"nodeB".f2.f)
+printf(cycle"nodeC".f3.f)
+printf(cycle"nodeB""nodeA".f1.f)
+printf(cycle"nodeB""nodeB".f2.f)
+printf(cycle"nodeB""nodeC".f3.f)
 
 print("")
-print(cycle"nodeA""nodeB".B.xy.t)
-print(cycle"nodeC".C.rrr.y)
+printf(cycle"nodeA""nodeB".B.xy.t)
+printf(cycle"nodeC".C.rrr.y)

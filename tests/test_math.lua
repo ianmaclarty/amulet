@@ -1,3 +1,5 @@
+require "format"
+
 local
 function printvec(v)
     local str = "<"..string.format("%0.2f", v.x)..", "
@@ -117,10 +119,10 @@ printmat(mat2(mat3(1, 2, 3, 4, 5, 6, 7, 8, 9)))
 printmat(math.inverse(math.inverse(mat3(1, 2, 1, -1, -2, 1, 1, 0, -3))))
 printmat(math.inverse(mat3(1)/mat3(1, 2, 1, -1, -2, 1, 1, 0, -3)))
 
-print(math.dot(vec3(1, 2, 3), vec3(1, 2, 3)))
+printf(math.dot(vec3(1, 2, 3), vec3(1, 2, 3)))
 printvec(math.cross(vec3(3, 2, 1), vec3(1, 2, 3)))
-print(math.length(vec4(1, 0, 0, 0)))
-print(math.distance(vec2(1, 0), vec2(0, 0)))
+printf(math.length(vec4(1, 0, 0, 0)))
+printf(math.distance(vec2(1, 0), vec2(0, 0)))
 printvec(math.normalize(vec3(8, 4, 2)))
 printvec(math.faceforward(vec2(1, 2), vec2(3, 4), vec2(5, 6)))
 printvec(math.reflect(vec2(1, 2), vec2(1, 0)))
@@ -129,13 +131,13 @@ printvec(math.refract(math.normalize(vec3(1, 2, 3)), math.normalize(vec3(4, 5, 6
 printvec(-vec2(1, 2))
 printmat(-mat2(1, 2, 3, 4))
 
-print(math.clamp(-1, 0, 1)) -- 0
-print(math.clamp(4, 0, 1)) -- 1
-print(math.clamp(-1, -3, -1)) -- -1
+printf(math.clamp(-1, 0, 1)) -- 0
+printf(math.clamp(4, 0, 1)) -- 1
+printf(math.clamp(-1, -3, -1)) -- -1
 
 printvec(math.mix(vec3(0, -1, 2), vec3(1, 1, -1), 0.5)) -- 0.5, 0, 0.5
 printvec(math.mix(vec2(0, 100), vec2(100, 0), vec2(0.25, 0.90))) -- 25, 10
-print(math.mix(100, 200, 0.1)) -- 110
+printf(math.mix(100, 200, 0.1)) -- 110
 
 local q1 = quat(math.rad(90), vec3(0, 0, 1))
 local v1 = vec3(1, 0, 0)

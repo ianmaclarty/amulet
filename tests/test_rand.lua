@@ -1,14 +1,19 @@
+local
+function printf(n)
+    print(string.format("%0.14g", n))
+end
+
 local rand = am.rand(5321112)
-print(rand())
-print(rand())
-print(rand())
-print(rand(2))
-print(rand(10))
-print(rand(7))
-print(rand(4, 10))
-print(rand(-10, 0))
-print(rand(-10, 10))
-print(rand(-10, 10))
+printf(rand())
+printf(rand())
+printf(rand())
+printf(rand(2))
+printf(rand(10))
+printf(rand(7))
+printf(rand(4, 10))
+printf(rand(-10, 0))
+printf(rand(-10, 10))
+printf(rand(-10, 10))
 
 local t = {1, 2, 3, 4, 5, 5}
 table.shuffle(t, rand)

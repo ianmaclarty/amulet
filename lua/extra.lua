@@ -263,7 +263,7 @@ function format_mat(m)
     local rowwidth = {0, 0, 0, 0}
     for col = 1, n do
         for row = 1, n do
-            local str = tostring(m[col][row])
+            local str = format_num(m[col][row])
             if #str > rowwidth[row] then
                 rowwidth[row] = #str
             end

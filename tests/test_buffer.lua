@@ -1,3 +1,5 @@
+require "format"
+
 local
 function printvec(v)
     print(v)
@@ -15,7 +17,7 @@ local
 function print_view(view)
     str = "["
     for i = 1, #view do
-        str = str..view[i]
+        str = str..fmt(view[i])
         if i == #view then
             str = str.."]"
         else
@@ -41,11 +43,11 @@ for i = 1, n do
 end
 
 assert(total1 == total2)
-print(total2)
+printf(total2)
 
 view:set({1, 2, 3})
-print(view[1])
-print(view[3])
+printf(view[1])
+printf(view[3])
 
 local view2 = buf:view("vec2", 0, 8)
 printvec(view2[1])
@@ -63,8 +65,8 @@ printvec(view4[1000])
 printv_and_restore(view4, 10, math.vec4(-1, -2, -3, -4))
 
 view:set({100, 200, 300})
-print(view[1])
-print(view[3])
+printf(view[1])
+printf(view[3])
 
 local sl = view2:slice(2)
 sl:set({101, 201, 301, 401})
@@ -84,55 +86,55 @@ local viewub = buf2:view("ubyte", 0, 1)
 for i = 1, 10 do
     viewub[i] = i
 end
-print(viewub[1])
-print(viewub[10])
+printf(viewub[1])
+printf(viewub[10])
 viewub[2] = 300
-print(viewub[2])
+printf(viewub[2])
 viewub[3] = -20
-print(viewub[3])
+printf(viewub[3])
 
 local viewubn = buf2:view("ubyte_norm", 0, 1, 10)
-print(viewubn[1] * 255)
-print(viewubn[10] * 255)
+printf(viewubn[1] * 255)
+printf(viewubn[10] * 255)
 viewubn[2] = 127/255
-print(viewubn[2] * 255)
-print(viewub[2])
+printf(viewubn[2] * 255)
+printf(viewub[2])
 
 local viewbyte = buf2:view("byte", 0, 1, 1)
 viewbyte[1] = -123
-print(viewbyte[1])
+printf(viewbyte[1])
 
 local viewbyten = buf2:view("byte_norm", 0, 1, 2)
 viewbyten[2] = -1
-print(math.floor(viewbyten[2]*127))
+printf(math.floor(viewbyten[2]*127))
 
 local viewushort = buf2:view("ushort", 0, 2, 5)
 viewushort[1] = 60000
-print(viewushort[1])
+printf(viewushort[1])
 
 local viewushort_elem = buf2:view("ushort_elem", 0, 2, 5)
 viewushort_elem[3] = 1
 viewushort_elem[4] = 2^16
-print(viewushort_elem[3])
-print(viewushort_elem[4])
+printf(viewushort_elem[3])
+printf(viewushort_elem[4])
 
 local viewshort = buf2:view("short", 0, 2, 5)
 viewshort[1] = -20000
-print(viewshort[1])
+printf(viewshort[1])
 
 local viewuint = buf2:view("uint", 0, 4, 2)
 viewuint[1] = 0xFFFFFFFF
-print(viewuint[1])
+printf(viewuint[1])
 
 local viewuint_elem = buf2:view("uint_elem", 0, 4, 2)
 viewuint_elem[1] = 1
 viewuint_elem[2] = 2^32
-print(viewuint_elem[1])
-print(viewuint_elem[2])
+printf(viewuint_elem[1])
+printf(viewuint_elem[2])
 
 local viewint = buf2:view("int", 0, 4, 2)
 viewint[1] = -9999999
-print(viewint[1])
+printf(viewint[1])
 
 local viewushortn = buf2:view("ushort_norm", 0, 2, 5)
 viewushortn[1] = 32767/65535
@@ -156,7 +158,7 @@ end
 local settest1 = am.float_array({1, 2, 3, 4})
 settest1:set(0, 1, 2) -- 0 0 3 4
 for i = 1, 4 do
-    print(settest1[i])
+    printf(settest1[i])
 end
 settest1:set({5, 5}, 2) -- 0 5 5 4
 print_view(settest1)
@@ -187,10 +189,10 @@ struct_arr.c:set(24001)
 struct_arr.d:set(-55)
 struct_arr.e:set(19)
 struct_arr_buf = struct_arr.a.buffer
-print(struct_arr_buf:view("ubyte", 0, 20)[1])
-print(struct_arr_buf:view("vec3", 4, 20)[5])
-print(struct_arr_buf:view("short", 16, 20)[7])
-print(struct_arr_buf:view("byte", 18, 20)[8])
-print(struct_arr_buf:view("byte", 19, 20)[10])
+printf(struct_arr_buf:view("ubyte", 0, 20)[1])
+printf(struct_arr_buf:view("vec3", 4, 20)[5])
+printf(struct_arr_buf:view("short", 16, 20)[7])
+printf(struct_arr_buf:view("byte", 18, 20)[8])
+printf(struct_arr_buf:view("byte", 19, 20)[10])
 
 print("ok")
