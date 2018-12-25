@@ -17,7 +17,7 @@
     ? \
     ((CTYPE)am_clamp(lua_tonumber(L, idx), (lua_Number)MINVAL, (lua_Number)MAXVAL)) \
     : \
-    ((CTYPE)am_clamp(lua_tointeger(L, idx), (lua_Integer)MINVAL, (lua_Integer)MAXVAL)) \
+    ((CTYPE)am_clamp(am_lua_num2int(L, idx), (int)MINVAL, (int)MAXVAL)) \
 )
 #define PUSH_CTYPE(L, x) { \
     if (MINVAL == 0 && (uint32_t)MAXVAL > INT32_MAX && (uint32_t)x > INT32_MAX) { \

@@ -36,7 +36,7 @@ static int create_socket(lua_State *L) {
 static int bind_socket(lua_State *L) {
     am_check_nargs(L, 2);
     am_socket *sock = am_get_userdata(L, am_socket, 1);
-    int port = luaL_checkinteger(L, 2);
+    int port = am_lua_check_num2int(L, 2);
     struct sockaddr_in sa;
     memset(&sa, 0, sizeof sa);
     sa.sin_family = AF_INET;
@@ -51,7 +51,7 @@ static int bind_socket(lua_State *L) {
 static int listen_socket(lua_State *L) {
     am_check_nargs(L, 2);
     am_socket *sock = am_get_userdata(L, am_socket, 1);
-    int backlog = luaL_checkinteger(L, 2);
+    int backlog = am_lua_check_num2int(L, 2);
     if (listen(sock->fd, backlog) == -1) {
         return luaL_error(L, "listen failed");
     }

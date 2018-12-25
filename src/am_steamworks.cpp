@@ -288,7 +288,7 @@ static int submit_score(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
     const char *leaderboard = lua_tostring(L, 1);
     if (leaderboard != NULL) {
-        int score = lua_tointeger(L, 2);
+        int score = am_lua_check_num2int(L, 2);
         int ref = LUA_NOREF;
         if (nargs > 2) {
             if (!lua_isfunction(L, 3)) {
@@ -333,8 +333,8 @@ static int query_leaderboard(lua_State *L) {
     } else {
         return luaL_error(L, "invalid leaderboard query type: %s", type);
     }
-    int before = lua_tointeger(L, 3);
-    int after = lua_tointeger(L, 4);
+    int before = am_lua_check_num2int(L, 3);
+    int after = am_lua_check_num2int(L, 4);
     if (!lua_isfunction(L, 5)) {
         return luaL_error(L, "expecting callback function in position 4");
     }

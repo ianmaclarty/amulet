@@ -10,7 +10,7 @@ double am_rand::get_rand() {
 
 static int create_rand(lua_State *L) {
     am_check_nargs(L, 1);
-    int seed = lua_tointeger(L, 1);
+    int seed = am_lua_check_num2int(L, 1);
     am_rand *rnd = am_new_userdata(L, am_rand);
     rnd->init(seed);
     return 1;
@@ -25,14 +25,14 @@ static int get_random(lua_State *L) {
             lua_pushnumber(L, r);
             break;
         case 2: {  /* only upper limit */
-            int u = luaL_checkint(L, 2);
+            int u = am_lua_check_num2int(L, 2);
             luaL_argcheck(L, 1<=u, 2, "interval is empty");
             lua_pushnumber(L, floor(r*u)+1);  /* int between 1 and `u' */
             break;
         }
         case 3: {  /* lower and upper limits */
-            int l = luaL_checkint(L, 2);
-            int u = luaL_checkint(L, 3);
+            int l = am_lua_check_num2int(L, 2);
+            int u = am_lua_check_num2int(L, 3);
             luaL_argcheck(L, l<=u, 3, "interval is empty");
             lua_pushnumber(L, floor(r*(u-l+1))+l);  /* int between `l' and `u' */
             break;

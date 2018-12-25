@@ -142,8 +142,8 @@ static int clear_framebuffer(lua_State *L) {
 static int resize(lua_State *L) {
     am_check_nargs(L, 3);
     am_framebuffer *fb = am_get_userdata(L, am_framebuffer, 1);
-    int w = luaL_checkinteger(L, 2);
-    int h = luaL_checkinteger(L, 3);
+    int w = am_lua_check_num2int(L, 2);
+    int h = am_lua_check_num2int(L, 3);
     if (w <= 0) return luaL_error(L, "width must be positive");
     if (h <= 0) return luaL_error(L, "height must be positive");
     am_texture2d *color_at = fb->color_attachment0;
@@ -222,7 +222,7 @@ static void get_stencil_clear_value(lua_State *L, void *obj) {
 }
 static void set_stencil_clear_value(lua_State *L, void *obj) {
     am_framebuffer *fb = (am_framebuffer*)obj;
-    fb->stencil_clear_value = luaL_checkinteger(L, 3);
+    fb->stencil_clear_value = am_lua_check_num2int(L, 3);
 }
 
 static am_property stencil_clear_value_property = {get_stencil_clear_value, set_stencil_clear_value};
@@ -303,10 +303,10 @@ static int create_viewport_node(lua_State *L) {
     am_check_nargs(L, 4);
     am_viewport_node *node = am_new_userdata(L, am_viewport_node);
     node->tags.push_back(L, AM_TAG_VIEWPORT);
-    node->x = luaL_checkinteger(L, 1);
-    node->y = luaL_checkinteger(L, 2);
-    node->w = luaL_checkinteger(L, 3);
-    node->h = luaL_checkinteger(L, 4);
+    node->x = am_lua_check_num2int(L, 1);
+    node->y = am_lua_check_num2int(L, 2);
+    node->w = am_lua_check_num2int(L, 3);
+    node->h = am_lua_check_num2int(L, 4);
     return 1;
 }
 
@@ -317,7 +317,7 @@ static void get_x(lua_State *L, void *obj) {
 
 static void set_x(lua_State *L, void *obj) {
     am_viewport_node *node = (am_viewport_node*)obj;
-    node->x = luaL_checkinteger(L, 3);
+    node->x = am_lua_check_num2int(L, 3);
 }
 
 static am_property x_property = {get_x, set_x};
@@ -329,7 +329,7 @@ static void get_y(lua_State *L, void *obj) {
 
 static void set_y(lua_State *L, void *obj) {
     am_viewport_node *node = (am_viewport_node*)obj;
-    node->y = luaL_checkinteger(L, 3);
+    node->y = am_lua_check_num2int(L, 3);
 }
 
 static am_property y_property = {get_y, set_y};
@@ -341,7 +341,7 @@ static void get_w(lua_State *L, void *obj) {
 
 static void set_w(lua_State *L, void *obj) {
     am_viewport_node *node = (am_viewport_node*)obj;
-    node->w = luaL_checkinteger(L, 3);
+    node->w = am_lua_check_num2int(L, 3);
 }
 
 static am_property w_property = {get_w, set_w};
@@ -353,7 +353,7 @@ static void get_h(lua_State *L, void *obj) {
 
 static void set_h(lua_State *L, void *obj) {
     am_viewport_node *node = (am_viewport_node*)obj;
-    node->h = luaL_checkinteger(L, 3);
+    node->h = am_lua_check_num2int(L, 3);
 }
 
 static am_property h_property = {get_h, set_h};

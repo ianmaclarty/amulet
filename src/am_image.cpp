@@ -29,12 +29,12 @@ static int create_image_buffer(lua_State *L) {
     if (nargs < arg) {
         return luaL_error(L, "not enough arguments");
     }
-    img->width = luaL_checkinteger(L, arg++);
+    img->width = am_lua_check_num2int(L, arg++);
     if (img->width <= 0) {
         return luaL_error(L, "width must be positive");
     }
     if (nargs >= arg) {
-        img->height = luaL_checkinteger(L, arg++);
+        img->height = am_lua_check_num2int(L, arg++);
     } else {
         img->height = img->width;
     }
@@ -143,8 +143,8 @@ static int paste(lua_State *L) {
     am_check_nargs(L, 4);
     am_image_buffer *dst = am_get_userdata(L, am_image_buffer, 1);
     am_image_buffer *src = am_get_userdata(L, am_image_buffer, 2);
-    int start_x = lua_tointeger(L, 3) - 1;
-    int start_y = lua_tointeger(L, 4) - 1;
+    int start_x = am_lua_check_num2int(L, 3) - 1;
+    int start_y = am_lua_check_num2int(L, 4) - 1;
     if (start_x < 0) luaL_argerror(L, 3, "must be a positive integer");
     if (start_y < 0) luaL_argerror(L, 4, "must be a positive integer");
     if (src->format != dst->format) luaL_error(L, "images must have the same format");

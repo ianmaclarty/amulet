@@ -302,6 +302,35 @@ void am_setfenv(lua_State *L, int index) {
 #endif
 }
 
+int am_lua_num2int(lua_State *L, int idx) {
+#if defined(AM_LUAJIT) || defined(AM_LUA51) || defined(AM_LUA52)
+    return (int)lua_tonumber(L, idx);
+#else
+    int isint;
+    int r = lua_tointegerx(L, idx, &isint);
+    if (isint) return r;
+    return (int)lua_tonumber(L, idx);
+#endif
+}
+
+int am_lua_check_num2int(lua_State *L, int idx) {
+#if defined(AM_LUAJIT) || defined(AM_LUA51) || defined(AM_LUA52)
+    return (int)luaL_checknumber(L, idx);
+#else
+    int isint;
+    int r = (int)lua_tointegerx(L, idx, &isint);
+    if (isint) return r;
+    if (!lua_isnumber(L, idx)) {
+        if (idx > 0) {
+            return luaL_error(L, "expecting an integer at position %d", idx);
+        } else {
+            return luaL_error(L, "expecting an integer");
+        }
+    }
+    return (int)lua_tonumber(L, idx);
+#endif
+}
+
 #if defined(AM_LUAJIT) || defined(AM_LUA51)
 
 void lua_setuservalue(lua_State *L, int idx) {
@@ -310,26 +339,6 @@ void lua_setuservalue(lua_State *L, int idx) {
 
 void lua_getuservalue(lua_State *L, int idx) {
     lua_getfenv(L, idx);
-}
-
-lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum) {
-    if (lua_isnumber(L, idx)) {
-        *isnum = 1;
-        return lua_tointeger(L, idx);
-    } else {
-        *isnum = 0;
-        return 0;
-    }
-}
-
-lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum) {
-    if (lua_isnumber(L, idx)) {
-        *isnum = 1;
-        return lua_tonumber(L, idx);
-    } else {
-        *isnum = 0;
-        return 0;
-    }
 }
 
 #else

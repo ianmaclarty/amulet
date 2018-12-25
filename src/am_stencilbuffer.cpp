@@ -50,14 +50,14 @@ static int create_stencil_test_node(lua_State *L) {
         } else if (strcmp(key, "func_back") == 0) {
             node->func_back = am_get_enum(L, am_stencil_func, -1);
         } else if (strcmp(key, "ref") == 0) {
-            node->ref = luaL_checkinteger(L, -1);
+            node->ref = am_lua_check_num2int(L, -1);
             if (node->ref < 0 || node->ref > 255) {
                 return luaL_error(L, "invalid ref value %d", node->ref);
             }
         } else if (strcmp(key, "read_mask") == 0) {
-            node->read_mask = (uint32_t)luaL_checkinteger(L, -1);
+            node->read_mask = (uint32_t)am_lua_check_num2int(L, -1);
         } else if (strcmp(key, "write_mask") == 0) {
-            node->write_mask = (uint32_t)luaL_checkinteger(L, -1);
+            node->write_mask = (uint32_t)am_lua_check_num2int(L, -1);
         } else if (strcmp(key, "func_front") == 0) {
             node->func_front = am_get_enum(L, am_stencil_func, -1);
         } else if (strcmp(key, "op_fail_front") == 0) {
@@ -111,7 +111,7 @@ static void get_ref(lua_State *L, void *obj) {
 
 static void set_ref(lua_State *L, void *obj) {
     am_stencil_test_node *node = (am_stencil_test_node*)obj;
-    node->ref = lua_tointeger(L, 3);
+    node->ref = am_lua_check_num2int(L, 3);
 }
 
 static am_property ref_property = {get_ref, set_ref};
@@ -123,7 +123,7 @@ static void get_read_mask(lua_State *L, void *obj) {
 
 static void set_read_mask(lua_State *L, void *obj) {
     am_stencil_test_node *node = (am_stencil_test_node*)obj;
-    node->read_mask = lua_tointeger(L, 3);
+    node->read_mask = am_lua_check_num2int(L, 3);
 }
 
 static am_property read_mask_property = {get_read_mask, set_read_mask};
@@ -135,7 +135,7 @@ static void get_write_mask(lua_State *L, void *obj) {
 
 static void set_write_mask(lua_State *L, void *obj) {
     am_stencil_test_node *node = (am_stencil_test_node*)obj;
-    node->write_mask = lua_tointeger(L, 3);
+    node->write_mask = am_lua_check_num2int(L, 3);
 }
 
 static am_property write_mask_property = {get_write_mask, set_write_mask};

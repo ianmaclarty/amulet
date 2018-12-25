@@ -98,7 +98,7 @@ static int log(lua_State *L) {
         once = lua_toboolean(L, 2);
     }
     if (nargs > 2) {
-        level = lua_tointeger(L, 3);
+        level = am_lua_check_num2int(L, 3);
     }
     am_log(L, level, once, "%s", str);
     return 0;

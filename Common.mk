@@ -122,6 +122,8 @@ XLDFLAGS = -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
 ifeq ($(LUAVM),lua54)
     LUA_CFLAGS += -DLUA_COMPAT_APIINTCASTS
+else ifeq ($(LUAVM),lua53)
+    LUA_CFLAGS += -DLUA_COMPAT_APIINTCASTS
 endif
 LUAJIT_FLAGS = 
 OBJ_OUT_OPT = -o

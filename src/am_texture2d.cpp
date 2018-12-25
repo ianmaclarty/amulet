@@ -24,9 +24,9 @@ static int create_texture2d(lua_State *L) {
             am_pixel_to_texture_format(image_buffer->format, &format, &type);
             break;
         case LUA_TNUMBER:
-            width = lua_tointeger(L, 1);
+            width = am_lua_check_num2int(L, 1);
             if (nargs > 1) {
-                height = lua_tointeger(L, 2);
+                height = am_lua_check_num2int(L, 2);
             } else {
                 height = width;
             }

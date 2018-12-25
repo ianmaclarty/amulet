@@ -30,11 +30,13 @@ int am_require(lua_State *L);
 
 void am_setfenv(lua_State *L, int index);
 
+// these truncate floats if required (lua <= 5.2 does this for us, but lua >= 5.3 does not)
+int am_lua_num2int(lua_State *L, int idx);
+int am_lua_check_num2int(lua_State *L, int idx);
+
 #if defined(AM_LUA51) || defined(AM_LUAJIT)
 void lua_setuservalue(lua_State *L, int idx);
 void lua_getuservalue(lua_State *L, int idx);
-lua_Integer lua_tointegerx(lua_State *L, int idx, int *isnum);
-lua_Number lua_tonumberx(lua_State *L, int idx, int *isnum);
 #else
 int luaL_typerror (lua_State *L, int narg, const char *tname);
 #endif

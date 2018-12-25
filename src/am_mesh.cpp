@@ -55,7 +55,7 @@
 //        if (!lua_isnumber(L, -1)) {
 //            return luaL_error(L, "invalid type for field '%s'", lua_tostring(L, -2));
 //        }
-//        type_info = lua_tointeger(L, -1);
+//        type_info = am_lua_num2int(L, -1);
 //        while (offset & get_falign(type_info)) {
 //            offset++;
 //        }
@@ -80,7 +80,7 @@
 //}
 //
 //static int l_create_mesh(lua_State *L) {
-//    int num_rows = luaL_checkinteger(L, 1);
+//    int num_rows = am_lua_check_num2int(L, 1);
 //    if (num_rows <= 0) {
 //        return luaL_error(L, "number of rows must be positive");
 //    }

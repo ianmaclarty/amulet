@@ -767,7 +767,7 @@ static void get_draw_node_first(lua_State *L, void *obj) {
 
 static void set_draw_node_first(lua_State *L, void *obj) {
     am_draw_node *node = (am_draw_node*)obj;
-    int first = luaL_checkinteger(L, 3) - 1;
+    int first = am_lua_check_num2int(L, 3) - 1;
     if (first < 0) {
         luaL_error(L, "value must be positive (in fact %d)", first + 1);
     }
@@ -783,7 +783,7 @@ static void get_draw_node_count(lua_State *L, void *obj) {
 
 static void set_draw_node_count(lua_State *L, void *obj) {
     am_draw_node *node = (am_draw_node*)obj;
-    int count = luaL_checkinteger(L, 3);
+    int count = am_lua_check_num2int(L, 3);
     if (count < 0) {
         luaL_error(L, "value must be non-negative (in fact %d)", count);
     }
@@ -887,14 +887,14 @@ static int create_draw_node(lua_State *L) {
         nxt_arg++;
     }
     if (nargs >= nxt_arg) {
-        first = luaL_checkinteger(L, nxt_arg) - 1;
+        first = am_lua_check_num2int(L, nxt_arg) - 1;
         if (first < 0) {
             return luaL_error(L, "argument %d must be positive", nxt_arg);
         }
         nxt_arg++;
     }
     if (nargs >= nxt_arg) {
-        count = luaL_checkinteger(L, nxt_arg);
+        count = am_lua_check_num2int(L, nxt_arg);
         if (count < 0) {
             return luaL_error(L, "argument %d must be non-negative", nxt_arg);
         }
@@ -925,9 +925,9 @@ void am_pass_filter_node::render(am_render_state *rstate) {
 static int create_pass_filter_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_pass_filter_node *node = am_new_userdata(L, am_pass_filter_node);
-    node->mask = 1 << (luaL_checkinteger(L, 1) - 1);
+    node->mask = 1 << (am_lua_check_num2int(L, 1) - 1);
     for (int i = 2; i <= nargs; i++) {
-        node->mask |= 1 << (luaL_checkinteger(L, i) - 1);
+        node->mask |= 1 << (am_lua_check_num2int(L, i) - 1);
     }
     return 1;
 }

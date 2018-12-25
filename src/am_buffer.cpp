@@ -118,7 +118,7 @@ void am_buffer_view::update_max_elem_if_required() {
 
 static int create_buffer(lua_State *L) {
     am_check_nargs(L, 1);
-    int size = luaL_checkinteger(L, 1);
+    int size = am_lua_check_num2int(L, 1);
     if (size <= 0) return luaL_error(L, "size should be greater than 0");
     am_new_userdata(L, am_buffer, size);
     return 1;
@@ -362,13 +362,13 @@ static int mark_buffer_dirty(lua_State *L) {
     int start = 0;
     int end = buf->size;
     if (nargs > 1) {
-        start = lua_tointeger(L, 2);
+        start = am_lua_check_num2int(L, 2);
         if (start < 0 || start >= buf->size) {
             return luaL_error(L, "start must be in the range 0 to %d", buf->size - 1);
         }
     }
     if (nargs > 2) {
-        end = lua_tointeger(L, 3);
+        end = am_lua_check_num2int(L, 3);
         if (end <= 0 || end > buf->size) {
             return luaL_error(L, "end be in the range 1 to %d", buf->size);
         }
@@ -441,11 +441,11 @@ static int create_buffer_view(lua_State *L) {
 
     int offset = 0;
     if (nargs > 2) {
-        offset = luaL_checkinteger(L, 3);
+        offset = am_lua_check_num2int(L, 3);
     }
     int stride = type_size;
     if (nargs > 3) {
-        stride = luaL_checkinteger(L, 4);
+        stride = am_lua_check_num2int(L, 4);
     }
 
     int max_size = 0;
@@ -454,11 +454,13 @@ static int create_buffer_view(lua_State *L) {
     }
     int size;
     if (nargs > 4) {
-        size = luaL_checkinteger(L, 5);
+        size = am_lua_check_num2int(L, 5);
         if (size > max_size) {
             return luaL_error(L,
                 "the buffer is too small for %d %ss with stride %d (max %d)",
                 size, lua_tostring(L, 2), stride, max_size);
+        } else if (size < 0) {
+            return luaL_error(L, "size must be non-negative");
         }
     } else {
         size = max_size;
@@ -483,14 +485,14 @@ static int create_buffer_view(lua_State *L) {
 static int view_slice(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
-    int start = luaL_checkinteger(L, 2);
+    int start = am_lua_check_num2int(L, 2);
     if (start < 1 || start > view->size) {
         return luaL_error(L, "slice start must be in the range [1, %d] (in fact %d)",
             view->size, start);
     }
     int size;
     if (nargs > 2) {
-        size = luaL_checkinteger(L, 3);
+        size = am_lua_check_num2int(L, 3);
         if (size < 0 || size > (view->size - start + 1)) {
             return luaL_error(L, "slice size must be in the range [0, %d] (in fact %d)",
                 view->size - start + 1, size);

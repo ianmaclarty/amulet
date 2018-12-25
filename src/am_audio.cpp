@@ -866,7 +866,7 @@ void am_set_audio_node_child(lua_State *L, am_audio_node *parent) {
 static int child_pair_next(lua_State *L) {
     am_check_nargs(L, 2);
     am_audio_node *node = am_get_userdata(L, am_audio_node, 1);
-    int i = luaL_checkinteger(L, 2);
+    int i = am_lua_num2int(L, 2);
     if (i >= 0 && i < node->pending_children.size) {
         lua_pushinteger(L, i+1);
         node->pending_children.arr[i].child->push(L);
@@ -887,7 +887,7 @@ static int child_pairs(lua_State *L) {
 static int get_child(lua_State *L) {
     am_check_nargs(L, 2);
     am_audio_node *node = am_get_userdata(L, am_audio_node, 1);
-    int i = luaL_checkinteger(L, 2);
+    int i = am_lua_num2int(L, 2);
     if (i >= 1 && i <= node->pending_children.size) {
         node->pending_children.arr[i-1].child->push(L);
         return 1;
@@ -1275,7 +1275,7 @@ static am_spectrum_node *new_spectrum_node(lua_State *L, int fftsize) {
 
 static int create_spectrum_node(lua_State *L) {
     int nargs = am_check_nargs(L, 3);
-    int freq_bins = luaL_checkinteger(L, 2);
+    int freq_bins = am_lua_check_num2int(L, 2);
     int fftsize = freq_bins * 2;
     if (fftsize < AM_MIN_FFT_SIZE) {
         return luaL_error(L, "number of frequency bins must be at least %d", AM_MIN_FFT_SIZE / 2);
@@ -1427,8 +1427,8 @@ static void register_audio_node_mt(lua_State *L) {
 static int create_audio_buffer(lua_State *L) {
     am_check_nargs(L, 3);
     am_buffer *buf = am_get_userdata(L, am_buffer, 1);
-    int channels = lua_tointeger(L, 2);
-    int sample_rate = lua_tointeger(L, 3);
+    int channels = am_lua_check_num2int(L, 2);
+    int sample_rate = am_lua_check_num2int(L, 3);
     luaL_argcheck(L, channels >= 1, 2, "channels must be a positive integer");
     luaL_argcheck(L, buf->size / sizeof(float) / channels >= 1, 2, "not enough data for that many channels");
     luaL_argcheck(L, (buf->size / sizeof(float)) % channels == 0, 2, "buffer has invalid size for that many channels");

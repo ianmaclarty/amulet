@@ -1284,7 +1284,7 @@ static am_controller_axis convert_controller_axis(Uint8 axis) {
 
 static int rumble(lua_State *L) {
     am_check_nargs(L, 3);
-    int joyid = lua_tointeger(L, 1);
+    int joyid = am_lua_check_num2int(L, 1);
     double duration = lua_tonumber(L, 2);
     double strength = lua_tonumber(L, 3);
     SDL_Haptic *haptic = NULL;

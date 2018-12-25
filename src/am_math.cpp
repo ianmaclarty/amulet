@@ -422,7 +422,7 @@ int vec##D##_index(lua_State *L) {                                              
                 return 0;                                                               \
         }                                                                               \
     } else {                                                                            \
-        int i = lua_tointeger(L, 2);                                                    \
+        int i = am_lua_num2int(L, 2);                                                   \
         if (i > 0 && i <= D) {                                                          \
             lua_pushnumber(L, v[i-1]);                                                  \
             return 1;                                                                   \
@@ -530,7 +530,7 @@ static int vec##D##_set(lua_State *L, glm::dvec##D *v) {                        
             }                                                                           \
         }                                                                               \
     } else {                                                                            \
-        int i = lua_tointeger(L, -2);                                                   \
+        int i = am_lua_num2int(L, -2);                                                  \
         if (i > 0 && i <= D) {                                                          \
             (*v)[i-1] = luaL_checknumber(L, -1);                                        \
         } else {                                                                        \
@@ -577,9 +577,9 @@ static int vec##D##_call(lua_State *L) {                                        
 static int mat##D##_set(lua_State *L) {                                                 \
     am_check_nargs(L, 4);                                                               \
     am_mat##D *m = am_get_userdata(L, am_mat##D, 1);                                    \
-    int col = luaL_checkinteger(L, 2);                                                  \
-    int row = luaL_checkinteger(L, 3);                                                  \
-    double val = luaL_checknumber(L, 4);                                                 \
+    int col = am_lua_check_num2int(L, 2);                                               \
+    int row = am_lua_check_num2int(L, 3);                                               \
+    double val = luaL_checknumber(L, 4);                                                \
     if (col < 1 || row < 1 || col > D || row >  D) {                                    \
         return luaL_error(L, "invalid mat" #D " indices: [%d, %d]", col, row);          \
     }                                                                                   \
@@ -749,7 +749,7 @@ static int mat##D##_new(lua_State *L) {                                         
 #define MAT_INDEX_FUNC(D)                                                               \
 static int mat##D##_index(lua_State *L) {                                               \
     am_mat##D *m = (am_mat##D*)lua_touserdata(L, 1);                                    \
-    int i = lua_tointeger(L, 2);                                                        \
+    int i = am_lua_num2int(L, 2);                                                 \
     if (i >= 1 && i <= D) {                                                             \
         am_vec##D *v = am_new_userdata(L, am_vec##D);                                   \
         v->v = m->m[i-1];                                                               \

@@ -39,12 +39,12 @@ static int create_window(lua_State *L) {
         } else if (strcmp(key, "orientation") == 0) {
             orientation = am_get_enum(L, am_display_orientation, -1);
         } else if (strcmp(key, "width") == 0) {
-            requested_width = luaL_checkinteger(L, -1);
+            requested_width = am_lua_check_num2int(L, -1);
             if (requested_width <= 0) {
                 return luaL_error(L, "width must be positive");
             }
         } else if (strcmp(key, "height") == 0) {
-            requested_height = luaL_checkinteger(L, -1);
+            requested_height = am_lua_check_num2int(L, -1);
             if (requested_height <= 0) {
                 return luaL_error(L, "height must be positive");
             }
@@ -61,7 +61,7 @@ static int create_window(lua_State *L) {
         } else if (strcmp(key, "stencil_buffer") == 0) {
             stencil_buffer = lua_toboolean(L, -1);
         } else if (strcmp(key, "stencil_clear_value") == 0) {
-            stencil_clear_value = luaL_checkinteger(L, -1);
+            stencil_clear_value = am_lua_check_num2int(L, -1);
         } else if (strcmp(key, "letterbox") == 0) {
             letterbox = lua_toboolean(L, -1);
         } else if (strcmp(key, "lock_pointer") == 0) {
@@ -69,7 +69,7 @@ static int create_window(lua_State *L) {
         } else if (strcmp(key, "show_cursor") == 0) {
             show_cursor = lua_toboolean(L, -1);
         } else if (strcmp(key, "msaa_samples") == 0) {
-            msaa_samples = luaL_checkinteger(L, -1);
+            msaa_samples = am_lua_check_num2int(L, -1);
             if (msaa_samples < 0) {
                 return luaL_error(L, "msaa_samples can't be negative");
             }
@@ -644,7 +644,7 @@ static void get_stencil_clear_value(lua_State *L, void *obj) {
 }
 static void set_stencil_clear_value(lua_State *L, void *obj) {
     am_window *win = (am_window*)obj;
-    win->stencil_clear_value = luaL_checkinteger(L, 3);
+    win->stencil_clear_value = am_lua_check_num2int(L, 3);
 }
 
 static am_property stencil_clear_value_property = {get_stencil_clear_value, set_stencil_clear_value};

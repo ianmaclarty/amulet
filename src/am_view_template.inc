@@ -22,7 +22,7 @@
 
 static int AM_CONCAT(TNAME,_view_index)(lua_State *L) {
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
-    int index = lua_tointeger(L, 2);
+    int index = am_lua_num2int(L, 2);
     if (index < 1 || index > view->size) {
         return am_default_index_func(L);
     }
@@ -33,13 +33,9 @@ static int AM_CONCAT(TNAME,_view_index)(lua_State *L) {
 
 static int AM_CONCAT(TNAME,_view_newindex)(lua_State *L) {
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
-    int index = lua_tointeger(L, 2);
+    int index = am_lua_check_num2int(L, 2);
     if (index < 1 || index > view->size) {
-        if (lua_isnumber(L, 2)) {
-            return luaL_error(L, "view index %d not in range [1, %d]", index, view->size);
-        } else {
-            return luaL_error(L, "view index must be an integer (in fact a %s)", lua_typename(L, lua_type(L, 2)));
-        }
+        return luaL_error(L, "view index %d not in range [1, %d]", index, view->size);
     }
     if (am_get_type(L, 3) != LUA_TYPE) {
         return luaL_error(L, "expecting assigned value to be a %s (in fact a %s)",
@@ -207,13 +203,13 @@ static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
     int sz = INT_MAX;
     int start = 1;
     if (nargs > 2) {
-        start = luaL_checkinteger(L, 3);
+        start = am_lua_check_num2int(L, 3);
         if (sz < 0) {
             return luaL_error(L, "size can't be negative");
         }
     }
     if (nargs > 3) {
-        sz = luaL_checkinteger(L, 4);
+        sz = am_lua_check_num2int(L, 4);
         if (sz < 0) {
             return luaL_error(L, "size can't be negative");
         }

@@ -396,7 +396,7 @@ float* gen_buffer(int *buf_sz) {
 static int gen_sfxr_buffer(lua_State *L) {
     am_check_nargs(L, 25);
     am_sfxr sfxr;
-    sfxr.wave_type = lua_tointeger(L, 1);
+    sfxr.wave_type = am_lua_num2int(L, 1);
     sfxr.p_base_freq = lua_tonumber(L, 2);
     sfxr.p_freq_limit = lua_tonumber(L, 3);
     sfxr.p_freq_ramp = lua_tonumber(L, 4);

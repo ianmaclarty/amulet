@@ -572,7 +572,7 @@ static void init_default_tags(lua_State *L) {
 static int child_pair_next(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    int i = luaL_checkinteger(L, 2);
+    int i = am_lua_num2int(L, 2);
     if (i >= 0 && i < node->children.size) {
         lua_pushinteger(L, i+1);
         node->children.arr[i].child->push(L);
@@ -593,7 +593,7 @@ static int child_pairs(lua_State *L) {
 static int get_child(lua_State *L) {
     am_check_nargs(L, 2);
     am_scene_node *node = am_get_userdata(L, am_scene_node, 1);
-    int i = luaL_checkinteger(L, 2);
+    int i = am_lua_num2int(L, 2);
     if (i >= 1 && i <= node->children.size) {
         node->children.arr[i-1].child->push(L);
         return 1;
@@ -640,7 +640,7 @@ static void get_recursion_limit(lua_State *L, void *obj) {
 
 static void set_recursion_limit(lua_State *L, void *obj) {
     am_scene_node *node = (am_scene_node*)obj;
-    node->recursion_limit = lua_tointeger(L, 3);
+    node->recursion_limit = am_lua_check_num2int(L, 3);
 }
 
 static am_property recursion_limit_property = {get_recursion_limit, set_recursion_limit};
