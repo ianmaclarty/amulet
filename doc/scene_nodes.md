@@ -16,14 +16,14 @@ or execute a draw command, which renders something
 to the screen.
 
 Each scene node has a list of children, which are
-rendered in order.
+rendered in depth-first, left-to-right order.
 
 A scene node may be the child of multiple other scene nodes, so in general a
 scene node does not have a unique parent.  Cycles are also allowed and are
 handled by imposing a limit to the number of times a node can be recursively
 rendered.
 
-## Scene graph construction syntax
+## Scene graph construction syntax {#scene-graph-syntax}
 
 Special syntax is provided for constructing scene graphs
 from nodes. The expression:
@@ -99,7 +99,7 @@ Determines whether the node and its children's [actions](#node:action)
 are executed. The default is `false`, meaning the actions
 are executed.
 
-Note that a descendent node's actions might still be executed
+Note that a descendant node's actions might still be executed
 if it is has another, non-paused, parent.
 
 Updatable.
@@ -132,14 +132,26 @@ No more than 65535 unique tag names may be created in a single application.
 
 Removes a tag from a node and returns the node.
 
-### node:all(tagname) {#node:all .method-def}
+### node:all(tagname [, recurse]) {#node:all .method-def}
 
-Searches `node` and all its descendents for any nodes
+Searches `node` and all its descendants for any nodes
 with the tag `tagname` and returns them as a table.
+
+The `recurse` boolean argument determines if `all` recursively searches the
+descendents of matched nodes. The default value is `false`.
+
+The returned table has a metatable that allows setting a field on all
+nodes by setting the corresponding field on the table. So for example
+to set the color of all sprite nodes that are descendents of
+a parent node, one might do the following:
+
+~~~ {.lua}
+parent_node:all"sprite".color = vec4(1, 0, 0, 1)
+~~~
 
 ### node(tagname) {#node:tagsearch .method-def}
 
-Searches `node` and its descendents for `tagname`
+Searches `node` and its descendants for `tagname`
 and returns the first matching node found, or `nil`
 if no matching nodes were found. The search is depth-first
 left-to-right.
@@ -168,8 +180,8 @@ removed from the node and not run again. Similarly if a coroutine
 yields `true` or finishes.
 
 Each action has an ID. If the `id` argument is
-omitted, then its ID is the value of the `action`
-argument. If present, `id` may be a value of any type besides nil, a function
+omitted, then its ID is the `action` argument itself. 
+If present, `id` may be a value of any type besides nil, a function
 or coroutine (typically it's a string).
 
 Multiple actions may be attached to a scene node, but they
@@ -216,6 +228,15 @@ See also [node:action](#node:action).
 
 Cancels an action.
 
+### node:update() {#node:update .method-def}
+
+Executes actions on a node and its descendants. Actions are still only run
+once per frame, so if the give node's actions have already been run, they
+won't run again.
+
+Use this method to execute actions on nodes that are not attached to the window,
+for example nodes that are being manually rendered into a framebuffer.
+
 ### node:append(child) {.func-def}
 
 Appends `child` to the end of `node`'s child list and returns `node`.
@@ -231,7 +252,7 @@ and returns `node`.
 
 ### node:remove(tagname) {.func-def}
 
-Searches for a node with tag `tagname` in the descendents
+Searches for a node with tag `tagname` in the descendants
 of `node` and removes the first one it finds. 
 Then returns `node`.
 
@@ -246,7 +267,7 @@ in `node`'s child list and returns `node`.
 
 ### node:replace(tagname, replacement) {.func-def}
 
-Searches for a node with tag `tagname` in the descendents
+Searches for a node with tag `tagname` in the descendants
 of `node` and replaces the first one it finds with
 `replacement`. Then returns `node`.
 
@@ -551,7 +572,7 @@ Default tag: `"particles2d"`.
 ## Transformation nodes
 
 The following nodes apply transformations to all
-their descendents.
+their descendants.
 
 **Note**:
 These nodes have an optional `uniform` argument in the
@@ -635,7 +656,8 @@ It is `"MV"` by default.
 `rotation` can be either a quaternion, or
 an angle (in radians) followed by an optional `vec3` axis.
 If the axis is omitted it is assumed to be `vec3(0, 0, 1)`
-so the rotation becomes a 2D rotation in the xy plane.
+so the rotation becomes a 2D rotation in the xy plane about
+the z axis.
 
 Fields:
 
@@ -657,12 +679,23 @@ node2.axis = vec3(0, 0, 1)
 node3.rotation = quat(math.rad(60), vec3(0, 0, 1))
 ~~~
 
+### am.transform([uniform,] matrix) {#am.transform .func-def}
+
+Pre-multiply a 4x4 matrix uniform by the given 4x4 matrix.
+`uniform` is the uniform name as a string (default is `"MV"`).
+
+Fields:
+
+- `mat`: The matrix to multiply the uniform by. Updatable.
+
+Default tag: `"transform"`.
+
 ## Advanced nodes
 
 ### am.use_program(program) {#am.use_program .func-def}
 
 Sets the [shader program](#shader-programs) to use when
-rendering descendents. A `program` object can be
+rendering descendants. A `program` object can be
 created using the [`am.program`](#am.program) function.
 
 Fields:
@@ -847,12 +880,23 @@ or framebuffer being rendered to).
 For example using a mask of `am.color_mask(false, true, false, true)`
 will cause only the green and alpha channels to be updated.
 
+Fields:
+
+- `red`: Updatable.
+- `green`: Updatable.
+- `blue`: Updatable.
+- `alpha`: Updatable.
+
+Default tag: `"color_mask"`.
+
 ### am.cull_face(face) {.func-def}
 
 Culls triangles with a specific winding.
 
 The possible values for `face` are:
 
+- `"back"`: Cull back-facing triangles (same as `"cw"` below)
+- `"front"`: Cull front-facing triangles (same as `"ccw"` below)
 - `"cw"`: Cull clockwise wound triangles.
 - `"ccw"`: Cull counter-clockwise wound triangles.
 - `"none"`: Do not cull any triangles.
@@ -861,16 +905,18 @@ Fields:
 
 - `face`: Updatable.
 
-### am.depth_test(test [, mask]) {#am.depth_test .method-def}
+Default tag: `"cull_face"`.
 
-Sets the depth test and mask. The window
+### am.depth_test(func [, mask]) {#am.depth_test .method-def}
+
+Sets the depth test function and mask. The window
 or framebuffer being rendered to needs to have a depth
 buffer for this to have any effect.
 
-`test` is used to determine whether a fragment
+`func` is used to determine whether a fragment
 is rendered by comparing the depth value of the
 fragment to the value in the depth buffer.
-The possible values for `test` are:
+The possible values for `func` are:
 
 - `"never"`
 - `"always"`
@@ -881,9 +927,65 @@ The possible values for `test` are:
 - `"greater"`
 - `"gequal"`
 
-Mask determines whether the fragment depth is
+`mask` determines whether the fragment depth is
 written to the depth buffer. The possible
 values are `true` and `false`. The default is `true`.
+
+Fields:
+
+- `func`: Updatable.
+- `mask`: Updatable.
+
+Default tag: `"depth_test"`.
+
+### am.stencil_test(settings) {#am.stencil_test .method-def}
+
+Sets the stencil test and mask. The window
+or framebuffer being rendered to needs to have a stencil
+buffer for this to have any effect.
+
+`settings` should be a table with any combination of the following
+fields:
+
+- `enabled`: whether the stencil test is enabled (`true`/`false`, default `false`)
+- `ref`: the reference value to use in the test function
+  (must be an integer between 0 and 255, default 0).
+- `read_mask`: a bitmask to apply to the reference value and the stencil buffer
+  value before doing the test (must be an integer between 0 and 255, default 255).
+- `write_mask`: a bitmask that controls which stencil buffer bits can be written to
+  (must be an integer between 0 and 255, default 255).
+- `func_front`: the test function to use for front-facing (CCW) triangles 
+  (`"never"`, `"always"`, `"equal"`, `"notequal"`, `"less"`, `"lequal"`,
+  `"greater"` or `"gequal"`, default `"always"`). The function compares
+  a supplied reference value with the value in the stencil buffer.
+- `op_fail_front`: The operation to perform if the stencil test fails
+  (see below for possible values).
+- `op_zfail_front`: The operation to perform if the stencil test passes, but the depth test fails 
+  (see below for possible values).
+- `op_zpass_front`: The operation to perform if the stencil test passes and the depth test passes
+  (see below for possible values).
+- `func_back`: same as `func_front`, but for back-facing (CW) triangles.
+- `op_fail_back`: same as `op_fail_front`, but for back-facing (CW) triangles.
+- `op_zfail_back`: same as `op_zfail_front`, but for back-facing (CW) triangles.
+- `op_zpass_back`: same as `op_zpass_front`, but for back-facing (CW) triangles.
+
+The `op_fail_front`, `op_zfail_front` and `op_zpass_front` fields (and the analogous fields
+for back-facing triangles) determine how the stencil buffer is modified. They can be one of the
+following values:
+
+- `"keep"`: keeps the existing stencil buffer value
+- `"zero"`: sets the stencil buffer  to zero
+- `"replace"`: replaces the stencil buffer value with the supplied reference value
+- `"invert"`: invert the bits of the stencil buffer
+- `"incr"`: increment the stencil buffer value
+- `"decr"`: decrement the stencil buffer value
+- `"incr_wrap"`: increment the stencil buffer value, wrapping back to zero on overflow (> 255)
+- `"decr_wrap"`: decrement the stencil buffer value, wrapping to 255 on underflow
+
+All the settings can be updated after the depth test node has been created using
+fields on the node with the corresponding names.
+
+Default tag: `"stencil_test"`.
 
 ### am.viewport(x, y, width, height) {#am.viewport .func-def}
 
@@ -935,6 +1037,8 @@ Fields:
 - `radius`: Updatable.
 - `center`: Updatable.
 
+Default tag: `"cull_sphere"`.
+
 ### am.billboard([uniform,] [preserve_scaling]) {#am.billboard .func-def}
 
 Removes rotation from `uniform`, which should be a `mat4`.
@@ -962,6 +1066,8 @@ Fields:
 - `value`: The value of the uniform, or nil if
   the node hasn't been rendered yet,
   or the named uniform wasn't set in an ancestor node.
+
+Default tag: `"read_uniform"`.
 
 ### am.quads(n, spec [, usage]) {#am.quads .func-def}
 
@@ -1009,6 +1115,8 @@ Methods:
   The signature of the method is: `quad_attr(n, values)`
   where `n` is the quad number and `values` has the
   same meaning as in the `add_quad` method.
+
+Default tag: `"quads"`.
 
 Example:
 
@@ -1087,6 +1195,8 @@ Fields:
 Methods:
 
 - `clear()`: Clear the texture manually.
+
+Default tag: `"postprocess"`.
 
 ## Creating custom scene nodes
 

@@ -51,6 +51,10 @@ table with any of the following fields:
     Whether the window has a stencil buffer (`true` or `false`,
     default `false`).
 
+- **`stencil_clear_value`**:
+    The value to clear the stencil buffer with before drawing each
+    frame (an integer between 0 and 255). The default is 0.
+
 - **`lock_pointer`**:
     `true` or `false`. When pointer lock is enabled the cursor will be
     hidden and mouse movement will be set to "relative" mode. In this
@@ -157,6 +161,12 @@ See [window settings](#am.window).
 Updatable.
 
 ### window.clear_color {.field-def}
+
+See [window settings](#am.window).
+
+Updatable.
+
+### window.stencil_clear_value {.field-def}
 
 See [window settings](#am.window).
 

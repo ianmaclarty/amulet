@@ -81,7 +81,9 @@ function add_action(node, id, func, priority)
         node._actions = actions
     end
     for i = #actions, 1, -1 do
-        if actions[i].id == id then
+        local act = actions[i]
+        if act.id == id then
+            act.seq = seq -- make sure action does not execute this frame if it hasn't already
             table.remove(actions, i)
             break
         end

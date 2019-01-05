@@ -114,18 +114,6 @@ struct am_gain_node : am_audio_node {
     virtual void post_render(am_audio_context *context, int num_samples);
 };
 
-struct am_filter_node : am_audio_node {
-    am_audio_param<float> low_freq;
-    am_audio_param<float> high_freq;
-    float low_state[AM_MAX_CHANNELS];
-    float high_state[AM_MAX_CHANNELS];
-    
-    am_filter_node();
-    virtual void sync_params();
-    virtual void render_audio(am_audio_context *context, am_audio_bus *bus);
-    virtual void post_render(am_audio_context *context, int num_samples);
-};
-
 struct am_biquad_filter_coeffs {
     double b0;
     double b1;
@@ -185,6 +173,7 @@ struct am_audio_track_node : am_audio_node {
 
     double current_position;
     double next_position;
+    double reset_position;
 
     am_audio_track_node();
     virtual void sync_params();

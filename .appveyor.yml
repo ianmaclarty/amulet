@@ -1,6 +1,7 @@
 version: 1.0.{build}
 skip_tags: false
 shallow_clone: true
+image: Visual Studio 2017
 install:
     - ps: Install-Product node 4.2.3
 build:

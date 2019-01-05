@@ -9,6 +9,7 @@ static void set_arg_global(lua_State *L, int argc, char** argv);
 static void am_set_version(lua_State *L);
 static void am_set_dirs(lua_State *L);
 static void am_set_platform(lua_State *L);
+static void am_set_support_email(lua_State *L);
 
 am_engine *am_init_engine(bool worker, int argc, char** argv) {
     am_allocator *allocator = am_new_allocator();
@@ -56,6 +57,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_image_module(L);
         am_open_model_module(L);
         am_open_depthbuffer_module(L);
+        am_open_stencilbuffer_module(L);
         am_open_culling_module(L);
         am_open_blending_module(L);
         am_open_transforms_module(L);
@@ -76,6 +78,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     am_set_version(L);
     am_set_dirs(L);
     am_set_platform(L);
+    am_set_support_email(L);
     if (!run_embedded_scripts(L, worker)) {
         lua_close(L);
         return NULL;
@@ -180,6 +183,15 @@ static void am_set_version(lua_State *L) {
     }
     lua_setfield(L, -2, "version");
     lua_pop(L, 1); // am table
+}
+
+static void am_set_support_email(lua_State *L) {
+    if (am_conf_support_email != NULL) {
+        lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+        lua_pushstring(L, am_conf_support_email);
+        lua_setfield(L, -2, "support_email");
+        lua_pop(L, 1); // am table
+    }
 }
 
 static void am_set_dirs(lua_State *L) {

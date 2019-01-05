@@ -16,7 +16,7 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
         chmod a+x amulet-${TAG}/amulet
         chmod a+x amulet-${TAG}/amulet.i686
     else
-        cp -r builds/osx/luajit/release/bin/* amulet-${TAG}/
+        cp -r builds/osx/luajit/release/bin/amulet amulet-${TAG}/
         chmod a+x amulet-${TAG}/amulet
     fi
     mv builds amulet-${TAG}/
@@ -33,19 +33,7 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
     scripts/upload_distros.js $TAG $FILE_LIST
 else
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-        # setup android ndk
-        NDK=android-ndk-r14b
-        echo downloading $NDK...
-        curl -s -L https://dl.google.com/android/repository/$NDK-linux-x86_64.zip -o android-ndk.zip
-        echo unzipping $NDK...
-        unzip android-ndk.zip > /dev/null
-        export NDK_HOME=`pwd`/$NDK
-        export NDK_HOST=linux-x86_64
-        export NDK_ANDROID_VER=16
-
-        # build
-        make -j2 TARGET=android.release LUAVM=lua51
-        make -j2 TARGET=android.release LUAVM=lua52
+        # build linux
         make -j2 TARGET=linux32.release LUAVM=lua51   test
         make -j2 TARGET=linux32.release LUAVM=lua52   test
         make -j2 TARGET=linux32.release LUAVM=luajit  test
@@ -55,19 +43,47 @@ else
         make -j2 TARGET=mingw32.release LUAVM=lua51
         make -j2 TARGET=mingw32.release LUAVM=lua52
         scripts/gen_linux_universal.sh
+
+        # build android
+        NDK=android-ndk-r14b
+        echo downloading $NDK...
+        curl -s -L https://dl.google.com/android/repository/$NDK-linux-x86_64.zip -o android-ndk.zip
+        echo unzipping $NDK...
+        unzip android-ndk.zip > /dev/null
+        export NDK_HOME=`pwd`/$NDK
+        export NDK_HOST=linux-x86_64
+        export NDK_ANDROID_VER=16
+        make -j2 TARGET=android.release LUAVM=lua51
+        make -j2 TARGET=android.release LUAVM=lua52
     else
+        # build osx
         make -j2 TARGET=osx.release     LUAVM=lua51   test
         make -j2 TARGET=osx.release     LUAVM=lua52   test
         make -j2 TARGET=osx.release     LUAVM=luajit  test
+
+        # build ios
         scripts/build_ios.sh lua51
         rm -rf builds/ios32/lua51
         rm -rf builds/ios64/lua51
         scripts/build_ios.sh lua52
         rm -rf builds/ios32/lua52
         rm -rf builds/ios64/lua52
+
+        # build emscripten
+        # (building on osx, because the pre-built llvm binaries don't work on linux due to incompatible glibc version)
+        EMSDK=sdk-1.38.8-64bit
+        git clone https://github.com/juj/emsdk.git emscripten
+        cd emscripten
+        ./emsdk install --enable-wasm $EMSDK
+        ./emsdk activate $EMSDK
+        source ./emsdk_env.sh
+        cd ..
+        make -j2 TARGET=html.release LUAVM=lua51
     fi
     if [ -n "$TRAVIS_TAG" ]; then
         scripts/upload_builds.js $TRAVIS_TAG
     fi
 fi
-scripts/update_site.sh
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then # don't update site for pull requests
+    scripts/update_site.sh
+fi

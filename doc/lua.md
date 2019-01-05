@@ -109,6 +109,9 @@ end
 
 The arithmetic operators are: `+`, `-`, `*`, `/`, `^` (exponent) and `%` (modulo).
 
+Note that Amulet also overloads the `^` operator for constructing scene graphs
+(see [here](#scene-graph-syntax) for more details).
+
 The relational operators are: `==`, `~=` (not equal), `<`, `>`, `<=` and `>=`
 
 The logical operators are: `and`, `or` and `not`.
