@@ -247,11 +247,20 @@ static bool build_mac_export(export_config *conf, bool print_message) {
     bool icon_created = create_mac_icons(conf);
     const char *name = conf->title;
     const char *zipdir = conf->zipdir;
-    char *resource_dir = am_format("%s/%s.app/Contents/Resources", zipdir, name);
+    char *resource_dir;
+    char *exe_dir;
+    if (zipdir != NULL) {
+        resource_dir = am_format("%s/%s.app/Contents/Resources", zipdir, name);
+        exe_dir = am_format("%s/%s.app/Contents/MacOS", zipdir, name);
+    } else {
+        resource_dir = am_format("%s.app/Contents/Resources", name);
+        exe_dir = am_format("%s.app/Contents/MacOS", name);
+    }
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
-        add_files_to_dist(zipname, binpath, "amulet", zipdir, name, ".app/Contents/MacOS/amulet", true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "amulet", exe_dir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX) &&
+        add_files_to_dist(zipname, binpath, "*.dylib", exe_dir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, zipdir, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", zipdir, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
         (
@@ -268,6 +277,7 @@ static bool build_mac_export(export_config *conf, bool print_message) {
     free(zipname);
     free(binpath);
     free(resource_dir);
+    free(exe_dir);
     return ok;
 }
 
@@ -367,22 +377,35 @@ static bool build_linux_export(export_config *conf) {
     if (binpath64 == NULL && binpath32 == NULL) return true;
     const char *name = conf->shortname;
     const char *zipdir = conf->zipdir;
+    char *lib32_dir;
+    char *lib64_dir;
+    if (conf->zipdir != NULL) {
+        lib32_dir = am_format("%s/lib.i686", zipdir);
+        lib64_dir = am_format("%s/lib.x86_64", zipdir);
+    } else {
+        lib32_dir = am_format("%s", "lib.i686");
+        lib64_dir = am_format("%s", "lib.x86_64");
+    }
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath64, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, zipdir, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
     if (ok && binpath32 != NULL) {
-        ok = add_files_to_dist(zipname, binpath32, "amulet", zipdir, name, ".i686", true, true, ZIP_PLATFORM_UNIX);
+        ok = add_files_to_dist(zipname, binpath32, "amulet", zipdir, name, ".i686", true, true, ZIP_PLATFORM_UNIX)
+            && add_files_to_dist(zipname, binpath32, "*.so", lib32_dir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX);
     }
     if (ok && binpath64 != NULL) {
         ok = add_files_to_dist(zipname, binpath64, "amulet", zipdir, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX)
-            && add_files_to_dist(zipname, binpath64, "amulet.sh", zipdir, name, "", true, true, ZIP_PLATFORM_UNIX);
+            && add_files_to_dist(zipname, binpath64, "amulet.sh", zipdir, name, "", true, true, ZIP_PLATFORM_UNIX)
+            && add_files_to_dist(zipname, binpath64, "*.so", lib64_dir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX);
     }
     printf("Generated %s\n", zipname);
     free(zipname);
     if (binpath32 != NULL) free(binpath32);
     if (binpath64 != NULL) free(binpath64);
+    free(lib32_dir);
+    free(lib64_dir);
     return ok;
 }
 
