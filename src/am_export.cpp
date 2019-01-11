@@ -367,22 +367,35 @@ static bool build_linux_export(export_config *conf) {
     if (binpath64 == NULL && binpath32 == NULL) return true;
     const char *name = conf->shortname;
     const char *zipdir = conf->zipdir;
+    char *lib32_dir;
+    char *lib64_dir;
+    if (conf->zipdir != NULL) {
+        lib32_dir = am_format("%s/lib.i686", zipdir);
+        lib64_dir = am_format("%s/lib.x86_64", zipdir);
+    } else {
+        lib32_dir = am_format("%s", "lib.i686");
+        lib64_dir = am_format("%s", "lib.x86_64");
+    }
     bool ok =
         add_files_to_dist(zipname, am_opt_data_dir, "*.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, binpath64, "amulet_license.txt", zipdir, NULL, NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, zipdir, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
     if (ok && binpath32 != NULL) {
-        ok = add_files_to_dist(zipname, binpath32, "amulet", zipdir, name, ".i686", true, true, ZIP_PLATFORM_UNIX);
+        ok = add_files_to_dist(zipname, binpath32, "amulet", zipdir, name, ".i686", true, true, ZIP_PLATFORM_UNIX)
+            && add_files_to_dist(zipname, binpath32, "*.so", lib32_dir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX);
     }
     if (ok && binpath64 != NULL) {
         ok = add_files_to_dist(zipname, binpath64, "amulet", zipdir, name, ".x86_64", true, true, ZIP_PLATFORM_UNIX)
-            && add_files_to_dist(zipname, binpath64, "amulet.sh", zipdir, name, "", true, true, ZIP_PLATFORM_UNIX);
+            && add_files_to_dist(zipname, binpath64, "amulet.sh", zipdir, name, "", true, true, ZIP_PLATFORM_UNIX)
+            && add_files_to_dist(zipname, binpath64, "*.so", lib64_dir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX);
     }
     printf("Generated %s\n", zipname);
     free(zipname);
     if (binpath32 != NULL) free(binpath32);
     if (binpath64 != NULL) free(binpath64);
+    free(lib32_dir);
+    free(lib64_dir);
     return ok;
 }
 
