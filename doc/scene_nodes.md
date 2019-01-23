@@ -987,19 +987,19 @@ fields on the node with the corresponding names.
 
 Default tag: `"stencil_test"`.
 
-### am.viewport(x, y, width, height) {#am.viewport .func-def}
+### am.viewport(left, bottom, width, height) {#am.viewport .func-def}
 
 Set the viewport, which is the rectangular area
 of the window into which rendering will occur.
 
-`x` and `y` is the bottom-left corner
+`left` and `bottom` is the bottom-left corner
 of the viewport in pixels, where the bottom-left corner
 of the window is (0, 0). `width` and `height` are
 also in pixels.
 
 Fields:
 
-- `x`, `y`, `width`, `height`: Updatable.
+- `left`, `bottom`, `width`, `height`: Updatable.
 
 Default tag: `"viewport"`.
 

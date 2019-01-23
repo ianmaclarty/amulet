@@ -267,7 +267,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.cull_faceface">am.cull_face(face)</a></li>
 <li><a href="#am.depth_test">am.depth_test(func [, mask])</a></li>
 <li><a href="#am.stencil_test">am.stencil_test(settings)</a></li>
-<li><a href="#am.viewport">am.viewport(x, y, width, height)</a></li>
+<li><a href="#am.viewport">am.viewport(left, bottom, width, height)</a></li>
 <li><a href="#am.lookat">am.lookat([uniform,] eye, center, up)</a></li>
 <li><a href="#am.cull_sphere">am.cull_sphere([uniforms...,] radius [, center])</a></li>
 <li><a href="#am.billboard">am.billboard([uniform,] [preserve_scaling])</a></li>
@@ -2482,12 +2482,12 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 </ul>
 <p>All the settings can be updated after the depth test node has been created using fields on the node with the corresponding names.</p>
 <p>Default tag: <code>&quot;stencil_test&quot;</code>.</p>
-<h3 id="am.viewport" class="func-def">am.viewport(x, y, width, height)</h3>
+<h3 id="am.viewport" class="func-def">am.viewport(left, bottom, width, height)</h3>
 <p>Set the viewport, which is the rectangular area of the window into which rendering will occur.</p>
-<p><code>x</code> and <code>y</code> is the bottom-left corner of the viewport in pixels, where the bottom-left corner of the window is (0, 0). <code>width</code> and <code>height</code> are also in pixels.</p>
+<p><code>left</code> and <code>bottom</code> is the bottom-left corner of the viewport in pixels, where the bottom-left corner of the window is (0, 0). <code>width</code> and <code>height</code> are also in pixels.</p>
 <p>Fields:</p>
 <ul>
-<li><code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>: Updatable.</li>
+<li><code>left</code>, <code>bottom</code>, <code>width</code>, <code>height</code>: Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;viewport&quot;</code>.</p>
 <h3 id="am.lookat" class="func-def">am.lookat([uniform,] eye, center, up)</h3>
