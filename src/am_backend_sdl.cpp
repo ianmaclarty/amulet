@@ -516,7 +516,13 @@ restart:
         if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
                 double t0 = am_get_current_time();
+#ifdef AM_STEAMWORKS
+                if (!am_steam_overlay_enabled) {
+#endif
                 am_execute_actions(L, am_conf_fixed_delta_time);
+#ifdef AM_STEAMWORKS
+                }
+#endif
                 double t = am_get_current_time() - t0;
                 t_debt -= am_max(t, am_conf_fixed_delta_time);
             }
@@ -525,7 +531,13 @@ restart:
                 if (am_conf_delta_time_step > 0.0) {
                     t_debt = floor(t_debt / am_conf_delta_time_step + 0.5) * am_conf_delta_time_step;
                 }
+#ifdef AM_STEAMWORKS
+                if (!am_steam_overlay_enabled) {
+#endif
                 am_execute_actions(L, t_debt);
+#ifdef AM_STEAMWORKS
+                }
+#endif
                 t_debt = 0.0;
             }
         }
