@@ -167,6 +167,8 @@ else
       STEAMWORKS_LINK_OPT=-L$(BUILD_BIN_DIR) -lsteam_api 
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/osx32
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      # steamworks api triggers this warning
+      XCFLAGS += -Wno-invalid-offsetof
   endif
 endif
 
