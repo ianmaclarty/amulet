@@ -155,11 +155,15 @@ else
       XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/linux64
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      # steamworks api triggers this warning
+      XCFLAGS += -Wno-invalid-offsetof
   else ifeq ($(TARGET_PLATFORM),linux32)
       STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.so
       XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/linux32
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      # steamworks api triggers this warning
+      XCFLAGS += -Wno-invalid-offsetof
   else ifeq ($(TARGET_PLATFORM),osx)
       STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.dylib
       STEAMWORKS_LINK_OPT=-L$(BUILD_BIN_DIR) -lsteam_api 
