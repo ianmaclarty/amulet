@@ -353,7 +353,7 @@ for the same key.
 (If necessary, Amulet will postpone key release events to the
 next frame to ensure this.)
 
-### window:keys_pressed(key) {.method-def}
+### window:keys_pressed() {.method-def}
 
 Returns an array of all the keys whose state changed from
 up to down since the last frame.
@@ -369,7 +369,7 @@ returns `true` for a particular key then `key_pressed` will return `false`.
 (If necessary, Amulet will postpone key press events to the
 next frame to ensure this.)
 
-### window:keys_released(key) {.method-def}
+### window:keys_released() {.method-def}
 
 Returns an array of all the keys whose state changed from
 down to up since the last frame.
