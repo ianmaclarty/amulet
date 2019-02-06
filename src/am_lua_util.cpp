@@ -247,7 +247,7 @@ int am_require(lua_State *L) {
     // read in the module
     int sz;
     strncpy(tmpbuf1, modname, TMP_BUF_SZ);
-    am_replchr(tmpbuf1, '.', AM_PATH_SEP);
+    am_replchr(tmpbuf1, '.', '/'); // always use forward slash, even on windows, in case we're looking in data.pak (/ works for normal files on windows anyway)
     snprintf(tmpbuf2, TMP_BUF_SZ, "%s.lua", tmpbuf1);
     char *errmsg;
     void *buf = am_read_resource(tmpbuf2, &sz, &errmsg);
