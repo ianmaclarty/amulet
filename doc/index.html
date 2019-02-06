@@ -184,9 +184,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#key_down">window:key_down(key)</a></li>
 <li><a href="#windowkeys_down">window:keys_down()</a></li>
 <li><a href="#windowkey_pressedkey">window:key_pressed(key)</a></li>
-<li><a href="#windowkeys_pressedkey">window:keys_pressed(key)</a></li>
+<li><a href="#windowkeys_pressedkey">window:keys_pressed()</a></li>
 <li><a href="#windowkey_releasedkey">window:key_released(key)</a></li>
-<li><a href="#windowkeys_releasedkey">window:keys_released(key)</a></li>
+<li><a href="#windowkeys_releasedkey">window:keys_released()</a></li>
 </ul></li>
 <li><a href="#detecting-mouse-events">Detecting mouse events</a><ul>
 <li><a href="#windowmouse_position">window:mouse_position()</a></li>
@@ -1765,12 +1765,12 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="windowkey_pressedkey" class="method-def">window:key_pressed(key)</h3>
 <p>Returns true if the given key's state changed from up to down since the last frame.</p>
 <p>Note that if <code>key_pressed</code> returns true for a particular key, then <code>key_down</code> will also return <code>true</code>. Also if <code>key_pressed</code> returns <code>true</code> for a particular key then <code>key_released</code> will return <code>false</code> for the same key. (If necessary, Amulet will postpone key release events to the next frame to ensure this.)</p>
-<h3 id="windowkeys_pressedkey" class="method-def">window:keys_pressed(key)</h3>
+<h3 id="windowkeys_pressedkey" class="method-def">window:keys_pressed()</h3>
 <p>Returns an array of all the keys whose state changed from up to down since the last frame.</p>
 <h3 id="windowkey_releasedkey" class="method-def">window:key_released(key)</h3>
 <p>Returns true if the given key's state changed from down to up since the last frame.</p>
 <p>Note that if <code>key_released</code> returns true for a particular key, then <code>key_down</code> will return <code>false</code>. Also if <code>key_released</code> returns <code>true</code> for a particular key then <code>key_pressed</code> will return <code>false</code>. (If necessary, Amulet will postpone key press events to the next frame to ensure this.)</p>
-<h3 id="windowkeys_releasedkey" class="method-def">window:keys_released(key)</h3>
+<h3 id="windowkeys_releasedkey" class="method-def">window:keys_released()</h3>
 <p>Returns an array of all the keys whose state changed from down to up since the last frame.</p>
 <h2 id="detecting-mouse-events">Detecting mouse events</h2>
 <h3 id="windowmouse_position" class="method-def">window:mouse_position()</h3>
