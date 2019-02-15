@@ -41,13 +41,15 @@ function am._traceback(msg, thread)
         end)
     end
 
-    -- append stacktrace to log file
+    -- write stacktrace to log file
     local plat = am.platform
     if is_desktop then
         local f = io.open(logfile, "w")
-        f:write(msg)
-        f:write("\n")
-        f:close()
+        if f then
+            f:write(msg)
+            f:write("\n")
+            f:close()
+        end
     end
 
     return msg
