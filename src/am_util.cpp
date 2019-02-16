@@ -63,6 +63,7 @@ static wchar_t *to_wstr(const char *str) {
 }
 #endif
 
+extern "C" {
 // handles utf8 filenames on windows
 FILE *am_fopen(const char *path, const char *mode) {
 #ifdef AM_WINDOWS
@@ -73,8 +74,9 @@ FILE *am_fopen(const char *path, const char *mode) {
     free(mode16);
     return f;
 #else
-    return fopen(path, mode)
+    return fopen(path, mode);
 #endif
+}
 }
 
 void *am_read_file(const char *filename, size_t *len) {

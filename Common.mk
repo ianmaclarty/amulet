@@ -117,7 +117,7 @@ AR_OPTS = rcus
 AR_OUT_OPT =
 XCFLAGS = -Wall -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -ldl -lm -lrt -pthread
-LUA_CFLAGS = -DLUA_COMPAT_ALL -Dfopen=am_fopen
+LUA_CFLAGS = -DLUA_COMPAT_ALL
 LUAJIT_FLAGS =
 OBJ_OUT_OPT = -o
 EXE_OUT_OPT = -o
