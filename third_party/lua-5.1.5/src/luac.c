@@ -26,6 +26,8 @@
 #define PROGNAME	"luac"		/* default program name */
 #define	OUTPUT		PROGNAME ".out"	/* default output file */
 
+FILE* am_fopen(const char *path, const char *mode);
+
 static int listing=0;			/* list bytecodes? */
 static int dumping=1;			/* dump bytecodes? */
 static int stripping=0;			/* strip debug information? */

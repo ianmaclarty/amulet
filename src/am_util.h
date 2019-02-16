@@ -66,6 +66,8 @@ void am_delete_file(const char *file);
 void am_make_dir(const char* dir);
 void am_delete_empty_dir(const char* dir);
 
+FILE *am_fopen(const char *path, const char *mode);
+
 void *am_read_file(const char *filename, size_t *len);
 
 #ifdef AM_HAVE_GLOB

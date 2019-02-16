@@ -46,6 +46,7 @@ static void ll_unloadlib (void *lib);
 static void *ll_load (lua_State *L, const char *path);
 static lua_CFunction ll_sym (lua_State *L, void *lib, const char *sym);
 
+FILE* am_fopen(const char *path, const char *mode);
 
 
 #if defined(LUA_DL_DLOPEN)

@@ -53,9 +53,33 @@ void am_delete_empty_dir(const char* dir) {
 #endif
 }
 
+#ifdef AM_WINDOWS
+static wchar_t *to_wstr(const char *str) {
+    int len = strlen(str);
+    int len16 = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    wchar_t *str16 = (wchar_t*)malloc(len16 * 2);
+    MultiByteToWideChar(CP_UTF8, 0, str, -1, str16, len16);
+    return str16;
+}
+#endif
+
+// handles utf8 filenames on windows
+FILE *am_fopen(const char *path, const char *mode) {
+#ifdef AM_WINDOWS
+    wchar_t *path16 = to_wstr(path);
+    wchar_t *mode16 = to_wstr(mode);
+    FILE *f = _wfopen(path16, mode16);
+    free(path16);
+    free(mode16);
+    return f;
+#else
+    return fopen(path, mode)
+#endif
+}
+
 void *am_read_file(const char *filename, size_t *len) {
     if (len != NULL) *len = 0;
-    FILE *f = fopen(filename, "rb");
+    FILE *f = am_fopen(filename, "rb");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to open file %s\n", filename);
         return NULL;
