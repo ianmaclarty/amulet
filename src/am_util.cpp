@@ -55,7 +55,6 @@ void am_delete_empty_dir(const char* dir) {
 
 #ifdef AM_WINDOWS
 static wchar_t *to_wstr(const char *str) {
-    int len = strlen(str);
     int len16 = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
     wchar_t *str16 = (wchar_t*)malloc(len16 * 2);
     MultiByteToWideChar(CP_UTF8, 0, str, -1, str16, len16);
