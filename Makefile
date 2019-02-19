@@ -34,7 +34,11 @@ ifeq ($(TARGET_PLATFORM),html)
   AM_DEPS = $(LUAVM) stb kissfft tinymt
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifdef IOS
-  AM_DEPS = $(LUAVM) stb kissfft tinymt glslopt
+  AM_DEPS = $(LUAVM) stb kissfft tinymt
+  ifdef USE_METAL
+    AM_DEPS += glslopt
+    AM_DEFS += AM_USE_METAL
+  endif
 else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
   AM_DEFS += AM_ANGLE_TRANSLATE_GL
@@ -50,8 +54,13 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifeq ($(TARGET_PLATFORM),osx)
-  AM_DEPS = $(LUAVM) sdl angle glslopt stb kissfft tinymt ft2
-  AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
+  ifdef USE_METAL
+    AM_DEPS += glslopt
+    AM_DEFS += AM_USE_METAL
+  else
+    AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  endif
   EXTRA_PREREQS = $(SIMPLEGLOB_H) $(STEAMWORKS_LIB)
 else
   AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
