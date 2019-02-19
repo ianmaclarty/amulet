@@ -4,6 +4,8 @@
 
 #include "amulet.h"
 
+#ifndef AM_USE_METAL
+
 #if defined(AM_BACKEND_SDL)
     #define GL_GLEXT_PROTOTYPES
     #include <SDL_opengl.h>
@@ -29,6 +31,10 @@
 #define GLFUNC(func) func##_ptr
 #else
 #define GLFUNC(func) func
+#endif
+
+#if defined(AM_USE_GLSL_OPTIMIZER)
+#include "glsl_optimizer.h"
 #endif
 
 #if defined(AM_ANGLE_TRANSLATE_GL)
@@ -57,6 +63,13 @@ static void print_ptr(FILE* f, void* p, int len);
 
 #define ATTR_NAME_SIZE 100
 #define UNI_NAME_SIZE 100
+
+#if defined(AM_USE_GLSL_OPTIMIZER)
+static void init_glslopt();
+static void destroy_glslopt();
+static void glslopt_translate_shader(am_shader_type type,
+    const char *src, char **objcode, char **errmsg, glslopt_shader **shader);
+#endif
 
 #if defined(AM_ANGLE_TRANSLATE_GL)
 static void init_angle();
@@ -242,13 +255,18 @@ void am_init_gl() {
     am_max_vertex_uniform_vectors = pval;
 #endif
 
+    // initialize glsl optimizer if using
+#if defined(AM_USE_GLSL_OPTIMIZER)
+    init_glslopt();
+#endif
+
     // initialize angle if using
 #if defined(AM_ANGLE_TRANSLATE_GL)
     init_angle();
 #endif
 
     if (am_conf_log_gl_calls) {
-        gl_log_file = fopen("amulet_gllog.txt", "w");
+        gl_log_file = am_fopen("amulet_gllog.txt", "w");
         if (gl_log_file == NULL) {
             fprintf(stderr, "ERROR: unable to open amulet_gllog.txt for writing\n");
             exit(1);
@@ -267,6 +285,9 @@ void am_close_gllog() {
 void am_destroy_gl() {
     if (!gl_initialized) return;
     gl_initialized = false;
+#if defined(AM_USE_GLSL_OPTIMIZER)
+    destroy_glslopt();
+#endif
 #if defined(AM_ANGLE_TRANSLATE_GL)
     destroy_angle();
 #endif
@@ -418,10 +439,16 @@ void am_set_stencil_test_enabled(bool enabled) {
     check_for_errors
 }
 
-void am_set_stencil_func(am_stencil_face_side face, am_stencil_func func, am_glint ref, am_gluint mask) {
+void am_set_stencil_func(am_glint ref, am_gluint mask, am_stencil_func func_front, am_stencil_func func_back) {
     check_initialized();
-    GLenum gl_face = to_gl_stencil_face_side(face);
-    GLenum gl_func = to_gl_stencil_func(func);
+    GLenum gl_face = GL_FRONT;
+    GLenum gl_func = to_gl_stencil_func(func_front);
+    log_gl("glStencilFuncSeparate(%s, %s, %d, %u);",
+        gl_face_side_str(gl_face), 
+        gl_stencil_func_str(gl_func), ref, mask);
+    GLFUNC(glStencilFuncSeparate)(gl_face, gl_func, ref, mask);
+    gl_face = GL_BACK;
+    gl_func = to_gl_stencil_func(func_back);
     log_gl("glStencilFuncSeparate(%s, %s, %d, %u);",
         gl_face_side_str(gl_face), 
         gl_stencil_func_str(gl_func), ref, mask);
@@ -521,11 +548,10 @@ void am_set_framebuffer_depth_mask(bool flag) {
     check_for_errors
 }
 
-void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask) {
+void am_set_framebuffer_stencil_mask(am_gluint mask) {
     check_initialized();
-    GLenum gl_face = to_gl_stencil_face_side(face);
-    log_gl("glStencilMaskSeparate(%s, %u);", gl_face_side_str(gl_face), mask);
-    GLFUNC(glStencilMaskSeparate)(gl_face, mask);
+    log_gl("glStencilMask(%u);", mask);
+    GLFUNC(glStencilMask)(mask);
     check_for_errors
 }
 
@@ -714,7 +740,31 @@ bool am_compile_shader(am_shader_id shader, am_shader_type type, const char *src
         goto end;
     }
     log_gl("/*\n%s\n*/", src);
-#if defined(AM_ANGLE_TRANSLATE_GL)
+#if defined(AM_USE_GLSL_OPTIMIZER)
+    if (!am_conf_d3dangle) {
+        char *translate_objcode = NULL;
+        char *translate_errmsg = NULL;
+        glslopt_shader *gshader = NULL;
+        glslopt_translate_shader(type, src, &translate_objcode, &translate_errmsg, &gshader);
+        if (translate_errmsg != NULL) {
+            *msg = am_format("%s", translate_errmsg);
+            glslopt_shader_delete(gshader);
+            get_src_error_line(*msg, src, line_no, line_str);
+            compiled = 0;
+            goto end;
+        }
+        assert(translate_objcode != NULL);
+        log_gl("/* GLSL Optimizer output:\n%s\n*/", translate_objcode);
+        log_gl_ptr(translate_objcode, strlen(translate_objcode));
+        log_gl("glShaderSource(shader[%u], 1, (const char**)&ptr[%p], NULL);", shader, translate_objcode);
+        GLFUNC(glShaderSource)(shader, 1, (const char**)&translate_objcode, NULL);
+        glslopt_shader_delete(gshader);
+    } else {
+        log_gl_ptr(src, strlen(src));
+        log_gl("glShaderSource(shader[%u], 1, (const char**)&ptr[%p], NULL);", shader, src);
+        GLFUNC(glShaderSource)(shader, 1, &src, NULL);
+    }
+#elif defined(AM_ANGLE_TRANSLATE_GL)
     if (!am_conf_d3dangle) {
         char *translate_objcode = NULL;
         char *translate_errmsg = NULL;
@@ -896,7 +946,7 @@ void am_set_attribute_array_enabled(am_gluint location, bool enabled) {
     check_for_errors
 }
 
-am_gluint am_get_attribute_location(am_program_id program, const char *name) {
+static am_gluint get_attribute_location(am_program_id program, const char *name) {
     check_initialized(0);
     log_gl("%s", "// about to call glGetAttribLocation");
     am_gluint l = GLFUNC(glGetAttribLocation)(program, name);
@@ -905,7 +955,7 @@ am_gluint am_get_attribute_location(am_program_id program, const char *name) {
     return l;
 }
 
-am_gluint am_get_uniform_location(am_program_id program, const char *name) {
+static am_gluint get_uniform_location(am_program_id program, const char *name) {
     check_initialized(0);
     log_gl("%s", "// about to call glGetUniformLocation");
     am_gluint l = GLFUNC(glGetUniformLocation)(program, name);
@@ -915,7 +965,7 @@ am_gluint am_get_uniform_location(am_program_id program, const char *name) {
 }
 
 void am_get_active_attribute(am_program_id program, am_gluint index,
-    char **name, am_attribute_var_type *type, int *size)
+    char **name, am_attribute_var_type *type, int *size, am_gluint *loc)
 {
     check_initialized();
     GLchar gl_name[ATTR_NAME_SIZE];
@@ -932,10 +982,11 @@ void am_get_active_attribute(am_program_id program, am_gluint index,
     strcpy(*name, gl_name);
     *size = gl_size;
     *type = from_gl_attribute_var_type(gl_type);
+    *loc = get_attribute_location(program, *name);
 }
 
 void am_get_active_uniform(am_program_id program, am_gluint index,
-    char **name, am_uniform_var_type *type, int *size)
+    char **name, am_uniform_var_type *type, int *size, am_gluint *loc)
 {
     check_initialized();
     GLchar gl_name[UNI_NAME_SIZE];
@@ -952,6 +1003,7 @@ void am_get_active_uniform(am_program_id program, am_gluint index,
     strcpy(*name, gl_name);
     *size = gl_size;
     *type = from_gl_uniform_var_type(gl_type);
+    *loc = get_uniform_location(program, *name);
 }
 
 void am_set_uniform1f(am_gluint location, float value) {
@@ -1367,10 +1419,10 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
     am_frame_draw_calls++;
 }
 
-void am_gl_flush() {
-    check_initialized();
-    GLFUNC(glFlush)();
-    check_for_errors
+void am_gl_end_framebuffer_render() {
+}
+
+void am_gl_end_frame(bool present) {
 }
 
 static GLenum to_gl_blend_equation(am_blend_equation eq) {
@@ -1441,7 +1493,6 @@ static GLenum to_gl_stencil_face_side(am_stencil_face_side fs) {
     switch (fs) {
         case AM_STENCIL_FACE_FRONT: return GL_FRONT;
         case AM_STENCIL_FACE_BACK: return GL_BACK;
-        case AM_STENCIL_FACE_FRONT_AND_BACK: return GL_FRONT_AND_BACK;
     }
     return 0;
 }
@@ -1503,7 +1554,6 @@ static GLenum to_gl_cull_face_side(am_cull_face_side fs) {
     switch (fs) {
         case AM_CULL_FACE_FRONT: return GL_FRONT;
         case AM_CULL_FACE_BACK: return GL_BACK;
-        case AM_CULL_FACE_FRONT_AND_BACK: return GL_FRONT_AND_BACK;
     }
     return 0;
 }
@@ -1592,14 +1642,12 @@ static GLenum to_gl_texture_wrap(am_texture_wrap w) {
 
 static GLenum to_gl_renderbuffer_format(am_renderbuffer_format f) {
     switch (f) {
-        case AM_RENDERBUFFER_FORMAT_RGBA4: return GL_RGBA4;
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT16: return GL_DEPTH_COMPONENT16;
 #if defined(GL_DEPTH_COMPONENT24)
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24: return GL_DEPTH_COMPONENT24;
+        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT: return GL_DEPTH_COMPONENT24;
 #elif defined(GL_DEPTH_COMPONENT24_OES)
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24: return GL_DEPTH_COMPONENT24_OES;
+        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT: return GL_DEPTH_COMPONENT24_OES;
 #else
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24: return GL_DEPTH_COMPONENT16;
+        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT: return GL_DEPTH_COMPONENT16;
 #endif
         case AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8: return GL_STENCIL_INDEX8;
     }
@@ -1630,7 +1678,6 @@ static GLenum to_gl_draw_mode(am_draw_mode m) {
 
 static GLenum to_gl_element_index_type(am_element_index_type t) {
     switch (t) {
-        case AM_ELEMENT_TYPE_UBYTE: return GL_UNSIGNED_BYTE;
         case AM_ELEMENT_TYPE_USHORT: return GL_UNSIGNED_SHORT;
         case AM_ELEMENT_TYPE_UINT: return GL_UNSIGNED_INT;
     }
@@ -2000,6 +2047,47 @@ void am_log_gl(const char *msg) {
 }
 
 //-------------------------------------------------------------------------------------------------
+// GLSL-optimiser
+#if defined(AM_USE_GLSL_OPTIMIZER)
+
+static glslopt_ctx* glslopt_context = NULL;
+
+static void init_glslopt() {
+    glslopt_target target = kGlslTargetOpenGLES20;
+    glslopt_context = glslopt_initialize(target);
+    if (!glslopt_context) {
+        am_abort("unable to initialize glsl optimizer");
+    }
+}
+
+static void destroy_glslopt() {
+    glslopt_cleanup(glslopt_context);
+}
+
+static void glslopt_translate_shader(am_shader_type type,
+    const char *src, char **objcode, char **errmsg, glslopt_shader **shader)
+{
+    *objcode = NULL;
+    *errmsg = NULL;
+    glslopt_shader_type gtype;
+
+    switch (type) {
+        case AM_VERTEX_SHADER: gtype = kGlslOptShaderVertex; break;
+        case AM_FRAGMENT_SHADER: gtype = kGlslOptShaderFragment; break;
+    }
+    unsigned options = 0;
+
+    *shader = glslopt_optimize(glslopt_context, gtype, src, options);
+
+    if (glslopt_get_status(*shader)) {
+        *objcode = (char*)glslopt_get_output(*shader);
+    } else {
+        *errmsg = (char*)glslopt_get_log(*shader);
+    }
+}
+#endif
+
+//-------------------------------------------------------------------------------------------------
 // Angle shader translater
 #if defined(AM_ANGLE_TRANSLATE_GL)
 
@@ -2072,3 +2160,5 @@ void am_reset_gl_frame_stats() {
     am_frame_draw_calls = 0;
     am_frame_use_program_calls = 0;
 }
+
+#endif  // AM_USE_METAL

@@ -20,6 +20,7 @@ const char *am_conf_support_email = NULL;
 const char *am_conf_mac_category = NULL;
 const char *am_conf_mac_application_cert_identity = NULL;
 const char *am_conf_mac_installer_cert_identity = NULL;
+const char *am_conf_copyright_message = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -69,7 +70,7 @@ static void read_string_setting(lua_State *L, const char *name, const char **val
         return;
     }
     char **val = (char**)value;
-    *val = (char*)malloc(strlen(lstr) + 1); // never freed
+    *val = (char*)malloc(strlen(lstr) + 1);
     memcpy(*val, lstr, strlen(lstr) + 1);
     lua_pop(L, 1);
 }
@@ -111,6 +112,7 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_mac_category);
     free_if_not_null((void**)&am_conf_mac_application_cert_identity);
     free_if_not_null((void**)&am_conf_mac_installer_cert_identity);
+    free_if_not_null((void**)&am_conf_copyright_message);
 }
 
 bool am_load_config() {
@@ -170,6 +172,7 @@ bool am_load_config() {
     read_string_setting(eng->L, "mac_category", &am_conf_mac_category, "public.app-category.games");
     read_string_setting(eng->L, "mac_application_cert_identity", &am_conf_mac_application_cert_identity, NULL);
     read_string_setting(eng->L, "mac_installer_cert_identity", &am_conf_mac_installer_cert_identity, NULL);
+    read_string_setting(eng->L, "copyright_message", &am_conf_copyright_message, "");
 #ifdef AM_WINDOWS
     read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
 #endif

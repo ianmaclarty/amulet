@@ -4,7 +4,6 @@
 ** See Copyright Notice in lua.h
 */
 
-
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -34,7 +33,7 @@
 #define LEVELS1	12	/* size of the first part of the stack */
 #define LEVELS2	10	/* size of the second part of the stack */
 
-
+FILE* am_fopen(const char *path, const char *mode);
 
 /*
 ** search for 'objidx' in table at index -1.

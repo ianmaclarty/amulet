@@ -7,7 +7,6 @@ local win = am.window{
     title = "waiting for script...",
     letterbox = false,
 }
-win.perspective = math.ortho(0, win.pixel_width, 0, win.pixel_height)
 
 local pp = am.postprocess{
     auto_clear = false,

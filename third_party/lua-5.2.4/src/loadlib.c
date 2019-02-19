@@ -126,6 +126,9 @@ static lua_CFunction ll_sym (lua_State *L, void *lib, const char *sym);
 
 #include <dlfcn.h>
 
+FILE* am_fopen(const char *path, const char *mode);
+
+
 static void ll_unloadlib (void *lib) {
   dlclose(lib);
 }

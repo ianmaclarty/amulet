@@ -253,6 +253,10 @@ static int create_program(lua_State *L) {
         char *msg = am_get_program_info_log(program);
         lua_pushfstring(L, "shader program link error:\n%s", msg);
         free(msg);
+        am_detach_shader(program, vertex_shader);
+        am_detach_shader(program, fragment_shader);
+        am_delete_shader(vertex_shader);
+        am_delete_shader(fragment_shader);
         am_delete_program(program);
         return luaL_error(L, lua_tostring(L, -1));
     }
@@ -270,12 +274,14 @@ static int create_program(lua_State *L) {
         char *name_str;
         am_attribute_var_type type;
         int size;
-        am_get_active_attribute(program, index, &name_str, &type, &size);
+        am_gluint loc;
+        am_get_active_attribute(program, index, &name_str, &type, &size, &loc);
+        // XXX check size
         lua_pushstring(L, name_str);
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name str
         am_program_param *param = &params[i];
-        param->location = am_get_attribute_location(program, name_str);
+        param->location = loc;
         param->name = name;
         switch (type) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT:
@@ -294,10 +300,10 @@ static int create_program(lua_State *L) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3:
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4:
             case AM_ATTRIBUTE_VAR_TYPE_UNKNOWN:
+                lua_pushfstring(L, "sorry, attribute '%s' is of an unsupported type", name_str);
                 free(name_str);
                 am_delete_program(program);
-                return luaL_error(L, "sorry, attribute '%s' is of an unsupported type");
-                continue;
+                return lua_error(L);
         }
         free(name_str);
         i++;
@@ -307,13 +313,20 @@ static int create_program(lua_State *L) {
     for (int index = 0; index < num_uniforms; index++) {
         char *name_str;
         am_uniform_var_type type;
-        int size;
-        am_get_active_uniform(program, index, &name_str, &type, &size);
+        int arr_size;
+        am_gluint loc;
+        am_get_active_uniform(program, index, &name_str, &type, &arr_size, &loc);
+        if (arr_size > 1) {
+            lua_pushfstring(L, "sorry, uniform '%s' is of an unsupported type", name_str);
+            free(name_str);
+            am_delete_program(program);
+            return lua_error(L);
+        }
         lua_pushstring(L, name_str);
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name
         am_program_param *param = &params[i];
-        param->location = am_get_uniform_location(program, name_str);
+        param->location = loc;
         param->name = name;
         switch (type) {
             case AM_UNIFORM_VAR_TYPE_FLOAT:
@@ -350,9 +363,10 @@ static int create_program(lua_State *L) {
             case AM_UNIFORM_VAR_TYPE_BOOL_VEC4:
             case AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE:
             case AM_UNIFORM_VAR_TYPE_UNKNOWN:
+                lua_pushfstring(L, "sorry, uniform '%s' is of an unsupported type", name_str);
                 free(name_str);
                 am_delete_program(program);
-                return luaL_error(L, "sorry, uniform '%s' is of an unsupported type");
+                return lua_error(L);
         }
         free(name_str);
         i++;

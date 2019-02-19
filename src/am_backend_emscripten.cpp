@@ -341,6 +341,9 @@ static bool handle_events() {
                 if (event.button.which != SDL_TOUCH_MOUSEID) {
                     am_window *win = am_find_window((am_native_window*)sdl_window);
                     if (win) {
+                        // make sure we have the current mouse position
+                        mouse_x = event.motion.x;
+                        mouse_y = event.motion.y;
                         win->mouse_down(eng->L, convert_mouse_button(event.button.button));
                     }
                 }

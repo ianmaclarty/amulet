@@ -109,11 +109,10 @@ enum am_stencil_op {
 enum am_stencil_face_side {
     AM_STENCIL_FACE_FRONT,
     AM_STENCIL_FACE_BACK,
-    AM_STENCIL_FACE_FRONT_AND_BACK,
 };
 
 void am_set_stencil_test_enabled(bool enabled);
-void am_set_stencil_func(am_stencil_face_side face, am_stencil_func func, am_glint ref, am_gluint mask);
+void am_set_stencil_func(am_glint ref, am_gluint mask, am_stencil_func func_front, am_stencil_func func_back);
 void am_set_stencil_op(am_stencil_face_side face, am_stencil_op fail, am_stencil_op zfail, am_stencil_op zpass);
 
 void am_set_sample_alpha_to_coverage_enabled(bool enabled);
@@ -128,7 +127,7 @@ void am_set_framebuffer_clear_depth(float depth);
 void am_set_framebuffer_clear_stencil_val(am_glint val);
 void am_set_framebuffer_color_mask(bool r, bool g, bool b, bool a);
 void am_set_framebuffer_depth_mask(bool flag);
-void am_set_framebuffer_stencil_mask(am_stencil_face_side face, am_gluint mask);
+void am_set_framebuffer_stencil_mask(am_gluint mask);
 
 // Buffer Objects
 
@@ -172,7 +171,6 @@ void am_set_front_face_winding(am_face_winding mode);
 enum am_cull_face_side {
     AM_CULL_FACE_FRONT,
     AM_CULL_FACE_BACK,
-    AM_CULL_FACE_FRONT_AND_BACK,
 };
 
 void am_set_cull_face_enabled(bool enabled);
@@ -264,13 +262,10 @@ void am_set_attribute_array_enabled(am_gluint location, bool enabled);
 
 // *name should be freed with free()
 void am_get_active_attribute(am_program_id program, am_gluint index,
-    char **name, am_attribute_var_type *type, int *size);
+    char **name, am_attribute_var_type *type, int *size, am_gluint *loc);
 // *name should be freed with free()
 void am_get_active_uniform(am_program_id program, am_gluint index,
-    char **name, am_uniform_var_type *type, int *size);
-
-am_gluint am_get_attribute_location(am_program_id program, const char *name);
-am_gluint am_get_uniform_location(am_program_id program, const char *name);
+    char **name, am_uniform_var_type *type, int *size, am_gluint *loc);
 
 void am_set_uniform1f(am_gluint location, float value);
 void am_set_uniform2f(am_gluint location, const float *value);
@@ -369,9 +364,7 @@ void am_set_texture_wrap(am_texture_bind_target target, am_texture_wrap s_wrap, 
 // Renderbuffer Objects
 
 enum am_renderbuffer_format {
-    AM_RENDERBUFFER_FORMAT_RGBA4,
-    AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT16,
-    AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT24,
+    AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT,
     AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8,
 };
 
@@ -429,7 +422,6 @@ enum am_draw_mode {
 };
 
 enum am_element_index_type {
-    AM_ELEMENT_TYPE_UBYTE,
     AM_ELEMENT_TYPE_USHORT,
     AM_ELEMENT_TYPE_UINT,
 };
@@ -439,7 +431,9 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
 
 // Other
 
-void am_gl_flush();
+void am_gl_end_framebuffer_render();
+void am_gl_end_frame(bool present);
+
 void am_log_gl(const char *msg);
 void am_close_gllog();
 void am_reset_gl_frame_stats();

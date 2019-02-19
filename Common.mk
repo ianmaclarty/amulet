@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios32 ios64 iossim android html mingw32 mingw64
+TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios android html mingw32 mingw64
 
 # Directories
 
@@ -20,6 +20,7 @@ STB_DIR		 = $(THIRD_PARTY_DIR)/stb
 KISSFFT_DIR	 = $(THIRD_PARTY_DIR)/kiss_fft130
 TINYMT_DIR	 = $(THIRD_PARTY_DIR)/tinymt-1.0.3
 SIMPLEOPT_DIR    = $(THIRD_PARTY_DIR)/simpleopt
+GLSLOPT_DIR      = $(THIRD_PARTY_DIR)/glsl-optimizer
 
 # Host settings (this is the *build* host, not the host we want to run on)
 
@@ -85,6 +86,7 @@ FT2_ALIB = $(BUILD_LIB_DIR)/libft2$(ALIB_EXT)
 STB_ALIB = $(BUILD_LIB_DIR)/libstb$(ALIB_EXT)
 KISSFFT_ALIB = $(BUILD_LIB_DIR)/libkissfft$(ALIB_EXT)
 TINYMT_ALIB = $(BUILD_LIB_DIR)/libtinymt$(ALIB_EXT)
+GLSLOPT_ALIB = $(BUILD_LIB_DIR)/libglslopt$(ALIB_EXT)
 SIMPLEGLOB_H = $(BUILD_INC_DIR)/SimpleGlob.h
 
 SRC_DIR = src
@@ -118,7 +120,7 @@ AR_OUT_OPT =
 XCFLAGS = -Wall -Werror -pthread -fno-strict-aliasing
 XLDFLAGS = -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
-LUAJIT_FLAGS = 
+LUAJIT_FLAGS =
 OBJ_OUT_OPT = -o
 EXE_OUT_OPT = -o
 NOLINK_OPT = -c
@@ -155,17 +157,31 @@ else
       XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/linux64
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      # steamworks api triggers this warning
+      XCFLAGS += -Wno-invalid-offsetof
   else ifeq ($(TARGET_PLATFORM),linux32)
       STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.so
       XLDFLAGS+=-L$(BUILD_BIN_DIR) -lsteam_api 
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/linux32
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      # steamworks api triggers this warning
+      XCFLAGS += -Wno-invalid-offsetof
   else ifeq ($(TARGET_PLATFORM),osx)
       STEAMWORKS_LIB=$(BUILD_BIN_DIR)/libsteam_api.dylib
       STEAMWORKS_LINK_OPT=-L$(BUILD_BIN_DIR) -lsteam_api 
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/osx32
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
+      # steamworks api triggers this warning
+      XCFLAGS += -Wno-invalid-offsetof
   endif
+endif
+
+ifdef USE_METAL
+    OSX_GRAPHICS_LINK_OPT=-Wl,-framework,Metal
+    IOS_GRAPHICS_LINK_OPT=-Wl,-framework,Metal -Wl,-framework,MetalKit 
+else
+    OSX_GRAPHICS_LINK_OPT=-Wl,-framework,OpenGL
+    IOS_GRAPHICS_LINK_OPT=-Wl,-framework,OpenGLES -Wl,-framework,GLKit
 endif
 
 # Adjust flags for target
@@ -175,67 +191,34 @@ ifeq ($(TARGET_PLATFORM),osx)
   LINK = clang++
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -m64 -arch x86_64
-  XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT) -Wl,-framework,OpenGL -Wl,-framework,ForceFeedback -lobjc \
+  XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT) $(OSX_GRAPHICS_LINK_OPT) -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
-	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia \
-	     -pagezero_size 10000 -image_base 100000000
+	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia
+ifeq ($(LUAVM),luajit)
+  XLDFLAGS += -pagezero_size 10000 -image_base 100000000
+endif
+
   LUA_CFLAGS += -DLUA_USE_MACOSX
-  MACOSX_DEPLOYMENT_TARGET=10.9
+  MACOSX_DEPLOYMENT_TARGET=10.14
   export MACOSX_DEPLOYMENT_TARGET
   OSX = 1
-else ifeq ($(TARGET_PLATFORM),ios32)
+else ifeq ($(TARGET_PLATFORM),ios)
   CC = clang
   CPP = clang++
   LINK = $(CPP)
   XCODE_PATH = $(shell xcode-select --print-path)
   SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -Fthird_party -arch armv7 -isysroot $(SDK_PATH) -miphoneos-version-min=7.0
+  TARGET_CFLAGS += -Fthird_party -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=11.0
   XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
-	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
-	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
-	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
-	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony \
-	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
-  LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
-  IOS = 1
-else ifeq ($(TARGET_PLATFORM),ios64)
-  CC = clang
-  CPP = clang++
-  LINK = $(CPP)
-  XCODE_PATH = $(shell xcode-select --print-path)
-  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
-  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -Fthird_party -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=7.0
-  XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
+  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
 	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
-  LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
-  IOS = 1
-else ifeq ($(TARGET_PLATFORM),iossim)
-  CC = clang
-  CPP = clang++
-  LINK = $(CPP)
-  XCODE_PATH = $(shell xcode-select --print-path)
-  SDK_VERSION = $(shell xcodebuild -showsdks | grep iphoneos | sed "s/.*iphoneos//")
-  SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDK_VERSION).sdk
-  TARGET_CFLAGS += -Fthird_party -arch x86_64 -isysroot $(SDK_PATH) -miphoneos-version-min=7.0
-  XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,OpenGLES -lobjc \
-	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
-	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
-	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
-	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
-	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
-	     -Wl,-framework,GLKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
+	     $(IOS_GRAPHICS_LINK_OPT) -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),android)
@@ -381,6 +364,9 @@ ifeq ($(GRADE),debug)
     GRADE_LDFLAGS = -DEBUG
     LUA_CFLAGS += -DLUA_USE_APICHECK
     LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
+  else ifeq ($(TARGET_PLATFORM),osx)
+    GRADE_CFLAGS = -g -O0 -fsanitize=address
+    GRADE_LDFLAGS = -g -fsanitize=address
   else ifeq ($(TARGET_PLATFORM),msvc64)
     GRADE_CFLAGS = -MTd -Zi
     GRADE_LDFLAGS = -DEBUG
@@ -407,10 +393,7 @@ else
   else ifeq ($(TARGET_PLATFORM),osx)
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =
-  else ifeq ($(TARGET_PLATFORM),ios32)
-    GRADE_CFLAGS = -O3 -DNDEBUG
-    GRADE_LDFLAGS =
-  else ifeq ($(TARGET_PLATFORM),ios64)
+  else ifeq ($(TARGET_PLATFORM),ios)
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),android)

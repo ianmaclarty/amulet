@@ -35,6 +35,10 @@ ifeq ($(TARGET_PLATFORM),html)
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft tinymt
+  ifdef USE_METAL
+    AM_DEPS += glslopt
+    AM_DEFS += AM_USE_METAL
+  endif
 else ifeq ($(TARGET_PLATFORM),msvc32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
   AM_DEFS += AM_ANGLE_TRANSLATE_GL
@@ -49,6 +53,15 @@ else ifdef ANDROID
 else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+else ifeq ($(TARGET_PLATFORM),osx)
+  AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
+  ifdef USE_METAL
+    AM_DEPS += glslopt
+    AM_DEFS += AM_USE_METAL
+  else
+    AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  endif
+  EXTRA_PREREQS = $(SIMPLEGLOB_H) $(STEAMWORKS_LIB)
 else
   AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
   AM_DEFS += AM_ANGLE_TRANSLATE_GL
@@ -107,6 +120,7 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@$(ALIB_EXT) $(AM_OBJ_FILES) 
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	for f in $(DEP_ALIBS); do ff=`basename $$f`; cp $$f $(BUILD_BIN_DIR)/`echo $$ff | sed 's/^lib//'`; done
+	scripts/gen_ios_info_plist.sh
 	@$(PRINT_BUILD_DONE_MSG)
 else ifdef MSVC
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
@@ -240,6 +254,11 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
+
+$(GLSLOPT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(GLSLOPT_DIR) && $(MAKE) clean all
+	cp $(GLSLOPT_DIR)/src/glsl/glsl_optimizer.h $(BUILD_INC_DIR)/
+	cp $(GLSLOPT_DIR)/libglslopt$(ALIB_EXT) $@
 
 $(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
 	cp $(SIMPLEOPT_DIR)/SimpleGlob.h $@

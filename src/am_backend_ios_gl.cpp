@@ -1,6 +1,6 @@
 #include "amulet.h"
 
-#ifdef AM_BACKEND_IOS
+#if defined(AM_BACKEND_IOS) && !defined(AM_USE_METAL)
 
 #import <objc/runtime.h>
 #import <QuartzCore/QuartzCore.h>
@@ -167,13 +167,6 @@ static void ios_sync_store() {
         [prefs synchronize];
     }
 }
-
-/*
-static void ios_launch_url(const char *url) {
-    NSString *ns_url = [NSString stringWithUTF8String:url];
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:ns_url]];
-}
-*/
 
 // ---------------------------------------------------------------------------
 
@@ -1448,6 +1441,14 @@ static int ios_request_review(lua_State *L) {
     return 0;
 }
 
+static int launch_url(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *url = lua_tostring(L, 1);
+    if (url == NULL) return 0;
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url]] options:@{} completionHandler:nil];
+    return 0;
+}
+
 void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},
@@ -1475,6 +1476,8 @@ void am_open_ios_module(lua_State *L) {
         {"iap_product_local_price", iap_product_local_price},
 
         {"ios_request_review", ios_request_review},
+
+        {"launch_url", launch_url},
 
         {NULL, NULL}
     };

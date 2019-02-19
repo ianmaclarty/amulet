@@ -4,17 +4,14 @@ void am_stencil_test_node::render(am_render_state *rstate) {
     am_stencil_test_state old_state = rstate->active_stencil_test_state;
     rstate->active_stencil_test_state.set(
         enabled,
-        func_back,
         ref,
         read_mask,
         write_mask,
         func_front,
-        ref,
-        read_mask,
-        write_mask,
         op_fail_front,
         op_zfail_front,
         op_zpass_front,
+        func_back,
         op_fail_back,
         op_zfail_back,
         op_zpass_back);

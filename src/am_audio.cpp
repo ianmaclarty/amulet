@@ -1602,7 +1602,14 @@ static void do_post_render(am_audio_context *context, int num_samples, am_audio_
 void am_fill_audio_bus(am_audio_bus *bus) {
     if (audio_context.root == NULL) return;
     if (!am_conf_audio_mute) {
-        audio_context.root->render_audio(&audio_context, bus);
+#if AM_STEAMWORKS
+        // mute audio if steam overlay shown
+        if (!am_steam_overlay_enabled) {
+#endif
+            audio_context.root->render_audio(&audio_context, bus);
+#if AM_STEAMWORKS
+        }
+#endif
     }
     audio_context.render_id++;
     do_post_render(&audio_context, bus->num_samples, audio_context.root);

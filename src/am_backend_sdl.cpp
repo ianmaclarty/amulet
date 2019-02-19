@@ -4,9 +4,11 @@
 
 #define SDL_MAIN_HANDLED 1
 #include "SDL.h"
+#include "SDL_syswm.h"
 
 #ifdef AM_OSX
 #import <AppKit/AppKit.h>
+#import <Cocoa/Cocoa.h>
 #endif
 
 // Create variables for OpenGL ES 2 functions
@@ -54,10 +56,23 @@ static bool capture_initialized = false;
 static bool should_init_capture = false;
 static std::vector<win_info> windows;
 SDL_Window *main_window = NULL;
-static SDL_GLContext gl_context;
-static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
 static bool restart_triggered = false;
+
+#ifdef AM_USE_METAL
+extern NSWindow *am_metal_window;
+extern bool am_metal_use_highdpi;
+extern bool am_metal_window_depth_buffer;
+extern bool am_metal_window_stencil_buffer;
+extern int am_metal_window_msaa_samples;
+extern int am_metal_window_pwidth;
+extern int am_metal_window_pheight;
+extern int am_metal_window_swidth;
+extern int am_metal_window_sheight;
+#else
+static SDL_GLContext gl_context;
+static bool gl_context_initialized = false;
+#endif
 
 static am_package *package = NULL;
 
@@ -94,6 +109,14 @@ am_native_window *am_create_native_window(
     if (!sdl_initialized) {
         init_sdl();
     }
+#ifdef AM_USE_METAL
+    Uint32 flags = 0;
+    if (main_window) {
+        am_log0("%s", "sorry, only one window is supported");
+        return NULL;
+    }
+#else
+    // using gl
     if (main_window != NULL) {
         SDL_GL_MakeCurrent(main_window, gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
@@ -128,6 +151,7 @@ am_native_window *am_create_native_window(
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     }
     Uint32 flags = SDL_WINDOW_OPENGL;
+#endif
     switch (mode) {
         case AM_WINDOW_MODE_WINDOWED: break;
         case AM_WINDOW_MODE_FULLSCREEN: flags |= SDL_WINDOW_FULLSCREEN; break;
@@ -152,6 +176,16 @@ am_native_window *am_create_native_window(
         am_log0("%s", SDL_GetError());
         return NULL;
     }
+#ifdef AM_USE_METAL
+    SDL_SysWMinfo sdl_info;
+    SDL_VERSION(&sdl_info.version);
+    SDL_GetWindowWMInfo(win, &sdl_info);
+    am_metal_window = sdl_info.info.cocoa.window;
+    am_metal_use_highdpi = highdpi;
+    am_metal_window_depth_buffer = depth_buffer;
+    am_metal_window_stencil_buffer = stencil_buffer;
+    am_metal_window_msaa_samples = msaa_samples;
+#else
     if (!gl_context_initialized) {
         gl_context = SDL_GL_CreateContext(win);
 #ifdef AM_NEED_GL_FUNC_PTRS
@@ -160,6 +194,7 @@ am_native_window *am_create_native_window(
         gl_context_initialized = true;
     }
     SDL_GL_MakeCurrent(win, gl_context);
+#endif
     if (!am_gl_is_initialized()) {
         am_init_gl();
     }
@@ -184,13 +219,20 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *ph = 0;
     *sw = 0;
     *sh = 0;
+#ifdef AM_USE_METAL
+    *pw = am_metal_window_pwidth;
+    *ph = am_metal_window_pheight;
+    *sw = am_metal_window_swidth;
+    *sh = am_metal_window_sheight;
+#else
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window == (SDL_Window*)window) {
-            SDL_GL_GetDrawableSize(windows[i].window, pw, ph);
             SDL_GetWindowSize(windows[i].window, sw, sh);
+            SDL_GL_GetDrawableSize(windows[i].window, pw, ph);
             return;
         }
     }
+#endif
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
@@ -298,12 +340,17 @@ void am_destroy_native_window(am_native_window* window) {
 }
 
 void am_native_window_bind_framebuffer(am_native_window* window) {
+#if !defined(AM_USE_METAL)
     SDL_GL_MakeCurrent((SDL_Window*)window, gl_context);
+#endif
     am_bind_framebuffer(0);
 }
 
 void am_native_window_swap_buffers(am_native_window* window) {
+    am_gl_end_frame(true);
+#if !defined(AM_USE_METAL)
     SDL_GL_SwapWindow((SDL_Window*)window);
+#endif
 }
 
 double am_get_current_time() {
@@ -390,7 +437,7 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
     }
 }
 
-#if !defined (AM_OSX) // see am_videocapture_osx.cpp for OSX definition
+#if !(defined (AM_OSX) && !defined(AM_USE_METAL))// see am_videocapture_osx.cpp for OSX (opengl) definition
 int am_next_video_capture_frame() {
     return 0;
 }
@@ -415,6 +462,16 @@ const char *am_preferred_language() {
 #endif
 }
 
+#if defined (AM_OSX)
+static int launch_url(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *url = lua_tostring(L, 1);
+    if (url == NULL) return 0;
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url]]];
+    return 0;
+}
+#endif
+
 int main( int argc, char *argv[] )
 {
     int vsync;
@@ -429,9 +486,6 @@ int main( int argc, char *argv[] )
 
     int exit_status = EXIT_SUCCESS;
 
-#ifdef AM_OSX
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#endif
 #ifdef AM_WINDOWS
     SDL_SetMainReady();
 #endif
@@ -439,6 +493,10 @@ int main( int argc, char *argv[] )
     am_expand_args(&argc, &argv);
     int expanded_argc = argc;
     char **expanded_argv = argv;
+
+#ifdef AM_OSX
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
 
     if (!am_process_args(&argc, &argv, &exit_status)) {
         goto quit;
@@ -481,15 +539,23 @@ restart:
     vsync = -2;
 
     while (windows.size() > 0 && !restart_triggered) {
+#if !defined(AM_USE_METAL)
         if (vsync != (am_conf_vsync ? 1 : 0)) {
             vsync = (am_conf_vsync ? 1 : 0);
             SDL_GL_SetSwapInterval(vsync);
         }
+#endif
 
         if (!am_update_windows(L)) {
             goto quit;
         }
 
+#ifdef AM_OSX
+        // release pool after updating windows, so that some metal objects, such as the layer,
+        // persist for the entire frame.
+        [pool release];
+        pool = [[NSAutoreleasePool alloc] init];
+#endif
         SDL_LockAudioDevice(audio_device);
         am_sync_audio_graph(L);
         if (should_init_capture) {
@@ -516,7 +582,13 @@ restart:
         if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
                 double t0 = am_get_current_time();
+#ifdef AM_STEAMWORKS
+                if (!am_steam_overlay_enabled) {
+#endif
                 am_execute_actions(L, am_conf_fixed_delta_time);
+#ifdef AM_STEAMWORKS
+                }
+#endif
                 double t = am_get_current_time() - t0;
                 t_debt -= am_max(t, am_conf_fixed_delta_time);
             }
@@ -525,7 +597,13 @@ restart:
                 if (am_conf_delta_time_step > 0.0) {
                     t_debt = floor(t_debt / am_conf_delta_time_step + 0.5) * am_conf_delta_time_step;
                 }
+#ifdef AM_STEAMWORKS
+                if (!am_steam_overlay_enabled) {
+#endif
                 am_execute_actions(L, t_debt);
+#ifdef AM_STEAMWORKS
+                }
+#endif
                 t_debt = 0.0;
             }
         }
@@ -598,11 +676,11 @@ quit:
     }
     am_log_gl("// free expanded args");
     am_free_expanded_args(expanded_argc, expanded_argv);
+    am_log_gl("// exit");
+    am_close_gllog();
 #ifdef AM_OSX
     [pool release];
 #endif
-    am_log_gl("// exit");
-    am_close_gllog();
     exit(exit_status);
     return exit_status;
 }
@@ -1342,6 +1420,9 @@ static win_info *win_from_id(Uint32 winid) {
 void am_open_sdl_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"_rumble", rumble},
+#if defined(AM_OSX)
+        {"launch_url", launch_url},
+#endif
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

@@ -126,6 +126,7 @@ typedef luaL_Stream LStream;
 
 #define isclosed(p)	((p)->closef == NULL)
 
+FILE* am_fopen(const char *path, const char *mode);
 
 static int io_type (lua_State *L) {
   LStream *p;

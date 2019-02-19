@@ -410,17 +410,17 @@ static void draw_windows() {
         if (!win->needs_closing) {
             am_native_window_bind_framebuffer(win->native_win);
             am_render_state *rstate = am_global_render_state;
-            rstate->do_render(win->scene, 0, true, win->clear_color, win->stencil_clear_value,
+            am_scene_node* roots[2];
+            int num_roots = 1;
+            roots[0] = win->scene;
+            if (win->overlay != NULL) {
+                roots[1] = win->overlay;
+                num_roots = 2;
+            }
+            rstate->do_render(&roots[0], num_roots, 0, true, win->clear_color, win->stencil_clear_value,
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                 win->pixel_width, win->pixel_height,
                 win->projection, win->has_depth_buffer);
-            if (win->overlay != NULL) {
-                rstate->do_render(win->overlay, 0, false, win->clear_color,
-                    win->stencil_clear_value, 
-                    win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
-                    win->pixel_width, win->pixel_height,
-                    win->projection, false);
-            }
             am_native_window_swap_buffers(win->native_win);
         }
     }
