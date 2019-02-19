@@ -176,6 +176,15 @@ else
   endif
 endif
 
+ifdef USE_METAL
+    OSX_GRAPHICS_LINK_OPT=-Wl,-framework,Metal
+    IOS_GRAPHICS_LINK_OPT=-Wl,-framework,Metal -Wl,-framework,MetalKit 
+    XCFLAGS += -DAM_USE_METAL
+else
+    OSX_GRAPHICS_LINK_OPT=-Wl,-framework,OpenGL
+    IOS_GRAPHICS_LINK_OPT=-Wl,-framework,OpenGL -Wl,-framework,GLKit
+endif
+
 # Adjust flags for target
 ifeq ($(TARGET_PLATFORM),osx)
   CC = clang
@@ -183,7 +192,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   LINK = clang++
   XCFLAGS += -ObjC++
   TARGET_CFLAGS += -m64 -arch x86_64
-  XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT)  -Wl,-framework,Metal -Wl,-framework,ForceFeedback -lobjc \
+  XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT) $(OSX_GRAPHICS_LINK_OPT) -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia
@@ -204,13 +213,13 @@ else ifeq ($(TARGET_PLATFORM),ios)
   SDK_PATH = $(XCODE_PATH)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDK_VERSION).sdk
   TARGET_CFLAGS += -Fthird_party -arch arm64 -isysroot $(SDK_PATH) -miphoneos-version-min=11.0
   XCFLAGS += -ObjC++
-  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv -Wl,-framework,Metal -lobjc \
+  XLDFLAGS = $(TARGET_CFLAGS) -lm -liconv $(IOS_GRAPHICS_LINK_OPT) -lobjc \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,MediaPlayer -Wl,-framework,MobileCoreServices \
 	     -Wl,-framework,CFNetwork -Wl,-framework,CoreGraphics -Wl,-framework,SystemConfiguration \
 	     -Wl,-framework,UIKit -Wl,-framework,QuartzCore -Wl,-framework,SpriteKit -Wl,-framework,StoreKit -Wl,-framework,CoreMedia \
 	     -Wl,-framework,CoreMotion -Wl,-framework,Foundation -Wl,-framework,CoreTelephony -Wl,-framework,MessageUI -Wl,-framework,AdSupport \
 	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo \
-	     -Wl,-framework,MetalKit -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
+	     -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
 else ifeq ($(TARGET_PLATFORM),android)
