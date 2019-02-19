@@ -479,7 +479,7 @@ bool am_build_exports(uint32_t flags) {
 }
 
 static bool create_mac_info_plist(const char *binpath, const char *filename, export_config *conf) {
-    FILE *f = fopen(filename, "w");
+    FILE *f = am_fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to create file %s", filename);
         return false;
@@ -506,7 +506,7 @@ static bool create_mac_info_plist(const char *binpath, const char *filename, exp
 }
 
 static bool create_ios_info_plist(const char *binpath, const char *filename, export_config *conf) {
-    FILE *f = fopen(filename, "w");
+    FILE *f = am_fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to create file %s", filename);
         return false;
@@ -591,7 +591,7 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
 }
 
 static bool create_ios_pkginfo(const char *filename) {
-    FILE *f = fopen(filename, "w");
+    FILE *f = am_fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to create file %s", filename);
         return false;
@@ -689,7 +689,7 @@ static bool resize_image(void *img_data, int in_w, int in_h, const char *dir, co
         out_data, out_w, out_h, 4, &len, MZ_DEFAULT_LEVEL, 0);
     free(out_data);
     char *path = am_format("%s%c%s", dir, AM_PATH_SEP, filename);
-    FILE *f = fopen(path, "wb");
+    FILE *f = am_fopen(path, "wb");
     free(path);
     if (f == NULL) {
         fprintf(stderr, "Error: cannot open %s for writing\n", filename);
@@ -740,7 +740,7 @@ static bool create_ios_icon_files(const char *dir, export_config *conf) {
 
 static bool create_mac_entitlements(export_config *conf) {
     char *filename = am_format("%s/%s.entitlements", AM_TMP_DIR, conf->shortname);
-    FILE *f = fopen(filename, "w");
+    FILE *f = am_fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to create file %s", filename);
         free(filename);

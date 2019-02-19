@@ -7,7 +7,7 @@ VPATH=src
 LUA_C_FILES:=$(shell find src -name "*.c" -exec basename \{\} \; | grep -v lua.c | grep -v luac.c)
 LUA_O_FILES:=$(patsubst %.c,%$(OBJ_EXT),$(LUA_C_FILES))
 
-CFLAGS = $(COMMON_CFLAGS) $(LUA_CFLAGS) -I.
+CFLAGS = $(COMMON_CFLAGS) $(LUA_CFLAGS) -Dfopen=am_fopen -I.
 
 $(LUA_O_FILES): %$(OBJ_EXT): %.c
 	$(CC) $(CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@

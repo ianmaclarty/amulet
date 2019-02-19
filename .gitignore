@@ -98,3 +98,10 @@ gllog
 gllog.cpp
 
 valgrind.log
+
+/third_party/steamworks_sdk*
+/third_party/*.bak
+
+/tools/bsearch
+/tools/embed
+/tools/gen_view_defs

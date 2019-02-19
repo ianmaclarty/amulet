@@ -183,7 +183,7 @@ static void write_data() {
     unsigned char *dest_ptr;
     double s1, t1, s2, t2, x1, y1, x2, y2;
     double w, h, adv;
-    FILE *f = fopen(lua_filename, "w");
+    FILE *f = am_fopen(lua_filename, "w");
     if (f == NULL) {
         fprintf(stderr, "unable to open %s for writing\n", lua_filename);
         return;
@@ -363,7 +363,7 @@ static void write_png() {
     size_t len;
     void *png_data = tdefl_write_image_to_png_file_in_memory(
         atlas_data, atlas_width, atlas_height, 4, &len);
-    FILE *f = fopen(png_filename, "wb");
+    FILE *f = am_fopen(png_filename, "wb");
     if (f == NULL) {
         fprintf(stderr, "unable to open %s for writing\n", png_filename);
         return;

@@ -266,7 +266,7 @@ void am_init_gl() {
 #endif
 
     if (am_conf_log_gl_calls) {
-        gl_log_file = fopen("amulet_gllog.txt", "w");
+        gl_log_file = am_fopen("amulet_gllog.txt", "w");
         if (gl_log_file == NULL) {
             fprintf(stderr, "ERROR: unable to open amulet_gllog.txt for writing\n");
             exit(1);

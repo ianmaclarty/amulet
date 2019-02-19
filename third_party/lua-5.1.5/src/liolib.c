@@ -23,6 +23,7 @@
 #define IO_INPUT	1
 #define IO_OUTPUT	2
 
+FILE* am_fopen(const char *path, const char *mode);
 
 static const char *const fnames[] = {"input", "output"};
 

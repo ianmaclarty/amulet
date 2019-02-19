@@ -162,6 +162,8 @@ static int writer(lua_State* L, const void* p, size_t size, void* u)
  return (fwrite(p,size,1,(FILE*)u)!=1) && (size!=0);
 }
 
+FILE* am_fopen(const char *path, const char *mode);
+
 static int pmain(lua_State* L)
 {
  int argc=(int)lua_tointeger(L,1);
