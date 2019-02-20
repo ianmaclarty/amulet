@@ -392,6 +392,7 @@ static bool handle_events() {
                 break;
             }
             case SDL_MOUSEWHEEL: {
+                mouse_wheel_x += event.wheel.x > 0 ? 1 : event.wheel.x < 0 ? -1 : 0;
                 mouse_wheel_y += event.wheel.y > 0 ? 1 : event.wheel.y < 0 ? -1 : 0;
                 break;
             }
