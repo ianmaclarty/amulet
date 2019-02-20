@@ -326,6 +326,39 @@ static bool handle_events() {
                 }
                 break;
             }
+            case SDL_FINGERDOWN: {
+                am_window *win = am_find_window((am_native_window*)sdl_window);
+                win->touch_begin(
+                    eng->L,
+                    (void*)event.tfinger.fingerId,
+                    event.tfinger.x * win->screen_width,
+                    event.tfinger.y * win->screen_height,
+                    event.tfinger.pressure
+                );
+                break;
+            }
+            case SDL_FINGERMOTION: {
+                am_window *win = am_find_window((am_native_window*)sdl_window);
+                win->touch_move(
+                    eng->L,
+                    (void*)event.tfinger.fingerId,
+                    event.tfinger.x * win->screen_width,
+                    event.tfinger.y * win->screen_height,
+                    event.tfinger.pressure
+                );
+                break;
+            }
+            case SDL_FINGERUP: {
+                am_window *win = am_find_window((am_native_window*)sdl_window);
+                win->touch_end(
+                    eng->L,
+                    (void*)event.tfinger.fingerId,
+                    event.tfinger.x * win->screen_width,
+                    event.tfinger.y * win->screen_height,
+                    event.tfinger.pressure
+                );
+                break;
+            }
             case SDL_MOUSEMOTION: {
                 int lock_pointer = EM_ASM_INT({ return window.amulet.have_pointer_lock() ? 1 : 0; }, 0);
                 if (lock_pointer) {
