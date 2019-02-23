@@ -1,9 +1,199 @@
 #include "amulet.h"
 
+static void decode_view_type_lua(am_buffer_view_type_lua ltype, am_buffer_view_type *type, int *components) {
+    switch (ltype) {
+        case AM_VIEW_TYPE_LUA_F32_1:
+            *type = AM_VIEW_TYPE_F32;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_F32_2:
+            *type = AM_VIEW_TYPE_F32;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_F32_3:
+            *type = AM_VIEW_TYPE_F32;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_F32_4:
+            *type = AM_VIEW_TYPE_F32;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_U8_1:
+            *type = AM_VIEW_TYPE_U8;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_U8_2:
+            *type = AM_VIEW_TYPE_U8;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_U8_3:
+            *type = AM_VIEW_TYPE_U8;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_U8_4:
+            *type = AM_VIEW_TYPE_U8;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_I8_1:
+            *type = AM_VIEW_TYPE_I8;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_I8_2:
+            *type = AM_VIEW_TYPE_I8;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_I8_3:
+            *type = AM_VIEW_TYPE_I8;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_I8_4:
+            *type = AM_VIEW_TYPE_I8;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_U8N_1:
+            *type = AM_VIEW_TYPE_U8N;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_U8N_2:
+            *type = AM_VIEW_TYPE_U8N;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_U8N_3:
+            *type = AM_VIEW_TYPE_U8N;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_U8N_4:
+            *type = AM_VIEW_TYPE_U8N;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_I8N_1:
+            *type = AM_VIEW_TYPE_I8N;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_I8N_2:
+            *type = AM_VIEW_TYPE_I8N;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_I8N_3:
+            *type = AM_VIEW_TYPE_I8N;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_I8N_4:
+            *type = AM_VIEW_TYPE_I8N;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_U16_1:
+            *type = AM_VIEW_TYPE_U16;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_U16_2:
+            *type = AM_VIEW_TYPE_U16;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_U16_3:
+            *type = AM_VIEW_TYPE_U16;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_U16_4:
+            *type = AM_VIEW_TYPE_U16;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_I16_1:
+            *type = AM_VIEW_TYPE_I16;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_I16_2:
+            *type = AM_VIEW_TYPE_I16;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_I16_3:
+            *type = AM_VIEW_TYPE_I16;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_I16_4:
+            *type = AM_VIEW_TYPE_I16;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_U16E:
+            *type = AM_VIEW_TYPE_U16E;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_U16N_1:
+            *type = AM_VIEW_TYPE_U16N;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_U16N_2:
+            *type = AM_VIEW_TYPE_U16N;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_U16N_3:
+            *type = AM_VIEW_TYPE_U16N;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_U16N_4:
+            *type = AM_VIEW_TYPE_U16N;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_I16N_1:
+            *type = AM_VIEW_TYPE_I16N;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_I16N_2:
+            *type = AM_VIEW_TYPE_I16N;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_I16N_3:
+            *type = AM_VIEW_TYPE_I16N;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_I16N_4:
+            *type = AM_VIEW_TYPE_I16N;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_U32_1:
+            *type = AM_VIEW_TYPE_U32;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_U32_2:
+            *type = AM_VIEW_TYPE_U32;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_U32_3:
+            *type = AM_VIEW_TYPE_U32;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_U32_4:
+            *type = AM_VIEW_TYPE_U32;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_I32_1:
+            *type = AM_VIEW_TYPE_I32;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_I32_2:
+            *type = AM_VIEW_TYPE_I32;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_I32_3:
+            *type = AM_VIEW_TYPE_I32;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_I32_4:
+            *type = AM_VIEW_TYPE_I32;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_U32E:
+            *type = AM_VIEW_TYPE_U32E;
+            *components = 1;
+            return;
+    }
+    return;
+}
+
 void am_buffer_view::update_max_elem_if_required() {
     if (last_max_elem_version < buffer->version) {
         switch (type) {
-            case AM_VIEW_TYPE_USHORT_ELEM: {
+            case AM_VIEW_TYPE_U16E: {
                 uint8_t *ptr = buffer->data + offset;
                 uint16_t max = 0;
                 for (int i = 0; i < size; i++) {
@@ -14,7 +204,7 @@ void am_buffer_view::update_max_elem_if_required() {
                 max_elem = max;
                 break;
             }
-            case AM_VIEW_TYPE_UINT_ELEM: {
+            case AM_VIEW_TYPE_U32E: {
                 uint8_t *ptr = buffer->data + offset;
                 uint32_t max = 0;
                 for (int i = 0; i < size; i++) {
@@ -40,7 +230,7 @@ am_buffer_view* am_check_buffer_view(lua_State *L, int idx) {
     return view;
 }
 
-am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type) {
+am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type, int components) {
     int mtid = (int)MT_am_buffer_view + (int)type + 1;
     assert(mtid < (int)MT_VIEW_TYPE_END_MARKER);
     // use the element-type specific metatable
@@ -49,6 +239,7 @@ am_buffer_view* am_new_buffer_view(lua_State *L, am_buffer_view_type type) {
             new (lua_newuserdata(L, sizeof(am_buffer_view))) am_buffer_view(),
             mtid);
     view->type = type;
+    view->components = components;
     view->buffer = NULL;
     view->buffer_ref = LUA_NOREF;
     view->offset = 0;
@@ -115,7 +306,6 @@ struct view_type_info {
     const char *name;
     int size;
     bool normalized;
-    int components;
     am_buffer_view_type base_type;
     bool can_be_gl_attrib;
     am_attribute_client_type gl_client_type;
@@ -123,32 +313,24 @@ struct view_type_info {
 };
 
 static view_type_info view_type_infos[] = {
-    {"float",          4,  false,  1, AM_VIEW_TYPE_FLOAT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_float,        },
-    {"vec2",           8,  false,  2, AM_VIEW_TYPE_FLOAT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   NULL,                   },
-    {"vec3",          12,  false,  3, AM_VIEW_TYPE_FLOAT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   NULL,                   },
-    {"vec4",          16,  false,  4, AM_VIEW_TYPE_FLOAT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   NULL,                   },
-    {"ubyte",          1,  false,  1, AM_VIEW_TYPE_UBYTE,         true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   &read_num_ubyte,        },
-    {"byte",           1,  false,  1, AM_VIEW_TYPE_BYTE,          true,  AM_ATTRIBUTE_CLIENT_TYPE_BYTE,    &read_num_byte,         },
-    {"ubyte_norm",     1,  true,   1, AM_VIEW_TYPE_UBYTE_NORM,    true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   &read_num_ubyte_norm,   },
-    {"ubyte_norm4",    4,  true,   4, AM_VIEW_TYPE_UBYTE_NORM,    true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   NULL,                   },
-    {"byte_norm",      1,  true,   1, AM_VIEW_TYPE_BYTE_NORM,     true,  AM_ATTRIBUTE_CLIENT_TYPE_BYTE,    &read_num_byte_norm,    },
-    {"ushort",         2,  false,  1, AM_VIEW_TYPE_USHORT,        true,  AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort,       },
-    {"short",          2,  false,  1, AM_VIEW_TYPE_SHORT,         true,  AM_ATTRIBUTE_CLIENT_TYPE_SHORT,   &read_num_short,        },
-    {"ushort_elem",    2,  false,  1, AM_VIEW_TYPE_USHORT_ELEM,   false, AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort_elem,  },
-    {"ushort_norm",    2,  true,   1, AM_VIEW_TYPE_USHORT_NORM,   true,  AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort_norm,  },
-    {"short_norm",     2,  true,   1, AM_VIEW_TYPE_SHORT_NORM,    true,  AM_ATTRIBUTE_CLIENT_TYPE_SHORT,   &read_num_short_norm,   },
-    {"uint",           4,  false,  1, AM_VIEW_TYPE_UINT,          false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_uint,         },
-    {"int",            4,  false,  1, AM_VIEW_TYPE_INT,           false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_int,          },
-    {"uint_elem",      4,  false,  1, AM_VIEW_TYPE_UINT_ELEM,     false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_uint_elem,    },
+    {"float",          4,  false, AM_VIEW_TYPE_F32,  true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_float,        },
+    {"ubyte",          1,  false, AM_VIEW_TYPE_U8,   true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   &read_num_ubyte,        },
+    {"byte",           1,  false, AM_VIEW_TYPE_I8,   true,  AM_ATTRIBUTE_CLIENT_TYPE_BYTE,    &read_num_byte,         },
+    {"ubyte_norm",     1,  true,  AM_VIEW_TYPE_U8N,  true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   &read_num_ubyte_norm,   },
+    {"byte_norm",      1,  true,  AM_VIEW_TYPE_I8N,  true,  AM_ATTRIBUTE_CLIENT_TYPE_BYTE,    &read_num_byte_norm,    },
+    {"ushort",         2,  false, AM_VIEW_TYPE_U16,  true,  AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort,       },
+    {"short",          2,  false, AM_VIEW_TYPE_I16,  true,  AM_ATTRIBUTE_CLIENT_TYPE_SHORT,   &read_num_short,        },
+    {"ushort_elem",    2,  false, AM_VIEW_TYPE_U16E, false, AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort_elem,  },
+    {"ushort_norm",    2,  true,  AM_VIEW_TYPE_U16N, true,  AM_ATTRIBUTE_CLIENT_TYPE_USHORT,  &read_num_ushort_norm,  },
+    {"short_norm",     2,  true,  AM_VIEW_TYPE_I16N, true,  AM_ATTRIBUTE_CLIENT_TYPE_SHORT,   &read_num_short_norm,   },
+    {"uint",           4,  false, AM_VIEW_TYPE_U32,  false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_uint,         },
+    {"int",            4,  false, AM_VIEW_TYPE_I32,  false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_int,          },
+    {"uint_elem",      4,  false, AM_VIEW_TYPE_U32E, false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_uint_elem,    },
 };
 ct_check_array_size(view_type_infos, AM_NUM_VIEW_TYPES);
 
 bool am_buffer_view::is_normalized() {
     return view_type_infos[type].normalized;
-}
-
-int am_buffer_view::num_components() {
-    return view_type_infos[type].components;
 }
 
 bool am_buffer_view::can_be_gl_attrib() {
@@ -163,9 +345,12 @@ int am_create_buffer_view(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
 
     am_buffer *buf = am_check_buffer(L, 1);
-    am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 2);
+    am_buffer_view_type_lua ltype = am_get_enum(L, am_buffer_view_type_lua, 2);
+    am_buffer_view_type type;
+    int components;
+    decode_view_type_lua(ltype, &type, &components);
 
-    int type_size = view_type_infos[type].size;
+    int type_size = view_type_infos[type].size * components;
 
     int offset = 0;
     if (nargs > 2) {
@@ -192,7 +377,7 @@ int am_create_buffer_view(lua_State *L) {
         size = max_size;
     }
 
-    am_buffer_view *view = am_new_buffer_view(L, type);
+    am_buffer_view *view = am_new_buffer_view(L, type, components);
 
     view->buffer = buf;
     view->buffer_ref = view->ref(L, 1);
@@ -233,7 +418,7 @@ static int view_slice(lua_State *L) {
                 (view->size - start) / stride_multiplier + 1, size);
         }
     }
-    am_buffer_view *slice = am_new_buffer_view(L, view->type);
+    am_buffer_view *slice = am_new_buffer_view(L, view->type, view->components);
     slice->buffer = view->buffer;
     view->pushref(L, view->buffer_ref);
     slice->buffer_ref = slice->ref(L, -1);
@@ -264,7 +449,7 @@ static int gen_range(lua_State *L) {
         x += inc;
     }
     data[n-1] = end;
-    am_buffer_view *res_view = am_new_buffer_view(L, AM_VIEW_TYPE_FLOAT);
+    am_buffer_view *res_view = am_new_buffer_view(L, AM_VIEW_TYPE_F32, 1);
     res_view->buffer = res_buf;
     res_view->buffer_ref = res_view->ref(L, -2);
     lua_remove(L, -2); // buffer
@@ -306,7 +491,7 @@ static int gen_random(lua_State *L) {
     for (int i = 0; i < n; i++) {
         data[i] = rand->get_randf() * range + lo;
     }
-    am_buffer_view *res_view = am_new_buffer_view(L, AM_VIEW_TYPE_FLOAT);
+    am_buffer_view *res_view = am_new_buffer_view(L, AM_VIEW_TYPE_F32, 1);
     res_view->buffer = res_buf;
     res_view->buffer_ref = res_view->ref(L, -2);
     lua_remove(L, -2); // buffer
@@ -323,7 +508,7 @@ static int view_cart(lua_State *L) {
     int type2 = view2->type;
     view_type_info info1 = view_type_infos[type1];
     view_type_info info2 = view_type_infos[type2];
-    if (info1.base_type != AM_VIEW_TYPE_FLOAT || info2.base_type != AM_VIEW_TYPE_FLOAT) {
+    if (info1.base_type != AM_VIEW_TYPE_F32 || info2.base_type != AM_VIEW_TYPE_F32) {
         return luaL_error(L, "cart not supported for views of type %s and %s", info1.name, info2.name);
     }
     if (view1->offset & 3 || view1->stride & 3) {
@@ -332,13 +517,13 @@ static int view_cart(lua_State *L) {
     if (view2->offset & 3 || view2->stride & 3) {
         return luaL_error(L, "view must be 4-byte aligned");
     }
-    int components1 = view_type_infos[type1].components;
-    int components2 = view_type_infos[type2].components;
+    int components1 = view1->components;
+    int components2 = view2->components;
     int components = components1 + components2;
     if (components > 4) {
         return luaL_error(L, "sum of cart view components must be <= 4");
     }
-    am_buffer_view_type type = (am_buffer_view_type)((int)AM_VIEW_TYPE_FLOAT + (components - 1));
+    am_buffer_view_type type = AM_VIEW_TYPE_F32;
     am_buffer *buf = am_push_new_buffer_and_init(L, 4 * components * view1->size * view2->size);
     float *data1 = (float*)view1->buffer->data;
     float *data2 = (float*)view2->buffer->data;
@@ -359,7 +544,7 @@ static int view_cart(lua_State *L) {
         data1 = (float*)view1->buffer->data;
         data2 += stride2;
     }
-    am_buffer_view *view = am_new_buffer_view(L, type);
+    am_buffer_view *view = am_new_buffer_view(L, type, components);
     view->buffer = buf;
     view->buffer_ref = view->ref(L, -2);
     lua_remove(L, -2); // buffer
@@ -393,13 +578,13 @@ static void view_float_iter_setup(lua_State *L, int arg, int *type,
             if (view->offset & 3 || view->stride & 3) {
                 luaL_error(L, "view must be 4-byte aligned for op %s", opname);
             }
-            if (view_type_infos[view->type].base_type != AM_VIEW_TYPE_FLOAT) {
+            if (view_type_infos[view->type].base_type != AM_VIEW_TYPE_F32) {
                 luaL_error(L, "op %s not supported for views of type %s", opname, view_type_infos[view->type].name);
             }
             *buf = (float*)(view->buffer->data + view->offset);
             *stride = view->stride >> 2;
             *size = view->size;
-            *components = view_type_infos[view->type].components;
+            *components = view->components;
             break;
         }
         case LUA_TNUMBER: {
@@ -459,6 +644,7 @@ static void view_float_iter_setup(lua_State *L, int arg, int *type,
 #define PUSH_CTYPE(L, x) lua_pushnumber(L, x)
 #include "am_view_template.inc"
 
+/*
 #define TNAME vec2
 #define CTYPE glm::vec2
 #define LUA_TYPE MT_am_vec2
@@ -485,41 +671,7 @@ static void view_float_iter_setup(lua_State *L, int arg, int *type,
 #define VEC_SZ 4
 #define GET_VEC_COMPONENT(L, idx) ((float)(lua_tonumber(L, idx)))
 #include "am_view_template.inc"
-
-struct ubyte_norm4_ctype {
-    uint8_t vals[4];
-    uint8_t& operator[](int index) {
-        return vals[index];
-    }
-};
-
-static ubyte_norm4_ctype get_ubyte_norm4_ctype(am_vec4 *v) {
-    ubyte_norm4_ctype ub;
-    ub.vals[0] = (uint8_t)(v->v.x * 255.0);
-    ub.vals[1] = (uint8_t)(v->v.y * 255.0);
-    ub.vals[2] = (uint8_t)(v->v.z * 255.0);
-    ub.vals[3] = (uint8_t)(v->v.w * 255.0);
-    return ub;
-}
-
-static glm::dvec4 ubyte_norm4_ctype_to_vec4d(ubyte_norm4_ctype ub) {
-    glm::dvec4 v(
-        (double)ub.vals[0] / 255.0,
-        (double)ub.vals[1] / 255.0,
-        (double)ub.vals[2] / 255.0,
-        (double)ub.vals[3] / 255.0
-    );
-    return v;
-}
-
-#define TNAME ubyte_norm4
-#define CTYPE ubyte_norm4_ctype
-#define LUA_TYPE MT_am_vec4
-#define GET_CTYPE(L, idx) (get_ubyte_norm4_ctype(am_get_userdata(L, am_vec4, idx)))
-#define PUSH_CTYPE(L, x) am_new_userdata(L, am_vec4)->v = ubyte_norm4_ctype_to_vec4d(x)
-#define VEC_SZ 4
-#define GET_VEC_COMPONENT(L, idx) ((uint8_t)(lua_tonumber(L, idx)*255.0))
-#include "am_view_template.inc"
+*/
 
 #define TNAME uint
 #define CTYPE uint32_t
@@ -896,36 +1048,36 @@ void am_open_view_module(lua_State *L) {
     am_open_module(L, "mathv", vfuncs);
 
     am_enum_value view_type_enum[] = {
-        {"float",           AM_VIEW_TYPE_FLOAT},
-        {"vec2",            AM_VIEW_TYPE_FLOAT2},
-        {"vec3",            AM_VIEW_TYPE_FLOAT3},
-        {"vec4",            AM_VIEW_TYPE_FLOAT4},
-        {"ubyte",           AM_VIEW_TYPE_UBYTE},
-        {"byte",            AM_VIEW_TYPE_BYTE},
-        {"ubyte_norm",      AM_VIEW_TYPE_UBYTE_NORM},
-        {"ubyte_norm4",     AM_VIEW_TYPE_UBYTE_NORM4},
-        {"byte_norm",       AM_VIEW_TYPE_BYTE_NORM},
-        {"ushort",          AM_VIEW_TYPE_USHORT},
-        {"short",           AM_VIEW_TYPE_SHORT},
-        {"ushort_elem",     AM_VIEW_TYPE_USHORT_ELEM},
-        {"ushort_norm",     AM_VIEW_TYPE_USHORT_NORM},
-        {"short_norm",      AM_VIEW_TYPE_SHORT_NORM},
-        {"uint",            AM_VIEW_TYPE_UINT},
-        {"int",             AM_VIEW_TYPE_INT},
-        {"uint_elem",       AM_VIEW_TYPE_UINT_ELEM},
+        {"float",           AM_VIEW_TYPE_LUA_F32_1},
+        {"vec2",            AM_VIEW_TYPE_LUA_F32_2},
+        {"vec3",            AM_VIEW_TYPE_LUA_F32_3},
+        {"vec4",            AM_VIEW_TYPE_LUA_F32_4},
+        {"ubyte",           AM_VIEW_TYPE_LUA_U8_1},
+        {"byte",            AM_VIEW_TYPE_LUA_I8_1},
+        {"ubyte_norm",      AM_VIEW_TYPE_LUA_U8N_1},
+        {"ubyte_norm4",     AM_VIEW_TYPE_LUA_U8N_4},
+        {"byte_norm",       AM_VIEW_TYPE_LUA_I8N_1},
+        {"ushort",          AM_VIEW_TYPE_LUA_U16_1},
+        {"short",           AM_VIEW_TYPE_LUA_I16_1},
+        {"ushort_elem",     AM_VIEW_TYPE_LUA_U16E},
+        {"ushort_norm",     AM_VIEW_TYPE_LUA_U16N_1},
+        {"short_norm",      AM_VIEW_TYPE_LUA_I16N_1},
+        {"uint",            AM_VIEW_TYPE_LUA_U32_1},
+        {"int",             AM_VIEW_TYPE_LUA_I32_1},
+        {"uint_elem",       AM_VIEW_TYPE_LUA_U32E},
         {NULL, 0}
     };
-    am_register_enum(L, ENUM_am_buffer_view_type, view_type_enum);
+    am_register_enum(L, ENUM_am_buffer_view_type_lua, view_type_enum);
 
     register_view_mt(L);
     register_float_view_mt(L);
-    register_vec2_view_mt(L);
-    register_vec3_view_mt(L);
-    register_vec4_view_mt(L);
+    //register_vec2_view_mt(L);
+    //register_vec3_view_mt(L);
+    //register_vec4_view_mt(L);
     register_ubyte_view_mt(L);
     register_byte_view_mt(L);
     register_ubyte_norm_view_mt(L);
-    register_ubyte_norm4_view_mt(L);
+    //register_ubyte_norm4_view_mt(L);
     register_byte_norm_view_mt(L);
     register_ushort_view_mt(L);
     register_short_view_mt(L);

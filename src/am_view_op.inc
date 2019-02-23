@@ -90,7 +90,7 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
 
     am_buffer *buf = am_push_new_buffer_and_init(L, size * components * 4);
     float *data = (float*)buf->data;
-    am_buffer_view_type type = (am_buffer_view_type)(AM_VIEW_TYPE_FLOAT + (components - 1));
+    am_buffer_view_type type = AM_VIEW_TYPE_F32;
 
     switch (nargs) {
 #if MIN_ARGS == 1
@@ -293,7 +293,7 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
 
     am_buffer *buf = am_push_new_buffer_and_init(L, size * RESULT_COMPONENTS * 4);
     float *data = (float*)buf->data;
-    am_buffer_view_type type = (am_buffer_view_type)(AM_VIEW_TYPE_FLOAT + (RESULT_COMPONENTS - 1));
+    am_buffer_view_type type = AM_VIEW_TYPE_F32;
 
     switch (nargs) {
 #if MIN_ARGS == 1
@@ -519,7 +519,7 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
     float f[RESULT_COMPONENTS];
     am_buffer *buf = am_push_new_buffer_and_init(L, size * RESULT_COMPONENTS * 4);
     float *data = (float*)buf->data;
-    am_buffer_view_type type = (am_buffer_view_type)(AM_VIEW_TYPE_FLOAT + (RESULT_COMPONENTS - 1));
+    am_buffer_view_type type = AM_VIEW_TYPE_F32;
 
     for (int i = 0; i < size * RESULT_COMPONENTS; i += RESULT_COMPONENTS) {
         int c = 0;
@@ -544,14 +544,13 @@ static int AM_CONCAT(view_op_, SUFFIX)(lua_State *L) {
     #error no op style given
 #endif
 
-    am_buffer_view *view = am_new_buffer_view(L, type);
+    am_buffer_view *view = am_new_buffer_view(L, type, components);
 
     view->buffer = buf;
     view->buffer_ref = view->ref(L, -2);
     view->offset = 0;
     view->stride = result_comps * 4;
     view->size = size;
-    view->type = type;
     view->last_max_elem_version = 0;
     view->max_elem = 0;
 

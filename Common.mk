@@ -112,6 +112,7 @@ DEF_OPT = -D
 INCLUDE_OPT = -I
 CC = gcc
 HOSTCC = gcc
+HOSTCPP = g++
 CPP = g++
 LINK = g++
 AR = ar

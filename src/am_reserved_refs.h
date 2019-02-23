@@ -56,9 +56,6 @@ typedef enum {
     MT_am_buffer_view,
     // The following list must be kept in sync with am_buffer_view_type
     MT_VIEW_TYPE_float,
-    MT_VIEW_TYPE_vec2,
-    MT_VIEW_TYPE_vec3,
-    MT_VIEW_TYPE_vec4,
     MT_VIEW_TYPE_ubyte,
     MT_VIEW_TYPE_byte,
     MT_VIEW_TYPE_ubyte_norm,
@@ -91,7 +88,7 @@ typedef enum {
 
     MT_am_iap_product,
 
-    ENUM_am_buffer_view_type,
+    ENUM_am_buffer_view_type_lua,
     ENUM_am_buffer_usage,
     ENUM_am_texture_format,
     ENUM_am_texture_type,

@@ -290,6 +290,9 @@ $(BUILD_EXAMPLE_FILES): $(BUILD_BIN_DIR)/%: examples/% | $(BUILD_BIN_DIR)
 
 # View templates
 
+tools/gen_mathv$(EXE_EXT): tools/gen_mathv.cpp
+	$(HOSTCPP) -o $@ $<
+
 tools/gen_view_defs$(EXE_EXT): tools/gen_view_defs.c
 	$(HOSTCC) -o $@ $<
 

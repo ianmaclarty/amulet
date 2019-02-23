@@ -782,13 +782,13 @@ static am_property draw_node_primitive_property = {get_draw_node_primitive, set_
 static void set_indices(lua_State *L, am_draw_node *node, int idx) {
     am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, idx);
     switch (indices_view->type) {
-        case AM_VIEW_TYPE_USHORT_ELEM:
+        case AM_VIEW_TYPE_U16E:
             if (indices_view->stride != 2) {
                 luaL_error(L, "ushort_elem array must have stride 2 when used with draw_elements");
             }
             node->type = AM_ELEMENT_TYPE_USHORT;
             break;
-        case AM_VIEW_TYPE_UINT_ELEM:
+        case AM_VIEW_TYPE_U32E:
             if (indices_view->stride != 4) {
                 luaL_error(L, "uint_elem array must have stride 4 when used with draw_elements");
             }
