@@ -44,6 +44,9 @@ extern int am_conf_audio_sample_rate;
 extern int am_conf_audio_interpolate_samples;
 extern bool am_conf_audio_mute;
 
+// memory options
+extern int am_conf_lua_alloc_buffers;
+
 // dev options
 extern bool am_conf_validate_shader_programs;
 extern bool am_conf_check_gl_errors;
