@@ -304,6 +304,118 @@ local func_defs = {
             },
         }
     },
+    {
+        name = "perlin",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "PERLIN1_F32",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 4},
+                },
+            },
+            {
+                cname = "PERLIN2_F32",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "y", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 2},
+                    {name = "y", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 3},
+                    {name = "y", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 4},
+                    {name = "y", type = "f32", comps = 4},
+                },
+            },
+        }
+    },
+    {
+        name = "simplex",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "SIMPLEX1_F32",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::simplex",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::simplex",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::simplex",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 4},
+                },
+            },
+        }
+    },
 }
 
 local view_type_info = {

@@ -4,6 +4,10 @@
 #define DIV_F32(x, y) ((x) / (y))
 #define UNM_F32(x) (-(x))
 
+#define PERLIN1_F32(x) (glm::perlin(glm::vec2(x, 0.0f)))
+#define PERLIN2_F32(x, y) (glm::perlin(glm::vec2(x, 0.0f), glm::vec2(y, 1.0f)))
+#define SIMPLEX1_F32(x) (glm::simplex(glm::vec2(x, 0.0f)))
+
 static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *view_type, uint8_t **buf, 
     int *stride, int *count, int *components, double *singleton_vals)
 {

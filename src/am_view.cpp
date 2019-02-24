@@ -512,57 +512,6 @@ static int view_len(lua_State *L) {
 #define READ_NUM(x) read_num_i16n(x)
 #include "am_view_template.inc"
 
-/*
-#define SUFFIX perlin
-#define OPNAME "perlin"
-#define ARGS 1
-#define ELEMENT_WISE
-#define RESULT_COMPONENTS 1
-#define OP1_1(dst, src) (*(dst) = glm::perlin(glm::vec2((src)[0], 0.0f)))
-#define OP1_2(dst, src) (*(dst) = glm::perlin(glm::vec2((src)[0], (src)[1])))
-#define OP1_3(dst, src) (*(dst) = glm::perlin(glm::vec3((src)[0], (src)[1], (src)[2])))
-#define OP1_4(dst, src) (*(dst) = glm::perlin(glm::vec4((src)[0], (src)[1], (src)[2], (src)[3])))
-#include "am_view_op.inc"
-
-#define SUFFIX simplex
-#define OPNAME "simplex"
-#define ARGS 1
-#define ELEMENT_WISE
-#define RESULT_COMPONENTS 1
-#define OP1_1(dst, src) (*(dst) = glm::simplex(glm::vec2((src)[0], 0.0f)))
-#define OP1_2(dst, src) (*(dst) = glm::simplex(glm::vec2((src)[0], (src)[1])))
-#define OP1_3(dst, src) (*(dst) = glm::simplex(glm::vec3((src)[0], (src)[1], (src)[2])))
-#define OP1_4(dst, src) (*(dst) = glm::simplex(glm::vec4((src)[0], (src)[1], (src)[2], (src)[3])))
-#include "am_view_op.inc"
-
-#define SUFFIX vec2
-#define OPNAME "vec2"
-#define MIN_ARGS 1
-#define MAX_ARGS 2
-#define VEC_BUILDER
-#define RESULT_COMPONENTS 2
-#define OP(dst, f1, f2) {(dst)[0] = f1; (dst)[1] = f2;}
-#include "am_view_op.inc"
-
-#define SUFFIX vec3
-#define OPNAME "vec3"
-#define MIN_ARGS 1
-#define MAX_ARGS 3
-#define VEC_BUILDER
-#define RESULT_COMPONENTS 3
-#define OP(dst, f1, f2, f3) {(dst)[0] = f1; (dst)[1] = f2; (dst)[2] = f3;}
-#include "am_view_op.inc"
-
-#define SUFFIX vec4
-#define OPNAME "vec4"
-#define MIN_ARGS 1
-#define MAX_ARGS 4
-#define VEC_BUILDER
-#define RESULT_COMPONENTS 4
-#define OP(dst, f1, f2, f3, f4) {(dst)[0] = f1; (dst)[1] = f2; (dst)[2] = f3; (dst)[3] = f4;}
-#include "am_view_op.inc"
-*/
-
 static void register_view_mt(lua_State *L) {
     lua_newtable(L);
     am_set_default_index_func(L);
@@ -601,17 +550,46 @@ void am_open_view_module(lua_State *L) {
         {"vec3",            AM_VIEW_TYPE_LUA_F32_3},
         {"vec4",            AM_VIEW_TYPE_LUA_F32_4},
         {"ubyte",           AM_VIEW_TYPE_LUA_U8_1},
+        {"ubyte2",          AM_VIEW_TYPE_LUA_U8_2},
+        {"ubyte3",          AM_VIEW_TYPE_LUA_U8_3},
+        {"ubyte4",          AM_VIEW_TYPE_LUA_U8_4},
         {"byte",            AM_VIEW_TYPE_LUA_I8_1},
+        {"byte2",           AM_VIEW_TYPE_LUA_I8_2},
+        {"byte3",           AM_VIEW_TYPE_LUA_I8_3},
+        {"byte4",           AM_VIEW_TYPE_LUA_I8_4},
         {"ubyte_norm",      AM_VIEW_TYPE_LUA_U8N_1},
+        {"ubyte_norm2",     AM_VIEW_TYPE_LUA_U8N_2},
+        {"ubyte_norm3",     AM_VIEW_TYPE_LUA_U8N_3},
         {"ubyte_norm4",     AM_VIEW_TYPE_LUA_U8N_4},
         {"byte_norm",       AM_VIEW_TYPE_LUA_I8N_1},
+        {"byte_norm2",      AM_VIEW_TYPE_LUA_I8N_2},
+        {"byte_norm3",      AM_VIEW_TYPE_LUA_I8N_3},
+        {"byte_norm4",      AM_VIEW_TYPE_LUA_I8N_4},
         {"ushort",          AM_VIEW_TYPE_LUA_U16_1},
+        {"ushort2",         AM_VIEW_TYPE_LUA_U16_2},
+        {"ushort3",         AM_VIEW_TYPE_LUA_U16_3},
+        {"ushort4",         AM_VIEW_TYPE_LUA_U16_4},
         {"short",           AM_VIEW_TYPE_LUA_I16_1},
+        {"short2",          AM_VIEW_TYPE_LUA_I16_2},
+        {"short3",          AM_VIEW_TYPE_LUA_I16_3},
+        {"short4",          AM_VIEW_TYPE_LUA_I16_4},
         {"ushort_elem",     AM_VIEW_TYPE_LUA_U16E},
         {"ushort_norm",     AM_VIEW_TYPE_LUA_U16N_1},
+        {"ushort_norm2",    AM_VIEW_TYPE_LUA_U16N_2},
+        {"ushort_norm3",    AM_VIEW_TYPE_LUA_U16N_3},
+        {"ushort_norm4",    AM_VIEW_TYPE_LUA_U16N_4},
         {"short_norm",      AM_VIEW_TYPE_LUA_I16N_1},
+        {"short_norm2",     AM_VIEW_TYPE_LUA_I16N_2},
+        {"short_norm3",     AM_VIEW_TYPE_LUA_I16N_3},
+        {"short_norm4",     AM_VIEW_TYPE_LUA_I16N_4},
         {"uint",            AM_VIEW_TYPE_LUA_U32_1},
+        {"uint2",           AM_VIEW_TYPE_LUA_U32_2},
+        {"uint3",           AM_VIEW_TYPE_LUA_U32_3},
+        {"uint4",           AM_VIEW_TYPE_LUA_U32_4},
         {"int",             AM_VIEW_TYPE_LUA_I32_1},
+        {"int2",            AM_VIEW_TYPE_LUA_I32_2},
+        {"int3",            AM_VIEW_TYPE_LUA_I32_3},
+        {"int4",            AM_VIEW_TYPE_LUA_I32_4},
         {"uint_elem",       AM_VIEW_TYPE_LUA_U32E},
         {NULL, 0}
     };
