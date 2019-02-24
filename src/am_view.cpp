@@ -18,6 +18,14 @@ static void decode_view_type_lua(am_buffer_view_type_lua ltype, am_buffer_view_t
             *type = AM_VIEW_TYPE_F32;
             *components = 4;
             return;
+        case AM_VIEW_TYPE_LUA_F32_3x3:
+            *type = AM_VIEW_TYPE_F32;
+            *components = 9;
+            return;
+        case AM_VIEW_TYPE_LUA_F32_4x4:
+            *type = AM_VIEW_TYPE_F32;
+            *components = 16;
+            return;
         case AM_VIEW_TYPE_LUA_U8_1:
             *type = AM_VIEW_TYPE_U8;
             *components = 1;
@@ -549,6 +557,8 @@ void am_open_view_module(lua_State *L) {
         {"vec2",            AM_VIEW_TYPE_LUA_F32_2},
         {"vec3",            AM_VIEW_TYPE_LUA_F32_3},
         {"vec4",            AM_VIEW_TYPE_LUA_F32_4},
+        {"mat3",            AM_VIEW_TYPE_LUA_F32_3x3},
+        {"mat4",            AM_VIEW_TYPE_LUA_F32_4x4},
         {"ubyte",           AM_VIEW_TYPE_LUA_U8_1},
         {"ubyte2",          AM_VIEW_TYPE_LUA_U8_2},
         {"ubyte3",          AM_VIEW_TYPE_LUA_U8_3},

@@ -638,21 +638,34 @@ MAT_SET_FUNC(4)
             am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                            \
             am_mat##D *z = am_new_userdata(L, am_mat##D);                               \
             z->m = x * y->m;                                                            \
-        } else if (lua_isnumber(L, 2)) {                                                \
-            am_mat##D *x = am_get_userdata(L, am_mat##D, 1);                            \
-            double y = lua_tonumber(L, 2);                                              \
-            am_mat##D *z = am_new_userdata(L, am_mat##D);                               \
-            z->m = x->m * y;                                                            \
-        } else if (am_get_type(L, 2) == MT_am_vec##D) {                                 \
-            am_mat##D *x = am_get_userdata(L, am_mat##D, 1);                            \
-            am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                            \
-            am_vec##D *z = am_new_userdata(L, am_vec##D);                               \
-            z->v = x->m * y->v;                                                         \
         } else {                                                                        \
-            am_mat##D *x = am_get_userdata(L, am_mat##D, 1);                            \
-            am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                            \
-            am_mat##D *z = am_new_userdata(L, am_mat##D);                               \
-            z->m = x->m * y->m;                                                         \
+            int t = am_get_type(L, 2);                                                  \
+            switch (t) {                                                                \
+                case LUA_TNUMBER: {                                                     \
+                    am_mat##D *x = am_get_userdata(L, am_mat##D, 1);                    \
+                    double y = lua_tonumber(L, 2);                                      \
+                    am_mat##D *z = am_new_userdata(L, am_mat##D);                       \
+                    z->m = x->m * y;                                                    \
+                    break;                                                              \
+                }                                                                       \
+                case MT_am_vec##D: {                                                    \
+                    am_mat##D *x = am_get_userdata(L, am_mat##D, 1);                    \
+                    am_vec##D *y = am_get_userdata(L, am_vec##D, 2);                    \
+                    am_vec##D *z = am_new_userdata(L, am_vec##D);                       \
+                    z->v = x->m * y->v;                                                 \
+                    break;                                                              \
+                }                                                                       \
+                case MT_am_buffer_view: {                                               \
+                    return am_mathv_mul(L);                                             \
+                }                                                                       \
+                default: {                                                              \
+                    am_mat##D *x = am_get_userdata(L, am_mat##D, 1);                    \
+                    am_mat##D *y = am_get_userdata(L, am_mat##D, 2);                    \
+                    am_mat##D *z = am_new_userdata(L, am_mat##D);                       \
+                    z->m = x->m * y->m;                                                 \
+                    break;                                                              \
+                }                                                                       \
+            }                                                                           \
         }                                                                               \
         return 1;                                                                       \
     }

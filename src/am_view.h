@@ -21,6 +21,8 @@ enum am_buffer_view_type_lua {
     AM_VIEW_TYPE_LUA_F32_2,
     AM_VIEW_TYPE_LUA_F32_3,
     AM_VIEW_TYPE_LUA_F32_4,
+    AM_VIEW_TYPE_LUA_F32_3x3,
+    AM_VIEW_TYPE_LUA_F32_4x4,
     AM_VIEW_TYPE_LUA_U8_1,
     AM_VIEW_TYPE_LUA_U8_2,
     AM_VIEW_TYPE_LUA_U8_3,

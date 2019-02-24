@@ -4,6 +4,8 @@
 #define DIV_F32(x, y) ((x) / (y))
 #define UNM_F32(x) (-(x))
 
+#define MAT_MUL(x, y) ((x) * (y))
+
 #define PERLIN1_F32(x) (glm::perlin(glm::vec2(x, 0.0f)))
 #define PERLIN2_F32(x, y) (glm::perlin(glm::vec2(x, 0.0f), glm::vec2(y, 1.0f)))
 #define SIMPLEX1_F32(x) (glm::simplex(glm::vec2(x, 0.0f)))
@@ -231,4 +233,40 @@ int am_mathv_cart(lua_State *L) {
     view->stride = 4 * components;
     view->size = view1->size * view2->size;
     return 1;
+}
+
+int am_mathv_vec_mul(lua_State *L);
+int am_mathv_mat_mul(lua_State *L);
+
+int am_mathv_mul(lua_State *L) {
+    // decide if we need to do matrix multiplication or not
+    int t1 = am_get_type(L, 1);
+    switch (t1) {
+        case MT_am_mat3:
+        case MT_am_mat4:
+            return am_mathv_mat_mul(L);
+        case MT_am_buffer_view: {
+            am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
+            if (view->components >= 9) {
+                return am_mathv_mat_mul(L);
+            }
+            // fall through
+        }
+        default: {
+            int t2 = am_get_type(L, 2);
+            switch (t2) {
+                case MT_am_mat3:
+                case MT_am_mat4:
+                    return am_mathv_mat_mul(L);
+                case MT_am_buffer_view: {
+                    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 2);
+                    if (view->components >= 9) {
+                        return am_mathv_mat_mul(L);
+                    }
+                    // fall through
+                }
+            }
+        }
+    }
+    return am_mathv_vec_mul(L);
 }

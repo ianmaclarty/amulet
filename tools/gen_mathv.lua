@@ -33,7 +33,7 @@ local func_defs = {
         }
     },
     { 
-        name = "mul",
+        name = "vec_mul",
         kind = "component_wise",
         comps = {1, 2, 3, 4},
         variants = {
@@ -272,6 +272,174 @@ local func_defs = {
         }
     },
     {
+        name = "mat3",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::mat3",
+                ret_type = "f32",
+                ret_comps = 9,
+                args = {
+                    {name = "e1", type = "f32", comps = 1},
+                    {name = "e2", type = "f32", comps = 1},
+                    {name = "e3", type = "f32", comps = 1},
+                    {name = "e4", type = "f32", comps = 1},
+                    {name = "e5", type = "f32", comps = 1},
+                    {name = "e6", type = "f32", comps = 1},
+                    {name = "e7", type = "f32", comps = 1},
+                    {name = "e8", type = "f32", comps = 1},
+                    {name = "e9", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::mat3",
+                ret_type = "f32",
+                ret_comps = 9,
+                args = {
+                    {name = "col1", type = "f32", comps = 3},
+                    {name = "col2", type = "f32", comps = 3},
+                    {name = "col3", type = "f32", comps = 3},
+                },
+            },
+        }
+    },
+    {
+        name = "mat4",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::mat4",
+                ret_type = "f32",
+                ret_comps = 16,
+                args = {
+                    {name = "e1", type = "f32", comps = 1},
+                    {name = "e2", type = "f32", comps = 1},
+                    {name = "e3", type = "f32", comps = 1},
+                    {name = "e4", type = "f32", comps = 1},
+                    {name = "e5", type = "f32", comps = 1},
+                    {name = "e6", type = "f32", comps = 1},
+                    {name = "e7", type = "f32", comps = 1},
+                    {name = "e8", type = "f32", comps = 1},
+                    {name = "e9", type = "f32", comps = 1},
+                    {name = "e10", type = "f32", comps = 1},
+                    {name = "e11", type = "f32", comps = 1},
+                    {name = "e12", type = "f32", comps = 1},
+                    {name = "e13", type = "f32", comps = 1},
+                    {name = "e14", type = "f32", comps = 1},
+                    {name = "e15", type = "f32", comps = 1},
+                    {name = "e16", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::mat4",
+                ret_type = "f32",
+                ret_comps = 16,
+                args = {
+                    {name = "col1", type = "f32", comps = 4},
+                    {name = "col2", type = "f32", comps = 4},
+                    {name = "col3", type = "f32", comps = 4},
+                    {name = "col4", type = "f32", comps = 4},
+                },
+            },
+        }
+    },
+    {
+        name = "mat_mul",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 16,
+                args = {
+                    {name = "m1", type = "f32", comps = 16},
+                    {name = "m2", type = "f32", comps = 16},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "m", type = "f32", comps = 16},
+                    {name = "v", type = "f32", comps = 4},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "v", type = "f32", comps = 4},
+                    {name = "m", type = "f32", comps = 16},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 16,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "m", type = "f32", comps = 16},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 16,
+                args = {
+                    {name = "m", type = "f32", comps = 16},
+                    {name = "x", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 9,
+                args = {
+                    {name = "m1", type = "f32", comps = 9},
+                    {name = "m2", type = "f32", comps = 9},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 3,
+                args = {
+                    {name = "m", type = "f32", comps = 9},
+                    {name = "v", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 3,
+                args = {
+                    {name = "v", type = "f32", comps = 3},
+                    {name = "m", type = "f32", comps = 9},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 9,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "m", type = "f32", comps = 9},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f32",
+                ret_comps = 9,
+                args = {
+                    {name = "m", type = "f32", comps = 9},
+                    {name = "x", type = "f32", comps = 1},
+                },
+            },
+        }
+    },
+    {
         name = "dot",
         kind = "element_wise",
         variants = {
@@ -419,7 +587,18 @@ local func_defs = {
 }
 
 local view_type_info = {
-    f32 = {enumval = "AM_VIEW_TYPE_F32", ctype = "float", vec_ctypes = {"float", "glm::vec2", "glm::vec3", "glm::vec4"}},
+    f32 = {
+        enumval = "AM_VIEW_TYPE_F32", 
+        ctype = "float", 
+        vec_ctypes = {
+            [1] = "float",
+            [2] = "glm::vec2",
+            [3] = "glm::vec3", 
+            [4] = "glm::vec4",
+            [9] = "glm::mat3",
+            [16] = "glm::mat4",
+        }
+    },
 }
 
 local
@@ -853,9 +1032,10 @@ function gen_open_module_func(f)
     f:write([[
 void am_open_mathv_module(lua_State *L) {
     luaL_Reg vfuncs[] = {
-        {"range", am_mathv_range},
-        {"random", am_mathv_random},
-        {"cart", am_mathv_cart},
+        {"range",   am_mathv_range},
+        {"random",  am_mathv_random},
+        {"cart",    am_mathv_cart},
+        {"mul",     am_mathv_mul},
 ]])
     for _, func in ipairs(func_defs) do
         f:write("    {\""..func.name.."\", am_mathv_"..func.name.."},\n")
