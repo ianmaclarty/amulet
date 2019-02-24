@@ -9,3 +9,4 @@ int am_mathv_pow(lua_State *L);
 int am_mathv_unm(lua_State *L);
 int am_mathv_sin(lua_State *L);
 int am_mathv_dot(lua_State *L);
+int am_mathv_vec4(lua_State *L);

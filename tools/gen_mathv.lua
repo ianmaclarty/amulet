@@ -125,6 +125,153 @@ local func_defs = {
 
     -- element-wise math functions
     {
+        name = "vec2",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::vec2",
+                ret_type = "f32",
+                ret_comps = 2,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "y", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::vec2",
+                ret_type = "f32",
+                ret_comps = 2,
+                args = {
+                    {name = "xy", type = "f32", comps = 2},
+                },
+            },
+        }
+    },
+    {
+        name = "vec3",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::vec3",
+                ret_type = "f32",
+                ret_comps = 3,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "y", type = "f32", comps = 1},
+                    {name = "z", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::vec3",
+                ret_type = "f32",
+                ret_comps = 3,
+                args = {
+                    {name = "xy", type = "f32", comps = 2},
+                    {name = "z", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::vec3",
+                ret_type = "f32",
+                ret_comps = 3,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "yz", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::vec3",
+                ret_type = "f32",
+                ret_comps = 3,
+                args = {
+                    {name = "xyz", type = "f32", comps = 3},
+                },
+            },
+        }
+    },
+    {
+        name = "vec4",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::vec4",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "y", type = "f32", comps = 1},
+                    {name = "z", type = "f32", comps = 1},
+                    {name = "w", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::vec4",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "xyz", type = "f32", comps = 3},
+                    {name = "w", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::vec4",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "yzw", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::vec4",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "xy", type = "f32", comps = 2},
+                    {name = "zw", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::vec4",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "y", type = "f32", comps = 1},
+                    {name = "zw", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::vec4",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f32", comps = 1},
+                    {name = "yz", type = "f32", comps = 2},
+                    {name = "w", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::vec4",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "xy", type = "f32", comps = 2},
+                    {name = "z", type = "f32", comps = 1},
+                    {name = "w", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "glm::vec4",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "xyzw", type = "f32", comps = 4},
+                },
+            },
+        }
+    },
+    {
         name = "dot",
         kind = "element_wise",
         variants = {
@@ -640,5 +787,5 @@ void am_open_mathv_module(lua_State *L);
     f:close()
 end
 
-gen_h_file()
+--gen_h_file()
 gen_cpp_file()
