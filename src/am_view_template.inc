@@ -81,6 +81,8 @@ static int AM_CONCAT(TNAME,_view_index)(lua_State *L) {
     return luaL_error(L, "internal error: unexpected number of components (%d)", view->components);
 }
 
+static int AM_CONCAT(TNAME,_view_set_component_field)(lua_State *L, am_buffer_view *view);
+
 static int AM_CONCAT(TNAME,_view_newindex)(lua_State *L) {
     am_buffer_view *view = am_check_buffer_view(L, 1);
     int index = lua_tointeger(L, 2);
@@ -88,7 +90,7 @@ static int AM_CONCAT(TNAME,_view_newindex)(lua_State *L) {
         if (lua_isnumber(L, 2)) {
             return luaL_error(L, "view index %d not in range [1, %d]", index, view->size);
         } else {
-            return luaL_error(L, "view index must be an integer (in fact a %s)", lua_typename(L, lua_type(L, 2)));
+            return AM_CONCAT(TNAME,_view_set_component_field)(L, view);
         }
     }
     am_buffer *buf = view->buffer;
@@ -207,7 +209,7 @@ static void AM_CONCAT(TNAME,_view_set_from_table)(lua_State *L, am_buffer_view *
         return;
     }
     if (view->components > 1 && first_type == LUA_TNUMBER) {
-        AM_CONCAT(TNAME,_view_set_vecs_from_num_table(L, view, idx, start, sz));
+        AM_CONCAT(TNAME,_view_set_vecs_from_num_table)(L, view, idx, start, sz);
         return;
     }
     int size = am_min(sz, view->size - start + 1);
@@ -581,6 +583,76 @@ static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
                 am_get_typename(L, 2));
     }
     return 0;
+}
+
+static int AM_CONCAT(TNAME,_view_set_component)(lua_State *L, am_buffer_view *view, int start, int count) {
+    int comp_sz = am_view_type_infos[view->type].size;
+    int orig_components = view->components;
+    int orig_offset = view->offset;
+    view->offset = view->offset + start * comp_sz;
+    view->components = count;
+    lua_remove(L, 2); // field name
+    int rt = AM_CONCAT(TNAME,_view_set)(L);
+    view->offset = orig_offset;
+    view->components = orig_components;
+    return rt;
+}
+
+static int AM_CONCAT(TNAME,_view_set_component_field)(lua_State *L, am_buffer_view *view) {
+    if (lua_type(L, 2) == LUA_TSTRING) {
+        size_t len;
+        const char *str = lua_tolstring(L, 2, &len);
+        switch (len) {
+            case 1:
+                switch (str[0]) {
+                    case 'x':
+                    case 'r':
+                    case 's':
+                        return AM_CONCAT(TNAME,_view_set_component)(L, view, 0, 1);
+                    case 'y':
+                    case 'g':
+                    case 't':
+                        return AM_CONCAT(TNAME,_view_set_component)(L, view, 1, 1);
+                    case 'z':
+                    case 'b':
+                    case 'p':
+                        return AM_CONCAT(TNAME,_view_set_component)(L, view, 2, 1);
+                    case 'w':
+                    case 'a':
+                    case 'q':
+                        return AM_CONCAT(TNAME,_view_set_component)(L, view, 3, 1);
+                }
+                break;
+            case 2: {
+                int c1 = VEC_COMPONENT_OFFSET(str[0]);
+                int c2 = VEC_COMPONENT_OFFSET(str[1]);
+                if (c1 >= 0 && c2 == c1 + 1 && view->components > c2) {
+                    return AM_CONCAT(TNAME,_view_set_component)(L, view, c1, 2);
+                }
+                break;
+            }
+            case 3: {
+                int c1 = VEC_COMPONENT_OFFSET(str[0]);
+                int c2 = VEC_COMPONENT_OFFSET(str[1]);
+                int c3 = VEC_COMPONENT_OFFSET(str[2]);
+                if (c1 >= 0 && c2 == c1 + 1 && c3 == c2 + 1 && view->components > c3) {
+                    return AM_CONCAT(TNAME,_view_set_component)(L, view, c1, 3);
+                }
+                break;
+            }
+            case 4: {
+                int c1 = VEC_COMPONENT_OFFSET(str[0]);
+                int c2 = VEC_COMPONENT_OFFSET(str[1]);
+                int c3 = VEC_COMPONENT_OFFSET(str[2]);
+                int c4 = VEC_COMPONENT_OFFSET(str[3]);
+                if (c1 >= 0 && c2 == c1 + 1 && c3 == c2 + 1 && c4 == c3 + 1 && view->components > c4) {
+                    return AM_CONCAT(TNAME,_view_set_component)(L, view, c1, 4);
+                }
+                break;
+            }
+        }
+    }
+    return luaL_error(L, "invalid view field for updating");
 }
 
 static void AM_CONCAT3(register_,TNAME,_view_mt)(lua_State *L) {

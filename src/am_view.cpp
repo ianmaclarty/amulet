@@ -442,21 +442,6 @@ static int view_len(lua_State *L) {
     return 1;
 }
 
-static int create_component_slice(lua_State *L, am_buffer_view *view, int start, int count) {
-    int comp_sz = am_view_type_infos[view->type].size;
-    am_buffer_view *slice = am_new_buffer_view(L, view->type, count);
-    slice->buffer = view->buffer;
-    view->pushref(L, view->buffer_ref);
-    slice->buffer_ref = slice->ref(L, -1);
-    lua_pop(L, 1); // pop buffer
-    slice->offset = view->offset + start * comp_sz;
-    slice->stride = view->stride;
-    slice->size = view->size;
-    slice->max_elem = view->max_elem;
-    slice->last_max_elem_version = view->last_max_elem_version;
-    return 1;
-}
-
 static const int vec_component_offset[] = {
      3, // a
      2, // b
@@ -486,6 +471,21 @@ static const int vec_component_offset[] = {
      2, // z
 };
 #define VEC_COMPONENT_OFFSET(c) (((c) >= 'a' && (c) <= 'z') ? vec_component_offset[c-'a'] : -1)
+
+static int create_component_slice(lua_State *L, am_buffer_view *view, int start, int count) {
+    int comp_sz = am_view_type_infos[view->type].size;
+    am_buffer_view *slice = am_new_buffer_view(L, view->type, count);
+    slice->buffer = view->buffer;
+    view->pushref(L, view->buffer_ref);
+    slice->buffer_ref = slice->ref(L, -1);
+    lua_pop(L, 1); // pop buffer
+    slice->offset = view->offset + start * comp_sz;
+    slice->stride = view->stride;
+    slice->size = view->size;
+    slice->max_elem = view->max_elem;
+    slice->last_max_elem_version = view->last_max_elem_version;
+    return 1;
+}
 
 static int view_swizzle_index(lua_State *L, am_buffer_view *view) {
     if (lua_type(L, 2) == LUA_TSTRING) {

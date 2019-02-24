@@ -79,4 +79,15 @@ do
     print_view(view3.y)
     print_view(view3.z)
     print_view(view3.w)
+
+    view3.x = -1
+    print_view(view3)
+    view3.yz = am.vec2_array{vec2(10, 20), vec2(30, 40)}
+    print_view(view3)
+    view3.yzw = {100, 200, 300, 400, 500, 600}
+    print_view(view3)
+    view3.xy = view3.zw
+    print_view(view3)
+    view3.xyzw = view3
+    print_view(view3)
 end
