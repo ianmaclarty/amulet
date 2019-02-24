@@ -442,6 +442,108 @@ static int view_len(lua_State *L) {
     return 1;
 }
 
+static int create_component_slice(lua_State *L, am_buffer_view *view, int start, int count) {
+    int comp_sz = am_view_type_infos[view->type].size;
+    am_buffer_view *slice = am_new_buffer_view(L, view->type, count);
+    slice->buffer = view->buffer;
+    view->pushref(L, view->buffer_ref);
+    slice->buffer_ref = slice->ref(L, -1);
+    lua_pop(L, 1); // pop buffer
+    slice->offset = view->offset + start * comp_sz;
+    slice->stride = view->stride;
+    slice->size = view->size;
+    slice->max_elem = view->max_elem;
+    slice->last_max_elem_version = view->last_max_elem_version;
+    return 1;
+}
+
+static const int vec_component_offset[] = {
+     3, // a
+     2, // b
+    -1, // c
+    -1, // d
+    -1, // e
+    -1, // f
+     1, // g
+    -1, // h
+    -1, // i
+    -1, // j
+    -1, // k
+    -1, // l
+    -1, // m
+    -1, // n
+    -1, // o
+     2, // p
+     3, // q
+     0, // r
+     0, // s
+     1, // t
+    -1, // u
+    -1, // v
+     3, // w
+     0, // x
+     1, // y
+     2, // z
+};
+#define VEC_COMPONENT_OFFSET(c) (((c) >= 'a' && (c) <= 'z') ? vec_component_offset[c-'a'] : -1)
+
+static int view_swizzle_index(lua_State *L, am_buffer_view *view) {
+    if (lua_type(L, 2) == LUA_TSTRING) {
+        size_t len;
+        const char *str = lua_tolstring(L, 2, &len);
+        switch (len) {
+            case 1:
+                switch (str[0]) {
+                    case 'x':
+                    case 'r':
+                    case 's':
+                        return create_component_slice(L, view, 0, 1);
+                    case 'y':
+                    case 'g':
+                    case 't':
+                        return create_component_slice(L, view, 1, 1);
+                    case 'z':
+                    case 'b':
+                    case 'p':
+                        return create_component_slice(L, view, 2, 1);
+                    case 'w':
+                    case 'a':
+                    case 'q':
+                        return create_component_slice(L, view, 3, 1);
+                }
+                break;
+            case 2: {
+                int c1 = VEC_COMPONENT_OFFSET(str[0]);
+                int c2 = VEC_COMPONENT_OFFSET(str[1]);
+                if (c1 >= 0 && c2 == c1 + 1 && view->components > c2) {
+                    return create_component_slice(L, view, c1, 2);
+                }
+                break;
+            }
+            case 3: {
+                int c1 = VEC_COMPONENT_OFFSET(str[0]);
+                int c2 = VEC_COMPONENT_OFFSET(str[1]);
+                int c3 = VEC_COMPONENT_OFFSET(str[2]);
+                if (c1 >= 0 && c2 == c1 + 1 && c3 == c2 + 1 && view->components > c3) {
+                    return create_component_slice(L, view, c1, 3);
+                }
+                break;
+            }
+            case 4: {
+                int c1 = VEC_COMPONENT_OFFSET(str[0]);
+                int c2 = VEC_COMPONENT_OFFSET(str[1]);
+                int c3 = VEC_COMPONENT_OFFSET(str[2]);
+                int c4 = VEC_COMPONENT_OFFSET(str[3]);
+                if (c1 >= 0 && c2 == c1 + 1 && c3 == c2 + 1 && c4 == c3 + 1 && view->components > c4) {
+                    return create_component_slice(L, view, c1, 4);
+                }
+                break;
+            }
+        }
+    }
+    return am_default_index_func(L);
+}
+
 #define TNAME F32
 #define CTYPE float
 #define FROM_LUA_NUM(x) ((float)(x))

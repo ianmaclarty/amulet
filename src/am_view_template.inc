@@ -15,7 +15,7 @@ static int AM_CONCAT(TNAME,_view_index)(lua_State *L) {
     am_buffer_view *view = am_check_buffer_view(L, 1);
     int index = lua_tointeger(L, 2);
     if (index < 1 || index > view->size) {
-        return am_default_index_func(L);
+        return view_swizzle_index(L, view);
     }
     uint8_t *ptr = view->buffer->data + view->offset + view->stride * (index-1);
     switch (view->components) {
