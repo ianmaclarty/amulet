@@ -1,0 +1,41 @@
+{
+  "name": "glsl-optimizer",
+  "version": "0.1.0",
+  "description": "GLSL optimizer",
+  "main": "build/Release/glslOptimizer.node",
+  "scripts": {
+    "install": "node-gyp rebuild"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aras-p/glsl-optimizer.git"
+  },
+  "keywords": [
+    "glsl",
+    "webgl",
+    "shader",
+    "optimize",
+    "optimizer",
+    "opengl",
+    "essl",
+    "es",
+    "opengles"
+  ],
+  "readmeFilename": "README.md",
+  "author": "Aras Pranckevičius",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 0.12.0"
+  },
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/aras-p/glsl-optimizer/issues"
+  },
+  "homepage": "https://github.com/aras-p/glsl-optimizer",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "nan": "~2.6.x"
+  }
+}

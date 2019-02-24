@@ -2,7 +2,7 @@
 
 // Adapted from OpenCV (http://opencv.org/)
 
-#ifdef AM_OSX
+#if defined(AM_OSX) && !defined(AM_USE_METAL)
 
 #define GL_GLEXT_PROTOTYPES
 #include <SDL_opengl.h>

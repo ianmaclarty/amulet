@@ -11,8 +11,8 @@ config.log
 config.status
 /amulet
 /amulet.exe
-libamulet.so
-builds/*
+/libamulet.so
+/builds/*
 tags
 settings
 tmp/*
@@ -31,13 +31,6 @@ vc*.pdb
 src/am_embedded_data.cpp
 src/am_version.cpp
 src/am_generated_view_defs.inc
-
-tools/embed
-tools/gen_view_defs
-tools/ampack
-ampack
-
-xcode/*
 
 third_party/SDL2-*/Makefile
 third_party/SDL2-*/Makefile.rules
@@ -59,6 +52,8 @@ third_party/stb/*.lib
 third_party/stb/*.a
 third_party/stb/*.obj
 third_party/stb/*.o-*
+
+third_party/glsl-optimizer/*.a
 
 third_party/kiss_fft*/*.lib
 third_party/kiss_fft*/*.a
@@ -103,3 +98,10 @@ gllog
 gllog.cpp
 
 valgrind.log
+
+/third_party/steamworks_sdk*
+/third_party/*.bak
+
+/tools/bsearch
+/tools/embed
+/tools/gen_view_defs

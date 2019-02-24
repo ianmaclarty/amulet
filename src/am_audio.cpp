@@ -410,6 +410,7 @@ am_audio_track_node::am_audio_track_node()
     audio_buffer_ref = LUA_NOREF;
     current_position = 0.0;
     next_position = 0.0;
+    reset_position = 0.0;
     loop = false;
     needs_reset = false;
     done_server = false;
@@ -420,8 +421,8 @@ void am_audio_track_node::sync_params() {
     playback_speed.update_target();
     gain.update_target();
     if (needs_reset) {
-        current_position = 0.0;
-        next_position = 0.0;
+        current_position = reset_position;
+        next_position = reset_position;
         needs_reset = false;
         done_server = false;
     }
@@ -662,7 +663,8 @@ am_spectrum_node::am_spectrum_node() : smoothing(0.9f) {
 
 void am_spectrum_node::sync_params() {
     if (arr->size < num_bins - 1) return;
-    if (arr->type != AM_VIEW_TYPE_FLOAT) return;
+    if (arr->type != AM_VIEW_TYPE_F32) return;
+    if (arr->components != 1) return;
     if (arr->buffer->data == NULL) return;
     float *farr = (float*)&arr->buffer->data[arr->offset];
     for (int i = 1; i < num_bins; i++) {
@@ -1095,9 +1097,16 @@ static int create_audio_track_node(lua_State *L) {
 }
 
 static int reset_track(lua_State *L) {
-    am_check_nargs(L, 1);
+    int nargs = am_check_nargs(L, 1);
     am_audio_track_node *node = am_get_userdata(L, am_audio_track_node, 1);
     node->needs_reset = true;
+    if (nargs > 1) {
+        int buf_num_channels = node->audio_buffer->num_channels;
+        int buf_num_samples = node->audio_buffer->buffer->size / (buf_num_channels * sizeof(float));
+        node->reset_position = am_min(luaL_checknumber(L, 2) * node->audio_buffer->sample_rate, (double)(buf_num_samples-1));
+    } else {
+        node->reset_position = 0.0;
+    }
     return 0;
 }
 
@@ -1113,6 +1122,18 @@ static void set_track_playback_speed(lua_State *L, void *obj) {
 
 static am_property track_playback_speed_property = {get_track_playback_speed, set_track_playback_speed};
 
+static void get_track_volume(lua_State *L, void *obj) {
+    am_audio_track_node *node = (am_audio_track_node*)obj;
+    lua_pushnumber(L, node->gain.pending_value);
+}
+
+static void set_track_volume(lua_State *L, void *obj) {
+    am_audio_track_node *node = (am_audio_track_node*)obj;
+    node->gain.pending_value = luaL_checknumber(L, 3);
+}
+
+static am_property track_volume_property = {get_track_volume, set_track_volume};
+
 static void register_audio_track_node_mt(lua_State *L) {
     lua_newtable(L);
     lua_pushcclosure(L, am_audio_node_index, 0);
@@ -1123,6 +1144,7 @@ static void register_audio_track_node_mt(lua_State *L) {
     lua_setfield(L, -2, "reset");
 
     am_register_property(L, "playback_speed", &track_playback_speed_property);
+    am_register_property(L, "volume", &track_volume_property);
 
     am_register_metatable(L, "track", MT_am_audio_track_node, MT_am_audio_node);
 }
@@ -1276,8 +1298,11 @@ static int create_spectrum_node(lua_State *L) {
     if (node->arr->size < freq_bins) {
         return luaL_error(L, "array must have at least %d elements", freq_bins);
     }
-    if (node->arr->type != AM_VIEW_TYPE_FLOAT) {
+    if (node->arr->type != AM_VIEW_TYPE_F32) {
         return luaL_error(L, "array must have type float");
+    }
+    if (node->arr->components != 1) {
+        return luaL_error(L, "array must have 1 component of type float");
     }
     if (nargs > 3) {
         node->smoothing.set_immediate(luaL_checknumber(L, 4));
@@ -1582,7 +1607,14 @@ static void do_post_render(am_audio_context *context, int num_samples, am_audio_
 void am_fill_audio_bus(am_audio_bus *bus) {
     if (audio_context.root == NULL) return;
     if (!am_conf_audio_mute) {
-        audio_context.root->render_audio(&audio_context, bus);
+#if AM_STEAMWORKS
+        // mute audio if steam overlay shown
+        if (!am_steam_overlay_enabled) {
+#endif
+            audio_context.root->render_audio(&audio_context, bus);
+#if AM_STEAMWORKS
+        }
+#endif
     }
     audio_context.render_id++;
     do_post_render(&audio_context, bus->num_samples, audio_context.root);

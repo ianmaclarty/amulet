@@ -232,6 +232,7 @@ static LStream *newfile (lua_State *L) {
   return p;
 }
 
+FILE* am_fopen(const char *path, const char *mode);
 
 static void opencheck (lua_State *L, const char *fname, const char *mode) {
   LStream *p = newfile(L);

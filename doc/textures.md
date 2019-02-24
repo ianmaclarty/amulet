@@ -195,13 +195,19 @@ Creates framebuffer with the given texture attached.
 
 `depth_buf` and `stencil_buf` determine whether the
 framebuffer has a depth and/or stencil buffer. These should be
-`true` or `false`.
+`true` or `false` (default is `false`).
 
 ## Framebuffer fields
 
 ### framebuffer.clear_color {#framebuffer.clear_color .field-def}
 
 The color to use when clearing the framebuffer (a `vec4`).
+
+Updatable.
+
+### framebuffer.stencil_clear_value {#framebuffer.stencil_clear_value .field-def}
+
+The value to use when clearing the framebuffer's stencil buffer (an integer between 0 and 255).
 
 Updatable.
 

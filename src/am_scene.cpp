@@ -6,12 +6,18 @@ am_tag AM_TAG_USE_PROGRAM;
 am_tag AM_TAG_TRANSLATE;
 am_tag AM_TAG_ROTATE;
 am_tag AM_TAG_SCALE;
+am_tag AM_TAG_TRANSFORM;
 am_tag AM_TAG_BILLBOARD;
 am_tag AM_TAG_LOOKAT;
 am_tag AM_TAG_BLEND;
 am_tag AM_TAG_DRAW;
 am_tag AM_TAG_VIEWPORT;
 am_tag AM_TAG_COLOR_MASK;
+am_tag AM_TAG_CULL_FACE;
+am_tag AM_TAG_DEPTH_TEST;
+am_tag AM_TAG_STENCIL_TEST;
+am_tag AM_TAG_CULL_SPHERE;
+am_tag AM_TAG_READ_UNIFORM;
 
 static am_tag lookup_tag(lua_State *L, int name_idx);
 static am_scene_node *find_tag(am_scene_node *node, am_tag tag, am_scene_node **parent);
@@ -317,6 +323,29 @@ static void register_wrap_node_mt(lua_State *L) {
     am_register_metatable(L, "wrap_node", MT_am_wrap_node, MT_am_scene_node);
 }
 
+static int tag_search_result_newindex(lua_State *L) {
+    int i = 1;
+    do {
+        lua_rawgeti(L, 1, i);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1); // nil
+            break;
+        }
+        lua_pushvalue(L, 2);
+        lua_pushvalue(L, 3);
+        lua_settable(L, -3);
+        i++;
+    } while (true);
+    return 0;
+}
+
+static void register_tag_search_result_mt(lua_State *L) {
+    lua_newtable(L);
+    lua_pushcclosure(L, tag_search_result_newindex, 0);
+    lua_setfield(L, -2, "__newindex");
+    am_register_metatable(L, "tag_search_result", MT_tag_search_result, 0);
+}
+
 // Tags
 
 static int next_tag = 0;
@@ -457,6 +486,8 @@ static int search_all_tags(lua_State *L) {
     }
     am_tag tag = lookup_tag(L, 2);
     lua_newtable(L);
+    am_push_metatable(L, MT_tag_search_result);
+    lua_setmetatable(L, -2);
     int i = 1;
     find_all_tags(L, node, tag, &i, am_absindex(L, -1), recurse);
     return 1;
@@ -487,6 +518,10 @@ static void init_default_tags(lua_State *L) {
     AM_TAG_SCALE = lookup_tag(L, -1);
     lua_pop(L, 1);
 
+    lua_pushstring(L, "transform");
+    AM_TAG_TRANSFORM = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
     lua_pushstring(L, "billboard");
     AM_TAG_BILLBOARD = lookup_tag(L, -1);
     lua_pop(L, 1);
@@ -509,6 +544,26 @@ static void init_default_tags(lua_State *L) {
 
     lua_pushstring(L, "color_mask");
     AM_TAG_COLOR_MASK = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "cull_face");
+    AM_TAG_CULL_FACE = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "depth_test");
+    AM_TAG_DEPTH_TEST = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "stencil_test");
+    AM_TAG_STENCIL_TEST = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "cull_sphere");
+    AM_TAG_CULL_SPHERE = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "read_uniform");
+    AM_TAG_READ_UNIFORM = lookup_tag(L, -1);
     lua_pop(L, 1);
 }
 
@@ -663,6 +718,7 @@ void am_open_scene_module(lua_State *L) {
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_scene_node_mt(L);
     register_wrap_node_mt(L);
+    register_tag_search_result_mt(L);
     init_tag_table(L);
     init_default_tags(L);
 }

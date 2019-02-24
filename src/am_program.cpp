@@ -15,7 +15,7 @@ static bool bind_attribute_array(am_render_state *rstate, am_gluint location,
         buf->create_arraybuf(NULL);
     }
     am_bind_buffer(AM_ARRAY_BUFFER, buf->arraybuf->id);
-    am_set_attribute_pointer(location, view->num_components(), view->gl_client_type(), view->is_normalized(), view->stride, view->offset);
+    am_set_attribute_pointer(location, view->components, view->gl_client_type(), view->is_normalized(), view->stride, view->offset);
     if (view->size < rstate->max_draw_array_size) {
         rstate->max_draw_array_size = view->size;
     }
@@ -255,6 +255,10 @@ static int create_program(lua_State *L) {
         char *msg = am_get_program_info_log(program);
         lua_pushfstring(L, "shader program link error:\n%s", msg);
         free(msg);
+        am_detach_shader(program, vertex_shader);
+        am_detach_shader(program, fragment_shader);
+        am_delete_shader(vertex_shader);
+        am_delete_shader(fragment_shader);
         am_delete_program(program);
         return luaL_error(L, lua_tostring(L, -1));
     }
@@ -272,12 +276,14 @@ static int create_program(lua_State *L) {
         char *name_str;
         am_attribute_var_type type;
         int size;
-        am_get_active_attribute(program, index, &name_str, &type, &size);
+        am_gluint loc;
+        am_get_active_attribute(program, index, &name_str, &type, &size, &loc);
+        // XXX check size
         lua_pushstring(L, name_str);
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name str
         am_program_param *param = &params[i];
-        param->location = am_get_attribute_location(program, name_str);
+        param->location = loc;
         param->name = name;
         switch (type) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT:
@@ -296,10 +302,10 @@ static int create_program(lua_State *L) {
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT3:
             case AM_ATTRIBUTE_VAR_TYPE_FLOAT_MAT4:
             case AM_ATTRIBUTE_VAR_TYPE_UNKNOWN:
+                lua_pushfstring(L, "sorry, attribute '%s' is of an unsupported type", name_str);
                 free(name_str);
                 am_delete_program(program);
-                return luaL_error(L, "sorry, attribute '%s' is of an unsupported type");
-                continue;
+                return lua_error(L);
         }
         free(name_str);
         i++;
@@ -309,13 +315,20 @@ static int create_program(lua_State *L) {
     for (int index = 0; index < num_uniforms; index++) {
         char *name_str;
         am_uniform_var_type type;
-        int size;
-        am_get_active_uniform(program, index, &name_str, &type, &size);
+        int arr_size;
+        am_gluint loc;
+        am_get_active_uniform(program, index, &name_str, &type, &arr_size, &loc);
+        if (arr_size > 1) {
+            lua_pushfstring(L, "sorry, uniform '%s' is of an unsupported type", name_str);
+            free(name_str);
+            am_delete_program(program);
+            return lua_error(L);
+        }
         lua_pushstring(L, name_str);
         int name = am_lookup_param_name(L, -1);
         lua_pop(L, 1); // name
         am_program_param *param = &params[i];
-        param->location = am_get_uniform_location(program, name_str);
+        param->location = loc;
         param->name = name;
         switch (type) {
             case AM_UNIFORM_VAR_TYPE_FLOAT:
@@ -352,9 +365,10 @@ static int create_program(lua_State *L) {
             case AM_UNIFORM_VAR_TYPE_BOOL_VEC4:
             case AM_UNIFORM_VAR_TYPE_SAMPLER_CUBE:
             case AM_UNIFORM_VAR_TYPE_UNKNOWN:
+                lua_pushfstring(L, "sorry, uniform '%s' is of an unsupported type", name_str);
                 free(name_str);
                 am_delete_program(program);
-                return luaL_error(L, "sorry, uniform '%s' is of an unsupported type");
+                return lua_error(L);
         }
         free(name_str);
         i++;
@@ -676,6 +690,7 @@ static int create_read_uniform_node(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_isstring(L, 1)) return luaL_error(L, "expecting a string in position 2");
     am_read_uniform_node *node = am_new_userdata(L, am_read_uniform_node);
+    node->tags.push_back(L, AM_TAG_READ_UNIFORM);
     node->name = am_lookup_param_name(L, 1);
     return 1;
 }
@@ -732,24 +747,101 @@ const char *am_program_param_client_type_name(am_program_param_name_slot *slot) 
                 return "freed buffer";
             } else {
                 switch (slot->value.value.arr->type) {
-                    case AM_VIEW_TYPE_FLOAT: return "array of floats";
-                    case AM_VIEW_TYPE_FLOAT2: return "array of vec2s";
-                    case AM_VIEW_TYPE_FLOAT3: return "array of vec3s";
-                    case AM_VIEW_TYPE_FLOAT4: return "array of vec4s";
-                    case AM_VIEW_TYPE_UBYTE: return "array of ubytes";
-                    case AM_VIEW_TYPE_BYTE: return "array of bytes";
-                    case AM_VIEW_TYPE_UBYTE_NORM: return "array of normalized ubytes";
-                    case AM_VIEW_TYPE_UBYTE_NORM4: return "array of normalized ubyte4s";
-                    case AM_VIEW_TYPE_BYTE_NORM: return "array of normalized bytes";
-                    case AM_VIEW_TYPE_USHORT: return "array of ushorts";
-                    case AM_VIEW_TYPE_SHORT: return "array of shorts";
-                    case AM_VIEW_TYPE_USHORT_ELEM: return "array of ushort indices";
-                    case AM_VIEW_TYPE_USHORT_NORM: return "array of normalized ushorts";
-                    case AM_VIEW_TYPE_SHORT_NORM: return "array of normalized shorts";
-                    case AM_VIEW_TYPE_UINT: return "array of uints";
-                    case AM_VIEW_TYPE_INT: return "array of ints";
-                    case AM_VIEW_TYPE_UINT_ELEM: return "array of uint indices";
-                    case AM_NUM_VIEW_TYPES: assert(false); break;
+                    case AM_VIEW_TYPE_F32:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of f32";
+                            case 2: return "array of f32[2]";
+                            case 3: return "array of f32[3]";
+                            case 4: return "array of f32[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_U8:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of u8";
+                            case 2: return "array of u8[2]";
+                            case 3: return "array of u8[3]";
+                            case 4: return "array of u8[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_I8:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of i8";
+                            case 2: return "array of i8[2]";
+                            case 3: return "array of i8[3]";
+                            case 4: return "array of i8[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_U8N:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of u8n";
+                            case 2: return "array of u8n[2]";
+                            case 3: return "array of u8n[3]";
+                            case 4: return "array of u8n[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_I8N:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of i8n";
+                            case 2: return "array of i8n[2]";
+                            case 3: return "array of i8n[3]";
+                            case 4: return "array of i8n[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_U16:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of u16";
+                            case 2: return "array of u16[2]";
+                            case 3: return "array of u16[3]";
+                            case 4: return "array of u16[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_I16:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of i16";
+                            case 2: return "array of i16[2]";
+                            case 3: return "array of i16[3]";
+                            case 4: return "array of i16[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_U16E:
+                        return "array of u16e";
+                    case AM_VIEW_TYPE_U16N:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of u16n";
+                            case 2: return "array of u16n[2]";
+                            case 3: return "array of u16n[3]";
+                            case 4: return "array of u16n[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_I16N:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of i16n";
+                            case 2: return "array of i16n[2]";
+                            case 3: return "array of i16n[3]";
+                            case 4: return "array of i16n[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_U32:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of u32";
+                            case 2: return "array of u32[2]";
+                            case 3: return "array of u32[3]";
+                            case 4: return "array of u32[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_I32:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of i32";
+                            case 2: return "array of i32[2]";
+                            case 3: return "array of i32[3]";
+                            case 4: return "array of i32[4]";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_U32E:
+                        return "array of u32e";
+                    case AM_NUM_VIEW_TYPES: 
+                        assert(false); 
+                        break;
                 }
             }
             break;

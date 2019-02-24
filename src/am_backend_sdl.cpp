@@ -4,9 +4,11 @@
 
 #define SDL_MAIN_HANDLED 1
 #include "SDL.h"
+#include "SDL_syswm.h"
 
 #ifdef AM_OSX
 #import <AppKit/AppKit.h>
+#import <Cocoa/Cocoa.h>
 #endif
 
 // Create variables for OpenGL ES 2 functions
@@ -55,10 +57,23 @@ static bool capture_initialized = false;
 static bool should_init_capture = false;
 static std::vector<win_info> windows;
 SDL_Window *main_window = NULL;
-static SDL_GLContext gl_context;
-static bool gl_context_initialized = false;
 static bool sdl_initialized = false;
 static bool restart_triggered = false;
+
+#ifdef AM_USE_METAL
+extern NSWindow *am_metal_window;
+extern bool am_metal_use_highdpi;
+extern bool am_metal_window_depth_buffer;
+extern bool am_metal_window_stencil_buffer;
+extern int am_metal_window_msaa_samples;
+extern int am_metal_window_pwidth;
+extern int am_metal_window_pheight;
+extern int am_metal_window_swidth;
+extern int am_metal_window_sheight;
+#else
+static SDL_GLContext gl_context;
+static bool gl_context_initialized = false;
+#endif
 
 static am_package *package = NULL;
 
@@ -88,17 +103,21 @@ am_native_window *am_create_native_window(
     bool stencil_buffer,
     int msaa_samples)
 {
-    if (windows.size() == 0 && main_window != NULL) {
-        win_info winfo;
-        memset(&winfo, 0, sizeof(win_info));
-        winfo.window = main_window;
-        SDL_GetMouseState(&winfo.mouse_x, &winfo.mouse_y);
-        windows.push_back(winfo);
+    if (restart_triggered && main_window != NULL) {
+        // restarting, return existing window
         return (am_native_window*)main_window;
     }
     if (!sdl_initialized) {
         init_sdl();
     }
+#ifdef AM_USE_METAL
+    Uint32 flags = 0;
+    if (main_window) {
+        am_log0("%s", "sorry, only one window is supported");
+        return NULL;
+    }
+#else
+    // using gl
     if (main_window != NULL) {
         SDL_GL_MakeCurrent(main_window, gl_context);
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
@@ -133,6 +152,7 @@ am_native_window *am_create_native_window(
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     }
     Uint32 flags = SDL_WINDOW_OPENGL;
+#endif
     switch (mode) {
         case AM_WINDOW_MODE_WINDOWED: break;
         case AM_WINDOW_MODE_FULLSCREEN: flags |= SDL_WINDOW_FULLSCREEN; break;
@@ -157,6 +177,16 @@ am_native_window *am_create_native_window(
         am_log0("%s", SDL_GetError());
         return NULL;
     }
+#ifdef AM_USE_METAL
+    SDL_SysWMinfo sdl_info;
+    SDL_VERSION(&sdl_info.version);
+    SDL_GetWindowWMInfo(win, &sdl_info);
+    am_metal_window = sdl_info.info.cocoa.window;
+    am_metal_use_highdpi = highdpi;
+    am_metal_window_depth_buffer = depth_buffer;
+    am_metal_window_stencil_buffer = stencil_buffer;
+    am_metal_window_msaa_samples = msaa_samples;
+#else
     if (!gl_context_initialized) {
         gl_context = SDL_GL_CreateContext(win);
 #ifdef AM_NEED_GL_FUNC_PTRS
@@ -165,6 +195,7 @@ am_native_window *am_create_native_window(
         gl_context_initialized = true;
     }
     SDL_GL_MakeCurrent(win, gl_context);
+#endif
     if (!am_gl_is_initialized()) {
         am_init_gl();
     }
@@ -189,13 +220,20 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *ph = 0;
     *sw = 0;
     *sh = 0;
+#ifdef AM_USE_METAL
+    *pw = am_metal_window_pwidth;
+    *ph = am_metal_window_pheight;
+    *sw = am_metal_window_swidth;
+    *sh = am_metal_window_sheight;
+#else
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window == (SDL_Window*)window) {
-            SDL_GL_GetDrawableSize(windows[i].window, pw, ph);
             SDL_GetWindowSize(windows[i].window, sw, sh);
+            SDL_GL_GetDrawableSize(windows[i].window, pw, ph);
             return;
         }
     }
+#endif
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
@@ -303,12 +341,17 @@ void am_destroy_native_window(am_native_window* window) {
 }
 
 void am_native_window_bind_framebuffer(am_native_window* window) {
+#if !defined(AM_USE_METAL)
     SDL_GL_MakeCurrent((SDL_Window*)window, gl_context);
+#endif
     am_bind_framebuffer(0);
 }
 
 void am_native_window_swap_buffers(am_native_window* window) {
+    am_gl_end_frame(true);
+#if !defined(AM_USE_METAL)
     SDL_GL_SwapWindow((SDL_Window*)window);
+#endif
 }
 
 double am_get_current_time() {
@@ -395,7 +438,7 @@ void *am_read_resource(const char *filename, int *len, char **errmsg) {
     }
 }
 
-#if !defined (AM_OSX) // see am_videocapture_osx.cpp for OSX definition
+#if !(defined (AM_OSX) && !defined(AM_USE_METAL))// see am_videocapture_osx.cpp for OSX (opengl) definition
 int am_next_video_capture_frame() {
     return 0;
 }
@@ -406,10 +449,29 @@ void am_copy_video_frame_to_texture() {
 const char *am_preferred_language() {
 #if defined(AM_STEAMWORKS)
     return am_get_steam_lang();
+#elif defined(AM_OSX)
+    NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
+    bool in_osx_bundle = (bundleIdentifier != nil);
+    if (in_osx_bundle) {
+        NSString *languageID = [[NSBundle mainBundle] preferredLocalizations].firstObject;
+        return [languageID UTF8String];
+    } else {
+        return "en";
+    }
 #else
     return "en";
 #endif
 }
+
+#if defined (AM_OSX)
+static int launch_url(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *url = lua_tostring(L, 1);
+    if (url == NULL) return 0;
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url]]];
+    return 0;
+}
+#endif
 
 int main( int argc, char *argv[] )
 {
@@ -425,9 +487,6 @@ int main( int argc, char *argv[] )
 
     int exit_status = EXIT_SUCCESS;
 
-#ifdef AM_OSX
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#endif
 #ifdef AM_WINDOWS
     SDL_SetMainReady();
 #endif
@@ -435,6 +494,10 @@ int main( int argc, char *argv[] )
     am_expand_args(&argc, &argv);
     int expanded_argc = argc;
     char **expanded_argv = argv;
+
+#ifdef AM_OSX
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
 
     if (!am_process_args(&argc, &argv, &exit_status)) {
         goto quit;
@@ -448,13 +511,14 @@ int main( int argc, char *argv[] )
         exit_status = EXIT_FAILURE;
         goto quit;
     }
+
+restart:
     eng = am_init_engine(false, argc, argv);
     if (eng == NULL) {
         exit_status = EXIT_FAILURE;
         goto quit;
     }
 
-restart:
     L = eng->L;
 
     frame_time = am_get_current_time();
@@ -462,10 +526,13 @@ restart:
     lua_pushcclosure(L, am_require, 0);
     lua_pushstring(L, am_opt_main_module);
     if (!am_call(L, 1, 0)) {
-        exit_status = EXIT_FAILURE;
-        goto quit;
+        if (windows.size() == 0) {
+            exit_status = EXIT_FAILURE;
+        }
     }
     if (windows.size() == 0) goto quit;
+
+    restart_triggered = false;
 
     t0 = am_get_current_time();
     frame_time = t0;
@@ -473,15 +540,23 @@ restart:
     vsync = -2;
 
     while (windows.size() > 0 && !restart_triggered) {
+#if !defined(AM_USE_METAL)
         if (vsync != (am_conf_vsync ? 1 : 0)) {
             vsync = (am_conf_vsync ? 1 : 0);
             SDL_GL_SetSwapInterval(vsync);
         }
+#endif
 
         if (!am_update_windows(L)) {
             goto quit;
         }
 
+#ifdef AM_OSX
+        // release pool after updating windows, so that some metal objects, such as the layer,
+        // persist for the entire frame.
+        [pool release];
+        pool = [[NSAutoreleasePool alloc] init];
+#endif
         SDL_LockAudioDevice(audio_device);
         am_sync_audio_graph(L);
         if (should_init_capture) {
@@ -503,15 +578,18 @@ restart:
         t_debt += delta_time;
 
 #ifdef AM_STEAMWORKS
-    am_steam_step();
+        am_steam_step();
 #endif
         if (am_conf_fixed_delta_time > 0.0) {
             while (t_debt > 0.0) {
                 double t0 = am_get_current_time();
-                if (!am_execute_actions(L, am_conf_fixed_delta_time)) {
-                    exit_status = EXIT_FAILURE;
-                    goto quit;
+#ifdef AM_STEAMWORKS
+                if (!am_steam_overlay_enabled) {
+#endif
+                am_execute_actions(L, am_conf_fixed_delta_time);
+#ifdef AM_STEAMWORKS
                 }
+#endif
                 double t = am_get_current_time() - t0;
                 t_debt -= am_max(t, am_conf_fixed_delta_time);
             }
@@ -520,10 +598,13 @@ restart:
                 if (am_conf_delta_time_step > 0.0) {
                     t_debt = floor(t_debt / am_conf_delta_time_step + 0.5) * am_conf_delta_time_step;
                 }
-                if (!am_execute_actions(L, t_debt)) {
-                    exit_status = EXIT_FAILURE;
-                    goto quit;
+#ifdef AM_STEAMWORKS
+                if (!am_steam_overlay_enabled) {
+#endif
+                am_execute_actions(L, t_debt);
+#ifdef AM_STEAMWORKS
                 }
+#endif
                 t_debt = 0.0;
             }
         }
@@ -539,9 +620,9 @@ restart:
     }
 
     if (restart_triggered) {
-        restart_triggered = false;
+        SDL_LockAudioDevice(audio_device);
         am_destroy_engine(eng);
-        eng = am_init_engine(false, argc, argv);
+        SDL_UnlockAudioDevice(audio_device);
         goto restart;
     }
 
@@ -596,11 +677,11 @@ quit:
     }
     am_log_gl("// free expanded args");
     am_free_expanded_args(expanded_argc, expanded_argv);
+    am_log_gl("// exit");
+    am_close_gllog();
 #ifdef AM_OSX
     [pool release];
 #endif
-    am_log_gl("// exit");
-    am_close_gllog();
     exit(exit_status);
     return exit_status;
 }
@@ -717,18 +798,21 @@ WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 }
 #endif
 
+static void add_extra_controller_mappings() {
+    SDL_GameControllerAddMapping("03000000c0160000e105000000040000,Xinmoteck 1 Player,a:b1,b:b2,y:b3,x:b0,start:b9,guide:b12,back:b8,leftx:a0,lefty:a1,rightx:a2,righty:a3,leftshoulder:b4,rightshoulder:b5,lefttrigger:b6,righttrigger:b7");
+}
+
 static void init_sdl() {
+    add_extra_controller_mappings();
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER);
     init_audio();
     init_controllers();
     sdl_initialized = true;
-#if defined(AM_WINDOWS)
     if (am_conf_d3dangle) {
         if (!SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "d3dcompiler_47.dll")) {
             am_abort("unable to set SDL_HINT_VIDEO_WIN_D3DCOMPILER");
         }
     }
-#endif
 }
 
 #ifdef AM_NEED_GL_FUNC_PTRS
@@ -951,7 +1035,7 @@ static bool handle_events(lua_State *L) {
             }
             case SDL_KEYUP: {
                 if (!event.key.repeat) {
-                    if (am_conf_allow_restart && event.key.keysym.scancode == SDL_SCANCODE_F5) {
+                    if (!package && event.key.keysym.scancode == SDL_SCANCODE_F5) {
                         restart_triggered = true;
                     } else {
                         win_info *info = win_from_id(event.key.windowID);
@@ -1083,6 +1167,41 @@ static bool handle_events(lua_State *L) {
                 am_call_amulet(L, "_controller_axis_motion", 3, 0);
                 break;
             }
+            /*
+            case SDL_JOYDEVICEADDED: {
+                int joy_index = event.jdevice.which;
+                SDL_JoystickGUID guid = SDL_JoystickGetDeviceGUID(joy_index);
+                char name[100];
+                SDL_JoystickGetGUIDString(guid, name, 100);
+                am_debug("joy added '%s'", name);
+                SDL_JoystickOpen(joy_index);
+                break;
+            }
+            case SDL_JOYDEVICEREMOVED: {
+                am_debug("%s", "joy removed");
+                break;
+            }
+            case SDL_JOYBUTTONDOWN: {
+                am_debug("joy button down %d", event.jbutton.button);
+                break;
+            }
+            case SDL_JOYBUTTONUP: {
+                am_debug("%s", "joy button up");
+                break;
+            }
+            case SDL_JOYAXISMOTION: {
+                am_debug("joy axis %d %d", event.jaxis.axis, event.jaxis.value);
+                break;
+            }
+            case SDL_JOYBALLMOTION: {
+                am_debug("%s", "joy ball");
+                break;
+            }
+            case SDL_JOYHATMOTION: {
+                am_debug("%s", "joy hat");
+                break;
+            }
+            */
         }
     }
     for (unsigned i = 0; i < windows.size(); i++) {
@@ -1305,6 +1424,9 @@ static win_info *win_from_id(Uint32 winid) {
 void am_open_sdl_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"_rumble", rumble},
+#if defined(AM_OSX)
+        {"launch_url", launch_url},
+#endif
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

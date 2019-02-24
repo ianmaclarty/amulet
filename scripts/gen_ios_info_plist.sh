@@ -1,4 +1,5 @@
 #!/bin/sh
+# for launch image sizes see https://wiki.starling-framework.org/manual/ios_launch_images
 set -e
 luavm=$1
 DTXcodeBuild=`xcodebuild -version | grep "Build version" | sed 's/^Build version //'`
@@ -19,7 +20,7 @@ if [ -z "$DTPlatformVersion" ]; then echo unable to determine DTPlatformVersion;
 
 #echo -DAM_DTXcodeBuild=$DTXcodeBuild -DAM_DTXcode=$DTXcode -DAM_DTCompiler=$DTCompiler -DAM_DTPlatformBuild=$DTPlatformBuild -DAM_DTPlatformName=$DTPlatformName -DAM_DTPlatformVersion=$DTPlatformVersion -DAM_DTSDKBuild=$DTSDKBuild -DAM_DTSDKName=$DTSDKName
 
-for f in `find builds/ios/$luavm builds/iossim/$luavm -name "bin" -type d`; do
+for f in `find builds/ios/$luavm -name "bin" -type d`; do
 cat << EOF > $f/Info.plist
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

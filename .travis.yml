@@ -1,6 +1,6 @@
 language: cpp
 
-osx_image: xcode9.2
+osx_image: xcode9.4
 
 sudo: false
 
@@ -12,6 +12,7 @@ addons:
             - g++-mingw-w64-i686
             - gcc-multilib
             - g++-multilib
+            - cmake3
 
 os:
     - linux

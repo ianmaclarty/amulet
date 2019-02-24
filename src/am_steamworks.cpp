@@ -4,6 +4,8 @@
 
 #include <list>
 
+bool am_steam_overlay_enabled = false;
+
 enum AMSteamLeaderboardQueryType {
     AM_STEAM_GLOBAL,
     AM_STEAM_GLOBAL_NEIGHBOURHOOD,
@@ -221,6 +223,20 @@ struct leaderboard_neighbourhood_request {
     }
 };
 
+struct overlay_listener_t { 
+    STEAM_CALLBACK( overlay_listener_t, OnGameOverlayActivated, GameOverlayActivated_t ); 
+}; 
+
+void overlay_listener_t::OnGameOverlayActivated( GameOverlayActivated_t* pCallback ) { 
+    if ( pCallback->m_bActive ) {
+        am_steam_overlay_enabled = true;
+    } else {
+        am_steam_overlay_enabled = false;
+    }
+}
+
+static overlay_listener_t *overlay_listener = NULL;
+
 static bool steam_initialized = false;
 
 static void amSteamSubmitScore(lua_State *L, int func_ref, int score, const char *leaderboard) {
@@ -256,12 +272,17 @@ static void amSteamInit(lua_State *L) {
             steam_initialized = false;
             return;
         }
+        overlay_listener = new overlay_listener_t();
         g_L = L;
     }
 }
 
 void am_steam_teardown() {
     if (steam_initialized) {
+        if (overlay_listener != NULL) {
+            delete overlay_listener;
+            overlay_listener = NULL;
+        }
         for (std::list<leaderboard_neighbourhood_request*>::iterator it = neightbourhood_requests.begin(); it != neightbourhood_requests.end(); ++it) {
             (*it)->L = NULL;
         }

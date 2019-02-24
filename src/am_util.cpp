@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 
 #define MAX_MSG_LEN 10240
+#define MAX_CMD_LEN 51200
 
 char *am_format(const char *fmt, ...) {
     char msg[MAX_MSG_LEN];
@@ -52,9 +53,34 @@ void am_delete_empty_dir(const char* dir) {
 #endif
 }
 
+#ifdef AM_WINDOWS
+static wchar_t *to_wstr(const char *str) {
+    int len16 = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    wchar_t *str16 = (wchar_t*)malloc(len16 * 2);
+    MultiByteToWideChar(CP_UTF8, 0, str, -1, str16, len16);
+    return str16;
+}
+#endif
+
+extern "C" {
+// handles utf8 filenames on windows
+FILE *am_fopen(const char *path, const char *mode) {
+#ifdef AM_WINDOWS
+    wchar_t *path16 = to_wstr(path);
+    wchar_t *mode16 = to_wstr(mode);
+    FILE *f = _wfopen(path16, mode16);
+    free(path16);
+    free(mode16);
+    return f;
+#else
+    return fopen(path, mode);
+#endif
+}
+}
+
 void *am_read_file(const char *filename, size_t *len) {
     if (len != NULL) *len = 0;
-    FILE *f = fopen(filename, "rb");
+    FILE *f = am_fopen(filename, "rb");
     if (f == NULL) {
         fprintf(stderr, "Error: unable to open file %s\n", filename);
         return NULL;
@@ -117,3 +143,20 @@ void am_free_expanded_args(int argc, char **argv) {
     free(argv);
 }
 #endif
+
+bool am_execute_shell_cmd(const char *fmt, ...) {
+#ifdef AM_IOS
+    return false; // system not allowed on iOS
+#else
+    char cmd[MAX_CMD_LEN];
+    va_list argp;
+    va_start(argp, fmt);
+    vsnprintf(cmd, MAX_CMD_LEN, fmt, argp);
+    va_end(argp);
+    int rt = system(cmd);
+    if (rt != 0) {
+        fprintf(stderr, "Error running shell command: %s\n", cmd);
+    }
+    return rt == 0;
+#endif
+}

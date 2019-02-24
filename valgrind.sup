@@ -469,6 +469,15 @@
    Memcheck:Leak
    match-leak-kinds: definite
    fun:malloc
+   fun:_ZL19read_string_settingP9lua_StatePKcPS2_S2_
+   fun:_Z14am_load_configv
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
    fun:SDL_JoystickOpen_REAL
    fun:SDL_GameControllerOpen_REAL
    fun:_ZL13handle_eventsP9lua_State

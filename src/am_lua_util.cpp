@@ -247,7 +247,7 @@ int am_require(lua_State *L) {
     // read in the module
     int sz;
     strncpy(tmpbuf1, modname, TMP_BUF_SZ);
-    am_replchr(tmpbuf1, '.', AM_PATH_SEP);
+    am_replchr(tmpbuf1, '.', '/'); // always use forward slash, even on windows, in case we're looking in data.pak (/ works for normal files on windows anyway)
     snprintf(tmpbuf2, TMP_BUF_SZ, "%s.lua", tmpbuf1);
     char *errmsg;
     void *buf = am_read_resource(tmpbuf2, &sz, &errmsg);
@@ -344,9 +344,11 @@ int luaL_typerror (lua_State *L, int narg, const char *tname) {
 
 #ifdef AM_LUAJIT
 
+#define AM_AVOID_MSVC_LJ_ERRORS 1
 #include "lj_gc.h"
 #include "lj_obj.h"
 #include "lj_state.h"
+#undef AM_AVOID_MSVC_LJ_ERRORS
 
 void lua_unsafe_pushuserdata(lua_State *L, void *v) {
     assert(v != NULL);

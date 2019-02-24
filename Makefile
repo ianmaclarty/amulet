@@ -35,7 +35,15 @@ ifeq ($(TARGET_PLATFORM),html)
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft tinymt
+  ifdef USE_METAL
+    AM_DEPS += glslopt
+    AM_DEFS += AM_USE_METAL
+  endif
 else ifeq ($(TARGET_PLATFORM),msvc32)
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
+  AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+else ifeq ($(TARGET_PLATFORM),msvc64)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2 angle $(STEAMWORKS_DEP)
   AM_DEFS += AM_ANGLE_TRANSLATE_GL
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
@@ -45,6 +53,15 @@ else ifdef ANDROID
 else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+else ifeq ($(TARGET_PLATFORM),osx)
+  AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
+  ifdef USE_METAL
+    AM_DEPS += glslopt
+    AM_DEFS += AM_USE_METAL
+  else
+    AM_DEFS += AM_ANGLE_TRANSLATE_GL
+  endif
+  EXTRA_PREREQS = $(SIMPLEGLOB_H) $(STEAMWORKS_LIB)
 else
   AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
   AM_DEFS += AM_ANGLE_TRANSLATE_GL
@@ -103,13 +120,27 @@ $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@$(ALIB_EXT) $(AM_OBJ_FILES) 
 	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	for f in $(DEP_ALIBS); do ff=`basename $$f`; cp $$f $(BUILD_BIN_DIR)/`echo $$ff | sed 's/^lib//'`; done
+	scripts/gen_ios_info_plist.sh
 	@$(PRINT_BUILD_DONE_MSG)
-else ifdef WINDOWS
-# build both console and windows versions
+else ifdef MSVC
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
+	rc amulet.rc
+	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) amulet.res $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
+	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) amulet.res $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	cp $(BUILD_BIN_DIR)/* .
+	@$(PRINT_BUILD_DONE_MSG)
+else ifdef MINGW
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	$(LINK) $(CONSOLE_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$(BUILD_BIN_DIR)/amulet-console.exe
 	$(LINK) $(WINDOWS_SUBSYSTEM_OPT) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	cp $(BUILD_BIN_DIR)/* .
+	@$(PRINT_BUILD_DONE_MSG)
+else ifdef OSX
+$(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
+	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
+	scripts/gen_mac_info_plist.sh
+	cp icons/amulet.icns $(BUILD_BIN_DIR)/
+	cp $(BUILD_BIN_DIR)/amulet .
 	@$(PRINT_BUILD_DONE_MSG)
 else
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
@@ -120,8 +151,6 @@ endif
 
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) $(DEP_ALIBS) $(EXTRA_PREREQS) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
 	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
-
-$(BUILD_OBJ_DIR)/am_view$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
 
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	echo $(SDL_PREBUILT_DIR)
@@ -138,6 +167,7 @@ $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	fi
 
 $(SDL_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
+	cp -r $(SDL_DIR)/include/* $(BUILD_INC_DIR)/
 	cp -r $(SDL_PREBUILT_DIR)/include/* $(BUILD_INC_DIR)/
 	-cp $(SDL_PREBUILT_DIR)/lib/*.lib $(BUILD_LIB_DIR)/
 	-cp $(SDL_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
@@ -152,7 +182,7 @@ $(ANGLE_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(ANGLE_DIR)/libangle$(ALIB_EXT) $@
 
 $(ANGLE_WIN_PREBUILT): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR) $(BUILD_BIN_DIR)
-	cp $(ANGLE_WIN_PREBUILT_DIR)/lib/*.dll $(BUILD_BIN_DIR)/
+	cp $(ANGLE_WIN_PREBUILT_DIR)/*.dll $(BUILD_BIN_DIR)/
 	touch $@
 
 ifdef WINDOWS
@@ -196,6 +226,12 @@ $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	    cd $$BASE_DIR; \
 	    cp $(LUAJIT_DIR)/src/lua51.lib $@; \
 	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
+	elif [ "$(TARGET_PLATFORM)" = "msvc64" ]; then \
+	    cd $(LUAJIT_DIR)/src; \
+	    PATH='$(VC_CL_DIR):$(PATH)' cmd /c 'msvcbuild.bat static'; \
+	    cd $$BASE_DIR; \
+	    cp $(LUAJIT_DIR)/src/lua51.lib $@; \
+	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
 	else \
 	    cd $(LUAJIT_DIR); \
 	    $(MAKE) clean all $(LUAJIT_FLAGS); \
@@ -216,6 +252,11 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(STB_DIR)/*.h $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/*.c $(BUILD_INC_DIR)/
 	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
+
+$(GLSLOPT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
+	cd $(GLSLOPT_DIR) && $(MAKE) clean all
+	cp $(GLSLOPT_DIR)/src/glsl/glsl_optimizer.h $(BUILD_INC_DIR)/
+	cp $(GLSLOPT_DIR)/libglslopt$(ALIB_EXT) $@
 
 $(SIMPLEGLOB_H): | $(BUILD_INC_DIR)
 	cp $(SIMPLEOPT_DIR)/SimpleGlob.h $@
@@ -244,14 +285,6 @@ $(BUILD_BIN_DIR)/player.html: html/player.html.1 html/player.html.2 html/player.
 
 $(BUILD_EXAMPLE_FILES): $(BUILD_BIN_DIR)/%: examples/% | $(BUILD_BIN_DIR)
 	cp $< $@
-
-# View templates
-
-tools/gen_view_defs$(EXE_EXT): tools/gen_view_defs.c
-	$(HOSTCC) -o $@ $<
-
-$(SRC_DIR)/am_generated_view_defs.inc: tools/gen_view_defs$(EXE_EXT)
-	tools/gen_view_defs$(EXE_EXT) > $@
 
 # Embedded Lua code
 

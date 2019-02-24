@@ -339,7 +339,8 @@ function log(fmt, ...)
     if am._main_window then
         local win = am._main_window
         if not log_overlay_node then
-            log_overlay_node = am.bind{P = math.ortho(0, win.pixel_width, 0, win.pixel_height)}
+            log_overlay_node = am.depth_test("always", false)
+                ^ am.bind{P = math.ortho(0, win.pixel_width, 0, win.pixel_height)}
                 ^ am.translate(0, win.pixel_height)
                 ^ {
                     am.rect(0, 0, 0, 0, vec4(0, 0, 0, 0.5)),

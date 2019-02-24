@@ -14,24 +14,42 @@ function am._traceback(msg, thread)
         msg = msg:gsub("\n\t%[C%]:[^\n]*", ""):gsub("\nstack traceback:$", "")
     end
     local msg = msg:gsub("\t", "    ")
+
+    local is_desktop = am.platform == "windows" or am.platform == "osx" or am.platform == "linux"
+    local logfile = am.app_data_dir.."log.txt"
+
     if am._main_window then
+        local txt = "ERROR:\n\n"..msg.."\n\n"
+        if am.support_email then
+            txt = txt.."\nPlease send a screenshot of this error to "..am.support_email..".\n"
+        end
+        if is_desktop then
+            txt = txt.."\nA copy of this error has been saved to "..logfile..".\n\nPress ESC to close the application.\n"
+        end
         pcall(function()
             local win = am._main_window
             local w, h = win.pixel_width, win.pixel_height
             win.clear_color = vec4(0, 0, 1, 1)
             win.scene = am.bind{P = math.ortho(0, w, 0, h, -1, 1)}
                 ^ am.translate(10, h - 10)
-                ^ am.text("ERROR:\n"..msg, vec4(1, 1, 1, 1), "left", "top")
+                ^ am.text(txt, vec4(1, 1, 1, 1), "left", "top")
+            win.scene:action(function()
+                if win:key_pressed"escape" then
+                    win:close()
+                end
+            end)
         end)
     end
 
-    -- append stacktrace to log file
+    -- write stacktrace to log file
     local plat = am.platform
-    if plat == "windows" or plat == "linux" or plat == "osx" then
-        local f = io.open(am.app_data_dir.."log.txt", "a")
-        f:write(msg)
-        f:write("\n")
-        f:close()
+    if is_desktop then
+        local f = io.open(logfile, "w")
+        if f then
+            f:write(msg)
+            f:write("\n")
+            f:close()
+        end
     end
 
     return msg

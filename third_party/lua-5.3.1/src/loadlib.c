@@ -373,6 +373,7 @@ static int ll_loadlib (lua_State *L) {
 ** =======================================================
 */
 
+FILE* am_fopen(const char *path, const char *mode);
 
 static int readable (const char *filename) {
   FILE *f = fopen(filename, "r");  /* try to open file */

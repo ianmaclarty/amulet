@@ -51,6 +51,10 @@ table with any of the following fields:
     Whether the window has a stencil buffer (`true` or `false`,
     default `false`).
 
+- **`stencil_clear_value`**:
+    The value to clear the stencil buffer with before drawing each
+    frame (an integer between 0 and 255). The default is 0.
+
 - **`lock_pointer`**:
     `true` or `false`. When pointer lock is enabled the cursor will be
     hidden and mouse movement will be set to "relative" mode. In this
@@ -157,6 +161,12 @@ See [window settings](#am.window).
 Updatable.
 
 ### window.clear_color {.field-def}
+
+See [window settings](#am.window).
+
+Updatable.
+
+### window.stencil_clear_value {.field-def}
 
 See [window settings](#am.window).
 
@@ -343,7 +353,7 @@ for the same key.
 (If necessary, Amulet will postpone key release events to the
 next frame to ensure this.)
 
-### window:keys_pressed(key) {.method-def}
+### window:keys_pressed() {.method-def}
 
 Returns an array of all the keys whose state changed from
 up to down since the last frame.
@@ -359,7 +369,7 @@ returns `true` for a particular key then `key_pressed` will return `false`.
 (If necessary, Amulet will postpone key press events to the
 next frame to ensure this.)
 
-### window:keys_released(key) {.method-def}
+### window:keys_released() {.method-def}
 
 Returns an array of all the keys whose state changed from
 down to up since the last frame.

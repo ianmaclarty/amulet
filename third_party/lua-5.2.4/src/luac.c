@@ -19,6 +19,8 @@
 #include "lstate.h"
 #include "lundump.h"
 
+FILE* am_fopen(const char *path, const char *mode);
+
 static void PrintFunction(const Proto* f, int full);
 #define luaU_print	PrintFunction
 
