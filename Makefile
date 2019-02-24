@@ -152,8 +152,6 @@ endif
 $(AM_OBJ_FILES): $(BUILD_OBJ_DIR)/%$(OBJ_EXT): $(SRC_DIR)/%.cpp $(AM_H_FILES) $(DEP_ALIBS) $(EXTRA_PREREQS) | $(BUILD_OBJ_DIR) $(EXTRA_PREREQS)
 	$(CPP) $(AM_CFLAGS) $(NOLINK_OPT) $< $(OBJ_OUT_OPT)$@
 
-$(BUILD_OBJ_DIR)/am_view$(OBJ_EXT): $(SRC_DIR)/am_generated_view_defs.inc $(VIEW_TEMPLATES)
-
 $(SDL_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	echo $(SDL_PREBUILT_DIR)
 	if [ -d $(SDL_PREBUILT_DIR) ]; then \
@@ -287,17 +285,6 @@ $(BUILD_BIN_DIR)/player.html: html/player.html.1 html/player.html.2 html/player.
 
 $(BUILD_EXAMPLE_FILES): $(BUILD_BIN_DIR)/%: examples/% | $(BUILD_BIN_DIR)
 	cp $< $@
-
-# View templates
-
-tools/gen_mathv$(EXE_EXT): tools/gen_mathv.cpp
-	$(HOSTCPP) -o $@ $<
-
-tools/gen_view_defs$(EXE_EXT): tools/gen_view_defs.c
-	$(HOSTCC) -o $@ $<
-
-$(SRC_DIR)/am_generated_view_defs.inc: tools/gen_view_defs$(EXE_EXT)
-	tools/gen_view_defs$(EXE_EXT) > $@
 
 # Embedded Lua code
 

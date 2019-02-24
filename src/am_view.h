@@ -97,3 +97,15 @@ int am_view_op_mul(lua_State *L);
 int am_view_op_div(lua_State *L);
 
 void am_open_view_module(lua_State *L);
+
+struct am_view_type_info {
+    const char *name;
+    int size;
+    bool normalized;
+    am_buffer_view_type base_type;
+    bool can_be_gl_attrib;
+    am_attribute_client_type gl_client_type;
+    lua_Number(*num_reader)(uint8_t*);
+};
+
+extern am_view_type_info am_view_type_infos[];

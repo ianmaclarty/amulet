@@ -131,6 +131,7 @@ extern "C" {
 #include "am_lua_util.h"
 #include "am_math.h"
 #include "am_buffer.h"
+#include "am_mathv.h"
 #include "am_view.h"
 #include "am_image.h"
 #include "am_texture2d.h"

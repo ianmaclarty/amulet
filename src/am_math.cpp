@@ -101,7 +101,7 @@ static int vec##D##_##OPNAME(lua_State *L) {                                    
                 break;                                                          \
             }                                                                   \
             case MT_am_buffer_view: {                                           \
-                return am_view_op_##OPNAME(L);                                  \
+                return am_mathv_##OPNAME(L);                                    \
                 break;                                                          \
             }                                                                   \
             default: {                                                          \
@@ -148,7 +148,7 @@ static int vec2_mul(lua_State *L) {                                             
                 break;                                                          \
             }                                                                   \
             case MT_am_buffer_view: {                                           \
-                return am_view_op_mul(L);                                       \
+                return am_mathv_mul(L);                                         \
                 break;                                                          \
             }                                                                   \
             default: {                                                          \
@@ -193,7 +193,7 @@ static int vec##D##_mul(lua_State *L) {                                         
                 break;                                                          \
             }                                                                   \
             case MT_am_buffer_view: {                                           \
-                return am_view_op_mul(L);                                       \
+                return am_mathv_mul(L);                                         \
                 break;                                                          \
             }                                                                   \
             default: {                                                          \
@@ -231,7 +231,7 @@ static int vec##D##_div(lua_State *L) {                                         
                 break;                                                          \
             }                                                                   \
             case MT_am_buffer_view: {                                           \
-                return am_view_op_div(L);                                       \
+                return am_mathv_div(L);                                         \
                 break;                                                          \
             }                                                                   \
             default: {                                                          \
