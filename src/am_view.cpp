@@ -522,8 +522,6 @@ static int view_len(lua_State *L) {
 
 static void register_view_mt(lua_State *L) {
     lua_newtable(L);
-    am_set_default_index_func(L);
-    am_set_default_newindex_func(L);
 
     lua_pushcclosure(L, view_len, 0);
     lua_setfield(L, -2, "__len");
