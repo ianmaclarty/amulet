@@ -45,7 +45,7 @@ extern int am_conf_audio_interpolate_samples;
 extern bool am_conf_audio_mute;
 
 // memory options
-extern int am_conf_lua_alloc_buffers;
+extern int am_conf_buffer_malloc_threshold;
 
 // dev options
 extern bool am_conf_validate_shader_programs;

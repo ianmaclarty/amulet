@@ -119,7 +119,7 @@ am_buffer *am_push_new_buffer_and_init(lua_State *L, int size) {
         buf = am_new_userdata(L, am_buffer);
         alloc_from_pool(L, a, buf, size, -1);
     } else {
-        if (am_conf_lua_alloc_buffers) {
+        if (size <= am_conf_buffer_malloc_threshold) {
             // alloc buffer and data as one lua userdata
             int data_offset = sizeof(am_buffer);
             am_align_size(data_offset);
