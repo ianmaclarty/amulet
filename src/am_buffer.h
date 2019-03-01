@@ -18,7 +18,7 @@ struct am_buffer : am_nonatomic_userdata {
     uint32_t                version;
     am_buffer_alloc_method  alloc_method;
     const char              *origin;
-    am_buffer_usage     usage;
+    am_buffer_usage         usage;
 
     am_buffer();
 

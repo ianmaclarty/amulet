@@ -11,10 +11,7 @@ static bool bind_attribute_array(am_render_state *rstate, am_gluint location,
         return false;
     }
     buf->update_if_dirty();
-    if (buf->arraybuf->id == 0) {
-        buf->create_arraybuf(NULL);
-    }
-    am_bind_buffer(AM_ARRAY_BUFFER, buf->arraybuf->id);
+    am_bind_buffer(AM_ARRAY_BUFFER, buf->arraybuf->get_latest_id());
     am_set_attribute_pointer(location, view->components, view->gl_client_type(), view->is_normalized(), view->stride, view->offset);
     if (view->size < rstate->max_draw_array_size) {
         rstate->max_draw_array_size = view->size;
@@ -543,9 +540,7 @@ static void set_param_value(lua_State *L, am_program_param_value *param, int val
             break;
         case MT_am_buffer_view: {
             am_buffer_view *view = am_get_userdata(L, am_buffer_view, val_idx);
-            if (view->buffer->arraybuf == NULL || view->buffer->arraybuf->id == 0) {
-                // create vbo now if we can to avoid creating it
-                // while drawing, which may cause a stutter.
+            if (view->buffer->arraybuf == NULL) {
                 view->buffer->create_arraybuf(L);
             }
             param->set_arr(view);

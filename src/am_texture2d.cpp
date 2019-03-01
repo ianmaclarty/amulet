@@ -94,7 +94,7 @@ static int create_texture2d(lua_State *L) {
     return 1;
 }
 
-void am_texture2d::update_from_image_buffer() {
+void am_texture2d::update_dirty() {
     if (image_buffer == NULL) return;
     am_buffer *buffer = image_buffer->buffer;
     if (buffer->dirty_start >= buffer->dirty_end) return;

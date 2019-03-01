@@ -2517,7 +2517,7 @@ void am_gl_end_frame(bool present) {
             [metal_command_buffer presentDrawable:metal_active_drawable];
         }
         [metal_command_buffer commit];
-        [metal_command_buffer waitUntilCompleted];
+        //[metal_command_buffer waitUntilCompleted];
         metal_command_buffer = nil;
         metal_active_drawable = nil;
         default_metal_framebuffer.color_texture = nil;

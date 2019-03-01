@@ -1,9 +1,15 @@
 local win = am.window{title = "Hello"}
 
 local scene =
-    am.scale(0)
+    am.scale(4)
     ^ am.text("Hello, World!", "center", "center")
 
-scene:action(am.tween(scene"scale", 0.8, {scale2d = vec2(4)}))
+local i = 0
+scene:action(function()
+    --if win:key_pressed"enter" then
+        i = i + 1
+        scene"text".text = "test"..i
+    --end
+end)
 
 win.scene = scene

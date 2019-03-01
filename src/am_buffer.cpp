@@ -138,6 +138,7 @@ am_buffer *am_push_new_buffer_and_init(lua_State *L, int size) {
         }
     }
     memset(buf->data, 0, size);
+    buf->mark_dirty(0, size);
     return buf;
 }
 
@@ -174,16 +175,14 @@ static int free_buffer(lua_State *L) {
 
 void am_buffer::update_if_dirty() {
     if (data != NULL && dirty_start < dirty_end) {
-        if (arraybuf != NULL && arraybuf->id != 0) {
-            am_bind_buffer(AM_ARRAY_BUFFER, arraybuf->id);
-            am_set_buffer_sub_data(AM_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
+        if (arraybuf != NULL) {
+            arraybuf->update_dirty(this);
         } 
-        if (elembuf != NULL && elembuf->id != 0) {
-            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf->id);
-            am_set_buffer_sub_data(AM_ELEMENT_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
+        if (elembuf != NULL) {
+            elembuf->update_dirty(this);
         } 
         if (texture2d != NULL) {
-            texture2d->update_from_image_buffer();
+            texture2d->update_dirty();
         }
         dirty_start = INT_MAX;
         dirty_end = 0;
@@ -192,39 +191,23 @@ void am_buffer::update_if_dirty() {
 }
 
 void am_buffer::create_arraybuf(lua_State *L) {
-    assert(arraybuf == NULL || arraybuf->id == 0);
-    assert(L != NULL || arraybuf != NULL);
-    update_if_dirty();
-    if (arraybuf == NULL) {
-        arraybuf = am_new_userdata(L, am_vbo);
-        ref(L, -1);
-        lua_pop(L, 1);
-        arraybuf->target = AM_ARRAY_BUFFER;
-        arraybuf->id = 0;
-    }
-    if (am_gl_is_initialized()) {
-        arraybuf->id = am_create_buffer_object();
-        am_bind_buffer(AM_ARRAY_BUFFER, arraybuf->id);
-        am_set_buffer_data(AM_ARRAY_BUFFER, size, &data[0], usage);
-    }
+    assert(arraybuf == NULL);
+    assert(L != NULL);
+    arraybuf = am_new_userdata(L, am_vbo);
+    arraybuf->init(AM_ARRAY_BUFFER);
+    ref(L, -1);
+    lua_pop(L, 1);
+    mark_dirty(0, size);
 }
 
 void am_buffer::create_elembuf(lua_State *L) {
-    assert(elembuf == NULL || elembuf->id == 0);
-    assert(L != NULL || elembuf != NULL);
-    update_if_dirty();
-    if (elembuf == NULL) {
-        elembuf = am_new_userdata(L, am_vbo);
-        ref(L, -1);
-        lua_pop(L, 1);
-        elembuf->target = AM_ELEMENT_ARRAY_BUFFER;
-        elembuf->id = 0;
-    }
-    if (am_gl_is_initialized()) {
-        elembuf->id = am_create_buffer_object();
-        am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf->id);
-        am_set_buffer_data(AM_ELEMENT_ARRAY_BUFFER, size, &data[0], usage);
-    }
+    assert(elembuf == NULL);
+    assert(L != NULL);
+    elembuf = am_new_userdata(L, am_vbo);
+    elembuf->init(AM_ELEMENT_ARRAY_BUFFER);
+    ref(L, -1);
+    lua_pop(L, 1);
+    mark_dirty(0, size);
 }
 
 static int create_buffer(lua_State *L) {
@@ -460,9 +443,8 @@ static int buffer_len(lua_State *L) {
 
 static int release_vbo(lua_State *L) {
     am_buffer *buf = am_check_buffer(L, 1);
-    if (buf->arraybuf != NULL && buf->arraybuf->id != 0) {
-        am_delete_buffer(buf->arraybuf->id);
-        buf->arraybuf->id = 0;
+    if (buf->arraybuf != NULL) {
+        buf->arraybuf->delete_vbo_slots();
     }
     return 0;
 }

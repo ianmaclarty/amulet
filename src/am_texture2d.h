@@ -14,7 +14,7 @@ struct am_texture2d : am_nonatomic_userdata {
     am_texture_wrap         swrap;
     am_texture_wrap         twrap;
 
-    void update_from_image_buffer();
+    void update_dirty();
 };
 
 void am_open_texture2d_module(lua_State *L);
