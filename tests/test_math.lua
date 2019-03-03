@@ -103,6 +103,16 @@ print(vec4(1,2,3,4) == vec4(7,8,9,0))
 
 print(vec2(1,2) == vec3(1,2,3))
 
+print(tostring(vec2(1,2)))
+print(tostring(vec3(1,2,3)))
+print(tostring(vec4(1,2,3,4)))
+print("concat+"..vec2(1,2))
+print("concat+"..vec3(1,2,3))
+print("concat+"..vec4(1,2,3,4))
+print(vec2(1,2).."+concat")
+print(vec3(1,2,3).."+concat")
+print(vec4(1,2,3,4).."+concat")
+
 local m = mat4(2)
 printmat(m)
 printvec(m[1])
@@ -114,9 +124,9 @@ printvec(vec4(1, 2, 3, 4) * m)
 printvec(m * vec4(1, 2, 3, 4))
 
 m = mat4( 1,  2,  3,  4,
-               5,  6,  7,  8,
-               9, 10, 11, 12,
-              13, 14, 15, 16)
+          5,  6,  7,  8,
+          9, 10, 11, 12,
+         13, 14, 15, 16)
 printmat(m)
 m = mat4(m[1], vec4(50, 60, 70, 80), m[3], m[4])
 m:set(1, 3, 9)

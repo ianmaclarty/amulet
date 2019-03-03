@@ -253,9 +253,18 @@ function format_vec(v)
     return str
 end
 
+local
+function default_concat(a,b)
+    return tostring(a)..tostring(b)
+end
+
 _metatable_registry.vec2.__tostring = format_vec
 _metatable_registry.vec3.__tostring = format_vec
 _metatable_registry.vec4.__tostring = format_vec
+
+_metatable_registry.vec2.__concat = default_concat
+_metatable_registry.vec3.__concat = default_concat
+_metatable_registry.vec4.__concat = default_concat
 
 local
 function format_mat(m)
@@ -291,12 +300,18 @@ _metatable_registry.mat2.__tostring = format_mat
 _metatable_registry.mat3.__tostring = format_mat
 _metatable_registry.mat4.__tostring = format_mat
 
+_metatable_registry.mat2.__concat = default_concat
+_metatable_registry.mat3.__concat = default_concat
+_metatable_registry.mat4.__concat = default_concat
+
 local
 function format_quat(q)
     return "quat("..q.angle..", "..tostring(q.axis)..")";
 end
 
 _metatable_registry.quat.__tostring = format_quat
+
+_metatable_registry.quat.__concat = default_concat
 
 -- extra builtins
 
