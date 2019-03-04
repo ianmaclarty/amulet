@@ -92,6 +92,27 @@ v = v.yx * 2
 v = v{xy = vec2(1, 2)}
 printvec(v)
 
+print(vec2(1,2) == vec2(1,2))
+print(vec2(1,2) == vec2(7,8))
+
+print(vec3(1,2,3) == vec3(1,2,3))
+print(vec3(1,2,3) == vec3(7,8,9))
+
+print(vec4(1,2,3,4) == vec4(1,2,3,4))
+print(vec4(1,2,3,4) == vec4(7,8,9,0))
+
+print(vec2(1,2) == vec3(1,2,3))
+
+print(tostring(vec2(1,2)))
+print(tostring(vec3(1,2,3)))
+print(tostring(vec4(1,2,3,4)))
+print("concat+"..vec2(1,2))
+print("concat+"..vec3(1,2,3))
+print("concat+"..vec4(1,2,3,4))
+print(vec2(1,2).."+concat")
+print(vec3(1,2,3).."+concat")
+print(vec4(1,2,3,4).."+concat")
+
 local m = mat4(2)
 printmat(m)
 printvec(m[1])
@@ -103,9 +124,9 @@ printvec(vec4(1, 2, 3, 4) * m)
 printvec(m * vec4(1, 2, 3, 4))
 
 m = mat4( 1,  2,  3,  4,
-               5,  6,  7,  8,
-               9, 10, 11, 12,
-              13, 14, 15, 16)
+          5,  6,  7,  8,
+          9, 10, 11, 12,
+         13, 14, 15, 16)
 printmat(m)
 m = mat4(m[1], vec4(50, 60, 70, 80), m[3], m[4])
 m:set(1, 3, 9)
@@ -128,6 +149,17 @@ printvec(math.refract(math.normalize(vec3(1, 2, 3)), math.normalize(vec3(4, 5, 6
 
 printvec(-vec2(1, 2))
 printmat(-mat2(1, 2, 3, 4))
+
+print(mat2(1,2,3,4) == mat2(1,2,3,4))
+print(mat2(1,2,3,4) == mat2(9,2,3,4))
+
+print(mat3(1,2,3,4,5,6,7,8,9) == mat3(1,2,3,4,5,6,7,8,9))
+print(mat3(1,2,3,4,5,6,7,8,9) == mat3(9,2,3,4,5,6,7,8,9))
+
+print(mat4(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4) == mat4(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4))
+print(mat4(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4) == mat4(9,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4))
+
+print(mat2(1,2,3,4) == mat3(1,2,3,4,5,6,7,8,9))
 
 print(math.clamp(-1, 0, 1)) -- 0
 print(math.clamp(4, 0, 1)) -- 1
@@ -153,3 +185,7 @@ printquat(quat(mat4(q1)))
 local v2 = vec2(1, 0)
 printvec(q1 * v2)
 printvec(v2 * q1)
+print(quat(math.rad(90), vec3(0, 0, 1)) == quat(math.rad(90), vec3(0, 0, 1)))
+print(quat(math.rad(90), vec3(0, 0, 1)) == quat(math.rad(11), vec3(0, 0, 1)))
+print(quat(math.rad(90), vec3(0, 0, 1)) == quat(math.rad(90), vec3(1, 0, 1)))
+print(quat(math.rad(90), vec3(0, 0, 1)) == vec4(1,2,3,4))
