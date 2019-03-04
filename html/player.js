@@ -178,6 +178,7 @@ window.amulet.ready = function() {
         load(pending_load);
         pending_load = null;
     }
+    setup_audio_resume();
 }
 
 window.amulet.error = function(msg) {
@@ -212,6 +213,19 @@ function set_visibility_handler() {
     }, false);
 }
 set_visibility_handler();
+
+function setup_audio_resume() {
+    // Modern browsers disable audio until the user interacts with the page.
+    // See: https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#webaudio
+    window.addEventListener('click', enable_audio, { passive: true, once: true });
+    window.addEventListener('keydown', enable_audio, { passive: true, once: true });
+    window.addEventListener('touch', enable_audio, { passive: true, once: true });
+}
+function enable_audio() {
+    SDL.audioContext.resume().then(() => {
+        console.log('Playback resumed successfully');
+    });
+}
 
 function run_waiting() {
     Module.ccall('am_emscripten_run_waiting', null, [], []);
