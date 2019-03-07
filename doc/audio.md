@@ -128,6 +128,12 @@ audio clips this will probably not be noticeable). Also avoid calling
 this function many times with different seeds or filenames, because that will cause 
 unbounded memory growth.
 
+**Note**:
+When playing audio in a web browser via HTML export, most browsers will not play
+any sounds until the user interacts with the page in some way. This is an effort by
+browser creators to suppress annoying auto-play advertisements. Amulet attempts to
+detect this and begins playing sound after the first click or key press.
+
 ## Generating sound effects
 
 ### am.sfxr_synth(settings) {#am.sfxr_synth .func-def}
