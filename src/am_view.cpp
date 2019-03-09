@@ -232,9 +232,7 @@ void am_buffer_view::update_max_elem_if_required() {
 
 am_buffer_view* am_check_buffer_view(lua_State *L, int idx) {
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, idx);
-    if (view->buffer->data == NULL && view->buffer->size > 0) {
-        luaL_error(L, "attempt to access freed buffer");
-    }
+    am_check_buffer_data(L, view->buffer);
     return view;
 }
 
@@ -625,23 +623,10 @@ static int view_swizzle_index(lua_State *L, am_buffer_view *view) {
 static void register_view_mt(lua_State *L) {
     lua_newtable(L);
 
+    am_register_mathv_view_methods(L);
+
     lua_pushcclosure(L, view_len, 0);
     lua_setfield(L, -2, "__len");
-
-    lua_pushcclosure(L, am_mathv_add, 0);
-    lua_setfield(L, -2, "__add");
-    lua_pushcclosure(L, am_mathv_sub, 0);
-    lua_setfield(L, -2, "__sub");
-    lua_pushcclosure(L, am_mathv_mul, 0);
-    lua_setfield(L, -2, "__mul");
-    lua_pushcclosure(L, am_mathv_div, 0);
-    lua_setfield(L, -2, "__div");
-    lua_pushcclosure(L, am_mathv_mod, 0);
-    lua_setfield(L, -2, "__mod");
-    lua_pushcclosure(L, am_mathv_pow, 0);
-    lua_setfield(L, -2, "__pow");
-    lua_pushcclosure(L, am_mathv_unm, 0);
-    lua_setfield(L, -2, "__unm");
 
     am_register_property(L, "buffer", &view_buffer_property);
 

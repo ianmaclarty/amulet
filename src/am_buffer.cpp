@@ -218,11 +218,17 @@ static int create_buffer(lua_State *L) {
     return 1;
 }
 
-am_buffer* am_check_buffer(lua_State *L, int idx) {
-    am_buffer *buf = am_get_userdata(L, am_buffer, idx);
+uint8_t *am_check_buffer_data(lua_State *L, am_buffer *buf) {
     if (buf->data == NULL && buf->size > 0) {
         luaL_error(L, "attempt to access freed buffer");
+        return NULL;
     }
+    return buf->data;
+}
+
+am_buffer* am_check_buffer(lua_State *L, int idx) {
+    am_buffer *buf = am_get_userdata(L, am_buffer, idx);
+    am_check_buffer_data(L, buf);
     return buf;
 }
 

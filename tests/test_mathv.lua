@@ -91,3 +91,12 @@ do
     view3.xyzw = view3
     print_view(view3)
 end
+
+print("view methods")
+do
+    local view1 = mathv.vec2(mathv.range(4, 1, 4), mathv.range(4, 10, 40))
+    view1:add(view1, vec2(1, 2))
+    print_view(view1)
+    view1:vec2(mathv.range(3, -1, -3), mathv.range(3, 1, 3))
+    print_view(view1)
+end

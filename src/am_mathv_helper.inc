@@ -235,8 +235,8 @@ int am_mathv_cart(lua_State *L) {
     return 1;
 }
 
-int am_mathv_vec_mul(lua_State *L);
-int am_mathv_mat_mul(lua_State *L);
+static int am_mathv_vec_mul(lua_State *L);
+static int am_mathv_mat_mul(lua_State *L);
 
 int am_mathv_mul(lua_State *L) {
     // decide if we need to do matrix multiplication or not

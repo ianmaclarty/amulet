@@ -60,5 +60,6 @@ am_buffer *am_push_new_buffer_with_data(lua_State *L, int size, void* data);
 
 // use this instead of am_get_userdata for buffers (does some extra checking)
 am_buffer* am_check_buffer(lua_State *L, int idx);
+uint8_t* am_check_buffer_data(lua_State *L, am_buffer *buf);
 
 void am_open_buffer_module(lua_State *L);

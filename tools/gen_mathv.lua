@@ -4,6 +4,7 @@ local func_defs = {
     -- basic functions
     { 
         name = "add",
+        export = true,
         kind = "component_wise",
         comps = {1, 2, 3, 4, 9, 16},
         variants = {
@@ -19,6 +20,7 @@ local func_defs = {
     },
     { 
         name = "sub",
+        export = true,
         kind = "component_wise",
         comps = {1, 2, 3, 4, 9, 16},
         variants = {
@@ -49,6 +51,7 @@ local func_defs = {
     },
     { 
         name = "div",
+        export = true,
         kind = "component_wise",
         comps = {1, 2, 3, 4},
         variants = {
@@ -64,6 +67,7 @@ local func_defs = {
     },
     { 
         name = "mod",
+        export = true,
         kind = "component_wise",
         comps = {1, 2, 3, 4},
         variants = {
@@ -79,6 +83,7 @@ local func_defs = {
     },
     { 
         name = "pow",
+        export = true,
         kind = "component_wise",
         comps = {1, 2, 3, 4},
         variants = {
@@ -94,6 +99,7 @@ local func_defs = {
     },
     { 
         name = "unm",
+        export = true,
         kind = "component_wise",
         comps = {1, 2, 3, 4},
         variants = {
@@ -665,11 +671,38 @@ local gen_element_wise_case
 
 function gen_funcs(f)
     for _, func in ipairs(func_defs) do
-        gen_func(f, func)
+        gen_func_impl(f, func)
+        gen_func_new(f, func)
+        gen_func_into(f, func)
     end
 end
 
-function gen_func(f, func)
+function gen_func_new(f, func)
+    if not func.export then
+        f:write("static ")
+    end
+    ind(f, 0, [[
+int am_mathv_]]..func.name..[[(lua_State *L) {
+    return ]]..func.name..[[_impl(L, NULL);
+}
+
+]])
+end
+
+function gen_func_into(f, func)
+    ind(f, 0, [[
+static int am_mathv_]]..func.name..[[_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return ]]..func.name..[[_impl(L, view);
+}
+
+]])
+end
+
+function gen_func_impl(f, func)
     local max_args = get_max_args(func)
     local sig_error = "invalid argument types for function mathv."..func.name..".\\nsupported signatures are:\\n"
     for _, variant in ipairs(func.variants) do
@@ -683,10 +716,9 @@ function gen_func(f, func)
         sig_error = sig_error..")\\n"
     end
     local return_sig_error = "return luaL_error(L, \""..sig_error.."\");\n"
-    local cfunc_name = "am_mathv_"..func.name
-    local func_decl = "int "..cfunc_name.."(lua_State *L) {\n"
+    local func_decl = "static int "..func.name.."_impl(lua_State *L, am_buffer_view *target) {\n"
     local prelude = [[
-        int nargs = lua_gettop(L);
+        int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
         if (nargs > ]]..max_args..[[) return luaL_error(L, "too many arguments for mathv.]]..func.name..[[");
         double arg_singleton_vals[]]..max_args..[[][16];
         int arg_count[]]..max_args..[[];
@@ -763,6 +795,45 @@ function gen_component_wise_func_body(f, func)
     end
 end
 
+function gen_return_view_buffer(f, component_size, ret_view_type)
+    -- TODO handle no_view_args
+    ind(f, 2, [[
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * ]]..component_size..[[;
+
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * ]]..component_size..[[);
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, ]]..ret_view_type..[[, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != ]]..ret_view_type..[[) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[]]..ret_view_type..[[].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+    ]])
+end
+
 function gen_component_wise_func_variant(f, func, variant)
     local args = variant.args
     local nargs = #args
@@ -804,24 +875,6 @@ if (arg_type[]]..i..[[] != MT_am_buffer_view) {
     local ret_ctype = view_type_info[variant.ret_type].ctype
     local ret_view_type = view_type_info[variant.ret_type].enumval
     local component_size = "sizeof("..ret_ctype..")"
-    -- TODO handle no_view_args
-    local create_return_value = [[
-        uint8_t *output_ptr;
-        int out_stride = output_components * ]]..component_size..[[;
-
-        am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * ]]..component_size..[[);
-        output_ptr = output_buffer->data;
-        am_buffer_view *output_view = am_new_buffer_view(L, ]]..ret_view_type..[[, output_components);
-        output_view->buffer = output_buffer;
-        output_view->buffer_ref = output_view->ref(L, -2);
-        output_view->offset = 0;
-        output_view->stride = out_stride;
-        output_view->size = count;
-        output_view->last_max_elem_version = 0;
-        output_view->max_elem = 0;
-
-        lua_remove(L, -2); // remove output_buffer
-    ]]
 
     local default_case = [[
         default:
@@ -830,7 +883,7 @@ if (arg_type[]]..i..[[] != MT_am_buffer_view) {
 
     ind(f, 1, "if ("..sig_test..") {\n")
     ind(f, 2, setup_non_view_arg_data)
-    ind(f, 2, create_return_value)
+    gen_return_view_buffer(f, component_size, ret_view_type)
     ind(f, 2, "switch(output_components) {\n");
     for _, c in ipairs(func.comps) do
         gen_component_wise_case(f, func, variant, c)
@@ -972,24 +1025,6 @@ if (arg_type[]]..i..[[] != MT_am_buffer_view) {
     local ret_ctype = view_type_info[variant.ret_type].ctype
     local ret_view_type = view_type_info[variant.ret_type].enumval
     local ret_compsize = "sizeof("..ret_ctype..")"
-    -- TODO handle no_view_args
-    local create_return_value = [[
-        uint8_t *output_ptr;
-        int out_stride = ]]..ret_compsize..[[ * ]]..ret_components..[[;
-
-        am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * out_stride);
-        output_ptr = output_buffer->data;
-        am_buffer_view *output_view = am_new_buffer_view(L, ]]..ret_view_type..[[, ]]..ret_components..[[);
-        output_view->buffer = output_buffer;
-        output_view->buffer_ref = output_view->ref(L, -2);
-        output_view->offset = 0;
-        output_view->stride = out_stride;
-        output_view->size = count;
-        output_view->last_max_elem_version = 0;
-        output_view->max_elem = 0;
-
-        lua_remove(L, -2); // remove output_buffer
-    ]]
 
     local setup_pointers = ""
     for a, arg in ipairs(variant.args) do
@@ -1020,7 +1055,8 @@ for (int i = 0; i < count; ++i) {
 
     ind(f, 1, "if ("..sig_test..") {\n")
     ind(f, 2, setup_non_view_arg_data)
-    ind(f, 2, create_return_value)
+    ind(f, 2, "int output_components = "..ret_components..";\n")
+    gen_return_view_buffer(f, ret_compsize, ret_view_type)
     ind(f, 2, setup_pointers)
     ind(f, 2, iterate)
     ind(f, 2, "return 1;\n")
@@ -1038,7 +1074,7 @@ void am_open_mathv_module(lua_State *L) {
         {"mul",     am_mathv_mul},
 ]])
     for _, func in ipairs(func_defs) do
-        f:write("    {\""..func.name.."\", am_mathv_"..func.name.."},\n")
+        f:write("        {\""..func.name.."\", am_mathv_"..func.name.."},\n")
     end
     f:write([[
         {NULL, NULL}
@@ -1046,7 +1082,37 @@ void am_open_mathv_module(lua_State *L) {
     am_open_module(L, "mathv", vfuncs);
 }
 ]])
+end
 
+local
+function gen_register_view_methods_func(f)
+    f:write([[
+void am_register_mathv_view_methods(lua_State *L) {
+    lua_pushcclosure(L, am_mathv_add, 0);
+    lua_setfield(L, -2, "__add");
+    lua_pushcclosure(L, am_mathv_sub, 0);
+    lua_setfield(L, -2, "__sub");
+    lua_pushcclosure(L, am_mathv_mul, 0);
+    lua_setfield(L, -2, "__mul");
+    lua_pushcclosure(L, am_mathv_div, 0);
+    lua_setfield(L, -2, "__div");
+    lua_pushcclosure(L, am_mathv_mod, 0);
+    lua_setfield(L, -2, "__mod");
+    lua_pushcclosure(L, am_mathv_pow, 0);
+    lua_setfield(L, -2, "__pow");
+    lua_pushcclosure(L, am_mathv_unm, 0);
+    lua_setfield(L, -2, "__unm");
+]])
+    for _, func in ipairs(func_defs) do
+        f:write([[
+    lua_pushcclosure(L, am_mathv_]]..func.name..[[_into, 0);
+    lua_setfield(L, -2, "]]..func.name..[[");
+]])
+    end
+    f:write([[
+}
+
+]])
 end
 
 function gen_func_headers(f)
@@ -1060,24 +1126,15 @@ function gen_cpp_file()
     local f = io.open("src/am_mathv.cpp", "w")
     ind(f, 0, [[
 // This file is generated by tools/gen_mathv.lua
+
 #include "amulet.h"
 #include "am_mathv_helper.inc"
-    ]])
+
+]])
     gen_funcs(f)
+    gen_register_view_methods_func(f)
     gen_open_module_func(f)
     f:close()
 end
 
-local
-function gen_h_file()
-    local f = io.open("src/am_mathv.h", "w")
-    ind(f, 0, [[
-// This file is generated by tools/gen_mathv.lua
-void am_open_mathv_module(lua_State *L);
-    ]])
-    gen_func_headers(f)
-    f:close()
-end
-
---gen_h_file()
 gen_cpp_file()
