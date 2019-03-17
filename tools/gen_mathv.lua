@@ -9,11 +9,59 @@ local func_defs = {
         comps = {1, 2, 3, 4, 9, 16},
         variants = {
             {
-                cname = "ADD_F32",
+                cname = "ADD_OP",
                 ret_type = "f32",
                 args = {
                     {name = "x", type = "f32"},
                     {name = "y", type = "f32"},
+                },
+            },
+            {
+                cname = "ADD_OP",
+                ret_type = "i8",
+                args = {
+                    {name = "x", type = "i8"},
+                    {name = "y", type = "i8"},
+                },
+            },
+            {
+                cname = "ADD_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "x", type = "u8"},
+                    {name = "y", type = "u8"},
+                },
+            },
+            {
+                cname = "ADD_OP",
+                ret_type = "i16",
+                args = {
+                    {name = "x", type = "i16"},
+                    {name = "y", type = "i16"},
+                },
+            },
+            {
+                cname = "ADD_OP",
+                ret_type = "u16",
+                args = {
+                    {name = "x", type = "u16"},
+                    {name = "y", type = "u16"},
+                },
+            },
+            {
+                cname = "ADD_OP",
+                ret_type = "i32",
+                args = {
+                    {name = "x", type = "i32"},
+                    {name = "y", type = "i32"},
+                },
+            },
+            {
+                cname = "ADD_OP",
+                ret_type = "u32",
+                args = {
+                    {name = "x", type = "u32"},
+                    {name = "y", type = "u32"},
                 },
             },
         }
@@ -25,11 +73,59 @@ local func_defs = {
         comps = {1, 2, 3, 4, 9, 16},
         variants = {
             {
-                cname = "SUB_F32",
+                cname = "SUB_OP",
                 ret_type = "f32",
                 args = {
                     {name = "x", type = "f32"},
                     {name = "y", type = "f32"},
+                },
+            },
+            {
+                cname = "SUB_OP",
+                ret_type = "i8",
+                args = {
+                    {name = "x", type = "i8"},
+                    {name = "y", type = "i8"},
+                },
+            },
+            {
+                cname = "SUB_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "x", type = "u8"},
+                    {name = "y", type = "u8"},
+                },
+            },
+            {
+                cname = "SUB_OP",
+                ret_type = "i16",
+                args = {
+                    {name = "x", type = "i16"},
+                    {name = "y", type = "i16"},
+                },
+            },
+            {
+                cname = "SUB_OP",
+                ret_type = "u16",
+                args = {
+                    {name = "x", type = "u16"},
+                    {name = "y", type = "u16"},
+                },
+            },
+            {
+                cname = "SUB_OP",
+                ret_type = "i32",
+                args = {
+                    {name = "x", type = "i32"},
+                    {name = "y", type = "i32"},
+                },
+            },
+            {
+                cname = "SUB_OP",
+                ret_type = "u32",
+                args = {
+                    {name = "x", type = "u32"},
+                    {name = "y", type = "u32"},
                 },
             },
         }
@@ -40,11 +136,59 @@ local func_defs = {
         comps = {1, 2, 3, 4},
         variants = {
             {
-                cname = "MUL_F32",
+                cname = "MUL_OP",
                 ret_type = "f32",
                 args = {
                     {name = "x", type = "f32"},
                     {name = "y", type = "f32"},
+                },
+            },
+            {
+                cname = "MUL_OP",
+                ret_type = "i8",
+                args = {
+                    {name = "x", type = "i8"},
+                    {name = "y", type = "i8"},
+                },
+            },
+            {
+                cname = "MUL_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "x", type = "u8"},
+                    {name = "y", type = "u8"},
+                },
+            },
+            {
+                cname = "MUL_OP",
+                ret_type = "i16",
+                args = {
+                    {name = "x", type = "i16"},
+                    {name = "y", type = "i16"},
+                },
+            },
+            {
+                cname = "MUL_OP",
+                ret_type = "u16",
+                args = {
+                    {name = "x", type = "u16"},
+                    {name = "y", type = "u16"},
+                },
+            },
+            {
+                cname = "MUL_OP",
+                ret_type = "i32",
+                args = {
+                    {name = "x", type = "i32"},
+                    {name = "y", type = "i32"},
+                },
+            },
+            {
+                cname = "MUL_OP",
+                ret_type = "u32",
+                args = {
+                    {name = "x", type = "u32"},
+                    {name = "y", type = "u32"},
                 },
             },
         }
@@ -56,11 +200,59 @@ local func_defs = {
         comps = {1, 2, 3, 4},
         variants = {
             {
-                cname = "DIV_F32",
+                cname = "DIV_OP",
                 ret_type = "f32",
                 args = {
                     {name = "x", type = "f32"},
                     {name = "y", type = "f32"},
+                },
+            },
+            {
+                cname = "DIV_OP",
+                ret_type = "i8",
+                args = {
+                    {name = "x", type = "i8"},
+                    {name = "y", type = "i8"},
+                },
+            },
+            {
+                cname = "DIV_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "x", type = "u8"},
+                    {name = "y", type = "u8"},
+                },
+            },
+            {
+                cname = "DIV_OP",
+                ret_type = "i16",
+                args = {
+                    {name = "x", type = "i16"},
+                    {name = "y", type = "i16"},
+                },
+            },
+            {
+                cname = "DIV_OP",
+                ret_type = "u16",
+                args = {
+                    {name = "x", type = "u16"},
+                    {name = "y", type = "u16"},
+                },
+            },
+            {
+                cname = "DIV_OP",
+                ret_type = "i32",
+                args = {
+                    {name = "x", type = "i32"},
+                    {name = "y", type = "i32"},
+                },
+            },
+            {
+                cname = "DIV_OP",
+                ret_type = "u32",
+                args = {
+                    {name = "x", type = "u32"},
+                    {name = "y", type = "u32"},
                 },
             },
         }
@@ -77,6 +269,54 @@ local func_defs = {
                 args = {
                     {name = "x", type = "f32"},
                     {name = "y", type = "f32"},
+                },
+            },
+            {
+                cname = "IMOD_OP",
+                ret_type = "i8",
+                args = {
+                    {name = "x", type = "i8"},
+                    {name = "y", type = "i8"},
+                },
+            },
+            {
+                cname = "IMOD_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "x", type = "u8"},
+                    {name = "y", type = "u8"},
+                },
+            },
+            {
+                cname = "IMOD_OP",
+                ret_type = "i16",
+                args = {
+                    {name = "x", type = "i16"},
+                    {name = "y", type = "i16"},
+                },
+            },
+            {
+                cname = "IMOD_OP",
+                ret_type = "u16",
+                args = {
+                    {name = "x", type = "u16"},
+                    {name = "y", type = "u16"},
+                },
+            },
+            {
+                cname = "IMOD_OP",
+                ret_type = "i32",
+                args = {
+                    {name = "x", type = "i32"},
+                    {name = "y", type = "i32"},
+                },
+            },
+            {
+                cname = "IMOD_OP",
+                ret_type = "u32",
+                args = {
+                    {name = "x", type = "u32"},
+                    {name = "y", type = "u32"},
                 },
             },
         }
@@ -104,10 +344,52 @@ local func_defs = {
         comps = {1, 2, 3, 4},
         variants = {
             {
-                cname = "UNM_F32",
+                cname = "UNM_OP",
                 ret_type = "f32",
                 args = {
                     {name = "x", type = "f32"},
+                },
+            },
+            {
+                cname = "UNM_OP",
+                ret_type = "i8",
+                args = {
+                    {name = "x", type = "i8"},
+                },
+            },
+            {
+                cname = "UNM_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "x", type = "u8"},
+                },
+            },
+            {
+                cname = "UNM_OP",
+                ret_type = "i16",
+                args = {
+                    {name = "x", type = "i16"},
+                },
+            },
+            {
+                cname = "UNM_OP",
+                ret_type = "u16",
+                args = {
+                    {name = "x", type = "u16"},
+                },
+            },
+            {
+                cname = "UNM_OP",
+                ret_type = "i32",
+                args = {
+                    {name = "x", type = "i32"},
+                },
+            },
+            {
+                cname = "UNM_OP",
+                ret_type = "u32",
+                args = {
+                    {name = "x", type = "u32"},
                 },
             },
         }
@@ -593,6 +875,30 @@ local func_defs = {
 }
 
 local view_type_info = {
+    i8 = {
+        enumval = "AM_VIEW_TYPE_I8", 
+        ctype = "int8_t", 
+    },
+    u8 = {
+        enumval = "AM_VIEW_TYPE_U8", 
+        ctype = "uint8_t", 
+    },
+    i16 = {
+        enumval = "AM_VIEW_TYPE_I16", 
+        ctype = "int16_t", 
+    },
+    u16 = {
+        enumval = "AM_VIEW_TYPE_U16", 
+        ctype = "uint16_t", 
+    },
+    i32 = {
+        enumval = "AM_VIEW_TYPE_I32", 
+        ctype = "int32_t", 
+    },
+    u32 = {
+        enumval = "AM_VIEW_TYPE_U32", 
+        ctype = "uint32_t", 
+    },
     f32 = {
         enumval = "AM_VIEW_TYPE_F32", 
         ctype = "float", 

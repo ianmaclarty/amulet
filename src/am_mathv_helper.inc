@@ -1,8 +1,9 @@
-#define ADD_F32(x, y) ((x) + (y))
-#define SUB_F32(x, y) ((x) - (y))
-#define MUL_F32(x, y) ((x) * (y))
-#define DIV_F32(x, y) ((x) / (y))
-#define UNM_F32(x) (-(x))
+#define ADD_OP(x, y) ((x) + (y))
+#define SUB_OP(x, y) ((x) - (y))
+#define MUL_OP(x, y) ((x) * (y))
+#define DIV_OP(x, y) ((x) / (y))
+#define UNM_OP(x) (-(x))
+#define IMOD_OP(x, y) ((x) % (y))
 
 #define MAT_MUL(x, y) ((x) * (y))
 

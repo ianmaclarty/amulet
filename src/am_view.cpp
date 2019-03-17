@@ -201,6 +201,7 @@ static void decode_view_type_lua(am_buffer_view_type_lua ltype, am_buffer_view_t
 void am_buffer_view::update_max_elem_if_required() {
     if (last_max_elem_version < buffer->version) {
         switch (type) {
+            case AM_VIEW_TYPE_U16:
             case AM_VIEW_TYPE_U16E: {
                 uint8_t *ptr = buffer->data + offset;
                 uint16_t max = 0;
@@ -212,6 +213,7 @@ void am_buffer_view::update_max_elem_if_required() {
                 max_elem = max;
                 break;
             }
+            case AM_VIEW_TYPE_U32:
             case AM_VIEW_TYPE_U32E: {
                 uint8_t *ptr = buffer->data + offset;
                 uint32_t max = 0;

@@ -118,7 +118,8 @@ LINK = g++
 AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
-XCFLAGS = -Wall -Werror -pthread -fno-strict-aliasing
+XCFLAGS = -Wall -Werror -pthread
+NO_STRICT_ALIAS_OPT = -fno-strict-aliasing
 XLDFLAGS = -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
 LUAJIT_FLAGS =
@@ -260,6 +261,7 @@ else ifeq ($(TARGET_PLATFORM),html)
     LINK = cmd //C em++.bat
   endif
 else ifeq ($(TARGET_PLATFORM),msvc32)
+  NO_STRICT_ALIAS_OPT = 
   VC_CL = cl.exe
   VC_CL_PATH = $(shell which $(VC_CL))
   VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")
@@ -288,6 +290,7 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   C99_OPT =
   ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/32
 else ifeq ($(TARGET_PLATFORM),msvc64)
+  NO_STRICT_ALIAS_OPT = 
   VC_CL = cl.exe
   VC_CL_PATH = $(shell which $(VC_CL))
   VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")

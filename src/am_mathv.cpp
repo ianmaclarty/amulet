@@ -15,7 +15,7 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.add.\nsupported signatures are:\n  mathv.add(x:f32, y:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.add.\nsupported signatures are:\n  mathv.add(x:f32, y:f32)\n  mathv.add(x:i8, y:i8)\n  mathv.add(x:u8, y:u8)\n  mathv.add(x:i16, y:i16)\n  mathv.add(x:u16, y:u16)\n  mathv.add(x:i32, y:i32)\n  mathv.add(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -116,7 +116,7 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                 }
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = ADD_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = ADD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
@@ -153,11 +153,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = ADD_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = ADD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = ADD_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = ADD_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
@@ -207,15 +207,15 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = ADD_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = ADD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = ADD_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = ADD_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = ADD_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = ADD_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
@@ -278,19 +278,19 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = ADD_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = ADD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = ADD_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = ADD_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = ADD_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = ADD_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = ADD_F32(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = ADD_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
@@ -418,39 +418,39 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(float);
                 uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = ADD_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = ADD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = ADD_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = ADD_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = ADD_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = ADD_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = ADD_F32(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = ADD_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
-                    *((float*)out_ptr_5) = ADD_F32(*((float*)in_ptr_1_5), *((float*)in_ptr_2_5));
+                    *((float*)out_ptr_5) = ADD_OP(*((float*)in_ptr_1_5), *((float*)in_ptr_2_5));
                     in_ptr_1_5 += in_stride_1;
                     in_ptr_2_5 += in_stride_2;
                     out_ptr_5 += out_stride;
-                    *((float*)out_ptr_6) = ADD_F32(*((float*)in_ptr_1_6), *((float*)in_ptr_2_6));
+                    *((float*)out_ptr_6) = ADD_OP(*((float*)in_ptr_1_6), *((float*)in_ptr_2_6));
                     in_ptr_1_6 += in_stride_1;
                     in_ptr_2_6 += in_stride_2;
                     out_ptr_6 += out_stride;
-                    *((float*)out_ptr_7) = ADD_F32(*((float*)in_ptr_1_7), *((float*)in_ptr_2_7));
+                    *((float*)out_ptr_7) = ADD_OP(*((float*)in_ptr_1_7), *((float*)in_ptr_2_7));
                     in_ptr_1_7 += in_stride_1;
                     in_ptr_2_7 += in_stride_2;
                     out_ptr_7 += out_stride;
-                    *((float*)out_ptr_8) = ADD_F32(*((float*)in_ptr_1_8), *((float*)in_ptr_2_8));
+                    *((float*)out_ptr_8) = ADD_OP(*((float*)in_ptr_1_8), *((float*)in_ptr_2_8));
                     in_ptr_1_8 += in_stride_1;
                     in_ptr_2_8 += in_stride_2;
                     out_ptr_8 += out_stride;
-                    *((float*)out_ptr_9) = ADD_F32(*((float*)in_ptr_1_9), *((float*)in_ptr_2_9));
+                    *((float*)out_ptr_9) = ADD_OP(*((float*)in_ptr_1_9), *((float*)in_ptr_2_9));
                     in_ptr_1_9 += in_stride_1;
                     in_ptr_2_9 += in_stride_2;
                     out_ptr_9 += out_stride;
@@ -669,67 +669,67 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(float);
                 uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = ADD_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = ADD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = ADD_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = ADD_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = ADD_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = ADD_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = ADD_F32(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = ADD_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
-                    *((float*)out_ptr_5) = ADD_F32(*((float*)in_ptr_1_5), *((float*)in_ptr_2_5));
+                    *((float*)out_ptr_5) = ADD_OP(*((float*)in_ptr_1_5), *((float*)in_ptr_2_5));
                     in_ptr_1_5 += in_stride_1;
                     in_ptr_2_5 += in_stride_2;
                     out_ptr_5 += out_stride;
-                    *((float*)out_ptr_6) = ADD_F32(*((float*)in_ptr_1_6), *((float*)in_ptr_2_6));
+                    *((float*)out_ptr_6) = ADD_OP(*((float*)in_ptr_1_6), *((float*)in_ptr_2_6));
                     in_ptr_1_6 += in_stride_1;
                     in_ptr_2_6 += in_stride_2;
                     out_ptr_6 += out_stride;
-                    *((float*)out_ptr_7) = ADD_F32(*((float*)in_ptr_1_7), *((float*)in_ptr_2_7));
+                    *((float*)out_ptr_7) = ADD_OP(*((float*)in_ptr_1_7), *((float*)in_ptr_2_7));
                     in_ptr_1_7 += in_stride_1;
                     in_ptr_2_7 += in_stride_2;
                     out_ptr_7 += out_stride;
-                    *((float*)out_ptr_8) = ADD_F32(*((float*)in_ptr_1_8), *((float*)in_ptr_2_8));
+                    *((float*)out_ptr_8) = ADD_OP(*((float*)in_ptr_1_8), *((float*)in_ptr_2_8));
                     in_ptr_1_8 += in_stride_1;
                     in_ptr_2_8 += in_stride_2;
                     out_ptr_8 += out_stride;
-                    *((float*)out_ptr_9) = ADD_F32(*((float*)in_ptr_1_9), *((float*)in_ptr_2_9));
+                    *((float*)out_ptr_9) = ADD_OP(*((float*)in_ptr_1_9), *((float*)in_ptr_2_9));
                     in_ptr_1_9 += in_stride_1;
                     in_ptr_2_9 += in_stride_2;
                     out_ptr_9 += out_stride;
-                    *((float*)out_ptr_10) = ADD_F32(*((float*)in_ptr_1_10), *((float*)in_ptr_2_10));
+                    *((float*)out_ptr_10) = ADD_OP(*((float*)in_ptr_1_10), *((float*)in_ptr_2_10));
                     in_ptr_1_10 += in_stride_1;
                     in_ptr_2_10 += in_stride_2;
                     out_ptr_10 += out_stride;
-                    *((float*)out_ptr_11) = ADD_F32(*((float*)in_ptr_1_11), *((float*)in_ptr_2_11));
+                    *((float*)out_ptr_11) = ADD_OP(*((float*)in_ptr_1_11), *((float*)in_ptr_2_11));
                     in_ptr_1_11 += in_stride_1;
                     in_ptr_2_11 += in_stride_2;
                     out_ptr_11 += out_stride;
-                    *((float*)out_ptr_12) = ADD_F32(*((float*)in_ptr_1_12), *((float*)in_ptr_2_12));
+                    *((float*)out_ptr_12) = ADD_OP(*((float*)in_ptr_1_12), *((float*)in_ptr_2_12));
                     in_ptr_1_12 += in_stride_1;
                     in_ptr_2_12 += in_stride_2;
                     out_ptr_12 += out_stride;
-                    *((float*)out_ptr_13) = ADD_F32(*((float*)in_ptr_1_13), *((float*)in_ptr_2_13));
+                    *((float*)out_ptr_13) = ADD_OP(*((float*)in_ptr_1_13), *((float*)in_ptr_2_13));
                     in_ptr_1_13 += in_stride_1;
                     in_ptr_2_13 += in_stride_2;
                     out_ptr_13 += out_stride;
-                    *((float*)out_ptr_14) = ADD_F32(*((float*)in_ptr_1_14), *((float*)in_ptr_2_14));
+                    *((float*)out_ptr_14) = ADD_OP(*((float*)in_ptr_1_14), *((float*)in_ptr_2_14));
                     in_ptr_1_14 += in_stride_1;
                     in_ptr_2_14 += in_stride_2;
                     out_ptr_14 += out_stride;
-                    *((float*)out_ptr_15) = ADD_F32(*((float*)in_ptr_1_15), *((float*)in_ptr_2_15));
+                    *((float*)out_ptr_15) = ADD_OP(*((float*)in_ptr_1_15), *((float*)in_ptr_2_15));
                     in_ptr_1_15 += in_stride_1;
                     in_ptr_2_15 += in_stride_2;
                     out_ptr_15 += out_stride;
-                    *((float*)out_ptr_16) = ADD_F32(*((float*)in_ptr_1_16), *((float*)in_ptr_2_16));
+                    *((float*)out_ptr_16) = ADD_OP(*((float*)in_ptr_1_16), *((float*)in_ptr_2_16));
                     in_ptr_1_16 += in_stride_1;
                     in_ptr_2_16 += in_stride_2;
                     out_ptr_16 += out_stride;
@@ -740,7 +740,4165 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.add.\nsupported signatures are:\n  mathv.add(x:f32, y:f32)\n");
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = ADD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = ADD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = ADD_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = ADD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = ADD_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = ADD_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = ADD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = ADD_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = ADD_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = ADD_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int8_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int8_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int8_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int8_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = ADD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = ADD_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = ADD_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = ADD_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int8_t*)out_ptr_5) = ADD_OP(*((int8_t*)in_ptr_1_5), *((int8_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int8_t*)out_ptr_6) = ADD_OP(*((int8_t*)in_ptr_1_6), *((int8_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int8_t*)out_ptr_7) = ADD_OP(*((int8_t*)in_ptr_1_7), *((int8_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int8_t*)out_ptr_8) = ADD_OP(*((int8_t*)in_ptr_1_8), *((int8_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int8_t*)out_ptr_9) = ADD_OP(*((int8_t*)in_ptr_1_9), *((int8_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int8_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int8_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int8_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int8_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int8_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(int8_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(int8_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(int8_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(int8_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(int8_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(int8_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = ADD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = ADD_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = ADD_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = ADD_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int8_t*)out_ptr_5) = ADD_OP(*((int8_t*)in_ptr_1_5), *((int8_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int8_t*)out_ptr_6) = ADD_OP(*((int8_t*)in_ptr_1_6), *((int8_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int8_t*)out_ptr_7) = ADD_OP(*((int8_t*)in_ptr_1_7), *((int8_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int8_t*)out_ptr_8) = ADD_OP(*((int8_t*)in_ptr_1_8), *((int8_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int8_t*)out_ptr_9) = ADD_OP(*((int8_t*)in_ptr_1_9), *((int8_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((int8_t*)out_ptr_10) = ADD_OP(*((int8_t*)in_ptr_1_10), *((int8_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((int8_t*)out_ptr_11) = ADD_OP(*((int8_t*)in_ptr_1_11), *((int8_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((int8_t*)out_ptr_12) = ADD_OP(*((int8_t*)in_ptr_1_12), *((int8_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((int8_t*)out_ptr_13) = ADD_OP(*((int8_t*)in_ptr_1_13), *((int8_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((int8_t*)out_ptr_14) = ADD_OP(*((int8_t*)in_ptr_1_14), *((int8_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((int8_t*)out_ptr_15) = ADD_OP(*((int8_t*)in_ptr_1_15), *((int8_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((int8_t*)out_ptr_16) = ADD_OP(*((int8_t*)in_ptr_1_16), *((int8_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = ADD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = ADD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = ADD_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = ADD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = ADD_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = ADD_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = ADD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = ADD_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = ADD_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = ADD_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint8_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint8_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint8_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint8_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = ADD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = ADD_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = ADD_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = ADD_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint8_t*)out_ptr_5) = ADD_OP(*((uint8_t*)in_ptr_1_5), *((uint8_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint8_t*)out_ptr_6) = ADD_OP(*((uint8_t*)in_ptr_1_6), *((uint8_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint8_t*)out_ptr_7) = ADD_OP(*((uint8_t*)in_ptr_1_7), *((uint8_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint8_t*)out_ptr_8) = ADD_OP(*((uint8_t*)in_ptr_1_8), *((uint8_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint8_t*)out_ptr_9) = ADD_OP(*((uint8_t*)in_ptr_1_9), *((uint8_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint8_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint8_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint8_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint8_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint8_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(uint8_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(uint8_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(uint8_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(uint8_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(uint8_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(uint8_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = ADD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = ADD_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = ADD_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = ADD_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint8_t*)out_ptr_5) = ADD_OP(*((uint8_t*)in_ptr_1_5), *((uint8_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint8_t*)out_ptr_6) = ADD_OP(*((uint8_t*)in_ptr_1_6), *((uint8_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint8_t*)out_ptr_7) = ADD_OP(*((uint8_t*)in_ptr_1_7), *((uint8_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint8_t*)out_ptr_8) = ADD_OP(*((uint8_t*)in_ptr_1_8), *((uint8_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint8_t*)out_ptr_9) = ADD_OP(*((uint8_t*)in_ptr_1_9), *((uint8_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((uint8_t*)out_ptr_10) = ADD_OP(*((uint8_t*)in_ptr_1_10), *((uint8_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((uint8_t*)out_ptr_11) = ADD_OP(*((uint8_t*)in_ptr_1_11), *((uint8_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((uint8_t*)out_ptr_12) = ADD_OP(*((uint8_t*)in_ptr_1_12), *((uint8_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((uint8_t*)out_ptr_13) = ADD_OP(*((uint8_t*)in_ptr_1_13), *((uint8_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((uint8_t*)out_ptr_14) = ADD_OP(*((uint8_t*)in_ptr_1_14), *((uint8_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((uint8_t*)out_ptr_15) = ADD_OP(*((uint8_t*)in_ptr_1_15), *((uint8_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((uint8_t*)out_ptr_16) = ADD_OP(*((uint8_t*)in_ptr_1_16), *((uint8_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = ADD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = ADD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = ADD_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = ADD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = ADD_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = ADD_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = ADD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = ADD_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = ADD_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = ADD_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int16_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int16_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int16_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int16_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = ADD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = ADD_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = ADD_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = ADD_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int16_t*)out_ptr_5) = ADD_OP(*((int16_t*)in_ptr_1_5), *((int16_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int16_t*)out_ptr_6) = ADD_OP(*((int16_t*)in_ptr_1_6), *((int16_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int16_t*)out_ptr_7) = ADD_OP(*((int16_t*)in_ptr_1_7), *((int16_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int16_t*)out_ptr_8) = ADD_OP(*((int16_t*)in_ptr_1_8), *((int16_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int16_t*)out_ptr_9) = ADD_OP(*((int16_t*)in_ptr_1_9), *((int16_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int16_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int16_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int16_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int16_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int16_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(int16_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(int16_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(int16_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(int16_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(int16_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(int16_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = ADD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = ADD_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = ADD_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = ADD_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int16_t*)out_ptr_5) = ADD_OP(*((int16_t*)in_ptr_1_5), *((int16_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int16_t*)out_ptr_6) = ADD_OP(*((int16_t*)in_ptr_1_6), *((int16_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int16_t*)out_ptr_7) = ADD_OP(*((int16_t*)in_ptr_1_7), *((int16_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int16_t*)out_ptr_8) = ADD_OP(*((int16_t*)in_ptr_1_8), *((int16_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int16_t*)out_ptr_9) = ADD_OP(*((int16_t*)in_ptr_1_9), *((int16_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((int16_t*)out_ptr_10) = ADD_OP(*((int16_t*)in_ptr_1_10), *((int16_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((int16_t*)out_ptr_11) = ADD_OP(*((int16_t*)in_ptr_1_11), *((int16_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((int16_t*)out_ptr_12) = ADD_OP(*((int16_t*)in_ptr_1_12), *((int16_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((int16_t*)out_ptr_13) = ADD_OP(*((int16_t*)in_ptr_1_13), *((int16_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((int16_t*)out_ptr_14) = ADD_OP(*((int16_t*)in_ptr_1_14), *((int16_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((int16_t*)out_ptr_15) = ADD_OP(*((int16_t*)in_ptr_1_15), *((int16_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((int16_t*)out_ptr_16) = ADD_OP(*((int16_t*)in_ptr_1_16), *((int16_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = ADD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = ADD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = ADD_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = ADD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = ADD_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = ADD_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = ADD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = ADD_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = ADD_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = ADD_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint16_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint16_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint16_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint16_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = ADD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = ADD_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = ADD_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = ADD_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint16_t*)out_ptr_5) = ADD_OP(*((uint16_t*)in_ptr_1_5), *((uint16_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint16_t*)out_ptr_6) = ADD_OP(*((uint16_t*)in_ptr_1_6), *((uint16_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint16_t*)out_ptr_7) = ADD_OP(*((uint16_t*)in_ptr_1_7), *((uint16_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint16_t*)out_ptr_8) = ADD_OP(*((uint16_t*)in_ptr_1_8), *((uint16_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint16_t*)out_ptr_9) = ADD_OP(*((uint16_t*)in_ptr_1_9), *((uint16_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint16_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint16_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint16_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint16_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint16_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(uint16_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(uint16_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(uint16_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(uint16_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(uint16_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(uint16_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = ADD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = ADD_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = ADD_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = ADD_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint16_t*)out_ptr_5) = ADD_OP(*((uint16_t*)in_ptr_1_5), *((uint16_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint16_t*)out_ptr_6) = ADD_OP(*((uint16_t*)in_ptr_1_6), *((uint16_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint16_t*)out_ptr_7) = ADD_OP(*((uint16_t*)in_ptr_1_7), *((uint16_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint16_t*)out_ptr_8) = ADD_OP(*((uint16_t*)in_ptr_1_8), *((uint16_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint16_t*)out_ptr_9) = ADD_OP(*((uint16_t*)in_ptr_1_9), *((uint16_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((uint16_t*)out_ptr_10) = ADD_OP(*((uint16_t*)in_ptr_1_10), *((uint16_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((uint16_t*)out_ptr_11) = ADD_OP(*((uint16_t*)in_ptr_1_11), *((uint16_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((uint16_t*)out_ptr_12) = ADD_OP(*((uint16_t*)in_ptr_1_12), *((uint16_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((uint16_t*)out_ptr_13) = ADD_OP(*((uint16_t*)in_ptr_1_13), *((uint16_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((uint16_t*)out_ptr_14) = ADD_OP(*((uint16_t*)in_ptr_1_14), *((uint16_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((uint16_t*)out_ptr_15) = ADD_OP(*((uint16_t*)in_ptr_1_15), *((uint16_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((uint16_t*)out_ptr_16) = ADD_OP(*((uint16_t*)in_ptr_1_16), *((uint16_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = ADD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = ADD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = ADD_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = ADD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = ADD_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = ADD_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = ADD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = ADD_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = ADD_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = ADD_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int32_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int32_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int32_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int32_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = ADD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = ADD_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = ADD_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = ADD_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int32_t*)out_ptr_5) = ADD_OP(*((int32_t*)in_ptr_1_5), *((int32_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int32_t*)out_ptr_6) = ADD_OP(*((int32_t*)in_ptr_1_6), *((int32_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int32_t*)out_ptr_7) = ADD_OP(*((int32_t*)in_ptr_1_7), *((int32_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int32_t*)out_ptr_8) = ADD_OP(*((int32_t*)in_ptr_1_8), *((int32_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int32_t*)out_ptr_9) = ADD_OP(*((int32_t*)in_ptr_1_9), *((int32_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int32_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int32_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int32_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int32_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int32_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(int32_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(int32_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(int32_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(int32_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(int32_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(int32_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = ADD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = ADD_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = ADD_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = ADD_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int32_t*)out_ptr_5) = ADD_OP(*((int32_t*)in_ptr_1_5), *((int32_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int32_t*)out_ptr_6) = ADD_OP(*((int32_t*)in_ptr_1_6), *((int32_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int32_t*)out_ptr_7) = ADD_OP(*((int32_t*)in_ptr_1_7), *((int32_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int32_t*)out_ptr_8) = ADD_OP(*((int32_t*)in_ptr_1_8), *((int32_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int32_t*)out_ptr_9) = ADD_OP(*((int32_t*)in_ptr_1_9), *((int32_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((int32_t*)out_ptr_10) = ADD_OP(*((int32_t*)in_ptr_1_10), *((int32_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((int32_t*)out_ptr_11) = ADD_OP(*((int32_t*)in_ptr_1_11), *((int32_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((int32_t*)out_ptr_12) = ADD_OP(*((int32_t*)in_ptr_1_12), *((int32_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((int32_t*)out_ptr_13) = ADD_OP(*((int32_t*)in_ptr_1_13), *((int32_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((int32_t*)out_ptr_14) = ADD_OP(*((int32_t*)in_ptr_1_14), *((int32_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((int32_t*)out_ptr_15) = ADD_OP(*((int32_t*)in_ptr_1_15), *((int32_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((int32_t*)out_ptr_16) = ADD_OP(*((int32_t*)in_ptr_1_16), *((int32_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = ADD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = ADD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = ADD_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = ADD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = ADD_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = ADD_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = ADD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = ADD_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = ADD_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = ADD_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint32_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint32_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint32_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint32_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = ADD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = ADD_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = ADD_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = ADD_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint32_t*)out_ptr_5) = ADD_OP(*((uint32_t*)in_ptr_1_5), *((uint32_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint32_t*)out_ptr_6) = ADD_OP(*((uint32_t*)in_ptr_1_6), *((uint32_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint32_t*)out_ptr_7) = ADD_OP(*((uint32_t*)in_ptr_1_7), *((uint32_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint32_t*)out_ptr_8) = ADD_OP(*((uint32_t*)in_ptr_1_8), *((uint32_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint32_t*)out_ptr_9) = ADD_OP(*((uint32_t*)in_ptr_1_9), *((uint32_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint32_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint32_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint32_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint32_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint32_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(uint32_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(uint32_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(uint32_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(uint32_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(uint32_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(uint32_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = ADD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = ADD_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = ADD_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = ADD_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint32_t*)out_ptr_5) = ADD_OP(*((uint32_t*)in_ptr_1_5), *((uint32_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint32_t*)out_ptr_6) = ADD_OP(*((uint32_t*)in_ptr_1_6), *((uint32_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint32_t*)out_ptr_7) = ADD_OP(*((uint32_t*)in_ptr_1_7), *((uint32_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint32_t*)out_ptr_8) = ADD_OP(*((uint32_t*)in_ptr_1_8), *((uint32_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint32_t*)out_ptr_9) = ADD_OP(*((uint32_t*)in_ptr_1_9), *((uint32_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((uint32_t*)out_ptr_10) = ADD_OP(*((uint32_t*)in_ptr_1_10), *((uint32_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((uint32_t*)out_ptr_11) = ADD_OP(*((uint32_t*)in_ptr_1_11), *((uint32_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((uint32_t*)out_ptr_12) = ADD_OP(*((uint32_t*)in_ptr_1_12), *((uint32_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((uint32_t*)out_ptr_13) = ADD_OP(*((uint32_t*)in_ptr_1_13), *((uint32_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((uint32_t*)out_ptr_14) = ADD_OP(*((uint32_t*)in_ptr_1_14), *((uint32_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((uint32_t*)out_ptr_15) = ADD_OP(*((uint32_t*)in_ptr_1_15), *((uint32_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((uint32_t*)out_ptr_16) = ADD_OP(*((uint32_t*)in_ptr_1_16), *((uint32_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    return luaL_error(L, "invalid argument types for function mathv.add.\nsupported signatures are:\n  mathv.add(x:f32, y:f32)\n  mathv.add(x:i8, y:i8)\n  mathv.add(x:u8, y:u8)\n  mathv.add(x:i16, y:i16)\n  mathv.add(x:u16, y:u16)\n  mathv.add(x:i32, y:i32)\n  mathv.add(x:u32, y:u32)\n");
 }
 
 int am_mathv_add(lua_State *L) {
@@ -767,7 +4925,7 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.sub.\nsupported signatures are:\n  mathv.sub(x:f32, y:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.sub.\nsupported signatures are:\n  mathv.sub(x:f32, y:f32)\n  mathv.sub(x:i8, y:i8)\n  mathv.sub(x:u8, y:u8)\n  mathv.sub(x:i16, y:i16)\n  mathv.sub(x:u16, y:u16)\n  mathv.sub(x:i32, y:i32)\n  mathv.sub(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -868,7 +5026,7 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                 }
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = SUB_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = SUB_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
@@ -905,11 +5063,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = SUB_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = SUB_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = SUB_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = SUB_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
@@ -959,15 +5117,15 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = SUB_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = SUB_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = SUB_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = SUB_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = SUB_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = SUB_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
@@ -1030,19 +5188,19 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = SUB_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = SUB_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = SUB_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = SUB_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = SUB_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = SUB_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = SUB_F32(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = SUB_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
@@ -1170,39 +5328,39 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(float);
                 uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = SUB_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = SUB_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = SUB_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = SUB_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = SUB_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = SUB_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = SUB_F32(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = SUB_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
-                    *((float*)out_ptr_5) = SUB_F32(*((float*)in_ptr_1_5), *((float*)in_ptr_2_5));
+                    *((float*)out_ptr_5) = SUB_OP(*((float*)in_ptr_1_5), *((float*)in_ptr_2_5));
                     in_ptr_1_5 += in_stride_1;
                     in_ptr_2_5 += in_stride_2;
                     out_ptr_5 += out_stride;
-                    *((float*)out_ptr_6) = SUB_F32(*((float*)in_ptr_1_6), *((float*)in_ptr_2_6));
+                    *((float*)out_ptr_6) = SUB_OP(*((float*)in_ptr_1_6), *((float*)in_ptr_2_6));
                     in_ptr_1_6 += in_stride_1;
                     in_ptr_2_6 += in_stride_2;
                     out_ptr_6 += out_stride;
-                    *((float*)out_ptr_7) = SUB_F32(*((float*)in_ptr_1_7), *((float*)in_ptr_2_7));
+                    *((float*)out_ptr_7) = SUB_OP(*((float*)in_ptr_1_7), *((float*)in_ptr_2_7));
                     in_ptr_1_7 += in_stride_1;
                     in_ptr_2_7 += in_stride_2;
                     out_ptr_7 += out_stride;
-                    *((float*)out_ptr_8) = SUB_F32(*((float*)in_ptr_1_8), *((float*)in_ptr_2_8));
+                    *((float*)out_ptr_8) = SUB_OP(*((float*)in_ptr_1_8), *((float*)in_ptr_2_8));
                     in_ptr_1_8 += in_stride_1;
                     in_ptr_2_8 += in_stride_2;
                     out_ptr_8 += out_stride;
-                    *((float*)out_ptr_9) = SUB_F32(*((float*)in_ptr_1_9), *((float*)in_ptr_2_9));
+                    *((float*)out_ptr_9) = SUB_OP(*((float*)in_ptr_1_9), *((float*)in_ptr_2_9));
                     in_ptr_1_9 += in_stride_1;
                     in_ptr_2_9 += in_stride_2;
                     out_ptr_9 += out_stride;
@@ -1421,67 +5579,67 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(float);
                 uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = SUB_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = SUB_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = SUB_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = SUB_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = SUB_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = SUB_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = SUB_F32(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = SUB_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
-                    *((float*)out_ptr_5) = SUB_F32(*((float*)in_ptr_1_5), *((float*)in_ptr_2_5));
+                    *((float*)out_ptr_5) = SUB_OP(*((float*)in_ptr_1_5), *((float*)in_ptr_2_5));
                     in_ptr_1_5 += in_stride_1;
                     in_ptr_2_5 += in_stride_2;
                     out_ptr_5 += out_stride;
-                    *((float*)out_ptr_6) = SUB_F32(*((float*)in_ptr_1_6), *((float*)in_ptr_2_6));
+                    *((float*)out_ptr_6) = SUB_OP(*((float*)in_ptr_1_6), *((float*)in_ptr_2_6));
                     in_ptr_1_6 += in_stride_1;
                     in_ptr_2_6 += in_stride_2;
                     out_ptr_6 += out_stride;
-                    *((float*)out_ptr_7) = SUB_F32(*((float*)in_ptr_1_7), *((float*)in_ptr_2_7));
+                    *((float*)out_ptr_7) = SUB_OP(*((float*)in_ptr_1_7), *((float*)in_ptr_2_7));
                     in_ptr_1_7 += in_stride_1;
                     in_ptr_2_7 += in_stride_2;
                     out_ptr_7 += out_stride;
-                    *((float*)out_ptr_8) = SUB_F32(*((float*)in_ptr_1_8), *((float*)in_ptr_2_8));
+                    *((float*)out_ptr_8) = SUB_OP(*((float*)in_ptr_1_8), *((float*)in_ptr_2_8));
                     in_ptr_1_8 += in_stride_1;
                     in_ptr_2_8 += in_stride_2;
                     out_ptr_8 += out_stride;
-                    *((float*)out_ptr_9) = SUB_F32(*((float*)in_ptr_1_9), *((float*)in_ptr_2_9));
+                    *((float*)out_ptr_9) = SUB_OP(*((float*)in_ptr_1_9), *((float*)in_ptr_2_9));
                     in_ptr_1_9 += in_stride_1;
                     in_ptr_2_9 += in_stride_2;
                     out_ptr_9 += out_stride;
-                    *((float*)out_ptr_10) = SUB_F32(*((float*)in_ptr_1_10), *((float*)in_ptr_2_10));
+                    *((float*)out_ptr_10) = SUB_OP(*((float*)in_ptr_1_10), *((float*)in_ptr_2_10));
                     in_ptr_1_10 += in_stride_1;
                     in_ptr_2_10 += in_stride_2;
                     out_ptr_10 += out_stride;
-                    *((float*)out_ptr_11) = SUB_F32(*((float*)in_ptr_1_11), *((float*)in_ptr_2_11));
+                    *((float*)out_ptr_11) = SUB_OP(*((float*)in_ptr_1_11), *((float*)in_ptr_2_11));
                     in_ptr_1_11 += in_stride_1;
                     in_ptr_2_11 += in_stride_2;
                     out_ptr_11 += out_stride;
-                    *((float*)out_ptr_12) = SUB_F32(*((float*)in_ptr_1_12), *((float*)in_ptr_2_12));
+                    *((float*)out_ptr_12) = SUB_OP(*((float*)in_ptr_1_12), *((float*)in_ptr_2_12));
                     in_ptr_1_12 += in_stride_1;
                     in_ptr_2_12 += in_stride_2;
                     out_ptr_12 += out_stride;
-                    *((float*)out_ptr_13) = SUB_F32(*((float*)in_ptr_1_13), *((float*)in_ptr_2_13));
+                    *((float*)out_ptr_13) = SUB_OP(*((float*)in_ptr_1_13), *((float*)in_ptr_2_13));
                     in_ptr_1_13 += in_stride_1;
                     in_ptr_2_13 += in_stride_2;
                     out_ptr_13 += out_stride;
-                    *((float*)out_ptr_14) = SUB_F32(*((float*)in_ptr_1_14), *((float*)in_ptr_2_14));
+                    *((float*)out_ptr_14) = SUB_OP(*((float*)in_ptr_1_14), *((float*)in_ptr_2_14));
                     in_ptr_1_14 += in_stride_1;
                     in_ptr_2_14 += in_stride_2;
                     out_ptr_14 += out_stride;
-                    *((float*)out_ptr_15) = SUB_F32(*((float*)in_ptr_1_15), *((float*)in_ptr_2_15));
+                    *((float*)out_ptr_15) = SUB_OP(*((float*)in_ptr_1_15), *((float*)in_ptr_2_15));
                     in_ptr_1_15 += in_stride_1;
                     in_ptr_2_15 += in_stride_2;
                     out_ptr_15 += out_stride;
-                    *((float*)out_ptr_16) = SUB_F32(*((float*)in_ptr_1_16), *((float*)in_ptr_2_16));
+                    *((float*)out_ptr_16) = SUB_OP(*((float*)in_ptr_1_16), *((float*)in_ptr_2_16));
                     in_ptr_1_16 += in_stride_1;
                     in_ptr_2_16 += in_stride_2;
                     out_ptr_16 += out_stride;
@@ -1492,7 +5650,4165 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.sub.\nsupported signatures are:\n  mathv.sub(x:f32, y:f32)\n");
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = SUB_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = SUB_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = SUB_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = SUB_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = SUB_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = SUB_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = SUB_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = SUB_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = SUB_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = SUB_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int8_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int8_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int8_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int8_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = SUB_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = SUB_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = SUB_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = SUB_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int8_t*)out_ptr_5) = SUB_OP(*((int8_t*)in_ptr_1_5), *((int8_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int8_t*)out_ptr_6) = SUB_OP(*((int8_t*)in_ptr_1_6), *((int8_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int8_t*)out_ptr_7) = SUB_OP(*((int8_t*)in_ptr_1_7), *((int8_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int8_t*)out_ptr_8) = SUB_OP(*((int8_t*)in_ptr_1_8), *((int8_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int8_t*)out_ptr_9) = SUB_OP(*((int8_t*)in_ptr_1_9), *((int8_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int8_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int8_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int8_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int8_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int8_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(int8_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(int8_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(int8_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(int8_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(int8_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(int8_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = SUB_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = SUB_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = SUB_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = SUB_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int8_t*)out_ptr_5) = SUB_OP(*((int8_t*)in_ptr_1_5), *((int8_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int8_t*)out_ptr_6) = SUB_OP(*((int8_t*)in_ptr_1_6), *((int8_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int8_t*)out_ptr_7) = SUB_OP(*((int8_t*)in_ptr_1_7), *((int8_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int8_t*)out_ptr_8) = SUB_OP(*((int8_t*)in_ptr_1_8), *((int8_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int8_t*)out_ptr_9) = SUB_OP(*((int8_t*)in_ptr_1_9), *((int8_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((int8_t*)out_ptr_10) = SUB_OP(*((int8_t*)in_ptr_1_10), *((int8_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((int8_t*)out_ptr_11) = SUB_OP(*((int8_t*)in_ptr_1_11), *((int8_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((int8_t*)out_ptr_12) = SUB_OP(*((int8_t*)in_ptr_1_12), *((int8_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((int8_t*)out_ptr_13) = SUB_OP(*((int8_t*)in_ptr_1_13), *((int8_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((int8_t*)out_ptr_14) = SUB_OP(*((int8_t*)in_ptr_1_14), *((int8_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((int8_t*)out_ptr_15) = SUB_OP(*((int8_t*)in_ptr_1_15), *((int8_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((int8_t*)out_ptr_16) = SUB_OP(*((int8_t*)in_ptr_1_16), *((int8_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = SUB_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = SUB_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = SUB_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = SUB_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = SUB_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = SUB_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = SUB_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = SUB_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = SUB_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = SUB_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint8_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint8_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint8_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint8_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = SUB_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = SUB_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = SUB_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = SUB_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint8_t*)out_ptr_5) = SUB_OP(*((uint8_t*)in_ptr_1_5), *((uint8_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint8_t*)out_ptr_6) = SUB_OP(*((uint8_t*)in_ptr_1_6), *((uint8_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint8_t*)out_ptr_7) = SUB_OP(*((uint8_t*)in_ptr_1_7), *((uint8_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint8_t*)out_ptr_8) = SUB_OP(*((uint8_t*)in_ptr_1_8), *((uint8_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint8_t*)out_ptr_9) = SUB_OP(*((uint8_t*)in_ptr_1_9), *((uint8_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint8_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint8_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint8_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint8_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint8_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(uint8_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(uint8_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(uint8_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(uint8_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(uint8_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(uint8_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = SUB_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = SUB_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = SUB_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = SUB_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint8_t*)out_ptr_5) = SUB_OP(*((uint8_t*)in_ptr_1_5), *((uint8_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint8_t*)out_ptr_6) = SUB_OP(*((uint8_t*)in_ptr_1_6), *((uint8_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint8_t*)out_ptr_7) = SUB_OP(*((uint8_t*)in_ptr_1_7), *((uint8_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint8_t*)out_ptr_8) = SUB_OP(*((uint8_t*)in_ptr_1_8), *((uint8_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint8_t*)out_ptr_9) = SUB_OP(*((uint8_t*)in_ptr_1_9), *((uint8_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((uint8_t*)out_ptr_10) = SUB_OP(*((uint8_t*)in_ptr_1_10), *((uint8_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((uint8_t*)out_ptr_11) = SUB_OP(*((uint8_t*)in_ptr_1_11), *((uint8_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((uint8_t*)out_ptr_12) = SUB_OP(*((uint8_t*)in_ptr_1_12), *((uint8_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((uint8_t*)out_ptr_13) = SUB_OP(*((uint8_t*)in_ptr_1_13), *((uint8_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((uint8_t*)out_ptr_14) = SUB_OP(*((uint8_t*)in_ptr_1_14), *((uint8_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((uint8_t*)out_ptr_15) = SUB_OP(*((uint8_t*)in_ptr_1_15), *((uint8_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((uint8_t*)out_ptr_16) = SUB_OP(*((uint8_t*)in_ptr_1_16), *((uint8_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = SUB_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = SUB_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = SUB_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = SUB_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = SUB_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = SUB_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = SUB_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = SUB_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = SUB_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = SUB_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int16_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int16_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int16_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int16_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = SUB_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = SUB_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = SUB_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = SUB_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int16_t*)out_ptr_5) = SUB_OP(*((int16_t*)in_ptr_1_5), *((int16_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int16_t*)out_ptr_6) = SUB_OP(*((int16_t*)in_ptr_1_6), *((int16_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int16_t*)out_ptr_7) = SUB_OP(*((int16_t*)in_ptr_1_7), *((int16_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int16_t*)out_ptr_8) = SUB_OP(*((int16_t*)in_ptr_1_8), *((int16_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int16_t*)out_ptr_9) = SUB_OP(*((int16_t*)in_ptr_1_9), *((int16_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int16_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int16_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int16_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int16_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int16_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(int16_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(int16_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(int16_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(int16_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(int16_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(int16_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = SUB_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = SUB_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = SUB_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = SUB_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int16_t*)out_ptr_5) = SUB_OP(*((int16_t*)in_ptr_1_5), *((int16_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int16_t*)out_ptr_6) = SUB_OP(*((int16_t*)in_ptr_1_6), *((int16_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int16_t*)out_ptr_7) = SUB_OP(*((int16_t*)in_ptr_1_7), *((int16_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int16_t*)out_ptr_8) = SUB_OP(*((int16_t*)in_ptr_1_8), *((int16_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int16_t*)out_ptr_9) = SUB_OP(*((int16_t*)in_ptr_1_9), *((int16_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((int16_t*)out_ptr_10) = SUB_OP(*((int16_t*)in_ptr_1_10), *((int16_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((int16_t*)out_ptr_11) = SUB_OP(*((int16_t*)in_ptr_1_11), *((int16_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((int16_t*)out_ptr_12) = SUB_OP(*((int16_t*)in_ptr_1_12), *((int16_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((int16_t*)out_ptr_13) = SUB_OP(*((int16_t*)in_ptr_1_13), *((int16_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((int16_t*)out_ptr_14) = SUB_OP(*((int16_t*)in_ptr_1_14), *((int16_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((int16_t*)out_ptr_15) = SUB_OP(*((int16_t*)in_ptr_1_15), *((int16_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((int16_t*)out_ptr_16) = SUB_OP(*((int16_t*)in_ptr_1_16), *((int16_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = SUB_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = SUB_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = SUB_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = SUB_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = SUB_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = SUB_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = SUB_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = SUB_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = SUB_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = SUB_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint16_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint16_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint16_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint16_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = SUB_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = SUB_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = SUB_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = SUB_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint16_t*)out_ptr_5) = SUB_OP(*((uint16_t*)in_ptr_1_5), *((uint16_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint16_t*)out_ptr_6) = SUB_OP(*((uint16_t*)in_ptr_1_6), *((uint16_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint16_t*)out_ptr_7) = SUB_OP(*((uint16_t*)in_ptr_1_7), *((uint16_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint16_t*)out_ptr_8) = SUB_OP(*((uint16_t*)in_ptr_1_8), *((uint16_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint16_t*)out_ptr_9) = SUB_OP(*((uint16_t*)in_ptr_1_9), *((uint16_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint16_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint16_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint16_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint16_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint16_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(uint16_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(uint16_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(uint16_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(uint16_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(uint16_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(uint16_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = SUB_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = SUB_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = SUB_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = SUB_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint16_t*)out_ptr_5) = SUB_OP(*((uint16_t*)in_ptr_1_5), *((uint16_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint16_t*)out_ptr_6) = SUB_OP(*((uint16_t*)in_ptr_1_6), *((uint16_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint16_t*)out_ptr_7) = SUB_OP(*((uint16_t*)in_ptr_1_7), *((uint16_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint16_t*)out_ptr_8) = SUB_OP(*((uint16_t*)in_ptr_1_8), *((uint16_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint16_t*)out_ptr_9) = SUB_OP(*((uint16_t*)in_ptr_1_9), *((uint16_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((uint16_t*)out_ptr_10) = SUB_OP(*((uint16_t*)in_ptr_1_10), *((uint16_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((uint16_t*)out_ptr_11) = SUB_OP(*((uint16_t*)in_ptr_1_11), *((uint16_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((uint16_t*)out_ptr_12) = SUB_OP(*((uint16_t*)in_ptr_1_12), *((uint16_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((uint16_t*)out_ptr_13) = SUB_OP(*((uint16_t*)in_ptr_1_13), *((uint16_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((uint16_t*)out_ptr_14) = SUB_OP(*((uint16_t*)in_ptr_1_14), *((uint16_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((uint16_t*)out_ptr_15) = SUB_OP(*((uint16_t*)in_ptr_1_15), *((uint16_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((uint16_t*)out_ptr_16) = SUB_OP(*((uint16_t*)in_ptr_1_16), *((uint16_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = SUB_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = SUB_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = SUB_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = SUB_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = SUB_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = SUB_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = SUB_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = SUB_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = SUB_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = SUB_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int32_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int32_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int32_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int32_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = SUB_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = SUB_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = SUB_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = SUB_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int32_t*)out_ptr_5) = SUB_OP(*((int32_t*)in_ptr_1_5), *((int32_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int32_t*)out_ptr_6) = SUB_OP(*((int32_t*)in_ptr_1_6), *((int32_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int32_t*)out_ptr_7) = SUB_OP(*((int32_t*)in_ptr_1_7), *((int32_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int32_t*)out_ptr_8) = SUB_OP(*((int32_t*)in_ptr_1_8), *((int32_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int32_t*)out_ptr_9) = SUB_OP(*((int32_t*)in_ptr_1_9), *((int32_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(int32_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(int32_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(int32_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(int32_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(int32_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(int32_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(int32_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(int32_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(int32_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(int32_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(int32_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = SUB_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = SUB_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = SUB_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = SUB_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((int32_t*)out_ptr_5) = SUB_OP(*((int32_t*)in_ptr_1_5), *((int32_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((int32_t*)out_ptr_6) = SUB_OP(*((int32_t*)in_ptr_1_6), *((int32_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((int32_t*)out_ptr_7) = SUB_OP(*((int32_t*)in_ptr_1_7), *((int32_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((int32_t*)out_ptr_8) = SUB_OP(*((int32_t*)in_ptr_1_8), *((int32_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((int32_t*)out_ptr_9) = SUB_OP(*((int32_t*)in_ptr_1_9), *((int32_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((int32_t*)out_ptr_10) = SUB_OP(*((int32_t*)in_ptr_1_10), *((int32_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((int32_t*)out_ptr_11) = SUB_OP(*((int32_t*)in_ptr_1_11), *((int32_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((int32_t*)out_ptr_12) = SUB_OP(*((int32_t*)in_ptr_1_12), *((int32_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((int32_t*)out_ptr_13) = SUB_OP(*((int32_t*)in_ptr_1_13), *((int32_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((int32_t*)out_ptr_14) = SUB_OP(*((int32_t*)in_ptr_1_14), *((int32_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((int32_t*)out_ptr_15) = SUB_OP(*((int32_t*)in_ptr_1_15), *((int32_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((int32_t*)out_ptr_16) = SUB_OP(*((int32_t*)in_ptr_1_16), *((int32_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = SUB_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = SUB_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = SUB_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = SUB_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = SUB_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = SUB_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = SUB_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = SUB_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = SUB_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = SUB_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint32_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint32_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint32_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint32_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = SUB_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = SUB_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = SUB_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = SUB_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint32_t*)out_ptr_5) = SUB_OP(*((uint32_t*)in_ptr_1_5), *((uint32_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint32_t*)out_ptr_6) = SUB_OP(*((uint32_t*)in_ptr_1_6), *((uint32_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint32_t*)out_ptr_7) = SUB_OP(*((uint32_t*)in_ptr_1_7), *((uint32_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint32_t*)out_ptr_8) = SUB_OP(*((uint32_t*)in_ptr_1_8), *((uint32_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint32_t*)out_ptr_9) = SUB_OP(*((uint32_t*)in_ptr_1_9), *((uint32_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(uint32_t);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(uint32_t);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(uint32_t);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(uint32_t);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(uint32_t);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(uint32_t);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(uint32_t);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(uint32_t);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(uint32_t);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(uint32_t);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(uint32_t);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = SUB_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = SUB_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = SUB_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = SUB_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((uint32_t*)out_ptr_5) = SUB_OP(*((uint32_t*)in_ptr_1_5), *((uint32_t*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((uint32_t*)out_ptr_6) = SUB_OP(*((uint32_t*)in_ptr_1_6), *((uint32_t*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((uint32_t*)out_ptr_7) = SUB_OP(*((uint32_t*)in_ptr_1_7), *((uint32_t*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((uint32_t*)out_ptr_8) = SUB_OP(*((uint32_t*)in_ptr_1_8), *((uint32_t*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((uint32_t*)out_ptr_9) = SUB_OP(*((uint32_t*)in_ptr_1_9), *((uint32_t*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((uint32_t*)out_ptr_10) = SUB_OP(*((uint32_t*)in_ptr_1_10), *((uint32_t*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((uint32_t*)out_ptr_11) = SUB_OP(*((uint32_t*)in_ptr_1_11), *((uint32_t*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((uint32_t*)out_ptr_12) = SUB_OP(*((uint32_t*)in_ptr_1_12), *((uint32_t*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((uint32_t*)out_ptr_13) = SUB_OP(*((uint32_t*)in_ptr_1_13), *((uint32_t*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((uint32_t*)out_ptr_14) = SUB_OP(*((uint32_t*)in_ptr_1_14), *((uint32_t*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((uint32_t*)out_ptr_15) = SUB_OP(*((uint32_t*)in_ptr_1_15), *((uint32_t*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((uint32_t*)out_ptr_16) = SUB_OP(*((uint32_t*)in_ptr_1_16), *((uint32_t*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    return luaL_error(L, "invalid argument types for function mathv.sub.\nsupported signatures are:\n  mathv.sub(x:f32, y:f32)\n  mathv.sub(x:i8, y:i8)\n  mathv.sub(x:u8, y:u8)\n  mathv.sub(x:i16, y:i16)\n  mathv.sub(x:u16, y:u16)\n  mathv.sub(x:i32, y:i32)\n  mathv.sub(x:u32, y:u32)\n");
 }
 
 int am_mathv_sub(lua_State *L) {
@@ -1519,7 +9835,7 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.vec_mul.\nsupported signatures are:\n  mathv.vec_mul(x:f32, y:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.vec_mul.\nsupported signatures are:\n  mathv.vec_mul(x:f32, y:f32)\n  mathv.vec_mul(x:i8, y:i8)\n  mathv.vec_mul(x:u8, y:u8)\n  mathv.vec_mul(x:i16, y:i16)\n  mathv.vec_mul(x:u16, y:u16)\n  mathv.vec_mul(x:i32, y:i32)\n  mathv.vec_mul(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -1620,7 +9936,7 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
                 }
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = MUL_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = MUL_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
@@ -1657,11 +9973,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = MUL_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = MUL_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = MUL_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = MUL_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
@@ -1711,15 +10027,15 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = MUL_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = MUL_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = MUL_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = MUL_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = MUL_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = MUL_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
@@ -1782,19 +10098,19 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = MUL_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = MUL_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = MUL_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = MUL_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = MUL_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = MUL_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = MUL_F32(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = MUL_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
@@ -1805,7 +10121,1531 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.vec_mul.\nsupported signatures are:\n  mathv.vec_mul(x:f32, y:f32)\n");
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = MUL_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = MUL_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = MUL_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = MUL_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = MUL_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = MUL_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = MUL_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = MUL_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = MUL_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = MUL_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = MUL_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = MUL_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = MUL_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = MUL_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = MUL_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = MUL_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = MUL_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = MUL_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = MUL_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = MUL_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = MUL_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = MUL_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = MUL_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = MUL_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = MUL_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = MUL_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = MUL_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = MUL_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = MUL_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = MUL_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = MUL_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = MUL_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = MUL_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = MUL_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = MUL_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = MUL_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = MUL_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = MUL_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = MUL_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = MUL_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = MUL_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = MUL_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = MUL_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = MUL_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = MUL_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = MUL_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = MUL_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = MUL_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = MUL_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = MUL_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = MUL_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = MUL_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = MUL_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = MUL_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = MUL_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = MUL_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = MUL_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = MUL_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = MUL_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = MUL_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    return luaL_error(L, "invalid argument types for function mathv.vec_mul.\nsupported signatures are:\n  mathv.vec_mul(x:f32, y:f32)\n  mathv.vec_mul(x:i8, y:i8)\n  mathv.vec_mul(x:u8, y:u8)\n  mathv.vec_mul(x:i16, y:i16)\n  mathv.vec_mul(x:u16, y:u16)\n  mathv.vec_mul(x:i32, y:i32)\n  mathv.vec_mul(x:u32, y:u32)\n");
 }
 
 static int am_mathv_vec_mul(lua_State *L) {
@@ -1832,7 +11672,7 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.div.\nsupported signatures are:\n  mathv.div(x:f32, y:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.div.\nsupported signatures are:\n  mathv.div(x:f32, y:f32)\n  mathv.div(x:i8, y:i8)\n  mathv.div(x:u8, y:u8)\n  mathv.div(x:i16, y:i16)\n  mathv.div(x:u16, y:u16)\n  mathv.div(x:i32, y:i32)\n  mathv.div(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -1933,7 +11773,7 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
                 }
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = DIV_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = DIV_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
@@ -1970,11 +11810,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = DIV_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = DIV_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = DIV_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = DIV_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
@@ -2024,15 +11864,15 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = DIV_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = DIV_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = DIV_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = DIV_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = DIV_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = DIV_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
@@ -2095,19 +11935,19 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = DIV_F32(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = DIV_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = DIV_F32(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = DIV_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = DIV_F32(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = DIV_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = DIV_F32(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = DIV_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
@@ -2118,7 +11958,1531 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.div.\nsupported signatures are:\n  mathv.div(x:f32, y:f32)\n");
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = DIV_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = DIV_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = DIV_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = DIV_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = DIV_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = DIV_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = DIV_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = DIV_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = DIV_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = DIV_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = DIV_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = DIV_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = DIV_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = DIV_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = DIV_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = DIV_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = DIV_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = DIV_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = DIV_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = DIV_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = DIV_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = DIV_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = DIV_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = DIV_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = DIV_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = DIV_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = DIV_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = DIV_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = DIV_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = DIV_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = DIV_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = DIV_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = DIV_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = DIV_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = DIV_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = DIV_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = DIV_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = DIV_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = DIV_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = DIV_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = DIV_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = DIV_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = DIV_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = DIV_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = DIV_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = DIV_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = DIV_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = DIV_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = DIV_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = DIV_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = DIV_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = DIV_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = DIV_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = DIV_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = DIV_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = DIV_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = DIV_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = DIV_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = DIV_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = DIV_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    return luaL_error(L, "invalid argument types for function mathv.div.\nsupported signatures are:\n  mathv.div(x:f32, y:f32)\n  mathv.div(x:i8, y:i8)\n  mathv.div(x:u8, y:u8)\n  mathv.div(x:i16, y:i16)\n  mathv.div(x:u16, y:u16)\n  mathv.div(x:i32, y:i32)\n  mathv.div(x:u32, y:u32)\n");
 }
 
 int am_mathv_div(lua_State *L) {
@@ -2145,7 +13509,7 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.mod.\nsupported signatures are:\n  mathv.mod(x:f32, y:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.mod.\nsupported signatures are:\n  mathv.mod(x:f32, y:f32)\n  mathv.mod(x:i8, y:i8)\n  mathv.mod(x:u8, y:u8)\n  mathv.mod(x:i16, y:i16)\n  mathv.mod(x:u16, y:u16)\n  mathv.mod(x:i32, y:i32)\n  mathv.mod(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -2431,7 +13795,1531 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.mod.\nsupported signatures are:\n  mathv.mod(x:f32, y:f32)\n");
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = IMOD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = IMOD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = IMOD_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = IMOD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = IMOD_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = IMOD_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = IMOD_OP(*((int8_t*)in_ptr_1_1), *((int8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = IMOD_OP(*((int8_t*)in_ptr_1_2), *((int8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = IMOD_OP(*((int8_t*)in_ptr_1_3), *((int8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = IMOD_OP(*((int8_t*)in_ptr_1_4), *((int8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = IMOD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = IMOD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = IMOD_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = IMOD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = IMOD_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = IMOD_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = IMOD_OP(*((uint8_t*)in_ptr_1_1), *((uint8_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = IMOD_OP(*((uint8_t*)in_ptr_1_2), *((uint8_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = IMOD_OP(*((uint8_t*)in_ptr_1_3), *((uint8_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = IMOD_OP(*((uint8_t*)in_ptr_1_4), *((uint8_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = IMOD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = IMOD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = IMOD_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = IMOD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = IMOD_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = IMOD_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = IMOD_OP(*((int16_t*)in_ptr_1_1), *((int16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = IMOD_OP(*((int16_t*)in_ptr_1_2), *((int16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = IMOD_OP(*((int16_t*)in_ptr_1_3), *((int16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = IMOD_OP(*((int16_t*)in_ptr_1_4), *((int16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = IMOD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = IMOD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = IMOD_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = IMOD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = IMOD_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = IMOD_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = IMOD_OP(*((uint16_t*)in_ptr_1_1), *((uint16_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = IMOD_OP(*((uint16_t*)in_ptr_1_2), *((uint16_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = IMOD_OP(*((uint16_t*)in_ptr_1_3), *((uint16_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = IMOD_OP(*((uint16_t*)in_ptr_1_4), *((uint16_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = IMOD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = IMOD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = IMOD_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = IMOD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = IMOD_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = IMOD_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = IMOD_OP(*((int32_t*)in_ptr_1_1), *((int32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = IMOD_OP(*((int32_t*)in_ptr_1_2), *((int32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = IMOD_OP(*((int32_t*)in_ptr_1_3), *((int32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = IMOD_OP(*((int32_t*)in_ptr_1_4), *((int32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[1]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = IMOD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = IMOD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = IMOD_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = IMOD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = IMOD_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = IMOD_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = IMOD_OP(*((uint32_t*)in_ptr_1_1), *((uint32_t*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = IMOD_OP(*((uint32_t*)in_ptr_1_2), *((uint32_t*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = IMOD_OP(*((uint32_t*)in_ptr_1_3), *((uint32_t*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = IMOD_OP(*((uint32_t*)in_ptr_1_4), *((uint32_t*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    return luaL_error(L, "invalid argument types for function mathv.mod.\nsupported signatures are:\n  mathv.mod(x:f32, y:f32)\n  mathv.mod(x:i8, y:i8)\n  mathv.mod(x:u8, y:u8)\n  mathv.mod(x:i16, y:i16)\n  mathv.mod(x:u16, y:u16)\n  mathv.mod(x:i32, y:i32)\n  mathv.mod(x:u32, y:u32)\n");
 }
 
 int am_mathv_mod(lua_State *L) {
@@ -2771,7 +15659,7 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[1];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.unm.\nsupported signatures are:\n  mathv.unm(x:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.unm.\nsupported signatures are:\n  mathv.unm(x:f32)\n  mathv.unm(x:i8)\n  mathv.unm(x:u8)\n  mathv.unm(x:i16)\n  mathv.unm(x:u16)\n  mathv.unm(x:i32)\n  mathv.unm(x:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -2857,7 +15745,7 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
                 }
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = UNM_F32(*((float*)in_ptr_1_1));
+                    *((float*)out_ptr_1) = UNM_OP(*((float*)in_ptr_1_1));
                     in_ptr_1_1 += in_stride_1;
                     out_ptr_1 += out_stride;
                 }
@@ -2880,10 +15768,10 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = UNM_F32(*((float*)in_ptr_1_1));
+                    *((float*)out_ptr_1) = UNM_OP(*((float*)in_ptr_1_1));
                     in_ptr_1_1 += in_stride_1;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = UNM_F32(*((float*)in_ptr_1_2));
+                    *((float*)out_ptr_2) = UNM_OP(*((float*)in_ptr_1_2));
                     in_ptr_1_2 += in_stride_1;
                     out_ptr_2 += out_stride;
                 }
@@ -2913,13 +15801,13 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = UNM_F32(*((float*)in_ptr_1_1));
+                    *((float*)out_ptr_1) = UNM_OP(*((float*)in_ptr_1_1));
                     in_ptr_1_1 += in_stride_1;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = UNM_F32(*((float*)in_ptr_1_2));
+                    *((float*)out_ptr_2) = UNM_OP(*((float*)in_ptr_1_2));
                     in_ptr_1_2 += in_stride_1;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = UNM_F32(*((float*)in_ptr_1_3));
+                    *((float*)out_ptr_3) = UNM_OP(*((float*)in_ptr_1_3));
                     in_ptr_1_3 += in_stride_1;
                     out_ptr_3 += out_stride;
                 }
@@ -2956,16 +15844,16 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = UNM_F32(*((float*)in_ptr_1_1));
+                    *((float*)out_ptr_1) = UNM_OP(*((float*)in_ptr_1_1));
                     in_ptr_1_1 += in_stride_1;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = UNM_F32(*((float*)in_ptr_1_2));
+                    *((float*)out_ptr_2) = UNM_OP(*((float*)in_ptr_1_2));
                     in_ptr_1_2 += in_stride_1;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = UNM_F32(*((float*)in_ptr_1_3));
+                    *((float*)out_ptr_3) = UNM_OP(*((float*)in_ptr_1_3));
                     in_ptr_1_3 += in_stride_1;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = UNM_F32(*((float*)in_ptr_1_4));
+                    *((float*)out_ptr_4) = UNM_OP(*((float*)in_ptr_1_4));
                     in_ptr_1_4 += in_stride_1;
                     out_ptr_4 += out_stride;
                 }
@@ -2975,7 +15863,1039 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.unm.\nsupported signatures are:\n  mathv.unm(x:f32)\n");
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int8_t *conv = (int8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = UNM_OP(*((int8_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = UNM_OP(*((int8_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = UNM_OP(*((int8_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = UNM_OP(*((int8_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = UNM_OP(*((int8_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = UNM_OP(*((int8_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int8_t*)out_ptr_1) = UNM_OP(*((int8_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int8_t*)out_ptr_2) = UNM_OP(*((int8_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((int8_t*)out_ptr_3) = UNM_OP(*((int8_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                    *((int8_t*)out_ptr_4) = UNM_OP(*((int8_t*)in_ptr_1_4));
+                    in_ptr_1_4 += in_stride_1;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint8_t *conv = (uint8_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint8_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint8_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint8_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U8, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U8) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U8].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = UNM_OP(*((uint8_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = UNM_OP(*((uint8_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = UNM_OP(*((uint8_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = UNM_OP(*((uint8_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = UNM_OP(*((uint8_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = UNM_OP(*((uint8_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint8_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint8_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint8_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint8_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint8_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint8_t*)out_ptr_1) = UNM_OP(*((uint8_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint8_t*)out_ptr_2) = UNM_OP(*((uint8_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((uint8_t*)out_ptr_3) = UNM_OP(*((uint8_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                    *((uint8_t*)out_ptr_4) = UNM_OP(*((uint8_t*)in_ptr_1_4));
+                    in_ptr_1_4 += in_stride_1;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int16_t *conv = (int16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = UNM_OP(*((int16_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = UNM_OP(*((int16_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = UNM_OP(*((int16_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = UNM_OP(*((int16_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = UNM_OP(*((int16_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = UNM_OP(*((int16_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int16_t*)out_ptr_1) = UNM_OP(*((int16_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int16_t*)out_ptr_2) = UNM_OP(*((int16_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((int16_t*)out_ptr_3) = UNM_OP(*((int16_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                    *((int16_t*)out_ptr_4) = UNM_OP(*((int16_t*)in_ptr_1_4));
+                    in_ptr_1_4 += in_stride_1;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint16_t *conv = (uint16_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint16_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint16_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint16_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U16, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U16) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U16].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = UNM_OP(*((uint16_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = UNM_OP(*((uint16_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = UNM_OP(*((uint16_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = UNM_OP(*((uint16_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = UNM_OP(*((uint16_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = UNM_OP(*((uint16_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint16_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint16_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint16_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint16_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint16_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint16_t*)out_ptr_1) = UNM_OP(*((uint16_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint16_t*)out_ptr_2) = UNM_OP(*((uint16_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((uint16_t*)out_ptr_3) = UNM_OP(*((uint16_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                    *((uint16_t*)out_ptr_4) = UNM_OP(*((uint16_t*)in_ptr_1_4));
+                    in_ptr_1_4 += in_stride_1;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    int32_t *conv = (int32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (int32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(int32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(int32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_I32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_I32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_I32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = UNM_OP(*((int32_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = UNM_OP(*((int32_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = UNM_OP(*((int32_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = UNM_OP(*((int32_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = UNM_OP(*((int32_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = UNM_OP(*((int32_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(int32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(int32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(int32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(int32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(int32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((int32_t*)out_ptr_1) = UNM_OP(*((int32_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((int32_t*)out_ptr_2) = UNM_OP(*((int32_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((int32_t*)out_ptr_3) = UNM_OP(*((int32_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                    *((int32_t*)out_ptr_4) = UNM_OP(*((int32_t*)in_ptr_1_4));
+                    in_ptr_1_4 += in_stride_1;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    uint32_t *conv = (uint32_t*)f64s;
+            for (int i = 0; i < arg_components[0]; i++) {
+                conv[i] = (uint32_t)f64s[i];
+            }
+                        arg_data[0] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(uint32_t);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(uint32_t));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_U32, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_U32) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_U32].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = UNM_OP(*((uint32_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = UNM_OP(*((uint32_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = UNM_OP(*((uint32_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = UNM_OP(*((uint32_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = UNM_OP(*((uint32_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = UNM_OP(*((uint32_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(uint32_t);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(uint32_t);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(uint32_t);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(uint32_t);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(uint32_t);
+                for (int i = 0; i < count; ++i) {
+                    *((uint32_t*)out_ptr_1) = UNM_OP(*((uint32_t*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((uint32_t*)out_ptr_2) = UNM_OP(*((uint32_t*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((uint32_t*)out_ptr_3) = UNM_OP(*((uint32_t*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                    *((uint32_t*)out_ptr_4) = UNM_OP(*((uint32_t*)in_ptr_1_4));
+                    in_ptr_1_4 += in_stride_1;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    return luaL_error(L, "invalid argument types for function mathv.unm.\nsupported signatures are:\n  mathv.unm(x:f32)\n  mathv.unm(x:i8)\n  mathv.unm(x:u8)\n  mathv.unm(x:i16)\n  mathv.unm(x:u16)\n  mathv.unm(x:i32)\n  mathv.unm(x:u32)\n");
 }
 
 int am_mathv_unm(lua_State *L) {
