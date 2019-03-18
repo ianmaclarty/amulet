@@ -100,8 +100,3 @@ do
     view1:vec2(mathv.range(3, -1, -3), mathv.range(3, 1, 3))
     print_view(view1)
 end
-
-print("integers")
-do
-    local view1 = 
-end
