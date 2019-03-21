@@ -89,6 +89,7 @@ end
 --      gravity
 --      sprite_source
 --      warmup_time
+--      damping
 function am.particles2d(opts)
     local max_particles = opts.max_particles or 100
     local start_particles = opts.start_particles or 0
@@ -135,6 +136,7 @@ function am.particles2d(opts)
     local gravity_y = opts.gravity and opts.gravity.y or 0
     local gravity_x_2 = gravity_x / 2
     local gravity_y_2 = gravity_y / 2
+    local damping = opts.damping or 0
     local sprite
     if opts.sprite_source then
         sprite = am._convert_sprite_source(opts.sprite_source)
@@ -300,13 +302,14 @@ function am.particles2d(opts)
     function update(dt)
         -- update existing particles
         local i = 1
+        local damp_factor = (1 - damping * dt)
         while i <= n do
             time_to_live[i] = time_to_live[i] - dt
             if time_to_live[i] >= 0 then
                 x[i] = x[i] + dt * (speed_x[i] + dt * gravity_x_2)
                 y[i] = y[i] + dt * (speed_y[i] + dt * gravity_y_2)
-                speed_x[i] = speed_x[i] + gravity_x * dt
-                speed_y[i] = speed_y[i] + gravity_y * dt
+                speed_x[i] = (speed_x[i] + gravity_x * dt) * damp_factor
+                speed_y[i] = (speed_y[i] + gravity_y * dt) * damp_factor
                 z[i] = z[i] + dz[i] * dt
                 r[i] = r[i] + dr[i] * dt
                 g[i] = g[i] + dg[i] * dt
@@ -500,6 +503,12 @@ function am.particles2d(opts)
         gravity_y = v.y
         gravity_x_2 = gravity_x / 2
         gravity_y_2 = gravity_y / 2
+    end
+    function node:get_damping()
+        return damping
+    end
+    function node:set_damping(v)
+        damping = v
     end
     function node:get_sprite()
         return sprite

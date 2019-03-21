@@ -519,6 +519,7 @@ Renders a simple 2D particle system.
 - `start_particles`: The initial number of particles
 - `max_particles`: The maximum number of particles
 - `gravity`: Gravity to apply to the particles (`vec2`)
+- `damping`: Slows down particles if greater than zero
 - `sprite_source`: The particle sprite source (see [am.sprite](#am.sprite)). If this is omitted the particles will be colored squares.
 - `warmup_time`: Simulate running the particle system for this number of seconds before showing it for the first time.
 
