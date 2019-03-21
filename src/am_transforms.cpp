@@ -368,7 +368,7 @@ void am_transform_node::render(am_render_state *rstate) {
     if (param->type == AM_PROGRAM_PARAM_CLIENT_TYPE_MAT4) {
         glm::dmat4 *m = (glm::dmat4*)&param->value.m4[0];
         glm::dmat4 old = *m;
-        *m = mat * (*m);
+        *m = (*m) * mat;
         render_children(rstate);
         *m = old;
     } else {
