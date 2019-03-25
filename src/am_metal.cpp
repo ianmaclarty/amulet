@@ -15,6 +15,10 @@
 #define AM_METAL_EXTRA_VERT_UNIFORMS_SIZE 16
 #define AM_METAL_EXTRA_FRAG_UNIFORMS_SIZE 16
 
+// if less than this many bytes then we won't bother creating
+// a gpu buffer and will just send the data each time we draw
+#define AM_METAL_LOCAL_BUFFER_THRESHOLD 512
+
 static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str);
 
 template<typename T>
@@ -317,6 +321,7 @@ static int metal_active_pipeline = -1;
 
 struct metal_buffer {
     int size;
+    uint8_t *local_data;
     id<MTLBuffer> mtlbuf;
 };
 
@@ -1055,6 +1060,7 @@ am_buffer_id am_create_buffer_object() {
     check_initialized(0);
     metal_buffer buf;
     buf.size = 0;
+    buf.local_data = NULL;
     buf.mtlbuf = nil;
     return metal_buffer_freelist.add(buf);
 }
@@ -1084,16 +1090,30 @@ void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer
     metal_buffer *buf = get_active_buffer(target);
     if (buf == NULL) return;
     if (buf->size != size) {
+        if (buf->local_data != NULL) {
+            free(buf->local_data);
+            buf->local_data = NULL;
+        }
         if (buf->mtlbuf != nil) {
             [buf->mtlbuf release];
             buf->mtlbuf = nil;
         }
-        buf->mtlbuf = [metal_device newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
+        if (target == AM_ARRAY_BUFFER && size <= AM_METAL_LOCAL_BUFFER_THRESHOLD) {
+            buf->local_data = (uint8_t*)malloc(size);
+            memcpy(buf->local_data, data, size);
+        } else {
+            buf->mtlbuf = [metal_device newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
+        }
+        buf->size = size;
     } else {
-        memcpy([buf->mtlbuf contents], data, size);
+        if (target == AM_ARRAY_BUFFER && size <= AM_METAL_LOCAL_BUFFER_THRESHOLD) {
+            memcpy(buf->local_data, data, size);
+        } else {
+            memcpy([buf->mtlbuf contents], data, size);
 #if defined(AM_OSX)
-        [buf->mtlbuf didModifyRange: NSMakeRange(0, size)];
+            [buf->mtlbuf didModifyRange: NSMakeRange(0, size)];
 #endif
+        }
     }
 }
 
@@ -1101,18 +1121,28 @@ void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void 
     check_initialized();
     metal_buffer *buf = get_active_buffer(target);
     if (buf == NULL) return;
-    if (buf->mtlbuf == nil) return;
-    uint8_t *contents = (uint8_t*)[buf->mtlbuf contents];
-    memcpy(&contents[offset], data, size);
+    if (buf->local_data != NULL) {
+        memcpy(&buf->local_data[offset], data, size);
+    } else if (buf->mtlbuf != nil) {
+        uint8_t *contents = (uint8_t*)[buf->mtlbuf contents];
+        memcpy(&contents[offset], data, size);
 #if defined(AM_OSX)
-    [buf->mtlbuf didModifyRange: NSMakeRange(offset, size)];
+        [buf->mtlbuf didModifyRange: NSMakeRange(offset, size)];
 #endif
+    }
 }
 
 void am_delete_buffer(am_buffer_id id) {
     check_initialized();
     metal_buffer *buf = metal_buffer_freelist.get(id);
-    if (buf->mtlbuf != nil) [buf->mtlbuf release];
+    if (buf->local_data != NULL) {
+        free(buf->local_data);
+        buf->local_data = NULL;
+    }
+    if (buf->mtlbuf != nil) {
+        [buf->mtlbuf release];
+        buf->mtlbuf = nil;
+    }
     metal_buffer_freelist.remove(id);
     if (metal_active_array_buffer == id) metal_active_array_buffer = 0;
     if (metal_active_element_buffer == id) metal_active_element_buffer = 0;
@@ -2451,7 +2481,11 @@ static bool pre_draw_setup() {
         attr_state *attr = &prog->attrs[i];
         if (attr->bufid == 0) continue;
         metal_buffer *buf = metal_buffer_freelist.get(attr->bufid);
-        [metal_encoder setVertexBuffer:buf->mtlbuf offset:attr->offset atIndex:i + 1];
+        if (buf->local_data != NULL) {
+            [metal_encoder setVertexBytes:&buf->local_data[attr->offset] length:buf->size atIndex:i + 1];
+        } else {
+            [metal_encoder setVertexBuffer:buf->mtlbuf offset:attr->offset atIndex:i + 1];
+        }
     }
     return true;
 }
@@ -2487,6 +2521,7 @@ void am_draw_elements(am_draw_mode mode, int count, am_element_index_type type, 
     check_initialized();
     if (metal_active_element_buffer == 0) return;
     metal_buffer *elembuf = metal_buffer_freelist.get(metal_active_element_buffer);
+    if (elembuf->mtlbuf == nil) return;
     if (!pre_draw_setup()) return;
     MTLIndexType itype = MTLIndexTypeUInt32;
     switch (type) {
