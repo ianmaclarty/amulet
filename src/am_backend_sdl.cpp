@@ -611,8 +611,8 @@ restart:
         t0 = frame_time;
 
         if (!have_focus) {
-            // throttle framerate when in background on osx
-#ifdef AM_OSX
+#if defined(AM_OSX) && !defined(AM_USE_METAL)
+            // throttle framerate when in background on osx gl (otherwise cpu goes through the roof)
             usleep(10 * 1000); // 10 milliseconds
 #endif
         }
