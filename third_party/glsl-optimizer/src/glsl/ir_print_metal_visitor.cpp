@@ -414,8 +414,10 @@ void ir_print_metal_visitor::print_var_name (ir_variable* v)
 
 static void print_type_precision(string_buffer& buffer, const glsl_type *t, glsl_precision prec, bool arraySize)
 {
-        // AMULET: hack to avoid link errors when vertex outputs have different precisions to fragment inputs.
-	const bool halfPrec = false; //(prec == glsl_precision_medium || prec == glsl_precision_low);
+        // AMULET: for some shaders we seem to need the following to avoid link errors, but not
+        // sure why, since it seems not needed most of the time??
+        // const bool halfPrec = false;
+	const bool halfPrec = (prec == glsl_precision_medium || prec == glsl_precision_low);
 
 	const char* typeName = t->name;
 	// scalars

@@ -13,7 +13,7 @@ am.window{}.scene = am.text("Hello World!")
 It currently runs on the following platforms:
 
 - Windows 7+
-- Mac OS X 10.9+
+- Mac OS X
 - Linux
 - iOS
 - HTML5
@@ -103,6 +103,7 @@ Amulet uses or borrows code and ideas from the following projects:
 - [SimpleGlob](https://github.com/brofield/simpleopt)
 - [TinyMT](https://github.com/MersenneTwister-Lab/TinyMT)
 - [sfxr](http://www.drpetter.se/project_sfxr.html)
+- [glsl-optimizer](https://github.com/aras-p/glsl-optimizer)
 
 The HTML editor uses code and ideas from:
 

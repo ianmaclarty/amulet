@@ -9,6 +9,7 @@ static int vec2_mul(lua_State *L);
 static int vec2_div(lua_State *L);
 static int vec2_unm(lua_State *L);
 static int vec2_len(lua_State *L);
+static int vec2_eq(lua_State *L);
 
 static int vec3_new(lua_State *L);
 static int vec3_index(lua_State *L);
@@ -19,6 +20,7 @@ static int vec3_mul(lua_State *L);
 static int vec3_div(lua_State *L);
 static int vec3_unm(lua_State *L);
 static int vec3_len(lua_State *L);
+static int vec3_eq(lua_State *L);
 
 static int vec4_new(lua_State *L);
 static int vec4_index(lua_State *L);
@@ -29,6 +31,7 @@ static int vec4_mul(lua_State *L);
 static int vec4_div(lua_State *L);
 static int vec4_unm(lua_State *L);
 static int vec4_len(lua_State *L);
+static int vec4_eq(lua_State *L);
 
 static int mat2_new(lua_State *L);
 static int mat2_index(lua_State *L);
@@ -39,6 +42,7 @@ static int mat2_div(lua_State *L);
 static int mat2_unm(lua_State *L);
 static int mat2_set(lua_State *L);
 static int mat2_len(lua_State *L);
+static int mat2_eq(lua_State *L);
 
 static int mat3_new(lua_State *L);
 static int mat3_index(lua_State *L);
@@ -49,6 +53,7 @@ static int mat3_div(lua_State *L);
 static int mat3_unm(lua_State *L);
 static int mat3_set(lua_State *L);
 static int mat3_len(lua_State *L);
+static int mat3_eq(lua_State *L);
 
 static int mat4_new(lua_State *L);
 static int mat4_index(lua_State *L);
@@ -59,6 +64,7 @@ static int mat4_div(lua_State *L);
 static int mat4_unm(lua_State *L);
 static int mat4_set(lua_State *L);
 static int mat4_len(lua_State *L);
+static int mat4_eq(lua_State *L);
 
 static int vec_length(lua_State *L);
 static int vec_distance(lua_State *L);
@@ -72,6 +78,7 @@ static int vec_refract(lua_State *L);
 static int quat_new(lua_State *L);
 static int quat_index(lua_State *L);
 static int quat_mul(lua_State *L);
+static int quat_eq(lua_State *L);
 
 static int perspective(lua_State *L);
 
@@ -592,6 +599,13 @@ static int vec##D##_call(lua_State *L) {                                        
     return 1;                                                                           \
 }
 
+#define VEC_EQ_FUNC(D)                                                                  \
+static int vec##D##_eq(lua_State *L) {                                                  \
+    am_vec##D *a = am_get_userdata(L, am_vec##D, 1);                                    \
+    am_vec##D *b = am_get_userdata(L, am_vec##D, 2);                                    \
+    return a->v == b->v;                                                                \
+}
+
 //-------------------------- mat* helper macros ------------------//
 
 #define MAT_SET_FUNC(D)                                                                 \
@@ -682,6 +696,13 @@ static int mat##D##_unm(lua_State *L) {                                         
 static int mat##D##_len(lua_State *L) {                                                 \
     lua_pushinteger(L, D);                                                              \
     return 1;                                                                           \
+}
+
+#define MAT_EQ_FUNC(D)                                                                  \
+static int mat##D##_eq(lua_State *L) {                                                  \
+    am_mat##D *a = am_get_userdata(L, am_mat##D, 1);                                    \
+    am_mat##D *b = am_get_userdata(L, am_mat##D, 2);                                    \
+    return a->m == b->m;                                                                \
 }
 
 #define MAT_NEW_FUNC(D)                                                                 \
@@ -808,6 +829,7 @@ VEC2_MUL_FUNC
 VEC_DIV_FUNC(2)
 VEC_UNM_FUNC(2)
 VEC_LEN_FUNC(2)
+VEC_EQ_FUNC(2)
 
 //-------------------------- vec3 --------------------------------//
 
@@ -820,6 +842,7 @@ VEC_MUL_FUNC_Q(3)
 VEC_DIV_FUNC(3)
 VEC_UNM_FUNC(3)
 VEC_LEN_FUNC(3)
+VEC_EQ_FUNC(3)
 
 //-------------------------- vec4 --------------------------------//
 
@@ -832,6 +855,7 @@ VEC_MUL_FUNC_Q(4)
 VEC_DIV_FUNC(4)
 VEC_UNM_FUNC(4)
 VEC_LEN_FUNC(4)
+VEC_EQ_FUNC(4)
 
 //-------------------------- mat2 --------------------------------//
 
@@ -843,6 +867,7 @@ MAT_OP_FUNC(2, div, /)
 MAT_MUL_FUNC(2)
 MAT_UNM_FUNC(2)
 MAT_LEN_FUNC(2)
+MAT_EQ_FUNC(2)
 
 //-------------------------- mat3 --------------------------------//
 
@@ -854,6 +879,7 @@ MAT_OP_FUNC(3, div, /)
 MAT_MUL_FUNC(3)
 MAT_UNM_FUNC(3)
 MAT_LEN_FUNC(3)
+MAT_EQ_FUNC(3)
 
 //-------------------------- mat4 --------------------------------//
 
@@ -865,6 +891,7 @@ MAT_OP_FUNC(4, div, /)
 MAT_MUL_FUNC(4)
 MAT_UNM_FUNC(4)
 MAT_LEN_FUNC(4)
+MAT_EQ_FUNC(4)
 
 //-------------------------- quat --------------------------------//
 
@@ -1019,6 +1046,12 @@ static int quat_index(lua_State *L) {
     }
     lua_pushnil(L);
     return 1;
+}
+
+static int quat_eq(lua_State *L) {
+    am_quat *a = (am_quat*)lua_touserdata(L, 1);
+    am_quat *b = (am_quat*)lua_touserdata(L, 2);
+    return a->q == b->q;
 }
 
 //----------------------- vec functions -------------------------//
@@ -1970,6 +2003,8 @@ static int fract(lua_State *L) {
     lua_setfield(L, -2, "__unm");                       \
     lua_pushcclosure(L, T##_len, 0);                    \
     lua_setfield(L, -2, "__len");                       \
+    lua_pushcclosure(L, T##_eq, 0);                     \
+    lua_setfield(L, -2, "__eq");                        \
     am_register_metatable(L, #T, MTID, 0);
 
 #define REGISTER_MAT_MT(T, MTID)                        \
@@ -1990,6 +2025,8 @@ static int fract(lua_State *L) {
     lua_setfield(L, -2, "__unm");                       \
     lua_pushcclosure(L, T##_len, 0);                    \
     lua_setfield(L, -2, "__len");                       \
+    lua_pushcclosure(L, T##_eq, 0);                     \
+    lua_setfield(L, -2, "__eq");                        \
     lua_pushcclosure(L, T##_set, 0);                    \
     lua_setfield(L, -2, "set");                         \
     am_register_metatable(L, #T, MTID, 0);
@@ -2002,6 +2039,8 @@ static void register_quat_mt(lua_State *L) {
     lua_setfield(L, -2, "__newindex");
     lua_pushcclosure(L, quat_mul, 0);
     lua_setfield(L, -2, "__mul");
+    lua_pushcclosure(L, quat_eq, 0);
+    lua_setfield(L, -2, "__eq");
     am_register_metatable(L, "quat", MT_am_quat, 0);
 }
 

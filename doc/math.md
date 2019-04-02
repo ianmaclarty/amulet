@@ -163,6 +163,18 @@ produces the following output:
 vec2(4, 5)
 vec3(10, 3, 6)
 vec4(2, 4, 6, 8)
+~~~ 
+
+Vectors can be compared by value with `==` like this:
+
+~~~ {.lua}
+if vec2(x,y) == vec2(0,0) then ...
+~~~
+
+Also, you can concatenate vectors with strings for easy formatting:
+
+~~~ {.lua}
+local label = "position: "..vec2(x,y)
 ~~~
 
 -------------------
@@ -359,6 +371,12 @@ The `/` operator also works when both arguments are matrices and is
 equivalent to multiplying the first matrix by the inverse of the
 second.
 
+Matricies can be compared by value with `==` like this:
+
+~~~ {.lua}
+if m1*m2 == mat4(1) then ...
+~~~
+
 ![](images/screenshot2.jpg)
 
 Quaternions {#quaternions}
@@ -442,6 +460,14 @@ Quaternions use a normalized internal representation, so the value
 returned by a field might be different from the value used to
 construct the quaternion. Though the quaternion as a whole represents
 the equivalent rotation.
+
+You may notice this when comparing quaternions with `==`. For example:
+
+~~~ {.lua}
+quat(vec3(1,0,0), vec3(0,1,0)) == quat(vec3(-1,0,0), vec3(0,-1,0))
+~~~
+
+evaluates to `true`.
 
 ### Quaternion operations
 

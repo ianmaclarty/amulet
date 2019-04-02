@@ -24,6 +24,22 @@
 <1.00, 2.00, 3.00, 3.00>
 <15.00, 10.00, 5.00>
 <1.00, 2.00>
+true
+false
+true
+false
+true
+false
+false
+vec2(1, 2)
+vec3(1, 2, 3)
+vec4(1, 2, 3, 4)
+concat+vec2(1, 2)
+concat+vec3(1, 2, 3)
+concat+vec4(1, 2, 3, 4)
+vec2(1, 2)+concat
+vec3(1, 2, 3)+concat
+vec4(1, 2, 3, 4)+concat
 mat4(2, 0, 0, 0,
      0, 2, 0, 0,
      0, 0, 2, 0,
@@ -61,6 +77,13 @@ mat3( 1,  2,  1,
 <-1.00, -2.00>
 mat2(-1, -2,
      -3, -4)
+true
+false
+true
+false
+true
+false
+false
 0
 1
 -1
@@ -80,3 +103,7 @@ quat(90.00, <0.00, 0.00, 1.00>)
 quat(90.00, <0.00, 0.00, 1.00>)
 <0.00, 1.00>
 <0.00, -1.00>
+true
+false
+false
+false
