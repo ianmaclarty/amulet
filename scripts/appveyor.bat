@@ -22,6 +22,7 @@ unzip builds-darwin.zip
 unzip builds-win32.zip
 unzip builds-linux.zip
 mkdir scripts\installer-payload
+cp -r templates scripts/installer-payload/
 cp -r builds scripts/installer-payload/
 cp -r builds/msvc32/luajit/release/bin/* scripts/installer-payload/
 mv scripts/installer-payload/amulet.exe scripts/installer-payload/amulet-window.exe

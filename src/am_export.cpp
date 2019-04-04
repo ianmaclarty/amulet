@@ -27,7 +27,7 @@ struct export_config {
     am_display_orientation orientation;
     const char *launch_image;
     const char *grade;
-    const char *basepath;
+    char *basepath;
     const char *mac_category;
     bool recurse;
 };
@@ -40,8 +40,13 @@ static bool create_mac_lproj_dirs(const char *zipname, const char *dir, export_c
 static bool create_ios_info_plist(const char *binpath, const char *filename, export_config *conf);
 static bool create_ios_pkginfo(const char *filename);
 static bool create_ios_icon_files(const char *dir, export_config *conf);
+static bool create_ios_xcode_icon_files(const char *dir, export_config *conf);
 static bool create_ios_launch_images(const char *dir, export_config *conf);
 static bool create_ios_lproj_dirs(const char *zipname, const char *dir, export_config *conf);
+static bool create_ios_xcode_lproj_dirs(const char *dir, export_config *conf);
+static char* get_ios_xcodeproj_lang_list(export_config *conf);
+static char* get_ios_launchscreen_entries(export_config *conf);
+static char* get_ios_launchscreen_children(export_config *conf);
 
 static void replace_backslashes(char *str) {
     for (unsigned int i = 0; i < strlen(str); i++) {
@@ -74,6 +79,28 @@ static void sub_win_newlines(void **ptr, size_t *len) {
     }
     *ptr = (void*)new_str;
     *len = (size_t)new_n;
+}
+
+static bool copy_text_file(const char *from_path, const char *to_path, char **substitutions) {
+    char *data = (char*)am_read_file(from_path, NULL);
+    if (data == NULL) return false;
+    if (substitutions != NULL) {
+        char *new_data = am_replace_strings(data, substitutions);
+        free(data);
+        data = new_data;
+    }
+    bool result = am_write_text_file(to_path, data);
+    free(data);
+    return result;
+}
+
+static bool copy_bin_file(const char *from_path, const char *to_path) {
+    size_t len; 
+    void *data = am_read_file(from_path, &len);
+    if (data == NULL) return false;
+    bool result = am_write_bin_file(to_path, data, len);
+    free(data);
+    return result;
 }
 
 static bool add_files_to_pak(const char *zipfile, const char *rootdir, const char *dir, const char *pat, bool compress, uint8_t platform) {
@@ -195,15 +222,23 @@ static const char *platform_luavm(const char *platform) {
     return "lua51";
 }
 
-static char *get_bin_path(export_config *conf, const char *platform) {
-    const char *builds_path = conf->basepath;
-    if (strcmp(conf->basepath, "/usr/local/bin/") == 0) {
-        builds_path = "/usr/local/share/amulet/";
-    } else if (strcmp(conf->basepath, "/usr/bin/") == 0) {
-        builds_path = "/usr/share/amulet/";
+static char *get_base_path() {
+    char *base = am_get_base_path();
+    if (strcmp(base, "/usr/local/bin/") == 0) {
+        free(base);
+        return am_format("%s", "/usr/local/share/amulet/");
+    } else if (strcmp(base, "/usr/bin/") == 0) {
+        free(base);
+        return am_format("%s", "/usr/share/amulet/");
+    } else {
+        return base;
     }
+}
+
+static char *get_bin_path(export_config *conf, const char *platform) {
+    char *base_path = conf->basepath;
     const char *luavm = platform_luavm(platform);
-    char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", builds_path, platform, luavm, conf->grade);
+    char *bin_path = am_format("%sbuilds/%s/%s/%s/bin", base_path, platform, luavm, conf->grade);
     if (!am_file_exists(bin_path)) {
         printf("WARNING: unable to find %s\n", bin_path);
         free(bin_path);
@@ -212,13 +247,24 @@ static char *get_bin_path(export_config *conf, const char *platform) {
     return bin_path;
 }
 
+static char *get_template_path(export_config *conf) {
+    char *base_path = conf->basepath;
+    char *templ_path = am_format("%stemplates/", base_path);
+    if (!am_file_exists(templ_path)) {
+        printf("WARNING: unable to find %s\n", templ_path);
+        free(templ_path);
+        return NULL;
+    }
+    return templ_path;
+}
+
 static char *get_export_zip_name(export_config *conf, const char *platname) {
     const char *ext = "zip";
-    if (strcmp(platname, "ios") == 0 || strcmp(platname, "iossim") == 0) ext = "ipa";
+    if (strcmp(platname, "ios") == 0) ext = "ipa";
     return am_format("%s-%s-%s.%s", conf->shortname, conf->version, platname, ext);
 }
 
-static bool build_windows_export(export_config *conf) {
+static bool gen_windows_export(export_config *conf) {
     char *zipname = get_export_zip_name(conf, "windows");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "msvc32");
@@ -232,13 +278,13 @@ static bool build_windows_export(export_config *conf) {
         add_files_to_dist(zipname, binpath, "*.dll", zipdir, NULL, NULL, true, true, ZIP_PLATFORM_DOS) &&
         add_files_to_dist(zipname, ".", conf->pakfile, zipdir, "data.pak", NULL, false, false, ZIP_PLATFORM_DOS) &&
         true;
-    printf("Generated %s\n", zipname);
+    if (ok) printf("Generated %s\n", zipname);
     free(zipname);
     free(binpath);
     return ok;
 }
 
-static bool build_mac_export(export_config *conf, bool print_message) {
+static bool gen_mac_export(export_config *conf, bool print_message) {
     char *zipname = get_export_zip_name(conf, "mac");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "osx");
@@ -273,7 +319,7 @@ static bool build_mac_export(export_config *conf, bool print_message) {
         create_mac_lproj_dirs(zipname, resource_dir, conf) &&
         true;
     am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
-    if (print_message) printf("Generated %s\n", zipname);
+    if (print_message && ok) printf("Generated %s\n", zipname);
     free(zipname);
     free(binpath);
     free(resource_dir);
@@ -281,7 +327,7 @@ static bool build_mac_export(export_config *conf, bool print_message) {
     return ok;
 }
 
-static bool build_mac_app_store_export(export_config *conf) {
+static bool gen_mac_app_store_export(export_config *conf) {
     if (am_conf_mac_application_cert_identity == NULL) {
         fprintf(stderr, "Error: please set mac_application_cert_identity in conf.lua\n");
         return false;
@@ -290,7 +336,7 @@ static bool build_mac_app_store_export(export_config *conf) {
         fprintf(stderr, "Error: please set mac_installer_cert_identity in conf.lua\n");
         return false;
     }
-    if (!build_mac_export(conf, false)) {
+    if (!gen_mac_export(conf, false)) {
         return false;
     }
     am_execute_shell_cmd("rm -rf %s/*", AM_TMP_DIR);
@@ -317,10 +363,291 @@ static bool build_mac_app_store_export(export_config *conf) {
     return true;
 }
 
-static bool build_ios_export(export_config *conf, bool sim) {
-    char *zipname = get_export_zip_name(conf, sim ? "iossim" : "ios");
+static bool copy_ios_xcodeproj_file(export_config *conf, char *dir) {
+    char *template_dir = get_template_path(conf);
+    if (template_dir == NULL) return false;
+    char *src_path = am_format("%sios/project.pbxproj", template_dir);
+    char *dest_path = am_format("%s/project.pbxproj", dir);
+    char *lang_list = get_ios_xcodeproj_lang_list(conf);
+    char *launchscreen_entries = get_ios_launchscreen_entries(conf);
+    char *launchscreen_children = get_ios_launchscreen_children(conf);
+    const char *luavm = platform_luavm("ios");
+    const char *subs[] = {
+        "AM_APPNAME", conf->shortname,
+        "AM_APPID", am_conf_app_id_ios,
+        "AM_AUTHOR", am_conf_app_author,
+        "AM_CERT_ID", am_conf_ios_cert_identity,
+        "AM_DEV_PROV_PROFILE_NAME", am_conf_ios_dev_prov_profile_name,
+        "AM_DIST_PROV_PROFILE_NAME", am_conf_ios_dist_prov_profile_name,
+        "AM_LANG_LIST", lang_list,
+        "AM_DEV_REGION", conf->dev_region,
+        "AM_LAUNCHSCREEN_STORYBOARD_STRINGS_ENTRIES", launchscreen_entries,
+        "AM_LAUNCHSCREEN_STORYBOARD_CHILDREN", launchscreen_children,
+        "AM_LUAVM", luavm,
+        NULL
+    };
+    bool ok = copy_text_file(src_path, dest_path, (char**)subs);
+    free(template_dir);
+    free(src_path);
+    free(dest_path);
+    free(lang_list);
+    free(launchscreen_entries);
+    free(launchscreen_children);
+    return ok;
+}
+
+const char *get_ios_orientation_xml(export_config *conf) {
+    switch (conf->orientation) {
+        case AM_DISPLAY_ORIENTATION_ANY:
+            return
+                "<key>UISupportedInterfaceOrientations</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>"
+                "<key>UISupportedInterfaceOrientations~ipad</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>";
+        case AM_DISPLAY_ORIENTATION_PORTRAIT:
+            return
+                "<key>UISupportedInterfaceOrientations</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+                "</array>"
+                "<key>UISupportedInterfaceOrientations~ipad</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
+                "</array>";
+        case AM_DISPLAY_ORIENTATION_LANDSCAPE:
+            return
+                "<key>UISupportedInterfaceOrientations</key>"
+                "<array>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>"
+                "<key>UISupportedInterfaceOrientations~ipad</key>"
+                "<array>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>";
+        case AM_DISPLAY_ORIENTATION_HYBRID:
+            return
+                "<key>UISupportedInterfaceOrientations</key>"
+                "<array>"
+                "<string>UIInterfaceOrientationPortrait</string>"
+                "</array>"
+                "<key>UISupportedInterfaceOrientations~ipad</key>"
+                "<array>"
+		"<string>UIInterfaceOrientationLandscapeLeft</string>"
+		"<string>UIInterfaceOrientationLandscapeRight</string>"
+                "</array>";
+    }
+    return "";
+}
+
+static bool copy_ios_xcode_info_plist(export_config *conf, char *dir) {
+    char *template_dir = get_template_path(conf);
+    if (template_dir == NULL) return false;
+    char *src_path = am_format("%sios/Info.plist", template_dir);
+    char *dest_path = am_format("%s/Info.plist", dir);
+    const char *orientation_xml = get_ios_orientation_xml(conf);
+    const char *subs[] = {
+        "AM_APPDISPLAYNAME", conf->display_name,
+        "AM_APPVERSION", conf->version,
+        "AM_APPORIENTATIONS", orientation_xml,
+        NULL,
+    };
+    bool ok = copy_text_file(src_path, dest_path, (char**)subs);
+    free(template_dir);
+    free(src_path);
+    free(dest_path);
+    return ok;
+}
+
+static char *get_default_ios_launch_image_filename(export_config *conf) {
+    char *templates_dir = get_template_path(conf);
+    if (templates_dir == NULL) return NULL;
+    char *filename = am_format("%sios/default_launch_image.png", templates_dir);
+    free(templates_dir);
+    return filename;
+}
+
+static char *get_ios_launch_image_filename(export_config *conf) {
+    if (conf->launch_image == NULL) {
+        return get_default_ios_launch_image_filename(conf);
+    } else {
+        if (am_file_exists(conf->launch_image)) {
+            return am_format("%s", conf->launch_image);
+        } else {
+            fprintf(stderr, "Error: launch image %s not found\n", conf->launch_image);
+            return NULL;
+        }
+    }
+}
+
+static bool read_image_first_pixel(char *filename, uint8_t *red, uint8_t *green, uint8_t *blue) {
+    *red = 0;
+    *green = 0;
+    *blue = 0;
+    size_t len;
+    void *data = am_read_file(filename, &len);
+    if (data == NULL) return false;
+    int components = 4;
+    stbi_set_flip_vertically_on_load(0);
+    int width, height;
+    uint8_t *img_data = (uint8_t*)stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+    free(data);
+    if (img_data == NULL) return false;
+    *red = img_data[0];
+    *green = img_data[1];
+    *blue = img_data[2];
+    free(img_data);
+    return true;
+}
+
+static bool copy_ios_launchscreen_storyboard(char *projbase_dir, export_config *conf) {
+    char *launch_img_filename = get_ios_launch_image_filename(conf);
+    if (launch_img_filename == NULL) return false;
+    uint8_t red, green, blue;
+    if (!read_image_first_pixel(launch_img_filename, &red, &green, &blue)) {
+        free(launch_img_filename);
+        return false;
+    }
+    char *red_str = am_format("%f", ((float)red) / 255.0f);
+    char *green_str = am_format("%f", ((float)green) / 255.0f);
+    char *blue_str = am_format("%f", ((float)blue) / 255.0f);
+
+    const char *subs[] = {
+        "AM_LAUNCH_BG_RED", (const char*)red_str,
+        "AM_LAUNCH_BG_GREEN", (const char*)green_str,
+        "AM_LAUNCH_BG_BLUE", (const char*)blue_str,
+        NULL
+    };
+
+    char *launch_img_dest_path = am_format("%s/splash.png", projbase_dir);
+
+    char *templates_dir = get_template_path(conf);
+    char *storyboard_src_path = am_format("%sios/LaunchScreen.storyboard", templates_dir);
+    char *base_lproj_dir = am_format("%s/Base.lproj", projbase_dir);
+    char *storyboard_dest_path = am_format("%s/LaunchScreen.storyboard", base_lproj_dir);
+    bool ok = 
+        am_execute_shell_cmd("mkdir -p %s", base_lproj_dir) &&
+        copy_text_file(storyboard_src_path, storyboard_dest_path, (char**)subs) &&
+        copy_bin_file(launch_img_filename, launch_img_dest_path);
+
+    free(red_str);
+    free(green_str);
+    free(blue_str);
+    free(launch_img_filename);
+    free(launch_img_dest_path);
+    free(templates_dir);
+    free(storyboard_src_path);
+    free(storyboard_dest_path);
+    return ok;
+}
+
+static bool copy_ios_xcode_bin_file(char *dir, export_config *conf, const char *file) {
+    char *binpath = get_bin_path(conf, "ios");
+    if (binpath == NULL) return false;
+    char *srcpath = am_format("%s/%s", binpath, file);
+    char *destpath = am_format("%s/%s", dir, file);
+    bool ok = copy_bin_file(srcpath, destpath);
+    free(binpath);
+    free(srcpath);
+    free(destpath);
+    return ok;
+}
+
+static bool copy_ios_xcode_template_file(char *dir, export_config *conf, const char *file) {
+    char *template_dir = get_template_path(conf);
+    if (template_dir == NULL) return false;
+    char *srcpath = am_format("%sios/%s", template_dir, file);
+    char *destpath = am_format("%s/%s", dir, file);
+    bool ok = copy_text_file(srcpath, destpath, NULL);
+    free(template_dir);
+    free(srcpath);
+    free(destpath);
+    return ok;
+}
+
+static bool copy_ios_xcode_pak_file(char *dir, export_config *conf) {
+    const char *srcpath = conf->pakfile;
+    char *destpath = am_format("%s/data.pak", dir);
+    bool ok = copy_bin_file((char*)srcpath, destpath);
+    free(destpath);
+    return ok;
+}
+
+static bool gen_ios_xcode_proj(export_config *conf) {
+    if (am_conf_app_icon_ios == NULL) {
+        fprintf(stderr, "Error: please set icon_ios or icon in conf.lua\n");
+        return false;
+    }
+    if (am_conf_ios_cert_identity == NULL) {
+        fprintf(stderr, "Error: please set ios_cert_identity in conf.lua\n");
+        return false;
+    }
+    if (am_conf_ios_dev_prov_profile_name == NULL) {
+        fprintf(stderr, "Error: please set ios_dev_prov_profile_name in conf.lua\n");
+        return false;
+    }
+    if (am_conf_ios_dist_prov_profile_name == NULL) {
+        fprintf(stderr, "Error: please set ios_dist_prov_profile_name in conf.lua\n");
+        return false;
+    }
+    if (am_conf_mac_installer_cert_identity == NULL) {
+        fprintf(stderr, "Error: please set mac_installer_cert_identity in conf.lua\n");
+        return false;
+    }
+    char *templates_dir = get_template_path(conf);
+    char *projbase_dir = am_format("%s_ios_xcode", conf->shortname);
+    char *xcodeproj_dir = am_format("%s/%s.xcodeproj", projbase_dir, conf->shortname);
+    char *appicon_assets_dir = am_format("%s/Assets.xcassets/AppIcon.appiconset", projbase_dir);
+    char *appicon_contents_src_path = am_format("%sios/AppIconContents.json", templates_dir);
+    char *appicon_contents_dest_path = am_format("%s/Contents.json", appicon_assets_dir);
+    const char *lua_a_file = am_format("%s.a", platform_luavm("ios"));
+    bool ok =
+        am_execute_shell_cmd("mkdir -p %s", projbase_dir) &&
+        am_execute_shell_cmd("mkdir -p %s", xcodeproj_dir) &&
+        am_execute_shell_cmd("mkdir -p %s", appicon_assets_dir) &&
+        copy_ios_xcodeproj_file(conf, xcodeproj_dir) &&
+        copy_ios_xcode_info_plist(conf, projbase_dir) &&
+        create_ios_xcode_lproj_dirs(projbase_dir, conf) &&
+        create_ios_xcode_icon_files(appicon_assets_dir, conf) &&
+        copy_text_file(appicon_contents_src_path, appicon_contents_dest_path, NULL) &&
+        copy_ios_launchscreen_storyboard(projbase_dir, conf) &&
+        copy_ios_xcode_bin_file(projbase_dir, conf, "amulet.a") &&
+        copy_ios_xcode_bin_file(projbase_dir, conf, "glslopt.a") &&
+        copy_ios_xcode_bin_file(projbase_dir, conf, "kissfft.a") &&
+        copy_ios_xcode_bin_file(projbase_dir, conf, lua_a_file) &&
+        copy_ios_xcode_bin_file(projbase_dir, conf, "stb.a") &&
+        copy_ios_xcode_bin_file(projbase_dir, conf, "tinymt.a") &&
+        copy_ios_xcode_template_file(projbase_dir, conf, "Dummy.m") &&
+        copy_ios_xcode_pak_file(projbase_dir, conf) &&
+        true;
+    if (ok) printf("Generated %s\n", projbase_dir);
+    free((char*)lua_a_file);
+    free(templates_dir);
+    free(projbase_dir);
+    free(xcodeproj_dir);
+    free(appicon_assets_dir);
+    free(appicon_contents_src_path);
+    free(appicon_contents_dest_path);
+    return ok;
+}
+
+static bool gen_ios_export(export_config *conf) {
+    char *zipname = get_export_zip_name(conf, "ios");
     if (am_file_exists(zipname)) am_delete_file(zipname);
-    char *binpath = get_bin_path(conf, sim ? "iossim" : "ios");
+    char *binpath = get_bin_path(conf, "ios");
     if (binpath == NULL) return true;
     if (!create_ios_info_plist(binpath, AM_TMP_DIR AM_PATH_SEP_STR "Info.plist", conf)) return false;
     if (!create_ios_pkginfo(AM_TMP_DIR AM_PATH_SEP_STR "PkgInfo")) return false;
@@ -363,13 +690,13 @@ static bool build_ios_export(export_config *conf, bool sim) {
     free(appdir);
     am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "Info.plist");
     am_delete_file(AM_TMP_DIR AM_PATH_SEP_STR "PkgInfo");
-    printf("Generated %s\n", zipname);
+    if (ok) printf("Generated %s\n", zipname);
     free(zipname);
     free(binpath);
     return ok;
 }
 
-static bool build_linux_export(export_config *conf) {
+static bool gen_linux_export(export_config *conf) {
     char *zipname = get_export_zip_name(conf, "linux");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath64 = get_bin_path(conf, "linux64");
@@ -400,7 +727,7 @@ static bool build_linux_export(export_config *conf) {
             && add_files_to_dist(zipname, binpath64, "amulet.sh", zipdir, name, "", true, true, ZIP_PLATFORM_UNIX)
             && add_files_to_dist(zipname, binpath64, "*.so", lib64_dir, NULL, NULL, true, true, ZIP_PLATFORM_UNIX);
     }
-    printf("Generated %s\n", zipname);
+    if (ok) printf("Generated %s\n", zipname);
     free(zipname);
     if (binpath32 != NULL) free(binpath32);
     if (binpath64 != NULL) free(binpath64);
@@ -409,7 +736,7 @@ static bool build_linux_export(export_config *conf) {
     return ok;
 }
 
-static bool build_html_export(export_config *conf) {
+static bool gen_html_export(export_config *conf) {
     char *zipname = get_export_zip_name(conf, "html");
     if (am_file_exists(zipname)) am_delete_file(zipname);
     char *binpath = get_bin_path(conf, "html");
@@ -423,7 +750,7 @@ static bool build_html_export(export_config *conf) {
         add_files_to_dist(zipname, binpath, "player.html", zipdir, "index.html", NULL, true, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, ".", conf->pakfile, zipdir, "data.pak", NULL, false, false, ZIP_PLATFORM_UNIX) &&
         true;
-    printf("Generated %s\n", zipname);
+    if (ok) printf("Generated %s\n", zipname);
     free(zipname);
     free(binpath);
     return ok;
@@ -444,7 +771,7 @@ bool am_build_exports(uint32_t flags) {
     am_make_dir(AM_TMP_DIR);
     if (!am_load_config()) return false;
     export_config conf;
-    conf.basepath = (const char*)am_get_base_path();
+    conf.basepath = get_base_path();
     conf.title = am_conf_app_title;
     conf.shortname = am_conf_app_shortname;
     if (am_conf_no_zip_dir) {
@@ -464,17 +791,17 @@ bool am_build_exports(uint32_t flags) {
     conf.recurse = flags & AM_EXPORT_FLAG_RECURSE;
     if (!build_data_pak(&conf)) return false;
     bool ok =
-        ((!(flags & AM_EXPORT_FLAG_WINDOWS))        || build_windows_export(&conf)) &&
-        ((!(flags & AM_EXPORT_FLAG_OSX))            || build_mac_export(&conf, true)) &&
-        ((!(flags & AM_EXPORT_FLAG_MAC_APP_STORE))  || build_mac_app_store_export(&conf)) &&
-        ((!(flags & AM_EXPORT_FLAG_IOS))            || build_ios_export(&conf, false)) &&
-        ((!(flags & AM_EXPORT_FLAG_IOSSIM))         || build_ios_export(&conf, true)) &&
-        ((!(flags & AM_EXPORT_FLAG_LINUX))          || build_linux_export(&conf)) &&
-        ((!(flags & AM_EXPORT_FLAG_HTML))           || build_html_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_WINDOWS))        || gen_windows_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_OSX))            || gen_mac_export(&conf, true)) &&
+        ((!(flags & AM_EXPORT_FLAG_MAC_APP_STORE))  || gen_mac_app_store_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_IOS))            || gen_ios_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_IOS_XCODE_PROJ)) || gen_ios_xcode_proj(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_LINUX))          || gen_linux_export(&conf)) &&
+        ((!(flags & AM_EXPORT_FLAG_HTML))           || gen_html_export(&conf)) &&
         true;
     am_delete_file(conf.pakfile);
     am_delete_empty_dir(AM_TMP_DIR);
-    free((void*)conf.basepath);
+    free(conf.basepath);
     return ok;
 }
 
@@ -515,64 +842,7 @@ static bool create_ios_info_plist(const char *binpath, const char *filename, exp
     char *template_fmt = (char*)am_read_file(template_filename, NULL);
     free(template_filename);
     if (template_fmt == NULL) return false;
-    const char *orientation_xml = "";
-    switch (conf->orientation) {
-        case AM_DISPLAY_ORIENTATION_ANY:
-            orientation_xml = 
-                "<key>UISupportedInterfaceOrientations</key>"
-                "<array>"
-                "<string>UIInterfaceOrientationPortrait</string>"
-                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
-		"<string>UIInterfaceOrientationLandscapeLeft</string>"
-		"<string>UIInterfaceOrientationLandscapeRight</string>"
-                "</array>"
-                "<key>UISupportedInterfaceOrientations~ipad</key>"
-                "<array>"
-                "<string>UIInterfaceOrientationPortrait</string>"
-                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
-		"<string>UIInterfaceOrientationLandscapeLeft</string>"
-		"<string>UIInterfaceOrientationLandscapeRight</string>"
-                "</array>";
-            break;
-        case AM_DISPLAY_ORIENTATION_PORTRAIT:
-            orientation_xml = 
-                "<key>UISupportedInterfaceOrientations</key>"
-                "<array>"
-                "<string>UIInterfaceOrientationPortrait</string>"
-                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
-                "</array>"
-                "<key>UISupportedInterfaceOrientations~ipad</key>"
-                "<array>"
-                "<string>UIInterfaceOrientationPortrait</string>"
-                //"<string>UIInterfaceOrientationPortraitUpsideDown</string>"
-                "</array>";
-            break;
-        case AM_DISPLAY_ORIENTATION_LANDSCAPE:
-            orientation_xml = 
-                "<key>UISupportedInterfaceOrientations</key>"
-                "<array>"
-		"<string>UIInterfaceOrientationLandscapeLeft</string>"
-		"<string>UIInterfaceOrientationLandscapeRight</string>"
-                "</array>"
-                "<key>UISupportedInterfaceOrientations~ipad</key>"
-                "<array>"
-		"<string>UIInterfaceOrientationLandscapeLeft</string>"
-		"<string>UIInterfaceOrientationLandscapeRight</string>"
-                "</array>";
-            break;
-        case AM_DISPLAY_ORIENTATION_HYBRID:
-            orientation_xml = 
-                "<key>UISupportedInterfaceOrientations</key>"
-                "<array>"
-                "<string>UIInterfaceOrientationPortrait</string>"
-                "</array>"
-                "<key>UISupportedInterfaceOrientations~ipad</key>"
-                "<array>"
-		"<string>UIInterfaceOrientationLandscapeLeft</string>"
-		"<string>UIInterfaceOrientationLandscapeRight</string>"
-                "</array>";
-            break;
-    }
+    const char *orientation_xml = get_ios_orientation_xml(conf);
 
     fprintf(f, template_fmt, 
         conf->title, // CFBundleName
@@ -655,6 +925,108 @@ static bool create_ios_lproj_dirs(const char *zipname, const char *dir, export_c
     return true;
 }
 
+static bool create_ios_xcode_lproj_dirs(const char *dir, export_config *conf) {
+    const char *ptr = conf->supported_languages;
+    char lang[100];
+    while (*ptr == ' ') ptr++;
+    while (*ptr != 0) {
+        int i = 0;
+        while (*ptr != 0 && *ptr != ',') {
+            if (i >= 100) {
+                fprintf(stderr, "conf.lua: language id too long\n");
+                return false;
+            }
+            lang[i] = *ptr;
+            i++;
+            ptr++;
+        }
+        lang[i] = 0;
+        if (!am_execute_shell_cmd("mkdir -p %s/%s.lproj", dir, lang)) return false;
+        if (!am_execute_shell_cmd("touch %s/%s.lproj/LaunchScreen.strings", dir, lang)) return false;
+        while (*ptr == ',' || *ptr == ' ') ptr++;
+    }
+    return true;
+}
+
+static char* get_ios_xcodeproj_lang_list(export_config *conf) {
+    char *res = am_format("%s", "");
+    const char *ptr = conf->supported_languages;
+    char lang[100];
+    while (*ptr == ' ') ptr++;
+    while (*ptr != 0) {
+        int i = 0;
+        while (*ptr != 0 && *ptr != ',') {
+            if (i >= 100) {
+                fprintf(stderr, "conf.lua: language id too long\n");
+                return res;
+            }
+            lang[i] = *ptr;
+            i++;
+            ptr++;
+        }
+        lang[i] = 0;
+        char *res2 = am_format("%s   \"%s\",\n", res, lang);
+        free(res);
+        res = res2;
+        while (*ptr == ',' || *ptr == ' ') ptr++;
+    }
+    return res;
+}
+
+static char* get_ios_launchscreen_entries(export_config *conf) {
+    char *res = am_format("%s", "");
+    const char *ptr = conf->supported_languages;
+    char lang[100];
+    while (*ptr == ' ') ptr++;
+    int id = 0;
+    while (*ptr != 0) {
+        int i = 0;
+        while (*ptr != 0 && *ptr != ',') {
+            if (i >= 100) {
+                fprintf(stderr, "conf.lua: language id too long\n");
+                return res;
+            }
+            lang[i] = *ptr;
+            i++;
+            ptr++;
+        }
+        lang[i] = 0;
+        char *res2 = am_format("%s   3D8B60AC2024%04X0040055A /* %s */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = \"%s\"; path = \"%s.lproj/LaunchScreen.strings\"; sourceTree = \"<group>\"; };\n", res, id, lang, lang, lang);
+        free(res);
+        res = res2;
+        id++;
+        while (*ptr == ',' || *ptr == ' ') ptr++;
+    }
+    return res;
+}
+
+static char* get_ios_launchscreen_children(export_config *conf) {
+    char *res = am_format("%s", "");
+    const char *ptr = conf->supported_languages;
+    char lang[100];
+    while (*ptr == ' ') ptr++;
+    int id = 0;
+    while (*ptr != 0) {
+        int i = 0;
+        while (*ptr != 0 && *ptr != ',') {
+            if (i >= 100) {
+                fprintf(stderr, "conf.lua: language id too long\n");
+                return res;
+            }
+            lang[i] = *ptr;
+            i++;
+            ptr++;
+        }
+        lang[i] = 0;
+        char *res2 = am_format("%s   3D8B60AC2024%04X0040055A /* %s */,\n", res, id, lang);
+        free(res);
+        res = res2;
+        id++;
+        while (*ptr == ',' || *ptr == ' ') ptr++;
+    }
+    return res;
+}
+
 static bool resize_image(void *img_data, int in_w, int in_h, const char *dir, const char *filename, int out_w, int out_h) {
     void *out_data = malloc(out_w * out_h * 4);
     double in_aspect = (double)in_w / (double)in_h;
@@ -733,6 +1105,38 @@ static bool create_ios_icon_files(const char *dir, export_config *conf) {
         || !resize_image(img_data, width, height, dir, "icon152.png", 152, 152)
         || !resize_image(img_data, width, height, dir, "icon180.png", 180, 180)
         || !resize_image(img_data, width, height, dir, "iTunesArtwork", 1024, 1024)
+        ) return false;
+    free(img_data);
+    return true;
+}
+
+static bool create_ios_xcode_icon_files(const char *dir, export_config *conf) {
+    size_t len;
+    stbi_uc *img_data;
+    int width, height;
+    char *filename = (char*)am_conf_app_icon_ios;
+    if (filename == NULL) filename = get_default_ios_launch_image_filename(conf);
+    if (filename == NULL) return false;
+    void *data = am_read_file(am_conf_app_icon_ios, &len);
+    int components = 4;
+    stbi_set_flip_vertically_on_load(0);
+    img_data =
+        stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+    free(data);
+    if (img_data == NULL) return false;
+    if (!resize_image(img_data, width, height, dir, "iTunesArtwork.png", 1024, 1024)
+        || !resize_image(img_data, width, height, dir, "icon120.png", 120, 120)
+        || !resize_image(img_data, width, height, dir, "icon152.png", 152, 152)
+        || !resize_image(img_data, width, height, dir, "icon167.png", 167, 167)
+        || !resize_image(img_data, width, height, dir, "icon180.png", 180, 180)
+        || !resize_image(img_data, width, height, dir, "icon20.png", 20, 20)
+        || !resize_image(img_data, width, height, dir, "icon29.png", 29, 29)
+        || !resize_image(img_data, width, height, dir, "icon40.png", 40, 40)
+        || !resize_image(img_data, width, height, dir, "icon58.png", 58, 58)
+        || !resize_image(img_data, width, height, dir, "icon60.png", 60, 60)
+        || !resize_image(img_data, width, height, dir, "icon76.png", 76, 76)
+        || !resize_image(img_data, width, height, dir, "icon80.png", 80, 80)
+        || !resize_image(img_data, width, height, dir, "icon87.png", 87, 87)
         ) return false;
     free(img_data);
     return true;

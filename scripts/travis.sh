@@ -19,6 +19,7 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
         cp -r builds/osx/luajit/release/bin/amulet amulet-${TAG}/
         chmod a+x amulet-${TAG}/amulet
     fi
+    mv templates amulet-${TAG}/
     mv builds amulet-${TAG}/
     zip -r amulet-${TAG}-${TRAVIS_OS_NAME}.zip amulet-${TAG}
     FILE_LIST=amulet-${TAG}-${TRAVIS_OS_NAME}.zip
@@ -26,6 +27,7 @@ if [[ "$TRAVIS_TAG" == *-distro-trigger ]]; then
         mkdir -p pkg_payload/usr/local/bin
         mkdir -p pkg_payload/usr/local/share/amulet
         mv amulet-${TAG}/builds pkg_payload/usr/local/share/amulet/
+        mv amulet-${TAG}/templates pkg_payload/usr/local/share/amulet/
         mv amulet-${TAG}/amulet pkg_payload/usr/local/bin/
         pkgbuild --identifier xyz.amulet.pkg --version $VERSION --root pkg_payload/ --install-location / amulet-${TAG}-${TRAVIS_OS_NAME}.pkg
         FILE_LIST="$FILE_LIST amulet-${TAG}-${TRAVIS_OS_NAME}.pkg"

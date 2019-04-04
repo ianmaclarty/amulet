@@ -17,10 +17,15 @@ const char *am_conf_app_icon_ios = NULL;
 const char *am_conf_app_launch_image = NULL;
 const char *am_conf_luavm = NULL;
 const char *am_conf_support_email = NULL;
+const char *am_conf_copyright_message = NULL;
+
 const char *am_conf_mac_category = NULL;
 const char *am_conf_mac_application_cert_identity = NULL;
 const char *am_conf_mac_installer_cert_identity = NULL;
-const char *am_conf_copyright_message = NULL;
+
+const char *am_conf_ios_cert_identity = NULL;
+const char *am_conf_ios_dev_prov_profile_name = NULL;
+const char *am_conf_ios_dist_prov_profile_name = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -109,10 +114,13 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_app_launch_image);
     free_if_not_null((void**)&am_conf_luavm);
     free_if_not_null((void**)&am_conf_support_email);
+    free_if_not_null((void**)&am_conf_copyright_message);
     free_if_not_null((void**)&am_conf_mac_category);
     free_if_not_null((void**)&am_conf_mac_application_cert_identity);
     free_if_not_null((void**)&am_conf_mac_installer_cert_identity);
-    free_if_not_null((void**)&am_conf_copyright_message);
+    free_if_not_null((void**)&am_conf_ios_cert_identity);
+    free_if_not_null((void**)&am_conf_ios_dev_prov_profile_name);
+    free_if_not_null((void**)&am_conf_ios_dist_prov_profile_name);
 }
 
 bool am_load_config() {
@@ -169,10 +177,15 @@ bool am_load_config() {
     read_string_setting(eng->L, "launch_image", &am_conf_app_launch_image, NULL);
     read_string_setting(eng->L, "luavm", &am_conf_luavm, NULL);
     read_string_setting(eng->L, "support_email", &am_conf_support_email, NULL);
+    read_string_setting(eng->L, "copyright_message", &am_conf_copyright_message, "");
+
     read_string_setting(eng->L, "mac_category", &am_conf_mac_category, "public.app-category.games");
     read_string_setting(eng->L, "mac_application_cert_identity", &am_conf_mac_application_cert_identity, NULL);
     read_string_setting(eng->L, "mac_installer_cert_identity", &am_conf_mac_installer_cert_identity, NULL);
-    read_string_setting(eng->L, "copyright_message", &am_conf_copyright_message, "");
+
+    read_string_setting(eng->L, "ios_cert_identity", &am_conf_ios_cert_identity, NULL);
+    read_string_setting(eng->L, "ios_dev_prov_profile_name", &am_conf_ios_dev_prov_profile_name, NULL);
+    read_string_setting(eng->L, "ios_dist_prov_profile_name", &am_conf_ios_dist_prov_profile_name, NULL);
 #ifdef AM_WINDOWS
     read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
 #endif

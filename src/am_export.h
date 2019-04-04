@@ -6,7 +6,7 @@
 #define AM_EXPORT_FLAG_LINUX            8
 #define AM_EXPORT_FLAG_HTML             16
 #define AM_EXPORT_FLAG_IOS              32
-#define AM_EXPORT_FLAG_IOSSIM           64
+#define AM_EXPORT_FLAG_IOS_XCODE_PROJ   64
 #define AM_EXPORT_FLAG_RECURSE          128
 
 bool am_build_exports(uint32_t flags);
