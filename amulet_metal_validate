@@ -1,0 +1,2 @@
+#!/bin/sh
+METAL_DEVICE_WRAPPER_TYPE=1 amulet $@

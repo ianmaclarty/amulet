@@ -15,10 +15,6 @@
 #define AM_METAL_EXTRA_VERT_UNIFORMS_SIZE 16
 #define AM_METAL_EXTRA_FRAG_UNIFORMS_SIZE 16
 
-// if less than this many bytes then we won't bother creating
-// a gpu buffer and will just send the data each time we draw
-#define AM_METAL_LOCAL_BUFFER_THRESHOLD 512
-
 static void get_src_error_line(char *errmsg, const char *src, int *line_no, char **line_str);
 
 template<typename T>
@@ -159,9 +155,10 @@ struct metal_framebuffer {
 
     id<MTLTexture> color_texture;
     id<MTLTexture> depth_texture;
+    id<MTLTexture> stencil_texture;
+    id<MTLTexture> depthstencil_texture;
 
     int stencil_clear_value;
-    id<MTLTexture> stencil_texture;
 
     int msaa_samples;
     id<MTLTexture> msaa_texture;
@@ -274,6 +271,10 @@ struct metal_pipeline {
     MTLPixelFormat color_pixel_format;
     int msaa_samples;
 
+    bool has_depthstencil;
+    bool has_depth;
+    bool has_stencil;
+
     bool depth_test_enabled;
     bool depth_mask;
     am_depth_func depth_func;
@@ -321,7 +322,6 @@ static int metal_active_pipeline = -1;
 
 struct metal_buffer {
     int size;
-    uint8_t *local_data;
     id<MTLBuffer> mtlbuf;
 };
 
@@ -334,6 +334,7 @@ struct metal_texture {
     id<MTLTexture> tex;
     MTLSamplerDescriptor *samplerdescr;
     id<MTLSamplerState> sampler;
+    bool writable;
 };
 
 static freelist<metal_texture> metal_texture_freelist;
@@ -583,7 +584,31 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc(bool clear_co
         colorattachment.loadAction = MTLLoadActionLoad;
     }
 
-    if (fb->depth_texture != nil) {
+    if (fb->depthstencil_texture != nil) {
+        renderdesc.depthAttachment.texture = fb->depthstencil_texture;
+        if (clear_depth_buf) {
+            renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
+        } else {
+            renderdesc.depthAttachment.loadAction = MTLLoadActionLoad;
+        }
+        if (metal_bound_framebuffer == 0) {
+            renderdesc.depthAttachment.storeAction = MTLStoreActionDontCare;
+        } else {
+            renderdesc.depthAttachment.storeAction = MTLStoreActionStore;
+        }
+        renderdesc.stencilAttachment.texture = fb->depthstencil_texture;
+        if (clear_stencil_buf) {
+            renderdesc.stencilAttachment.clearStencil = (uint32_t)fb->stencil_clear_value;
+            renderdesc.stencilAttachment.loadAction = MTLLoadActionClear;
+        } else {
+            renderdesc.stencilAttachment.loadAction = MTLLoadActionLoad;
+        }
+        if (metal_bound_framebuffer == 0) {
+            renderdesc.stencilAttachment.storeAction = MTLStoreActionDontCare;
+        } else {
+            renderdesc.stencilAttachment.storeAction = MTLStoreActionStore;
+        }
+    } else if (fb->depth_texture != nil) {
         renderdesc.depthAttachment.texture = fb->depth_texture;
         if (clear_depth_buf) {
             renderdesc.depthAttachment.loadAction = MTLLoadActionClear;
@@ -595,9 +620,7 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc(bool clear_co
         } else {
             renderdesc.depthAttachment.storeAction = MTLStoreActionStore;
         }
-    }
-
-    if (fb->stencil_texture != nil) {
+    } else if (fb->stencil_texture != nil) {
         renderdesc.stencilAttachment.texture = fb->stencil_texture;
         if (clear_stencil_buf) {
             renderdesc.stencilAttachment.clearStencil = (uint32_t)fb->stencil_clear_value;
@@ -616,6 +639,22 @@ static MTLRenderPassDescriptor *make_bound_framebuffer_render_desc(bool clear_co
 }
 
 #if defined(AM_OSX)
+static void create_framebuffer_depthstencil_texture(metal_framebuffer *fb) {
+    if (fb->depthstencil_texture != nil) {
+        [fb->depthstencil_texture release];
+        fb->depthstencil_texture = nil;
+    }
+    MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8
+        width:fb->width height:fb->height mipmapped:NO];
+    texdescr.usage = MTLTextureUsageRenderTarget;
+    texdescr.storageMode = MTLStorageModePrivate;
+    if (fb->msaa_samples > 1) {
+        texdescr.sampleCount = fb->msaa_samples;
+        texdescr.textureType = MTLTextureType2DMultisample;
+    }
+    fb->depthstencil_texture = [metal_device newTextureWithDescriptor:texdescr];
+}
+
 static void create_framebuffer_depth_texture(metal_framebuffer *fb) {
     if (fb->depth_texture != nil) {
         [fb->depth_texture release];
@@ -693,16 +732,16 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
 #if defined(AM_OSX)
         if (resized) {
             create_framebuffer_msaa_texture(&default_metal_framebuffer);
-            if (am_metal_window_depth_buffer) {
+            if (am_metal_window_depth_buffer && am_metal_window_stencil_buffer) {
+                create_framebuffer_depthstencil_texture(&default_metal_framebuffer);
+            } else if (am_metal_window_depth_buffer) {
                 create_framebuffer_depth_texture(&default_metal_framebuffer);
-            }
-            if (am_metal_window_stencil_buffer) {
+            } else if (am_metal_window_stencil_buffer) {
                 create_framebuffer_stencil_texture(&default_metal_framebuffer);
             }
         }
 #elif defined(AM_IOS)
-        default_metal_framebuffer.depth_texture = am_metal_ios_view.depthStencilTexture;
-        default_metal_framebuffer.stencil_texture = am_metal_ios_view.depthStencilTexture;
+        default_metal_framebuffer.depthstencil_texture = am_metal_ios_view.depthStencilTexture;
         if (default_metal_framebuffer.msaa_samples > 1) {
             default_metal_framebuffer.msaa_texture = am_metal_ios_view.multisampleColorTexture;
         }
@@ -760,6 +799,7 @@ static void set_framebuffer_msaa_samples(metal_framebuffer *fb, int samples) {
 void am_init_gl() {
 #if defined (AM_OSX)
     metal_device = MTLCreateSystemDefaultDevice();
+    am_debug("readWriteTextureSupport = %d", [metal_device readWriteTextureSupport]);
     if (metal_device == nil) {
         am_log0("%s", "unable to create metal device");
         return;
@@ -808,16 +848,18 @@ void am_init_gl() {
     default_metal_framebuffer.clear_a = 1.0f;
     default_metal_framebuffer.color_texture = metal_active_drawable.texture;
     default_metal_framebuffer.depth_texture = nil;
-    default_metal_framebuffer.stencil_clear_value = 0;
     default_metal_framebuffer.stencil_texture = nil;
+    default_metal_framebuffer.depthstencil_texture = nil;
+    default_metal_framebuffer.stencil_clear_value = 0;
     default_metal_framebuffer.msaa_samples = 1;
     default_metal_framebuffer.msaa_texture = nil;
     set_framebuffer_msaa_samples(&default_metal_framebuffer, am_metal_window_msaa_samples);
 #if defined(AM_OSX)
-    if (am_metal_window_depth_buffer) {
+    if (am_metal_window_depth_buffer && am_metal_window_stencil_buffer) {
+        create_framebuffer_depthstencil_texture(&default_metal_framebuffer);
+    } else if (am_metal_window_depth_buffer) {
         create_framebuffer_depth_texture(&default_metal_framebuffer);
-    }
-    if (am_metal_window_stencil_buffer) {
+    } else if (am_metal_window_stencil_buffer) {
         create_framebuffer_stencil_texture(&default_metal_framebuffer);
     }
     create_framebuffer_msaa_texture(&default_metal_framebuffer);
@@ -900,6 +942,10 @@ void am_destroy_gl() {
     metal_encoder = nil;
     metal_bound_framebuffer = 0;
 #if defined (AM_OSX)
+    if (default_metal_framebuffer.depthstencil_texture != nil) {
+        [default_metal_framebuffer.depthstencil_texture release];
+        default_metal_framebuffer.depthstencil_texture = nil;
+    }
     if (default_metal_framebuffer.depth_texture != nil) {
         [default_metal_framebuffer.depth_texture release];
         default_metal_framebuffer.depth_texture = nil;
@@ -914,6 +960,7 @@ void am_destroy_gl() {
     }
 #elif defined(AM_IOS)
     // in iOS the MTKView will release the textures
+    default_metal_framebuffer.depthstencil_texture = nil;
     default_metal_framebuffer.depth_texture = nil;
     default_metal_framebuffer.stencil_texture = nil;
     default_metal_framebuffer.msaa_texture = nil;
@@ -1060,7 +1107,6 @@ am_buffer_id am_create_buffer_object() {
     check_initialized(0);
     metal_buffer buf;
     buf.size = 0;
-    buf.local_data = NULL;
     buf.mtlbuf = nil;
     return metal_buffer_freelist.add(buf);
 }
@@ -1090,30 +1136,14 @@ void am_set_buffer_data(am_buffer_target target, int size, void *data, am_buffer
     metal_buffer *buf = get_active_buffer(target);
     if (buf == NULL) return;
     if (buf->size != size) {
-        if (buf->local_data != NULL) {
-            free(buf->local_data);
-            buf->local_data = NULL;
-        }
         if (buf->mtlbuf != nil) {
             [buf->mtlbuf release];
             buf->mtlbuf = nil;
         }
-        if (target == AM_ARRAY_BUFFER && size <= AM_METAL_LOCAL_BUFFER_THRESHOLD) {
-            buf->local_data = (uint8_t*)malloc(size);
-            memcpy(buf->local_data, data, size);
-        } else {
-            buf->mtlbuf = [metal_device newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
-        }
+        buf->mtlbuf = [metal_device newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
         buf->size = size;
     } else {
-        if (target == AM_ARRAY_BUFFER && size <= AM_METAL_LOCAL_BUFFER_THRESHOLD) {
-            memcpy(buf->local_data, data, size);
-        } else {
-            memcpy([buf->mtlbuf contents], data, size);
-#if defined(AM_OSX)
-            [buf->mtlbuf didModifyRange: NSMakeRange(0, size)];
-#endif
-        }
+        memcpy([buf->mtlbuf contents], data, size);
     }
 }
 
@@ -1121,24 +1151,13 @@ void am_set_buffer_sub_data(am_buffer_target target, int offset, int size, void 
     check_initialized();
     metal_buffer *buf = get_active_buffer(target);
     if (buf == NULL) return;
-    if (buf->local_data != NULL) {
-        memcpy(&buf->local_data[offset], data, size);
-    } else if (buf->mtlbuf != nil) {
-        uint8_t *contents = (uint8_t*)[buf->mtlbuf contents];
-        memcpy(&contents[offset], data, size);
-#if defined(AM_OSX)
-        [buf->mtlbuf didModifyRange: NSMakeRange(offset, size)];
-#endif
-    }
+    uint8_t *contents = (uint8_t*)[buf->mtlbuf contents];
+    memcpy(&contents[offset], data, size);
 }
 
 void am_delete_buffer(am_buffer_id id) {
     check_initialized();
     metal_buffer *buf = metal_buffer_freelist.get(id);
-    if (buf->local_data != NULL) {
-        free(buf->local_data);
-        buf->local_data = NULL;
-    }
     if (buf->mtlbuf != nil) {
         [buf->mtlbuf release];
         buf->mtlbuf = nil;
@@ -1230,7 +1249,8 @@ am_program_id am_create_program() {
     prog.num_attrs = 0;
     prog.attrs = NULL;
     prog.log = NULL;
-    return metal_program_freelist.add(prog);
+    am_program_id progid = metal_program_freelist.add(prog);
+    return progid;
 }
 
 am_shader_id am_create_shader(am_shader_type type) {
@@ -1432,6 +1452,9 @@ bool am_link_program(am_program_id program_id) {
     // setup uniforms
     int vert_bytes = glslopt_shader_get_uniform_total_size(vert->gshader) + AM_METAL_EXTRA_VERT_UNIFORMS_SIZE;
     int frag_bytes = glslopt_shader_get_uniform_total_size(frag->gshader) + AM_METAL_EXTRA_FRAG_UNIFORMS_SIZE;
+    // round sizes up to nearest 16 bytes to avoid metal assertion failures
+    while (vert_bytes & (16-1)) vert_bytes++;
+    while (frag_bytes & (16-1)) frag_bytes++;
     prog->vert_uniform_size = vert_bytes;
     prog->vert_uniform_data = (uint8_t*)malloc(vert_bytes);
     memset(prog->vert_uniform_data, 0, vert_bytes);
@@ -1812,6 +1835,7 @@ am_texture_id am_create_texture() {
     tex.tex = nil;
     tex.samplerdescr = [[MTLSamplerDescriptor alloc] init];
     tex.sampler = nil;
+    tex.writable = false;
     return metal_texture_freelist.add(tex);
 }
 
@@ -1934,7 +1958,7 @@ am_renderbuffer_id am_create_renderbuffer() {
     check_initialized(0);
     metal_renderbuffer renderbuffer;
     renderbuffer.initialized = false;
-    renderbuffer.format = AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT;
+    renderbuffer.format = AM_RENDERBUFFER_FORMAT_DEPTHSTENCIL;
     renderbuffer.width = 0;
     renderbuffer.height = 0;
     renderbuffer.texture = nil;
@@ -1973,8 +1997,9 @@ void am_set_renderbuffer_storage(am_renderbuffer_format format, int w, int h) {
     renderbuffer->format = format;
     MTLPixelFormat pxlfmt;
     switch (format) {
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT: pxlfmt = MTLPixelFormatDepth32Float; break;
-        case AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8: pxlfmt = MTLPixelFormatStencil8; break;
+        case AM_RENDERBUFFER_FORMAT_DEPTHSTENCIL: pxlfmt = MTLPixelFormatDepth32Float_Stencil8; break;
+        case AM_RENDERBUFFER_FORMAT_DEPTH: pxlfmt = MTLPixelFormatDepth32Float; break;
+        case AM_RENDERBUFFER_FORMAT_STENCIL: pxlfmt = MTLPixelFormatStencil8; break;
     }
     MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pxlfmt 
             width:w height:h mipmapped:NO];
@@ -2001,11 +2026,12 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
         metal_command_buffer = [metal_queue commandBuffer];
         was_command_buffer = false;
     }
-#if defined(AM_OSX)
-    id<MTLBlitCommandEncoder> blit_encoder = [metal_command_buffer blitCommandEncoder];
-    [blit_encoder synchronizeTexture:fb->color_texture slice:0 level:0];
-    [blit_encoder endEncoding];
-#endif
+// only needed if texture is MTLStorageModeManaged I think
+// #if defined(AM_OSX)
+//     id<MTLBlitCommandEncoder> blit_encoder = [metal_command_buffer blitCommandEncoder];
+//     [blit_encoder synchronizeTexture:fb->color_texture slice:0 level:0];
+//     [blit_encoder endEncoding];
+// #endif
     [metal_command_buffer commit];
     [metal_command_buffer waitUntilCompleted];
     metal_command_buffer = nil;
@@ -2036,9 +2062,10 @@ am_framebuffer_id am_create_framebuffer() {
     fb.clear_b = 0.0f;
     fb.clear_a = 1.0f;
     fb.color_texture = nil;
+    fb.depthstencil_texture = nil;
     fb.depth_texture = nil;
-    fb.stencil_clear_value = 0;
     fb.stencil_texture = nil;
+    fb.stencil_clear_value = 0;
     set_framebuffer_msaa_samples(&fb, 1);
     fb.msaa_texture = nil;
     return metal_framebuffer_freelist.add(fb);
@@ -2085,6 +2112,9 @@ void am_set_framebuffer_renderbuffer(am_framebuffer_attachment attachment, am_re
         case AM_FRAMEBUFFER_STENCIL_ATTACHMENT:
             fb->stencil_texture = renderbuffer->texture;
             break;
+        case AM_FRAMEBUFFER_DEPTHSTENCIL_ATTACHMENT:
+            fb->depthstencil_texture = renderbuffer->texture;
+            break;
     }
     if (fb->width > 0) {
         if (fb->width != renderbuffer->width || fb->height != renderbuffer->height) {
@@ -2104,6 +2134,39 @@ void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_textu
                 am_log1("%s", "error: attempt to set framebuffer color attachement twice");
                 return;
             }
+            // ensure texture can be a render target
+            if (!tex->writable) {
+                id<MTLTexture> old_tex = tex->tex;
+                int w = old_tex.width;
+                int h = old_tex.height;
+                MTLTextureDescriptor *texdescr = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:w height:h mipmapped:NO];
+                texdescr.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+                tex->tex = [metal_device newTextureWithDescriptor:texdescr];
+                bool was_command_buffer = true;
+                if (metal_command_buffer == nil) {
+                    metal_command_buffer = [metal_queue commandBuffer];
+                    was_command_buffer = false;
+                }
+                id<MTLBlitCommandEncoder> blit_encoder = [metal_command_buffer blitCommandEncoder];
+                [blit_encoder 
+                    copyFromTexture:old_tex
+                    sourceSlice:0 sourceLevel:0
+                    sourceOrigin:MTLOriginMake(0,0,0) 
+                    sourceSize:MTLSizeMake(w,h,1)
+                    toTexture: tex->tex 
+                    destinationSlice: 0
+                    destinationLevel: 0
+                    destinationOrigin: MTLOriginMake(0,0,0)];
+                [blit_encoder endEncoding];
+                [metal_command_buffer commit];
+                [metal_command_buffer waitUntilCompleted];
+                metal_command_buffer = nil;
+                if (was_command_buffer) {
+                    metal_command_buffer = [metal_queue commandBuffer];
+                }
+                [old_tex release];
+                tex->writable = true;
+            }
             fb->color_texture = tex->tex;
             if (fb->width > 0) {
                 if (fb->width != tex->tex.width || fb->height != tex->tex.height) {
@@ -2118,6 +2181,9 @@ void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_textu
             // unsupported
             break;
         case AM_FRAMEBUFFER_STENCIL_ATTACHMENT:
+            // unsupported
+            break;
+        case AM_FRAMEBUFFER_DEPTHSTENCIL_ATTACHMENT:
             // unsupported
             break;
     }
@@ -2232,6 +2298,9 @@ static bool setup_pipeline(metal_program *prog) {
             cached_pipeline->blend_dfactor_alpha != metal_blend_dfactor_alpha ||
             cached_pipeline->color_pixel_format != colorpxlfmt ||
             cached_pipeline->msaa_samples != fb->msaa_samples ||
+            cached_pipeline->has_depthstencil != (fb->depthstencil_texture != nil) ||
+            cached_pipeline->has_depth != (fb->depth_texture != nil) ||
+            cached_pipeline->has_stencil != (fb->stencil_texture != nil) ||
             cached_pipeline->depth_test_enabled != metal_depth_test_enabled ||
             cached_pipeline->depth_mask != metal_depth_mask ||
             cached_pipeline->depth_func != metal_depth_func ||
@@ -2289,6 +2358,17 @@ static bool setup_pipeline(metal_program *prog) {
         pldescr.colorAttachments[0].sourceAlphaBlendFactor = to_metal_blend_sfactor(metal_blend_sfactor_alpha);
         pldescr.colorAttachments[0].destinationRGBBlendFactor = to_metal_blend_dfactor(metal_blend_dfactor_rgb);
         pldescr.colorAttachments[0].destinationAlphaBlendFactor = to_metal_blend_dfactor(metal_blend_dfactor_alpha);
+
+        if (fb->depthstencil_texture != nil) {
+            pldescr.depthAttachmentPixelFormat = fb->depthstencil_texture.pixelFormat;
+            pldescr.stencilAttachmentPixelFormat = fb->depthstencil_texture.pixelFormat;
+        }
+        if (fb->depth_texture != nil) {
+            pldescr.depthAttachmentPixelFormat = fb->depth_texture.pixelFormat;
+        }
+        if (fb->stencil_texture != nil) {
+            pldescr.stencilAttachmentPixelFormat = fb->stencil_texture.pixelFormat;
+        }
         /*
         am_debug(
             "\nrgbBlendOperation = %s\nalphaBlendOperation = %s\nsourceRGBBlendFactor = %s\nsourceAlphaBlendFactor = %s\ndestinationRGBBlendFactor = %s\ndestinationAlphaBlendFactor = %s\n",
@@ -2341,8 +2421,12 @@ static bool setup_pipeline(metal_program *prog) {
         cached_pipeline.msaa_samples = fb->msaa_samples;
         cached_pipeline.mtlpipeline = pl;
 
-        cached_pipeline.depth_test_enabled = metal_depth_test_enabled;;
-        cached_pipeline.depth_mask = metal_depth_mask;;
+        cached_pipeline.has_depthstencil = (fb->depthstencil_texture != nil);;
+        cached_pipeline.has_depth = (fb->depth_texture != nil);;
+        cached_pipeline.has_stencil = (fb->stencil_texture != nil);;
+
+        cached_pipeline.depth_test_enabled = metal_depth_test_enabled;
+        cached_pipeline.depth_mask = metal_depth_mask;
         cached_pipeline.depth_func = metal_depth_func;
 
         cached_pipeline.stencil_test_enabled      = metal_stencil_test_enabled;
@@ -2406,7 +2490,7 @@ static bool setup_pipeline(metal_program *prog) {
         metal_pipeline *pipeline = &prog->pipeline_cache[selected_pipeline];
         [metal_encoder setRenderPipelineState: pipeline->mtlpipeline];
         metal_framebuffer *fb = get_metal_framebuffer(metal_bound_framebuffer);
-        if (fb->depth_texture != nil || fb->stencil_texture != nil) {
+        if (fb->depthstencil_texture != nil || fb->depth_texture != nil || fb->stencil_texture != nil) {
             [metal_encoder setDepthStencilState:pipeline->mtldepthstencilstate];
         }
         [metal_encoder setFrontFacingWinding: to_metal_winding(metal_bound_framebuffer != 0, pipeline->face_winding)];
@@ -2481,11 +2565,7 @@ static bool pre_draw_setup() {
         attr_state *attr = &prog->attrs[i];
         if (attr->bufid == 0) continue;
         metal_buffer *buf = metal_buffer_freelist.get(attr->bufid);
-        if (buf->local_data != NULL) {
-            [metal_encoder setVertexBytes:&buf->local_data[attr->offset] length:buf->size atIndex:i + 1];
-        } else {
-            [metal_encoder setVertexBuffer:buf->mtlbuf offset:attr->offset atIndex:i + 1];
-        }
+        [metal_encoder setVertexBuffer:buf->mtlbuf offset:attr->offset atIndex:i + 1];
     }
     return true;
 }
@@ -2588,6 +2668,10 @@ static void get_src_error_line(char *errmsg, const char *src, int *line_no, char
         if (*ptr == '\n') l++;
         ptr++;
     }
+}
+
+bool am_gl_requires_combined_depthstencil() {
+    return true;
 }
 
 #endif // AM_USE_METAL

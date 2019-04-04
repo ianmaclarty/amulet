@@ -1643,13 +1643,17 @@ static GLenum to_gl_texture_wrap(am_texture_wrap w) {
 static GLenum to_gl_renderbuffer_format(am_renderbuffer_format f) {
     switch (f) {
 #if defined(GL_DEPTH_COMPONENT24)
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT: return GL_DEPTH_COMPONENT24;
+        case AM_RENDERBUFFER_FORMAT_DEPTH: return GL_DEPTH_COMPONENT24;
 #elif defined(GL_DEPTH_COMPONENT24_OES)
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT: return GL_DEPTH_COMPONENT24_OES;
+        case AM_RENDERBUFFER_FORMAT_DEPTH: return GL_DEPTH_COMPONENT24_OES;
 #else
-        case AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT: return GL_DEPTH_COMPONENT16;
+        case AM_RENDERBUFFER_FORMAT_DEPTH: return GL_DEPTH_COMPONENT16;
 #endif
-        case AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8: return GL_STENCIL_INDEX8;
+        case AM_RENDERBUFFER_FORMAT_STENCIL: return GL_STENCIL_INDEX8;
+        case AM_RENDERBUFFER_FORMAT_DEPTHSTENCIL: {
+            am_log1("%s", "error: combined depthstencil format unsupported in this backend");
+            return 0;
+        }
     }
     return 0;
 }
@@ -1659,6 +1663,10 @@ static GLenum to_gl_framebuffer_attachment(am_framebuffer_attachment a) {
         case AM_FRAMEBUFFER_COLOR_ATTACHMENT0: return GL_COLOR_ATTACHMENT0;
         case AM_FRAMEBUFFER_DEPTH_ATTACHMENT: return GL_DEPTH_ATTACHMENT;
         case AM_FRAMEBUFFER_STENCIL_ATTACHMENT: return GL_STENCIL_ATTACHMENT;
+        case AM_FRAMEBUFFER_DEPTHSTENCIL_ATTACHMENT: {
+            am_log1("%s", "error: combined depthstencil attachment unsupported in this backend");
+            return 0;
+        }
     }
     return 0;
 }
@@ -2159,6 +2167,10 @@ static void angle_translate_shader(am_shader_type type,
 void am_reset_gl_frame_stats() {
     am_frame_draw_calls = 0;
     am_frame_use_program_calls = 0;
+}
+
+bool am_gl_requires_combined_depthstencil() {
+    return false;
 }
 
 #endif  // AM_USE_METAL

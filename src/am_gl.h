@@ -364,8 +364,9 @@ void am_set_texture_wrap(am_texture_bind_target target, am_texture_wrap s_wrap, 
 // Renderbuffer Objects
 
 enum am_renderbuffer_format {
-    AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT,
-    AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8,
+    AM_RENDERBUFFER_FORMAT_DEPTH,
+    AM_RENDERBUFFER_FORMAT_STENCIL,
+    AM_RENDERBUFFER_FORMAT_DEPTHSTENCIL,
 };
 
 typedef am_gluint am_renderbuffer_id;
@@ -396,6 +397,7 @@ enum am_framebuffer_attachment {
     AM_FRAMEBUFFER_COLOR_ATTACHMENT0,
     AM_FRAMEBUFFER_DEPTH_ATTACHMENT,
     AM_FRAMEBUFFER_STENCIL_ATTACHMENT,
+    AM_FRAMEBUFFER_DEPTHSTENCIL_ATTACHMENT,
 };
 
 typedef am_gluint am_framebuffer_id;
@@ -437,3 +439,5 @@ void am_gl_end_frame(bool present);
 void am_log_gl(const char *msg);
 void am_close_gllog();
 void am_reset_gl_frame_stats();
+
+bool am_gl_requires_combined_depthstencil();
