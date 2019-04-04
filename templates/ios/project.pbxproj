@@ -213,6 +213,9 @@
 							com.apple.GameCenter = {
 								enabled = 1;
 							};
+							com.apple.GameCenter.iOS = {
+								enabled = 1;
+							};
 						};
 					};
 				};
@@ -395,7 +398,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = AM_APPID;
+				PRODUCT_BUNDLE_IDENTIFIER = "AM_APPID";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "AM_DEV_PROV_PROFILE_NAME";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -418,7 +421,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = AM_APPID;
+				PRODUCT_BUNDLE_IDENTIFIER = "AM_APPID";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "AM_DIST_PROV_PROFILE_NAME";
 				TARGETED_DEVICE_FAMILY = "1,2";
