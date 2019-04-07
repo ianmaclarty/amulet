@@ -799,7 +799,6 @@ static void set_framebuffer_msaa_samples(metal_framebuffer *fb, int samples) {
 void am_init_gl() {
 #if defined (AM_OSX)
     metal_device = MTLCreateSystemDefaultDevice();
-    am_debug("readWriteTextureSupport = %d", [metal_device readWriteTextureSupport]);
     if (metal_device == nil) {
         am_log0("%s", "unable to create metal device");
         return;
@@ -2632,7 +2631,7 @@ void am_gl_end_frame(bool present) {
             [metal_command_buffer presentDrawable:metal_active_drawable];
         }
         [metal_command_buffer commit];
-        [metal_command_buffer waitUntilCompleted];
+        //[metal_command_buffer waitUntilCompleted];
         metal_command_buffer = nil;
         metal_active_drawable = nil;
         default_metal_framebuffer.color_texture = nil;
