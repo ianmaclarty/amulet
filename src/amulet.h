@@ -70,6 +70,7 @@
 #include <inttypes.h>
 #undef __STDC_LIMIT_MACROS
 #include <math.h>
+#include <time.h>
 
 // networking
 #if defined(AM_IOS) || defined(AM_OSX)

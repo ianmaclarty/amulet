@@ -1,14 +1,27 @@
 #ifdef AM_EXPORT
 
-#define AM_EXPORT_FLAG_WINDOWS          1
-#define AM_EXPORT_FLAG_OSX              2
-#define AM_EXPORT_FLAG_MAC_APP_STORE    4
-#define AM_EXPORT_FLAG_LINUX            8
-#define AM_EXPORT_FLAG_HTML             16
-#define AM_EXPORT_FLAG_IOS              32
-#define AM_EXPORT_FLAG_IOSSIM           64
-#define AM_EXPORT_FLAG_RECURSE          128
+struct am_export_flags {
+    bool windows;
+    bool mac;
+    bool mac_app_store;
+    bool linux;
+    bool html;
+    bool ios_xcode_proj;
+    bool recurse;
+    bool zipdir;
 
-bool am_build_exports(uint32_t flags);
+    am_export_flags() {
+        windows = false;
+        mac = false;
+        mac_app_store = false;
+        linux = false;
+        html = false;
+        ios_xcode_proj = false;
+        recurse = false;
+        zipdir = true;
+    }
+};
+
+bool am_build_exports(am_export_flags *flags);
 
 #endif

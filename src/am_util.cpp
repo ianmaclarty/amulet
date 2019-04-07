@@ -2,7 +2,7 @@
 
 #include <sys/stat.h>
 
-#define MAX_MSG_LEN 10240
+#define MAX_MSG_LEN 51200
 #define MAX_CMD_LEN 51200
 
 char *am_format(const char *fmt, ...) {
@@ -27,6 +27,28 @@ void am_replchr(char *str, char c0, char c) {
         if (*str == c0) *str = c;
         str++;
     }
+}
+
+char *am_replace_strings(char *source, char** replacements) {
+    char *result = am_format("%s", source);
+    char **pair = replacements;
+    while (*pair != NULL) {
+        char *key = *pair;
+        char *val = *(pair + 1);
+        int keylen = strlen(key);
+        int vallen = strlen(val);
+        char *pos = strstr(result, key);
+        while (pos != NULL) {
+            *pos = '\0';
+            char *rest = pos + keylen;
+            char *new_result = am_format("%s%s%s", result, val, rest);
+            pos = strstr(new_result + (pos - result) + vallen, key);
+            free(result);
+            result = new_result;
+        }
+        pair += 2;
+    }
+    return result;
 }
 
 void am_delete_file(const char *file) {
@@ -99,6 +121,36 @@ void *am_read_file(const char *filename, size_t *len) {
         return NULL;
     }
     return buf;
+}
+
+bool am_write_text_file(const char *filename, char *content) {
+    FILE *f = am_fopen(filename, "w");
+    if (f == NULL) {
+        fprintf(stderr, "Error: unable to create file %s", filename);
+        return false;
+    }
+    if (fwrite(content, strlen(content), 1, f) != 1) {
+        fprintf(stderr, "Error writing to file %s", filename);
+        fclose(f);
+        return false;
+    }
+    fclose(f);
+    return true;
+}
+
+bool am_write_bin_file(const char *filename, void *content, size_t len) {
+    FILE *f = am_fopen(filename, "wb");
+    if (f == NULL) {
+        fprintf(stderr, "Error: unable to create file %s", filename);
+        return false;
+    }
+    if (fwrite(content, len, 1, f) != 1) {
+        fprintf(stderr, "Error writing to file %s", filename);
+        fclose(f);
+        return false;
+    }
+    fclose(f);
+    return true;
 }
 
 #ifdef AM_HAVE_GLOB

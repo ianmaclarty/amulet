@@ -6,6 +6,9 @@ struct am_framebuffer : am_nonatomic_userdata {
     int                     color_attachment0_ref;
     am_renderbuffer_id      depth_renderbuffer_id;
     am_renderbuffer_id      stencil_renderbuffer_id;
+    am_renderbuffer_id      depthstencil_renderbuffer_id;
+    bool                    has_depth_buf;
+    bool                    has_stencil_buf;
     glm::dvec4              clear_color;
     int                     stencil_clear_value;
     glm::dmat4              projection;

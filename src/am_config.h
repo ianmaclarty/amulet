@@ -16,10 +16,15 @@ extern const char *am_conf_app_icon_ios;
 extern const char *am_conf_app_launch_image;
 extern const char *am_conf_luavm;
 extern const char *am_conf_support_email;
+extern const char *am_conf_copyright_message;
+
 extern const char *am_conf_mac_category;
 extern const char *am_conf_mac_application_cert_identity;
 extern const char *am_conf_mac_installer_cert_identity;
-extern const char *am_conf_copyright_message;
+
+extern const char *am_conf_ios_cert_identity;
+extern const char *am_conf_ios_dev_prov_profile_name;
+extern const char *am_conf_ios_dist_prov_profile_name;
 
 // graphic driver options
 extern bool am_conf_d3dangle;
@@ -55,7 +60,5 @@ extern bool am_conf_log_gl_calls;
 extern int am_conf_log_gl_frames;
 extern bool am_conf_no_close_lua;
 extern char *am_conf_test_lang;
-
-extern bool am_conf_no_zip_dir;
 
 bool am_load_config();

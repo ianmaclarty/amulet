@@ -12,19 +12,32 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, b
     width = texture->width;
     height = texture->height;
     depth_renderbuffer_id = 0;
-    if (depth_buf) {
-        depth_renderbuffer_id = am_create_renderbuffer();
-        am_bind_renderbuffer(depth_renderbuffer_id);
-        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTH_COMPONENT, width, height);
-        am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_DEPTH_ATTACHMENT, depth_renderbuffer_id);
-        am_set_framebuffer_depth_mask(true);
-    }
     stencil_renderbuffer_id = 0;
-    if (stencil_buf) {
-        stencil_renderbuffer_id = am_create_renderbuffer();
-        am_bind_renderbuffer(stencil_renderbuffer_id);
-        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_STENCIL_INDEX8, width, height);
-        am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_STENCIL_ATTACHMENT, stencil_renderbuffer_id);
+    depthstencil_renderbuffer_id = 0;
+    has_depth_buf = depth_buf;
+    has_stencil_buf = stencil_buf;
+    if (depth_buf && stencil_buf && am_gl_requires_combined_depthstencil()) {
+        depthstencil_renderbuffer_id = am_create_renderbuffer();
+        am_bind_renderbuffer(depthstencil_renderbuffer_id);
+        am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTHSTENCIL, width, height);
+        am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_DEPTHSTENCIL_ATTACHMENT, depthstencil_renderbuffer_id);
+        if (depth_buf) {
+            am_set_framebuffer_depth_mask(true);
+        }
+    } else {
+        if (depth_buf) {
+            depth_renderbuffer_id = am_create_renderbuffer();
+            am_bind_renderbuffer(depth_renderbuffer_id);
+            am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_DEPTH, width, height);
+            am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_DEPTH_ATTACHMENT, depth_renderbuffer_id);
+            am_set_framebuffer_depth_mask(true);
+        }
+        if (stencil_buf) {
+            stencil_renderbuffer_id = am_create_renderbuffer();
+            am_bind_renderbuffer(stencil_renderbuffer_id);
+            am_set_renderbuffer_storage(AM_RENDERBUFFER_FORMAT_STENCIL, width, height);
+            am_set_framebuffer_renderbuffer(AM_FRAMEBUFFER_STENCIL_ATTACHMENT, stencil_renderbuffer_id);
+        }
     }
     am_framebuffer_status status = am_check_framebuffer_status();
     if (status != AM_FRAMEBUFFER_STATUS_COMPLETE) {
@@ -64,6 +77,10 @@ void am_framebuffer::destroy(lua_State *L) {
         am_delete_renderbuffer(stencil_renderbuffer_id);
         stencil_renderbuffer_id = 0;
     }
+    if (depthstencil_renderbuffer_id != 0) {
+        am_delete_renderbuffer(depthstencil_renderbuffer_id);
+        depthstencil_renderbuffer_id = 0;
+    }
     color_attachment0 = NULL;
     unref(L, color_attachment0_ref);
     color_attachment0_ref = LUA_NOREF;
@@ -92,7 +109,7 @@ static int render_node_to_framebuffer(lua_State *L) {
         fb->color_attachment0->image_buffer->buffer->update_if_dirty();
     }
     rstate->do_render(&node, 1, fb->framebuffer_id, false, fb->clear_color, fb->stencil_clear_value,
-        0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
+        0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->has_depth_buf);
     if (fb->color_attachment0->has_mipmap) {
         am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, fb->color_attachment0->texture_id);
         am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
@@ -111,7 +128,7 @@ static int render_children_to_framebuffer(lua_State *L) {
     tmpnode.children = node->children;
     am_scene_node *tmparr = &tmpnode;
     rstate->do_render(&tmparr, 1, fb->framebuffer_id, false, fb->clear_color, fb->stencil_clear_value,
-        0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->depth_renderbuffer_id != 0);
+        0, 0, fb->width, fb->height, fb->width, fb->height, fb->projection, fb->has_depth_buf);
     if (fb->color_attachment0->has_mipmap) {
         am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, fb->color_attachment0->texture_id);
         am_generate_mipmap(AM_TEXTURE_BIND_TARGET_2D);
@@ -178,8 +195,8 @@ static int resize(lua_State *L) {
     am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, color_at->texture_id);
     am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, color_at->format, w, h, color_at->type, data);
     free(data);
-    bool depth_buf = fb->depth_renderbuffer_id != 0;
-    bool stencil_buf = fb->stencil_renderbuffer_id != 0;
+    bool depth_buf = fb->has_depth_buf;
+    bool stencil_buf = fb->has_stencil_buf;
     glm::dvec4 clear_color = fb->clear_color;
     int stencil_clear_value = fb->stencil_clear_value;
     bool user_proj = fb->user_projection;

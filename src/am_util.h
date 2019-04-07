@@ -62,6 +62,11 @@ bool am_file_exists(const char *filename);
 
 void am_replchr(char *str, char c0, char c);
 
+// replacements is a NULL-terminated list of replacement pairs
+// e.g. {"replace this", "with this", "and replace this", "with this", NULL}
+// the returned string should be freed by the caller with free
+char *am_replace_strings(char *source, char** replacements);
+
 void am_delete_file(const char *file);
 void am_make_dir(const char* dir);
 void am_delete_empty_dir(const char* dir);
@@ -71,6 +76,9 @@ FILE *am_fopen(const char *path, const char *mode);
 }
 
 void *am_read_file(const char *filename, size_t *len);
+
+bool am_write_text_file(const char *filename, char *content);
+bool am_write_bin_file(const char *filename, void *content, size_t len);
 
 #ifdef AM_HAVE_GLOB
 void am_expand_args(int *argc_ptr, char ***argv_ptr);

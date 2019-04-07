@@ -17,14 +17,14 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-r] [-windows] [-mac] [-ios] [-iossim] [-linux] [-html] [ <dir> ]\n"
+        "Usage: amulet export [-r] [-windows] [-mac] [-ios] [-ios-xcode-proj] [-linux] [-html] [ <dir> ]\n"
         "\n"
         "  Generates distribution packages for the project in <dir>,\n"
         "  or the current directory if <dir> is omitted.\n"
         "  <dir> should contain main.lua.\n"
         "\n"
-        "  If none of the -windows, -mac, -ios, -iossim -linux or -html options are given\n"
-        "  then packages for all supported platforms will be generated,\n"
+        "  If none of the -windows, -mac, -ios, -ios-xcode-proj -linux or -html options are given\n"
+        "  then packages for windows, mac and linux will be generated,\n"
         "  otherwise only packages for the specified platforms will be generated.\n"
         "\n"
         "  All files with the following extensions will be included:\n"
@@ -159,37 +159,37 @@ static bool version_cmd(int *argc, char ***argv) {
 
 static bool export_cmd(int *argc, char ***argv) {
 #ifdef AM_EXPORT
-    uint32_t flags = 0;
+    am_export_flags flags;
     int n = *argc;
     int i;
     for (i = 0; i < n; i++) {
         char *arg = (*argv)[i];
         if (strcmp(arg, "-windows") == 0) {
-            flags |= AM_EXPORT_FLAG_WINDOWS;
+            flags.windows = true;
         } else if (strcmp(arg, "-mac") == 0) {
-            flags |= AM_EXPORT_FLAG_OSX;
+            flags.mac = true;
         } else if (strcmp(arg, "-mac-app-store") == 0) {
-            flags |= AM_EXPORT_FLAG_MAC_APP_STORE;
+            flags.mac_app_store = true;
         } else if (strcmp(arg, "-linux") == 0) {
-            flags |= AM_EXPORT_FLAG_LINUX;
-        } else if (strcmp(arg, "-ios") == 0) {
-            flags |= AM_EXPORT_FLAG_IOS;
-        } else if (strcmp(arg, "-iossim") == 0) {
-            flags |= AM_EXPORT_FLAG_IOSSIM;
+            flags.linux = true;
+        } else if (strcmp(arg, "-ios-xcode-proj") == 0) {
+            flags.ios_xcode_proj = true;
         } else if (strcmp(arg, "-html") == 0) {
-            flags |= AM_EXPORT_FLAG_HTML;
+            flags.html = true;
         } else if (strcmp(arg, "-r") == 0) {
-            flags |= AM_EXPORT_FLAG_RECURSE;
+            flags.recurse = true;
         } else if (strcmp(arg, "-nozipdir") == 0) {
-            am_conf_no_zip_dir = true;
+            flags.zipdir = false;
         } else {
             break;
         }
     }
     *argc -= i;
     *argv += i;
-    if (flags == 0 || flags == AM_EXPORT_FLAG_RECURSE) {
-        flags |= AM_EXPORT_FLAG_WINDOWS | AM_EXPORT_FLAG_OSX | AM_EXPORT_FLAG_LINUX;
+    if (!flags.windows && !flags.mac && !flags.mac_app_store && !flags.linux && !flags.ios_xcode_proj && !flags.html) {
+        flags.windows = true;
+        flags.mac = true;
+        flags.linux = true;
     }
     char *dir = (char*)".";
     if (*argc > 0) {
@@ -198,7 +198,7 @@ static bool export_cmd(int *argc, char ***argv) {
     char last = dir[strlen(dir)-1];
     if (last == '/' || last == '\\') dir[strlen(dir)-1] = 0;
     am_opt_data_dir = dir;
-    return am_build_exports(flags);
+    return am_build_exports(&flags);
 #else
     fprintf(stderr, "Sorry, the export command is not supported on this platform.\n");
     return false;
