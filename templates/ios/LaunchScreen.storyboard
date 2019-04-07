@@ -18,7 +18,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" insetsLayoutMarginsFromSafeArea="NO" image="splash.png" translatesAutoresizingMaskIntoConstraints="NO" id="VPj-DI-zAg">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" insetsLayoutMarginsFromSafeArea="NO" image="AM_LAUNCH_IMG_NAME" translatesAutoresizingMaskIntoConstraints="NO" id="VPj-DI-zAg">
                                 <rect key="frame" x="57" y="298" width="300" height="300"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                             </imageView>
@@ -33,7 +33,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="splash.png" width="1024" height="1024"/>
+        <image name="AM_LAUNCH_IMG_NAME" width="AM_LAUNCH_IMG_W" height="AM_LAUNCH_IMG_H"/>
     </resources>
     <color key="tintColor" red="AM_LAUNCH_BG_RED" green="AM_LAUNCH_BG_GREEN" blue="AM_LAUNCH_BG_BLUE" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
 </document>

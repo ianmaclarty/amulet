@@ -58,6 +58,4 @@ extern int am_conf_log_gl_frames;
 extern bool am_conf_no_close_lua;
 extern char *am_conf_test_lang;
 
-extern bool am_conf_no_zip_dir;
-
 bool am_load_config();

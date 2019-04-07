@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		3C27187721A6275000762205 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C27187521A6275000762205 /* Metal.framework */; };
 		3C27187821A6275000762205 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C27187621A6275000762205 /* MetalKit.framework */; };
-		3C48D1E32254539E002C5B1C /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C48D1E22254539E002C5B1C /* splash.png */; };
+		3C48D1E32254539E002C5B1C /* AM_LAUNCH_IMG in Resources */ = {isa = PBXBuildFile; fileRef = 3C48D1E22254539E002C5B1C /* AM_LAUNCH_IMG */; };
 		3C626A912023EA4A00FF5F20 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C626A902023EA4A00FF5F20 /* Assets.xcassets */; };
 		3C626A942023EA4A00FF5F20 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C626A922023EA4A00FF5F20 /* LaunchScreen.storyboard */; };
 		3C626AA02023EC1200FF5F20 /* data.pak in Resources */ = {isa = PBXBuildFile; fileRef = 3C626A9F2023EC1200FF5F20 /* data.pak */; };
@@ -45,7 +45,7 @@
 /* Begin PBXFileReference section */
 		3C27187521A6275000762205 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		3C27187621A6275000762205 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
-		3C48D1E22254539E002C5B1C /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
+		3C48D1E22254539E002C5B1C /* AM_LAUNCH_IMG */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AM_LAUNCH_IMG; sourceTree = "<group>"; };
 		3C626A7D2023EA4A00FF5F20 /* AM_APPNAME.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AM_APPNAME.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3C626A902023EA4A00FF5F20 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3C626A932023EA4A00FF5F20 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -123,7 +123,7 @@
 		3C626A742023EA4A00FF5F20 = {
 			isa = PBXGroup;
 			children = (
-				3C48D1E22254539E002C5B1C /* splash.png */,
+				3C48D1E22254539E002C5B1C /* AM_LAUNCH_IMG */,
 				3CA03D6C202421CA007FC187 /* Dummy.m */,
 				3C626A9F2023EC1200FF5F20 /* data.pak */,
 				3C626A902023EA4A00FF5F20 /* Assets.xcassets */,
@@ -243,7 +243,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3C48D1E32254539E002C5B1C /* splash.png in Resources */,
+				3C48D1E32254539E002C5B1C /* AM_LAUNCH_IMG in Resources */,
 				3C626AA02023EC1200FF5F20 /* data.pak in Resources */,
 				3C626A912023EA4A00FF5F20 /* Assets.xcassets in Resources */,
 				3C626A942023EA4A00FF5F20 /* LaunchScreen.storyboard in Resources */,
