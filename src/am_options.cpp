@@ -17,13 +17,13 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-r] [-windows] [-mac] [-ios] [-ios-xcode-proj] [-linux] [-html] [ <dir> ]\n"
+        "Usage: amulet export [-r] [-windows] [-mac] [-ios-xcode-proj] [-linux] [-html] [ <dir> ]\n"
         "\n"
         "  Generates distribution packages for the project in <dir>,\n"
         "  or the current directory if <dir> is omitted.\n"
         "  <dir> should contain main.lua.\n"
         "\n"
-        "  If none of the -windows, -mac, -ios, -ios-xcode-proj -linux or -html options are given\n"
+        "  If none of the -windows, -mac, -ios-xcode-proj -linux or -html options are given\n"
         "  then packages for windows, mac and linux will be generated,\n"
         "  otherwise only packages for the specified platforms will be generated.\n"
         "\n"
@@ -165,17 +165,17 @@ static bool export_cmd(int *argc, char ***argv) {
     for (i = 0; i < n; i++) {
         char *arg = (*argv)[i];
         if (strcmp(arg, "-windows") == 0) {
-            flags.windows = true;
+            flags.export_windows = true;
         } else if (strcmp(arg, "-mac") == 0) {
-            flags.mac = true;
+            flags.export_mac = true;
         } else if (strcmp(arg, "-mac-app-store") == 0) {
-            flags.mac_app_store = true;
+            flags.export_mac_app_store = true;
         } else if (strcmp(arg, "-linux") == 0) {
-            flags.linux = true;
+            flags.export_linux = true;
         } else if (strcmp(arg, "-ios-xcode-proj") == 0) {
-            flags.ios_xcode_proj = true;
+            flags.export_ios_xcode_proj = true;
         } else if (strcmp(arg, "-html") == 0) {
-            flags.html = true;
+            flags.export_html = true;
         } else if (strcmp(arg, "-r") == 0) {
             flags.recurse = true;
         } else if (strcmp(arg, "-nozipdir") == 0) {
@@ -186,10 +186,16 @@ static bool export_cmd(int *argc, char ***argv) {
     }
     *argc -= i;
     *argv += i;
-    if (!flags.windows && !flags.mac && !flags.mac_app_store && !flags.linux && !flags.ios_xcode_proj && !flags.html) {
-        flags.windows = true;
-        flags.mac = true;
-        flags.linux = true;
+    if (!flags.export_windows && 
+        !flags.export_mac && 
+        !flags.export_mac_app_store && 
+        !flags.export_linux && 
+        !flags.export_ios_xcode_proj && 
+        !flags.export_html) 
+    {
+        flags.export_windows = true;
+        flags.export_mac = true;
+        flags.export_linux = true;
     }
     char *dir = (char*)".";
     if (*argc > 0) {
