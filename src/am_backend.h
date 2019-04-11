@@ -41,6 +41,7 @@ double am_get_current_time();
 
 // returned pointer and errmsg should be freed with free()
 void *am_read_resource(const char *filename, int *len, char** errmsg);
+bool am_resource_file_exists(const char *filename);
 
 int am_next_video_capture_frame();
 void am_copy_video_frame_to_texture();

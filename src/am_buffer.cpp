@@ -52,11 +52,11 @@ void am_buffer::update_if_dirty() {
         if (arraybuf_id != 0) {
             am_bind_buffer(AM_ARRAY_BUFFER, arraybuf_id);
             am_set_buffer_sub_data(AM_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
-        } 
+        }
         if (elembuf_id != 0) {
             am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, elembuf_id);
             am_set_buffer_sub_data(AM_ELEMENT_ARRAY_BUFFER, dirty_start, dirty_end - dirty_start, data + dirty_start);
-        } 
+        }
         if (texture2d != NULL) {
             texture2d->update_from_image_buffer();
         }
@@ -139,6 +139,17 @@ static int load_buffer(lua_State *L) {
         buf->size = len;
         buf->origin = filename;
         buf->origin_ref = buf->ref(L, 1);
+    }
+    return 1;
+}
+
+static int file_exists(lua_State *L) {
+    am_check_nargs(L, 1);
+    const char *filename = luaL_checkstring(L, 1);
+    if (am_resource_file_exists(filename)) {
+        lua_pushboolean(L, 1);
+    } else {
+        lua_pushboolean(L, 0);
     }
     return 1;
 }
@@ -744,6 +755,7 @@ void am_open_buffer_module(lua_State *L) {
         {"buffer", create_buffer},
         {"load_buffer", load_buffer},
         {"load_string", load_string},
+        {"file_exists", file_exists},
         {"load_script", load_script},
         {"base64_encode", base64_encode},
         {"base64_decode", base64_decode},

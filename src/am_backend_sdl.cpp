@@ -389,6 +389,12 @@ static void *am_read_resource_package(const char *filename, int *len, char **err
     return am_read_package_resource(package, filename, len, errmsg);
 }
 
+bool am_resource_file_exists(const char*filename) {
+    char *path = (char*)malloc(strlen(am_opt_data_dir) + 1 + strlen(filename) + 1);
+    sprintf(path, "%s%c%s", am_opt_data_dir, AM_PATH_SEP, filename);
+    return SDL_RWFromFile(path, "r") != NULL;
+}
+
 static void *am_read_resource_file(const char *filename, int *len, char **errmsg) {
     *errmsg = NULL;
     char tmpbuf[ERR_MSG_SZ];
@@ -568,7 +574,7 @@ restart:
         if (!handle_events(L)) goto quit;
 
         frame_time = am_get_current_time();
-        
+
         real_delta_time = frame_time - t0;
         if (have_focus && am_conf_warn_delta_time > 0.0 && real_delta_time > am_conf_warn_delta_time) {
             am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);
