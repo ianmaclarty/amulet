@@ -219,6 +219,13 @@ function math.sign(n)
     return n > 0 and 1 or n < 0 and -1 or 0
 end
 
+function math.forward(mat, pt)
+	return vec2(
+		pt.x * mat[1][1] + pt.y * mat[2][1] + mat[4][1],
+		pt.x * mat[1][2] + pt.y * mat[2][2] + mat[4][2]
+	)
+end
+
 -- vector/matrix stuff
 
 rawset(_G, "vec2", math.vec2)
@@ -350,7 +357,7 @@ function log(fmt, ...)
         f:write("\n")
         f:close()
     end
-    
+
     if am._main_window then
         local win = am._main_window
         if not log_overlay_node then
