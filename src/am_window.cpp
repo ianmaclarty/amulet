@@ -417,10 +417,17 @@ static void draw_windows() {
                 roots[1] = win->overlay;
                 num_roots = 2;
             }
+            double t0 = 0.0;
+            if (am_record_perf_timings) {
+                t0 = am_get_current_time();
+            }
             rstate->do_render(&roots[0], num_roots, 0, true, win->clear_color, win->stencil_clear_value,
                 win->viewport_x, win->viewport_y, win->viewport_width, win->viewport_height,
                 win->pixel_width, win->pixel_height,
                 win->projection, win->has_depth_buffer);
+            if (am_record_perf_timings) {
+                am_last_frame_draw_time = am_get_current_time() - t0;
+            }
             am_native_window_swap_buffers(win->native_win);
         }
     }
@@ -443,6 +450,10 @@ bool am_update_windows(lua_State *L) {
 }
 
 bool am_execute_actions(lua_State *L, double dt) {
+    double t0 = 0.0;
+    if (am_record_perf_timings) {
+        t0 = am_get_current_time();
+    }
     am_pre_frame(L, dt);
     unsigned int n = windows.size();
     bool res = true;
@@ -465,6 +476,9 @@ bool am_execute_actions(lua_State *L, double dt) {
         }
     }
     am_post_frame(L);
+    if (am_record_perf_timings) {
+        am_last_frame_lua_time = am_get_current_time() - t0;
+    }
     return res;
 }
 

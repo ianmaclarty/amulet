@@ -367,7 +367,10 @@ function log(fmt, ...)
                     node"translate".y = win.pixel_height
                 end
             end)
-            win._overlay = log_overlay_node
+            if not win._overlay then
+                win._overlay = am.group()
+            end
+            win._overlay:append(log_overlay_node)
             log_overlay_lines = {}
         end
         table.insert(log_overlay_lines, msg)
