@@ -1,16 +1,14 @@
 #include "amulet.h"
 
-void am_framebuffer::init(lua_State *L, am_texture2d *texture, bool depth_buf, bool stencil_buf, glm::dvec4 clear_color, int stencil_clear_value) {
+void am_framebuffer::init(lua_State *L, bool depth_buf, bool stencil_buf, glm::dvec4 clear_color, int stencil_clear_value) {
     framebuffer_id = am_create_framebuffer();
-    if (texture->image_buffer != NULL) {
-        texture->image_buffer->buffer->update_if_dirty();
+    if (color_attachment0->image_buffer != NULL) {
+        color_attachment0->image_buffer->buffer->update_if_dirty();
     }
-    color_attachment0 = texture;
-    color_attachment0_ref = ref(L, 1);
     am_bind_framebuffer(framebuffer_id);
-    am_set_framebuffer_texture2d(AM_FRAMEBUFFER_COLOR_ATTACHMENT0, AM_TEXTURE_COPY_TARGET_2D, texture->texture_id);
-    width = texture->width;
-    height = texture->height;
+    am_set_framebuffer_texture2d(AM_FRAMEBUFFER_COLOR_ATTACHMENT0, AM_TEXTURE_COPY_TARGET_2D, color_attachment0->texture_id);
+    width = color_attachment0->width;
+    height = color_attachment0->height;
     depth_renderbuffer_id = 0;
     stencil_renderbuffer_id = 0;
     depthstencil_renderbuffer_id = 0;
@@ -96,7 +94,9 @@ static int create_framebuffer(lua_State *L) {
     bool stencil_buf = nargs > 2 && lua_toboolean(L, 3);
     glm::dvec4 clear_color = glm::dvec4(0.0f, 0.0f, 0.0f, 1.0f);
     int stencil_clear_value = 0;
-    fb->init(L, texture, depth_buf, stencil_buf, clear_color, stencil_clear_value);
+    fb->color_attachment0 = texture;
+    fb->color_attachment0_ref = fb->ref(L, 1);
+    fb->init(L, depth_buf, stencil_buf, clear_color, stencil_clear_value);
     fb->clear(true, depth_buf, stencil_buf);
     return 1;
 }
@@ -202,7 +202,7 @@ static int resize(lua_State *L) {
     bool user_proj = fb->user_projection;
     glm::dmat4 old_proj = fb->projection;
     fb->destroy(L);
-    fb->init(L, color_at, depth_buf, stencil_buf, clear_color, stencil_clear_value);
+    fb->init(L, depth_buf, stencil_buf, clear_color, stencil_clear_value);
     fb->clear(true, depth_buf, stencil_buf);
     if (user_proj) {
         // restore user-specified projection

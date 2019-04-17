@@ -757,12 +757,12 @@ bool am_build_exports(am_export_flags *flags) {
     conf.recurse = flags->recurse;
     if (!build_data_pak(&conf)) return false;
     bool ok =
-        ((!(flags->windows))        || gen_windows_export(&conf)) &&
-        ((!(flags->mac))            || gen_mac_export(&conf, true)) &&
-        ((!(flags->mac_app_store))  || gen_mac_app_store_export(&conf)) &&
-        ((!(flags->ios_xcode_proj)) || gen_ios_xcode_proj(&conf)) &&
-        ((!(flags->linux))          || gen_linux_export(&conf)) &&
-        ((!(flags->html))           || gen_html_export(&conf)) &&
+        ((!(flags->export_windows))        || gen_windows_export(&conf)) &&
+        ((!(flags->export_mac))            || gen_mac_export(&conf, true)) &&
+        ((!(flags->export_mac_app_store))  || gen_mac_app_store_export(&conf)) &&
+        ((!(flags->export_ios_xcode_proj)) || gen_ios_xcode_proj(&conf)) &&
+        ((!(flags->export_linux))          || gen_linux_export(&conf)) &&
+        ((!(flags->export_html))           || gen_html_export(&conf)) &&
         true;
     am_delete_file(conf.pakfile);
     am_delete_empty_dir(AM_TMP_DIR);

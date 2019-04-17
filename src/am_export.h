@@ -1,22 +1,22 @@
 #ifdef AM_EXPORT
 
 struct am_export_flags {
-    bool windows;
-    bool mac;
-    bool mac_app_store;
-    bool linux;
-    bool html;
-    bool ios_xcode_proj;
+    bool export_windows;
+    bool export_mac;
+    bool export_mac_app_store;
+    bool export_linux;
+    bool export_html;
+    bool export_ios_xcode_proj;
     bool recurse;
     bool zipdir;
 
     am_export_flags() {
-        windows = false;
-        mac = false;
-        mac_app_store = false;
-        linux = false;
-        html = false;
-        ios_xcode_proj = false;
+        export_windows = false;
+        export_mac = false;
+        export_mac_app_store = false;
+        export_linux = false;
+        export_html = false;
+        export_ios_xcode_proj = false;
         recurse = false;
         zipdir = true;
     }
