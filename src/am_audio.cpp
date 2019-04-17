@@ -36,6 +36,8 @@ static std::vector<void*> buffer_pool;
 static int current_pool_bufsize = 0;
 static unsigned int bufpool_top = 0;
 
+static double audio_time_accum = 0.0;
+
 static void clear_buffer_pool() {
     for (unsigned int i = 0; i < buffer_pool.size(); i++) {
         free(buffer_pool[i]);
@@ -1598,6 +1600,10 @@ static void do_post_render(am_audio_context *context, int num_samples, am_audio_
 
 void am_fill_audio_bus(am_audio_bus *bus) {
     if (audio_context.root == NULL) return;
+    double t0 = 0.0;
+    if (am_record_perf_timings) {
+        t0 = am_get_current_time();
+    }
     if (!am_conf_audio_mute) {
 #if AM_STEAMWORKS
         // mute audio if steam overlay shown
@@ -1610,6 +1616,9 @@ void am_fill_audio_bus(am_audio_bus *bus) {
     }
     audio_context.render_id++;
     do_post_render(&audio_context, bus->num_samples, audio_context.root);
+    if (am_record_perf_timings) {
+        audio_time_accum += am_get_current_time() - t0;
+    }
 }
 
 static void sync_children_list(lua_State *L, am_audio_node *node) {
@@ -1690,6 +1699,8 @@ static void sync_audio_graph(lua_State *L, am_audio_context *context, am_audio_n
     for (int i = 0; i < node->live_children.size; i++) {
         sync_audio_graph(L, context, node->live_children.arr[i].child);
     }
+    am_last_frame_audio_time = audio_time_accum;
+    audio_time_accum = 0.0;
 }
 
 void am_sync_audio_graph(lua_State *L) {

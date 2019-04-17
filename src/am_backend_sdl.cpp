@@ -1036,6 +1036,8 @@ static bool handle_events(lua_State *L) {
                 if (!event.key.repeat) {
                     if (!package && event.key.keysym.scancode == SDL_SCANCODE_F5) {
                         restart_triggered = true;
+                    } else if (!package && event.key.keysym.scancode == SDL_SCANCODE_F6) {
+                        am_call_amulet(L, "toggle_perf_overlay", 0, 0);
                     } else {
                         win_info *info = win_from_id(event.key.windowID);
                         if (info) {
