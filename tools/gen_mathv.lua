@@ -1,5 +1,56 @@
 #!/usr/bin/env amulet
 
+local view_type_info = {
+    i8 = {
+        enumval = "AM_VIEW_TYPE_I8", 
+        ctype = "int8_t", 
+    },
+    u8 = {
+        enumval = "AM_VIEW_TYPE_U8", 
+        ctype = "uint8_t", 
+    },
+    i16 = {
+        enumval = "AM_VIEW_TYPE_I16", 
+        ctype = "int16_t", 
+    },
+    u16 = {
+        enumval = "AM_VIEW_TYPE_U16", 
+        ctype = "uint16_t", 
+    },
+    i32 = {
+        enumval = "AM_VIEW_TYPE_I32", 
+        ctype = "int32_t", 
+    },
+    u32 = {
+        enumval = "AM_VIEW_TYPE_U32", 
+        ctype = "uint32_t", 
+    },
+    f32 = {
+        enumval = "AM_VIEW_TYPE_F32", 
+        ctype = "float", 
+        vec_ctypes = {
+            [1] = "float",
+            [2] = "glm::vec2",
+            [3] = "glm::vec3", 
+            [4] = "glm::vec4",
+            [9] = "glm::mat3",
+            [16] = "glm::mat4",
+        }
+    },
+    f64 = {
+        enumval = "AM_VIEW_TYPE_F64", 
+        ctype = "double", 
+        vec_ctypes = {
+            [1] = "double",
+            [2] = "glm::dvec2",
+            [3] = "glm::dvec3", 
+            [4] = "glm::dvec4",
+            [9] = "glm::dmat3",
+            [16] = "glm::dmat4",
+        }
+    },
+}
+
 local func_defs = {
     -- basic functions
     { 
@@ -14,6 +65,14 @@ local func_defs = {
                 args = {
                     {name = "x", type = "f32"},
                     {name = "y", type = "f32"},
+                },
+            },
+            {
+                cname = "ADD_OP",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"},
+                    {name = "y", type = "f64"},
                 },
             },
             {
@@ -82,6 +141,14 @@ local func_defs = {
             },
             {
                 cname = "SUB_OP",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"},
+                    {name = "y", type = "f64"},
+                },
+            },
+            {
+                cname = "SUB_OP",
                 ret_type = "i8",
                 args = {
                     {name = "x", type = "i8"},
@@ -141,6 +208,14 @@ local func_defs = {
                 args = {
                     {name = "x", type = "f32"},
                     {name = "y", type = "f32"},
+                },
+            },
+            {
+                cname = "MUL_OP",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"},
+                    {name = "y", type = "f64"},
                 },
             },
             {
@@ -209,6 +284,14 @@ local func_defs = {
             },
             {
                 cname = "DIV_OP",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"},
+                    {name = "y", type = "f64"},
+                },
+            },
+            {
+                cname = "DIV_OP",
                 ret_type = "i8",
                 args = {
                     {name = "x", type = "i8"},
@@ -264,11 +347,19 @@ local func_defs = {
         comps = {1, 2, 3, 4},
         variants = {
             {
-                cname = "fmodf",
+                cname = "F32MOD_OP",
                 ret_type = "f32",
                 args = {
                     {name = "x", type = "f32"},
                     {name = "y", type = "f32"},
+                },
+            },
+            {
+                cname = "F64MOD_OP",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"},
+                    {name = "y", type = "f64"},
                 },
             },
             {
@@ -335,6 +426,14 @@ local func_defs = {
                     {name = "y", type = "f32"},
                 },
             },
+            {
+                cname = "pow",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"},
+                    {name = "y", type = "f64"},
+                },
+            },
         }
     },
     { 
@@ -348,6 +447,13 @@ local func_defs = {
                 ret_type = "f32",
                 args = {
                     {name = "x", type = "f32"},
+                },
+            },
+            {
+                cname = "UNM_OP",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"},
                 },
             },
             {
@@ -408,6 +514,13 @@ local func_defs = {
                     {name = "angle", type = "f32"}
                 },
             },
+            {
+                cname = "sin",
+                ret_type = "f64",
+                args = {
+                    {name = "angle", type = "f64"}
+                },
+            },
         }
     },
 
@@ -431,6 +544,23 @@ local func_defs = {
                 ret_comps = 2,
                 args = {
                     {name = "xy", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::dvec2",
+                ret_type = "f64",
+                ret_comps = 2,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                    {name = "y", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dvec2",
+                ret_type = "f64",
+                ret_comps = 2,
+                args = {
+                    {name = "xy", type = "f64", comps = 2},
                 },
             },
         }
@@ -473,6 +603,42 @@ local func_defs = {
                 ret_comps = 3,
                 args = {
                     {name = "xyz", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::dvec3",
+                ret_type = "f64",
+                ret_comps = 3,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                    {name = "y", type = "f64", comps = 1},
+                    {name = "z", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dvec3",
+                ret_type = "f64",
+                ret_comps = 3,
+                args = {
+                    {name = "xy", type = "f64", comps = 2},
+                    {name = "z", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dvec3",
+                ret_type = "f64",
+                ret_comps = 3,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                    {name = "yz", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::dvec3",
+                ret_type = "f64",
+                ret_comps = 3,
+                args = {
+                    {name = "xyz", type = "f64", comps = 3},
                 },
             },
         }
@@ -557,6 +723,82 @@ local func_defs = {
                     {name = "xyzw", type = "f32", comps = 4},
                 },
             },
+            {
+                cname = "glm::dvec4",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                    {name = "y", type = "f64", comps = 1},
+                    {name = "z", type = "f64", comps = 1},
+                    {name = "w", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dvec4",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "xyz", type = "f64", comps = 3},
+                    {name = "w", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dvec4",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                    {name = "yzw", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "glm::dvec4",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "xy", type = "f64", comps = 2},
+                    {name = "zw", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::dvec4",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                    {name = "y", type = "f64", comps = 1},
+                    {name = "zw", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::dvec4",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                    {name = "yz", type = "f64", comps = 2},
+                    {name = "w", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dvec4",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "xy", type = "f64", comps = 2},
+                    {name = "z", type = "f64", comps = 1},
+                    {name = "w", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dvec4",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "xyzw", type = "f64", comps = 4},
+                },
+            },
         }
     },
     {
@@ -587,6 +829,32 @@ local func_defs = {
                     {name = "col1", type = "f32", comps = 3},
                     {name = "col2", type = "f32", comps = 3},
                     {name = "col3", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::dmat3",
+                ret_type = "f64",
+                ret_comps = 9,
+                args = {
+                    {name = "e1", type = "f64", comps = 1},
+                    {name = "e2", type = "f64", comps = 1},
+                    {name = "e3", type = "f64", comps = 1},
+                    {name = "e4", type = "f64", comps = 1},
+                    {name = "e5", type = "f64", comps = 1},
+                    {name = "e6", type = "f64", comps = 1},
+                    {name = "e7", type = "f64", comps = 1},
+                    {name = "e8", type = "f64", comps = 1},
+                    {name = "e9", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dmat3",
+                ret_type = "f64",
+                ret_comps = 9,
+                args = {
+                    {name = "col1", type = "f64", comps = 3},
+                    {name = "col2", type = "f64", comps = 3},
+                    {name = "col3", type = "f64", comps = 3},
                 },
             },
         }
@@ -629,6 +897,40 @@ local func_defs = {
                     {name = "col4", type = "f32", comps = 4},
                 },
             },
+            {
+                cname = "glm::dmat4",
+                ret_type = "f64",
+                ret_comps = 16,
+                args = {
+                    {name = "e1", type = "f64", comps = 1},
+                    {name = "e2", type = "f64", comps = 1},
+                    {name = "e3", type = "f64", comps = 1},
+                    {name = "e4", type = "f64", comps = 1},
+                    {name = "e5", type = "f64", comps = 1},
+                    {name = "e6", type = "f64", comps = 1},
+                    {name = "e7", type = "f64", comps = 1},
+                    {name = "e8", type = "f64", comps = 1},
+                    {name = "e9", type = "f64", comps = 1},
+                    {name = "e10", type = "f64", comps = 1},
+                    {name = "e11", type = "f64", comps = 1},
+                    {name = "e12", type = "f64", comps = 1},
+                    {name = "e13", type = "f64", comps = 1},
+                    {name = "e14", type = "f64", comps = 1},
+                    {name = "e15", type = "f64", comps = 1},
+                    {name = "e16", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::dmat4",
+                ret_type = "f64",
+                ret_comps = 16,
+                args = {
+                    {name = "col1", type = "f64", comps = 4},
+                    {name = "col2", type = "f64", comps = 4},
+                    {name = "col3", type = "f64", comps = 4},
+                    {name = "col4", type = "f64", comps = 4},
+                },
+            },
         }
     },
     {
@@ -640,8 +942,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 16,
                 args = {
-                    {name = "m1", type = "f32", comps = 16},
-                    {name = "m2", type = "f32", comps = 16},
+                    {name = "a", type = "f32", comps = 16},
+                    {name = "b", type = "f32", comps = 16},
                 },
             },
             {
@@ -649,8 +951,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 4,
                 args = {
-                    {name = "m", type = "f32", comps = 16},
-                    {name = "v", type = "f32", comps = 4},
+                    {name = "a", type = "f32", comps = 16},
+                    {name = "b", type = "f32", comps = 4},
                 },
             },
             {
@@ -658,8 +960,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 4,
                 args = {
-                    {name = "v", type = "f32", comps = 4},
-                    {name = "m", type = "f32", comps = 16},
+                    {name = "a", type = "f32", comps = 4},
+                    {name = "b", type = "f32", comps = 16},
                 },
             },
             {
@@ -667,8 +969,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 16,
                 args = {
-                    {name = "x", type = "f32", comps = 1},
-                    {name = "m", type = "f32", comps = 16},
+                    {name = "a", type = "f32", comps = 1},
+                    {name = "b", type = "f32", comps = 16},
                 },
             },
             {
@@ -676,8 +978,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 16,
                 args = {
-                    {name = "m", type = "f32", comps = 16},
-                    {name = "x", type = "f32", comps = 1},
+                    {name = "a", type = "f32", comps = 16},
+                    {name = "b", type = "f32", comps = 1},
                 },
             },
             {
@@ -685,8 +987,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 9,
                 args = {
-                    {name = "m1", type = "f32", comps = 9},
-                    {name = "m2", type = "f32", comps = 9},
+                    {name = "a", type = "f32", comps = 9},
+                    {name = "b", type = "f32", comps = 9},
                 },
             },
             {
@@ -694,8 +996,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 3,
                 args = {
-                    {name = "m", type = "f32", comps = 9},
-                    {name = "v", type = "f32", comps = 3},
+                    {name = "a", type = "f32", comps = 9},
+                    {name = "b", type = "f32", comps = 3},
                 },
             },
             {
@@ -703,8 +1005,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 3,
                 args = {
-                    {name = "v", type = "f32", comps = 3},
-                    {name = "m", type = "f32", comps = 9},
+                    {name = "a", type = "f32", comps = 3},
+                    {name = "b", type = "f32", comps = 9},
                 },
             },
             {
@@ -712,8 +1014,8 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 9,
                 args = {
-                    {name = "x", type = "f32", comps = 1},
-                    {name = "m", type = "f32", comps = 9},
+                    {name = "a", type = "f32", comps = 1},
+                    {name = "b", type = "f32", comps = 9},
                 },
             },
             {
@@ -721,8 +1023,98 @@ local func_defs = {
                 ret_type = "f32",
                 ret_comps = 9,
                 args = {
-                    {name = "m", type = "f32", comps = 9},
-                    {name = "x", type = "f32", comps = 1},
+                    {name = "a", type = "f32", comps = 9},
+                    {name = "b", type = "f32", comps = 1},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 16,
+                args = {
+                    {name = "a", type = "f64", comps = 16},
+                    {name = "b", type = "f64", comps = 16},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "a", type = "f64", comps = 16},
+                    {name = "b", type = "f64", comps = 4},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "a", type = "f64", comps = 4},
+                    {name = "b", type = "f64", comps = 16},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 16,
+                args = {
+                    {name = "a", type = "f64", comps = 1},
+                    {name = "b", type = "f64", comps = 16},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 16,
+                args = {
+                    {name = "a", type = "f64", comps = 16},
+                    {name = "b", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 9,
+                args = {
+                    {name = "a", type = "f64", comps = 9},
+                    {name = "b", type = "f64", comps = 9},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 3,
+                args = {
+                    {name = "a", type = "f64", comps = 9},
+                    {name = "b", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 3,
+                args = {
+                    {name = "a", type = "f64", comps = 3},
+                    {name = "b", type = "f64", comps = 9},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 9,
+                args = {
+                    {name = "a", type = "f64", comps = 1},
+                    {name = "b", type = "f64", comps = 9},
+                },
+            },
+            {
+                cname = "MAT_MUL",
+                ret_type = "f64",
+                ret_comps = 9,
+                args = {
+                    {name = "a", type = "f64", comps = 9},
+                    {name = "b", type = "f64", comps = 1},
                 },
             },
         }
@@ -756,6 +1148,33 @@ local func_defs = {
                 args = {
                     {name = "x", type = "f32", comps = 4},
                     {name = "y", type = "f32", comps = 4},
+                },
+            },
+            {
+                cname = "glm::dot",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 2},
+                    {name = "y", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::dot",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 3},
+                    {name = "y", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "glm::dot",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 4},
+                    {name = "y", type = "f64", comps = 4},
                 },
             },
         }
@@ -832,6 +1251,74 @@ local func_defs = {
                     {name = "y", type = "f32", comps = 4},
                 },
             },
+            {
+                cname = "PERLIN1_F64",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 4},
+                },
+            },
+            {
+                cname = "PERLIN2_F64",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                    {name = "y", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 2},
+                    {name = "y", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 3},
+                    {name = "y", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "glm::perlin",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 4},
+                    {name = "y", type = "f64", comps = 4},
+                },
+            },
         }
     },
     {
@@ -870,45 +1357,38 @@ local func_defs = {
                     {name = "x", type = "f32", comps = 4},
                 },
             },
-        }
-    },
-}
-
-local view_type_info = {
-    i8 = {
-        enumval = "AM_VIEW_TYPE_I8", 
-        ctype = "int8_t", 
-    },
-    u8 = {
-        enumval = "AM_VIEW_TYPE_U8", 
-        ctype = "uint8_t", 
-    },
-    i16 = {
-        enumval = "AM_VIEW_TYPE_I16", 
-        ctype = "int16_t", 
-    },
-    u16 = {
-        enumval = "AM_VIEW_TYPE_U16", 
-        ctype = "uint16_t", 
-    },
-    i32 = {
-        enumval = "AM_VIEW_TYPE_I32", 
-        ctype = "int32_t", 
-    },
-    u32 = {
-        enumval = "AM_VIEW_TYPE_U32", 
-        ctype = "uint32_t", 
-    },
-    f32 = {
-        enumval = "AM_VIEW_TYPE_F32", 
-        ctype = "float", 
-        vec_ctypes = {
-            [1] = "float",
-            [2] = "glm::vec2",
-            [3] = "glm::vec3", 
-            [4] = "glm::vec4",
-            [9] = "glm::mat3",
-            [16] = "glm::mat4",
+            {
+                cname = "SIMPLEX1_F64",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 1},
+                },
+            },
+            {
+                cname = "SIMPLEX2_F64",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "SIMPLEX3_F64",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "SIMPLEX4_F64",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 4},
+                },
+            },
         }
     },
 }

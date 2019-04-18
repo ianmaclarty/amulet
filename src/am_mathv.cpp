@@ -15,7 +15,7 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.add.\nsupported signatures are:\n  mathv.add(x:f32, y:f32)\n  mathv.add(x:i8, y:i8)\n  mathv.add(x:u8, y:u8)\n  mathv.add(x:i16, y:i16)\n  mathv.add(x:u16, y:u16)\n  mathv.add(x:i32, y:i32)\n  mathv.add(x:u32, y:u32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.add.\nsupported signatures are:\n  mathv.add(x:f32, y:f32)\n  mathv.add(x:f64, y:f64)\n  mathv.add(x:i8, y:i8)\n  mathv.add(x:u8, y:u8)\n  mathv.add(x:i16, y:i16)\n  mathv.add(x:u16, y:u16)\n  mathv.add(x:i32, y:i32)\n  mathv.add(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -730,6 +730,691 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                     in_ptr_2_15 += in_stride_2;
                     out_ptr_15 += out_stride;
                     *((float*)out_ptr_16) = ADD_OP(*((float*)in_ptr_1_16), *((float*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = ADD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = ADD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = ADD_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = ADD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = ADD_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = ADD_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = ADD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = ADD_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = ADD_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = ADD_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(double);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(double);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(double);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(double);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(double);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(double);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(double);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(double);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(double);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(double);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(double);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(double);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(double);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(double);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = ADD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = ADD_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = ADD_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = ADD_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((double*)out_ptr_5) = ADD_OP(*((double*)in_ptr_1_5), *((double*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((double*)out_ptr_6) = ADD_OP(*((double*)in_ptr_1_6), *((double*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((double*)out_ptr_7) = ADD_OP(*((double*)in_ptr_1_7), *((double*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((double*)out_ptr_8) = ADD_OP(*((double*)in_ptr_1_8), *((double*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((double*)out_ptr_9) = ADD_OP(*((double*)in_ptr_1_9), *((double*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(double);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(double);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(double);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(double);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(double);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(double);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(double);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(double);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(double);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(double);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(double);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(double);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(double);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(double);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(double);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(double);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(double);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(double);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(double);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(double);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(double);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(double);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(double);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(double);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(double);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(double);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(double);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(double);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(double);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(double);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(double);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(double);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(double);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(double);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(double);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = ADD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = ADD_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = ADD_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = ADD_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((double*)out_ptr_5) = ADD_OP(*((double*)in_ptr_1_5), *((double*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((double*)out_ptr_6) = ADD_OP(*((double*)in_ptr_1_6), *((double*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((double*)out_ptr_7) = ADD_OP(*((double*)in_ptr_1_7), *((double*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((double*)out_ptr_8) = ADD_OP(*((double*)in_ptr_1_8), *((double*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((double*)out_ptr_9) = ADD_OP(*((double*)in_ptr_1_9), *((double*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((double*)out_ptr_10) = ADD_OP(*((double*)in_ptr_1_10), *((double*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((double*)out_ptr_11) = ADD_OP(*((double*)in_ptr_1_11), *((double*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((double*)out_ptr_12) = ADD_OP(*((double*)in_ptr_1_12), *((double*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((double*)out_ptr_13) = ADD_OP(*((double*)in_ptr_1_13), *((double*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((double*)out_ptr_14) = ADD_OP(*((double*)in_ptr_1_14), *((double*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((double*)out_ptr_15) = ADD_OP(*((double*)in_ptr_1_15), *((double*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((double*)out_ptr_16) = ADD_OP(*((double*)in_ptr_1_16), *((double*)in_ptr_2_16));
                     in_ptr_1_16 += in_stride_1;
                     in_ptr_2_16 += in_stride_2;
                     out_ptr_16 += out_stride;
@@ -4898,7 +5583,7 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.add.\nsupported signatures are:\n  mathv.add(x:f32, y:f32)\n  mathv.add(x:i8, y:i8)\n  mathv.add(x:u8, y:u8)\n  mathv.add(x:i16, y:i16)\n  mathv.add(x:u16, y:u16)\n  mathv.add(x:i32, y:i32)\n  mathv.add(x:u32, y:u32)\n");
+    return luaL_error(L, "invalid argument types for function mathv.add.\nsupported signatures are:\n  mathv.add(x:f32, y:f32)\n  mathv.add(x:f64, y:f64)\n  mathv.add(x:i8, y:i8)\n  mathv.add(x:u8, y:u8)\n  mathv.add(x:i16, y:i16)\n  mathv.add(x:u16, y:u16)\n  mathv.add(x:i32, y:i32)\n  mathv.add(x:u32, y:u32)\n");
 }
 
 int am_mathv_add(lua_State *L) {
@@ -4925,7 +5610,7 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.sub.\nsupported signatures are:\n  mathv.sub(x:f32, y:f32)\n  mathv.sub(x:i8, y:i8)\n  mathv.sub(x:u8, y:u8)\n  mathv.sub(x:i16, y:i16)\n  mathv.sub(x:u16, y:u16)\n  mathv.sub(x:i32, y:i32)\n  mathv.sub(x:u32, y:u32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.sub.\nsupported signatures are:\n  mathv.sub(x:f32, y:f32)\n  mathv.sub(x:f64, y:f64)\n  mathv.sub(x:i8, y:i8)\n  mathv.sub(x:u8, y:u8)\n  mathv.sub(x:i16, y:i16)\n  mathv.sub(x:u16, y:u16)\n  mathv.sub(x:i32, y:i32)\n  mathv.sub(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -5640,6 +6325,691 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                     in_ptr_2_15 += in_stride_2;
                     out_ptr_15 += out_stride;
                     *((float*)out_ptr_16) = SUB_OP(*((float*)in_ptr_1_16), *((float*)in_ptr_2_16));
+                    in_ptr_1_16 += in_stride_1;
+                    in_ptr_2_16 += in_stride_2;
+                    out_ptr_16 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = SUB_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = SUB_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = SUB_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = SUB_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = SUB_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = SUB_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = SUB_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = SUB_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = SUB_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = SUB_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            case 9: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(double);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(double);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(double);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(double);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(double);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(double);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(double);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(double);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(double);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(double);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(double);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(double);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(double);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(double);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = SUB_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = SUB_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = SUB_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = SUB_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((double*)out_ptr_5) = SUB_OP(*((double*)in_ptr_1_5), *((double*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((double*)out_ptr_6) = SUB_OP(*((double*)in_ptr_1_6), *((double*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((double*)out_ptr_7) = SUB_OP(*((double*)in_ptr_1_7), *((double*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((double*)out_ptr_8) = SUB_OP(*((double*)in_ptr_1_8), *((double*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((double*)out_ptr_9) = SUB_OP(*((double*)in_ptr_1_9), *((double*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                }
+                return 1;
+            }
+            case 16: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_5;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_5 = &arg_data[0][0] + 4 * sizeof(double);
+                } else {
+                    in_ptr_1_5 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_6;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_6 = &arg_data[0][0] + 5 * sizeof(double);
+                } else {
+                    in_ptr_1_6 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_7;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_7 = &arg_data[0][0] + 6 * sizeof(double);
+                } else {
+                    in_ptr_1_7 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_8;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_8 = &arg_data[0][0] + 7 * sizeof(double);
+                } else {
+                    in_ptr_1_8 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_9;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_9 = &arg_data[0][0] + 8 * sizeof(double);
+                } else {
+                    in_ptr_1_9 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_10;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_10 = &arg_data[0][0] + 9 * sizeof(double);
+                } else {
+                    in_ptr_1_10 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_11;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_11 = &arg_data[0][0] + 10 * sizeof(double);
+                } else {
+                    in_ptr_1_11 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_12;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_12 = &arg_data[0][0] + 11 * sizeof(double);
+                } else {
+                    in_ptr_1_12 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_13;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_13 = &arg_data[0][0] + 12 * sizeof(double);
+                } else {
+                    in_ptr_1_13 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_14;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_14 = &arg_data[0][0] + 13 * sizeof(double);
+                } else {
+                    in_ptr_1_14 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_15;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_15 = &arg_data[0][0] + 14 * sizeof(double);
+                } else {
+                    in_ptr_1_15 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_16;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_16 = &arg_data[0][0] + 15 * sizeof(double);
+                } else {
+                    in_ptr_1_16 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_5;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_5 = &arg_data[1][0] + 4 * sizeof(double);
+                } else {
+                    in_ptr_2_5 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_6;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_6 = &arg_data[1][0] + 5 * sizeof(double);
+                } else {
+                    in_ptr_2_6 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_7;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_7 = &arg_data[1][0] + 6 * sizeof(double);
+                } else {
+                    in_ptr_2_7 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_8;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_8 = &arg_data[1][0] + 7 * sizeof(double);
+                } else {
+                    in_ptr_2_8 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_9;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_9 = &arg_data[1][0] + 8 * sizeof(double);
+                } else {
+                    in_ptr_2_9 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_10;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_10 = &arg_data[1][0] + 9 * sizeof(double);
+                } else {
+                    in_ptr_2_10 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_11;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_11 = &arg_data[1][0] + 10 * sizeof(double);
+                } else {
+                    in_ptr_2_11 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_12;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_12 = &arg_data[1][0] + 11 * sizeof(double);
+                } else {
+                    in_ptr_2_12 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_13;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_13 = &arg_data[1][0] + 12 * sizeof(double);
+                } else {
+                    in_ptr_2_13 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_14;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_14 = &arg_data[1][0] + 13 * sizeof(double);
+                } else {
+                    in_ptr_2_14 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_15;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_15 = &arg_data[1][0] + 14 * sizeof(double);
+                } else {
+                    in_ptr_2_15 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_16;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_16 = &arg_data[1][0] + 15 * sizeof(double);
+                } else {
+                    in_ptr_2_16 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                uint8_t *out_ptr_5 = output_ptr + 4 * sizeof(double);
+                uint8_t *out_ptr_6 = output_ptr + 5 * sizeof(double);
+                uint8_t *out_ptr_7 = output_ptr + 6 * sizeof(double);
+                uint8_t *out_ptr_8 = output_ptr + 7 * sizeof(double);
+                uint8_t *out_ptr_9 = output_ptr + 8 * sizeof(double);
+                uint8_t *out_ptr_10 = output_ptr + 9 * sizeof(double);
+                uint8_t *out_ptr_11 = output_ptr + 10 * sizeof(double);
+                uint8_t *out_ptr_12 = output_ptr + 11 * sizeof(double);
+                uint8_t *out_ptr_13 = output_ptr + 12 * sizeof(double);
+                uint8_t *out_ptr_14 = output_ptr + 13 * sizeof(double);
+                uint8_t *out_ptr_15 = output_ptr + 14 * sizeof(double);
+                uint8_t *out_ptr_16 = output_ptr + 15 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = SUB_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = SUB_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = SUB_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = SUB_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                    *((double*)out_ptr_5) = SUB_OP(*((double*)in_ptr_1_5), *((double*)in_ptr_2_5));
+                    in_ptr_1_5 += in_stride_1;
+                    in_ptr_2_5 += in_stride_2;
+                    out_ptr_5 += out_stride;
+                    *((double*)out_ptr_6) = SUB_OP(*((double*)in_ptr_1_6), *((double*)in_ptr_2_6));
+                    in_ptr_1_6 += in_stride_1;
+                    in_ptr_2_6 += in_stride_2;
+                    out_ptr_6 += out_stride;
+                    *((double*)out_ptr_7) = SUB_OP(*((double*)in_ptr_1_7), *((double*)in_ptr_2_7));
+                    in_ptr_1_7 += in_stride_1;
+                    in_ptr_2_7 += in_stride_2;
+                    out_ptr_7 += out_stride;
+                    *((double*)out_ptr_8) = SUB_OP(*((double*)in_ptr_1_8), *((double*)in_ptr_2_8));
+                    in_ptr_1_8 += in_stride_1;
+                    in_ptr_2_8 += in_stride_2;
+                    out_ptr_8 += out_stride;
+                    *((double*)out_ptr_9) = SUB_OP(*((double*)in_ptr_1_9), *((double*)in_ptr_2_9));
+                    in_ptr_1_9 += in_stride_1;
+                    in_ptr_2_9 += in_stride_2;
+                    out_ptr_9 += out_stride;
+                    *((double*)out_ptr_10) = SUB_OP(*((double*)in_ptr_1_10), *((double*)in_ptr_2_10));
+                    in_ptr_1_10 += in_stride_1;
+                    in_ptr_2_10 += in_stride_2;
+                    out_ptr_10 += out_stride;
+                    *((double*)out_ptr_11) = SUB_OP(*((double*)in_ptr_1_11), *((double*)in_ptr_2_11));
+                    in_ptr_1_11 += in_stride_1;
+                    in_ptr_2_11 += in_stride_2;
+                    out_ptr_11 += out_stride;
+                    *((double*)out_ptr_12) = SUB_OP(*((double*)in_ptr_1_12), *((double*)in_ptr_2_12));
+                    in_ptr_1_12 += in_stride_1;
+                    in_ptr_2_12 += in_stride_2;
+                    out_ptr_12 += out_stride;
+                    *((double*)out_ptr_13) = SUB_OP(*((double*)in_ptr_1_13), *((double*)in_ptr_2_13));
+                    in_ptr_1_13 += in_stride_1;
+                    in_ptr_2_13 += in_stride_2;
+                    out_ptr_13 += out_stride;
+                    *((double*)out_ptr_14) = SUB_OP(*((double*)in_ptr_1_14), *((double*)in_ptr_2_14));
+                    in_ptr_1_14 += in_stride_1;
+                    in_ptr_2_14 += in_stride_2;
+                    out_ptr_14 += out_stride;
+                    *((double*)out_ptr_15) = SUB_OP(*((double*)in_ptr_1_15), *((double*)in_ptr_2_15));
+                    in_ptr_1_15 += in_stride_1;
+                    in_ptr_2_15 += in_stride_2;
+                    out_ptr_15 += out_stride;
+                    *((double*)out_ptr_16) = SUB_OP(*((double*)in_ptr_1_16), *((double*)in_ptr_2_16));
                     in_ptr_1_16 += in_stride_1;
                     in_ptr_2_16 += in_stride_2;
                     out_ptr_16 += out_stride;
@@ -9808,7 +11178,7 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.sub.\nsupported signatures are:\n  mathv.sub(x:f32, y:f32)\n  mathv.sub(x:i8, y:i8)\n  mathv.sub(x:u8, y:u8)\n  mathv.sub(x:i16, y:i16)\n  mathv.sub(x:u16, y:u16)\n  mathv.sub(x:i32, y:i32)\n  mathv.sub(x:u32, y:u32)\n");
+    return luaL_error(L, "invalid argument types for function mathv.sub.\nsupported signatures are:\n  mathv.sub(x:f32, y:f32)\n  mathv.sub(x:f64, y:f64)\n  mathv.sub(x:i8, y:i8)\n  mathv.sub(x:u8, y:u8)\n  mathv.sub(x:i16, y:i16)\n  mathv.sub(x:u16, y:u16)\n  mathv.sub(x:i32, y:i32)\n  mathv.sub(x:u32, y:u32)\n");
 }
 
 int am_mathv_sub(lua_State *L) {
@@ -9835,7 +11205,7 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.vec_mul.\nsupported signatures are:\n  mathv.vec_mul(x:f32, y:f32)\n  mathv.vec_mul(x:i8, y:i8)\n  mathv.vec_mul(x:u8, y:u8)\n  mathv.vec_mul(x:i16, y:i16)\n  mathv.vec_mul(x:u16, y:u16)\n  mathv.vec_mul(x:i32, y:i32)\n  mathv.vec_mul(x:u32, y:u32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.vec_mul.\nsupported signatures are:\n  mathv.vec_mul(x:f32, y:f32)\n  mathv.vec_mul(x:f64, y:f64)\n  mathv.vec_mul(x:i8, y:i8)\n  mathv.vec_mul(x:u8, y:u8)\n  mathv.vec_mul(x:i16, y:i16)\n  mathv.vec_mul(x:u16, y:u16)\n  mathv.vec_mul(x:i32, y:i32)\n  mathv.vec_mul(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -10111,6 +11481,252 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
                     *((float*)out_ptr_4) = MUL_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = MUL_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = MUL_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = MUL_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = MUL_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = MUL_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = MUL_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = MUL_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = MUL_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = MUL_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = MUL_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
@@ -11645,7 +13261,7 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.vec_mul.\nsupported signatures are:\n  mathv.vec_mul(x:f32, y:f32)\n  mathv.vec_mul(x:i8, y:i8)\n  mathv.vec_mul(x:u8, y:u8)\n  mathv.vec_mul(x:i16, y:i16)\n  mathv.vec_mul(x:u16, y:u16)\n  mathv.vec_mul(x:i32, y:i32)\n  mathv.vec_mul(x:u32, y:u32)\n");
+    return luaL_error(L, "invalid argument types for function mathv.vec_mul.\nsupported signatures are:\n  mathv.vec_mul(x:f32, y:f32)\n  mathv.vec_mul(x:f64, y:f64)\n  mathv.vec_mul(x:i8, y:i8)\n  mathv.vec_mul(x:u8, y:u8)\n  mathv.vec_mul(x:i16, y:i16)\n  mathv.vec_mul(x:u16, y:u16)\n  mathv.vec_mul(x:i32, y:i32)\n  mathv.vec_mul(x:u32, y:u32)\n");
 }
 
 static int am_mathv_vec_mul(lua_State *L) {
@@ -11672,7 +13288,7 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.div.\nsupported signatures are:\n  mathv.div(x:f32, y:f32)\n  mathv.div(x:i8, y:i8)\n  mathv.div(x:u8, y:u8)\n  mathv.div(x:i16, y:i16)\n  mathv.div(x:u16, y:u16)\n  mathv.div(x:i32, y:i32)\n  mathv.div(x:u32, y:u32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.div.\nsupported signatures are:\n  mathv.div(x:f32, y:f32)\n  mathv.div(x:f64, y:f64)\n  mathv.div(x:i8, y:i8)\n  mathv.div(x:u8, y:u8)\n  mathv.div(x:i16, y:i16)\n  mathv.div(x:u16, y:u16)\n  mathv.div(x:i32, y:i32)\n  mathv.div(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -11948,6 +13564,252 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
                     *((float*)out_ptr_4) = DIV_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = DIV_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = DIV_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = DIV_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = DIV_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = DIV_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = DIV_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = DIV_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = DIV_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = DIV_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = DIV_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
@@ -13482,7 +15344,7 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.div.\nsupported signatures are:\n  mathv.div(x:f32, y:f32)\n  mathv.div(x:i8, y:i8)\n  mathv.div(x:u8, y:u8)\n  mathv.div(x:i16, y:i16)\n  mathv.div(x:u16, y:u16)\n  mathv.div(x:i32, y:i32)\n  mathv.div(x:u32, y:u32)\n");
+    return luaL_error(L, "invalid argument types for function mathv.div.\nsupported signatures are:\n  mathv.div(x:f32, y:f32)\n  mathv.div(x:f64, y:f64)\n  mathv.div(x:i8, y:i8)\n  mathv.div(x:u8, y:u8)\n  mathv.div(x:i16, y:i16)\n  mathv.div(x:u16, y:u16)\n  mathv.div(x:i32, y:i32)\n  mathv.div(x:u32, y:u32)\n");
 }
 
 int am_mathv_div(lua_State *L) {
@@ -13509,7 +15371,7 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.mod.\nsupported signatures are:\n  mathv.mod(x:f32, y:f32)\n  mathv.mod(x:i8, y:i8)\n  mathv.mod(x:u8, y:u8)\n  mathv.mod(x:i16, y:i16)\n  mathv.mod(x:u16, y:u16)\n  mathv.mod(x:i32, y:i32)\n  mathv.mod(x:u32, y:u32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.mod.\nsupported signatures are:\n  mathv.mod(x:f32, y:f32)\n  mathv.mod(x:f64, y:f64)\n  mathv.mod(x:i8, y:i8)\n  mathv.mod(x:u8, y:u8)\n  mathv.mod(x:i16, y:i16)\n  mathv.mod(x:u16, y:u16)\n  mathv.mod(x:i32, y:i32)\n  mathv.mod(x:u32, y:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -13610,7 +15472,7 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
                 }
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = fmodf(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = F32MOD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
@@ -13647,11 +15509,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(float);
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = fmodf(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = F32MOD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = fmodf(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = F32MOD_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
@@ -13701,15 +15563,15 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(float);
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = fmodf(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = F32MOD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = fmodf(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = F32MOD_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = fmodf(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = F32MOD_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
@@ -13772,19 +15634,265 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
                 uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(float);
                 uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(float);
                 for (int i = 0; i < count; ++i) {
-                    *((float*)out_ptr_1) = fmodf(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
+                    *((float*)out_ptr_1) = F32MOD_OP(*((float*)in_ptr_1_1), *((float*)in_ptr_2_1));
                     in_ptr_1_1 += in_stride_1;
                     in_ptr_2_1 += in_stride_2;
                     out_ptr_1 += out_stride;
-                    *((float*)out_ptr_2) = fmodf(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
+                    *((float*)out_ptr_2) = F32MOD_OP(*((float*)in_ptr_1_2), *((float*)in_ptr_2_2));
                     in_ptr_1_2 += in_stride_1;
                     in_ptr_2_2 += in_stride_2;
                     out_ptr_2 += out_stride;
-                    *((float*)out_ptr_3) = fmodf(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
+                    *((float*)out_ptr_3) = F32MOD_OP(*((float*)in_ptr_1_3), *((float*)in_ptr_2_3));
                     in_ptr_1_3 += in_stride_1;
                     in_ptr_2_3 += in_stride_2;
                     out_ptr_3 += out_stride;
-                    *((float*)out_ptr_4) = fmodf(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    *((float*)out_ptr_4) = F32MOD_OP(*((float*)in_ptr_1_4), *((float*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = F64MOD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = F64MOD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = F64MOD_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = F64MOD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = F64MOD_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = F64MOD_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = F64MOD_OP(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = F64MOD_OP(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = F64MOD_OP(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = F64MOD_OP(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
                     in_ptr_1_4 += in_stride_1;
                     in_ptr_2_4 += in_stride_2;
                     out_ptr_4 += out_stride;
@@ -15319,7 +17427,7 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.mod.\nsupported signatures are:\n  mathv.mod(x:f32, y:f32)\n  mathv.mod(x:i8, y:i8)\n  mathv.mod(x:u8, y:u8)\n  mathv.mod(x:i16, y:i16)\n  mathv.mod(x:u16, y:u16)\n  mathv.mod(x:i32, y:i32)\n  mathv.mod(x:u32, y:u32)\n");
+    return luaL_error(L, "invalid argument types for function mathv.mod.\nsupported signatures are:\n  mathv.mod(x:f32, y:f32)\n  mathv.mod(x:f64, y:f64)\n  mathv.mod(x:i8, y:i8)\n  mathv.mod(x:u8, y:u8)\n  mathv.mod(x:i16, y:i16)\n  mathv.mod(x:u16, y:u16)\n  mathv.mod(x:i32, y:i32)\n  mathv.mod(x:u32, y:u32)\n");
 }
 
 int am_mathv_mod(lua_State *L) {
@@ -15346,7 +17454,7 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.pow.\nsupported signatures are:\n  mathv.pow(x:f32, y:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.pow.\nsupported signatures are:\n  mathv.pow(x:f32, y:f32)\n  mathv.pow(x:f64, y:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -15632,7 +17740,253 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.pow.\nsupported signatures are:\n  mathv.pow(x:f32, y:f32)\n");
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    arg_data[0] = (uint8_t*)f64s;
+        }
+                if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+                    arg_data[1] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = pow(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = pow(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = pow(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = pow(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = pow(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = pow(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                int in_stride_2 = arg_stride[1];
+                uint8_t *in_ptr_2_1;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_1 = &arg_data[1][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_2_1 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_2;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_2 = &arg_data[1][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_2_2 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_3;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_3 = &arg_data[1][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_2_3 = &arg_data[1][0];
+                }
+                uint8_t *in_ptr_2_4;
+                if (arg_components[1] > 1) {
+                    in_ptr_2_4 = &arg_data[1][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_2_4 = &arg_data[1][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = pow(*((double*)in_ptr_1_1), *((double*)in_ptr_2_1));
+                    in_ptr_1_1 += in_stride_1;
+                    in_ptr_2_1 += in_stride_2;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = pow(*((double*)in_ptr_1_2), *((double*)in_ptr_2_2));
+                    in_ptr_1_2 += in_stride_1;
+                    in_ptr_2_2 += in_stride_2;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = pow(*((double*)in_ptr_1_3), *((double*)in_ptr_2_3));
+                    in_ptr_1_3 += in_stride_1;
+                    in_ptr_2_3 += in_stride_2;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = pow(*((double*)in_ptr_1_4), *((double*)in_ptr_2_4));
+                    in_ptr_1_4 += in_stride_1;
+                    in_ptr_2_4 += in_stride_2;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    return luaL_error(L, "invalid argument types for function mathv.pow.\nsupported signatures are:\n  mathv.pow(x:f32, y:f32)\n  mathv.pow(x:f64, y:f64)\n");
 }
 
 int am_mathv_pow(lua_State *L) {
@@ -15659,7 +18013,7 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[1];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.unm.\nsupported signatures are:\n  mathv.unm(x:f32)\n  mathv.unm(x:i8)\n  mathv.unm(x:u8)\n  mathv.unm(x:i16)\n  mathv.unm(x:u16)\n  mathv.unm(x:i32)\n  mathv.unm(x:u32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.unm.\nsupported signatures are:\n  mathv.unm(x:f32)\n  mathv.unm(x:f64)\n  mathv.unm(x:i8)\n  mathv.unm(x:u8)\n  mathv.unm(x:i16)\n  mathv.unm(x:u16)\n  mathv.unm(x:i32)\n  mathv.unm(x:u32)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -15854,6 +18208,174 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
                     in_ptr_1_3 += in_stride_1;
                     out_ptr_3 += out_stride;
                     *((float*)out_ptr_4) = UNM_OP(*((float*)in_ptr_1_4));
+                    in_ptr_1_4 += in_stride_1;
+                    out_ptr_4 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    arg_data[0] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = UNM_OP(*((double*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            case 2: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = UNM_OP(*((double*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = UNM_OP(*((double*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                }
+                return 1;
+            }
+            case 3: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = UNM_OP(*((double*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = UNM_OP(*((double*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = UNM_OP(*((double*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                }
+                return 1;
+            }
+            case 4: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_2;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_2 = &arg_data[0][0] + 1 * sizeof(double);
+                } else {
+                    in_ptr_1_2 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_3;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_3 = &arg_data[0][0] + 2 * sizeof(double);
+                } else {
+                    in_ptr_1_3 = &arg_data[0][0];
+                }
+                uint8_t *in_ptr_1_4;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_4 = &arg_data[0][0] + 3 * sizeof(double);
+                } else {
+                    in_ptr_1_4 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                uint8_t *out_ptr_2 = output_ptr + 1 * sizeof(double);
+                uint8_t *out_ptr_3 = output_ptr + 2 * sizeof(double);
+                uint8_t *out_ptr_4 = output_ptr + 3 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = UNM_OP(*((double*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                    *((double*)out_ptr_2) = UNM_OP(*((double*)in_ptr_1_2));
+                    in_ptr_1_2 += in_stride_1;
+                    out_ptr_2 += out_stride;
+                    *((double*)out_ptr_3) = UNM_OP(*((double*)in_ptr_1_3));
+                    in_ptr_1_3 += in_stride_1;
+                    out_ptr_3 += out_stride;
+                    *((double*)out_ptr_4) = UNM_OP(*((double*)in_ptr_1_4));
                     in_ptr_1_4 += in_stride_1;
                     out_ptr_4 += out_stride;
                 }
@@ -16895,7 +19417,7 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.unm.\nsupported signatures are:\n  mathv.unm(x:f32)\n  mathv.unm(x:i8)\n  mathv.unm(x:u8)\n  mathv.unm(x:i16)\n  mathv.unm(x:u16)\n  mathv.unm(x:i32)\n  mathv.unm(x:u32)\n");
+    return luaL_error(L, "invalid argument types for function mathv.unm.\nsupported signatures are:\n  mathv.unm(x:f32)\n  mathv.unm(x:f64)\n  mathv.unm(x:i8)\n  mathv.unm(x:u8)\n  mathv.unm(x:i16)\n  mathv.unm(x:u16)\n  mathv.unm(x:i32)\n  mathv.unm(x:u32)\n");
 }
 
 int am_mathv_unm(lua_State *L) {
@@ -16922,7 +19444,7 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[1];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.sin.\nsupported signatures are:\n  mathv.sin(angle:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.sin.\nsupported signatures are:\n  mathv.sin(angle:f32)\n  mathv.sin(angle:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -17018,7 +19540,67 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
                 return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
         }
     }
-    return luaL_error(L, "invalid argument types for function mathv.sin.\nsupported signatures are:\n  mathv.sin(angle:f32)\n");
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+                    arg_data[0] = (uint8_t*)f64s;
+        }
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        switch(output_components) {
+            case 1: {
+                int in_stride_1 = arg_stride[0];
+                uint8_t *in_ptr_1_1;
+                if (arg_components[0] > 1) {
+                    in_ptr_1_1 = &arg_data[0][0] + 0 * sizeof(double);
+                } else {
+                    in_ptr_1_1 = &arg_data[0][0];
+                }
+                uint8_t *out_ptr_1 = output_ptr + 0 * sizeof(double);
+                for (int i = 0; i < count; ++i) {
+                    *((double*)out_ptr_1) = sin(*((double*)in_ptr_1_1));
+                    in_ptr_1_1 += in_stride_1;
+                    out_ptr_1 += out_stride;
+                }
+                return 1;
+            }
+            default:
+                return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
+        }
+    }
+    return luaL_error(L, "invalid argument types for function mathv.sin.\nsupported signatures are:\n  mathv.sin(angle:f32)\n  mathv.sin(angle:f64)\n");
 }
 
 static int am_mathv_sin(lua_State *L) {
@@ -17045,7 +19627,7 @@ static int vec2_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.vec2.\nsupported signatures are:\n  mathv.vec2(x:f32, y:f32)\n  mathv.vec2(xy:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.vec2.\nsupported signatures are:\n  mathv.vec2(x:f32, y:f32)\n  mathv.vec2(xy:f32)\n  mathv.vec2(x:f64, y:f64)\n  mathv.vec2(xy:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -17183,7 +19765,112 @@ static int vec2_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.vec2.\nsupported signatures are:\n  mathv.vec2(x:f32, y:f32)\n  mathv.vec2(xy:f32)\n");
+    if (nargs == 2  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 2;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec2*)output_ptr) = glm::dvec2(*((double*)in_ptr_1), *((double*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 2 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 2;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec2*)output_ptr) = glm::dvec2(*((glm::dvec2*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.vec2.\nsupported signatures are:\n  mathv.vec2(x:f32, y:f32)\n  mathv.vec2(xy:f32)\n  mathv.vec2(x:f64, y:f64)\n  mathv.vec2(xy:f64)\n");
 }
 
 static int am_mathv_vec2(lua_State *L) {
@@ -17210,7 +19897,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[3];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.vec3.\nsupported signatures are:\n  mathv.vec3(x:f32, y:f32, z:f32)\n  mathv.vec3(xy:f32, z:f32)\n  mathv.vec3(x:f32, yz:f32)\n  mathv.vec3(xyz:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.vec3.\nsupported signatures are:\n  mathv.vec3(x:f32, y:f32, z:f32)\n  mathv.vec3(xy:f32, z:f32)\n  mathv.vec3(x:f32, yz:f32)\n  mathv.vec3(xyz:f32)\n  mathv.vec3(x:f64, y:f64, z:f64)\n  mathv.vec3(xy:f64, z:f64)\n  mathv.vec3(x:f64, yz:f64)\n  mathv.vec3(xyz:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -17487,7 +20174,231 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.vec3.\nsupported signatures are:\n  mathv.vec3(x:f32, y:f32, z:f32)\n  mathv.vec3(xy:f32, z:f32)\n  mathv.vec3(x:f32, yz:f32)\n  mathv.vec3(xyz:f32)\n");
+    if (nargs == 3  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 1 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        int output_components = 3;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec3*)output_ptr) = glm::dvec3(*((double*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 2 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 3;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec3*)output_ptr) = glm::dvec3(*((glm::dvec2*)in_ptr_1), *((double*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 2 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 3;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec3*)output_ptr) = glm::dvec3(*((double*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 3 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 3;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec3*)output_ptr) = glm::dvec3(*((glm::dvec3*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.vec3.\nsupported signatures are:\n  mathv.vec3(x:f32, y:f32, z:f32)\n  mathv.vec3(xy:f32, z:f32)\n  mathv.vec3(x:f32, yz:f32)\n  mathv.vec3(xyz:f32)\n  mathv.vec3(x:f64, y:f64, z:f64)\n  mathv.vec3(xy:f64, z:f64)\n  mathv.vec3(x:f64, yz:f64)\n  mathv.vec3(xyz:f64)\n");
 }
 
 static int am_mathv_vec3(lua_State *L) {
@@ -17514,7 +20425,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[4];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.vec4.\nsupported signatures are:\n  mathv.vec4(x:f32, y:f32, z:f32, w:f32)\n  mathv.vec4(xyz:f32, w:f32)\n  mathv.vec4(x:f32, yzw:f32)\n  mathv.vec4(xy:f32, zw:f32)\n  mathv.vec4(x:f32, y:f32, zw:f32)\n  mathv.vec4(x:f32, yz:f32, w:f32)\n  mathv.vec4(xy:f32, z:f32, w:f32)\n  mathv.vec4(xyzw:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.vec4.\nsupported signatures are:\n  mathv.vec4(x:f32, y:f32, z:f32, w:f32)\n  mathv.vec4(xyz:f32, w:f32)\n  mathv.vec4(x:f32, yzw:f32)\n  mathv.vec4(xy:f32, zw:f32)\n  mathv.vec4(x:f32, y:f32, zw:f32)\n  mathv.vec4(x:f32, yz:f32, w:f32)\n  mathv.vec4(xy:f32, z:f32, w:f32)\n  mathv.vec4(xyzw:f32)\n  mathv.vec4(x:f64, y:f64, z:f64, w:f64)\n  mathv.vec4(xyz:f64, w:f64)\n  mathv.vec4(x:f64, yzw:f64)\n  mathv.vec4(xy:f64, zw:f64)\n  mathv.vec4(x:f64, y:f64, zw:f64)\n  mathv.vec4(x:f64, yz:f64, w:f64)\n  mathv.vec4(xy:f64, z:f64, w:f64)\n  mathv.vec4(xyzw:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -18091,7 +21002,483 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.vec4.\nsupported signatures are:\n  mathv.vec4(x:f32, y:f32, z:f32, w:f32)\n  mathv.vec4(xyz:f32, w:f32)\n  mathv.vec4(x:f32, yzw:f32)\n  mathv.vec4(xy:f32, zw:f32)\n  mathv.vec4(x:f32, y:f32, zw:f32)\n  mathv.vec4(x:f32, yz:f32, w:f32)\n  mathv.vec4(xy:f32, z:f32, w:f32)\n  mathv.vec4(xyzw:f32)\n");
+    if (nargs == 4  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 1 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view) && arg_components[3] == 1 && ((arg_type[3] == MT_am_buffer_view && arg_view_type[3] == AM_VIEW_TYPE_F64) || arg_type[3] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        if (arg_type[3] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[3][0];
+            arg_data[3] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        int in_stride_4 = arg_stride[3];
+        uint8_t *in_ptr_4 = &arg_data[3][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = glm::dvec4(*((double*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3), *((double*)in_ptr_4));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            in_ptr_4 += in_stride_4;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 3 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = glm::dvec4(*((glm::dvec3*)in_ptr_1), *((double*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 3 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = glm::dvec4(*((double*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 2 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 2 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = glm::dvec4(*((glm::dvec2*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 3  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 2 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = glm::dvec4(*((double*)in_ptr_1), *((double*)in_ptr_2), *((glm::dvec2*)in_ptr_3));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 3  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 2 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 1 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = glm::dvec4(*((double*)in_ptr_1), *((glm::dvec2*)in_ptr_2), *((double*)in_ptr_3));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 3  && arg_components[0] == 2 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 1 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = glm::dvec4(*((glm::dvec2*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 4 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = glm::dvec4(*((glm::dvec4*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.vec4.\nsupported signatures are:\n  mathv.vec4(x:f32, y:f32, z:f32, w:f32)\n  mathv.vec4(xyz:f32, w:f32)\n  mathv.vec4(x:f32, yzw:f32)\n  mathv.vec4(xy:f32, zw:f32)\n  mathv.vec4(x:f32, y:f32, zw:f32)\n  mathv.vec4(x:f32, yz:f32, w:f32)\n  mathv.vec4(xy:f32, z:f32, w:f32)\n  mathv.vec4(xyzw:f32)\n  mathv.vec4(x:f64, y:f64, z:f64, w:f64)\n  mathv.vec4(xyz:f64, w:f64)\n  mathv.vec4(x:f64, yzw:f64)\n  mathv.vec4(xy:f64, zw:f64)\n  mathv.vec4(x:f64, y:f64, zw:f64)\n  mathv.vec4(x:f64, yz:f64, w:f64)\n  mathv.vec4(xy:f64, z:f64, w:f64)\n  mathv.vec4(xyzw:f64)\n");
 }
 
 static int am_mathv_vec4(lua_State *L) {
@@ -18118,7 +21505,7 @@ static int mat3_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[9];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.mat3.\nsupported signatures are:\n  mathv.mat3(e1:f32, e2:f32, e3:f32, e4:f32, e5:f32, e6:f32, e7:f32, e8:f32, e9:f32)\n  mathv.mat3(col1:f32, col2:f32, col3:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.mat3.\nsupported signatures are:\n  mathv.mat3(e1:f32, e2:f32, e3:f32, e4:f32, e5:f32, e6:f32, e7:f32, e8:f32, e9:f32)\n  mathv.mat3(col1:f32, col2:f32, col3:f32)\n  mathv.mat3(e1:f64, e2:f64, e3:f64, e4:f64, e5:f64, e6:f64, e7:f64, e8:f64, e9:f64)\n  mathv.mat3(col1:f64, col2:f64, col3:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -18355,7 +21742,175 @@ static int mat3_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.mat3.\nsupported signatures are:\n  mathv.mat3(e1:f32, e2:f32, e3:f32, e4:f32, e5:f32, e6:f32, e7:f32, e8:f32, e9:f32)\n  mathv.mat3(col1:f32, col2:f32, col3:f32)\n");
+    if (nargs == 9  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 1 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view) && arg_components[3] == 1 && ((arg_type[3] == MT_am_buffer_view && arg_view_type[3] == AM_VIEW_TYPE_F64) || arg_type[3] != MT_am_buffer_view) && arg_components[4] == 1 && ((arg_type[4] == MT_am_buffer_view && arg_view_type[4] == AM_VIEW_TYPE_F64) || arg_type[4] != MT_am_buffer_view) && arg_components[5] == 1 && ((arg_type[5] == MT_am_buffer_view && arg_view_type[5] == AM_VIEW_TYPE_F64) || arg_type[5] != MT_am_buffer_view) && arg_components[6] == 1 && ((arg_type[6] == MT_am_buffer_view && arg_view_type[6] == AM_VIEW_TYPE_F64) || arg_type[6] != MT_am_buffer_view) && arg_components[7] == 1 && ((arg_type[7] == MT_am_buffer_view && arg_view_type[7] == AM_VIEW_TYPE_F64) || arg_type[7] != MT_am_buffer_view) && arg_components[8] == 1 && ((arg_type[8] == MT_am_buffer_view && arg_view_type[8] == AM_VIEW_TYPE_F64) || arg_type[8] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        if (arg_type[3] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[3][0];
+            arg_data[3] = (uint8_t*)f64s;
+        }
+        if (arg_type[4] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[4][0];
+            arg_data[4] = (uint8_t*)f64s;
+        }
+        if (arg_type[5] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[5][0];
+            arg_data[5] = (uint8_t*)f64s;
+        }
+        if (arg_type[6] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[6][0];
+            arg_data[6] = (uint8_t*)f64s;
+        }
+        if (arg_type[7] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[7][0];
+            arg_data[7] = (uint8_t*)f64s;
+        }
+        if (arg_type[8] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[8][0];
+            arg_data[8] = (uint8_t*)f64s;
+        }
+        int output_components = 9;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        int in_stride_4 = arg_stride[3];
+        uint8_t *in_ptr_4 = &arg_data[3][0];
+        int in_stride_5 = arg_stride[4];
+        uint8_t *in_ptr_5 = &arg_data[4][0];
+        int in_stride_6 = arg_stride[5];
+        uint8_t *in_ptr_6 = &arg_data[5][0];
+        int in_stride_7 = arg_stride[6];
+        uint8_t *in_ptr_7 = &arg_data[6][0];
+        int in_stride_8 = arg_stride[7];
+        uint8_t *in_ptr_8 = &arg_data[7][0];
+        int in_stride_9 = arg_stride[8];
+        uint8_t *in_ptr_9 = &arg_data[8][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat3*)output_ptr) = glm::dmat3(*((double*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3), *((double*)in_ptr_4), *((double*)in_ptr_5), *((double*)in_ptr_6), *((double*)in_ptr_7), *((double*)in_ptr_8), *((double*)in_ptr_9));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            in_ptr_4 += in_stride_4;
+            in_ptr_5 += in_stride_5;
+            in_ptr_6 += in_stride_6;
+            in_ptr_7 += in_stride_7;
+            in_ptr_8 += in_stride_8;
+            in_ptr_9 += in_stride_9;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 3  && arg_components[0] == 3 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 3 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 3 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        int output_components = 9;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat3*)output_ptr) = glm::dmat3(*((glm::dvec3*)in_ptr_1), *((glm::dvec3*)in_ptr_2), *((glm::dvec3*)in_ptr_3));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.mat3.\nsupported signatures are:\n  mathv.mat3(e1:f32, e2:f32, e3:f32, e4:f32, e5:f32, e6:f32, e7:f32, e8:f32, e9:f32)\n  mathv.mat3(col1:f32, col2:f32, col3:f32)\n  mathv.mat3(e1:f64, e2:f64, e3:f64, e4:f64, e5:f64, e6:f64, e7:f64, e8:f64, e9:f64)\n  mathv.mat3(col1:f64, col2:f64, col3:f64)\n");
 }
 
 static int am_mathv_mat3(lua_State *L) {
@@ -18382,7 +21937,7 @@ static int mat4_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[16];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.mat4.\nsupported signatures are:\n  mathv.mat4(e1:f32, e2:f32, e3:f32, e4:f32, e5:f32, e6:f32, e7:f32, e8:f32, e9:f32, e10:f32, e11:f32, e12:f32, e13:f32, e14:f32, e15:f32, e16:f32)\n  mathv.mat4(col1:f32, col2:f32, col3:f32, col4:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.mat4.\nsupported signatures are:\n  mathv.mat4(e1:f32, e2:f32, e3:f32, e4:f32, e5:f32, e6:f32, e7:f32, e8:f32, e9:f32, e10:f32, e11:f32, e12:f32, e13:f32, e14:f32, e15:f32, e16:f32)\n  mathv.mat4(col1:f32, col2:f32, col3:f32, col4:f32)\n  mathv.mat4(e1:f64, e2:f64, e3:f64, e4:f64, e5:f64, e6:f64, e7:f64, e8:f64, e9:f64, e10:f64, e11:f64, e12:f64, e13:f64, e14:f64, e15:f64, e16:f64)\n  mathv.mat4(col1:f64, col2:f64, col3:f64, col4:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -18707,7 +22262,231 @@ static int mat4_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.mat4.\nsupported signatures are:\n  mathv.mat4(e1:f32, e2:f32, e3:f32, e4:f32, e5:f32, e6:f32, e7:f32, e8:f32, e9:f32, e10:f32, e11:f32, e12:f32, e13:f32, e14:f32, e15:f32, e16:f32)\n  mathv.mat4(col1:f32, col2:f32, col3:f32, col4:f32)\n");
+    if (nargs == 16  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 1 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view) && arg_components[3] == 1 && ((arg_type[3] == MT_am_buffer_view && arg_view_type[3] == AM_VIEW_TYPE_F64) || arg_type[3] != MT_am_buffer_view) && arg_components[4] == 1 && ((arg_type[4] == MT_am_buffer_view && arg_view_type[4] == AM_VIEW_TYPE_F64) || arg_type[4] != MT_am_buffer_view) && arg_components[5] == 1 && ((arg_type[5] == MT_am_buffer_view && arg_view_type[5] == AM_VIEW_TYPE_F64) || arg_type[5] != MT_am_buffer_view) && arg_components[6] == 1 && ((arg_type[6] == MT_am_buffer_view && arg_view_type[6] == AM_VIEW_TYPE_F64) || arg_type[6] != MT_am_buffer_view) && arg_components[7] == 1 && ((arg_type[7] == MT_am_buffer_view && arg_view_type[7] == AM_VIEW_TYPE_F64) || arg_type[7] != MT_am_buffer_view) && arg_components[8] == 1 && ((arg_type[8] == MT_am_buffer_view && arg_view_type[8] == AM_VIEW_TYPE_F64) || arg_type[8] != MT_am_buffer_view) && arg_components[9] == 1 && ((arg_type[9] == MT_am_buffer_view && arg_view_type[9] == AM_VIEW_TYPE_F64) || arg_type[9] != MT_am_buffer_view) && arg_components[10] == 1 && ((arg_type[10] == MT_am_buffer_view && arg_view_type[10] == AM_VIEW_TYPE_F64) || arg_type[10] != MT_am_buffer_view) && arg_components[11] == 1 && ((arg_type[11] == MT_am_buffer_view && arg_view_type[11] == AM_VIEW_TYPE_F64) || arg_type[11] != MT_am_buffer_view) && arg_components[12] == 1 && ((arg_type[12] == MT_am_buffer_view && arg_view_type[12] == AM_VIEW_TYPE_F64) || arg_type[12] != MT_am_buffer_view) && arg_components[13] == 1 && ((arg_type[13] == MT_am_buffer_view && arg_view_type[13] == AM_VIEW_TYPE_F64) || arg_type[13] != MT_am_buffer_view) && arg_components[14] == 1 && ((arg_type[14] == MT_am_buffer_view && arg_view_type[14] == AM_VIEW_TYPE_F64) || arg_type[14] != MT_am_buffer_view) && arg_components[15] == 1 && ((arg_type[15] == MT_am_buffer_view && arg_view_type[15] == AM_VIEW_TYPE_F64) || arg_type[15] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        if (arg_type[3] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[3][0];
+            arg_data[3] = (uint8_t*)f64s;
+        }
+        if (arg_type[4] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[4][0];
+            arg_data[4] = (uint8_t*)f64s;
+        }
+        if (arg_type[5] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[5][0];
+            arg_data[5] = (uint8_t*)f64s;
+        }
+        if (arg_type[6] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[6][0];
+            arg_data[6] = (uint8_t*)f64s;
+        }
+        if (arg_type[7] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[7][0];
+            arg_data[7] = (uint8_t*)f64s;
+        }
+        if (arg_type[8] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[8][0];
+            arg_data[8] = (uint8_t*)f64s;
+        }
+        if (arg_type[9] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[9][0];
+            arg_data[9] = (uint8_t*)f64s;
+        }
+        if (arg_type[10] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[10][0];
+            arg_data[10] = (uint8_t*)f64s;
+        }
+        if (arg_type[11] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[11][0];
+            arg_data[11] = (uint8_t*)f64s;
+        }
+        if (arg_type[12] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[12][0];
+            arg_data[12] = (uint8_t*)f64s;
+        }
+        if (arg_type[13] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[13][0];
+            arg_data[13] = (uint8_t*)f64s;
+        }
+        if (arg_type[14] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[14][0];
+            arg_data[14] = (uint8_t*)f64s;
+        }
+        if (arg_type[15] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[15][0];
+            arg_data[15] = (uint8_t*)f64s;
+        }
+        int output_components = 16;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        int in_stride_4 = arg_stride[3];
+        uint8_t *in_ptr_4 = &arg_data[3][0];
+        int in_stride_5 = arg_stride[4];
+        uint8_t *in_ptr_5 = &arg_data[4][0];
+        int in_stride_6 = arg_stride[5];
+        uint8_t *in_ptr_6 = &arg_data[5][0];
+        int in_stride_7 = arg_stride[6];
+        uint8_t *in_ptr_7 = &arg_data[6][0];
+        int in_stride_8 = arg_stride[7];
+        uint8_t *in_ptr_8 = &arg_data[7][0];
+        int in_stride_9 = arg_stride[8];
+        uint8_t *in_ptr_9 = &arg_data[8][0];
+        int in_stride_10 = arg_stride[9];
+        uint8_t *in_ptr_10 = &arg_data[9][0];
+        int in_stride_11 = arg_stride[10];
+        uint8_t *in_ptr_11 = &arg_data[10][0];
+        int in_stride_12 = arg_stride[11];
+        uint8_t *in_ptr_12 = &arg_data[11][0];
+        int in_stride_13 = arg_stride[12];
+        uint8_t *in_ptr_13 = &arg_data[12][0];
+        int in_stride_14 = arg_stride[13];
+        uint8_t *in_ptr_14 = &arg_data[13][0];
+        int in_stride_15 = arg_stride[14];
+        uint8_t *in_ptr_15 = &arg_data[14][0];
+        int in_stride_16 = arg_stride[15];
+        uint8_t *in_ptr_16 = &arg_data[15][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat4*)output_ptr) = glm::dmat4(*((double*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3), *((double*)in_ptr_4), *((double*)in_ptr_5), *((double*)in_ptr_6), *((double*)in_ptr_7), *((double*)in_ptr_8), *((double*)in_ptr_9), *((double*)in_ptr_10), *((double*)in_ptr_11), *((double*)in_ptr_12), *((double*)in_ptr_13), *((double*)in_ptr_14), *((double*)in_ptr_15), *((double*)in_ptr_16));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            in_ptr_4 += in_stride_4;
+            in_ptr_5 += in_stride_5;
+            in_ptr_6 += in_stride_6;
+            in_ptr_7 += in_stride_7;
+            in_ptr_8 += in_stride_8;
+            in_ptr_9 += in_stride_9;
+            in_ptr_10 += in_stride_10;
+            in_ptr_11 += in_stride_11;
+            in_ptr_12 += in_stride_12;
+            in_ptr_13 += in_stride_13;
+            in_ptr_14 += in_stride_14;
+            in_ptr_15 += in_stride_15;
+            in_ptr_16 += in_stride_16;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 4  && arg_components[0] == 4 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 4 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view) && arg_components[2] == 4 && ((arg_type[2] == MT_am_buffer_view && arg_view_type[2] == AM_VIEW_TYPE_F64) || arg_type[2] != MT_am_buffer_view) && arg_components[3] == 4 && ((arg_type[3] == MT_am_buffer_view && arg_view_type[3] == AM_VIEW_TYPE_F64) || arg_type[3] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        if (arg_type[2] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[2][0];
+            arg_data[2] = (uint8_t*)f64s;
+        }
+        if (arg_type[3] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[3][0];
+            arg_data[3] = (uint8_t*)f64s;
+        }
+        int output_components = 16;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        int in_stride_3 = arg_stride[2];
+        uint8_t *in_ptr_3 = &arg_data[2][0];
+        int in_stride_4 = arg_stride[3];
+        uint8_t *in_ptr_4 = &arg_data[3][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat4*)output_ptr) = glm::dmat4(*((glm::dvec4*)in_ptr_1), *((glm::dvec4*)in_ptr_2), *((glm::dvec4*)in_ptr_3), *((glm::dvec4*)in_ptr_4));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            in_ptr_3 += in_stride_3;
+            in_ptr_4 += in_stride_4;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.mat4.\nsupported signatures are:\n  mathv.mat4(e1:f32, e2:f32, e3:f32, e4:f32, e5:f32, e6:f32, e7:f32, e8:f32, e9:f32, e10:f32, e11:f32, e12:f32, e13:f32, e14:f32, e15:f32, e16:f32)\n  mathv.mat4(col1:f32, col2:f32, col3:f32, col4:f32)\n  mathv.mat4(e1:f64, e2:f64, e3:f64, e4:f64, e5:f64, e6:f64, e7:f64, e8:f64, e9:f64, e10:f64, e11:f64, e12:f64, e13:f64, e14:f64, e15:f64, e16:f64)\n  mathv.mat4(col1:f64, col2:f64, col3:f64, col4:f64)\n");
 }
 
 static int am_mathv_mat4(lua_State *L) {
@@ -18734,7 +22513,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.mat_mul.\nsupported signatures are:\n  mathv.mat_mul(m1:f32, m2:f32)\n  mathv.mat_mul(m:f32, v:f32)\n  mathv.mat_mul(v:f32, m:f32)\n  mathv.mat_mul(x:f32, m:f32)\n  mathv.mat_mul(m:f32, x:f32)\n  mathv.mat_mul(m1:f32, m2:f32)\n  mathv.mat_mul(m:f32, v:f32)\n  mathv.mat_mul(v:f32, m:f32)\n  mathv.mat_mul(x:f32, m:f32)\n  mathv.mat_mul(m:f32, x:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.mat_mul.\nsupported signatures are:\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -19395,7 +23174,567 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.mat_mul.\nsupported signatures are:\n  mathv.mat_mul(m1:f32, m2:f32)\n  mathv.mat_mul(m:f32, v:f32)\n  mathv.mat_mul(v:f32, m:f32)\n  mathv.mat_mul(x:f32, m:f32)\n  mathv.mat_mul(m:f32, x:f32)\n  mathv.mat_mul(m1:f32, m2:f32)\n  mathv.mat_mul(m:f32, v:f32)\n  mathv.mat_mul(v:f32, m:f32)\n  mathv.mat_mul(x:f32, m:f32)\n  mathv.mat_mul(m:f32, x:f32)\n");
+    if (nargs == 2  && arg_components[0] == 16 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 16 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 16;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat4*)output_ptr) = MAT_MUL(*((glm::dmat4*)in_ptr_1), *((glm::dmat4*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 16 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 4 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = MAT_MUL(*((glm::dmat4*)in_ptr_1), *((glm::dvec4*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 4 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 16 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 4;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec4*)output_ptr) = MAT_MUL(*((glm::dvec4*)in_ptr_1), *((glm::dmat4*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 16 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 16;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat4*)output_ptr) = MAT_MUL(*((double*)in_ptr_1), *((glm::dmat4*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 16 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 16;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat4*)output_ptr) = MAT_MUL(*((glm::dmat4*)in_ptr_1), *((double*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 9 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 9 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 9;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat3*)output_ptr) = MAT_MUL(*((glm::dmat3*)in_ptr_1), *((glm::dmat3*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 9 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 3 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 3;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec3*)output_ptr) = MAT_MUL(*((glm::dmat3*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 3 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 9 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 3;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dvec3*)output_ptr) = MAT_MUL(*((glm::dvec3*)in_ptr_1), *((glm::dmat3*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 9 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 9;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat3*)output_ptr) = MAT_MUL(*((double*)in_ptr_1), *((glm::dmat3*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 9 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 9;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((glm::dmat3*)output_ptr) = MAT_MUL(*((glm::dmat3*)in_ptr_1), *((double*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.mat_mul.\nsupported signatures are:\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f32, b:f32)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n  mathv.mat_mul(a:f64, b:f64)\n");
 }
 
 static int am_mathv_mat_mul(lua_State *L) {
@@ -19422,7 +23761,7 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.dot.\nsupported signatures are:\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f32, y:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.dot.\nsupported signatures are:\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f64, y:f64)\n  mathv.dot(x:f64, y:f64)\n  mathv.dot(x:f64, y:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -19635,7 +23974,175 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.dot.\nsupported signatures are:\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f32, y:f32)\n");
+    if (nargs == 2  && arg_components[0] == 2 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 2 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::dot(*((glm::dvec2*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 3 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 3 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::dot(*((glm::dvec3*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 4 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 4 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::dot(*((glm::dvec4*)in_ptr_1), *((glm::dvec4*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.dot.\nsupported signatures are:\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f32, y:f32)\n  mathv.dot(x:f64, y:f64)\n  mathv.dot(x:f64, y:f64)\n  mathv.dot(x:f64, y:f64)\n");
 }
 
 static int am_mathv_dot(lua_State *L) {
@@ -19662,7 +24169,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[2];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.perlin.\nsupported signatures are:\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.perlin.\nsupported signatures are:\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f64)\n  mathv.perlin(x:f64)\n  mathv.perlin(x:f64)\n  mathv.perlin(x:f64)\n  mathv.perlin(x:f64, y:f64)\n  mathv.perlin(x:f64, y:f64)\n  mathv.perlin(x:f64, y:f64)\n  mathv.perlin(x:f64, y:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -20151,7 +24658,427 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.perlin.\nsupported signatures are:\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n");
+    if (nargs == 1  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = PERLIN1_F64(*((double*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 2 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::perlin(*((glm::dvec2*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 3 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::perlin(*((glm::dvec3*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 4 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::perlin(*((glm::dvec4*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 1 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = PERLIN2_F64(*((double*)in_ptr_1), *((double*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 2 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 2 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::perlin(*((glm::dvec2*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 3 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 3 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::perlin(*((glm::dvec3*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 2  && arg_components[0] == 4 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && arg_components[1] == 4 && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        if (arg_type[1] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[1][0];
+            arg_data[1] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        int in_stride_2 = arg_stride[1];
+        uint8_t *in_ptr_2 = &arg_data[1][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = glm::perlin(*((glm::dvec4*)in_ptr_1), *((glm::dvec4*)in_ptr_2));
+            in_ptr_1 += in_stride_1;
+            in_ptr_2 += in_stride_2;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.perlin.\nsupported signatures are:\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f32, y:f32)\n  mathv.perlin(x:f64)\n  mathv.perlin(x:f64)\n  mathv.perlin(x:f64)\n  mathv.perlin(x:f64)\n  mathv.perlin(x:f64, y:f64)\n  mathv.perlin(x:f64, y:f64)\n  mathv.perlin(x:f64, y:f64)\n  mathv.perlin(x:f64, y:f64)\n");
 }
 
 static int am_mathv_perlin(lua_State *L) {
@@ -20178,7 +25105,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
     am_buffer_view_type arg_view_type[1];
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-            return luaL_error(L, "invalid argument types for function mathv.simplex.\nsupported signatures are:\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n");
+            return luaL_error(L, "invalid argument types for function mathv.simplex.\nsupported signatures are:\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f64)\n  mathv.simplex(x:f64)\n  mathv.simplex(x:f64)\n  mathv.simplex(x:f64)\n");
         }
     }
     // code below depends on there being at least one arg
@@ -20411,7 +25338,203 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.simplex.\nsupported signatures are:\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n");
+    if (nargs == 1  && arg_components[0] == 1 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = SIMPLEX1_F64(*((double*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 2 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = SIMPLEX2_F64(*((glm::dvec2*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 3 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = SIMPLEX3_F64(*((glm::dvec3*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    if (nargs == 1  && arg_components[0] == 4 && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view)) {
+        // setup non-view args
+        if (arg_type[0] != MT_am_buffer_view) {
+            double *f64s = &arg_singleton_vals[0][0];
+            arg_data[0] = (uint8_t*)f64s;
+        }
+        int output_components = 1;
+        uint8_t *output_ptr;
+        int out_stride;
+        if (target == NULL) {
+            // create a new buffer for the output
+            out_stride = output_components * sizeof(double);
+        
+            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * sizeof(double));
+            output_ptr = output_buffer->data;
+            am_buffer_view *output_view = am_new_buffer_view(L, AM_VIEW_TYPE_F64, output_components);
+            output_view->buffer = output_buffer;
+            output_view->buffer_ref = output_view->ref(L, -2);
+            output_view->offset = 0;
+            output_view->stride = out_stride;
+            output_view->size = count;
+            output_view->last_max_elem_version = 0;
+            output_view->max_elem = 0;
+        
+            lua_remove(L, -2); // remove output_buffer
+        } else {
+            // overwrite provided buffer
+            if (target->type != AM_VIEW_TYPE_F64) {
+                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
+                    am_view_type_infos[AM_VIEW_TYPE_F64].name, am_view_type_infos[target->type].name);
+            }
+            if (target->components != output_components) {
+                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+                    output_components, target->components);
+            }
+            count = am_min(count, target->size);
+            target->mark_dirty(0, count);
+            out_stride = target->stride;
+            output_ptr = target->buffer->data + target->offset;
+        }
+        int in_stride_1 = arg_stride[0];
+        uint8_t *in_ptr_1 = &arg_data[0][0];
+        for (int i = 0; i < count; ++i) {
+            *((double*)output_ptr) = SIMPLEX4_F64(*((glm::dvec4*)in_ptr_1));
+            in_ptr_1 += in_stride_1;
+            output_ptr += out_stride;
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.simplex.\nsupported signatures are:\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f32)\n  mathv.simplex(x:f64)\n  mathv.simplex(x:f64)\n  mathv.simplex(x:f64)\n  mathv.simplex(x:f64)\n");
 }
 
 static int am_mathv_simplex(lua_State *L) {

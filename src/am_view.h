@@ -1,6 +1,7 @@
 // grep for AM_NUM_VIEW_TYPES when updating the following enum
 enum am_buffer_view_type {
     AM_VIEW_TYPE_F32,
+    AM_VIEW_TYPE_F64,
     AM_VIEW_TYPE_U8,
     AM_VIEW_TYPE_I8,
     AM_VIEW_TYPE_U8N,
@@ -23,6 +24,12 @@ enum am_buffer_view_type_lua {
     AM_VIEW_TYPE_LUA_F32_4,
     AM_VIEW_TYPE_LUA_F32_3x3,
     AM_VIEW_TYPE_LUA_F32_4x4,
+    AM_VIEW_TYPE_LUA_F64_1,
+    AM_VIEW_TYPE_LUA_F64_2,
+    AM_VIEW_TYPE_LUA_F64_3,
+    AM_VIEW_TYPE_LUA_F64_4,
+    AM_VIEW_TYPE_LUA_F64_3x3,
+    AM_VIEW_TYPE_LUA_F64_4x4,
     AM_VIEW_TYPE_LUA_U8_1,
     AM_VIEW_TYPE_LUA_U8_2,
     AM_VIEW_TYPE_LUA_U8_3,

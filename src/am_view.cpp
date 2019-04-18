@@ -26,6 +26,30 @@ static void decode_view_type_lua(am_buffer_view_type_lua ltype, am_buffer_view_t
             *type = AM_VIEW_TYPE_F32;
             *components = 16;
             return;
+        case AM_VIEW_TYPE_LUA_F64_1:
+            *type = AM_VIEW_TYPE_F64;
+            *components = 1;
+            return;
+        case AM_VIEW_TYPE_LUA_F64_2:
+            *type = AM_VIEW_TYPE_F64;
+            *components = 2;
+            return;
+        case AM_VIEW_TYPE_LUA_F64_3:
+            *type = AM_VIEW_TYPE_F64;
+            *components = 3;
+            return;
+        case AM_VIEW_TYPE_LUA_F64_4:
+            *type = AM_VIEW_TYPE_F64;
+            *components = 4;
+            return;
+        case AM_VIEW_TYPE_LUA_F64_3x3:
+            *type = AM_VIEW_TYPE_F64;
+            *components = 9;
+            return;
+        case AM_VIEW_TYPE_LUA_F64_4x4:
+            *type = AM_VIEW_TYPE_F64;
+            *components = 16;
+            return;
         case AM_VIEW_TYPE_LUA_U8_1:
             *type = AM_VIEW_TYPE_U8;
             *components = 1;
@@ -262,6 +286,10 @@ static lua_Number read_num_f32(uint8_t *ptr) {
     return *((float*)ptr);
 }
 
+static lua_Number read_num_f64(uint8_t *ptr) {
+    return *((double*)ptr);
+}
+
 static lua_Number read_num_u8(uint8_t *ptr) {
     return *((uint8_t*)ptr);
 }
@@ -312,6 +340,7 @@ static lua_Number read_num_u32e(uint8_t *ptr) {
 
 am_view_type_info am_view_type_infos[] = {
     {"float",          4,  false, AM_VIEW_TYPE_F32,  true,  AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_f32,     },
+    {"double",         8,  false, AM_VIEW_TYPE_F64,  false, AM_ATTRIBUTE_CLIENT_TYPE_FLOAT,   &read_num_f64,     },
     {"ubyte",          1,  false, AM_VIEW_TYPE_U8,   true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   &read_num_u8,      },
     {"byte",           1,  false, AM_VIEW_TYPE_I8,   true,  AM_ATTRIBUTE_CLIENT_TYPE_BYTE,    &read_num_i8,      },
     {"ubyte_norm",     1,  true,  AM_VIEW_TYPE_U8N,  true,  AM_ATTRIBUTE_CLIENT_TYPE_UBYTE,   &read_num_u8n,     },
@@ -550,6 +579,12 @@ static int view_swizzle_index(lua_State *L, am_buffer_view *view) {
 #define READ_NUM(x) read_num_f32(x)
 #include "am_view_template.inc"
 
+#define TNAME F64
+#define CTYPE double
+#define FROM_LUA_NUM(x) (x)
+#define READ_NUM(x) read_num_f64(x)
+#include "am_view_template.inc"
+
 #define TNAME U32
 #define CTYPE uint32_t
 #define FROM_LUA_NUM(x) ((uint32_t)am_clamp((x), 0.0, (double)UINT32_MAX))
@@ -646,6 +681,12 @@ void am_open_view_module(lua_State *L) {
         {"vec4",            AM_VIEW_TYPE_LUA_F32_4},
         {"mat3",            AM_VIEW_TYPE_LUA_F32_3x3},
         {"mat4",            AM_VIEW_TYPE_LUA_F32_4x4},
+        {"double",          AM_VIEW_TYPE_LUA_F32_1},
+        {"dvec2",           AM_VIEW_TYPE_LUA_F32_2},
+        {"dvec3",           AM_VIEW_TYPE_LUA_F32_3},
+        {"dvec4",           AM_VIEW_TYPE_LUA_F32_4},
+        {"dmat3",           AM_VIEW_TYPE_LUA_F32_3x3},
+        {"dmat4",           AM_VIEW_TYPE_LUA_F32_4x4},
         {"ubyte",           AM_VIEW_TYPE_LUA_U8_1},
         {"ubyte2",          AM_VIEW_TYPE_LUA_U8_2},
         {"ubyte3",          AM_VIEW_TYPE_LUA_U8_3},
@@ -694,6 +735,7 @@ void am_open_view_module(lua_State *L) {
 
     register_view_mt(L);
     register_F32_view_mt(L);
+    register_F64_view_mt(L);
     register_U8_view_mt(L);
     register_I8_view_mt(L);
     register_U8N_view_mt(L);

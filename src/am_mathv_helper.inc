@@ -4,12 +4,21 @@
 #define DIV_OP(x, y) ((x) / (y))
 #define UNM_OP(x) (-(x))
 #define IMOD_OP(x, y) ((x) % (y))
+#define F32MOD_OP(a, b) ((a) - floorf((a) / (b)) * (b))
+#define F64MOD_OP(a, b) ((a) - floor((a) / (b)) * (b))
 
 #define MAT_MUL(x, y) ((x) * (y))
 
 #define PERLIN1_F32(x) (glm::perlin(glm::vec2(x, 0.0f)))
 #define PERLIN2_F32(x, y) (glm::perlin(glm::vec2(x, 0.0f), glm::vec2(y, 1.0f)))
 #define SIMPLEX1_F32(x) (glm::simplex(glm::vec2(x, 0.0f)))
+
+#define PERLIN1_F64(x) (glm::perlin(glm::dvec2(x, 0.0)))
+#define PERLIN2_F64(x, y) (glm::perlin(glm::dvec2(x, 0.0), glm::dvec2(y, 1.0)))
+#define SIMPLEX1_F64(x) ((double)glm::simplex(glm::vec2((float)x, 0.0f)))
+#define SIMPLEX2_F64(x) ((double)glm::simplex(glm::vec2(x)))
+#define SIMPLEX3_F64(x) ((double)glm::simplex(glm::vec3(x)))
+#define SIMPLEX4_F64(x) ((double)glm::simplex(glm::vec4(x)))
 
 static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *view_type, uint8_t **buf, 
     int *stride, int *count, int *components, double *singleton_vals)

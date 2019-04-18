@@ -1,20 +1,71 @@
-local view_type_size = {
-    float = 4,
-    vec2 = 8,
-    vec3 = 12,
-    vec4 = 16,
-    byte = 1,
-    ubyte = 1,
-    byte_norm = 1,
-    ubyte_norm = 1,
-    short = 2,
-    ushort = 2,
-    short_norm = 2,
-    ushort_norm = 2,
-    ushort_elem = 2,
-    int = 4,
-    uint = 4,
-    uint_elem = 4,
+local view_type_info = {
+    float = {size = 4, components = 1},
+    vec2  = {size = 4, components = 2},
+    vec3  = {size = 4, components = 3},
+    vec4  = {size = 4, components = 4},
+    mat3  = {size = 4, components = 9},
+    mat4  = {size = 4, components = 16},
+
+    double = {size = 8, components = 1},
+    dvec2  = {size = 8, components = 2},
+    dvec3  = {size = 8, components = 3},
+    dvec4  = {size = 8, components = 4},
+    dmat3  = {size = 8, components = 9},
+    dmat4  = {size = 8, components = 16},
+
+    byte  = {size = 1, components = 1},
+    byte2 = {size = 1, components = 2},
+    byte3 = {size = 1, components = 3},
+    byte4 = {size = 1, components = 4},
+
+    ubyte  = {size = 1, components = 1},
+    ubyte2 = {size = 1, components = 2},
+    ubyte3 = {size = 1, components = 3},
+    ubyte4 = {size = 1, components = 4},
+
+    byte_norm  = {size = 1, components = 1},
+    byte_norm2 = {size = 1, components = 2},
+    byte_norm3 = {size = 1, components = 3},
+    byte_norm4 = {size = 1, components = 4},
+
+    ubyte_norm  = {size = 1, components = 1},
+    ubyte_norm2 = {size = 1, components = 2},
+    ubyte_norm3 = {size = 1, components = 3},
+    ubyte_norm4 = {size = 1, components = 4},
+
+    short  = {size = 2, components = 1},
+    short2 = {size = 2, components = 2},
+    short3 = {size = 2, components = 3},
+    short4 = {size = 2, components = 4},
+
+    ushort  = {size = 2, components = 1},
+    ushort2 = {size = 2, components = 2},
+    ushort3 = {size = 2, components = 3},
+    ushort4 = {size = 2, components = 4},
+
+    short_norm  = {size = 2, components = 1},
+    short_norm2 = {size = 2, components = 2},
+    short_norm3 = {size = 2, components = 3},
+    short_norm4 = {size = 2, components = 4},
+
+    ushort_norm  = {size = 2, components = 1},
+    ushort_norm2 = {size = 2, components = 2},
+    ushort_norm3 = {size = 2, components = 3},
+    ushort_norm4 = {size = 2, components = 4},
+
+    ushort_elem = {size = 2, components = 1},
+
+    int  = {size = 4, components = 1},
+    int2 = {size = 4, components = 2},
+    int3 = {size = 4, components = 3},
+    int4 = {size = 4, components = 4},
+
+    uint  = {size = 4, components = 1},
+    uint2 = {size = 4, components = 2},
+    uint3 = {size = 4, components = 3},
+    uint4 = {size = 4, components = 4},
+
+    uint_elem = {size = 4, components = 1},
 }
 
 function am.float_array(values)
@@ -157,22 +208,25 @@ function am.struct_array(capacity, spec)
     end
     local attrs = {}
     local stride = 0
+    local align = 4
     for i = 1, n, 2 do
         local attr = spec[i]
         local tp = spec[i + 1]
-        local sz = view_type_size[tp]
-        if not sz then
+        local info = view_type_info[tp]
+        if not info then
             error("unknown view element type: "..tostring(tp), 2)
         end
-        -- align
-        while stride % math.min(4, sz) ~= 0 do
+        local sz = info.size * info.components
+        -- align field
+        while stride % info.size ~= 0 do
             stride = stride + 1
         end
+        align = math.max(info.size, align)
         attrs[attr] = {type = tp, offset = stride}
         stride = stride + sz
     end
-    -- 4 byte align
-    while stride % 4 ~= 0 do
+    -- align struct
+    while stride % align ~= 0 do
         stride = stride + 1
     end
     local buffer = am.buffer(capacity * stride)
@@ -181,4 +235,37 @@ function am.struct_array(capacity, spec)
         views[attr] = buffer:view(info.type, info.offset, stride)
     end
     return views
+end
+
+function mathv.array(elemtype, len, init)
+    local data = nil
+    local info = view_type_info[elemtype]
+    if not info then
+        error("unknown view element type: "..tostring(elemtype), 2)
+    end
+    local components = info.components
+    local elemsize = info.size
+    local stride = components * elemsize
+    if type(len) == "table" then
+        data = len
+        len = #data
+        if len == 0 then
+            return am.buffer(0):view(elemtype)
+        end
+        if type(data[1]) == "number" then
+            if len % components ~= 0 then
+                error("number of data elements should be divisible by "..components, 2)
+            end
+            len = len / components
+        end
+        local view = am.buffer(len * stride):view(elemtype)
+        view:set(data)
+        return view
+    else
+        local view = am.buffer(len * stride):view(elemtype)
+        if init then
+            view:set(init)
+        end
+        return view
+    end
 end

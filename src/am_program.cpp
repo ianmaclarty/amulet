@@ -744,96 +744,104 @@ const char *am_program_param_client_type_name(am_program_param_name_slot *slot) 
                 switch (slot->value.value.arr->type) {
                     case AM_VIEW_TYPE_F32:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of f32";
-                            case 2: return "array of f32[2]";
-                            case 3: return "array of f32[3]";
-                            case 4: return "array of f32[4]";
+                            case 1: return "array of float";
+                            case 2: return "array of vec2";
+                            case 3: return "array of vec3";
+                            case 4: return "array of vec4";
+                        }
+                        return "array of unknown type";
+                    case AM_VIEW_TYPE_F64:
+                        switch (slot->value.value.arr->components) {
+                            case 1: return "array of double";
+                            case 2: return "array of dvec2";
+                            case 3: return "array of dvec3";
+                            case 4: return "array of dvec4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_U8:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of u8";
-                            case 2: return "array of u8[2]";
-                            case 3: return "array of u8[3]";
-                            case 4: return "array of u8[4]";
+                            case 1: return "array of ubyte";
+                            case 2: return "array of ubyte2";
+                            case 3: return "array of ubyte3";
+                            case 4: return "array of ubyte4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_I8:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of i8";
-                            case 2: return "array of i8[2]";
-                            case 3: return "array of i8[3]";
-                            case 4: return "array of i8[4]";
+                            case 1: return "array of byte";
+                            case 2: return "array of byte2";
+                            case 3: return "array of byte3";
+                            case 4: return "array of byte4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_U8N:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of u8n";
-                            case 2: return "array of u8n[2]";
-                            case 3: return "array of u8n[3]";
-                            case 4: return "array of u8n[4]";
+                            case 1: return "array of ubyte_norm";
+                            case 2: return "array of ubyte_norm2";
+                            case 3: return "array of ubyte_norm3";
+                            case 4: return "array of ubyte_norm4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_I8N:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of i8n";
-                            case 2: return "array of i8n[2]";
-                            case 3: return "array of i8n[3]";
-                            case 4: return "array of i8n[4]";
+                            case 1: return "array of byte_norm";
+                            case 2: return "array of byte_norm2";
+                            case 3: return "array of byte_norm3";
+                            case 4: return "array of byte_norm4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_U16:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of u16";
-                            case 2: return "array of u16[2]";
-                            case 3: return "array of u16[3]";
-                            case 4: return "array of u16[4]";
+                            case 1: return "array of ushort";
+                            case 2: return "array of ushort2";
+                            case 3: return "array of ushort3";
+                            case 4: return "array of ushort4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_I16:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of i16";
-                            case 2: return "array of i16[2]";
-                            case 3: return "array of i16[3]";
-                            case 4: return "array of i16[4]";
+                            case 1: return "array of short";
+                            case 2: return "array of short2";
+                            case 3: return "array of short3";
+                            case 4: return "array of short4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_U16E:
-                        return "array of u16e";
+                        return "array of ushort_elem";
                     case AM_VIEW_TYPE_U16N:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of u16n";
-                            case 2: return "array of u16n[2]";
-                            case 3: return "array of u16n[3]";
-                            case 4: return "array of u16n[4]";
+                            case 1: return "array of ushort_norm";
+                            case 2: return "array of ushort_norm2";
+                            case 3: return "array of ushort_norm3";
+                            case 4: return "array of ushort_norm4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_I16N:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of i16n";
-                            case 2: return "array of i16n[2]";
-                            case 3: return "array of i16n[3]";
-                            case 4: return "array of i16n[4]";
+                            case 1: return "array of short_norm";
+                            case 2: return "array of short_norm2";
+                            case 3: return "array of short_norm3";
+                            case 4: return "array of short_norm4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_U32:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of u32";
-                            case 2: return "array of u32[2]";
-                            case 3: return "array of u32[3]";
-                            case 4: return "array of u32[4]";
+                            case 1: return "array of uint";
+                            case 2: return "array of uint2";
+                            case 3: return "array of uint3";
+                            case 4: return "array of uint4";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_I32:
                         switch (slot->value.value.arr->components) {
-                            case 1: return "array of i32";
-                            case 2: return "array of i32[2]";
-                            case 3: return "array of i32[3]";
-                            case 4: return "array of i32[4]";
+                            case 1: return "array of int";
+                            case 2: return "array of int";
+                            case 3: return "array of int";
+                            case 4: return "array of int";
                         }
                         return "array of unknown type";
                     case AM_VIEW_TYPE_U32E:
-                        return "array of u32e";
+                        return "array of uint_elem";
                     case AM_NUM_VIEW_TYPES: 
                         assert(false); 
                         break;

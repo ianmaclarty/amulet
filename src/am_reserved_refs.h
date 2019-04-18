@@ -58,6 +58,7 @@ typedef enum {
     MT_am_buffer_view,
     // The following list must be kept in sync with am_buffer_view_type
     MT_VIEW_TYPE_F32,
+    MT_VIEW_TYPE_F64,
     MT_VIEW_TYPE_U8,
     MT_VIEW_TYPE_I8,
     MT_VIEW_TYPE_U8N,
