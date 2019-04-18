@@ -741,7 +741,13 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
             }
         }
 #elif defined(AM_IOS)
-        default_metal_framebuffer.depthstencil_texture = am_metal_ios_view.depthStencilTexture;
+        if (am_metal_window_depth_buffer && am_metal_window_stencil_buffer) {
+            default_metal_framebuffer.depthstencil_texture = am_metal_ios_view.depthStencilTexture;
+        } else if (am_metal_window_depth_buffer) {
+            default_metal_framebuffer.depth_texture = am_metal_ios_view.depthStencilTexture;
+        } else if (am_metal_window_stencil_buffer) {
+            default_metal_framebuffer.stencil_texture = am_metal_ios_view.depthStencilTexture;
+        }
         if (default_metal_framebuffer.msaa_samples > 1) {
             default_metal_framebuffer.msaa_texture = am_metal_ios_view.multisampleColorTexture;
         }
