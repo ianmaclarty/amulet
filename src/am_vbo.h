@@ -1,4 +1,4 @@
-#define AM_MAX_VBO_SLOTS 3
+#define AM_MAX_VBO_SLOTS 1 // set to 1 for now because it needs more testing
 
 // Each am_vbo may contain several slots (actual gpu vbos) which we
 // cycle between to avoid contension on vbos between frames.
