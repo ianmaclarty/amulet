@@ -54,7 +54,7 @@ bool am_conf_audio_mute = false;
 // __gc metamethod. We avoid allocating all buffers this way, because
 // that seems to lead to larger memory consumption. My guess is that's because
 // it raises the Lua GC's high water mark too much.
-int am_conf_buffer_malloc_threshold = 1024;
+int am_conf_buffer_malloc_threshold = 512;
 
 // Note: enabling either of the following two options causes substantial
 // slowdowns on the html backend in some browsers
