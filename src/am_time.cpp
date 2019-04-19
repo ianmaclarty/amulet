@@ -28,7 +28,7 @@ static int last_frame_audio_time(lua_State *L) {
 
 static int enable_perf_timings(lua_State *L) {
     am_record_perf_timings = true;
-    return 1;
+    return 0;
 }
 
 void am_open_time_module(lua_State *L) {
