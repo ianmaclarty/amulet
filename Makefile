@@ -35,7 +35,7 @@ ifeq ($(TARGET_PLATFORM),html)
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft tinymt
-  ifdef USE_METAL
+  ifndef NO_METAL
     AM_DEPS += glslopt
     AM_DEFS += AM_USE_METAL
   endif
@@ -55,7 +55,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifeq ($(TARGET_PLATFORM),osx)
   AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
-  ifdef USE_METAL
+  ifndef NO_METAL
     AM_DEPS += glslopt
     AM_DEFS += AM_USE_METAL
   else

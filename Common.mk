@@ -176,7 +176,7 @@ else
   endif
 endif
 
-ifdef USE_METAL
+ifndef NO_METAL
     OSX_GRAPHICS_LINK_OPT=-Wl,-framework,Metal
     IOS_GRAPHICS_LINK_OPT=-Wl,-framework,Metal -Wl,-framework,MetalKit 
 else
