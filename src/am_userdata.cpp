@@ -48,10 +48,13 @@ void am_nonatomic_userdata::reref(lua_State *L, int ref, int idx) {
 }
 
 void am_nonatomic_userdata::pushref(lua_State *L, int ref) {
-    assert(ref != LUA_NOREF);
-    pushuservalue(L);
-    lua_rawgeti(L, -1, ref);
-    lua_replace(L, -2); // replace uservalue table with ref value
+    if (ref == LUA_NOREF) {
+        lua_pushnil(L);
+    } else {
+        pushuservalue(L);
+        lua_rawgeti(L, -1, ref);
+        lua_replace(L, -2); // replace uservalue table with ref value
+    }
 }
 
 void am_nonatomic_userdata::pushuservalue(lua_State *L) {
