@@ -2323,8 +2323,6 @@ static bool setup_pipeline(metal_program *prog) {
             cached_pipeline->stencil_op_fail_back      != metal_stencil_op_fail_back ||
             cached_pipeline->stencil_op_zfail_back     != metal_stencil_op_zfail_back ||
             cached_pipeline->stencil_op_zpass_back     != metal_stencil_op_zpass_back ||
-
-
             false)
         {
             continue;
