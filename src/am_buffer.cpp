@@ -1,5 +1,7 @@
 #include "amulet.h"
 
+static size_t total_buffer_malloc_bytes = 0;
+
 am_buffer_data_allocator::am_buffer_data_allocator() {
     pooled_buffers.owner = this;
     pool_scratch = NULL;
@@ -135,6 +137,7 @@ am_buffer *am_push_new_buffer_and_init(lua_State *L, int size) {
             buf->data = (uint8_t*)malloc(size);
             buf->size = size;
             buf->alloc_method = AM_BUF_ALLOC_MALLOC;
+            total_buffer_malloc_bytes += size;
         }
     }
     memset(buf->data, 0, size);
@@ -150,6 +153,7 @@ am_buffer *am_push_new_buffer_with_data(lua_State *L, int size, void* data) {
     buf->data = (uint8_t*)data;
     buf->size = size;
     buf->alloc_method = AM_BUF_ALLOC_MALLOC;
+    total_buffer_malloc_bytes += size;
     return buf;
 }
 
@@ -158,6 +162,7 @@ void am_buffer::free_data() {
     switch (alloc_method) {
         case AM_BUF_ALLOC_MALLOC:
             free(data);
+            total_buffer_malloc_bytes -= size;
             break;
         case AM_BUF_ALLOC_LUA:
             break;
@@ -529,6 +534,17 @@ static void register_buffer_data_allocator_mt(lua_State *L) {
     am_register_metatable(L, "buffer_data_allocator", MT_am_buffer_data_allocator, 0);
 }
 
+static int total_buffer_malloc_mem(lua_State *L) {
+    lua_pushnumber(L, ((lua_Number)total_buffer_malloc_bytes) / 1024.0);
+    return 1;
+}
+
+static int buffer_pool_mem(lua_State *L) {
+    am_buffer_data_allocator *a = get_buffer_data_allocator(L);
+    lua_pushnumber(L, a->pool_scratch_capacity);
+    return 1;
+}
+
 void am_open_buffer_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"buffer", create_buffer},
@@ -538,6 +554,8 @@ void am_open_buffer_module(lua_State *L) {
         {"base64_encode", base64_encode},
         {"base64_decode", base64_decode},
         {"buffer_pool", run_with_buffer_pool},
+        {"_buffer_pool_mem", buffer_pool_mem},
+        {"_total_buffer_malloc_mem", total_buffer_malloc_mem},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

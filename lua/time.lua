@@ -41,6 +41,109 @@ end
 
 local perf_overlay_node
 
+--[[
+local
+function create_graph(graph_x1, graph_y1, graph_x2, graph_y2, bg_color, series)
+    local bar_w = 4
+    local graph_w = graph_x2 - graph_x1
+    local graph_h = graph_y2 - graph_y1
+    local min_bar_h = 2
+    local buf = 0
+    local pw, ph = win.pixel_width, win.pixel_height
+    local num_bars = math.ceil(graph_w / bar_w) + 1
+    local num_quads = num_bars * (#series + 1)
+    local bar_count = 0
+    local bar_quads = am.quads(num_quads, {"vert", "vec2", "color", "vec4"})
+    local bar_translate = am.translate(0, 0) ^ bar_quads
+
+    local annotations = am.group()
+    local annotation_text_nodes = {}
+    local y = graph_y2 - #series * 20
+    for i, ser in ipairs(series) do
+        local text_node = am.text("0", ser.text_color, "left", "top")
+        annotation_text_nodes[i] = text_node
+        local node = am.translate(graph_x1 + 5, y) ^ text_node
+        annotations:append(node)
+        y = y + 20
+    end
+
+    local graph_node = am.depth_test("always", false)
+        ^ am.bind{P = math.ortho(0, pw, 0, ph)}
+        ^ am.use_program(am.shaders.colors2d)
+        ^ am.blend"alpha"
+        ^ {bar_translate, annotations}
+
+    local prev_ys = {}
+    for i = 1, #series do
+        prev_ys[i] = graph_y1
+    end
+    graph_node:action(function(node)
+        if bar_count >= num_bars then
+            bar_quads:remove_quad(1, #series)
+        end
+        local y = graph_y1
+        local x1 = graph_x2 + (bar_count-1) * bar_w
+        local x2 = x1 + bar_w
+        if bar_count == 1 then
+            bar_quads:add_quad{
+                vert = {graph_x1, graph_y2, graph_x1, graph_y1, graph_x2, graph_y1, graph_x2, graph_y2},
+                color = bg_color,
+            }
+        end
+        for i, ser in ipairs(series) do
+            series.update()
+            local graph_val = series.graph_val
+            local y1 = y
+            local y2 = y1 + graph_val * graph_h
+            if bar_count > 1 then
+                bar_quads:add_quad{
+                    vert = {x1, prev_top_y, x1, prev_frame_y, x2, frame_y, x2, top_y},
+                    color = bg_color,
+                }
+            end
+        end
+
+        local frame_t = am.current_time()
+        local frame_delta_t = frame_t - prev_frame_t
+        prev_frame_t = frame_t
+        local lua_t = am.last_frame_lua_time()
+        local lua_h = math.max(min_bar_h, lua_t / bar_t * bar_h)
+        local x1 = graph_x2 + (bar_count-1) * bar_w
+        local x2 = x1 + bar_w
+        local lua_y = graph_y1 + lua_h
+        local frame_y = graph_y1 + frame_delta_t / bar_t * bar_h
+        local top_y = math.max(frame_y, graph_y2) + min_bar_h
+        local prev_top_y = math.max(prev_frame_y, graph_y2) + min_bar_h
+        if bar_count == 1 then
+            bar_quads:add_quad{
+                vert = {graph_x1, graph_y2, graph_x1, graph_y1, graph_x2, graph_y1, graph_x2, graph_y2},
+                color = bg_color,
+            }
+        else
+            bar_quads:add_quad{
+                vert = {x1, prev_top_y, x1, prev_frame_y, x2, frame_y, x2, top_y},
+                color = bg_color,
+            }
+        end
+        bar_quads:add_quad{
+            vert = {x1, prev_lua_y, x1, graph_y1, x2, graph_y1, x2, lua_y},
+            color = lua_graph_color,
+        }
+        bar_quads:add_quad{
+            vert = {x1, prev_frame_y, x1, prev_lua_y, x2, lua_y, x2, frame_y},
+            color = frame_graph_color,
+        }
+        prev_lua_y = lua_y
+        prev_frame_y = frame_y
+        bar_count = bar_count + 1
+        bar_translate.x = graph_x2 - x1
+
+        annotations"frame_t".text = string.format("FRAME:  %4dms", frame_delta_t * 1000)
+        annotations"lua_t".text =   string.format("SCRIPT: %4dms", lua_t * 1000)
+    end)
+end
+]]
+
 function am.show_perf_overlay()
     if not am._main_window then
         return
@@ -52,23 +155,27 @@ function am.show_perf_overlay()
     local min_bar_h = 2
     local bar_t = 1/60
     local buf = 0
-    local lua_graph_color = vec4(0.121, 0.317, 0.898, 0.85)
-    local draw_graph_color = vec4(0.568, 0.321, 0.133, 0.85)
+
+    local lua_graph_color = vec4(0.568, 0.321, 0.133, 0.85)
+    local lua_text_color = vec4(0.901, 0.729, 0.596, 1)
     local frame_graph_color = vec4(0.149, 0.509, 0.301, 0.85)
-    local lua_text_color = vec4(0.741, 0.854, 1, 1)
-    local draw_text_color = vec4(0.901, 0.729, 0.596, 1)
     local frame_text_color = vec4(0.525, 0.874, 0.674, 1)
+    local mem_graph_color = vec4(1, 0.301, 0.450, 1)
+    local mem_text_color = mem_graph_color
     local fps60_line_color = vec4(0.984, 0.925, 0.137, 1)
     local bg_color = vec4(0, 0, 0, 0.75)
+
+    local prev_frame_t = am.current_time()
     if not perf_overlay_node then
         local win = am._main_window
         if not win._overlay then
             win._overlay = am.group()
         end
+        local num_series = 4
         local pw, ph = win.pixel_width, win.pixel_height
         local overlay_w = pw - buf * 2
         local num_bars = math.ceil(overlay_w / bar_w) + 1
-        local num_quads = num_bars * 4
+        local num_quads = num_bars * num_series
         local n = 0
         local bar_quads = am.quads(num_quads, {"vert", "vec2", "color", "vec4"})
         local graph_y1 = buf
@@ -81,8 +188,8 @@ function am.show_perf_overlay()
         local annotations = am.group() ^ {
             am.line(vec2(graph_x1, fps60_y), vec2(graph_x2, fps60_y), 2, fps60_line_color),
             am.translate(graph_x1 + 5, fps60_y - 5) ^ am.text("0", frame_text_color, "left", "top"):tag"frame_t",
-            am.translate(graph_x1 + 5, fps60_y - 25) ^ am.text("0", draw_text_color, "left", "top"):tag"draw_t",
-            am.translate(graph_x1 + 5, fps60_y - 45) ^ am.text("0", lua_text_color, "left", "top"):tag"lua_t",
+            am.translate(graph_x1 + 5, fps60_y - 25) ^ am.text("0", lua_text_color, "left", "top"):tag"lua_t",
+            am.translate(graph_x1 + 5, fps60_y - 45) ^ am.text("0", mem_text_color, "left", "top"):tag"mem",
         }
 
         perf_overlay_node = am.depth_test("always", false)
@@ -92,29 +199,48 @@ function am.show_perf_overlay()
             ^ {bar_translate, annotations}
 
         local prev_lua_y = graph_y1
-        local prev_draw_y = graph_y1
         local prev_frame_y = graph_y1
+        local prev_mem_y = 0
+        local max_mem = 0
         perf_overlay_node:action(function(node)
             if win:resized() then
                 am.hide_perf_overlay()
                 am.show_perf_overlay()
                 return true
             end
-            if n >= num_bars then
-                bar_quads:remove_quad(1, 4)
-            end
-            local frame_t = am.delta_time
-            local draw_t = am.last_frame_draw_time()
+            local frame_t = am.current_time()
+            local frame_delta_t = frame_t - prev_frame_t
+            prev_frame_t = frame_t
             local lua_t = am.last_frame_lua_time()
             local lua_h = math.max(min_bar_h, lua_t / bar_t * bar_h)
-            local draw_h = math.max(min_bar_h, draw_t / bar_t * bar_h)
             local x1 = graph_x2 + (n-1) * bar_w
             local x2 = x1 + bar_w
             local lua_y = graph_y1 + lua_h
-            local draw_y = lua_y + draw_h
-            local frame_y = graph_y1 + frame_t / bar_t * bar_h
+            local frame_y = graph_y1 + frame_delta_t / bar_t * bar_h
             local top_y = math.max(frame_y, graph_y2) + min_bar_h
             local prev_top_y = math.max(prev_frame_y, graph_y2) + min_bar_h
+            local mem = collectgarbage("count") + am._total_buffer_malloc_mem() + am._buffer_pool_mem()
+            if mem > max_mem then
+                local scale = max_mem / (mem * 1.5)
+                local verts = bar_quads.vert
+
+                for i = 1, num_bars do
+                    local q = (i-1) * num_series + 4
+                    local v = (q-1) * 4 + 1
+                    local old = verts[v + 1]
+                    local new1 = old{y = (old.y - graph_y1) * scale + graph_y1}
+                    local new2 = new1{y = new1.y - min_bar_h}
+                    verts[v] = new1
+                    verts[v + 1] = new2
+                    old = verts[v + 3]
+                    new1 = old{y = (old.y - graph_y1) * scale + graph_y1}
+                    new2 = new1{y = new1.y - min_bar_h}
+                    verts[v + 3] = new1
+                    verts[v + 2] = new2
+                end
+                max_mem = (mem * 1.5)
+            end
+            local mem_y = mem / max_mem * bar_h
             if n == 1 then
                 bar_quads:add_quad{
                     vert = {graph_x1, graph_y2, graph_x1, graph_y1, graph_x2, graph_y1, graph_x2, graph_y2},
@@ -131,22 +257,25 @@ function am.show_perf_overlay()
                 color = lua_graph_color,
             }
             bar_quads:add_quad{
-                vert = {x1, prev_draw_y, x1, prev_lua_y, x2, lua_y, x2, draw_y},
-                color = draw_graph_color,
-            }
-            bar_quads:add_quad{
-                vert = {x1, prev_frame_y, x1, prev_draw_y, x2, draw_y, x2, frame_y},
+                vert = {x1, prev_frame_y, x1, prev_lua_y, x2, lua_y, x2, frame_y},
                 color = frame_graph_color,
             }
+            bar_quads:add_quad{
+                vert = {x1, prev_mem_y+min_bar_h, x1, prev_mem_y, x2, mem_y, x2, mem_y+min_bar_h},
+                color = mem_graph_color,
+            }
             prev_lua_y = lua_y
-            prev_draw_y = draw_y
             prev_frame_y = frame_y
+            prev_mem_y = mem_y
+            if n >= num_bars then
+                bar_quads:remove_quad(1, num_series)
+            end
             n = n + 1
             bar_translate.x = graph_x2 - x1
 
-            annotations"frame_t".text = string.format("FRAME:  %4dms", frame_t * 1000)
-            annotations"draw_t".text =  string.format("RENDER: %4dms", draw_t * 1000)
-            annotations"lua_t".text =   string.format("SCRIPT: %4dms", lua_t * 1000)
+            annotations"frame_t".text = string.format("FRAME:   %4dms", frame_delta_t * 1000)
+            annotations"lua_t".text =   string.format("LUA:     %4dms", lua_t * 1000)
+            annotations"mem".text =     string.format("LUA MEM: %4dMB", mem / 1024)
         end)
         win._overlay:append(perf_overlay_node)
     end

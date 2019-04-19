@@ -14,6 +14,6 @@ struct am_image_buffer : am_nonatomic_userdata {
 
 void am_pixel_to_texture_format(am_pixel_format pxl_fmt, am_texture_format *txt_fmt, am_texture_type *txt_type);
 
-int am_load_image(lua_State *L);
+bool am_load_image(const char *filename, uint8_t **img_data, int *width, int *height, char **errmsg);
 
 void am_open_image_module(lua_State *L);

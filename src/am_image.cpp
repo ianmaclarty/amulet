@@ -58,25 +58,33 @@ static int create_image_buffer(lua_State *L) {
     return 1;
 }
 
+bool am_load_image(const char *filename, uint8_t **img_data, int *width, int *height, char **errmsg) {
+    int len;
+    void *data = am_read_resource(filename, &len, errmsg);
+    if (data == NULL) {
+        return false;
+    }
+    int components = 4;
+    stbi_set_flip_vertically_on_load(1);
+    *img_data =
+        (uint8_t*)stbi_load_from_memory((stbi_uc const *)data, len, width, height, &components, 4);
+    free(data);
+    if (img_data == NULL) {
+        *errmsg = am_format("%s", stbi_failure_reason());
+    }
+    return img_data;
+}
+
 static int load_image(lua_State *L) {
     am_check_nargs(L, 1);
     char *errmsg;
-    int len;
     const char *filename = luaL_checkstring(L, 1);
-    void *data = am_read_resource(filename, &len, &errmsg);
-    if (data == NULL) {
+    uint8_t *img_data;
+    int width, height;
+    if (!am_load_image(filename, &img_data, &width, &height, &errmsg)) {
         free(errmsg);
         lua_pushnil(L);
         return 1;
-    }
-    int width, height;
-    int components = 4;
-    stbi_set_flip_vertically_on_load(1);
-    stbi_uc *img_data =
-        stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
-    free(data);
-    if (img_data == NULL) {
-        return luaL_error(L, "error loading image %s: %s", filename, stbi_failure_reason());
     }
     am_image_buffer *img = am_new_userdata(L, am_image_buffer);
     img->width = width;
@@ -88,10 +96,6 @@ static int load_image(lua_State *L) {
     img->buffer_ref = img->ref(L, -1);
     lua_pop(L, 1); // pop imgbuf
     return 1;
-}
-
-int am_load_image(lua_State *L) {
-    return load_image(L);
 }
 
 static int load_embedded_image(lua_State *L) {

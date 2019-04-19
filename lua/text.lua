@@ -357,11 +357,11 @@ function convert_sprite_source(img)
         if img:match("%\n") then
             sprite = parse_ascii_sprite(img)
         else
-            img = am.load_image(img)
+            local texture = am.texture2d(img)
             local s1, t1, s2, t2 = 0, 0, 1, 1
-            local x1, y1, x2, y2 = 0, 0, img.width, img.height
+            local x1, y1, x2, y2 = 0, 0, texture.width, texture.height
             sprite = {
-                texture = am.texture2d(img),
+                texture = texture,
                 s1 = s1,
                 t1 = t1,
                 s2 = s2,
@@ -458,13 +458,11 @@ function am._init_fonts(data, imgfile, embedded)
     local
     function ensure_texture_loaded()
         if not texture then
-            local img
             if embedded then
-                img = am._load_embedded_image(imgfile);
+                texture = am.texture2d(am._load_embedded_image(imgfile));
             else
-                img = am.load_image(imgfile);
+                texture = am.texture2d(imgfile);
             end
-            texture = am.texture2d(img)
             texture.minfilter = data.minfilter
             texture.magfilter = data.magfilter
         end
@@ -486,11 +484,10 @@ function am._init_fonts(data, imgfile, embedded)
 end
 
 function am.load_sprite_grid(filename, width, height)
-    local img = am.load_image(filename)
-    local tex = am.texture2d(img)
-    local num_rows, num_cols = math.floor(img.height / height), math.floor(img.width / width)
+    local tex = am.texture2d(filename)
+    local num_rows, num_cols = math.floor(tex.height / height), math.floor(tex.width / width)
     local grid = {}
-    local w, h = img.width, img.height
+    local w, h = tex.width, tex.height
     local dx = w / num_cols
     local dy = h / num_rows
     local ds = 1 / num_cols
@@ -517,11 +514,11 @@ function am.load_sprite_grid(filename, width, height)
 end
 
 function am.load_bitmap_font(filename, key, embedded)
-    local img
+    local texture
     if embedded then
-        img = am._load_embedded_image(filename)
+        texture = am.texture2d(am._load_embedded_image(filename))
     else
-        img = am.load_image(filename)
+        texture = am.texture2d(filename)
     end
     local num_rows, num_cols = 0, 0
     local chars = {}
@@ -538,7 +535,7 @@ function am.load_bitmap_font(filename, key, embedded)
     end
     num_cols = math.max(col - 1, num_cols)
     num_rows = col == 1 and row - 1 or row
-    local w, h = img.width, img.height
+    local w, h = texture.width, texture.height
     local dx = w / num_cols
     local dy = h / num_rows
     local ds = 1 / num_cols
@@ -560,7 +557,7 @@ function am.load_bitmap_font(filename, key, embedded)
         is_premult = false,
         is_font = true,
         chars = chars,
-        texture = am.texture2d(img),
+        texture = texture,
     }
     return font
 end
