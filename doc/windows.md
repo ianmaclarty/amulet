@@ -80,11 +80,6 @@ table with any of the following fields:
     The number of samples to use for multisample anti-aliasing. This
     must be a power of 2. Use zero (the default) for no anti-aliasing.
 
-- **`orientation`**:
-    `"portrait"` or `"landscape"`. This specifies the supported
-    orientation of the window on platforms that support orientation
-    changes (e.g. iOS). If omitted, both orientations are supported.
-
 - **`projection`**:
     A custom projection matrix (a `mat4`) to be used for the window's
     coordinate system. This matrix is used when transforming
