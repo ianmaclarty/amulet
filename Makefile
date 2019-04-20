@@ -236,7 +236,8 @@ $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
 	else \
 	    cd $(LUAJIT_DIR); \
-	    $(MAKE) clean all $(LUAJIT_FLAGS); \
+	    $(MAKE) clean $(LUAJIT_FLAGS); \
+	    $(MAKE) all $(LUAJIT_FLAGS); \
 	    cd $$BASE_DIR; \
 	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
 	    cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@; \
@@ -256,7 +257,8 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
 
 $(GLSLOPT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(GLSLOPT_DIR) && $(MAKE) clean all
+	cd $(GLSLOPT_DIR) && $(MAKE) clean
+	cd $(GLSLOPT_DIR) && $(MAKE) all
 	cp $(GLSLOPT_DIR)/src/glsl/glsl_optimizer.h $(BUILD_INC_DIR)/
 	cp $(GLSLOPT_DIR)/libglslopt$(ALIB_EXT) $@
 
