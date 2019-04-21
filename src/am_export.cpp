@@ -34,6 +34,9 @@ struct export_config {
     char *basepath;
     const char *mac_category;
     bool recurse;
+    char *outdir;
+    const char *outpath;
+    bool allfiles;
 };
 
 static bool create_mac_info_plist(const char *binpath, const char *filename, export_config *conf);
@@ -102,7 +105,7 @@ static bool copy_bin_file(const char *from_path, const char *to_path) {
     return result;
 }
 
-static bool add_files_to_pak(const char *zipfile, const char *rootdir, const char *dir, const char *pat, bool compress, uint8_t platform) {
+static bool add_files_to_pak(const char *zipfile, const char *rootdir, const char *dir, const char *pat, uint8_t platform) {
     CSimpleGlobTempl<char> glob(SG_GLOB_ONLYFILE);
     char *pattern = am_format("%s%c%s", dir, AM_PATH_SEP, pat);
     glob.Add(pattern);
@@ -114,14 +117,18 @@ static bool add_files_to_pak(const char *zipfile, const char *rootdir, const cha
         if (buf == NULL) return false;
         replace_backslashes(file);
         char *name = file + strlen(rootdir) + 1;
-        if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, name,
-                buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, 0100644, platform)) {
+        int namelen = strlen(name);
+        if (namelen > 1 && name[namelen-1] == '~') continue; // always ignore vim backup files
+        const char *namesuffix = namelen > 4 ? name + namelen - 4 : "";
+        // don't compress .png, .jpg or .ogg as they are already compressed
+        bool compress = strcmp(namesuffix, ".png") != 0 && strcmp(namesuffix, ".jpg") != 0 && strcmp(namesuffix, ".ogg") != 0;
+        if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, name, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, 0100644, platform)) {
             free(buf);
-            fprintf(stderr, "Error: failed to add %s to archive\n", file);
+            fprintf(stderr, "Error: failed to add %s to archive %s\n", file, zipfile);
             return false;
         }
         free(buf);
-        printf("+ %s\n", name);
+        printf("Added %s\n", name);
     }
     return true;
 }
@@ -160,7 +167,7 @@ static bool add_files_to_dist(const char *zipfile, const char *dir, const char *
         if (!mz_zip_add_mem_to_archive_file_in_place(zipfile, name, buf, len, "", 0, compress ? MZ_BEST_COMPRESSION : 0, executable ? 0100755 : 0100644, platform)) {
             free(buf);
             free(name);
-            fprintf(stderr, "Error: failed to add %s to archive\n", file);
+            fprintf(stderr, "Error: failed to add %s to archive %s\n", file, zipfile);
             return false;
         }
         free(name);
@@ -169,35 +176,39 @@ static bool add_files_to_dist(const char *zipfile, const char *dir, const char *
     return true;
 }
 
-static bool add_data_files_to_zip(const char *zipfile, const char *rootdir, const char *dir) {
-    return 
-        add_files_to_pak(zipfile, rootdir, dir, "*.lua", true, ZIP_PLATFORM_DOS) &&
-        add_files_to_pak(zipfile, rootdir, dir, "*.png", false, ZIP_PLATFORM_DOS) &&
-        add_files_to_pak(zipfile, rootdir, dir, "*.jpg", false, ZIP_PLATFORM_DOS) &&
-        add_files_to_pak(zipfile, rootdir, dir, "*.ogg", false, ZIP_PLATFORM_DOS) &&
-        add_files_to_pak(zipfile, rootdir, dir, "*.obj", true, ZIP_PLATFORM_DOS) &&
-        add_files_to_pak(zipfile, rootdir, dir, "*.json", true, ZIP_PLATFORM_DOS) &&
-        add_files_to_pak(zipfile, rootdir, dir, "*.frag", true, ZIP_PLATFORM_DOS) &&
-        add_files_to_pak(zipfile, rootdir, dir, "*.vert", true, ZIP_PLATFORM_DOS) &&
-        true;
+static bool add_data_files_to_zip(export_config *conf, const char *zipfile, const char *rootdir, const char *dir) {
+    if (conf->allfiles) {
+        return add_files_to_pak(zipfile, rootdir, dir, "*", ZIP_PLATFORM_DOS);
+    } else {
+        return 
+            add_files_to_pak(zipfile, rootdir, dir, "*.lua", ZIP_PLATFORM_DOS) &&
+            add_files_to_pak(zipfile, rootdir, dir, "*.png", ZIP_PLATFORM_DOS) &&
+            add_files_to_pak(zipfile, rootdir, dir, "*.jpg", ZIP_PLATFORM_DOS) &&
+            add_files_to_pak(zipfile, rootdir, dir, "*.ogg", ZIP_PLATFORM_DOS) &&
+            add_files_to_pak(zipfile, rootdir, dir, "*.obj", ZIP_PLATFORM_DOS) &&
+            add_files_to_pak(zipfile, rootdir, dir, "*.json", ZIP_PLATFORM_DOS) &&
+            add_files_to_pak(zipfile, rootdir, dir, "*.frag", ZIP_PLATFORM_DOS) &&
+            add_files_to_pak(zipfile, rootdir, dir, "*.vert", ZIP_PLATFORM_DOS) &&
+            true;
+    }
 }
 
-static bool build_data_pak_2(int level, bool recursive, const char *rootdir, const char *dir, const char *pakfile) {
+static bool build_data_pak_2(export_config *conf, int level, const char *rootdir, const char *dir, const char *pakfile) {
     if (level >= RECURSE_LIMIT) {
         fprintf(stderr, "Error: maximum directory recursion depth reached (%d)\n", RECURSE_LIMIT);
         return false;
     }
-    if (!add_data_files_to_zip(pakfile, rootdir, dir)) {
+    if (!add_data_files_to_zip(conf, pakfile, rootdir, dir)) {
         return false;
     }
-    if (recursive) {
+    if (conf->recurse) {
         CSimpleGlobTempl<char> glob(SG_GLOB_ONLYDIR | SG_GLOB_NODOT);
         char *pattern = am_format("%s%c*", dir, AM_PATH_SEP);
         glob.Add(pattern);
         free(pattern);
         for (int n = 0; n < glob.FileCount(); ++n) {
             char *subdir = glob.File(n);
-            if (!build_data_pak_2(level + 1, recursive, rootdir, subdir, pakfile)) {
+            if (!build_data_pak_2(conf, level + 1, rootdir, subdir, pakfile)) {
                 return false;
             }
         }
@@ -209,7 +220,8 @@ static bool build_data_pak(export_config *conf) {
     if (am_file_exists(conf->pakfile)) {
         am_delete_file(conf->pakfile);
     }
-    return build_data_pak_2(0, conf->recurse, am_opt_data_dir, am_opt_data_dir, conf->pakfile);
+    printf("Exporting project...\n");
+    return build_data_pak_2(conf, 0, am_opt_data_dir, am_opt_data_dir, conf->pakfile);
 }
 
 static const char *platform_luavm(const char *platform) {
@@ -258,9 +270,11 @@ static char *get_template_path(export_config *conf) {
 }
 
 static char *get_export_zip_name(export_config *conf, const char *platname) {
-    const char *ext = "zip";
-    if (strcmp(platname, "ios") == 0) ext = "ipa";
-    return am_format("%s-%s-%s.%s", conf->shortname, conf->version, platname, ext);
+    if (conf->outpath != NULL) {
+        return am_format("%s", conf->outpath);
+    } else {
+        return am_format("%s%s-%s-%s.zip", conf->outdir, conf->shortname, conf->version, platname);
+    }
 }
 
 static bool gen_windows_export(export_config *conf) {
@@ -622,7 +636,12 @@ static bool gen_ios_xcode_proj(export_config *conf) {
         return false;
     }
     char *templates_dir = get_template_path(conf);
-    char *projbase_dir = am_format("%s_ios_xcode", conf->shortname);
+    char *projbase_dir;
+    if (conf->outpath) {
+        projbase_dir = am_format("%s", conf->outpath);
+    } else {
+        projbase_dir = am_format("%s%s-%s-ios", conf->outdir, conf->shortname, conf->version);
+    }
     char *xcodeproj_dir = am_format("%s/%s.xcodeproj", projbase_dir, conf->shortname);
     char *assets_dir = am_format("%s/Assets.xcassets", projbase_dir);
     char *appicon_assets_dir = am_format("%s/AppIcon.appiconset", assets_dir);
@@ -755,6 +774,17 @@ bool am_build_exports(am_export_flags *flags) {
     conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
     conf.mac_category = am_conf_mac_category;
     conf.recurse = flags->recurse;
+    conf.allfiles = flags->allfiles;
+    if (flags->outdir != NULL) {
+        if (flags->outdir[strlen(flags->outdir) - 1] == AM_PATH_SEP) {
+            conf.outdir = am_format("%s", flags->outdir);
+        } else {
+            conf.outdir = am_format("%s%s", flags->outdir, AM_PATH_SEP_STR);
+        }
+    } else {
+        conf.outdir = am_format("%s", "");
+    }
+    conf.outpath = flags->outpath;
     if (!build_data_pak(&conf)) return false;
     bool ok =
         ((!(flags->export_windows))        || gen_windows_export(&conf)) &&
@@ -767,6 +797,7 @@ bool am_build_exports(am_export_flags *flags) {
     am_delete_file(conf.pakfile);
     am_delete_empty_dir(AM_TMP_DIR);
     free(conf.basepath);
+    free(conf.outdir);
     return ok;
 }
 

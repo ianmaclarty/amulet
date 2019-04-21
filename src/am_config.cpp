@@ -156,7 +156,7 @@ bool am_load_config() {
     read_string_setting(eng->L, "title", &am_conf_app_title, "Untitled");
     read_string_setting(eng->L, "author", &am_conf_app_author, "Unknown");
     read_string_setting(eng->L, "shortname", &am_conf_app_shortname, am_conf_app_title);
-    read_string_setting(eng->L, "appid", &am_conf_app_id, "null");
+    read_string_setting(eng->L, "appid", &am_conf_app_id, "unknown.app.id");
     read_string_setting(eng->L, "appid_ios", &am_conf_app_id_ios, am_conf_app_id);
     read_string_setting(eng->L, "appid_mac", &am_conf_app_id_mac, am_conf_app_id);
     read_string_setting(eng->L, "version", &am_conf_app_version, "0.0.0");

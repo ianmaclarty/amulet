@@ -17,46 +17,48 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-r] [-windows] [-mac] [-ios-xcode-proj] [-linux] [-html] [ <dir> ]\n"
+        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj] \n"
+        "                     [-a] [-r] [-d <out-dir>] [-o <out-path>] [-nozipdir] [ <dir> ]\n"
         "\n"
-        "  Generates distribution packages for the project in <dir>,\n"
+        "  Exports distribution packages for the project in <dir>,\n"
         "  or the current directory if <dir> is omitted.\n"
-        "  <dir> should contain main.lua.\n"
+        "  <dir> should contain main.lua and conf.lua.\n"
         "\n"
-        "  If none of the -windows, -mac, -ios-xcode-proj -linux or -html options are given\n"
-        "  then packages for windows, mac and linux will be generated,\n"
-        "  otherwise only packages for the specified platforms will be generated.\n"
+        "  If no export platform is specified, then packages for windows,\n" 
+        "  mac and linux will be generated.\n"
         "\n"
-        "  All files with the following extensions will be included:\n"
-        "  .lua .png .jpg .ogg .obj\n"
-        "  All .txt files will also be copied to the generated zip and\n"
-        "  be visible to the user when they open it.\n"
+        "  Unless the -a options is given, only files with the following\n"
+        "  extensions will be included: .lua .png .jpg .ogg .obj .json .frag .vert.\n"
+        "  All .txt files in <dir> will also be copied to the generated zip and\n"
+        "  be visible to the user when they extract it (this is meant for REAMDEs).\n"
         "\n"
         "  If the -r option is given then all subdirectories of <dir> are included\n"
         "  recursively, otherwise only the files in <dir> are included.\n"
         "\n"
-        "  If you create a conf.lua file in the same\n"
-        "  directory as main.lua containing the following:\n"
+        "  The -d option can be used to specify the directory to export the packages to.\n"
+        "  By default packages are exported to the current directory.\n"
+        "\n"
+        "  The -o option allows you to specify the complete path (dir + filename) of\n"
+        "  the generated package. In this case the -d option is ignored. The -o option\n"
+        "  doesn't work if you're exporting multiple platforms at once.\n"
+        "\n"
+        "  As a courtesy to the user, the generate zip packages will contain the game\n"
+        "  files in a sub-folder. If you instead want the game files to appear in the\n"
+        "  root of the zip, use -nozipdir. You might want this if the game will\n"
+        "  run from a launcher, such as Steam.\n"
+        "\n"
+        "  A minimal conf.lua might look something like this:\n"
         "\n"
         "    title = \"My Game Title\"\n"
         "    shortname = \"mygame\"\n"
         "    author = \"Your Name\"\n"
-        "    appid = \"com.some-unique-id.123\"\n"
         "    version = \"1.0.0\"\n"
         "\n"
-        "    display_name = \"My Game\"\n"
-        "    dev_region = \"en\"\n"
-        "    supported_languages = \"en,fr,nl,de,ja,zh-TW,zh-CN,ko\"\n"
-        "    icon = \"icon.png\"\n"
-        "    launch_image = \"launch.png\"\n"
-        "    orientation = \"any\"\n"
+        "  See the online docs for the full list of conf options.\n"
         "\n"
-        "  then this will be used for various bits of meta-data in the\n"
-        "  generated packages.\n"
-        "\n"
-        "  IMPORTANT: avoid unzipping and re-zipping the generated packages\n"
-        "  as you may inadvertently strip the executable bit from\n"
-        "  some files, which will cause them not to work.\n"
+        "  IMPORTANT: avoid unzipping and re-zipping the generated packages manually\n"
+        "  as you may inadvertently strip the executable bit from some files,\n"
+        "  causing them not to work on certain platforms.\n"
         "\n"
        /*-------------------------------------------------------------------------------*/
     );
@@ -141,7 +143,7 @@ static bool help_cmd(int *argc, char ***argv) {
         "  help [ <command> ] Show help\n"
         "  version            Show version\n"
 #ifdef AM_EXPORT
-        "  export [ <dir> ]   Generate distribution packages\n"
+        "  export ...         Generate distribution packages\n"
 #endif
 #ifdef AM_SPRITEPACK
         "  pack ...           Generate sprite sheet from images and/or fonts\n"
@@ -178,24 +180,40 @@ static bool export_cmd(int *argc, char ***argv) {
             flags.export_html = true;
         } else if (strcmp(arg, "-r") == 0) {
             flags.recurse = true;
+        } else if (strcmp(arg, "-a") == 0) {
+            flags.allfiles = true;
         } else if (strcmp(arg, "-nozipdir") == 0) {
             flags.zipdir = false;
+        } else if (strcmp(arg, "-d") == 0) {
+            if (i >= n - 1) {
+                fprintf(stderr, "Missing -d argument value.\n");
+                return false;
+            }
+            i++;
+            arg = (*argv)[i];
+            flags.outdir = arg;
+        } else if (strcmp(arg, "-o") == 0) {
+            if (i >= n - 1) {
+                fprintf(stderr, "Missing -o argument value.\n");
+                return false;
+            }
+            i++;
+            arg = (*argv)[i];
+            flags.outpath = arg;
         } else {
             break;
         }
     }
     *argc -= i;
     *argv += i;
-    if (!flags.export_windows && 
-        !flags.export_mac && 
-        !flags.export_mac_app_store && 
-        !flags.export_linux && 
-        !flags.export_ios_xcode_proj && 
-        !flags.export_html) 
-    {
+    if (flags.num_platforms() == 0) {
         flags.export_windows = true;
         flags.export_mac = true;
         flags.export_linux = true;
+    }
+    if (flags.outpath != NULL && flags.num_platforms() != 1) {
+        fprintf(stderr, "If the -o option is given, then exactly one export platform must be specified.\n");
+        return false;
     }
     char *dir = (char*)".";
     if (*argc > 0) {

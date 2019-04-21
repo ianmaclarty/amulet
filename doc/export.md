@@ -7,25 +7,53 @@ To generate distribution packages, use the amulet export command like so:
 > amulet export [<dir>]
 ~~~
 
-`<dir>` is the directory containing your lua, image and audio files.
-It defaults to the current directory.
+`<dir>` is the directory containing your `main.lua` file and optional
+`conf.lua` file (see [below](#config)). It defaults to the current directory.
 
-This will generate package files for Windows, Mac and Linux in the
+This will generate zip package files for Windows, Mac and Linux in the
 current directory.
 Alternatively you can pass one of the 
-options `-windows`, `-mac`, `-mac-app-store`, `-ios`, `-linux` or `-html` to
+options `-windows`, `-mac`, `-linux`, `-html` or `-ios-xcode-proj`, to
 generate packages for a specific platform.
 
-Note that the `-mac-app-store` option only works when run on Mac OS X.
+If the `-r` option is given then all subdirectories will also be included
+(recursively), otherwise only the files in the given directory are included.
 
-All files in the directory with the following extensions will
-be included as data in the distribution: `.lua`, `.json`, `.png`, `.jpg`, `.ogg` and `.obj`.
+By default all files in the directory with the following extensions will
+be included in the export: `.lua`, `.json`, `.png`, `.jpg`, `.ogg`, `.obj`,
+`.vert`, `.frag`.  You can include all files with the `-a` option.
+
 All .txt files will also be copied to the generated zip and
 be visible to the user when they unzip it. This is intended for `README.txt`
 or similar files.
 
-If the `-r` option is given then all subdirectories will also be included
-(recursively), otherwise only the files in current directory are included.
+By default packages are exported to the current directory.
+The -d option can be used to specify a different directory
+(the directory must already exist).
+
+The -o option allows you to specify the complete path (dir + filename) of
+the generated package. In this case the -d option is ignored. The -o option
+doesn't work if you're exporting multiple platforms at once.
+
+For example the following will export a windows build to `builds/mygame.zip`. It will
+look in `src` for the game files, recursively including all files.
+
+~~~ {.console}
+amulet export -windows -r -a -o builds/mygame.zip src
+~~~
+
+The following will generate mac and linux builds in the `builds` directory, this
+time looking for game files in `game` recursively, but only including
+recognised files (since no `-a` option is given):
+
+~~~ {.console}
+amulet export -mac -linux -r -d builds game
+~~~
+
+As a courtesy to the user, the generate zip packages will contain the game
+files in a sub-folder. If you instead want the game files to appear in the
+root of the zip, use -nozipdir. You might want this if the game will
+run from a launcher such as Steam.
 
 The generated zip will also contain an `amulet_license.txt` file
 containing the Amulet license as well as the licenses of all third
@@ -34,39 +62,6 @@ be distributed with copies of their libraries, so to comply you should
 include amulet_license.txt when you distribute your work. Note that
 these licenses do not apply to your work itself.
 
-If you create a `conf.lua` file in the same
-directory as your other Lua files containing
-the following:
-
-~~~ {.lua}
-title = "My Game Title"
-shortname = "mygame"
-author = "Your Name"
-appid = "com.some-unique-id.123"
-version = "1.0.0"
-support_email = "support@example.com"
-
-display_name = "My Game"
-dev_region = "en"
-supported_languages = "en,fr,nl,de,ja,zh-CN,zh-TW"
-icon = "icon.png"
-launch_image = "launch.png"
-orientation = "any"
-~~~
-
-then this will be used for various bits of meta-data in the
-generated packages. In particular `shortname` will be used
-in the name of the generated zip files (otherwise they will
-just be called "Untitled").
-
-If you're generating an iOS package for submission to the App Store
-you'll need to fill out all the settings.
-
-Note that the generated iOS ipa package is not signed. You will
-need to sign it using a tool like [sigh](https://github.com/fastlane/fastlane/tree/master/sigh)
-or [this script](https://raw.githubusercontent.com/fastlane/fastlane/master/sigh/lib/assets/resign.sh)
-before submitting it to the app store or deploying on a device.
-
 **IMPORTANT**: Avoid unzipping and re-zipping the generated packages
 as you may inadvertently strip the executable bit from
-some files, which will cause them not to work. 
+some files, which will cause them not to work on some platforms. 

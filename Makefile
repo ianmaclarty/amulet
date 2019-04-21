@@ -35,7 +35,7 @@ ifeq ($(TARGET_PLATFORM),html)
   AMULET = $(BUILD_BIN_DIR)/amulet.html
 else ifdef IOS
   AM_DEPS = $(LUAVM) stb kissfft tinymt
-  ifdef USE_METAL
+  ifndef NO_METAL
     AM_DEPS += glslopt
     AM_DEFS += AM_USE_METAL
   endif
@@ -55,7 +55,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifeq ($(TARGET_PLATFORM),osx)
   AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
-  ifdef USE_METAL
+  ifndef NO_METAL
     AM_DEPS += glslopt
     AM_DEFS += AM_USE_METAL
   else
@@ -234,7 +234,8 @@ $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
 	else \
 	    cd $(LUAJIT_DIR); \
-	    $(MAKE) clean all $(LUAJIT_FLAGS); \
+	    $(MAKE) clean $(LUAJIT_FLAGS); \
+	    $(MAKE) all $(LUAJIT_FLAGS); \
 	    cd $$BASE_DIR; \
 	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
 	    cp $(LUAJIT_DIR)/src/libluajit$(ALIB_EXT) $@; \
@@ -254,7 +255,8 @@ $(STB_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	cp $(STB_DIR)/libstb$(ALIB_EXT) $@
 
 $(GLSLOPT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
-	cd $(GLSLOPT_DIR) && $(MAKE) clean all
+	cd $(GLSLOPT_DIR) && $(MAKE) clean
+	cd $(GLSLOPT_DIR) && $(MAKE) all
 	cp $(GLSLOPT_DIR)/src/glsl/glsl_optimizer.h $(BUILD_INC_DIR)/
 	cp $(GLSLOPT_DIR)/libglslopt$(ALIB_EXT) $@
 

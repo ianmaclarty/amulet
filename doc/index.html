@@ -425,6 +425,14 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul></li>
 <li><a href="#exporting">Exporting</a></li>
+<li><a href="#config">Project Configuration</a><ul>
+<li><a href="#basic-metadata">Basic metadata</a></li>
+<li><a href="#language-configuration">Language configuration</a></li>
+<li><a href="#lua-version">Lua version</a></li>
+<li><a href="#windows-settings">Windows settings</a></li>
+<li><a href="#mac-settings">Mac settings</a></li>
+<li><a href="#ios-settings">iOS settings</a></li>
+</ul></li>
 <li><a href="#d-models">3D models</a><ul>
 <li><a href="#am.load_obj">am.load_obj(filename)</a></li>
 </ul></li>
@@ -1140,6 +1148,10 @@ v <span class="ot">=</span> v<span class="ot">{</span>x <span class="ot">=</span
 <pre class="console"><code>vec2(4, 5)
 vec3(10, 3, 6)
 vec4(2, 4, 6, 8)</code></pre>
+<p>Vectors can be compared by value with <code>==</code> like this:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">if</span> vec2<span class="ot">(</span>x<span class="ot">,</span>y<span class="ot">)</span> <span class="ot">==</span> vec2<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span><span class="dv">0</span><span class="ot">)</span> <span class="kw">then</span> <span class="ot">...</span></code></pre></div>
+<p>Also, you can concatenate vectors with strings for easy formatting:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">local</span> label <span class="ot">=</span> <span class="st">&quot;position: &quot;</span><span class="ot">..</span>vec2<span class="ot">(</span>x<span class="ot">,</span>y<span class="ot">)</span></code></pre></div>
 <hr />
 <div class="figure">
 <img src="images/screenshot4.jpg" />
@@ -1239,6 +1251,8 @@ vec2(0, 2)</code></pre>
 <p>If the first operand is a vector and the second is a matrix, then the first operand is taken to be a row vector (a matrix with one row) and should have the same number of columns as the matrix. The result is the matrix product of the row vector and the matrix, which is another row vector.</p>
 <p>Similarly if the first argument is a matrix and the second a vector, the vector is taken to be a column vector (a matrix with one column) and the result is the matrix product of the matrix and column vector, which is another column vector.</p>
 <p>The <code>/</code> operator also works when both arguments are matrices and is equivalent to multiplying the first matrix by the inverse of the second.</p>
+<p>Matricies can be compared by value with <code>==</code> like this:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua"><span class="kw">if</span> m1<span class="ot">*</span>m2 <span class="ot">==</span> mat4<span class="ot">(</span><span class="dv">1</span><span class="ot">)</span> <span class="kw">then</span> <span class="ot">...</span></code></pre></div>
 <div class="figure">
 <img src="images/screenshot2.jpg" />
 
@@ -1267,6 +1281,9 @@ vec2(0, 2)</code></pre>
 <h3 id="quaternion-fields">Quaternion fields</h3>
 <p>The <code>angle</code>, <code>axis</code>, <code>pitch</code>, <code>roll</code>, <code>yaw</code>, <code>w</code>, <code>x</code>, <code>y</code> and <code>z</code> fields can be used to read the corresponding attributes of a quaternion.</p>
 <p><strong>Note</strong>: Quaternions use a normalized internal representation, so the value returned by a field might be different from the value used to construct the quaternion. Though the quaternion as a whole represents the equivalent rotation.</p>
+<p>You may notice this when comparing quaternions with <code>==</code>. For example:</p>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">quat<span class="ot">(</span>vec3<span class="ot">(</span><span class="dv">1</span><span class="ot">,</span><span class="dv">0</span><span class="ot">,</span><span class="dv">0</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,</span><span class="dv">1</span><span class="ot">,</span><span class="dv">0</span><span class="ot">))</span> <span class="ot">==</span> quat<span class="ot">(</span>vec3<span class="ot">(-</span><span class="dv">1</span><span class="ot">,</span><span class="dv">0</span><span class="ot">,</span><span class="dv">0</span><span class="ot">),</span> vec3<span class="ot">(</span><span class="dv">0</span><span class="ot">,-</span><span class="dv">1</span><span class="ot">,</span><span class="dv">0</span><span class="ot">))</span></code></pre></div>
+<p>evaluates to <code>true</code>.</p>
 <h3 id="quaternion-operations">Quaternion operations</h3>
 <p>Quaternions can be multiplied together using the <code>*</code> operator. The result of multiplying 2 quaternions is the rotation that results from applying the first quaternion's rotation followed by the second quaternion's rotation.</p>
 <p>Multiplying a quaternion by a vector rotates the vector. For example:</p>
@@ -1591,7 +1608,6 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <li><p><strong><code>clear_color</code></strong>: The color (a <code>vec4</code>) used to clear the window each frame before drawing. The default clear color is black (<code>vec4(0, 0, 0, 1)</code>).</p></li>
 <li><p><strong><code>letterbox</code></strong>: <code>true</code> or <code>false</code>. Indicates whether the original aspect ratio (as determined by the <code>width</code> and <code>height</code> settings of the window) should be maintained after a resize by adding black horizontal or vertical bars to the sides of the window. The default is <code>true</code>.</p></li>
 <li><p><strong><code>msaa_samples</code></strong>: The number of samples to use for multisample anti-aliasing. This must be a power of 2. Use zero (the default) for no anti-aliasing.</p></li>
-<li><p><strong><code>orientation</code></strong>: <code>&quot;portrait&quot;</code> or <code>&quot;landscape&quot;</code>. This specifies the supported orientation of the window on platforms that support orientation changes (e.g. iOS). If omitted, both orientations are supported.</p></li>
 <li><p><strong><code>projection</code></strong>: A custom projection matrix (a <code>mat4</code>) to be used for the window's coordinate system. This matrix is used when transforming mouse or touch event coordinates and is set as the projection matrix for rendering, but does not affect the <code>left</code>, <code>right</code>, <code>top</code>, <code>bottom</code>, <code>width</code> and <code>height</code> fields of the window.</p></li>
 </ul>
 <h2 id="window-fields">Window fields</h2>
@@ -2917,6 +2933,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <h3 id="am.save_statekey-state-format">am.save_state(key, state [,format])</h3>
 <p>Save the table <code>state</code> under <code>key</code>.</p>
 <p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
+<p>The location of the save file varies from platform to platform, but will generally be the recommended location to store app data on that system. The <code>shortname</code> and <code>author</code> fields from <a href="#config"><code>conf.lua</code></a> will be used to derive this location if provided.</p>
 <p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code by modifying the save file.</p>
 <h3 id="am.load_statekey-format">am.load_state(key, [,format])</h3>
 <p>Loads the table saved under <code>key</code> and returns it. If no table has been previously saved under <code>key</code> then <code>nil</code> is returned.</p>
@@ -2970,6 +2987,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p><code>pitch</code> is a multiplier applied to the playback speed. 1.0 mean play at the original speed. 2.0 means play twice as fast and 0.5 means play at half the original speed.</p>
 <p><code>volume</code> should be between 0 and 1.</p>
 <p><strong>Note</strong>: When the source is an sfxr seed or a filename, an <a href="#audio-buffers">audio buffer</a> is generated behind the scenes and cached. Therefore there might be a short delay the first time this function is called with a given seed or filename (though for short audio clips this will probably not be noticeable). Also avoid calling this function many times with different seeds or filenames, because that will cause unbounded memory growth.</p>
+<p><strong>Note</strong>: When playing audio in a web browser via HTML export, most browsers will not play any sounds until the user interacts with the page in some way. This is an effort by browser creators to suppress annoying auto-play advertisements. Amulet attempts to detect this and begins playing sound after the first click or key press.</p>
 <h2 id="generating-sound-effects">Generating sound effects</h2>
 <h3 id="am.sfxr_synth" class="func-def">am.sfxr_synth(settings)</h3>
 <p>Returns an audio buffer containing a generated sound effect.</p>
@@ -3240,30 +3258,58 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <h1 id="exporting">Exporting</h1>
 <p>To generate distribution packages, use the amulet export command like so:</p>
 <pre class="console"><code>&gt; amulet export [&lt;dir&gt;]</code></pre>
-<p><code>&lt;dir&gt;</code> is the directory containing your lua, image and audio files. It defaults to the current directory.</p>
-<p>This will generate package files for Windows, Mac and Linux in the current directory. Alternatively you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-mac-app-store</code>, <code>-ios</code>, <code>-linux</code> or <code>-html</code> to generate packages for a specific platform.</p>
-<p>Note that the <code>-mac-app-store</code> option only works when run on Mac OS X.</p>
-<p>All files in the directory with the following extensions will be included as data in the distribution: <code>.lua</code>, <code>.json</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code> and <code>.obj</code>. All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
-<p>If the <code>-r</code> option is given then all subdirectories will also be included (recursively), otherwise only the files in current directory are included.</p>
+<p><code>&lt;dir&gt;</code> is the directory containing your <code>main.lua</code> file and optional <code>conf.lua</code> file (see <a href="#config">below</a>). It defaults to the current directory.</p>
+<p>This will generate zip package files for Windows, Mac and Linux in the current directory. Alternatively you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-linux</code>, <code>-html</code> or <code>-ios-xcode-proj</code>, to generate packages for a specific platform.</p>
+<p>If the <code>-r</code> option is given then all subdirectories will also be included (recursively), otherwise only the files in the given directory are included.</p>
+<p>By default all files in the directory with the following extensions will be included in the export: <code>.lua</code>, <code>.json</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code>, <code>.obj</code>, <code>.vert</code>, <code>.frag</code>. You can include all files with the <code>-a</code> option.</p>
+<p>All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
+<p>By default packages are exported to the current directory. The -d option can be used to specify a different directory (the directory must already exist).</p>
+<p>The -o option allows you to specify the complete path (dir + filename) of the generated package. In this case the -d option is ignored. The -o option doesn't work if you're exporting multiple platforms at once.</p>
+<p>For example the following will export a windows build to <code>builds/mygame.zip</code>. It will look in <code>src</code> for the game files, recursively including all files.</p>
+<pre class="console"><code>amulet export -windows -r -a -o builds/mygame.zip src</code></pre>
+<p>The following will generate mac and linux builds in the <code>builds</code> directory, this time looking for game files in <code>game</code> recursively, but only including recognised files (since no <code>-a</code> option is given):</p>
+<pre class="console"><code>amulet export -mac -linux -r -d builds game</code></pre>
+<p>As a courtesy to the user, the generate zip packages will contain the game files in a sub-folder. If you instead want the game files to appear in the root of the zip, use -nozipdir. You might want this if the game will run from a launcher such as Steam.</p>
 <p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
-<p>If you create a <code>conf.lua</code> file in the same directory as your other Lua files containing the following:</p>
+<p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work on some platforms.</p>
+<h1 id="config">Project Configuration</h1>
+<p>Project metadata can be specified in a <code>conf.lua</code> file in the same directory as <code>main.lua</code>. Information like the icon to use for Mac and iOS exports, your game title, author and version, as well as app signing information for iOS is all specified here.</p>
+<h2 id="basic-metadata">Basic metadata</h2>
+<p>A minimal <code>conf.lua</code> might look like this:</p>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">title <span class="ot">=</span> <span class="st">&quot;My Game Title&quot;</span>
-shortname <span class="ot">=</span> <span class="st">&quot;mygame&quot;</span>
 author <span class="ot">=</span> <span class="st">&quot;Your Name&quot;</span>
-appid <span class="ot">=</span> <span class="st">&quot;com.some-unique-id.123&quot;</span>
+shortname <span class="ot">=</span> <span class="st">&quot;mygame&quot;</span>
 version <span class="ot">=</span> <span class="st">&quot;1.0.0&quot;</span>
 support_email <span class="ot">=</span> <span class="st">&quot;support@example.com&quot;</span>
-
-display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>
-dev_region <span class="ot">=</span> <span class="st">&quot;en&quot;</span>
-supported_languages <span class="ot">=</span> <span class="st">&quot;en,fr,nl,de,ja,zh-CN,zh-TW&quot;</span>
-icon <span class="ot">=</span> <span class="st">&quot;icon.png&quot;</span>
-launch_image <span class="ot">=</span> <span class="st">&quot;launch.png&quot;</span>
-orientation <span class="ot">=</span> <span class="st">&quot;any&quot;</span></code></pre></div>
-<p>then this will be used for various bits of meta-data in the generated packages. In particular <code>shortname</code> will be used in the name of the generated zip files (otherwise they will just be called &quot;Untitled&quot;).</p>
-<p>If you're generating an iOS package for submission to the App Store you'll need to fill out all the settings.</p>
-<p>Note that the generated iOS ipa package is not signed. You will need to sign it using a tool like <a href="https://github.com/fastlane/fastlane/tree/master/sigh">sigh</a> or <a href="https://raw.githubusercontent.com/fastlane/fastlane/master/sigh/lib/assets/resign.sh">this script</a> before submitting it to the app store or deploying on a device.</p>
-<p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work.</p>
+copyright_message <span class="ot">=</span> <span class="st">&quot;Copyright © 2019 Your Name.&quot;</span></code></pre></div>
+<p><code>shortname</code> is used for the name of the executable and in a few other places. <code>support_email</code> is displayed to the user in error messages if provided. <code>author</code> is used to determine where save files go as well as in package metadata. The other metadata may or may not be included in the generated package metadata, depending on the target platform.</p>
+<h2 id="language-configuration">Language configuration</h2>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">dev_region <span class="ot">=</span> <span class="st">&quot;en&quot;</span>
+supported_languages <span class="ot">=</span> <span class="st">&quot;en,fr,de,ja,zh-Hans,zh-Hant,ko&quot;</span></code></pre></div>
+<p>These options specify the main language and supported languages of the app respectively. <a href="#am.language"><code>am.language</code></a> will always return one of the supported languages. Note that not all platforms currently support this feature.</p>
+<h2 id="lua-version">Lua version</h2>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">luavm <span class="ot">=</span> <span class="st">&quot;lua52&quot;</span></code></pre></div>
+<p>Specify which version of Lua to use for exported builds. This does not currently affect which version of Lua is used to run the game from the command line. Valid values are <code>&quot;lua51&quot;</code>, <code>&quot;lua52&quot;</code> and <code>&quot;luajit&quot;</code>.</p>
+<h2 id="windows-settings">Windows settings</h2>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">d3dangle <span class="ot">=</span> <span class="kw">true</span></code></pre></div>
+<p>Use Direct3D on Windows instead of OpenGL. Your GLSL shaders will be translated to HLSL using the Angle library. Note that MSAA is currently not supported when using Direct3D.</p>
+<h2 id="mac-settings">Mac settings</h2>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">appid_mac <span class="ot">=</span> <span class="st">&quot;com.example.myappid&quot;</span>
+icon_mac <span class="ot">=</span> <span class="st">&quot;assets/icon_mac.png&quot;</span></code></pre></div>
+<p>Specify the icon and appid for Mac exports. The icon path is relative to where you run amulet from.</p>
+<h2 id="ios-settings">iOS settings</h2>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>
+appid_ios <span class="ot">=</span> <span class="st">&quot;com.example.mygameid&quot;</span>
+icon_ios_ <span class="ot">=</span> <span class="st">&quot;assets/icon.png&quot;</span>
+launch_image <span class="ot">=</span> <span class="st">&quot;assets/launch_image.png&quot;</span>
+orientation <span class="ot">=</span> <span class="st">&quot;portrait&quot;</span>
+ios_cert_identity <span class="ot">=</span> <span class="st">&quot;XXXX123456&quot;</span>
+ios_dev_prov_profile_name <span class="ot">=</span> <span class="st">&quot;MyGame Dev Profile&quot;</span>
+ios_dist_prov_profile_name <span class="ot">=</span> <span class="st">&quot;MyGame App Store Profile&quot;</span></code></pre></div>
+<p>The above metadata is used when the <code>-ios-xcode-proj</code> export option is given to generate an Xcode project for iOS. All the data is required.</p>
+<p><code>orientation</code> can be <code>&quot;portrait&quot;</code>, <code>&quot;landscape&quot;</code>, <code>&quot;any&quot;</code> or <code>&quot;hybrid&quot;</code> (portrait on iPhone, but landscape on iPad).</p>
+<p><code>ios_cert_identity</code> is the code that appears in parenthesis in your certificate name (e.g. if you certificate name in Key Access is &quot;iPhone Distribution: Your Name (XXXX123456)&quot;, then this value should be <code>&quot;XXXX123456&quot;</code>.</p>
+<p><code>ios_dev_prov_profile_name</code> and <code>ios_dist_prov_profile_name</code> are the names of your installed development and distribution provisioning profiles respectively. You can install a provisioning profile by downloading and double clicking it.</p>
 <h1 id="d-models">3D models</h1>
 <p>Amulet has some basic support for loading 3D models in Wavefront <code>.obj</code> format.</p>
 <h3 id="am.load_obj" class="func-def">am.load_obj(filename)</h3>
@@ -3417,7 +3463,7 @@ mymodule<span class="ot">.</span>print_message<span class="ot">()</span> <span c
 <p>The platform Amulet is running on. It will be one of the strings <code>&quot;linux&quot;</code> <code>&quot;windows&quot;</code> <code>&quot;osx&quot;</code> <code>&quot;ios&quot;</code> <code>&quot;android&quot;</code> or <code>&quot;html&quot;</code>.</p>
 <h1 id="language">Language</h1>
 <h3 id="am.language" class="func-def">am.language()</h3>
-<p>Returns the user's preferred ISO 639-1 language code in lower case(e.g. <code>&quot;en&quot;</code>), possibly followed by a dash and an ISO 3166-1 coutry code in upper case (e.g. <code>&quot;fr-CA&quot;</code>). The returned value will be one of the languages listed in the <code>conf.lua</code> file (see <a href="#exporting">Exporting</a>). This currently only returns a meaningful value on iOS and Android (on all other platforms it always returns <code>&quot;en&quot;</code>).</p>
+<p>Returns the user's preferred ISO 639-1 language code in lower case(e.g. <code>&quot;en&quot;</code>), possibly followed by a dash and an ISO 3166-1 coutry code in upper case (e.g. <code>&quot;fr-CA&quot;</code>). The returned value will be one of the languages listed in the <code>conf.lua</code> file (see <a href="#config">here</a>). This currently only returns a meaningful value on Mac, iOS and Android (on other platforms it always returns <code>&quot;en&quot;</code>).</p>
 <h1 id="game-center-ios-only">Game Center (iOS only)</h1>
 <p>The following functions are only available on iOS.</p>
 <h3 id="am.init_gamecenter" class="func-def">am.init_gamecenter()</h3>
