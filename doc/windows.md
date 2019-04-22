@@ -25,7 +25,7 @@ table with any of the following fields:
     Mouse and touch positions as well as rendering will be in this coordinate
     system unless a custom projection matrix is defined (see below).
     These also define the physical size of the window in windowed mode, unless the
-    `size` property is given (see below).
+    `physical_size` property is given (see below).
 
 - **`physical_size`**:
     The initial physical size of the window in windowed mode (a `vec2`). 
