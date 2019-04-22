@@ -14,8 +14,10 @@ static int create_window(lua_State *L) {
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");
     am_window_mode mode = AM_WINDOW_MODE_WINDOWED;
     am_display_orientation orientation = AM_DISPLAY_ORIENTATION_ANY;
-    int requested_width = DEFAULT_WIN_WIDTH;
-    int requested_height = DEFAULT_WIN_HEIGHT;
+    int requested_width = -1;
+    int requested_height = -1;
+    int user_width = DEFAULT_WIN_WIDTH;
+    int user_height = DEFAULT_WIN_HEIGHT;
     const char *title = "Untitled";
     bool resizable = true;
     bool highdpi = false;
@@ -39,15 +41,19 @@ static int create_window(lua_State *L) {
         } else if (strcmp(key, "orientation") == 0) {
             orientation = am_get_enum(L, am_display_orientation, -1);
         } else if (strcmp(key, "width") == 0) {
-            requested_width = luaL_checkinteger(L, -1);
-            if (requested_width <= 0) {
+            user_width = luaL_checknumber(L, -1);
+            if (user_width <= 0) {
                 return luaL_error(L, "width must be positive");
             }
         } else if (strcmp(key, "height") == 0) {
-            requested_height = luaL_checkinteger(L, -1);
-            if (requested_height <= 0) {
+            user_height = luaL_checknumber(L, -1);
+            if (user_height <= 0) {
                 return luaL_error(L, "height must be positive");
             }
+        } else if (strcmp(key, "physical_size") == 0) {
+            am_vec2 *size = am_get_userdata(L, am_vec2, -1);
+            requested_width = (int)size->v.x;
+            requested_height = (int)size->v.y;
         } else if (strcmp(key, "title") == 0) {
             title = luaL_checkstring(L, -1);
         } else if (strcmp(key, "highdpi") == 0) {
@@ -89,10 +95,16 @@ static int create_window(lua_State *L) {
         }
         lua_pop(L, 1); // pop value
     }
+    if (requested_width == -1) {
+        requested_width = (int)user_width;
+        requested_height = (int)user_height;
+    }
     am_window *win = am_new_userdata(L, am_window);
     win->needs_closing = false;
     win->requested_width = requested_width;
     win->requested_height = requested_height;
+    win->user_width = user_width;
+    win->user_height = user_height;
     win->clear_color = clear_color;
     win->stencil_clear_value = stencil_clear_value;
     win->letterbox = letterbox;
@@ -343,8 +355,8 @@ static bool update_size(am_window *win) {
 }
 
 static void compute_viewport(am_window *win) {
-    double w0 = (double)win->requested_width;
-    double h0 = (double)win->requested_height;
+    double w0 = win->user_width;
+    double h0 = win->user_height;
     double w1 = (double)win->pixel_width;
     double h1 = (double)win->pixel_height;
     if (win->letterbox) {
@@ -353,44 +365,44 @@ static void compute_viewport(am_window *win) {
         double sx = w1 / w0;
         double dy = (h1 - h0 * sx) / (2.0 * h1);
         if (dx > 0.01) {
-            win->viewport_x = (int)(dx * (double)win->pixel_width);
+            win->viewport_x = (int)(dx * w1);
             win->viewport_y = 0;
-            win->viewport_width = win->pixel_width - (int)(dx * (double)win->pixel_width * 2.0);
+            win->viewport_width = win->pixel_width - (int)(dx * w1 * 2.0);
             win->viewport_height = win->pixel_height;
         } else {
             win->viewport_x = 0;
             win->viewport_width = win->pixel_width;
             if (dy > 0.01) {
-                win->viewport_y = (int)(dy * (double)win->pixel_height);
-                win->viewport_height = win->pixel_height - (int)(dy * (double)win->pixel_height) * 2;
+                win->viewport_y = (int)(dy * h1);
+                win->viewport_height = win->pixel_height - (int)(dy * h1) * 2;
             } else {
                 win->viewport_y = 0;
                 win->viewport_height = win->pixel_height;
             }
         }
-        win->user_left = floorf(-((double)win->requested_width) / 2.0);
-        win->user_right = ceilf(((double)win->requested_width) / 2.0);
-        win->user_bottom = floorf(-((double)win->requested_height) / 2.0);
-        win->user_top = ceilf(((double)win->requested_height) / 2.0);
+        win->user_left = floorf(-w0 / 2.0);
+        win->user_right = ceilf(w0 / 2.0);
+        win->user_bottom = floorf(-h0 / 2.0);
+        win->user_top = ceilf(h0 / 2.0);
     } else {
         double sy = h1 / h0;
         double dx = (w1 - w0 * sy) / (2.0 * w0 * sy);
         double sx = w1 / w0;
         double dy = (h1 - h0 * sx) / (2.0 * h0 * sx);
         if (dx > 0.01) {
-            win->user_left = floorf(-((double)win->requested_width) / 2.0) - (double)win->requested_width * dx;
-            win->user_right = ceilf(((double)win->requested_width) / 2.0) + (double)win->requested_width * dx;
-            win->user_bottom = floorf(-((double)win->requested_height) / 2.0);
-            win->user_top = ceilf(((double)win->requested_height) / 2.0);
+            win->user_left = floorf(-w0 / 2.0) - w0 * dx;
+            win->user_right = ceilf(w0 / 2.0) + w0 * dx;
+            win->user_bottom = floorf(-h0 / 2.0);
+            win->user_top = ceilf(h0 / 2.0);
         } else {
-            win->user_left = floorf(-((double)win->requested_width) / 2.0);
-            win->user_right = ceilf(((double)win->requested_width) / 2.0);
+            win->user_left = floorf(-w0 / 2.0);
+            win->user_right = ceilf(w0 / 2.0);
             if (dy > 0.01) {
-                win->user_bottom = floorf(-((double)win->requested_height) / 2.0) - (double)win->requested_height * dy;
-                win->user_top = ceilf(((double)win->requested_height) / 2.0) + (double)win->requested_height * dy;
+                win->user_bottom = floorf(-h0 / 2.0) - h0 * dy;
+                win->user_top = ceilf(h0 / 2.0) + h0 * dy;
             } else {
-                win->user_bottom = floorf(-((double)win->requested_height) / 2.0);
-                win->user_top = ceilf(((double)win->requested_height) / 2.0);
+                win->user_bottom = floorf(-h0 / 2.0);
+                win->user_top = ceilf(h0 / 2.0);
             }
         }
         win->viewport_x = 0;

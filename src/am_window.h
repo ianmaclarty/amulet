@@ -16,6 +16,8 @@ struct am_window : am_nonatomic_userdata {
     int                 viewport_y;
     int                 viewport_width;
     int                 viewport_height;
+    double              user_width;
+    double              user_height;
     double              user_left;
     double              user_right;
     double              user_bottom;
