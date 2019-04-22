@@ -15,18 +15,28 @@ table with any of the following fields:
     On these platforms this setting is ignored.
 
 - **`width`** and **`height`**:
-    The desired size of the window. This is not necessarily the size
-    of the window in pixels (although it usually is if the window
-    is created in `"windowed"` mode). Instead it defines the size of the window's
-    *default coordinate system*. If letterboxing is enabled then this
-    is (`-width/2`, `-height/2`) in the bottom-left corner and
-    (`width/2`, `height/2`) in the top-right corner.
-    If letterboxing is disabled, then the
-    coordinate system will extend in the horizontal or vertical
-    directions to ensure an area of at least `width`×`height` is
-    visible in the center of the window. In either case the centre
-    coordinate will always be (0, 0).
-    The default size is 640×480.
+    These define the window's *default coordinate system*.
+    If letterboxing is enabled then this is (`-width/2`, `-height/2`) in the
+    bottom-left corner and (`width/2`, `height/2`) in the top-right corner.
+    If letterboxing is disabled, then the coordinate system will extend in the
+    horizontal or vertical directions to ensure an area of at least
+    `width`×`height` is visible in the center of the window. In either case the
+    centre coordinate will always be (0, 0).  The default size is 640×480.
+    Mouse and touch positions as well as rendering will be in this coordinate
+    system unless a custom projection matrix is defined (see below).
+    These also define the physical size of the window in windowed mode, unless the
+    `size` property is given (see below).
+
+- **`physical_size`**:
+    The initial physical size of the window in windowed mode (a `vec2`). 
+    This is in "screen units" which usually correspond to pixels, but not
+    always. For example on a retina Mac display where `highdpi` is enabled 
+    there are 2 pixels per screen unit. If this property is omitted then
+    the `width` and `height` properties will be used for the physical window
+    size. Note that this property has no effect on the coordinate system
+    used by the window. Note also that this property only has an effect where
+    the platform supports different sized windows. E.g. on iOS windows always
+    fill the screen, so this property is ignored.
 
 - **`title`**:
     The window title.
@@ -82,7 +92,7 @@ table with any of the following fields:
 
 - **`projection`**:
     A custom projection matrix (a `mat4`) to be used for the window's
-    coordinate system. This matrix is used when transforming
+    coordinate system. If supplied, this matrix is used when transforming
     mouse or touch event coordinates and is set as the projection
     matrix for rendering, but does not affect the `left`, `right`,
     `top`, `bottom`, `width` and `height` fields of the window.
