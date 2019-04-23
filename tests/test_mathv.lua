@@ -108,3 +108,27 @@ do
     view1:vec2(mathv.range("float", 3, -1, -3), mathv.range("float", 3, 1, 3))
     print_view(view1)
 end
+
+print("casting")
+do
+    local src = mathv.array("dvec3", {1, 2, 3, 4, 5, 6})
+    local dst = mathv.array("vec3", 2)
+    dst.xyz = src
+    print_view(dst)
+    src = mathv.array("vec3", {1, 2, 3, 4, 5, 6})
+    dst = mathv.array("dvec3", 2)
+    dst.xyz = src
+    print_view(dst)
+    src = mathv.array("vec2", {1, 2, 3, 4})
+    dst = mathv.array("byte2", 2)
+    dst.xy = src
+    print_view(dst)
+    src = mathv.array("vec2", {1, 2, 3, 4})
+    dst = mathv.array("ushort2", 2)
+    dst.xy = src
+    print_view(dst)
+    src = mathv.array("double", {1, 2, 3})
+    dst = mathv.array("int", 3)
+    dst.x = src
+    print_view(dst)
+end

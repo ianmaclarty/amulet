@@ -534,7 +534,7 @@ static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *d
             CTYPE *dst2 = (CTYPE*)dest_ptr;
             uint8_t *src2 = src_ptr;
             for (int c = 0; c < components; ++c) {
-                dst2[0] = FROM_LUA_NUM(read_num(src2));
+                dst2[c] = FROM_LUA_NUM(read_num(src2));
                 src2 += src_comp_size;
             }
             dest_ptr += dest_stride;

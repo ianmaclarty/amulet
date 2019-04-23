@@ -581,7 +581,7 @@ static int view_swizzle_index(lua_State *L, am_buffer_view *view) {
 
 #define TNAME F64
 #define CTYPE double
-#define FROM_LUA_NUM(x) (x)
+#define FROM_LUA_NUM(x) ((double)(x))
 #define READ_NUM(x) read_num_f64(x)
 #include "am_view_template.inc"
 
