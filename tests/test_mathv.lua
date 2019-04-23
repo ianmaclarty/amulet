@@ -42,9 +42,11 @@ do
     --print_view(mathv.random(am.rand(500), 5, 0, 3))
 
     print("view shape changers")
+    print_view(mathv.cart(mathv.array("ubyte", {1, 10, 100}), mathv.array("ubyte2", {2, 20, 200, 220})))
+    print_view(mathv.cart(mathv.array("short", {1, 10, 100}), mathv.array("short", {2, 20, 200})))
     print_view(mathv.cart(mathv.array("float", {1, 10, 100}), mathv.array("float", {2, 20, 200})))
     print_view(mathv.cart(mathv.array("vec2", {1, 2, 10, 20, 100, 200}), mathv.array("float", {3, 30, 300})))
-    print_view(mathv.cart(mathv.array("float", {3, 30, 300}), mathv.array("vec2", {1, 2, 10, 20, 100, 200})))
+    print_view(mathv.cart(mathv.array("double", {3, 30, 300}), mathv.array("dvec2", {1, 2, 10, 20, 100, 200})))
     print_view(mathv.vec2(mathv.array("float", {1, 2}), 3))
     print_view(mathv.vec4(mathv.array("float", {1, 2}), 3, mathv.array("vec2", {vec2(4, 5), vec2(6, 7)})))
 end

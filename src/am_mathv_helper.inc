@@ -200,48 +200,39 @@ int am_mathv_cart(lua_State *L) {
     int type2 = view2->type;
     am_view_type_info info1 = am_view_type_infos[type1];
     am_view_type_info info2 = am_view_type_infos[type2];
-    if (info1.base_type != AM_VIEW_TYPE_F32 || info2.base_type != AM_VIEW_TYPE_F32) {
-        return luaL_error(L, "cart not supported for views of type %s and %s", info1.name, info2.name);
-    }
-    if (view1->offset & 3 || view1->stride & 3) {
-        return luaL_error(L, "view must be 4-byte aligned");
-    }
-    if (view2->offset & 3 || view2->stride & 3) {
-        return luaL_error(L, "view must be 4-byte aligned");
+    if (info1.base_type != info2.base_type) {
+        return luaL_error(L, "cart: views must have same base type (%s vs %s)", info1.name, info2.name);
     }
     int components1 = view1->components;
     int components2 = view2->components;
-    int components = components1 + components2;
-    if (components > 4) {
-        return luaL_error(L, "sum of cart view components must be <= 4");
+    int result_components = components1 + components2;
+    if (result_components > 4) {
+        return luaL_error(L, "cart: views must have combined components <= 4");
     }
-    am_buffer_view_type type = AM_VIEW_TYPE_F32;
-    am_buffer *buf = am_push_new_buffer_and_init(L, 4 * components * view1->size * view2->size);
-    float *data1 = (float*)view1->buffer->data;
-    float *data2 = (float*)view2->buffer->data;
-    int stride1 = view1->stride >> 2;
-    int stride2 = view2->stride >> 2;
-    float *data = (float*)buf->data;
-    int d = 0;
+    int base_size = info1.size;
+    am_buffer *result_buf = am_push_new_buffer_and_init(L, base_size * result_components * view1->size * view2->size);
+    uint8_t *data1 = view1->buffer->data;
+    uint8_t *data2 = view2->buffer->data;
+    int stride1 = view1->stride;
+    int stride2 = view2->stride;
+    uint8_t *result_data = result_buf->data;
     for (int i = 0; i < view2->size; ++i) {
         for (int j = 0; j < view1->size; ++j) {
-            for (int c = 0; c < components1; ++c) {
-                data[d++] = data1[c];
-            }
-            for (int c = 0; c < components2; ++c) {
-                data[d++] = data2[c];
-            }
+            memcpy(result_data, data1, base_size * components1);
+            result_data += base_size * components1;
+            memcpy(result_data, data2, base_size * components2);
+            result_data += base_size * components2;
             data1 += stride1;
         }
-        data1 = (float*)view1->buffer->data;
+        data1 = view1->buffer->data;
         data2 += stride2;
     }
-    am_buffer_view *view = am_new_buffer_view(L, type, components);
-    view->buffer = buf;
-    view->buffer_ref = view->ref(L, -2);
-    lua_remove(L, -2); // buffer
-    view->stride = 4 * components;
-    view->size = view1->size * view2->size;
+    am_buffer_view *result_view = am_new_buffer_view(L, view1->type, result_components);
+    result_view->buffer = result_buf;
+    result_view->buffer_ref = result_view->ref(L, -2);
+    lua_remove(L, -2); // result_buf
+    result_view->stride = base_size * result_components;
+    result_view->size = view1->size * view2->size;
     return 1;
 }
 
