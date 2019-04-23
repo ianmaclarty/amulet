@@ -124,28 +124,108 @@ static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *
 }
 
 int am_mathv_range(lua_State *L) {
-    am_check_nargs(L, 3);
-    int n = luaL_checkinteger(L, 1);
+    am_check_nargs(L, 4);
+    am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 1);
+    am_view_type_info info = am_view_type_infos[type];
+    int n = luaL_checkinteger(L, 2);
     if (n < 2) {
         return luaL_error(L, "range count must be at least 2");
     }
-    float start = (float)luaL_checknumber(L, 2);
-    float end = (float)luaL_checknumber(L, 3);
-    float inc = (end - start) / (float)(n-1);
+    double start = luaL_checknumber(L, 3);
+    double end = luaL_checknumber(L, 4);
+    double inc = (end - start) / (double)(n-1);
 
-    am_buffer *res_buf = am_push_new_buffer_and_init(L, 4 * n);
-    float *data = (float*)res_buf->data;
-    float x = start;
-    for (int i = 0; i < n - 1; i++) {
-        data[i] = x;
-        x += inc;
+    am_buffer *res_buf = am_push_new_buffer_and_init(L, info.size * n);
+    switch (type) {
+        case AM_VIEW_TYPE_F32: {
+            float *data = (float*)res_buf->data;
+            float x = (float)start;
+            float dx = (float)inc;
+            for (int i = 0; i < n - 1; ++i) {
+                data[i] = x;
+                x += dx;
+            }
+            data[n-1] = (float)end;
+            break;
+        }
+        case AM_VIEW_TYPE_F64: {
+            double *data = (double*)res_buf->data;
+            double x = start;
+            for (int i = 0; i < n - 1; ++i) {
+                data[i] = x;
+                x += inc;
+            }
+            data[n-1] = end;
+            break;
+        }
+        case AM_VIEW_TYPE_U8: {
+            uint8_t *data = res_buf->data;
+            double x = start;
+            for (int i = 0; i < n - 1; ++i) {
+                data[i] = (uint8_t)x;
+                x += inc;
+            }
+            data[n-1] = (uint8_t)end;
+            break;
+        }
+        case AM_VIEW_TYPE_I8: {
+            int8_t *data = (int8_t*)res_buf->data;
+            double x = start;
+            for (int i = 0; i < n - 1; ++i) {
+                data[i] = (int8_t)x;
+                x += inc;
+            }
+            data[n-1] = (int8_t)end;
+            break;
+        }
+        case AM_VIEW_TYPE_U16: {
+            uint16_t *data = (uint16_t*)res_buf->data;
+            double x = start;
+            for (int i = 0; i < n - 1; ++i) {
+                data[i] = (uint16_t)x;
+                x += inc;
+            }
+            data[n-1] = (uint16_t)end;
+            break;
+        }
+        case AM_VIEW_TYPE_I16: {
+            int16_t *data = (int16_t*)res_buf->data;
+            double x = start;
+            for (int i = 0; i < n - 1; ++i) {
+                data[i] = (int16_t)x;
+                x += inc;
+            }
+            data[n-1] = (int16_t)end;
+            break;
+        }
+        case AM_VIEW_TYPE_U32: {
+            uint32_t *data = (uint32_t*)res_buf->data;
+            double x = start;
+            for (int i = 0; i < n - 1; ++i) {
+                data[i] = (uint32_t)x;
+                x += inc;
+            }
+            data[n-1] = (uint32_t)end;
+            break;
+        }
+        case AM_VIEW_TYPE_I32: {
+            int32_t *data = (int32_t*)res_buf->data;
+            double x = start;
+            for (int i = 0; i < n - 1; ++i) {
+                data[i] = (int32_t)x;
+                x += inc;
+            }
+            data[n-1] = (int32_t)end;
+            break;
+        }
+        default:
+            return luaL_error(L, "Sorry, range does not support type %s", info.name);
     }
-    data[n-1] = end;
-    am_buffer_view *res_view = am_new_buffer_view(L, AM_VIEW_TYPE_F32, 1);
+    am_buffer_view *res_view = am_new_buffer_view(L, type, 1);
     res_view->buffer = res_buf;
     res_view->buffer_ref = res_view->ref(L, -2);
     lua_remove(L, -2); // buffer
-    res_view->stride = 4;
+    res_view->stride = info.size;
     res_view->size = n;
     return 1;
 }

@@ -33,8 +33,14 @@ end
 
 print("view generators")
 do
-    print_view(mathv.range(11, -100, 100))
-    print_view(mathv.range(3, 10, 0))
+    print_view(mathv.range("float", 11, -100, 100))
+    print_view(mathv.range("double", 3, 10, 0))
+    print_view(mathv.range("byte", 11, 100, -100))
+    print_view(mathv.range("ubyte", 5, 0, 40))
+    print_view(mathv.range("short", 7, -3000, 3000))
+    print_view(mathv.range("ushort", 6, 60000, 10000))
+    print_view(mathv.range("int", 2, -1000000, 1000000))
+    print_view(mathv.range("uint", 9, 10000000, 90000000))
     -- these work, but we get slight differences on different platforms, possibly due to float formatting differences
     --print_view(mathv.random(10))
     --print_view(mathv.random(10, -10, 10))
@@ -53,7 +59,7 @@ end
 
 print("test matrix views")
 do
-    local range = mathv.range(3, 1, 3)
+    local range = mathv.range("float", 3, 1, 3)
     local mview1 = mathv.mat3(range * vec3(1, 0, 0), vec3(0, 1, 0) * range, vec3(0, 0, 1) * range)
     print_view(mview1)
     print_view(mview1 * vec3(1, 2, 3))
@@ -96,9 +102,9 @@ end
 
 print("view methods")
 do
-    local view1 = mathv.vec2(mathv.range(4, 1, 4), mathv.range(4, 10, 40))
+    local view1 = mathv.vec2(mathv.range("float", 4, 1, 4), mathv.range("float", 4, 10, 40))
     view1:add(view1, vec2(1, 2))
     print_view(view1)
-    view1:vec2(mathv.range(3, -1, -3), mathv.range(3, 1, 3))
+    view1:vec2(mathv.range("float", 3, -1, -3), mathv.range("float", 3, 1, 3))
     print_view(view1)
 end

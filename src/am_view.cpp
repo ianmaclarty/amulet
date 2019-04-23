@@ -675,6 +675,25 @@ static void register_view_mt(lua_State *L) {
 
 void am_open_view_module(lua_State *L) {
     am_enum_value view_type_enum[] = {
+        {"float",           AM_VIEW_TYPE_F32},
+        {"double",          AM_VIEW_TYPE_F64},
+        {"ubyte",           AM_VIEW_TYPE_U8},
+        {"byte",            AM_VIEW_TYPE_I8},
+        {"ubyte_norm",      AM_VIEW_TYPE_U8N},
+        {"byte_norm",       AM_VIEW_TYPE_I8N},
+        {"ushort",          AM_VIEW_TYPE_U16},
+        {"short",           AM_VIEW_TYPE_I16},
+        {"ushort_elem",     AM_VIEW_TYPE_U16E},
+        {"ushort_norm",     AM_VIEW_TYPE_U16N},
+        {"short_norm",      AM_VIEW_TYPE_I16N},
+        {"uint",            AM_VIEW_TYPE_U32},
+        {"int",             AM_VIEW_TYPE_I32},
+        {"uint_elem",       AM_VIEW_TYPE_U32E},
+        {NULL, 0}
+    };
+    am_register_enum(L, ENUM_am_buffer_view_type, view_type_enum);
+
+    am_enum_value view_type_lua_enum[] = {
         {"float",           AM_VIEW_TYPE_LUA_F32_1},
         {"vec2",            AM_VIEW_TYPE_LUA_F32_2},
         {"vec3",            AM_VIEW_TYPE_LUA_F32_3},
@@ -731,7 +750,7 @@ void am_open_view_module(lua_State *L) {
         {"uint_elem",       AM_VIEW_TYPE_LUA_U32E},
         {NULL, 0}
     };
-    am_register_enum(L, ENUM_am_buffer_view_type_lua, view_type_enum);
+    am_register_enum(L, ENUM_am_buffer_view_type_lua, view_type_lua_enum);
 
     register_view_mt(L);
     register_F32_view_mt(L);
