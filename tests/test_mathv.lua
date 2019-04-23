@@ -42,10 +42,10 @@ do
     print_view(mathv.range("int", 2, -1000000, 1000000))
     print_view(mathv.range("uint", 9, 10000000, 90000000))
     -- these work, but we get slight differences on different platforms, possibly due to float formatting differences
-    --print_view(mathv.random(10))
-    --print_view(mathv.random(10, -10, 10))
-    --print_view(mathv.random(am.rand(500), 5, 0, 3))
-    --print_view(mathv.random(am.rand(500), 5, 0, 3))
+    -- print_view(mathv.random("float", 10))
+    -- print_view(mathv.random("double", 10, -10, 10))
+    -- print_view(mathv.random(am.rand(500), "float", 5, 0, 3))
+    -- print_view(mathv.random(am.rand(500), "float", 5, 0, 3))
 
     print("view shape changers")
     print_view(mathv.cart(mathv.array("ubyte", {1, 10, 100}), mathv.array("ubyte2", {2, 20, 200, 220})))

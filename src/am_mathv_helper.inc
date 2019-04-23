@@ -219,7 +219,7 @@ int am_mathv_range(lua_State *L) {
             break;
         }
         default:
-            return luaL_error(L, "Sorry, range does not support type %s", info.name);
+            return luaL_error(L, "sorry, range does not support type %s", info.name);
     }
     am_buffer_view *res_view = am_new_buffer_view(L, type, 1);
     res_view->buffer = res_buf;
@@ -231,43 +231,63 @@ int am_mathv_range(lua_State *L) {
 }
 
 int am_mathv_random(lua_State *L) {
-    int nargs = am_check_nargs(L, 1);
+    int nargs = am_check_nargs(L, 2);
     am_rand *rand;
-    int arg0 = 1;
     if (am_get_type(L, 1) == MT_am_rand) {
         rand = am_get_userdata(L, am_rand, 1);
-        arg0 = 2;
+        lua_remove(L, 1);
         nargs--;
     } else {
         rand = am_get_default_rand(L);
     }
-    if (nargs == 0) {
-        return luaL_error(L, "expecting more arguments");
+    if (nargs < 2) {
+        return luaL_error(L, "random: expecting more arguments");
     }
-    int n = luaL_checkinteger(L, arg0);
-    if (n < 1) {
-        return luaL_error(L, "number of random numbers to generate must be positive");
-    }
-    float lo = 0.0;
-    float hi = 1.0;
-    if (nargs > 1) {
-        lo = (float)luaL_checknumber(L, arg0 + 1);
-    }
-    if (nargs > 2) {
-        hi = (float)luaL_checknumber(L, arg0 + 2);
-    }
-    float range = hi - lo;
 
-    am_buffer *res_buf = am_push_new_buffer_and_init(L, 4 * n);
-    float *data = (float*)res_buf->data;
-    for (int i = 0; i < n; i++) {
-        data[i] = rand->get_randf() * range + lo;
+    am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 1);
+    am_view_type_info info = am_view_type_infos[type];
+    int n = luaL_checkinteger(L, 2);
+    if (n < 0) {
+        return luaL_error(L, "number of random numbers to generate must be non-negative");
     }
-    am_buffer_view *res_view = am_new_buffer_view(L, AM_VIEW_TYPE_F32, 1);
+    double lo = 0.0;
+    double hi = 1.0;
+    if (nargs > 2) {
+        lo = luaL_checknumber(L, 3);
+    }
+    if (nargs > 3) {
+        hi = luaL_checknumber(L, 4);
+    }
+    double range = hi - lo;
+
+    am_buffer *res_buf = am_push_new_buffer_and_init(L, info.size * n);
+
+    switch (type) {
+        case AM_VIEW_TYPE_F32: {
+            float *data = (float*)res_buf->data;
+            float frange = (float)range;
+            float flo = (float)lo;
+            for (int i = 0; i < n; ++i) {
+                data[i] = rand->get_randf() * frange + flo;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_F64: {
+            double *data = (double*)res_buf->data;
+            for (int i = 0; i < n; ++i) {
+                data[i] = rand->get_rand() * range + lo;
+            }
+            break;
+        }
+        default:
+            return luaL_error(L, "sorry, random does not support type %s", info.name);
+    }
+
+    am_buffer_view *res_view = am_new_buffer_view(L, type, 1);
     res_view->buffer = res_buf;
     res_view->buffer_ref = res_view->ref(L, -2);
     lua_remove(L, -2); // buffer
-    res_view->stride = 4;
+    res_view->stride = info.size;
     res_view->size = n;
     return 1;
 }
