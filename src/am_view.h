@@ -89,11 +89,13 @@ extern am_view_type_info am_view_type_infos[];
 struct am_buffer_view : am_nonatomic_userdata {
     am_buffer_view_type type;
     int                 components;
+
     am_buffer           *buffer;
+    int                 buffer_ref;
+
     int                 offset; // in bytes
     int                 stride; // in bytes
     int                 size;   // number of elements
-    int                 buffer_ref;
 
     uint32_t            max_elem;
     uint32_t            last_max_elem_version;
