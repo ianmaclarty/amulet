@@ -57,7 +57,6 @@ local func_defs = {
         name = "add",
         export = true,
         kind = "component_wise",
-        comps = {1, 2, 3, 4, 9, 16},
         variants = {
             {
                 cname = "ADD_OP",
@@ -129,7 +128,6 @@ local func_defs = {
         name = "sub",
         export = true,
         kind = "component_wise",
-        comps = {1, 2, 3, 4, 9, 16},
         variants = {
             {
                 cname = "SUB_OP",
@@ -200,7 +198,6 @@ local func_defs = {
     { 
         name = "vec_mul",
         kind = "component_wise",
-        comps = {1, 2, 3, 4},
         variants = {
             {
                 cname = "MUL_OP",
@@ -272,7 +269,6 @@ local func_defs = {
         name = "div",
         export = true,
         kind = "component_wise",
-        comps = {1, 2, 3, 4},
         variants = {
             {
                 cname = "DIV_OP",
@@ -344,7 +340,6 @@ local func_defs = {
         name = "mod",
         export = true,
         kind = "component_wise",
-        comps = {1, 2, 3, 4},
         variants = {
             {
                 cname = "F32MOD_OP",
@@ -416,7 +411,6 @@ local func_defs = {
         name = "pow",
         export = true,
         kind = "component_wise",
-        comps = {1, 2, 3, 4},
         variants = {
             {
                 cname = "powf",
@@ -440,7 +434,6 @@ local func_defs = {
         name = "unm",
         export = true,
         kind = "component_wise",
-        comps = {1, 2, 3, 4},
         variants = {
             {
                 cname = "UNM_OP",
@@ -503,9 +496,234 @@ local func_defs = {
 
     -- component-wise math functions
     { 
+        name = "abs",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "fabsf",
+                ret_type = "f32",
+                args = {
+                    {name = "val", type = "f32"}
+                },
+            },
+            {
+                cname = "fabs",
+                ret_type = "f64",
+                args = {
+                    {name = "val", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "acos",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "acosf",
+                ret_type = "f32",
+                args = {
+                    {name = "val", type = "f32"}
+                },
+            },
+            {
+                cname = "acos",
+                ret_type = "f64",
+                args = {
+                    {name = "val", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "asin",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "asinf",
+                ret_type = "f32",
+                args = {
+                    {name = "val", type = "f32"}
+                },
+            },
+            {
+                cname = "asin",
+                ret_type = "f64",
+                args = {
+                    {name = "val", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "atan",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "atanf",
+                ret_type = "f32",
+                args = {
+                    {name = "val", type = "f32"}
+                },
+            },
+            {
+                cname = "atan",
+                ret_type = "f64",
+                args = {
+                    {name = "val", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "atan2",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "atan2f",
+                ret_type = "f32",
+                args = {
+                    {name = "y", type = "f32"},
+                    {name = "x", type = "f32"},
+                },
+            },
+            {
+                cname = "atan2",
+                ret_type = "f64",
+                args = {
+                    {name = "y", type = "f64"},
+                    {name = "x", type = "f64"},
+                },
+            },
+        }
+    },
+    { 
+        name = "ceil",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "ceilf",
+                ret_type = "f32",
+                args = {
+                    {name = "val", type = "f32"}
+                },
+            },
+            {
+                cname = "ceil",
+                ret_type = "f64",
+                args = {
+                    {name = "val", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "cos",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "cosf",
+                ret_type = "f32",
+                args = {
+                    {name = "angle", type = "f32"}
+                },
+            },
+            {
+                cname = "cos",
+                ret_type = "f64",
+                args = {
+                    {name = "angle", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "floor",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "floorf",
+                ret_type = "f32",
+                args = {
+                    {name = "val", type = "f32"}
+                },
+            },
+            {
+                cname = "floor",
+                ret_type = "f64",
+                args = {
+                    {name = "val", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "log",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "logf",
+                ret_type = "f32",
+                args = {
+                    {name = "val", type = "f32"}
+                },
+            },
+            {
+                cname = "log",
+                ret_type = "f64",
+                args = {
+                    {name = "val", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "max",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "am_max",
+                ret_type = "f32",
+                args = {
+                    {name = "a", type = "f32"},
+                    {name = "b", type = "f32"},
+                },
+            },
+            {
+                cname = "am_max",
+                ret_type = "f64",
+                args = {
+                    {name = "a", type = "f64"},
+                    {name = "b", type = "f64"},
+                },
+            },
+        }
+    },
+    { 
+        name = "min",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "am_min",
+                ret_type = "f32",
+                args = {
+                    {name = "a", type = "f32"},
+                    {name = "b", type = "f32"},
+                },
+            },
+            {
+                cname = "am_min",
+                ret_type = "f64",
+                args = {
+                    {name = "a", type = "f64"},
+                    {name = "b", type = "f64"},
+                },
+            },
+        }
+    },
+    { 
         name = "sin",
         kind = "component_wise",
-        comps = {1},
         variants = {
             {
                 cname = "sinf",
@@ -516,6 +734,26 @@ local func_defs = {
             },
             {
                 cname = "sin",
+                ret_type = "f64",
+                args = {
+                    {name = "angle", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "tan",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "tanf",
+                ret_type = "f32",
+                args = {
+                    {name = "angle", type = "f32"}
+                },
+            },
+            {
+                cname = "tan",
                 ret_type = "f64",
                 args = {
                     {name = "angle", type = "f64"}
@@ -1448,16 +1686,23 @@ end
 
 local gen_funcs
 local gen_func
-local gen_component_wise_func_body
+local gen_component_wise_func_impl
 local gen_component_wise_func_variant
-local gen_component_wise_case
+local gen_component_wise_inner_loop
+local gen_element_wise_func_impl
 local gen_element_wise_func_body
 local gen_element_wise_func_variant
 local gen_element_wise_case
 
 function gen_funcs(f)
     for _, func in ipairs(func_defs) do
-        gen_func_impl(f, func)
+        if func.kind == "component_wise" then
+            gen_component_wise_func_impl(f, func)
+        elseif func.kind == "element_wise" then
+            gen_element_wise_func_impl(f, func)
+        else
+            error("unknown function kind: "..func.kind)
+        end
         gen_func_new(f, func)
         gen_func_into(f, func)
     end
@@ -1488,19 +1733,9 @@ static int am_mathv_]]..func.name..[[_into(lua_State *L) {
 ]])
 end
 
-function gen_func_impl(f, func)
+function gen_element_wise_func_impl(f, func)
     local max_args = get_max_args(func)
-    local sig_error = "invalid argument types for function mathv."..func.name..".\\nsupported signatures are:\\n"
-    for _, variant in ipairs(func.variants) do
-        sig_error = sig_error.."  mathv."..func.name.."("
-        for i, arg in ipairs(variant.args) do
-            sig_error = sig_error..arg.name..":"..arg.type
-            if i < #variant.args then
-                sig_error = sig_error..", "
-            end
-        end
-        sig_error = sig_error..")\\n"
-    end
+    local sig_error = "invalid argument types for function mathv."..func.name
     local return_sig_error = "return luaL_error(L, \""..sig_error.."\");\n"
     local func_decl = "static int "..func.name.."_impl(lua_State *L, am_buffer_view *target) {\n"
     local prelude = [[
@@ -1521,68 +1756,49 @@ function gen_func_impl(f, func)
     ]]
     ind(f, 0, func_decl)
     ind(f, 1, prelude)
-    if func.kind == "component_wise" then
-        gen_component_wise_func_body(f, func)
-    elseif func.kind == "element_wise" then
-        gen_element_wise_func_body(f, func)
-    else
-        error("unknown function kind: "..func.kind)
-    end
-
+    gen_element_wise_func_body(f, func)
     ind(f, 1, return_sig_error)
     ind(f, 0, "}\n\n")
 end
 
-function gen_component_wise_func_body(f, func)
-    local check_zero_args = [[
-        // code below depends on there being at least one arg
-        if (nargs == 0) return luaL_error(L, "no arguments given for mathv.]]..func.name..[[");
-    ]]
-
-    local compute_count = [[
-        // compute count
-        int count = -1;
+function gen_component_wise_func_impl(f, func)
+    local max_args = get_max_args(func)
+    local sig_error = "invalid argument types for function mathv."..func.name
+    local return_sig_error = "return luaL_error(L, \""..sig_error.."\");\n"
+    local func_decl = "static int "..func.name.."_impl(lua_State *L, am_buffer_view *target) {\n"
+    local prelude = [[
+        int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+        uint8_t arg_singleton_scratch[]]..max_args..[[][16*8];
+        uint8_t *arg_singleton_bufs[]]..max_args..[[];
         for (int i = 0; i < nargs; i++) {
-            if (arg_type[i] == MT_am_buffer_view) {
-                if (count != -1 && arg_count[i] != count) {
-                    return luaL_error(L, "in call to mathv.]]..func.name..[[ argument %d has size %d, but previous arguments have size %d", (i+1), arg_count[i], count);
-                } else if (count == -1) {
-                    count = arg_count[i];
-                }
-            }
+            arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
         }
-        bool no_view_args = false;
-        if (count == -1) {
-            no_view_args = true;
-            count = 1;
-        }
+        int arg_count[]]..max_args..[[];
+        uint8_t *arg_data[]]..max_args..[[];
+        int arg_stride[]]..max_args..[[];
+        int arg_components[]]..max_args..[[];
+        int arg_type[]]..max_args..[[];
+        am_buffer_view_type arg_view_type[]]..max_args..[[];
+        am_buffer_view_type output_view_type;
+        int output_count;
+        int output_components;
+        int output_stride;
+        uint8_t *output_data;
+        bool is_dense;
+        component_wise_setup(L, target, "mathv.]]..func.name..[[", nargs, arg_type, arg_view_type, arg_data,
+            arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+            &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     ]]
-
-    local compute_output_components = [[
-        int output_components = arg_components[0];
-        for (int i = 1; i < nargs; i++) {
-            if (output_components != arg_components[i]) {
-                if (output_components == 1) {
-                    output_components = arg_components[i];
-                } else if (arg_components[i] != 1) {
-                    return luaL_error(L, "in call to ]]..func.name..[[ argument %d has %d components, but previous arguments have %d components",
-                        i+1, arg_components[i], output_components);
-                }
-            }
-        }
-    ]]
-
-    ind(f, 1, check_zero_args)
-    ind(f, 1, compute_count)
-    ind(f, 1, compute_output_components)
-
+    ind(f, 0, func_decl)
+    ind(f, 1, prelude)
     for _, variant in ipairs(func.variants) do
         gen_component_wise_func_variant(f, func, variant)
     end
+    ind(f, 1, return_sig_error)
+    ind(f, 0, "}\n\n")
 end
 
 function gen_return_view_buffer(f, component_size, ret_view_type)
-    -- TODO handle no_view_args
     ind(f, 2, [[
         uint8_t *output_ptr;
         int out_stride;
@@ -1623,116 +1839,61 @@ end
 function gen_component_wise_func_variant(f, func, variant)
     local args = variant.args
     local nargs = #args
-    local sig_test = "nargs == "..nargs.." "
-    for ii, arg in ipairs(args) do
-        local i = ii-1
-        local enumval = view_type_info[arg.type].enumval
-        sig_test = sig_test.." && ((arg_type["..i.."] == MT_am_buffer_view && arg_view_type["..i.."] == "..enumval..") || "..
-            "arg_type["..i.."] != MT_am_buffer_view)"
-    end
-
-    local setup_non_view_arg_data = "// setup non-view args\n"
-    for ii, arg in ipairs(args) do
-        local i = ii-1
-        local setup = [[
-if (arg_type[]]..i..[[] != MT_am_buffer_view) {
-    double *f64s = &arg_singleton_vals[]]..i..[[][0];
-        ]]
-        if arg.type ~= "f64" then
-            -- convert doubles to required type, overwriting the doubles
-            -- (a little messy, but should be fine, because the required type will be smaller or
-            -- of equal size and we don't need the doubles anymore)
-            local ctype = view_type_info[arg.type].ctype
-            setup = setup..[[
-    ]]..ctype..[[ *conv = (]]..ctype..[[*)f64s;
-    for (int i = 0; i < arg_components[]]..i..[[]; i++) {
-        conv[i] = (]]..ctype..[[)f64s[i];
-    }
-            ]]
-        end
-        setup = setup..[[
-    arg_data[]]..i..[[] = (uint8_t*)f64s;
-}
-        ]]
-
-        setup_non_view_arg_data = setup_non_view_arg_data..setup
-    end
-
-    local ret_ctype = view_type_info[variant.ret_type].ctype
     local ret_view_type = view_type_info[variant.ret_type].enumval
-    local component_size = "sizeof("..ret_ctype..")"
-
-    local default_case = [[
-        default:
-            return luaL_error(L, "internal error: unexpected number of output components: %d", output_components);
-    ]]
+    local sig_test = "nargs == "..nargs.." && output_view_type == "..ret_view_type
 
     ind(f, 1, "if ("..sig_test..") {\n")
-    ind(f, 2, setup_non_view_arg_data)
-    gen_return_view_buffer(f, component_size, ret_view_type)
-    ind(f, 2, "switch(output_components) {\n");
-    for _, c in ipairs(func.comps) do
-        gen_component_wise_case(f, func, variant, c)
-    end
-    ind(f, 3, default_case);
-    ind(f, 2, "      }\n");
-    ind(f, 1, "  }\n")
+    gen_component_wise_inner_loop(f, func, variant)
+    ind(f, 2, "return 1;\n")
+    ind(f, 1, "}\n")
 end
 
-function gen_component_wise_case(f, func, variant, components)
-    local case_begin = [[
-        case ]]..components..[[: {
-    ]]
-    local setup_pointers = ""
-    for a, arg in ipairs(variant.args) do
-        local comp_size = "sizeof("..view_type_info[arg.type].ctype..")"
-        setup_pointers = setup_pointers..[[
-int in_stride_]]..a..[[ = arg_stride[]]..(a-1)..[[];
-]]
-        for c = 1, components do
-            local ptr_name = "in_ptr_"..a.."_"..c
-            setup_pointers = setup_pointers..[[
-uint8_t *]]..ptr_name..[[;
-if (arg_components[]]..(a-1)..[[] > 1) {
-    ]]..ptr_name..[[ = &arg_data[]]..(a-1)..[[][0] + ]]..(c-1)..[[ * ]]..comp_size..[[;
-} else {
-    ]]..ptr_name..[[ = &arg_data[]]..(a-1)..[[][0];
-}
-]]
-        end
-    end
+function gen_component_wise_inner_loop(f, func, variant)
     local ret_ctype = view_type_info[variant.ret_type].ctype
-    local ret_compsize = "sizeof("..ret_ctype..")"
-    for c = 1, components do
-        setup_pointers = setup_pointers..[[
-uint8_t *out_ptr_]]..c..[[ = output_ptr + ]]..(c-1)..[[ * ]]..ret_compsize..[[;
-]]
-    end
-    local iterate = [[
-for (int i = 0; i < count; ++i) {
-]]
-    for c = 1, components do
-        iterate = iterate.."    *(("..ret_ctype.."*)out_ptr_"..c..") = "..variant.cname.."("
-        for a, arg in ipairs(variant.args) do
-            local ctype = view_type_info[arg.type].ctype
-            iterate = iterate.."*(("..ctype.."*)in_ptr_"..a.."_"..c..")"
-            if a < #variant.args then
-                iterate = iterate..", "
-            end
+    local component_size = "sizeof("..ret_ctype..")"
+    local setup_dense_arg_arrays = ""
+    local setup_nondense_pointers = ""
+    local advance_nondense_pointers = ""
+    local dense_call_args = ""
+    local nondense_call_args = ""
+    for a, arg in ipairs(variant.args) do
+        local arg_array_decl = ret_ctype.." *arg"..a.."_arr = ("..ret_ctype.."*)arg_data["..(a-1).."];\n        "
+        setup_dense_arg_arrays = setup_dense_arg_arrays..arg_array_decl
+        local arg_ptr_decl = "uint8_t *arg"..a.."_ptr = arg_data["..(a-1).."];\n        "..
+            "int arg"..a.."_stride = arg_stride["..(a-1).."];\n        "..
+            "int mask"..a.." = arg_components["..(a-1).."] == 1 ? 0 : 0xFFFF;        "
+        setup_nondense_pointers = setup_nondense_pointers..arg_ptr_decl
+        local advance = "arg"..a.."_ptr += arg"..a.."_stride;\n            "
+        advance_nondense_pointers = advance_nondense_pointers..advance;
+        dense_call_args = dense_call_args.."arg"..a.."_arr[i]"
+        nondense_call_args = nondense_call_args.."(("..ret_ctype.."*)arg"..a.."_ptr)[c & mask"..a.."]"
+        if a < #variant.args then
+            dense_call_args = dense_call_args..", "
+            nondense_call_args = nondense_call_args..", "
         end
-        iterate = iterate..");\n"
-        for a, arg in ipairs(variant.args) do
-            iterate = iterate.."    in_ptr_"..a.."_"..c.." += in_stride_"..a..";\n"
-        end
-        iterate = iterate.."    out_ptr_"..c.." += out_stride;\n";
     end
-    iterate = iterate.."}\n"
-    local case_end = "return 1;\n"
-    ind(f, 3, case_begin)
-    ind(f, 4, setup_pointers)
-    ind(f, 4, iterate)
-    ind(f, 4, case_end)
-    ind(f, 3, "}\n")
+    local loop = [[
+    if (is_dense) {
+        ]]..ret_ctype..[[ *out_arr = (]]..ret_ctype..[[*)output_data;
+        ]]..setup_dense_arg_arrays..[[
+
+        for (int i = 0; i < output_count * output_components; ++i) {
+            out_arr[i] = ]]..variant.cname..[[(]]..dense_call_args..[[);
+        }
+    } else {
+        ]]..setup_nondense_pointers..[[
+
+        for (int i = 0; i < output_count; ++i) {
+            for (int c = 0; c < output_components; ++c) {
+                ((]]..ret_ctype..[[*)output_data)[c] = ]]..variant.cname..[[(]]..nondense_call_args..[[);
+            }
+            output_data += output_stride;
+            ]]..advance_nondense_pointers..[[
+
+        }
+    }
+    ]]
+    ind(f, 2, loop)
 end
 
 function gen_element_wise_func_body(f, func)

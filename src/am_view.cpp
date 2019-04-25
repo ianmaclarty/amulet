@@ -356,6 +356,21 @@ am_view_type_info am_view_type_infos[] = {
 };
 ct_check_array_size(am_view_type_infos, AM_NUM_VIEW_TYPES);
 
+am_buffer_view::am_buffer_view() {
+    type = AM_NUM_VIEW_TYPES;
+    components = 0;
+
+    buffer = NULL;
+    buffer_ref = LUA_NOREF;
+
+    offset = 0;
+    stride = 0;
+    size = 0;
+
+    max_elem = 0;
+    last_max_elem_version = 0;
+}
+
 bool am_buffer_view::is_normalized() {
     return am_view_type_infos[type].normalized;
 }

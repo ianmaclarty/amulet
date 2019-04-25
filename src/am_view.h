@@ -100,6 +100,8 @@ struct am_buffer_view : am_nonatomic_userdata {
     uint32_t            max_elem;
     uint32_t            last_max_elem_version;
 
+    am_buffer_view();
+
     bool is_normalized();
     bool can_be_gl_attrib();
     am_attribute_client_type gl_client_type();
