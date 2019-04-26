@@ -3627,6 +3627,1463 @@ static int am_mathv_tan_into(lua_State *L) {
     return tan_impl(L, view);
 }
 
+static int lt_impl(lua_State *L, am_buffer_view *target) {
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.lt");
+    uint8_t arg_singleton_scratch[2][16*8];
+    uint8_t *arg_singleton_bufs[2];
+    for (int i = 0; i < nargs; i++) {
+        arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
+    }
+    uint8_t *arg_data[2];
+    int arg_stride[2];
+    int arg_count[2];
+    int arg_type[2];
+    am_buffer_view_type arg_view_type[2];
+    int arg_components[2];
+    am_buffer_view_type output_view_type;
+    int output_count;
+    int output_components;
+    int output_stride;
+    uint8_t *output_data;
+    bool args_are_dense;
+    bool output_is_dense;
+    component_wise_setup(L, "mathv.lt", nargs, 
+        arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+        &output_count, &output_components, &args_are_dense);
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_F32;
+        arg_view_type[1] = AM_VIEW_TYPE_F32;
+        setup_non_view_args(L, "mathv.lt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            float *arg1_arr = (float*)arg_data[0];
+            float *arg2_arr = (float*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LT_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_F64;
+        arg_view_type[1] = AM_VIEW_TYPE_F64;
+        setup_non_view_args(L, "mathv.lt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            double *arg1_arr = (double*)arg_data[0];
+            double *arg2_arr = (double*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LT_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U8;
+        arg_view_type[1] = AM_VIEW_TYPE_U8;
+        setup_non_view_args(L, "mathv.lt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint8_t *arg1_arr = (uint8_t*)arg_data[0];
+            uint8_t *arg2_arr = (uint8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LT_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I8;
+        arg_view_type[1] = AM_VIEW_TYPE_I8;
+        setup_non_view_args(L, "mathv.lt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int8_t *arg1_arr = (int8_t*)arg_data[0];
+            int8_t *arg2_arr = (int8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LT_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U16;
+        arg_view_type[1] = AM_VIEW_TYPE_U16;
+        setup_non_view_args(L, "mathv.lt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint16_t *arg1_arr = (uint16_t*)arg_data[0];
+            uint16_t *arg2_arr = (uint16_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LT_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I16;
+        arg_view_type[1] = AM_VIEW_TYPE_I16;
+        setup_non_view_args(L, "mathv.lt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int16_t *arg1_arr = (int16_t*)arg_data[0];
+            int16_t *arg2_arr = (int16_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LT_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U32;
+        arg_view_type[1] = AM_VIEW_TYPE_U32;
+        setup_non_view_args(L, "mathv.lt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint32_t *arg1_arr = (uint32_t*)arg_data[0];
+            uint32_t *arg2_arr = (uint32_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LT_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I32;
+        arg_view_type[1] = AM_VIEW_TYPE_I32;
+        setup_non_view_args(L, "mathv.lt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int32_t *arg1_arr = (int32_t*)arg_data[0];
+            int32_t *arg2_arr = (int32_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LT_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.lt");
+}
+
+static int am_mathv_lt(lua_State *L) {
+    return lt_impl(L, NULL);
+}
+
+static int am_mathv_lt_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return lt_impl(L, view);
+}
+
+static int lte_impl(lua_State *L, am_buffer_view *target) {
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.lte");
+    uint8_t arg_singleton_scratch[2][16*8];
+    uint8_t *arg_singleton_bufs[2];
+    for (int i = 0; i < nargs; i++) {
+        arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
+    }
+    uint8_t *arg_data[2];
+    int arg_stride[2];
+    int arg_count[2];
+    int arg_type[2];
+    am_buffer_view_type arg_view_type[2];
+    int arg_components[2];
+    am_buffer_view_type output_view_type;
+    int output_count;
+    int output_components;
+    int output_stride;
+    uint8_t *output_data;
+    bool args_are_dense;
+    bool output_is_dense;
+    component_wise_setup(L, "mathv.lte", nargs, 
+        arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+        &output_count, &output_components, &args_are_dense);
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_F32;
+        arg_view_type[1] = AM_VIEW_TYPE_F32;
+        setup_non_view_args(L, "mathv.lte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            float *arg1_arr = (float*)arg_data[0];
+            float *arg2_arr = (float*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LTE_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_F64;
+        arg_view_type[1] = AM_VIEW_TYPE_F64;
+        setup_non_view_args(L, "mathv.lte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            double *arg1_arr = (double*)arg_data[0];
+            double *arg2_arr = (double*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LTE_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U8;
+        arg_view_type[1] = AM_VIEW_TYPE_U8;
+        setup_non_view_args(L, "mathv.lte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint8_t *arg1_arr = (uint8_t*)arg_data[0];
+            uint8_t *arg2_arr = (uint8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LTE_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I8;
+        arg_view_type[1] = AM_VIEW_TYPE_I8;
+        setup_non_view_args(L, "mathv.lte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int8_t *arg1_arr = (int8_t*)arg_data[0];
+            int8_t *arg2_arr = (int8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LTE_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U16;
+        arg_view_type[1] = AM_VIEW_TYPE_U16;
+        setup_non_view_args(L, "mathv.lte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint16_t *arg1_arr = (uint16_t*)arg_data[0];
+            uint16_t *arg2_arr = (uint16_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LTE_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I16;
+        arg_view_type[1] = AM_VIEW_TYPE_I16;
+        setup_non_view_args(L, "mathv.lte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int16_t *arg1_arr = (int16_t*)arg_data[0];
+            int16_t *arg2_arr = (int16_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LTE_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U32;
+        arg_view_type[1] = AM_VIEW_TYPE_U32;
+        setup_non_view_args(L, "mathv.lte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint32_t *arg1_arr = (uint32_t*)arg_data[0];
+            uint32_t *arg2_arr = (uint32_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LTE_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I32;
+        arg_view_type[1] = AM_VIEW_TYPE_I32;
+        setup_non_view_args(L, "mathv.lte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int32_t *arg1_arr = (int32_t*)arg_data[0];
+            int32_t *arg2_arr = (int32_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = LTE_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.lte");
+}
+
+static int am_mathv_lte(lua_State *L) {
+    return lte_impl(L, NULL);
+}
+
+static int am_mathv_lte_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return lte_impl(L, view);
+}
+
+static int gt_impl(lua_State *L, am_buffer_view *target) {
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.gt");
+    uint8_t arg_singleton_scratch[2][16*8];
+    uint8_t *arg_singleton_bufs[2];
+    for (int i = 0; i < nargs; i++) {
+        arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
+    }
+    uint8_t *arg_data[2];
+    int arg_stride[2];
+    int arg_count[2];
+    int arg_type[2];
+    am_buffer_view_type arg_view_type[2];
+    int arg_components[2];
+    am_buffer_view_type output_view_type;
+    int output_count;
+    int output_components;
+    int output_stride;
+    uint8_t *output_data;
+    bool args_are_dense;
+    bool output_is_dense;
+    component_wise_setup(L, "mathv.gt", nargs, 
+        arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+        &output_count, &output_components, &args_are_dense);
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_F32;
+        arg_view_type[1] = AM_VIEW_TYPE_F32;
+        setup_non_view_args(L, "mathv.gt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            float *arg1_arr = (float*)arg_data[0];
+            float *arg2_arr = (float*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GT_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_F64;
+        arg_view_type[1] = AM_VIEW_TYPE_F64;
+        setup_non_view_args(L, "mathv.gt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            double *arg1_arr = (double*)arg_data[0];
+            double *arg2_arr = (double*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GT_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U8;
+        arg_view_type[1] = AM_VIEW_TYPE_U8;
+        setup_non_view_args(L, "mathv.gt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint8_t *arg1_arr = (uint8_t*)arg_data[0];
+            uint8_t *arg2_arr = (uint8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GT_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I8;
+        arg_view_type[1] = AM_VIEW_TYPE_I8;
+        setup_non_view_args(L, "mathv.gt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int8_t *arg1_arr = (int8_t*)arg_data[0];
+            int8_t *arg2_arr = (int8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GT_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U16;
+        arg_view_type[1] = AM_VIEW_TYPE_U16;
+        setup_non_view_args(L, "mathv.gt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint16_t *arg1_arr = (uint16_t*)arg_data[0];
+            uint16_t *arg2_arr = (uint16_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GT_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I16;
+        arg_view_type[1] = AM_VIEW_TYPE_I16;
+        setup_non_view_args(L, "mathv.gt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int16_t *arg1_arr = (int16_t*)arg_data[0];
+            int16_t *arg2_arr = (int16_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GT_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U32;
+        arg_view_type[1] = AM_VIEW_TYPE_U32;
+        setup_non_view_args(L, "mathv.gt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint32_t *arg1_arr = (uint32_t*)arg_data[0];
+            uint32_t *arg2_arr = (uint32_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GT_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I32;
+        arg_view_type[1] = AM_VIEW_TYPE_I32;
+        setup_non_view_args(L, "mathv.gt", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int32_t *arg1_arr = (int32_t*)arg_data[0];
+            int32_t *arg2_arr = (int32_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GT_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.gt");
+}
+
+static int am_mathv_gt(lua_State *L) {
+    return gt_impl(L, NULL);
+}
+
+static int am_mathv_gt_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return gt_impl(L, view);
+}
+
+static int gte_impl(lua_State *L, am_buffer_view *target) {
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.gte");
+    uint8_t arg_singleton_scratch[2][16*8];
+    uint8_t *arg_singleton_bufs[2];
+    for (int i = 0; i < nargs; i++) {
+        arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
+    }
+    uint8_t *arg_data[2];
+    int arg_stride[2];
+    int arg_count[2];
+    int arg_type[2];
+    am_buffer_view_type arg_view_type[2];
+    int arg_components[2];
+    am_buffer_view_type output_view_type;
+    int output_count;
+    int output_components;
+    int output_stride;
+    uint8_t *output_data;
+    bool args_are_dense;
+    bool output_is_dense;
+    component_wise_setup(L, "mathv.gte", nargs, 
+        arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+        &output_count, &output_components, &args_are_dense);
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_F32;
+        arg_view_type[1] = AM_VIEW_TYPE_F32;
+        setup_non_view_args(L, "mathv.gte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            float *arg1_arr = (float*)arg_data[0];
+            float *arg2_arr = (float*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GTE_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_F64) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_F64) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_F64;
+        arg_view_type[1] = AM_VIEW_TYPE_F64;
+        setup_non_view_args(L, "mathv.gte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            double *arg1_arr = (double*)arg_data[0];
+            double *arg2_arr = (double*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GTE_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U8;
+        arg_view_type[1] = AM_VIEW_TYPE_U8;
+        setup_non_view_args(L, "mathv.gte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint8_t *arg1_arr = (uint8_t*)arg_data[0];
+            uint8_t *arg2_arr = (uint8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GTE_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I8;
+        arg_view_type[1] = AM_VIEW_TYPE_I8;
+        setup_non_view_args(L, "mathv.gte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int8_t *arg1_arr = (int8_t*)arg_data[0];
+            int8_t *arg2_arr = (int8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GTE_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U16) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U16;
+        arg_view_type[1] = AM_VIEW_TYPE_U16;
+        setup_non_view_args(L, "mathv.gte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint16_t *arg1_arr = (uint16_t*)arg_data[0];
+            uint16_t *arg2_arr = (uint16_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GTE_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I16) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I16) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I16;
+        arg_view_type[1] = AM_VIEW_TYPE_I16;
+        setup_non_view_args(L, "mathv.gte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int16_t *arg1_arr = (int16_t*)arg_data[0];
+            int16_t *arg2_arr = (int16_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GTE_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U32;
+        arg_view_type[1] = AM_VIEW_TYPE_U32;
+        setup_non_view_args(L, "mathv.gte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint32_t *arg1_arr = (uint32_t*)arg_data[0];
+            uint32_t *arg2_arr = (uint32_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GTE_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_I32) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_I32) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_I32;
+        arg_view_type[1] = AM_VIEW_TYPE_I32;
+        setup_non_view_args(L, "mathv.gte", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            int32_t *arg1_arr = (int32_t*)arg_data[0];
+            int32_t *arg2_arr = (int32_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = GTE_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.gte");
+}
+
+static int am_mathv_gte(lua_State *L) {
+    return gte_impl(L, NULL);
+}
+
+static int am_mathv_gte_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return gte_impl(L, view);
+}
+
+static int bitand_impl(lua_State *L, am_buffer_view *target) {
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.bitand");
+    uint8_t arg_singleton_scratch[2][16*8];
+    uint8_t *arg_singleton_bufs[2];
+    for (int i = 0; i < nargs; i++) {
+        arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
+    }
+    uint8_t *arg_data[2];
+    int arg_stride[2];
+    int arg_count[2];
+    int arg_type[2];
+    am_buffer_view_type arg_view_type[2];
+    int arg_components[2];
+    am_buffer_view_type output_view_type;
+    int output_count;
+    int output_components;
+    int output_stride;
+    uint8_t *output_data;
+    bool args_are_dense;
+    bool output_is_dense;
+    component_wise_setup(L, "mathv.bitand", nargs, 
+        arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+        &output_count, &output_components, &args_are_dense);
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U8;
+        arg_view_type[1] = AM_VIEW_TYPE_U8;
+        setup_non_view_args(L, "mathv.bitand", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint8_t *arg1_arr = (uint8_t*)arg_data[0];
+            uint8_t *arg2_arr = (uint8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = BITAND_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = BITAND_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.bitand");
+}
+
+static int am_mathv_bitand(lua_State *L) {
+    return bitand_impl(L, NULL);
+}
+
+static int am_mathv_bitand_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return bitand_impl(L, view);
+}
+
+static int bitor_impl(lua_State *L, am_buffer_view *target) {
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.bitor");
+    uint8_t arg_singleton_scratch[2][16*8];
+    uint8_t *arg_singleton_bufs[2];
+    for (int i = 0; i < nargs; i++) {
+        arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
+    }
+    uint8_t *arg_data[2];
+    int arg_stride[2];
+    int arg_count[2];
+    int arg_type[2];
+    am_buffer_view_type arg_view_type[2];
+    int arg_components[2];
+    am_buffer_view_type output_view_type;
+    int output_count;
+    int output_components;
+    int output_stride;
+    uint8_t *output_data;
+    bool args_are_dense;
+    bool output_is_dense;
+    component_wise_setup(L, "mathv.bitor", nargs, 
+        arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+        &output_count, &output_components, &args_are_dense);
+    if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U8;
+        arg_view_type[1] = AM_VIEW_TYPE_U8;
+        setup_non_view_args(L, "mathv.bitor", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint8_t *arg1_arr = (uint8_t*)arg_data[0];
+            uint8_t *arg2_arr = (uint8_t*)arg_data[1];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = BITOR_OP(arg1_arr[i], arg2_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
+            int arg2_stride = arg_stride[1];
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = BITOR_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                arg2_ptr += arg2_stride;
+                
+            }
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.bitor");
+}
+
+static int am_mathv_bitor(lua_State *L) {
+    return bitor_impl(L, NULL);
+}
+
+static int am_mathv_bitor_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return bitor_impl(L, view);
+}
+
+static int bitnot_impl(lua_State *L, am_buffer_view *target) {
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.bitnot");
+    uint8_t arg_singleton_scratch[1][16*8];
+    uint8_t *arg_singleton_bufs[1];
+    for (int i = 0; i < nargs; i++) {
+        arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
+    }
+    uint8_t *arg_data[1];
+    int arg_stride[1];
+    int arg_count[1];
+    int arg_type[1];
+    am_buffer_view_type arg_view_type[1];
+    int arg_components[1];
+    am_buffer_view_type output_view_type;
+    int output_count;
+    int output_components;
+    int output_stride;
+    uint8_t *output_data;
+    bool args_are_dense;
+    bool output_is_dense;
+    component_wise_setup(L, "mathv.bitnot", nargs, 
+        arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+        &output_count, &output_components, &args_are_dense);
+    if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view)) {
+        arg_view_type[0] = AM_VIEW_TYPE_U8;
+        setup_non_view_args(L, "mathv.bitnot", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        output_view_type = AM_VIEW_TYPE_U8;
+        create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+        if (output_is_dense && args_are_dense) {
+            uint8_t *out_arr = (uint8_t*)output_data;
+            uint8_t *arg1_arr = (uint8_t*)arg_data[0];
+            
+            for (int i = 0; i < output_count * output_components; ++i) {
+                out_arr[i] = BITNOT_OP(arg1_arr[i]);
+            }
+        } else {
+            uint8_t *arg1_ptr = arg_data[0];
+            int arg1_stride = arg_stride[0];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
+            for (int i = 0; i < output_count; ++i) {
+                for (int c = 0; c < output_components; ++c) {
+                    ((uint8_t*)output_data)[c] = BITNOT_OP(((uint8_t*)arg1_ptr)[c & mask1]);
+                }
+                output_data += output_stride;
+                arg1_ptr += arg1_stride;
+                
+            }
+        }
+        return 1;
+    }
+    return luaL_error(L, "invalid argument types for function mathv.bitnot");
+}
+
+static int am_mathv_bitnot(lua_State *L) {
+    return bitnot_impl(L, NULL);
+}
+
+static int am_mathv_bitnot_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return bitnot_impl(L, view);
+}
+
 static int vec2_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.vec2");
@@ -6337,6 +7794,30 @@ static int am_mathv_simplex_into(lua_State *L) {
     return simplex_impl(L, view);
 }
 
+static int am_mathv_filter(lua_State *L) {
+    return filter_impl(L, NULL);
+}
+
+static int am_mathv_filter_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return filter_impl(L, view);
+}
+
+static int am_mathv_eq(lua_State *L) {
+    return eq_impl(L, NULL);
+}
+
+static int am_mathv_eq_into(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    lua_pushvalue(L, 1); // return view
+    lua_remove(L, 1);
+    return eq_impl(L, view);
+}
+
 void am_register_mathv_view_methods(lua_State *L) {
     lua_pushcclosure(L, am_mathv_add, 0);
     lua_setfield(L, -2, "__add");
@@ -6400,6 +7881,20 @@ void am_register_mathv_view_methods(lua_State *L) {
     lua_setfield(L, -2, "sin");
     lua_pushcclosure(L, am_mathv_tan_into, 0);
     lua_setfield(L, -2, "tan");
+    lua_pushcclosure(L, am_mathv_lt_into, 0);
+    lua_setfield(L, -2, "lt");
+    lua_pushcclosure(L, am_mathv_lte_into, 0);
+    lua_setfield(L, -2, "lte");
+    lua_pushcclosure(L, am_mathv_gt_into, 0);
+    lua_setfield(L, -2, "gt");
+    lua_pushcclosure(L, am_mathv_gte_into, 0);
+    lua_setfield(L, -2, "gte");
+    lua_pushcclosure(L, am_mathv_bitand_into, 0);
+    lua_setfield(L, -2, "bitand");
+    lua_pushcclosure(L, am_mathv_bitor_into, 0);
+    lua_setfield(L, -2, "bitor");
+    lua_pushcclosure(L, am_mathv_bitnot_into, 0);
+    lua_setfield(L, -2, "bitnot");
     lua_pushcclosure(L, am_mathv_vec2_into, 0);
     lua_setfield(L, -2, "vec2");
     lua_pushcclosure(L, am_mathv_vec3_into, 0);
@@ -6428,6 +7923,10 @@ void am_register_mathv_view_methods(lua_State *L) {
     lua_setfield(L, -2, "perlin");
     lua_pushcclosure(L, am_mathv_simplex_into, 0);
     lua_setfield(L, -2, "simplex");
+    lua_pushcclosure(L, am_mathv_filter_into, 0);
+    lua_setfield(L, -2, "filter");
+    lua_pushcclosure(L, am_mathv_eq_into, 0);
+    lua_setfield(L, -2, "eq");
 }
 
 void am_open_mathv_module(lua_State *L) {
@@ -6460,6 +7959,13 @@ void am_open_mathv_module(lua_State *L) {
         {"sign", am_mathv_sign},
         {"sin", am_mathv_sin},
         {"tan", am_mathv_tan},
+        {"lt", am_mathv_lt},
+        {"lte", am_mathv_lte},
+        {"gt", am_mathv_gt},
+        {"gte", am_mathv_gte},
+        {"bitand", am_mathv_bitand},
+        {"bitor", am_mathv_bitor},
+        {"bitnot", am_mathv_bitnot},
         {"vec2", am_mathv_vec2},
         {"vec3", am_mathv_vec3},
         {"vec4", am_mathv_vec4},
@@ -6474,6 +7980,8 @@ void am_open_mathv_module(lua_State *L) {
         {"normalize", am_mathv_normalize},
         {"perlin", am_mathv_perlin},
         {"simplex", am_mathv_simplex},
+        {"filter", am_mathv_filter},
+        {"eq", am_mathv_eq},
         {NULL, NULL}
     };
     am_open_module(L, "mathv", vfuncs);

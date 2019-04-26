@@ -8,6 +8,14 @@
 #define IMOD_OP(x, y) ((x) % (y))
 #define F32MOD_OP(a, b) ((a) - floorf((a) / (b)) * (b))
 #define F64MOD_OP(a, b) ((a) - floor((a) / (b)) * (b))
+#define LT_OP(a, b) (((a) < (b)) ? 1 : 0)
+#define LTE_OP(a, b) (((a) <= (b)) ? 1 : 0)
+#define GT_OP(a, b) (((a) > (b)) ? 1 : 0)
+#define GTE_OP(a, b) (((a) >= (b)) ? 1 : 0)
+#define EQ_OP(a, b) (((a) == (b)) ? 1 : 0)
+#define BITAND_OP(a, b) ((a) & (b))
+#define BITOR_OP(a, b) ((a) | (b))
+#define BITNOT_OP(a) (~(a))
 
 #define MAT_MUL(x, y) ((x) * (y))
 
@@ -544,7 +552,7 @@ int am_mathv_mul(lua_State *L) {
         case MT_am_mat4:
             return am_mathv_mat_mul(L);
         case MT_am_buffer_view: {
-            am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
+            am_buffer_view *view = am_check_buffer_view(L, 1);
             if (view->components >= 9) {
                 return am_mathv_mat_mul(L);
             }
@@ -557,7 +565,7 @@ int am_mathv_mul(lua_State *L) {
                 case MT_am_mat4:
                     return am_mathv_mat_mul(L);
                 case MT_am_buffer_view: {
-                    am_buffer_view *view = am_get_userdata(L, am_buffer_view, 2);
+                    am_buffer_view *view = am_check_buffer_view(L, 2);
                     if (view->components >= 9) {
                         return am_mathv_mat_mul(L);
                     }
@@ -568,3 +576,150 @@ int am_mathv_mul(lua_State *L) {
     }
     return am_mathv_vec_mul(L);
 }
+
+int filter_impl(lua_State *L, am_buffer_view *target) {
+    am_check_nargs(L, 2);
+    am_buffer_view *data_view = am_check_buffer_view(L, 1);
+    am_buffer_view *filter_view = am_check_buffer_view(L, 2);
+    if (filter_view->type != AM_VIEW_TYPE_U8 || filter_view->components != 1) {
+        return luaL_error(L, "filter view must have element type ubyte");
+    }
+    if (filter_view->size != data_view->size) {
+        return luaL_error(L, "in mathv.filter arguments must have same size");
+    }
+
+    int output_count = 0;
+    int output_stride;
+    uint8_t *output_data;
+    bool is_dense;
+    int filter_size = filter_view->size;
+    int filter_stride = filter_view->stride;
+    uint8_t *filter_data = filter_view->buffer->data + filter_view->offset;
+    for (int i = 0; i < filter_size; ++i) {
+        output_count += *filter_data ? 1 : 0;
+        filter_data += filter_stride;
+    }
+
+    create_output_view(L, target, data_view->type, &output_count, data_view->components, &output_stride, &output_data, &is_dense);
+
+    filter_data = filter_view->buffer->data + filter_view->offset;
+    uint8_t *in_data = data_view->buffer->data + data_view->offset;
+    int in_stride = data_view->stride;
+    int output_elem_size = data_view->components * am_view_type_infos[data_view->type].size;
+
+    for (int i = 0; i < filter_size; ++i) {
+        if (*filter_data) {
+            memcpy(output_data, in_data, output_elem_size);
+            output_data += output_stride;
+        }
+        in_data += in_stride;
+        filter_data += filter_stride;
+    }
+    return 1;
+}
+
+int eq_impl(lua_State *L, am_buffer_view *target) {
+    int nargs = am_check_nargs(L, 2);
+    uint8_t arg_singleton_scratch[2][16*8];
+    uint8_t *arg_singleton_bufs[2];
+    for (int i = 0; i < 2; i++) {
+        arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
+    }
+    uint8_t *arg_data[2];
+    int arg_stride[2];
+    int arg_count[2];
+    int arg_type[2];
+    am_buffer_view_type arg_view_type[2];
+    int arg_components[2];
+    am_buffer_view_type view_type = AM_NUM_VIEW_TYPES;
+    int output_count;
+    int output_components;
+    int output_stride;
+    uint8_t *output_data;
+    bool output_is_dense;
+    element_wise_setup(L, "mathv.eq", 2, 
+        arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+        &output_count);
+    for (int i = 0; i < 2; i++) {
+        if (arg_type[i] == MT_am_buffer_view) {
+            if (view_type != AM_NUM_VIEW_TYPES && arg_view_type[i] != view_type) {
+                return luaL_error(L, "mathv.eq arguments must have the same type");
+            }
+            view_type = arg_view_type[i];
+        }
+    }
+    assert(view_type != AM_NUM_VIEW_TYPES);
+    if (arg_components[0] != arg_components[1]) {
+        return luaL_error(L, "mathv.eq arguments must have the same number of components");
+    }
+    arg_view_type[0] = view_type;
+    arg_view_type[1] = view_type;
+    setup_non_view_args(L, "mathv.eq", 2, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data); 
+
+    double epsilon = 0.0;
+    if (nargs > 2) {
+        epsilon = luaL_checknumber(L, 3);
+        if (view_type != AM_VIEW_TYPE_F32 && view_type != AM_VIEW_TYPE_F64) {
+            return luaL_error(L, "mathv.eq epsilon only allowed for float and double views");
+        }
+    }
+
+    output_components = arg_components[0];
+    create_output_view(L, target, AM_VIEW_TYPE_U8, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
+
+    int stride1 = arg_stride[0];
+    int stride2 = arg_stride[1];
+    uint8_t *ptr1 = arg_data[0];
+    uint8_t *ptr2 = arg_data[1];
+
+    switch (view_type) {
+        case AM_VIEW_TYPE_F32: {
+            for (int i = 0; i < output_count; ++i) {
+                uint8_t eq = 1;
+                float ep = (float)epsilon;
+                for (int c = 0; c < output_components; c++) {
+                    if (fabsf(((float*)ptr1)[c] - ((float*)ptr2)[c]) > ep) {
+                        eq = 0;
+                        break;
+                    }
+                }
+                *output_data = eq;
+                output_data += output_stride;
+                ptr1 += stride1;
+                ptr2 += stride2;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_F64: {
+            for (int i = 0; i < output_count; ++i) {
+                uint8_t eq = 1;
+                double ep = epsilon;
+                for (int c = 0; c < output_components; c++) {
+                    if (fabs(((double*)ptr1)[c] - ((double*)ptr2)[c]) > ep) {
+                        eq = 0;
+                        break;
+                    }
+                }
+                *output_data = eq;
+                output_data += output_stride;
+                ptr1 += stride1;
+                ptr2 += stride2;
+            }
+            break;
+        }
+        default: {
+            // do bit comparison
+            int elemsz = output_components * am_view_type_infos[view_type].size;
+            for (int i = 0; i < output_count; ++i) {
+                *output_data = (memcmp(ptr1, ptr2, elemsz) == 0) ? 1 : 0;
+                output_data += output_stride;
+                ptr1 += stride1;
+                ptr2 += stride2;
+            }
+            break;
+        }
+    }
+
+    return 1;
+}
+

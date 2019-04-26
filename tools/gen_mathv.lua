@@ -849,6 +849,327 @@ local func_defs = {
             },
         }
     },
+    { 
+        name = "lt",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "LT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "f32"},
+                    {name = "b", type = "f32"},
+                },
+            },
+            {
+                cname = "LT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "f64"},
+                    {name = "b", type = "f64"},
+                },
+            },
+            {
+                cname = "LT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u8"},
+                    {name = "b", type = "u8"},
+                },
+            },
+            {
+                cname = "LT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i8"},
+                    {name = "b", type = "i8"},
+                },
+            },
+            {
+                cname = "LT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u16"},
+                    {name = "b", type = "u16"},
+                },
+            },
+            {
+                cname = "LT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i16"},
+                    {name = "b", type = "i16"},
+                },
+            },
+            {
+                cname = "LT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u32"},
+                    {name = "b", type = "u32"},
+                },
+            },
+            {
+                cname = "LT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i32"},
+                    {name = "b", type = "i32"},
+                },
+            },
+        }
+    },
+    { 
+        name = "lte",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "LTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "f32"},
+                    {name = "b", type = "f32"},
+                },
+            },
+            {
+                cname = "LTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "f64"},
+                    {name = "b", type = "f64"},
+                },
+            },
+            {
+                cname = "LTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u8"},
+                    {name = "b", type = "u8"},
+                },
+            },
+            {
+                cname = "LTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i8"},
+                    {name = "b", type = "i8"},
+                },
+            },
+            {
+                cname = "LTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u16"},
+                    {name = "b", type = "u16"},
+                },
+            },
+            {
+                cname = "LTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i16"},
+                    {name = "b", type = "i16"},
+                },
+            },
+            {
+                cname = "LTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u32"},
+                    {name = "b", type = "u32"},
+                },
+            },
+            {
+                cname = "LTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i32"},
+                    {name = "b", type = "i32"},
+                },
+            },
+        }
+    },
+    { 
+        name = "gt",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "GT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "f32"},
+                    {name = "b", type = "f32"},
+                },
+            },
+            {
+                cname = "GT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "f64"},
+                    {name = "b", type = "f64"},
+                },
+            },
+            {
+                cname = "GT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u8"},
+                    {name = "b", type = "u8"},
+                },
+            },
+            {
+                cname = "GT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i8"},
+                    {name = "b", type = "i8"},
+                },
+            },
+            {
+                cname = "GT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u16"},
+                    {name = "b", type = "u16"},
+                },
+            },
+            {
+                cname = "GT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i16"},
+                    {name = "b", type = "i16"},
+                },
+            },
+            {
+                cname = "GT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u32"},
+                    {name = "b", type = "u32"},
+                },
+            },
+            {
+                cname = "GT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i32"},
+                    {name = "b", type = "i32"},
+                },
+            },
+        }
+    },
+    { 
+        name = "gte",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "GTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "f32"},
+                    {name = "b", type = "f32"},
+                },
+            },
+            {
+                cname = "GTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "f64"},
+                    {name = "b", type = "f64"},
+                },
+            },
+            {
+                cname = "GTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u8"},
+                    {name = "b", type = "u8"},
+                },
+            },
+            {
+                cname = "GTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i8"},
+                    {name = "b", type = "i8"},
+                },
+            },
+            {
+                cname = "GTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u16"},
+                    {name = "b", type = "u16"},
+                },
+            },
+            {
+                cname = "GTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i16"},
+                    {name = "b", type = "i16"},
+                },
+            },
+            {
+                cname = "GTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u32"},
+                    {name = "b", type = "u32"},
+                },
+            },
+            {
+                cname = "GTE_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "i32"},
+                    {name = "b", type = "i32"},
+                },
+            },
+        }
+    },
+    { 
+        name = "bitand",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "BITAND_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u8"},
+                    {name = "b", type = "u8"},
+                },
+            },
+        }
+    },
+    { 
+        name = "bitor",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "BITOR_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u8"},
+                    {name = "b", type = "u8"},
+                },
+            },
+        }
+    },
+    { 
+        name = "bitnot",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "BITNOT_OP",
+                ret_type = "u8",
+                args = {
+                    {name = "a", type = "u8"},
+                },
+            },
+        }
+    },
 
     -- element-wise math functions
     {
@@ -1947,6 +2268,16 @@ local func_defs = {
             },
         }
     },
+
+    -- hand coded
+    {
+        name = "filter",
+        kind = "handcoded",
+    },
+    {
+        name = "eq",
+        kind = "handcoded",
+    },
 }
 
 local
@@ -2012,9 +2343,7 @@ local gen_component_wise_func_impl
 local gen_component_wise_func_variant
 local gen_component_wise_inner_loop
 local gen_element_wise_func_impl
-local gen_element_wise_func_body
 local gen_element_wise_func_variant
-local gen_element_wise_case
 
 function gen_funcs(f)
     for _, func in ipairs(func_defs) do
@@ -2022,6 +2351,8 @@ function gen_funcs(f)
             gen_component_wise_func_impl(f, func)
         elseif func.kind == "element_wise" then
             gen_element_wise_func_impl(f, func)
+        elseif func.kind == "handcoded" then
+            -- do nothing
         else
             error("unknown function kind: "..func.kind)
         end
@@ -2120,7 +2451,8 @@ function gen_component_wise_inner_loop(f, func, variant)
     local dense_call_args = ""
     local nondense_call_args = ""
     for a, arg in ipairs(variant.args) do
-        local arg_array_decl = ret_ctype.." *arg"..a.."_arr = ("..ret_ctype.."*)arg_data["..(a-1).."];\n        "
+        local arg_type = view_type_info[arg.type].ctype
+        local arg_array_decl = arg_type.." *arg"..a.."_arr = ("..arg_type.."*)arg_data["..(a-1).."];\n        "
         setup_dense_arg_arrays = setup_dense_arg_arrays..arg_array_decl
         local arg_ptr_decl = "uint8_t *arg"..a.."_ptr = arg_data["..(a-1).."];\n        "..
             "int arg"..a.."_stride = arg_stride["..(a-1).."];\n        "..
@@ -2129,7 +2461,7 @@ function gen_component_wise_inner_loop(f, func, variant)
         local advance = "arg"..a.."_ptr += arg"..a.."_stride;\n            "
         advance_nondense_pointers = advance_nondense_pointers..advance;
         dense_call_args = dense_call_args.."arg"..a.."_arr[i]"
-        nondense_call_args = nondense_call_args.."(("..ret_ctype.."*)arg"..a.."_ptr)[c & mask"..a.."]"
+        nondense_call_args = nondense_call_args.."(("..arg_type.."*)arg"..a.."_ptr)[c & mask"..a.."]"
         if a < #variant.args then
             dense_call_args = dense_call_args..", "
             nondense_call_args = nondense_call_args..", "

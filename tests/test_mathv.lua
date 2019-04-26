@@ -4,15 +4,14 @@ function print_view(view)
     for i = 1, #view do
         local elem = tostring(view[i])
         str = str..elem
-        if i == #view then
-            str = str.."]"
-        else
+        if i < #view then
             str = str..", "
             if elem:match("\n") then
                 str = str.."\n "
             end
         end
     end
+    str = str.."]"
     print(str)
 end
 
@@ -132,4 +131,18 @@ do
     dst = mathv.array("int", 3)
     dst.x = src
     print_view(dst)
+end
+
+print("filter")
+do
+    local view = mathv.array("float", {9, 3, 7, 1, 6, 10, 2})
+    print_view(mathv.filter(view, mathv.lt(5, view)))
+    print_view(mathv.filter(view, mathv.lte(view, 6)))
+    print_view(mathv.filter(view, mathv.bitand(mathv.gt(view, 1), mathv.lte(view, 7))))
+    local view2 = mathv.array("float", {9, 2, 8, 1, 7, 11, 2})
+    print_view(mathv.filter(view, mathv.eq(view, view2)))
+    print_view(mathv.filter(view, mathv.eq(view, 1)))
+    print_view(mathv.filter(view, mathv.eq(1, view, 1.1)))
+    local iview = mathv.array("int", {9, 2, 8, 1, 7, 12, 4})
+    print_view(mathv.filter(iview, mathv.eq(iview % 2, 0)))
 end
