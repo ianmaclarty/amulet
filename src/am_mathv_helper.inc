@@ -26,6 +26,7 @@ static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *
     int *stride, int *count, int *components, double *singleton_vals)
 {
     *arg_type = am_get_type(L, arg);
+    *view_type = AM_NUM_VIEW_TYPES;
 
     switch (*arg_type) {
         case MT_am_buffer_view:  {
@@ -118,20 +119,11 @@ static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *
     return false;
 }
 
-static void component_wise_setup(lua_State *L, am_buffer_view *target, const char *name, int nargs, 
+static void component_wise_setup(lua_State *L, const char *name, int nargs, 
+    int *arg_type, am_buffer_view_type *arg_view_type, int *arg_count,
     uint8_t **arg_data, int *arg_stride, int *arg_components, uint8_t **arg_singleton_bufs,
-    am_buffer_view_type *output_view_type, int *output_count, int *output_components, int *output_stride, uint8_t **output_data,
-    bool *is_dense)
+    int *output_count, int *output_components, bool *is_dense)
 {
-    int arg_count[MAX_ARGS];
-    int arg_type[MAX_ARGS];
-    am_buffer_view_type arg_view_type[MAX_ARGS];
-
-    if (nargs > MAX_ARGS) {
-        luaL_error(L, "too many arguments in call to %s", name);
-        return;
-    }
-
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], (double*)arg_singleton_bufs[i])) {
             luaL_error(L, "invalid argument types for function %s", name);
@@ -145,9 +137,8 @@ static void component_wise_setup(lua_State *L, am_buffer_view *target, const cha
         return;
     }
 
-    // compute output count and view type
+    // compute output count
     *output_count = -1;
-    *output_view_type = AM_NUM_VIEW_TYPES;
     for (int i = 0; i < nargs; i++) {
         if (arg_type[i] == MT_am_buffer_view) {
             if (*output_count != -1 && arg_count[i] != *output_count) {
@@ -156,20 +147,12 @@ static void component_wise_setup(lua_State *L, am_buffer_view *target, const cha
             } else {
                 *output_count = arg_count[i];
             }
-            if (*output_view_type != AM_NUM_VIEW_TYPES && arg_view_type[i] != *output_view_type) {
-                luaL_error(L, "in call to %s argument %d has base type %s, but previous arguments have base type %s", 
-                    name, (i+1), am_view_type_infos[arg_view_type[i]].name, am_view_type_infos[arg_view_type[*output_view_type]].name);
-                return;
-            } else {
-                *output_view_type = arg_view_type[i];
-            }
         }
     }
     if (*output_count == -1) {
         luaL_error(L, "in call to %s at least one argument must be a view", name);
         return;
     }
-    am_view_type_info output_view_type_info = am_view_type_infos[*output_view_type];
 
     // compute output components
     *output_components = arg_components[0];
@@ -184,13 +167,62 @@ static void component_wise_setup(lua_State *L, am_buffer_view *target, const cha
             }
         }
     }
-    // setup non-view args
+
+    // is_dense is true if all the arguments are tightly packed views,
+    // which allows for optimisations in the update loop.
+    *is_dense = true;
+    for (int i = 0; i < nargs; i++) {
+        if (arg_type[i] != MT_am_buffer_view || (arg_stride[i] != arg_components[i] * am_view_type_infos[arg_view_type[i]].size)) {
+            *is_dense = false;
+            break;
+        }
+    }
+}
+
+static void element_wise_setup(lua_State *L, const char *name, int nargs, 
+    int *arg_type, am_buffer_view_type *arg_view_type, int *arg_count,
+    uint8_t **arg_data, int *arg_stride, int *arg_components, uint8_t **arg_singleton_bufs,
+    int *output_count)
+{
+    for (int i = 0; i < nargs; i++) {
+        if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], (double*)arg_singleton_bufs[i])) {
+            luaL_error(L, "invalid argument types for function %s", name);
+            return;
+        }
+    }
+
+    // code below depends on there being at least one arg
+    if (nargs == 0) {
+        luaL_error(L, "no arguments given for %s", name);
+        return;
+    }
+
+    // compute output count
+    *output_count = -1;
+    for (int i = 0; i < nargs; i++) {
+        if (arg_type[i] == MT_am_buffer_view) {
+            if (*output_count != -1 && arg_count[i] != *output_count) {
+                luaL_error(L, "in call to %s argument %d has size %d, but previous arguments have size %d", name, (i+1), arg_count[i], *output_count);
+                return;
+            } else {
+                *output_count = arg_count[i];
+            }
+        }
+    }
+    if (*output_count == -1) {
+        luaL_error(L, "in call to %s at least one argument must be a view", name);
+        return;
+    }
+}
+
+static void setup_non_view_args(lua_State *L, const char *name, int nargs, int *arg_type, am_buffer_view_type *arg_view_type,
+    int *arg_components, uint8_t **arg_singleton_bufs, uint8_t **arg_data) 
+{
     for (int i = 0; i < nargs; i++) {
         if (arg_type[i] != MT_am_buffer_view) {
-            arg_view_type[i] = *output_view_type;
             double *f64s = (double*)arg_singleton_bufs[i];
             arg_data[i] = arg_singleton_bufs[i];
-            switch (*output_view_type) {
+            switch (arg_view_type[i]) {
                 case AM_VIEW_TYPE_F32: {
                     float *conv = (float*)f64s;
                     for (int c = 0; c < arg_components[i]; c++) {
@@ -244,57 +276,47 @@ static void component_wise_setup(lua_State *L, am_buffer_view *target, const cha
                     break;
                 }
                 default:
-                    luaL_error(L, "%s does not support arguments with base type %s", name, output_view_type_info.name);
+                    luaL_error(L, "%s does not support arguments with base type %s", name, am_view_type_infos[arg_view_type[i]].name);
                     return;
             }
         }
     }
+}
 
+static void create_output_view(lua_State *L, am_buffer_view *target, am_buffer_view_type output_view_type,
+    int *output_count, int output_components, int *output_stride, uint8_t **output_data, bool *is_dense)
+{
+    am_view_type_info output_view_type_info = am_view_type_infos[output_view_type];
     if (target == NULL) {
         // create a new buffer for the output
-        *output_stride = *output_components * output_view_type_info.size;
-        am_buffer *output_buffer = am_push_new_buffer_and_init(L, (*output_count) * (*output_stride));
+        *output_stride = output_components * output_view_type_info.size;
+        am_buffer *output_buffer = am_push_new_buffer_and_init(L, *output_count * (*output_stride));
         *output_data = output_buffer->data;
-        am_buffer_view *output_view = am_new_buffer_view(L, *output_view_type, *output_components);
+        am_buffer_view *output_view = am_new_buffer_view(L, output_view_type, output_components);
         output_view->buffer = output_buffer;
         output_view->buffer_ref = output_view->ref(L, -2);
         output_view->offset = 0;
         output_view->stride = *output_stride;
         output_view->size = *output_count;
-        output_view->last_max_elem_version = 0;
-        output_view->max_elem = 0;
         lua_remove(L, -2); // remove output_buffer
+        *is_dense = true;
     } else {
         // overwrite provided buffer
-        if (target->type != *output_view_type) {
+        if (target->type != output_view_type) {
             luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
                 output_view_type_info.name, am_view_type_infos[target->type].name);
             return;
         }
-        if (target->components != *output_components) {
+        if (target->components != output_components) {
             luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
-                *output_components, target->components);
+                output_components, target->components);
             return;
         }
         *output_count = am_min(*output_count, target->size);
         target->mark_dirty(0, *output_count);
         *output_stride = target->stride;
         *output_data = target->buffer->data + target->offset;
-    }
-
-    // is_dense is true if all the arguments and output are tightly packed.
-    // This allows us to treat them as simple arrays of 1-component values,
-    // making for a more efficient update loop.
-    if (*output_stride == *output_components * output_view_type_info.size) {
-        *is_dense = true;
-        for (int i = 0; i < nargs; i++) {
-            if (arg_stride[i] != *output_stride) {
-                *is_dense = false;
-                break;
-            }
-        }
-    } else {
-        *is_dense = false;
+        *is_dense = output_components * output_view_type_info.size == *output_stride;
     }
 }
 

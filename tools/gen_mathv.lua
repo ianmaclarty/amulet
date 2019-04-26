@@ -618,6 +618,30 @@ local func_defs = {
         }
     },
     { 
+        name = "clamp",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "am_clamp",
+                ret_type = "f32",
+                args = {
+                    {name = "val", type = "f32"},
+                    {name = "lo", type = "f32"},
+                    {name = "hi", type = "f32"},
+                },
+            },
+            {
+                cname = "am_clamp",
+                ret_type = "f64",
+                args = {
+                    {name = "val", type = "f64"},
+                    {name = "lo", type = "f64"},
+                    {name = "hi", type = "f64"},
+                },
+            },
+        }
+    },
+    { 
         name = "cos",
         kind = "component_wise",
         variants = {
@@ -653,6 +677,26 @@ local func_defs = {
                 ret_type = "f64",
                 args = {
                     {name = "val", type = "f64"}
+                },
+            },
+        }
+    },
+    { 
+        name = "fract",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "glm::fract",
+                ret_type = "f32",
+                args = {
+                    {name = "x", type = "f32"}
+                },
+            },
+            {
+                cname = "glm::fract",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"}
                 },
             },
         }
@@ -717,6 +761,50 @@ local func_defs = {
                 args = {
                     {name = "a", type = "f64"},
                     {name = "b", type = "f64"},
+                },
+            },
+        }
+    },
+    { 
+        name = "mix",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "glm::mix",
+                ret_type = "f32",
+                args = {
+                    {name = "a", type = "f32"},
+                    {name = "b", type = "f32"},
+                    {name = "t", type = "f32"},
+                },
+            },
+            {
+                cname = "glm::mix",
+                ret_type = "f64",
+                args = {
+                    {name = "a", type = "f64"},
+                    {name = "b", type = "f64"},
+                    {name = "t", type = "f64"},
+                },
+            },
+        }
+    },
+    { 
+        name = "sign",
+        kind = "component_wise",
+        variants = {
+            {
+                cname = "am_sign",
+                ret_type = "f32",
+                args = {
+                    {name = "x", type = "f32"}
+                },
+            },
+            {
+                cname = "am_sign",
+                ret_type = "f64",
+                args = {
+                    {name = "x", type = "f64"}
                 },
             },
         }
@@ -1358,6 +1446,90 @@ local func_defs = {
         }
     },
     {
+        name = "cross",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::cross",
+                ret_type = "f32",
+                ret_comps = 3,
+                args = {
+                    {name = "a", type = "f32", comps = 3},
+                    {name = "b", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::cross",
+                ret_type = "f64",
+                ret_comps = 3,
+                args = {
+                    {name = "a", type = "f64", comps = 3},
+                    {name = "b", type = "f64", comps = 3},
+                },
+            },
+        }
+    },
+    {
+        name = "distance",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::distance",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 2},
+                    {name = "y", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::distance",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 3},
+                    {name = "y", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::distance",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 4},
+                    {name = "y", type = "f32", comps = 4},
+                },
+            },
+            {
+                cname = "glm::distance",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 2},
+                    {name = "y", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::distance",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 3},
+                    {name = "y", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "glm::distance",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 4},
+                    {name = "y", type = "f64", comps = 4},
+                },
+            },
+        }
+    },
+    {
         name = "dot",
         kind = "element_wise",
         variants = {
@@ -1413,6 +1585,152 @@ local func_defs = {
                 args = {
                     {name = "x", type = "f64", comps = 4},
                     {name = "y", type = "f64", comps = 4},
+                },
+            },
+        }
+    },
+    {
+        name = "inverse",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::inverse",
+                ret_type = "f32",
+                ret_comps = 9,
+                args = {
+                    {name = "x", type = "f32", comps = 9},
+                },
+            },
+            {
+                cname = "glm::inverse",
+                ret_type = "f32",
+                ret_comps = 16,
+                args = {
+                    {name = "x", type = "f32", comps = 16},
+                },
+            },
+            {
+                cname = "glm::inverse",
+                ret_type = "f64",
+                ret_comps = 9,
+                args = {
+                    {name = "x", type = "f64", comps = 9},
+                },
+            },
+            {
+                cname = "glm::inverse",
+                ret_type = "f64",
+                ret_comps = 16,
+                args = {
+                    {name = "x", type = "f64", comps = 16},
+                },
+            },
+        }
+    },
+    {
+        name = "length",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::length",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::length",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::length",
+                ret_type = "f32",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f32", comps = 4},
+                },
+            },
+            {
+                cname = "glm::length",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::length",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "glm::length",
+                ret_type = "f64",
+                ret_comps = 1,
+                args = {
+                    {name = "x", type = "f64", comps = 4},
+                },
+            },
+        }
+    },
+    {
+        name = "normalize",
+        kind = "element_wise",
+        variants = {
+            {
+                cname = "glm::normalize",
+                ret_type = "f32",
+                ret_comps = 2,
+                args = {
+                    {name = "x", type = "f32", comps = 2},
+                },
+            },
+            {
+                cname = "glm::normalize",
+                ret_type = "f32",
+                ret_comps = 3,
+                args = {
+                    {name = "x", type = "f32", comps = 3},
+                },
+            },
+            {
+                cname = "glm::normalize",
+                ret_type = "f32",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f32", comps = 4},
+                },
+            },
+            {
+                cname = "glm::normalize",
+                ret_type = "f64",
+                ret_comps = 2,
+                args = {
+                    {name = "x", type = "f64", comps = 2},
+                },
+            },
+            {
+                cname = "glm::normalize",
+                ret_type = "f64",
+                ret_comps = 3,
+                args = {
+                    {name = "x", type = "f64", comps = 3},
+                },
+            },
+            {
+                cname = "glm::normalize",
+                ret_type = "f64",
+                ret_comps = 4,
+                args = {
+                    {name = "x", type = "f64", comps = 4},
                 },
             },
         }
@@ -1640,8 +1958,12 @@ function ind(f, n, str)
     local suf = string.rep("    ", n)
     local pad = str:match("^(%s*)")
     local r = ""
-    for line in str:gmatch("([^\n\r]*)\r*\n") do
-        r = r..suf..(line:sub(#pad + 1)).."\n"
+    if str:match("\n") then
+        for line in str:gmatch("([^\n\r]*)\r*\n") do
+            r = r..suf..(line:sub(#pad + 1)).."\n"
+        end
+    else
+        r = suf..str:sub(#pad + 1).."\n"
     end
     if f then
         f:write(r)
@@ -1733,34 +2055,6 @@ static int am_mathv_]]..func.name..[[_into(lua_State *L) {
 ]])
 end
 
-function gen_element_wise_func_impl(f, func)
-    local max_args = get_max_args(func)
-    local sig_error = "invalid argument types for function mathv."..func.name
-    local return_sig_error = "return luaL_error(L, \""..sig_error.."\");\n"
-    local func_decl = "static int "..func.name.."_impl(lua_State *L, am_buffer_view *target) {\n"
-    local prelude = [[
-        int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-        if (nargs > ]]..max_args..[[) return luaL_error(L, "too many arguments for mathv.]]..func.name..[[");
-        double arg_singleton_vals[]]..max_args..[[][16];
-        int arg_count[]]..max_args..[[];
-        uint8_t *arg_data[]]..max_args..[[];
-        int arg_stride[]]..max_args..[[];
-        int arg_components[]]..max_args..[[];
-        int arg_type[]]..max_args..[[];
-        am_buffer_view_type arg_view_type[]]..max_args..[[];
-        for (int i = 0; i < nargs; i++) {
-            if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], &arg_singleton_vals[i][0])) {
-                ]]..return_sig_error..[[
-            }
-        }
-    ]]
-    ind(f, 0, func_decl)
-    ind(f, 1, prelude)
-    gen_element_wise_func_body(f, func)
-    ind(f, 1, return_sig_error)
-    ind(f, 0, "}\n\n")
-end
-
 function gen_component_wise_func_impl(f, func)
     local max_args = get_max_args(func)
     local sig_error = "invalid argument types for function mathv."..func.name
@@ -1768,6 +2062,7 @@ function gen_component_wise_func_impl(f, func)
     local func_decl = "static int "..func.name.."_impl(lua_State *L, am_buffer_view *target) {\n"
     local prelude = [[
         int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+        if (nargs > ]]..max_args..[[) return luaL_error(L, "too many arguments for mathv.]]..func.name..[[");
         uint8_t arg_singleton_scratch[]]..max_args..[[][16*8];
         uint8_t *arg_singleton_bufs[]]..max_args..[[];
         for (int i = 0; i < nargs; i++) {
@@ -1775,16 +2070,20 @@ function gen_component_wise_func_impl(f, func)
         }
         uint8_t *arg_data[]]..max_args..[[];
         int arg_stride[]]..max_args..[[];
+        int arg_count[]]..max_args..[[];
+        int arg_type[]]..max_args..[[];
+        am_buffer_view_type arg_view_type[]]..max_args..[[];
         int arg_components[]]..max_args..[[];
         am_buffer_view_type output_view_type;
         int output_count;
         int output_components;
         int output_stride;
         uint8_t *output_data;
-        bool is_dense;
-        component_wise_setup(L, target, "mathv.]]..func.name..[[", nargs, arg_data,
-            arg_stride, arg_components, arg_singleton_bufs, 
-            &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
+        bool args_are_dense;
+        bool output_is_dense;
+        component_wise_setup(L, "mathv.]]..func.name..[[", nargs, 
+            arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+            &output_count, &output_components, &args_are_dense);
     ]]
     ind(f, 0, func_decl)
     ind(f, 1, prelude)
@@ -1795,49 +2094,16 @@ function gen_component_wise_func_impl(f, func)
     ind(f, 0, "}\n\n")
 end
 
-function gen_return_view_buffer(f, component_size, ret_view_type)
-    ind(f, 2, [[
-        uint8_t *output_ptr;
-        int out_stride;
-        if (target == NULL) {
-            // create a new buffer for the output
-            out_stride = output_components * ]]..component_size..[[;
-
-            am_buffer *output_buffer = am_push_new_buffer_and_init(L, count * output_components * ]]..component_size..[[);
-            output_ptr = output_buffer->data;
-            am_buffer_view *output_view = am_new_buffer_view(L, ]]..ret_view_type..[[, output_components);
-            output_view->buffer = output_buffer;
-            output_view->buffer_ref = output_view->ref(L, -2);
-            output_view->offset = 0;
-            output_view->stride = out_stride;
-            output_view->size = count;
-            output_view->last_max_elem_version = 0;
-            output_view->max_elem = 0;
-
-            lua_remove(L, -2); // remove output_buffer
-        } else {
-            // overwrite provided buffer
-            if (target->type != ]]..ret_view_type..[[) {
-                return luaL_error(L, "target view has incorrect type (expecting %s, got %s)",
-                    am_view_type_infos[]]..ret_view_type..[[].name, am_view_type_infos[target->type].name);
-            }
-            if (target->components != output_components) {
-                return luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
-                    output_components, target->components);
-            }
-            count = am_min(count, target->size);
-            target->mark_dirty(0, count);
-            out_stride = target->stride;
-            output_ptr = target->buffer->data + target->offset;
-        }
-    ]])
-end
-
 function gen_component_wise_func_variant(f, func, variant)
     local args = variant.args
     local nargs = #args
     local ret_view_type = view_type_info[variant.ret_type].enumval
-    local sig_test = "nargs == "..nargs.." && output_view_type == "..ret_view_type
+    local sig_test = "nargs == "..nargs.." "
+    for i, arg in ipairs(args) do
+        local enumval = view_type_info[arg.type].enumval
+        sig_test = sig_test.." && ((arg_type["..(i-1).."] == MT_am_buffer_view && arg_view_type["..(i-1).."] == "..enumval..") || "..
+            "arg_type["..(i-1).."] != MT_am_buffer_view)"
+    end
 
     ind(f, 1, "if ("..sig_test..") {\n")
     gen_component_wise_inner_loop(f, func, variant)
@@ -1870,7 +2136,7 @@ function gen_component_wise_inner_loop(f, func, variant)
         end
     end
     local loop = [[
-    if (is_dense) {
+    if (output_is_dense && args_are_dense) {
         ]]..ret_ctype..[[ *out_arr = (]]..ret_ctype..[[*)output_data;
         ]]..setup_dense_arg_arrays..[[
 
@@ -1890,40 +2156,52 @@ function gen_component_wise_inner_loop(f, func, variant)
         }
     }
     ]]
+
+    for i, arg in ipairs(variant.args) do
+        ind(f, 2, "arg_view_type["..(i-1).."] = "..view_type_info[arg.type].enumval..";")
+    end
+    ind(f, 2, "setup_non_view_args(L, \"mathv."..func.name.."\", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);")
+    ind(f, 2, "output_view_type = "..view_type_info[variant.ret_type].enumval..";")
+    ind(f, 2, "create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);")
     ind(f, 2, loop)
 end
 
-function gen_element_wise_func_body(f, func)
-    local check_zero_args = [[
-        // code below depends on there being at least one arg
-        if (nargs == 0) return luaL_error(L, "no arguments given for mathv.]]..func.name..[[");
-    ]]
-
-    local compute_count = [[
-        // compute count
-        int count = -1;
+function gen_element_wise_func_impl(f, func)
+    local max_args = get_max_args(func)
+    local sig_error = "invalid argument types for function mathv."..func.name
+    local return_sig_error = "return luaL_error(L, \""..sig_error.."\");\n"
+    local func_decl = "static int "..func.name.."_impl(lua_State *L, am_buffer_view *target) {\n"
+    local prelude = [[
+        int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+        if (nargs > ]]..max_args..[[) return luaL_error(L, "too many arguments for mathv.]]..func.name..[[");
+        uint8_t arg_singleton_scratch[]]..max_args..[[][16*8];
+        uint8_t *arg_singleton_bufs[]]..max_args..[[];
         for (int i = 0; i < nargs; i++) {
-            if (arg_type[i] == MT_am_buffer_view) {
-                if (count != -1 && arg_count[i] != count) {
-                    return luaL_error(L, "in call to mathv.]]..func.name..[[ argument %d has size %d, but previous arguments have size %d", (i+1), arg_count[i], count);
-                } else if (count == -1) {
-                    count = arg_count[i];
-                }
-            }
+            arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
         }
-        bool no_view_args = false;
-        if (count == -1) {
-            no_view_args = true;
-            count = 1;
-        }
+        uint8_t *arg_data[]]..max_args..[[];
+        int arg_stride[]]..max_args..[[];
+        int arg_count[]]..max_args..[[];
+        int arg_type[]]..max_args..[[];
+        am_buffer_view_type arg_view_type[]]..max_args..[[];
+        int arg_components[]]..max_args..[[];
+        am_buffer_view_type output_view_type;
+        int output_count;
+        int output_components;
+        int output_stride;
+        uint8_t *output_data;
+        bool output_is_dense;
+        element_wise_setup(L, "mathv.]]..func.name..[[", nargs, 
+            arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
+            &output_count);
     ]]
-
-    ind(f, 1, check_zero_args)
-    ind(f, 1, compute_count)
-
+    ind(f, 0, func_decl)
+    ind(f, 1, prelude)
     for _, variant in ipairs(func.variants) do
         gen_element_wise_func_variant(f, func, variant)
     end
+    ind(f, 1, return_sig_error)
+    ind(f, 0, "}\n\n")
 end
 
 function gen_element_wise_func_variant(f, func, variant)
@@ -1936,33 +2214,6 @@ function gen_element_wise_func_variant(f, func, variant)
         sig_test = sig_test.." && arg_components["..i.."] == "..arg.comps..
             " && ((arg_type["..i.."] == MT_am_buffer_view && arg_view_type["..i.."] == "..enumval..") || "..
             "arg_type["..i.."] != MT_am_buffer_view)"
-    end
-
-    local setup_non_view_arg_data = "// setup non-view args\n"
-    for ii, arg in ipairs(args) do
-        local i = ii-1
-        local setup = [[
-if (arg_type[]]..i..[[] != MT_am_buffer_view) {
-    double *f64s = &arg_singleton_vals[]]..i..[[][0];
-]]
-        if arg.type ~= "f64" then
-            -- convert doubles to required type, overwriting the doubles
-            -- (a little messy, but should be fine, because the required type will be smaller or
-            -- of equal size and we don't need the doubles anymore)
-            local ctype = view_type_info[arg.type].ctype
-            setup = setup..[[
-    ]]..ctype..[[ *conv = (]]..ctype..[[*)f64s;
-    for (int i = 0; i < arg_components[]]..i..[[]; i++) {
-        conv[i] = (]]..ctype..[[)f64s[i];
-    }
-]]
-      end
-        setup = setup..[[
-    arg_data[]]..i..[[] = (uint8_t*)f64s;
-}
-]]
-
-        setup_non_view_arg_data = setup_non_view_arg_data..setup
     end
 
     local ret_components = variant.ret_comps
@@ -1981,8 +2232,8 @@ uint8_t *in_ptr_]]..a..[[ = &arg_data[]]..(a-1)..[[][0];
 
     out_ctype_vec = view_type_info[variant.ret_type].vec_ctypes[variant.ret_comps]
     local iterate = [[
-for (int i = 0; i < count; ++i) {
-    *((]]..out_ctype_vec..[[*)output_ptr) = ]]..variant.cname..[[(]]
+for (int i = 0; i < output_count; ++i) {
+    *((]]..out_ctype_vec..[[*)output_data) = ]]..variant.cname..[[(]]
     for a, arg in ipairs(variant.args) do
         local ctype = view_type_info[arg.type].vec_ctypes[arg.comps]
         iterate = iterate.."*(("..ctype.."*)in_ptr_"..a..")"
@@ -1994,13 +2245,17 @@ for (int i = 0; i < count; ++i) {
     for a, arg in ipairs(variant.args) do
         iterate = iterate.."    in_ptr_"..a.." += in_stride_"..a..";\n"
     end
-    iterate = iterate.."    output_ptr += out_stride;\n";
+    iterate = iterate.."    output_data += output_stride;\n";
     iterate = iterate.."}\n"
 
     ind(f, 1, "if ("..sig_test..") {\n")
-    ind(f, 2, setup_non_view_arg_data)
-    ind(f, 2, "int output_components = "..ret_components..";\n")
-    gen_return_view_buffer(f, ret_compsize, ret_view_type)
+    for i, arg in ipairs(variant.args) do
+        ind(f, 2, "arg_view_type["..(i-1).."] = "..view_type_info[arg.type].enumval..";")
+    end
+    ind(f, 2, "setup_non_view_args(L, \"mathv."..func.name.."\", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);")
+    ind(f, 2, "output_view_type = "..view_type_info[variant.ret_type].enumval..";")
+    ind(f, 2, "output_components = "..ret_components..";\n")
+    ind(f, 2, "create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);")
     ind(f, 2, setup_pointers)
     ind(f, 2, iterate)
     ind(f, 2, "return 1;\n")
