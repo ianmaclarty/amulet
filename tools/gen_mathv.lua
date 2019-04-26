@@ -1773,20 +1773,17 @@ function gen_component_wise_func_impl(f, func)
         for (int i = 0; i < nargs; i++) {
             arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
         }
-        int arg_count[]]..max_args..[[];
         uint8_t *arg_data[]]..max_args..[[];
         int arg_stride[]]..max_args..[[];
         int arg_components[]]..max_args..[[];
-        int arg_type[]]..max_args..[[];
-        am_buffer_view_type arg_view_type[]]..max_args..[[];
         am_buffer_view_type output_view_type;
         int output_count;
         int output_components;
         int output_stride;
         uint8_t *output_data;
         bool is_dense;
-        component_wise_setup(L, target, "mathv.]]..func.name..[[", nargs, arg_type, arg_view_type, arg_data,
-            arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+        component_wise_setup(L, target, "mathv.]]..func.name..[[", nargs, arg_data,
+            arg_stride, arg_components, arg_singleton_bufs, 
             &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     ]]
     ind(f, 0, func_decl)
@@ -1861,7 +1858,7 @@ function gen_component_wise_inner_loop(f, func, variant)
         setup_dense_arg_arrays = setup_dense_arg_arrays..arg_array_decl
         local arg_ptr_decl = "uint8_t *arg"..a.."_ptr = arg_data["..(a-1).."];\n        "..
             "int arg"..a.."_stride = arg_stride["..(a-1).."];\n        "..
-            "int mask"..a.." = arg_components["..(a-1).."] == 1 ? 0 : 0xFFFF;        "
+            "int mask"..a.." = arg_components["..(a-1).."] == 1 ? 0 : 0xFFFF;\n        "
         setup_nondense_pointers = setup_nondense_pointers..arg_ptr_decl
         local advance = "arg"..a.."_ptr += arg"..a.."_stride;\n            "
         advance_nondense_pointers = advance_nondense_pointers..advance;

@@ -10,20 +10,17 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.add", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.add", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -37,9 +34,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = ADD_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -64,9 +63,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = ADD_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -91,9 +92,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = ADD_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
@@ -118,9 +121,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = ADD_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
@@ -145,9 +150,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = ADD_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
@@ -172,9 +179,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = ADD_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
@@ -199,9 +208,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = ADD_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
@@ -226,9 +237,11 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = ADD_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
@@ -263,20 +276,17 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.sub", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.sub", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -290,9 +300,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = SUB_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -317,9 +329,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = SUB_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -344,9 +358,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = SUB_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
@@ -371,9 +387,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = SUB_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
@@ -398,9 +416,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = SUB_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
@@ -425,9 +445,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = SUB_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
@@ -452,9 +474,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = SUB_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
@@ -479,9 +503,11 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = SUB_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
@@ -516,20 +542,17 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.vec_mul", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.vec_mul", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -543,9 +566,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = MUL_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -570,9 +595,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = MUL_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -597,9 +624,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = MUL_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
@@ -624,9 +653,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = MUL_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
@@ -651,9 +682,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = MUL_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
@@ -678,9 +711,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = MUL_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
@@ -705,9 +740,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = MUL_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
@@ -732,9 +769,11 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = MUL_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
@@ -769,20 +808,17 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.div", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.div", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -796,9 +832,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = DIV_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -823,9 +861,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = DIV_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -850,9 +890,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = DIV_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
@@ -877,9 +919,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = DIV_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
@@ -904,9 +948,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = DIV_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
@@ -931,9 +977,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = DIV_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
@@ -958,9 +1006,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = DIV_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
@@ -985,9 +1035,11 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = DIV_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
@@ -1022,20 +1074,17 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.mod", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.mod", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -1049,9 +1098,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = F32MOD_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -1076,9 +1127,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = F64MOD_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -1103,9 +1156,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = IMOD_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
@@ -1130,9 +1185,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = IMOD_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
@@ -1157,9 +1214,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = IMOD_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
@@ -1184,9 +1243,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = IMOD_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
@@ -1211,9 +1272,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = IMOD_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
@@ -1238,9 +1301,11 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = IMOD_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
@@ -1275,20 +1340,17 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.pow", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.pow", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -1302,9 +1364,11 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = powf(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -1329,9 +1393,11 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = pow(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -1366,20 +1432,17 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.unm", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.unm", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -1392,7 +1455,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = UNM_OP(((float*)arg1_ptr)[c & mask1]);
@@ -1415,7 +1479,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = UNM_OP(((double*)arg1_ptr)[c & mask1]);
@@ -1438,7 +1503,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = UNM_OP(((int8_t*)arg1_ptr)[c & mask1]);
@@ -1461,7 +1527,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = UNM_OP(((uint8_t*)arg1_ptr)[c & mask1]);
@@ -1484,7 +1551,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = UNM_OP(((int16_t*)arg1_ptr)[c & mask1]);
@@ -1507,7 +1575,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = UNM_OP(((uint16_t*)arg1_ptr)[c & mask1]);
@@ -1530,7 +1599,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = UNM_OP(((int32_t*)arg1_ptr)[c & mask1]);
@@ -1553,7 +1623,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = UNM_OP(((uint32_t*)arg1_ptr)[c & mask1]);
@@ -1587,20 +1658,17 @@ static int abs_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.abs", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.abs", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -1613,7 +1681,8 @@ static int abs_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = fabsf(((float*)arg1_ptr)[c & mask1]);
@@ -1636,7 +1705,8 @@ static int abs_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = fabs(((double*)arg1_ptr)[c & mask1]);
@@ -1670,20 +1740,17 @@ static int acos_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.acos", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.acos", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -1696,7 +1763,8 @@ static int acos_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = acosf(((float*)arg1_ptr)[c & mask1]);
@@ -1719,7 +1787,8 @@ static int acos_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = acos(((double*)arg1_ptr)[c & mask1]);
@@ -1753,20 +1822,17 @@ static int asin_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.asin", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.asin", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -1779,7 +1845,8 @@ static int asin_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = asinf(((float*)arg1_ptr)[c & mask1]);
@@ -1802,7 +1869,8 @@ static int asin_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = asin(((double*)arg1_ptr)[c & mask1]);
@@ -1836,20 +1904,17 @@ static int atan_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.atan", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.atan", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -1862,7 +1927,8 @@ static int atan_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = atanf(((float*)arg1_ptr)[c & mask1]);
@@ -1885,7 +1951,8 @@ static int atan_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = atan(((double*)arg1_ptr)[c & mask1]);
@@ -1919,20 +1986,17 @@ static int atan2_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.atan2", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.atan2", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -1946,9 +2010,11 @@ static int atan2_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = atan2f(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -1973,9 +2039,11 @@ static int atan2_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = atan2(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -2010,20 +2078,17 @@ static int ceil_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.ceil", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.ceil", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -2036,7 +2101,8 @@ static int ceil_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = ceilf(((float*)arg1_ptr)[c & mask1]);
@@ -2059,7 +2125,8 @@ static int ceil_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = ceil(((double*)arg1_ptr)[c & mask1]);
@@ -2093,20 +2160,17 @@ static int cos_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.cos", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.cos", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -2119,7 +2183,8 @@ static int cos_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = cosf(((float*)arg1_ptr)[c & mask1]);
@@ -2142,7 +2207,8 @@ static int cos_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = cos(((double*)arg1_ptr)[c & mask1]);
@@ -2176,20 +2242,17 @@ static int floor_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.floor", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.floor", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -2202,7 +2265,8 @@ static int floor_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = floorf(((float*)arg1_ptr)[c & mask1]);
@@ -2225,7 +2289,8 @@ static int floor_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = floor(((double*)arg1_ptr)[c & mask1]);
@@ -2259,20 +2324,17 @@ static int log_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.log", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.log", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -2285,7 +2347,8 @@ static int log_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = logf(((float*)arg1_ptr)[c & mask1]);
@@ -2308,7 +2371,8 @@ static int log_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = log(((double*)arg1_ptr)[c & mask1]);
@@ -2342,20 +2406,17 @@ static int max_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.max", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.max", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -2369,9 +2430,11 @@ static int max_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = am_max(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -2396,9 +2459,11 @@ static int max_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = am_max(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -2433,20 +2498,17 @@ static int min_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[2];
     uint8_t *arg_data[2];
     int arg_stride[2];
     int arg_components[2];
-    int arg_type[2];
-    am_buffer_view_type arg_view_type[2];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.min", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.min", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 2 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -2460,9 +2522,11 @@ static int min_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = am_min(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
@@ -2487,9 +2551,11 @@ static int min_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        uint8_t *arg2_ptr = arg_data[1];
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            uint8_t *arg2_ptr = arg_data[1];
             int arg2_stride = arg_stride[1];
-            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;        
+            int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = am_min(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
@@ -2524,20 +2590,17 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.sin", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.sin", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -2550,7 +2613,8 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = sinf(((float*)arg1_ptr)[c & mask1]);
@@ -2573,7 +2637,8 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = sin(((double*)arg1_ptr)[c & mask1]);
@@ -2607,20 +2672,17 @@ static int tan_impl(lua_State *L, am_buffer_view *target) {
     for (int i = 0; i < nargs; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
-    int arg_count[1];
     uint8_t *arg_data[1];
     int arg_stride[1];
     int arg_components[1];
-    int arg_type[1];
-    am_buffer_view_type arg_view_type[1];
     am_buffer_view_type output_view_type;
     int output_count;
     int output_components;
     int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    component_wise_setup(L, target, "mathv.tan", nargs, arg_type, arg_view_type, arg_data,
-        arg_stride, arg_count, arg_components, arg_singleton_bufs, 
+    component_wise_setup(L, target, "mathv.tan", nargs, arg_data,
+        arg_stride, arg_components, arg_singleton_bufs, 
         &output_view_type, &output_count, &output_components, &output_stride, &output_data, &is_dense);
     if (nargs == 1 && output_view_type == AM_VIEW_TYPE_F32) {
         if (is_dense) {
@@ -2633,7 +2695,8 @@ static int tan_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = tanf(((float*)arg1_ptr)[c & mask1]);
@@ -2656,7 +2719,8 @@ static int tan_impl(lua_State *L, am_buffer_view *target) {
         } else {
             uint8_t *arg1_ptr = arg_data[0];
             int arg1_stride = arg_stride[0];
-            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;        
+            int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
+            
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = tan(((double*)arg1_ptr)[c & mask1]);

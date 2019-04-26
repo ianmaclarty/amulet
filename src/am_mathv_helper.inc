@@ -1,3 +1,5 @@
+#define MAX_ARGS 16
+
 #define ADD_OP(x, y) ((x) + (y))
 #define SUB_OP(x, y) ((x) - (y))
 #define MUL_OP(x, y) ((x) * (y))
@@ -117,11 +119,19 @@ static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *
 }
 
 static void component_wise_setup(lua_State *L, am_buffer_view *target, const char *name, int nargs, 
-    int *arg_type, am_buffer_view_type *arg_view_type, uint8_t **arg_data, 
-    int *arg_stride, int *arg_count, int *arg_components, uint8_t **arg_singleton_bufs,
+    uint8_t **arg_data, int *arg_stride, int *arg_components, uint8_t **arg_singleton_bufs,
     am_buffer_view_type *output_view_type, int *output_count, int *output_components, int *output_stride, uint8_t **output_data,
     bool *is_dense)
 {
+    int arg_count[MAX_ARGS];
+    int arg_type[MAX_ARGS];
+    am_buffer_view_type arg_view_type[MAX_ARGS];
+
+    if (nargs > MAX_ARGS) {
+        luaL_error(L, "too many arguments in call to %s", name);
+        return;
+    }
+
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], (double*)arg_singleton_bufs[i])) {
             luaL_error(L, "invalid argument types for function %s", name);
