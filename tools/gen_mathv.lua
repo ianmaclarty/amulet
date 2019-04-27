@@ -433,6 +433,8 @@ local func_defs = {
     { 
         name = "unm",
         export = true,
+        -- lua passes extra "fake" argument to unm
+        has_fake_lua_arg = true,
         kind = "component_wise",
         variants = {
             {
@@ -2391,12 +2393,15 @@ function gen_component_wise_func_impl(f, func)
     local sig_error = "invalid argument types for function mathv."..func.name
     local return_sig_error = "return luaL_error(L, \""..sig_error.."\");\n"
     local func_decl = "static int "..func.name.."_impl(lua_State *L, am_buffer_view *target) {\n"
+    local max_args_check = func.has_fake_lua_arg and 
+        "nargs = am_min(nargs, "..max_args..");" or
+        "if (nargs > "..max_args..") return luaL_error(L, \"too many arguments for mathv."..func.name.."\");"
     local prelude = [[
         int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-        if (nargs > ]]..max_args..[[) return luaL_error(L, "too many arguments for mathv.]]..func.name..[[");
+        ]]..max_args_check..[[
         uint8_t arg_singleton_scratch[]]..max_args..[[][16*8];
         uint8_t *arg_singleton_bufs[]]..max_args..[[];
-        for (int i = 0; i < nargs; i++) {
+        for (int i = 0; i < ]]..max_args..[[; i++) {
             arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
         }
         uint8_t *arg_data[]]..max_args..[[];
@@ -2503,12 +2508,15 @@ function gen_element_wise_func_impl(f, func)
     local sig_error = "invalid argument types for function mathv."..func.name
     local return_sig_error = "return luaL_error(L, \""..sig_error.."\");\n"
     local func_decl = "static int "..func.name.."_impl(lua_State *L, am_buffer_view *target) {\n"
+    local max_args_check = func.has_fake_lua_arg and
+        "nargs = am_min(nargs, "..max_args..");" or
+        "if (nargs > "..max_args..") return luaL_error(L, \"too many arguments for mathv."..func.name.."\");"
     local prelude = [[
         int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-        if (nargs > ]]..max_args..[[) return luaL_error(L, "too many arguments for mathv.]]..func.name..[[");
+        ]]..max_args_check..[[
         uint8_t arg_singleton_scratch[]]..max_args..[[][16*8];
         uint8_t *arg_singleton_bufs[]]..max_args..[[];
-        for (int i = 0; i < nargs; i++) {
+        for (int i = 0; i < ]]..max_args..[[; i++) {
             arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
         }
         uint8_t *arg_data[]]..max_args..[[];

@@ -5,10 +5,9 @@
 
 static int add_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.add");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.add");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -316,10 +315,9 @@ static int am_mathv_add_into(lua_State *L) {
 
 static int sub_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.sub");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.sub");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -627,10 +625,9 @@ static int am_mathv_sub_into(lua_State *L) {
 
 static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.vec_mul");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.vec_mul");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -938,10 +935,9 @@ static int am_mathv_vec_mul_into(lua_State *L) {
 
 static int div_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.div");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.div");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -1249,10 +1245,9 @@ static int am_mathv_div_into(lua_State *L) {
 
 static int mod_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.mod");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.mod");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -1560,10 +1555,9 @@ static int am_mathv_mod_into(lua_State *L) {
 
 static int pow_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.pow");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.pow");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -1667,10 +1661,9 @@ static int am_mathv_pow_into(lua_State *L) {
 
 static int unm_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.unm");
-    uint8_t arg_singleton_scratch[1][16*8];
+    nargs = am_min(nargs, 1);        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -1930,10 +1923,9 @@ static int am_mathv_unm_into(lua_State *L) {
 
 static int abs_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.abs");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.abs");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -2025,10 +2017,9 @@ static int am_mathv_abs_into(lua_State *L) {
 
 static int acos_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.acos");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.acos");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -2120,10 +2111,9 @@ static int am_mathv_acos_into(lua_State *L) {
 
 static int asin_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.asin");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.asin");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -2215,10 +2205,9 @@ static int am_mathv_asin_into(lua_State *L) {
 
 static int atan_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.atan");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.atan");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -2310,10 +2299,9 @@ static int am_mathv_atan_into(lua_State *L) {
 
 static int atan2_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.atan2");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.atan2");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -2417,10 +2405,9 @@ static int am_mathv_atan2_into(lua_State *L) {
 
 static int ceil_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.ceil");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.ceil");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -2512,10 +2499,9 @@ static int am_mathv_ceil_into(lua_State *L) {
 
 static int clamp_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 3) return luaL_error(L, "too many arguments for mathv.clamp");
-    uint8_t arg_singleton_scratch[3][16*8];
+    if (nargs > 3) return luaL_error(L, "too many arguments for mathv.clamp");        uint8_t arg_singleton_scratch[3][16*8];
     uint8_t *arg_singleton_bufs[3];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 3; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[3];
@@ -2631,10 +2617,9 @@ static int am_mathv_clamp_into(lua_State *L) {
 
 static int cos_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.cos");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.cos");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -2726,10 +2711,9 @@ static int am_mathv_cos_into(lua_State *L) {
 
 static int floor_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.floor");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.floor");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -2821,10 +2805,9 @@ static int am_mathv_floor_into(lua_State *L) {
 
 static int fract_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.fract");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.fract");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -2916,10 +2899,9 @@ static int am_mathv_fract_into(lua_State *L) {
 
 static int log_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.log");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.log");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -3011,10 +2993,9 @@ static int am_mathv_log_into(lua_State *L) {
 
 static int max_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.max");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.max");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -3118,10 +3099,9 @@ static int am_mathv_max_into(lua_State *L) {
 
 static int min_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.min");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.min");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -3225,10 +3205,9 @@ static int am_mathv_min_into(lua_State *L) {
 
 static int mix_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 3) return luaL_error(L, "too many arguments for mathv.mix");
-    uint8_t arg_singleton_scratch[3][16*8];
+    if (nargs > 3) return luaL_error(L, "too many arguments for mathv.mix");        uint8_t arg_singleton_scratch[3][16*8];
     uint8_t *arg_singleton_bufs[3];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 3; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[3];
@@ -3344,10 +3323,9 @@ static int am_mathv_mix_into(lua_State *L) {
 
 static int sign_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.sign");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.sign");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -3439,10 +3417,9 @@ static int am_mathv_sign_into(lua_State *L) {
 
 static int sin_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.sin");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.sin");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -3534,10 +3511,9 @@ static int am_mathv_sin_into(lua_State *L) {
 
 static int tan_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.tan");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.tan");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -3629,10 +3605,9 @@ static int am_mathv_tan_into(lua_State *L) {
 
 static int lt_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.lt");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.lt");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -3940,10 +3915,9 @@ static int am_mathv_lt_into(lua_State *L) {
 
 static int lte_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.lte");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.lte");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -4251,10 +4225,9 @@ static int am_mathv_lte_into(lua_State *L) {
 
 static int gt_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.gt");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.gt");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -4562,10 +4535,9 @@ static int am_mathv_gt_into(lua_State *L) {
 
 static int gte_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.gte");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.gte");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -4873,10 +4845,9 @@ static int am_mathv_gte_into(lua_State *L) {
 
 static int and__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.and_");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.and_");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -4946,10 +4917,9 @@ static int am_mathv_and__into(lua_State *L) {
 
 static int or__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.or_");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.or_");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -5019,10 +4989,9 @@ static int am_mathv_or__into(lua_State *L) {
 
 static int not__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.not_");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.not_");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -5086,10 +5055,9 @@ static int am_mathv_not__into(lua_State *L) {
 
 static int vec2_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.vec2");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.vec2");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -5192,10 +5160,9 @@ static int am_mathv_vec2_into(lua_State *L) {
 
 static int vec3_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 3) return luaL_error(L, "too many arguments for mathv.vec3");
-    uint8_t arg_singleton_scratch[3][16*8];
+    if (nargs > 3) return luaL_error(L, "too many arguments for mathv.vec3");        uint8_t arg_singleton_scratch[3][16*8];
     uint8_t *arg_singleton_bufs[3];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 3; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[3];
@@ -5382,10 +5349,9 @@ static int am_mathv_vec3_into(lua_State *L) {
 
 static int vec4_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 4) return luaL_error(L, "too many arguments for mathv.vec4");
-    uint8_t arg_singleton_scratch[4][16*8];
+    if (nargs > 4) return luaL_error(L, "too many arguments for mathv.vec4");        uint8_t arg_singleton_scratch[4][16*8];
     uint8_t *arg_singleton_bufs[4];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 4; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[4];
@@ -5756,10 +5722,9 @@ static int am_mathv_vec4_into(lua_State *L) {
 
 static int mat3_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 9) return luaL_error(L, "too many arguments for mathv.mat3");
-    uint8_t arg_singleton_scratch[9][16*8];
+    if (nargs > 9) return luaL_error(L, "too many arguments for mathv.mat3");        uint8_t arg_singleton_scratch[9][16*8];
     uint8_t *arg_singleton_bufs[9];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 9; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[9];
@@ -5934,10 +5899,9 @@ static int am_mathv_mat3_into(lua_State *L) {
 
 static int mat4_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 16) return luaL_error(L, "too many arguments for mathv.mat4");
-    uint8_t arg_singleton_scratch[16][16*8];
+    if (nargs > 16) return luaL_error(L, "too many arguments for mathv.mat4");        uint8_t arg_singleton_scratch[16][16*8];
     uint8_t *arg_singleton_bufs[16];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 16; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[16];
@@ -6176,10 +6140,9 @@ static int am_mathv_mat4_into(lua_State *L) {
 
 static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.mat_mul");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.mat_mul");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -6594,10 +6557,9 @@ static int am_mathv_mat_mul_into(lua_State *L) {
 
 static int cross_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.cross");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.cross");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -6670,10 +6632,9 @@ static int am_mathv_cross_into(lua_State *L) {
 
 static int distance_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.distance");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.distance");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -6822,10 +6783,9 @@ static int am_mathv_distance_into(lua_State *L) {
 
 static int dot_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.dot");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.dot");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -6974,10 +6934,9 @@ static int am_mathv_dot_into(lua_State *L) {
 
 static int inverse_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.inverse");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.inverse");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -7072,10 +7031,9 @@ static int am_mathv_inverse_into(lua_State *L) {
 
 static int length_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.length");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.length");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -7200,10 +7158,9 @@ static int am_mathv_length_into(lua_State *L) {
 
 static int normalize_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.normalize");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.normalize");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
@@ -7328,10 +7285,9 @@ static int am_mathv_normalize_into(lua_State *L) {
 
 static int perlin_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.perlin");
-    uint8_t arg_singleton_scratch[2][16*8];
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.perlin");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
@@ -7638,10 +7594,9 @@ static int am_mathv_perlin_into(lua_State *L) {
 
 static int simplex_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.simplex");
-    uint8_t arg_singleton_scratch[1][16*8];
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.simplex");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < nargs; i++) {
+    for (int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];

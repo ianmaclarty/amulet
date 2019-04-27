@@ -29,6 +29,7 @@ do
     print_view(mathv.array("vec3", {vec3(1, 2, 3), vec3(4, 5, 6), vec3(7, 8, 9)}) + mathv.array("vec3", {1, 0, 0, 0, 1, 0, 0, 0, 1}))
     print_view(mathv.dot(mathv.array("vec2", {vec2(1, 1), vec2(2, 2)}), mathv.array("vec2", {vec2(3, 3), vec2(4, 4)})))
     print_view(mathv.sign(mathv.array("float", {2, 0, -2})))
+    print_view(-mathv.array("float", {1, 2}))
 end
 
 print("view generators")
