@@ -4871,9 +4871,9 @@ static int am_mathv_gte_into(lua_State *L) {
     return gte_impl(L, view);
 }
 
-static int bitand_impl(lua_State *L, am_buffer_view *target) {
+static int and__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.bitand");
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.and_");
     uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
     for (int i = 0; i < nargs; i++) {
@@ -4892,13 +4892,13 @@ static int bitand_impl(lua_State *L, am_buffer_view *target) {
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
-    component_wise_setup(L, "mathv.bitand", nargs, 
+    component_wise_setup(L, "mathv.and_", nargs, 
         arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
         &output_count, &output_components, &args_are_dense);
     if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
         arg_view_type[0] = AM_VIEW_TYPE_U8;
         arg_view_type[1] = AM_VIEW_TYPE_U8;
-        setup_non_view_args(L, "mathv.bitand", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        setup_non_view_args(L, "mathv.and_", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
         output_view_type = AM_VIEW_TYPE_U8;
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         if (output_is_dense && args_are_dense) {
@@ -4907,7 +4907,7 @@ static int bitand_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
             for (int i = 0; i < output_count * output_components; ++i) {
-                out_arr[i] = BITAND_OP(arg1_arr[i], arg2_arr[i]);
+                out_arr[i] = AND_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
             uint8_t *arg1_ptr = arg_data[0];
@@ -4919,7 +4919,7 @@ static int bitand_impl(lua_State *L, am_buffer_view *target) {
             
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
-                    ((uint8_t*)output_data)[c] = BITAND_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
+                    ((uint8_t*)output_data)[c] = AND_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
                 arg1_ptr += arg1_stride;
@@ -4929,24 +4929,24 @@ static int bitand_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.bitand");
+    return luaL_error(L, "invalid argument types for function mathv.and_");
 }
 
-static int am_mathv_bitand(lua_State *L) {
-    return bitand_impl(L, NULL);
+static int am_mathv_and_(lua_State *L) {
+    return and__impl(L, NULL);
 }
 
-static int am_mathv_bitand_into(lua_State *L) {
+static int am_mathv_and__into(lua_State *L) {
     am_check_nargs(L, 1);
     am_buffer_view *view = am_check_buffer_view(L, 1);
     lua_pushvalue(L, 1); // return view
     lua_remove(L, 1);
-    return bitand_impl(L, view);
+    return and__impl(L, view);
 }
 
-static int bitor_impl(lua_State *L, am_buffer_view *target) {
+static int or__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.bitor");
+    if (nargs > 2) return luaL_error(L, "too many arguments for mathv.or_");
     uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
     for (int i = 0; i < nargs; i++) {
@@ -4965,13 +4965,13 @@ static int bitor_impl(lua_State *L, am_buffer_view *target) {
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
-    component_wise_setup(L, "mathv.bitor", nargs, 
+    component_wise_setup(L, "mathv.or_", nargs, 
         arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
         &output_count, &output_components, &args_are_dense);
     if (nargs == 2  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view) && ((arg_type[1] == MT_am_buffer_view && arg_view_type[1] == AM_VIEW_TYPE_U8) || arg_type[1] != MT_am_buffer_view)) {
         arg_view_type[0] = AM_VIEW_TYPE_U8;
         arg_view_type[1] = AM_VIEW_TYPE_U8;
-        setup_non_view_args(L, "mathv.bitor", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        setup_non_view_args(L, "mathv.or_", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
         output_view_type = AM_VIEW_TYPE_U8;
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         if (output_is_dense && args_are_dense) {
@@ -4980,7 +4980,7 @@ static int bitor_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
             for (int i = 0; i < output_count * output_components; ++i) {
-                out_arr[i] = BITOR_OP(arg1_arr[i], arg2_arr[i]);
+                out_arr[i] = OR_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
             uint8_t *arg1_ptr = arg_data[0];
@@ -4992,7 +4992,7 @@ static int bitor_impl(lua_State *L, am_buffer_view *target) {
             
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
-                    ((uint8_t*)output_data)[c] = BITOR_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
+                    ((uint8_t*)output_data)[c] = OR_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
                 arg1_ptr += arg1_stride;
@@ -5002,24 +5002,24 @@ static int bitor_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.bitor");
+    return luaL_error(L, "invalid argument types for function mathv.or_");
 }
 
-static int am_mathv_bitor(lua_State *L) {
-    return bitor_impl(L, NULL);
+static int am_mathv_or_(lua_State *L) {
+    return or__impl(L, NULL);
 }
 
-static int am_mathv_bitor_into(lua_State *L) {
+static int am_mathv_or__into(lua_State *L) {
     am_check_nargs(L, 1);
     am_buffer_view *view = am_check_buffer_view(L, 1);
     lua_pushvalue(L, 1); // return view
     lua_remove(L, 1);
-    return bitor_impl(L, view);
+    return or__impl(L, view);
 }
 
-static int bitnot_impl(lua_State *L, am_buffer_view *target) {
+static int not__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
-    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.bitnot");
+    if (nargs > 1) return luaL_error(L, "too many arguments for mathv.not_");
     uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
     for (int i = 0; i < nargs; i++) {
@@ -5038,12 +5038,12 @@ static int bitnot_impl(lua_State *L, am_buffer_view *target) {
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
-    component_wise_setup(L, "mathv.bitnot", nargs, 
+    component_wise_setup(L, "mathv.not_", nargs, 
         arg_type, arg_view_type, arg_count, arg_data, arg_stride, arg_components, arg_singleton_bufs, 
         &output_count, &output_components, &args_are_dense);
     if (nargs == 1  && ((arg_type[0] == MT_am_buffer_view && arg_view_type[0] == AM_VIEW_TYPE_U8) || arg_type[0] != MT_am_buffer_view)) {
         arg_view_type[0] = AM_VIEW_TYPE_U8;
-        setup_non_view_args(L, "mathv.bitnot", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
+        setup_non_view_args(L, "mathv.not_", nargs, arg_type, arg_view_type, arg_components, arg_singleton_bufs, arg_data);
         output_view_type = AM_VIEW_TYPE_U8;
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         if (output_is_dense && args_are_dense) {
@@ -5051,7 +5051,7 @@ static int bitnot_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             
             for (int i = 0; i < output_count * output_components; ++i) {
-                out_arr[i] = BITNOT_OP(arg1_arr[i]);
+                out_arr[i] = NOT_OP(arg1_arr[i]);
             }
         } else {
             uint8_t *arg1_ptr = arg_data[0];
@@ -5060,7 +5060,7 @@ static int bitnot_impl(lua_State *L, am_buffer_view *target) {
             
             for (int i = 0; i < output_count; ++i) {
                 for (int c = 0; c < output_components; ++c) {
-                    ((uint8_t*)output_data)[c] = BITNOT_OP(((uint8_t*)arg1_ptr)[c & mask1]);
+                    ((uint8_t*)output_data)[c] = NOT_OP(((uint8_t*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
                 arg1_ptr += arg1_stride;
@@ -5069,19 +5069,19 @@ static int bitnot_impl(lua_State *L, am_buffer_view *target) {
         }
         return 1;
     }
-    return luaL_error(L, "invalid argument types for function mathv.bitnot");
+    return luaL_error(L, "invalid argument types for function mathv.not_");
 }
 
-static int am_mathv_bitnot(lua_State *L) {
-    return bitnot_impl(L, NULL);
+static int am_mathv_not_(lua_State *L) {
+    return not__impl(L, NULL);
 }
 
-static int am_mathv_bitnot_into(lua_State *L) {
+static int am_mathv_not__into(lua_State *L) {
     am_check_nargs(L, 1);
     am_buffer_view *view = am_check_buffer_view(L, 1);
     lua_pushvalue(L, 1); // return view
     lua_remove(L, 1);
-    return bitnot_impl(L, view);
+    return not__impl(L, view);
 }
 
 static int vec2_impl(lua_State *L, am_buffer_view *target) {
@@ -7889,12 +7889,12 @@ void am_register_mathv_view_methods(lua_State *L) {
     lua_setfield(L, -2, "gt");
     lua_pushcclosure(L, am_mathv_gte_into, 0);
     lua_setfield(L, -2, "gte");
-    lua_pushcclosure(L, am_mathv_bitand_into, 0);
-    lua_setfield(L, -2, "bitand");
-    lua_pushcclosure(L, am_mathv_bitor_into, 0);
-    lua_setfield(L, -2, "bitor");
-    lua_pushcclosure(L, am_mathv_bitnot_into, 0);
-    lua_setfield(L, -2, "bitnot");
+    lua_pushcclosure(L, am_mathv_and__into, 0);
+    lua_setfield(L, -2, "and_");
+    lua_pushcclosure(L, am_mathv_or__into, 0);
+    lua_setfield(L, -2, "or_");
+    lua_pushcclosure(L, am_mathv_not__into, 0);
+    lua_setfield(L, -2, "not_");
     lua_pushcclosure(L, am_mathv_vec2_into, 0);
     lua_setfield(L, -2, "vec2");
     lua_pushcclosure(L, am_mathv_vec3_into, 0);
@@ -7963,9 +7963,9 @@ void am_open_mathv_module(lua_State *L) {
         {"lte", am_mathv_lte},
         {"gt", am_mathv_gt},
         {"gte", am_mathv_gte},
-        {"bitand", am_mathv_bitand},
-        {"bitor", am_mathv_bitor},
-        {"bitnot", am_mathv_bitnot},
+        {"and_", am_mathv_and_},
+        {"or_", am_mathv_or_},
+        {"not_", am_mathv_not_},
         {"vec2", am_mathv_vec2},
         {"vec3", am_mathv_vec3},
         {"vec4", am_mathv_vec4},

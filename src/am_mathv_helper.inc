@@ -12,10 +12,9 @@
 #define LTE_OP(a, b) (((a) <= (b)) ? 1 : 0)
 #define GT_OP(a, b) (((a) > (b)) ? 1 : 0)
 #define GTE_OP(a, b) (((a) >= (b)) ? 1 : 0)
-#define EQ_OP(a, b) (((a) == (b)) ? 1 : 0)
-#define BITAND_OP(a, b) ((a) & (b))
-#define BITOR_OP(a, b) ((a) | (b))
-#define BITNOT_OP(a) (~(a))
+#define AND_OP(a, b) (((a) && (b)) ? 1 : 0)
+#define OR_OP(a, b) (((a) || (b)) ? 1 : 0)
+#define NOT_OP(a) ((a) ? 0 : 1)
 
 #define MAT_MUL(x, y) ((x) * (y))
 

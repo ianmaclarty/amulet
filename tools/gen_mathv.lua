@@ -1130,11 +1130,11 @@ local func_defs = {
         }
     },
     { 
-        name = "bitand",
+        name = "and_",
         kind = "component_wise",
         variants = {
             {
-                cname = "BITAND_OP",
+                cname = "AND_OP",
                 ret_type = "u8",
                 args = {
                     {name = "a", type = "u8"},
@@ -1144,11 +1144,11 @@ local func_defs = {
         }
     },
     { 
-        name = "bitor",
+        name = "or_",
         kind = "component_wise",
         variants = {
             {
-                cname = "BITOR_OP",
+                cname = "OR_OP",
                 ret_type = "u8",
                 args = {
                     {name = "a", type = "u8"},
@@ -1158,11 +1158,11 @@ local func_defs = {
         }
     },
     { 
-        name = "bitnot",
+        name = "not_",
         kind = "component_wise",
         variants = {
             {
-                cname = "BITNOT_OP",
+                cname = "NOT_OP",
                 ret_type = "u8",
                 args = {
                     {name = "a", type = "u8"},

@@ -138,7 +138,7 @@ do
     local view = mathv.array("float", {9, 3, 7, 1, 6, 10, 2})
     print_view(mathv.filter(view, mathv.lt(5, view)))
     print_view(mathv.filter(view, mathv.lte(view, 6)))
-    print_view(mathv.filter(view, mathv.bitand(mathv.gt(view, 1), mathv.lte(view, 7))))
+    print_view(mathv.filter(view, mathv.and_(mathv.gt(view, 1), mathv.lte(view, 7))))
     local view2 = mathv.array("float", {9, 2, 8, 1, 7, 11, 2})
     print_view(mathv.filter(view, mathv.eq(view, view2)))
     print_view(mathv.filter(view, mathv.eq(view, 1)))
