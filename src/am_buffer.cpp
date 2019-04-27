@@ -29,7 +29,6 @@ static void prepare_pool(am_buffer_data_allocator *a) {
     } else if (a->pool_used == 0 && a->pool_scratch_capacity > 0) {
         // starting to reuse an existing pool, reset hwm
         assert(a->pool_scratch != NULL);
-        assert(a->pool_hwm > 0);
         a->pool_hwm = 0;
     }
 }

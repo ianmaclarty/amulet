@@ -213,4 +213,32 @@ printvec(viewubn4[1]*255)
 printvec(viewubn4[2]*255)
 printvec(viewubn4[3]*255)
 
+print("buffer_pool")
+do
+    local view = mathv.array("float", {1, 2, 3})
+    am.buffer_pool(function()
+        view:set(view + 1 - view)
+    end)
+    print_view(view)
+
+    -- regression test: previously using an empty buffer pool twice after
+    -- using a non-empty buffer pool triggered an assertion failure
+    am.buffer_pool(function()
+    end)
+    am.buffer_pool(function()
+    end)
+
+    -- nested pool
+    am.buffer_pool(function()
+        local view1 = mathv.range("float", 3, 7, 9)
+        local view2 = mathv.range("float", 3, 0, 2)
+        am.buffer_pool(function()
+            local tmp = mathv.array("float", {-1, -2, -3})
+            view1.x = view1 + view2 + tmp - 2
+        end)
+        view.x = view1 + 1
+    end)
+    print_view(view)
+end
+
 print("ok")

@@ -559,9 +559,13 @@ static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
             return luaL_error(L, "size can't be negative");
         }
     }
-    if (start < 1 || start > view->size) {
-        return luaL_error(L, "start must be in the range [1, %d] (in fact %d)",
+    if (start < 1) {
+        return luaL_error(L, "in view:set, start must be positive",
             view->size, start);
+    }
+    if (start > view->size) {
+        // nothing to do
+        return 0;
     }
     switch (am_get_type(L, 2)) {
         case LUA_TTABLE:
