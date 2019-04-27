@@ -22,7 +22,7 @@ win.scene =
     ^ am.bind{
         P = mat4(1),
         MV = mat4(1),
-        color = am.vec4_array{vec4(1, 0, 0, 1), vec4(0, 1, 0, 1), vec4(0, 0, 1, 1)},
-        vert = am.vec2_array{vec2(-1, -1), vec2(0, 1), vec2(1, -1)}
+        color = mathv.array("ubyte_norm4", {vec4(1, 0, 0, 1), vec4(0, 1, 0, 1), vec4(0, 0, 1, 1)}),
+        vert = mathv.array("vec2", {vec2(-1, -1), vec2(0, 1), vec2(1, -1)}),
     }
     ^ am.draw"triangles"
