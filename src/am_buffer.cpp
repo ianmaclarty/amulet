@@ -42,6 +42,7 @@ static void alloc_from_pool(lua_State *L, am_buffer_data_allocator *a, am_buffer
         // scratch area full, so use malloc
         buf->data = (uint8_t*)malloc(size);
         buf->alloc_method = AM_BUF_ALLOC_MALLOC;
+        total_buffer_malloc_bytes += size;
     }
     buf->size = size;
     a->pool_used += size;
@@ -540,7 +541,7 @@ static int total_buffer_malloc_mem(lua_State *L) {
 
 static int buffer_pool_mem(lua_State *L) {
     am_buffer_data_allocator *a = get_buffer_data_allocator(L);
-    lua_pushnumber(L, a->pool_scratch_capacity);
+    lua_pushnumber(L, ((lua_Number)a->pool_scratch_capacity) / 1024.0);
     return 1;
 }
 
