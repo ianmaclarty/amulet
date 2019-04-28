@@ -197,46 +197,6 @@ function am.vec4_array(values)
     return vec_array(values, "vec4", 4)
 end
 
-local struct_array_mt = {}
-
-function am.struct_array(capacity, spec)
-    local n = #spec
-    if n % 2 ~= 0 then
-        error("each attribute must have a corresponding type", 2)
-    elseif n == 0 then
-        error("no attributes given", 2)
-    end
-    local attrs = {}
-    local stride = 0
-    local align = 4
-    for i = 1, n, 2 do
-        local attr = spec[i]
-        local tp = spec[i + 1]
-        local info = view_type_info[tp]
-        if not info then
-            error("unknown view element type: "..tostring(tp), 2)
-        end
-        local sz = info.size * info.components
-        -- align field
-        while stride % info.size ~= 0 do
-            stride = stride + 1
-        end
-        align = math.max(info.size, align)
-        attrs[attr] = {type = tp, offset = stride}
-        stride = stride + sz
-    end
-    -- align struct
-    while stride % align ~= 0 do
-        stride = stride + 1
-    end
-    local buffer = am.buffer(capacity * stride)
-    local views = {}
-    for attr, info in pairs(attrs) do
-        views[attr] = buffer:view(info.type, info.offset, stride)
-    end
-    return views
-end
-
 function mathv.array(elemtype, len, init)
     local data = nil
     local info = view_type_info[elemtype]
@@ -282,4 +242,134 @@ function mathv.cast(elemtype, arr)
     local view = am.buffer(len * stride):view(elemtype)
     view:set(arr)
     return view
+end
+
+local view_group_mt
+view_group_mt = {
+    __index = function(struct, field)
+        local view = struct._views[field]
+        if view then
+            return view
+        end
+        local method = view_group_mt[field]
+        if method then
+            return method
+        end
+        return nil
+    end,
+    __newindex = function(struct, field, val)
+        struct._views[field]:set(val)
+    end,
+    filter = function(struct, pred)
+        local n = 0
+        for key, val in pairs(struct._views) do
+            n = val:filter(pred)
+        end
+        return n
+    end,
+    slice = function(struct, start, count, step)
+        local result = {_views = {}}
+        for key, val in pairs(struct._views) do
+            result._views[key] = val:slice(start, count, step)
+        end
+        setmetatable(result, view_group_mt)
+        return result
+    end,
+}
+
+local
+function create_array_of_structs(capacity, spec)
+    local n = #spec
+    if n % 2 ~= 0 then
+        error("each attribute must have a corresponding type", 3)
+    elseif n == 0 then
+        error("no attributes given", 3)
+    end
+    local attrs = {}
+    local stride = 0
+    local align = 4
+    for i = 1, n, 2 do
+        local attr = spec[i]
+        local tp = spec[i + 1]
+        local info = view_type_info[tp]
+        if not info then
+            error("unknown view element type: "..tostring(tp), 3)
+        end
+        local sz = info.size * info.components
+        -- align field
+        while stride % info.size ~= 0 do
+            stride = stride + 1
+        end
+        align = math.max(info.size, align)
+        attrs[attr] = {type = tp, offset = stride}
+        stride = stride + sz
+    end
+    -- align struct
+    while stride % align ~= 0 do
+        stride = stride + 1
+    end
+    local buffer = am.buffer(capacity * stride)
+    local views = {}
+    for attr, info in pairs(attrs) do
+        views[attr] = buffer:view(info.type, info.offset, stride)
+    end
+    return views
+end
+
+local
+function create_struct_of_arrays(capacity, spec)
+    local n = #spec
+    if n % 2 ~= 0 then
+        error("each attribute must have a corresponding type", 3)
+    elseif n == 0 then
+        error("no attributes given", 3)
+    end
+    local offset = 0
+    local attrs = {}
+    for i = 1, n, 2 do
+        local attr = spec[i]
+        local tp = spec[i + 1]
+        local info = view_type_info[tp]
+        if not info then
+            error("unknown view element type: "..tostring(tp), 3)
+        end
+        local stride = info.size * info.components
+        attrs[attr] = {
+            offset = offset,
+            type = tp,
+            stride = stride,
+        }
+        offset = offset + capacity * stride
+        -- 8-byte align each view
+        while offset % 8 ~= 0 do
+            offset = offset + 1
+        end
+    end
+    local buffer = am.buffer(offset)
+    local views = {}
+    for attr, info in pairs(attrs) do
+        views[attr] = buffer:view(info.type, info.offset, info.stride, capacity)
+    end
+    return views
+end
+
+function mathv.view_group(views)
+    local group = {
+        _views = views,
+    }
+    setmetatable(group, view_group_mt)
+    return group
+end
+
+function mathv.array_of_structs(capacity, spec)
+    return mathv.view_group(create_array_of_structs(capacity, spec))
+end
+
+function mathv.struct_of_arrays(capacity, spec)
+    return mathv.view_group(create_struct_of_arrays(capacity, spec))
+end
+
+-- legacy function (keep for backwards compatibility)
+function am.struct_array(capacity, spec)
+    return create_array_of_structs(capacity, spec)
 end

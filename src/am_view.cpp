@@ -401,6 +401,9 @@ int am_create_buffer_view(lua_State *L) {
     int stride = type_size;
     if (nargs > 3) {
         stride = luaL_checkinteger(L, 4);
+        if (stride < type_size) {
+            return luaL_error(L, "stride (%d) must be greater than or equal to element size (%d)", stride, type_size);
+        }
     }
 
     int max_size = 0;
@@ -446,7 +449,7 @@ static int view_slice(lua_State *L) {
         }
     }
     int stride_multiplier = 1;
-    if (nargs > 3) {
+    if (nargs > 3 && !lua_isnil(L, 4)) {
         stride_multiplier = luaL_checkinteger(L, 4);
         if (stride_multiplier < 1) {
             return luaL_error(L, "stride multiplier must be positive");

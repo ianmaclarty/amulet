@@ -147,8 +147,8 @@ do
     print_view(mathv.filter(view, mathv.eq(1, view, 1.1)))
     local iview = mathv.array("int", {9, 2, 8, 1, 7, 12, 4})
     print_view(mathv.filter(iview, mathv.eq(iview % 2, 0)))
-    iview:filter(mathv.eq(iview % 2, 1))
-    print_view(iview)
+    local n = iview:filter(mathv.eq(iview % 2, 1))
+    print_view(iview:slice(1, n))
 end
 
 print("aggregates")
@@ -163,4 +163,42 @@ do
     print(mathv.least(mathv.array("short", {5})))
     print(mathv.least(mathv.array("double", {5, 1, -1, 16, 8})))
     print(mathv.least(mathv.array("vec3", {vec3(1, 2, 3), vec3(3, 2, 1)})))
+end
+
+print("array of structs")
+do
+    local arr = mathv.array_of_structs(3, {
+        "pos", "vec2",
+        "color", "ubyte_norm4",
+    })
+    arr.pos = {0, 1, 2, 3, 4, 5}
+    arr.color = {vec4(0, 1, 0, 1), vec4(1, 0, 1, 1), vec4(1, 1, 0, 1)}
+    local slice = arr:slice(2, 1)
+    slice.pos = vec2(8, 9)
+    print_view(arr.pos)
+    slice = arr:slice(1, 2, 2)
+    slice.color = {vec4(1, 1, 1, 0), vec4(0, 0, 0, 1)}
+    print_view(arr.color)
+    local n = arr:filter(mathv.gt(arr.pos.x, 5))
+    print_view(arr.pos:slice(1, n))
+    print_view(arr.color:slice(1, n))
+end
+
+print("struct of arrays")
+do
+    local arr = mathv.struct_of_arrays(3, {
+        "pos", "vec2",
+        "color", "ubyte_norm4",
+    })
+    arr.pos = {0, 1, 2, 3, 4, 5}
+    arr.color = {vec4(0, 1, 0, 1), vec4(1, 0, 1, 1), vec4(1, 1, 0, 1)}
+    local slice = arr:slice(2, 1)
+    slice.pos = vec2(8, 9)
+    print_view(arr.pos)
+    slice = arr:slice(1, 2, 2)
+    slice.color = {vec4(1, 1, 1, 0), vec4(0, 0, 0, 1)}
+    print_view(arr.color)
+    local n = arr:filter(mathv.gt(arr.pos.x, 5))
+    print_view(arr.pos:slice(1, n))
+    print_view(arr.color:slice(1, n))
 end

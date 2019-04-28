@@ -593,7 +593,7 @@ int filter_impl(lua_State *L, am_buffer_view *target) {
         return luaL_error(L, "mathv.filter expects 1 or 2 arguments");
     }
     if (filter_view->type != AM_VIEW_TYPE_U8 || filter_view->components != 1) {
-        return luaL_error(L, "filter view must have element type ubyte");
+        return luaL_error(L, "mathv.filter predicate view must have element type ubyte");
     }
     if (filter_view->size != data_view->size) {
         return luaL_error(L, "mathv.filter arguments must have same size");
@@ -625,6 +625,12 @@ int filter_impl(lua_State *L, am_buffer_view *target) {
         }
         in_data += in_stride;
         filter_data += filter_stride;
+    }
+
+    if (target != NULL) {
+        // if overwriting target, return number of matches instead of target
+        lua_pop(L, 1);
+        lua_pushnumber(L, output_count);
     }
     return 1;
 }
