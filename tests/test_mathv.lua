@@ -146,6 +146,8 @@ do
     print_view(mathv.filter(view, mathv.eq(1, view, 1.1)))
     local iview = mathv.array("int", {9, 2, 8, 1, 7, 12, 4})
     print_view(mathv.filter(iview, mathv.eq(iview % 2, 0)))
+    iview:filter(mathv.eq(iview % 2, 1))
+    print_view(iview)
 end
 
 print("aggregates")

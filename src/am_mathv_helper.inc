@@ -577,14 +577,26 @@ int am_mathv_mul(lua_State *L) {
 }
 
 int filter_impl(lua_State *L, am_buffer_view *target) {
-    am_check_nargs(L, 2);
-    am_buffer_view *data_view = am_check_buffer_view(L, 1);
-    am_buffer_view *filter_view = am_check_buffer_view(L, 2);
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs == 0) {
+        return luaL_error(L, "mathv.filter expects at least 1 arg");
+    }
+    am_buffer_view *data_view;
+    am_buffer_view *filter_view;
+    if (target != NULL && nargs == 1) {
+        data_view = target;
+        filter_view = am_check_buffer_view(L, 1);
+    } else if (nargs == 2) {
+        data_view = am_check_buffer_view(L, 1);
+        filter_view = am_check_buffer_view(L, 2);
+    } else {
+        return luaL_error(L, "mathv.filter expects 1 or 2 arguments");
+    }
     if (filter_view->type != AM_VIEW_TYPE_U8 || filter_view->components != 1) {
         return luaL_error(L, "filter view must have element type ubyte");
     }
     if (filter_view->size != data_view->size) {
-        return luaL_error(L, "in mathv.filter arguments must have same size");
+        return luaL_error(L, "mathv.filter arguments must have same size");
     }
 
     int output_count = 0;
@@ -618,7 +630,10 @@ int filter_impl(lua_State *L, am_buffer_view *target) {
 }
 
 int eq_impl(lua_State *L, am_buffer_view *target) {
-    int nargs = am_check_nargs(L, 2);
+    int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
+    if (nargs != 2 && nargs != 3) {
+        return luaL_error(L, "mathv.eq expects 2 or 3 args");
+    }
     uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
     for (int i = 0; i < 2; i++) {
