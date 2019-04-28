@@ -269,3 +269,17 @@ function mathv.array(elemtype, len, init)
         return view
     end
 end
+
+function mathv.cast(elemtype, arr)
+    local info = view_type_info[elemtype]
+    if not info then
+        error("unknown view element type: "..tostring(elemtype), 2)
+    end
+    local components = info.components
+    local elemsize = info.size
+    local stride = components * elemsize
+    local len = #arr
+    local view = am.buffer(len * stride):view(elemtype)
+    view:set(arr)
+    return view
+end

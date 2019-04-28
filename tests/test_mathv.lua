@@ -132,6 +132,7 @@ do
     dst = mathv.array("int", 3)
     dst.x = src
     print_view(dst)
+    print_view(mathv.cast("ubyte2", mathv.array("vec2", {vec2(2, 1), vec2(1, 3)})))
 end
 
 print("filter")
