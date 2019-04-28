@@ -147,3 +147,17 @@ do
     local iview = mathv.array("int", {9, 2, 8, 1, 7, 12, 4})
     print_view(mathv.filter(iview, mathv.eq(iview % 2, 0)))
 end
+
+print("aggregates")
+do
+    print(mathv.sum(mathv.array("float", {1, 2, 3})))
+    print(mathv.sum(mathv.array("dvec2", {vec2(1, 2), vec2(3, 4)})))
+    print(mathv.sum(mathv.array("ushort3", {vec3(1, 2, 3), vec3(4, 5, 6)})))
+    print(mathv.sum(mathv.lt(mathv.array("float", {1, 5, 2}), mathv.array("float", {3, 2, 5}))))
+    print(mathv.greatest(mathv.array("float", {5})))
+    print(mathv.greatest(mathv.array("float", {5, 1, -1, 16, 8})))
+    print(mathv.greatest(mathv.array("ubyte4", {vec4(1, 2, 3, 4), vec4(4, 3, 2, 1)})))
+    print(mathv.least(mathv.array("short", {5})))
+    print(mathv.least(mathv.array("double", {5, 1, -1, 16, 8})))
+    print(mathv.least(mathv.array("vec3", {vec3(1, 2, 3), vec3(3, 2, 1)})))
+end

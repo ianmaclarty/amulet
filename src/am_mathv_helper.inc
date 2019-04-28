@@ -722,3 +722,484 @@ int eq_impl(lua_State *L, am_buffer_view *target) {
     return 1;
 }
 
+static int am_mathv_sum(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    if (view->components > 4) {
+        return luaL_error(L, "mathv.sum only supports elements with up to 4 components");
+    }
+    int stride = view->stride;
+    int components = view->components;
+    uint8_t *data = view->buffer->data + view->offset;
+    int size = view->size;
+    double component_sums[16];
+    for (int i = 0; i < 16; i++) component_sums[i] = 0.0;
+    switch (view->type) {
+        case AM_VIEW_TYPE_F32: {
+            for (int i = 0; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_sums[c] += (double)((float*)data)[c];
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_F64: {
+            for (int i = 0; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_sums[c] += (double)((double*)data)[c];
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I8: {
+            for (int i = 0; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_sums[c] += (double)((int8_t*)data)[c];
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U8: {
+            for (int i = 0; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_sums[c] += (double)data[c];
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I16: {
+            for (int i = 0; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_sums[c] += (double)((int16_t*)data)[c];
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U16: {
+            for (int i = 0; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_sums[c] += (double)((uint16_t*)data)[c];
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I32: {
+            for (int i = 0; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_sums[c] += (double)((int32_t*)data)[c];
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U32: {
+            for (int i = 0; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_sums[c] += (double)((uint32_t*)data)[c];
+                }
+                data += stride;
+            }
+            break;
+        }
+        default:
+            return luaL_error(L, "mathv.sum not supported for views with base type %s", am_view_type_infos[view->type].name);
+    }
+    switch (components) {
+        case 1: {
+            lua_pushnumber(L, component_sums[0]);
+            break;
+        }
+        case 2: {
+            am_vec2 *v = am_new_userdata(L, am_vec2);
+            v->v.x = component_sums[0];
+            v->v.y = component_sums[1];
+            break;
+        }
+        case 3: {
+            am_vec3 *v = am_new_userdata(L, am_vec3);
+            v->v.x = component_sums[0];
+            v->v.y = component_sums[1];
+            v->v.z = component_sums[2];
+            break;
+        }
+        case 4: {
+            am_vec4 *v = am_new_userdata(L, am_vec4);
+            v->v.x = component_sums[0];
+            v->v.y = component_sums[1];
+            v->v.z = component_sums[2];
+            v->v.w = component_sums[3];
+            break;
+        }
+        default:
+            return luaL_error(L, "mathv.sum: unexpected number of components: %d", components);
+    }
+    return 1;
+}
+
+static int am_mathv_greatest(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    if (view->components > 4) {
+        return luaL_error(L, "mathv.greatest only supports elements with up to 4 components");
+    }
+    int stride = view->stride;
+    int components = view->components;
+    uint8_t *data = view->buffer->data + view->offset;
+    int size = view->size;
+    if (size == 0) {
+        return luaL_error(L, "mathv.greatest argument must have at least one element");
+    }
+    double component_max[16];
+    switch (view->type) {
+        case AM_VIEW_TYPE_F32:
+            for (int c = 0; c < components; ++c) {
+                component_max[c] = (double)((float*)data)[c];
+            }
+            data += stride;
+            break;
+        case AM_VIEW_TYPE_F64: {
+            for (int c = 0; c < components; ++c) {
+                component_max[c] = (double)((double*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_I8: {
+            for (int c = 0; c < components; ++c) {
+                component_max[c] = (double)((int8_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_U8: {
+            for (int c = 0; c < components; ++c) {
+                component_max[c] = (double)data[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_I16: {
+            for (int c = 0; c < components; ++c) {
+                component_max[c] = (double)((int16_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_U16: {
+            for (int c = 0; c < components; ++c) {
+                component_max[c] = (double)((uint16_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_I32: {
+            for (int c = 0; c < components; ++c) {
+                component_max[c] = (double)((int32_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_U32: {
+            for (int c = 0; c < components; ++c) {
+                component_max[c] = (double)((uint32_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        default:
+            return luaL_error(L, "mathv.greatest not supported for views with base type %s", am_view_type_infos[view->type].name);
+    }
+    switch (view->type) {
+        case AM_VIEW_TYPE_F32: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_max[c] = am_max(component_max[c], (double)((float*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_F64: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_max[c] = am_max(component_max[c], (double)((double*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I8: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_max[c] = am_max(component_max[c], (double)((int8_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U8: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_max[c] = am_max(component_max[c], (double)data[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I16: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_max[c] = am_max(component_max[c], (double)((int16_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U16: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_max[c] = am_max(component_max[c], (double)((uint16_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I32: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_max[c] = am_max(component_max[c], (double)((int32_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U32: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_max[c] = am_max(component_max[c], (double)((uint32_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        default:
+            return luaL_error(L, "mathv.greatest not supported for views with base type %s", am_view_type_infos[view->type].name);
+    }
+    switch (components) {
+        case 1: {
+            lua_pushnumber(L, component_max[0]);
+            break;
+        }
+        case 2: {
+            am_vec2 *v = am_new_userdata(L, am_vec2);
+            v->v.x = component_max[0];
+            v->v.y = component_max[1];
+            break;
+        }
+        case 3: {
+            am_vec3 *v = am_new_userdata(L, am_vec3);
+            v->v.x = component_max[0];
+            v->v.y = component_max[1];
+            v->v.z = component_max[2];
+            break;
+        }
+        case 4: {
+            am_vec4 *v = am_new_userdata(L, am_vec4);
+            v->v.x = component_max[0];
+            v->v.y = component_max[1];
+            v->v.z = component_max[2];
+            v->v.w = component_max[3];
+            break;
+        }
+        default:
+            return luaL_error(L, "mathv.greatest: unexpected number of components: %d", components);
+    }
+    return 1;
+}
+
+static int am_mathv_least(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_buffer_view *view = am_check_buffer_view(L, 1);
+    if (view->components > 4) {
+        return luaL_error(L, "mathv.least only supports elements with up to 4 components");
+    }
+    int stride = view->stride;
+    int components = view->components;
+    uint8_t *data = view->buffer->data + view->offset;
+    int size = view->size;
+    if (size == 0) {
+        return luaL_error(L, "mathv.least argument must have at least one element");
+    }
+    double component_min[16];
+    switch (view->type) {
+        case AM_VIEW_TYPE_F32:
+            for (int c = 0; c < components; ++c) {
+                component_min[c] = (double)((float*)data)[c];
+            }
+            data += stride;
+            break;
+        case AM_VIEW_TYPE_F64: {
+            for (int c = 0; c < components; ++c) {
+                component_min[c] = (double)((double*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_I8: {
+            for (int c = 0; c < components; ++c) {
+                component_min[c] = (double)((int8_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_U8: {
+            for (int c = 0; c < components; ++c) {
+                component_min[c] = (double)data[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_I16: {
+            for (int c = 0; c < components; ++c) {
+                component_min[c] = (double)((int16_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_U16: {
+            for (int c = 0; c < components; ++c) {
+                component_min[c] = (double)((uint16_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_I32: {
+            for (int c = 0; c < components; ++c) {
+                component_min[c] = (double)((int32_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        case AM_VIEW_TYPE_U32: {
+            for (int c = 0; c < components; ++c) {
+                component_min[c] = (double)((uint32_t*)data)[c];
+            }
+            data += stride;
+            break;
+        }
+        default:
+            return luaL_error(L, "mathv.least not supported for views with base type %s", am_view_type_infos[view->type].name);
+    }
+    switch (view->type) {
+        case AM_VIEW_TYPE_F32: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_min[c] = am_min(component_min[c], (double)((float*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_F64: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_min[c] = am_min(component_min[c], (double)((double*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I8: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_min[c] = am_min(component_min[c], (double)((int8_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U8: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_min[c] = am_min(component_min[c], (double)data[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I16: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_min[c] = am_min(component_min[c], (double)((int16_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U16: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_min[c] = am_min(component_min[c], (double)((uint16_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_I32: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_min[c] = am_min(component_min[c], (double)((int32_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        case AM_VIEW_TYPE_U32: {
+            for (int i = 1; i < size; ++i) {
+                for (int c = 0; c < components; ++c) {
+                    component_min[c] = am_min(component_min[c], (double)((uint32_t*)data)[c]);
+                }
+                data += stride;
+            }
+            break;
+        }
+        default:
+            return luaL_error(L, "mathv.least not supported for views with base type %s", am_view_type_infos[view->type].name);
+    }
+    switch (components) {
+        case 1: {
+            lua_pushnumber(L, component_min[0]);
+            break;
+        }
+        case 2: {
+            am_vec2 *v = am_new_userdata(L, am_vec2);
+            v->v.x = component_min[0];
+            v->v.y = component_min[1];
+            break;
+        }
+        case 3: {
+            am_vec3 *v = am_new_userdata(L, am_vec3);
+            v->v.x = component_min[0];
+            v->v.y = component_min[1];
+            v->v.z = component_min[2];
+            break;
+        }
+        case 4: {
+            am_vec4 *v = am_new_userdata(L, am_vec4);
+            v->v.x = component_min[0];
+            v->v.y = component_min[1];
+            v->v.z = component_min[2];
+            v->v.w = component_min[3];
+            break;
+        }
+        default:
+            return luaL_error(L, "mathv.least: unexpected number of components: %d", components);
+    }
+    return 1;
+}

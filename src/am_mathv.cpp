@@ -7886,10 +7886,13 @@ void am_register_mathv_view_methods(lua_State *L) {
 
 void am_open_mathv_module(lua_State *L) {
     luaL_Reg vfuncs[] = {
-        {"range",   am_mathv_range},
-        {"random",  am_mathv_random},
-        {"cart",    am_mathv_cart},
-        {"mul",     am_mathv_mul},
+        {"range",    am_mathv_range},
+        {"random",   am_mathv_random},
+        {"cart",     am_mathv_cart},
+        {"mul",      am_mathv_mul},
+        {"sum",      am_mathv_sum},
+        {"greatest", am_mathv_greatest},
+        {"least",    am_mathv_least},
         {"add", am_mathv_add},
         {"sub", am_mathv_sub},
         {"vec_mul", am_mathv_vec_mul},

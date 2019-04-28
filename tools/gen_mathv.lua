@@ -2607,10 +2607,13 @@ function gen_open_module_func(f)
     f:write([[
 void am_open_mathv_module(lua_State *L) {
     luaL_Reg vfuncs[] = {
-        {"range",   am_mathv_range},
-        {"random",  am_mathv_random},
-        {"cart",    am_mathv_cart},
-        {"mul",     am_mathv_mul},
+        {"range",    am_mathv_range},
+        {"random",   am_mathv_random},
+        {"cart",     am_mathv_cart},
+        {"mul",      am_mathv_mul},
+        {"sum",      am_mathv_sum},
+        {"greatest", am_mathv_greatest},
+        {"least",    am_mathv_least},
 ]])
     for _, func in ipairs(func_defs) do
         f:write("        {\""..func.name.."\", am_mathv_"..func.name.."},\n")
