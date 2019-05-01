@@ -490,35 +490,32 @@ static void AM_CONCAT(TNAME,_view_set_from_single)(lua_State *L, am_buffer_view 
 }
 
 static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *dest, am_buffer_view *src, int start, int sz) {
-    int dest_size = am_min(sz, dest->size - start + 1);
-    int dest_stride = dest->stride;
+    unsigned int dest_size = (unsigned int)am_min(sz, dest->size - start + 1);
+    unsigned int dest_stride = (unsigned int)dest->stride;
     am_buffer *dest_buf = dest->buffer;
     int dest_start_offset = dest->offset + (start - 1) * dest_stride;
     uint8_t *dest_ptr = dest_buf->data + dest_start_offset;
-    uint8_t *dest_end = dest_ptr + dest_stride * dest_size;
-    int src_size = src->size;
-    int src_stride = src->stride;
+    unsigned int src_size = (unsigned int)src->size;
+    unsigned int src_stride = (unsigned int)src->stride;
     uint8_t *src_ptr = src->buffer->data + src->offset;
-    uint8_t *src_end = src_ptr + src_stride * src_size;
+    unsigned int size = am_min(src_size, dest_size);
 
-    if (dest_size == 0 || src_size == 0) return;
+    if (size == 0) return;
 
     if (dest->components != src->components) {
         luaL_error(L, "views have differing number of components (%d vs %d)", dest->components, src->components);
+        return;
     }
-    int components = dest->components;
-    if (components == 1 && dest->type == src->type) {
-        while (dest_ptr < dest_end && src_ptr < src_end) {
-            *((CTYPE*)dest_ptr) = *((CTYPE*)src_ptr);
-            dest_ptr += dest_stride;
-            src_ptr += src_stride;
-        }
+
+    unsigned int components = (unsigned int)dest->components;
+    unsigned int dest_elem_size = ((unsigned int)am_view_type_infos[dest->type].size) * components;
+    bool is_dense = dest->type == src->type && dest_elem_size == src->stride && dest_elem_size == dest->stride;
+    if (is_dense) {
+        memcpy(dest_ptr, src_ptr, size * dest_elem_size);
     } else if (dest->type == src->type) {
-        while (dest_ptr < dest_end && src_ptr < src_end) {
-            CTYPE *src = (CTYPE*)src_ptr;
-            CTYPE *dst = (CTYPE*)dest_ptr;
-            for (int c = 0; c < components; ++c) {
-                dst[c] = src[c];
+        for (unsigned int i = 0; i < size; ++i) {
+            for (unsigned int c = 0; c < components; ++c) {
+                ((CTYPE*)dest_ptr)[c] = ((CTYPE*)src_ptr)[c];
             }
             dest_ptr += dest_stride;
             src_ptr += src_stride;
@@ -528,12 +525,13 @@ static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *d
         if (read_num == NULL) {
             luaL_error(L, "cannot convert a %s view to a %s view",
                 am_view_type_infos[src->type].name, am_view_type_infos[dest->type].name);
+            return;
         }
         int src_comp_size = am_view_type_infos[src->type].size;
-        while (dest_ptr < dest_end && src_ptr < src_end) {
+        for (unsigned int i = 0; i < size; ++i) {
             CTYPE *dst2 = (CTYPE*)dest_ptr;
             uint8_t *src2 = src_ptr;
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 dst2[c] = FROM_LUA_NUM(read_num(src2));
                 src2 += src_comp_size;
             }
