@@ -2401,19 +2401,19 @@ function gen_component_wise_func_impl(f, func)
         ]]..max_args_check..[[
         uint8_t arg_singleton_scratch[]]..max_args..[[][16*8];
         uint8_t *arg_singleton_bufs[]]..max_args..[[];
-        for (int i = 0; i < ]]..max_args..[[; i++) {
+        for (unsigned int i = 0; i < ]]..max_args..[[; i++) {
             arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
         }
         uint8_t *arg_data[]]..max_args..[[];
-        int arg_stride[]]..max_args..[[];
-        int arg_count[]]..max_args..[[];
+        unsigned int arg_stride[]]..max_args..[[];
+        unsigned int arg_count[]]..max_args..[[];
         int arg_type[]]..max_args..[[];
         am_buffer_view_type arg_view_type[]]..max_args..[[];
-        int arg_components[]]..max_args..[[];
+        unsigned int arg_components[]]..max_args..[[];
         am_buffer_view_type output_view_type;
-        int output_count;
-        int output_components;
-        int output_stride;
+        unsigned int output_count;
+        unsigned int output_components;
+        unsigned int output_stride;
         uint8_t *output_data;
         bool args_are_dense;
         bool output_is_dense;
@@ -2477,14 +2477,15 @@ function gen_component_wise_inner_loop(f, func, variant)
         ]]..ret_ctype..[[ *out_arr = (]]..ret_ctype..[[*)output_data;
         ]]..setup_dense_arg_arrays..[[
 
-        for (int i = 0; i < output_count * output_components; ++i) {
+        unsigned int n = output_count * output_components;
+        for (unsigned int i = 0; i < n; ++i) {
             out_arr[i] = ]]..variant.cname..[[(]]..dense_call_args..[[);
         }
     } else {
         ]]..setup_nondense_pointers..[[
 
-        for (int i = 0; i < output_count; ++i) {
-            for (int c = 0; c < output_components; ++c) {
+        for (unsigned int i = 0; i < output_count; ++i) {
+            for (unsigned int c = 0; c < output_components; ++c) {
                 ((]]..ret_ctype..[[*)output_data)[c] = ]]..variant.cname..[[(]]..nondense_call_args..[[);
             }
             output_data += output_stride;
@@ -2516,19 +2517,19 @@ function gen_element_wise_func_impl(f, func)
         ]]..max_args_check..[[
         uint8_t arg_singleton_scratch[]]..max_args..[[][16*8];
         uint8_t *arg_singleton_bufs[]]..max_args..[[];
-        for (int i = 0; i < ]]..max_args..[[; i++) {
+        for (unsigned int i = 0; i < ]]..max_args..[[; i++) {
             arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
         }
         uint8_t *arg_data[]]..max_args..[[];
-        int arg_stride[]]..max_args..[[];
-        int arg_count[]]..max_args..[[];
+        unsigned int arg_stride[]]..max_args..[[];
+        unsigned int arg_count[]]..max_args..[[];
         int arg_type[]]..max_args..[[];
         am_buffer_view_type arg_view_type[]]..max_args..[[];
-        int arg_components[]]..max_args..[[];
+        unsigned int arg_components[]]..max_args..[[];
         am_buffer_view_type output_view_type;
-        int output_count;
-        int output_components;
-        int output_stride;
+        unsigned int output_count;
+        unsigned int output_components;
+        unsigned int output_stride;
         uint8_t *output_data;
         bool output_is_dense;
         element_wise_setup(L, "mathv.]]..func.name..[[", nargs, 
@@ -2572,7 +2573,7 @@ uint8_t *in_ptr_]]..a..[[ = &arg_data[]]..(a-1)..[[][0];
 
     out_ctype_vec = view_type_info[variant.ret_type].vec_ctypes[variant.ret_comps]
     local iterate = [[
-for (int i = 0; i < output_count; ++i) {
+for (unsigned int i = 0; i < output_count; ++i) {
     *((]]..out_ctype_vec..[[*)output_data) = ]]..variant.cname..[[(]]
     for a, arg in ipairs(variant.args) do
         local ctype = view_type_info[arg.type].vec_ctypes[arg.comps]

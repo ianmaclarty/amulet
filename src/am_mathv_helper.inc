@@ -30,7 +30,7 @@
 #define SIMPLEX4_F64(x) ((double)glm::simplex(glm::vec4(x)))
 
 static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *view_type, uint8_t **buf, 
-    int *stride, int *count, int *components, double *singleton_vals)
+    unsigned int *stride, unsigned int *count, unsigned int *components, double *singleton_vals)
 {
     *arg_type = am_get_type(L, arg);
     *view_type = AM_NUM_VIEW_TYPES;
@@ -40,9 +40,9 @@ static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *
             am_buffer_view *view = am_check_buffer_view(L, arg);
             *view_type = view->type;
             *buf = view->buffer->data + view->offset;
-            *stride = view->stride;
-            *count = view->size;
-            *components = view->components;
+            *stride = (unsigned int)view->stride;
+            *count = (unsigned int)view->size;
+            *components = (unsigned int)view->components;
             return true;
         }
         case LUA_TNUMBER: {
@@ -127,9 +127,9 @@ static bool read_arg(lua_State *L, int arg, int *arg_type, am_buffer_view_type *
 }
 
 static void component_wise_setup(lua_State *L, const char *name, int nargs, 
-    int *arg_type, am_buffer_view_type *arg_view_type, int *arg_count,
-    uint8_t **arg_data, int *arg_stride, int *arg_components, uint8_t **arg_singleton_bufs,
-    int *output_count, int *output_components, bool *is_dense)
+    int *arg_type, am_buffer_view_type *arg_view_type, unsigned int *arg_count,
+    uint8_t **arg_data, unsigned int *arg_stride, unsigned int *arg_components, uint8_t **arg_singleton_bufs,
+    unsigned int *output_count, unsigned int *output_components, bool *is_dense)
 {
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], (double*)arg_singleton_bufs[i])) {
@@ -145,18 +145,20 @@ static void component_wise_setup(lua_State *L, const char *name, int nargs,
     }
 
     // compute output count
-    *output_count = -1;
+    *output_count = 0;
+    bool was_view_arg = false;
     for (int i = 0; i < nargs; i++) {
         if (arg_type[i] == MT_am_buffer_view) {
-            if (*output_count != -1 && arg_count[i] != *output_count) {
+            if (was_view_arg && arg_count[i] != *output_count) {
                 luaL_error(L, "in call to %s argument %d has size %d, but previous arguments have size %d", name, (i+1), arg_count[i], *output_count);
                 return;
             } else {
                 *output_count = arg_count[i];
             }
+            was_view_arg = true;
         }
     }
-    if (*output_count == -1) {
+    if (!was_view_arg) {
         luaL_error(L, "in call to %s at least one argument must be a view", name);
         return;
     }
@@ -187,9 +189,9 @@ static void component_wise_setup(lua_State *L, const char *name, int nargs,
 }
 
 static void element_wise_setup(lua_State *L, const char *name, int nargs, 
-    int *arg_type, am_buffer_view_type *arg_view_type, int *arg_count,
-    uint8_t **arg_data, int *arg_stride, int *arg_components, uint8_t **arg_singleton_bufs,
-    int *output_count)
+    int *arg_type, am_buffer_view_type *arg_view_type, unsigned int *arg_count,
+    uint8_t **arg_data, unsigned int *arg_stride, unsigned int *arg_components, uint8_t **arg_singleton_bufs,
+    unsigned int *output_count)
 {
     for (int i = 0; i < nargs; i++) {
         if (!read_arg(L, i+1, &arg_type[i], &arg_view_type[i], &arg_data[i], &arg_stride[i], &arg_count[i], &arg_components[i], (double*)arg_singleton_bufs[i])) {
@@ -205,25 +207,27 @@ static void element_wise_setup(lua_State *L, const char *name, int nargs,
     }
 
     // compute output count
-    *output_count = -1;
+    *output_count = 0;
+    bool was_view_arg = false;
     for (int i = 0; i < nargs; i++) {
         if (arg_type[i] == MT_am_buffer_view) {
-            if (*output_count != -1 && arg_count[i] != *output_count) {
+            if (was_view_arg && arg_count[i] != *output_count) {
                 luaL_error(L, "in call to %s argument %d has size %d, but previous arguments have size %d", name, (i+1), arg_count[i], *output_count);
                 return;
             } else {
                 *output_count = arg_count[i];
             }
+            was_view_arg = true;
         }
     }
-    if (*output_count == -1) {
+    if (!was_view_arg) {
         luaL_error(L, "in call to %s at least one argument must be a view", name);
         return;
     }
 }
 
 static void setup_non_view_args(lua_State *L, const char *name, int nargs, int *arg_type, am_buffer_view_type *arg_view_type,
-    int *arg_components, uint8_t **arg_singleton_bufs, uint8_t **arg_data) 
+    unsigned int *arg_components, uint8_t **arg_singleton_bufs, uint8_t **arg_data) 
 {
     for (int i = 0; i < nargs; i++) {
         if (arg_type[i] != MT_am_buffer_view) {
@@ -232,7 +236,7 @@ static void setup_non_view_args(lua_State *L, const char *name, int nargs, int *
             switch (arg_view_type[i]) {
                 case AM_VIEW_TYPE_F32: {
                     float *conv = (float*)f64s;
-                    for (int c = 0; c < arg_components[i]; c++) {
+                    for (unsigned int c = 0; c < arg_components[i]; c++) {
                         conv[c] = (float)f64s[c];
                     }
                     break;
@@ -242,42 +246,42 @@ static void setup_non_view_args(lua_State *L, const char *name, int nargs, int *
                     break;
                 case AM_VIEW_TYPE_U8: {
                     uint8_t *conv = (uint8_t*)f64s;
-                    for (int c = 0; c < arg_components[i]; c++) {
+                    for (unsigned int c = 0; c < arg_components[i]; c++) {
                         conv[c] = (uint8_t)f64s[c];
                     }
                     break;
                 }
                 case AM_VIEW_TYPE_I8: {
                     int8_t *conv = (int8_t*)f64s;
-                    for (int c = 0; c < arg_components[i]; c++) {
+                    for (unsigned int c = 0; c < arg_components[i]; c++) {
                         conv[c] = (int8_t)f64s[c];
                     }
                     break;
                 }
                 case AM_VIEW_TYPE_U16: {
                     uint16_t *conv = (uint16_t*)f64s;
-                    for (int c = 0; c < arg_components[i]; c++) {
+                    for (unsigned int c = 0; c < arg_components[i]; c++) {
                         conv[c] = (uint16_t)f64s[c];
                     }
                     break;
                 }
                 case AM_VIEW_TYPE_I16: {
                     int16_t *conv = (int16_t*)f64s;
-                    for (int c = 0; c < arg_components[i]; c++) {
+                    for (unsigned int c = 0; c < arg_components[i]; c++) {
                         conv[c] = (int16_t)f64s[c];
                     }
                     break;
                 }
                 case AM_VIEW_TYPE_U32: {
                     uint32_t *conv = (uint32_t*)f64s;
-                    for (int c = 0; c < arg_components[i]; c++) {
+                    for (unsigned int c = 0; c < arg_components[i]; c++) {
                         conv[c] = (uint32_t)f64s[c];
                     }
                     break;
                 }
                 case AM_VIEW_TYPE_I32: {
                     int32_t *conv = (int32_t*)f64s;
-                    for (int c = 0; c < arg_components[i]; c++) {
+                    for (unsigned int c = 0; c < arg_components[i]; c++) {
                         conv[c] = (int32_t)f64s[c];
                     }
                     break;
@@ -291,12 +295,12 @@ static void setup_non_view_args(lua_State *L, const char *name, int nargs, int *
 }
 
 static void create_output_view(lua_State *L, am_buffer_view *target, am_buffer_view_type output_view_type,
-    int *output_count, int output_components, int *output_stride, uint8_t **output_data, bool *is_dense)
+    unsigned int *output_count, unsigned int output_components, unsigned int *output_stride, uint8_t **output_data, bool *is_dense)
 {
     am_view_type_info output_view_type_info = am_view_type_infos[output_view_type];
     if (target == NULL) {
         // create a new buffer for the output
-        *output_stride = output_components * output_view_type_info.size;
+        *output_stride = (unsigned int)(output_components * output_view_type_info.size);
         am_buffer *output_buffer = am_push_new_buffer_and_init(L, *output_count * (*output_stride));
         *output_data = output_buffer->data;
         am_buffer_view *output_view = am_new_buffer_view(L, output_view_type, output_components);
@@ -319,9 +323,9 @@ static void create_output_view(lua_State *L, am_buffer_view *target, am_buffer_v
                 output_components, target->components);
             return;
         }
-        *output_count = am_min(*output_count, target->size);
+        *output_count = am_min(*output_count, (unsigned int)target->size);
         target->mark_dirty(0, *output_count);
-        *output_stride = target->stride;
+        *output_stride = (unsigned int)target->stride;
         *output_data = target->buffer->data + target->offset;
         *is_dense = output_components * output_view_type_info.size == *output_stride;
     }
@@ -331,10 +335,11 @@ int am_mathv_range(lua_State *L) {
     am_check_nargs(L, 4);
     am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 1);
     am_view_type_info info = am_view_type_infos[type];
-    int n = luaL_checkinteger(L, 2);
-    if (n < 2) {
+    int ns = luaL_checkinteger(L, 2);
+    if (ns < 2) {
         return luaL_error(L, "range count must be at least 2");
     }
+    unsigned int n = (unsigned int)ns;
     double start = luaL_checknumber(L, 3);
     double end = luaL_checknumber(L, 4);
     double inc = (end - start) / (double)(n-1);
@@ -345,7 +350,7 @@ int am_mathv_range(lua_State *L) {
             float *data = (float*)res_buf->data;
             float x = (float)start;
             float dx = (float)inc;
-            for (int i = 0; i < n - 1; ++i) {
+            for (unsigned int i = 0; i < n - 1; ++i) {
                 data[i] = x;
                 x += dx;
             }
@@ -355,7 +360,7 @@ int am_mathv_range(lua_State *L) {
         case AM_VIEW_TYPE_F64: {
             double *data = (double*)res_buf->data;
             double x = start;
-            for (int i = 0; i < n - 1; ++i) {
+            for (unsigned int i = 0; i < n - 1; ++i) {
                 data[i] = x;
                 x += inc;
             }
@@ -365,7 +370,7 @@ int am_mathv_range(lua_State *L) {
         case AM_VIEW_TYPE_U8: {
             uint8_t *data = res_buf->data;
             double x = start;
-            for (int i = 0; i < n - 1; ++i) {
+            for (unsigned int i = 0; i < n - 1; ++i) {
                 data[i] = (uint8_t)x;
                 x += inc;
             }
@@ -375,7 +380,7 @@ int am_mathv_range(lua_State *L) {
         case AM_VIEW_TYPE_I8: {
             int8_t *data = (int8_t*)res_buf->data;
             double x = start;
-            for (int i = 0; i < n - 1; ++i) {
+            for (unsigned int i = 0; i < n - 1; ++i) {
                 data[i] = (int8_t)x;
                 x += inc;
             }
@@ -385,7 +390,7 @@ int am_mathv_range(lua_State *L) {
         case AM_VIEW_TYPE_U16: {
             uint16_t *data = (uint16_t*)res_buf->data;
             double x = start;
-            for (int i = 0; i < n - 1; ++i) {
+            for (unsigned int i = 0; i < n - 1; ++i) {
                 data[i] = (uint16_t)x;
                 x += inc;
             }
@@ -395,7 +400,7 @@ int am_mathv_range(lua_State *L) {
         case AM_VIEW_TYPE_I16: {
             int16_t *data = (int16_t*)res_buf->data;
             double x = start;
-            for (int i = 0; i < n - 1; ++i) {
+            for (unsigned int i = 0; i < n - 1; ++i) {
                 data[i] = (int16_t)x;
                 x += inc;
             }
@@ -405,7 +410,7 @@ int am_mathv_range(lua_State *L) {
         case AM_VIEW_TYPE_U32: {
             uint32_t *data = (uint32_t*)res_buf->data;
             double x = start;
-            for (int i = 0; i < n - 1; ++i) {
+            for (unsigned int i = 0; i < n - 1; ++i) {
                 data[i] = (uint32_t)x;
                 x += inc;
             }
@@ -415,7 +420,7 @@ int am_mathv_range(lua_State *L) {
         case AM_VIEW_TYPE_I32: {
             int32_t *data = (int32_t*)res_buf->data;
             double x = start;
-            for (int i = 0; i < n - 1; ++i) {
+            for (unsigned int i = 0; i < n - 1; ++i) {
                 data[i] = (int32_t)x;
                 x += inc;
             }
@@ -450,10 +455,11 @@ int am_mathv_random(lua_State *L) {
 
     am_buffer_view_type type = am_get_enum(L, am_buffer_view_type, 1);
     am_view_type_info info = am_view_type_infos[type];
-    int n = luaL_checkinteger(L, 2);
-    if (n < 0) {
+    int ns = luaL_checkinteger(L, 2);
+    if (ns < 0) {
         return luaL_error(L, "number of random numbers to generate must be non-negative");
     }
+    unsigned int n = (unsigned int)ns;
     double lo = 0.0;
     double hi = 1.0;
     if (nargs > 2) {
@@ -471,14 +477,14 @@ int am_mathv_random(lua_State *L) {
             float *data = (float*)res_buf->data;
             float frange = (float)range;
             float flo = (float)lo;
-            for (int i = 0; i < n; ++i) {
+            for (unsigned int i = 0; i < n; ++i) {
                 data[i] = rand->get_randf() * frange + flo;
             }
             break;
         }
         case AM_VIEW_TYPE_F64: {
             double *data = (double*)res_buf->data;
-            for (int i = 0; i < n; ++i) {
+            for (unsigned int i = 0; i < n; ++i) {
                 data[i] = rand->get_rand() * range + lo;
             }
             break;
@@ -520,8 +526,10 @@ int am_mathv_cart(lua_State *L) {
     int stride1 = view1->stride;
     int stride2 = view2->stride;
     uint8_t *result_data = result_buf->data;
-    for (int i = 0; i < view2->size; ++i) {
-        for (int j = 0; j < view1->size; ++j) {
+    unsigned int n1 = (unsigned int)view1->size;
+    unsigned int n2 = (unsigned int)view2->size;
+    for (unsigned int i = 0; i < n2; ++i) {
+        for (unsigned int j = 0; j < n1; ++j) {
             memcpy(result_data, data1, base_size * components1);
             result_data += base_size * components1;
             memcpy(result_data, data2, base_size * components2);
@@ -599,14 +607,14 @@ int filter_impl(lua_State *L, am_buffer_view *target) {
         return luaL_error(L, "mathv.filter arguments must have same size");
     }
 
-    int output_count = 0;
-    int output_stride;
+    unsigned int output_count = 0;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool is_dense;
-    int filter_size = filter_view->size;
-    int filter_stride = filter_view->stride;
+    unsigned int filter_size = (unsigned int)filter_view->size;
+    unsigned int filter_stride = (unsigned int)filter_view->stride;
     uint8_t *filter_data = filter_view->buffer->data + filter_view->offset;
-    for (int i = 0; i < filter_size; ++i) {
+    for (unsigned int i = 0; i < filter_size; ++i) {
         output_count += *filter_data ? 1 : 0;
         filter_data += filter_stride;
     }
@@ -615,10 +623,10 @@ int filter_impl(lua_State *L, am_buffer_view *target) {
 
     filter_data = filter_view->buffer->data + filter_view->offset;
     uint8_t *in_data = data_view->buffer->data + data_view->offset;
-    int in_stride = data_view->stride;
-    int output_elem_size = data_view->components * am_view_type_infos[data_view->type].size;
+    unsigned int in_stride = (unsigned int)data_view->stride;
+    unsigned int output_elem_size = (unsigned int)(data_view->components * am_view_type_infos[data_view->type].size);
 
-    for (int i = 0; i < filter_size; ++i) {
+    for (unsigned int i = 0; i < filter_size; ++i) {
         if (*filter_data) {
             memcpy(output_data, in_data, output_elem_size);
             output_data += output_stride;
@@ -646,15 +654,15 @@ int eq_impl(lua_State *L, am_buffer_view *target) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type view_type = AM_NUM_VIEW_TYPES;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.eq", 2, 
@@ -687,17 +695,17 @@ int eq_impl(lua_State *L, am_buffer_view *target) {
     output_components = arg_components[0];
     create_output_view(L, target, AM_VIEW_TYPE_U8, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
 
-    int stride1 = arg_stride[0];
-    int stride2 = arg_stride[1];
+    unsigned int stride1 = arg_stride[0];
+    unsigned int stride2 = arg_stride[1];
     uint8_t *ptr1 = arg_data[0];
     uint8_t *ptr2 = arg_data[1];
 
     switch (view_type) {
         case AM_VIEW_TYPE_F32: {
-            for (int i = 0; i < output_count; ++i) {
+            for (unsigned int i = 0; i < output_count; ++i) {
                 uint8_t eq = 1;
                 float ep = (float)epsilon;
-                for (int c = 0; c < output_components; c++) {
+                for (unsigned int c = 0; c < output_components; c++) {
                     if (fabsf(((float*)ptr1)[c] - ((float*)ptr2)[c]) > ep) {
                         eq = 0;
                         break;
@@ -711,10 +719,10 @@ int eq_impl(lua_State *L, am_buffer_view *target) {
             break;
         }
         case AM_VIEW_TYPE_F64: {
-            for (int i = 0; i < output_count; ++i) {
+            for (unsigned int i = 0; i < output_count; ++i) {
                 uint8_t eq = 1;
                 double ep = epsilon;
-                for (int c = 0; c < output_components; c++) {
+                for (unsigned int c = 0; c < output_components; c++) {
                     if (fabs(((double*)ptr1)[c] - ((double*)ptr2)[c]) > ep) {
                         eq = 0;
                         break;
@@ -730,7 +738,7 @@ int eq_impl(lua_State *L, am_buffer_view *target) {
         default: {
             // do bit comparison
             int elemsz = output_components * am_view_type_infos[view_type].size;
-            for (int i = 0; i < output_count; ++i) {
+            for (unsigned int i = 0; i < output_count; ++i) {
                 *output_data = (memcmp(ptr1, ptr2, elemsz) == 0) ? 1 : 0;
                 output_data += output_stride;
                 ptr1 += stride1;
@@ -749,16 +757,16 @@ static int am_mathv_sum(lua_State *L) {
     if (view->components > 4) {
         return luaL_error(L, "mathv.sum only supports elements with up to 4 components");
     }
-    int stride = view->stride;
-    int components = view->components;
+    unsigned int stride = (unsigned int)view->stride;
+    unsigned int components = (unsigned int)view->components;
     uint8_t *data = view->buffer->data + view->offset;
-    int size = view->size;
+    unsigned int size = (unsigned int)view->size;
     double component_sums[16];
-    for (int i = 0; i < 16; i++) component_sums[i] = 0.0;
+    for (unsigned int i = 0; i < 16; i++) component_sums[i] = 0.0;
     switch (view->type) {
         case AM_VIEW_TYPE_F32: {
-            for (int i = 0; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 0; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_sums[c] += (double)((float*)data)[c];
                 }
                 data += stride;
@@ -766,8 +774,8 @@ static int am_mathv_sum(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_F64: {
-            for (int i = 0; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 0; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_sums[c] += (double)((double*)data)[c];
                 }
                 data += stride;
@@ -775,8 +783,8 @@ static int am_mathv_sum(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I8: {
-            for (int i = 0; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 0; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_sums[c] += (double)((int8_t*)data)[c];
                 }
                 data += stride;
@@ -784,8 +792,8 @@ static int am_mathv_sum(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U8: {
-            for (int i = 0; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 0; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_sums[c] += (double)data[c];
                 }
                 data += stride;
@@ -793,8 +801,8 @@ static int am_mathv_sum(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I16: {
-            for (int i = 0; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 0; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_sums[c] += (double)((int16_t*)data)[c];
                 }
                 data += stride;
@@ -802,8 +810,8 @@ static int am_mathv_sum(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U16: {
-            for (int i = 0; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 0; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_sums[c] += (double)((uint16_t*)data)[c];
                 }
                 data += stride;
@@ -811,8 +819,8 @@ static int am_mathv_sum(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I32: {
-            for (int i = 0; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 0; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_sums[c] += (double)((int32_t*)data)[c];
                 }
                 data += stride;
@@ -820,8 +828,8 @@ static int am_mathv_sum(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U32: {
-            for (int i = 0; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 0; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_sums[c] += (double)((uint32_t*)data)[c];
                 }
                 data += stride;
@@ -869,65 +877,65 @@ static int am_mathv_greatest(lua_State *L) {
     if (view->components > 4) {
         return luaL_error(L, "mathv.greatest only supports elements with up to 4 components");
     }
-    int stride = view->stride;
-    int components = view->components;
+    unsigned int stride = (unsigned int)view->stride;
+    unsigned int components = (unsigned int)view->components;
     uint8_t *data = view->buffer->data + view->offset;
-    int size = view->size;
+    unsigned int size = (unsigned int)view->size;
     if (size == 0) {
         return luaL_error(L, "mathv.greatest argument must have at least one element");
     }
     double component_max[16];
     switch (view->type) {
         case AM_VIEW_TYPE_F32:
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_max[c] = (double)((float*)data)[c];
             }
             data += stride;
             break;
         case AM_VIEW_TYPE_F64: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_max[c] = (double)((double*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_I8: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_max[c] = (double)((int8_t*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_U8: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_max[c] = (double)data[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_I16: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_max[c] = (double)((int16_t*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_U16: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_max[c] = (double)((uint16_t*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_I32: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_max[c] = (double)((int32_t*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_U32: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_max[c] = (double)((uint32_t*)data)[c];
             }
             data += stride;
@@ -938,8 +946,8 @@ static int am_mathv_greatest(lua_State *L) {
     }
     switch (view->type) {
         case AM_VIEW_TYPE_F32: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_max[c] = am_max(component_max[c], (double)((float*)data)[c]);
                 }
                 data += stride;
@@ -947,8 +955,8 @@ static int am_mathv_greatest(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_F64: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_max[c] = am_max(component_max[c], (double)((double*)data)[c]);
                 }
                 data += stride;
@@ -956,8 +964,8 @@ static int am_mathv_greatest(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I8: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_max[c] = am_max(component_max[c], (double)((int8_t*)data)[c]);
                 }
                 data += stride;
@@ -965,8 +973,8 @@ static int am_mathv_greatest(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U8: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_max[c] = am_max(component_max[c], (double)data[c]);
                 }
                 data += stride;
@@ -974,8 +982,8 @@ static int am_mathv_greatest(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I16: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_max[c] = am_max(component_max[c], (double)((int16_t*)data)[c]);
                 }
                 data += stride;
@@ -983,8 +991,8 @@ static int am_mathv_greatest(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U16: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_max[c] = am_max(component_max[c], (double)((uint16_t*)data)[c]);
                 }
                 data += stride;
@@ -992,8 +1000,8 @@ static int am_mathv_greatest(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I32: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_max[c] = am_max(component_max[c], (double)((int32_t*)data)[c]);
                 }
                 data += stride;
@@ -1001,8 +1009,8 @@ static int am_mathv_greatest(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U32: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_max[c] = am_max(component_max[c], (double)((uint32_t*)data)[c]);
                 }
                 data += stride;
@@ -1050,65 +1058,65 @@ static int am_mathv_least(lua_State *L) {
     if (view->components > 4) {
         return luaL_error(L, "mathv.least only supports elements with up to 4 components");
     }
-    int stride = view->stride;
-    int components = view->components;
+    unsigned int stride = (unsigned int)view->stride;
+    unsigned int components = (unsigned int)view->components;
     uint8_t *data = view->buffer->data + view->offset;
-    int size = view->size;
+    unsigned int size = (unsigned int)view->size;
     if (size == 0) {
         return luaL_error(L, "mathv.least argument must have at least one element");
     }
     double component_min[16];
     switch (view->type) {
         case AM_VIEW_TYPE_F32:
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_min[c] = (double)((float*)data)[c];
             }
             data += stride;
             break;
         case AM_VIEW_TYPE_F64: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_min[c] = (double)((double*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_I8: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_min[c] = (double)((int8_t*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_U8: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_min[c] = (double)data[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_I16: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_min[c] = (double)((int16_t*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_U16: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_min[c] = (double)((uint16_t*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_I32: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_min[c] = (double)((int32_t*)data)[c];
             }
             data += stride;
             break;
         }
         case AM_VIEW_TYPE_U32: {
-            for (int c = 0; c < components; ++c) {
+            for (unsigned int c = 0; c < components; ++c) {
                 component_min[c] = (double)((uint32_t*)data)[c];
             }
             data += stride;
@@ -1119,8 +1127,8 @@ static int am_mathv_least(lua_State *L) {
     }
     switch (view->type) {
         case AM_VIEW_TYPE_F32: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_min[c] = am_min(component_min[c], (double)((float*)data)[c]);
                 }
                 data += stride;
@@ -1128,8 +1136,8 @@ static int am_mathv_least(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_F64: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_min[c] = am_min(component_min[c], (double)((double*)data)[c]);
                 }
                 data += stride;
@@ -1137,8 +1145,8 @@ static int am_mathv_least(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I8: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_min[c] = am_min(component_min[c], (double)((int8_t*)data)[c]);
                 }
                 data += stride;
@@ -1146,8 +1154,8 @@ static int am_mathv_least(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U8: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_min[c] = am_min(component_min[c], (double)data[c]);
                 }
                 data += stride;
@@ -1155,8 +1163,8 @@ static int am_mathv_least(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I16: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_min[c] = am_min(component_min[c], (double)((int16_t*)data)[c]);
                 }
                 data += stride;
@@ -1164,8 +1172,8 @@ static int am_mathv_least(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U16: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_min[c] = am_min(component_min[c], (double)((uint16_t*)data)[c]);
                 }
                 data += stride;
@@ -1173,8 +1181,8 @@ static int am_mathv_least(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_I32: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_min[c] = am_min(component_min[c], (double)((int32_t*)data)[c]);
                 }
                 data += stride;
@@ -1182,8 +1190,8 @@ static int am_mathv_least(lua_State *L) {
             break;
         }
         case AM_VIEW_TYPE_U32: {
-            for (int i = 1; i < size; ++i) {
-                for (int c = 0; c < components; ++c) {
+            for (unsigned int i = 1; i < size; ++i) {
+                for (unsigned int c = 0; c < components; ++c) {
                     component_min[c] = am_min(component_min[c], (double)((uint32_t*)data)[c]);
                 }
                 data += stride;

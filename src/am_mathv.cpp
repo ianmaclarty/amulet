@@ -7,19 +7,19 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.add");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -37,7 +37,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ADD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -48,8 +49,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = ADD_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -71,7 +72,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ADD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -82,8 +84,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = ADD_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -105,7 +107,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ADD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -116,8 +119,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = ADD_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -139,7 +142,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ADD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -150,8 +154,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = ADD_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -173,7 +177,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ADD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -184,8 +189,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = ADD_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -207,7 +212,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ADD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -218,8 +224,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = ADD_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -241,7 +247,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ADD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -252,8 +259,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = ADD_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -275,7 +282,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ADD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -286,8 +294,8 @@ static int add_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = ADD_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -317,19 +325,19 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.sub");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -347,7 +355,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = SUB_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -358,8 +367,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = SUB_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -381,7 +390,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = SUB_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -392,8 +402,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = SUB_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -415,7 +425,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = SUB_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -426,8 +437,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = SUB_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -449,7 +460,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = SUB_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -460,8 +472,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = SUB_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -483,7 +495,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = SUB_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -494,8 +507,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = SUB_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -517,7 +530,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = SUB_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -528,8 +542,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = SUB_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -551,7 +565,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = SUB_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -562,8 +577,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = SUB_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -585,7 +600,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = SUB_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -596,8 +612,8 @@ static int sub_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = SUB_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -627,19 +643,19 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.vec_mul");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -657,7 +673,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = MUL_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -668,8 +685,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = MUL_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -691,7 +708,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = MUL_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -702,8 +720,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = MUL_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -725,7 +743,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = MUL_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -736,8 +755,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = MUL_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -759,7 +778,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = MUL_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -770,8 +790,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = MUL_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -793,7 +813,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = MUL_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -804,8 +825,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = MUL_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -827,7 +848,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = MUL_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -838,8 +860,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = MUL_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -861,7 +883,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = MUL_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -872,8 +895,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = MUL_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -895,7 +918,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = MUL_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -906,8 +930,8 @@ static int vec_mul_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = MUL_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -937,19 +961,19 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.div");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -967,7 +991,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = DIV_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -978,8 +1003,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = DIV_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1001,7 +1026,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = DIV_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1012,8 +1038,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = DIV_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1035,7 +1061,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = DIV_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1046,8 +1073,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = DIV_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1069,7 +1096,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = DIV_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1080,8 +1108,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = DIV_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1103,7 +1131,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = DIV_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1114,8 +1143,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = DIV_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1137,7 +1166,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = DIV_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1148,8 +1178,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = DIV_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1171,7 +1201,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = DIV_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1182,8 +1213,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = DIV_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1205,7 +1236,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = DIV_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1216,8 +1248,8 @@ static int div_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = DIV_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1247,19 +1279,19 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.mod");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -1277,7 +1309,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = F32MOD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1288,8 +1321,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = F32MOD_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1311,7 +1344,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = F64MOD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1322,8 +1356,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = F64MOD_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1345,7 +1379,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = IMOD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1356,8 +1391,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = IMOD_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1379,7 +1414,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = IMOD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1390,8 +1426,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = IMOD_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1413,7 +1449,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = IMOD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1424,8 +1461,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = IMOD_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1447,7 +1484,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = IMOD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1458,8 +1496,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = IMOD_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1481,7 +1519,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = IMOD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1492,8 +1531,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = IMOD_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1515,7 +1554,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = IMOD_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1526,8 +1566,8 @@ static int mod_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = IMOD_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1557,19 +1597,19 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.pow");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -1587,7 +1627,8 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = powf(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1598,8 +1639,8 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = powf(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1621,7 +1662,8 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = pow(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -1632,8 +1674,8 @@ static int pow_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = pow(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -1663,19 +1705,19 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     nargs = am_min(nargs, 1);        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -1691,7 +1733,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = UNM_OP(arg1_arr[i]);
             }
         } else {
@@ -1699,8 +1742,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = UNM_OP(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1719,7 +1762,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = UNM_OP(arg1_arr[i]);
             }
         } else {
@@ -1727,8 +1771,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = UNM_OP(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1747,7 +1791,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int8_t *out_arr = (int8_t*)output_data;
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = UNM_OP(arg1_arr[i]);
             }
         } else {
@@ -1755,8 +1800,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int8_t*)output_data)[c] = UNM_OP(((int8_t*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1775,7 +1820,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *out_arr = (uint8_t*)output_data;
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = UNM_OP(arg1_arr[i]);
             }
         } else {
@@ -1783,8 +1829,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = UNM_OP(((uint8_t*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1803,7 +1849,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int16_t *out_arr = (int16_t*)output_data;
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = UNM_OP(arg1_arr[i]);
             }
         } else {
@@ -1811,8 +1858,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int16_t*)output_data)[c] = UNM_OP(((int16_t*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1831,7 +1878,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *out_arr = (uint16_t*)output_data;
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = UNM_OP(arg1_arr[i]);
             }
         } else {
@@ -1839,8 +1887,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint16_t*)output_data)[c] = UNM_OP(((uint16_t*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1859,7 +1907,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int32_t *out_arr = (int32_t*)output_data;
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = UNM_OP(arg1_arr[i]);
             }
         } else {
@@ -1867,8 +1916,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((int32_t*)output_data)[c] = UNM_OP(((int32_t*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1887,7 +1936,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *out_arr = (uint32_t*)output_data;
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = UNM_OP(arg1_arr[i]);
             }
         } else {
@@ -1895,8 +1945,8 @@ static int unm_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint32_t*)output_data)[c] = UNM_OP(((uint32_t*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1925,19 +1975,19 @@ static int abs_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.abs");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -1953,7 +2003,8 @@ static int abs_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = fabsf(arg1_arr[i]);
             }
         } else {
@@ -1961,8 +2012,8 @@ static int abs_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = fabsf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -1981,7 +2032,8 @@ static int abs_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = fabs(arg1_arr[i]);
             }
         } else {
@@ -1989,8 +2041,8 @@ static int abs_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = fabs(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2019,19 +2071,19 @@ static int acos_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.acos");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2047,7 +2099,8 @@ static int acos_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = acosf(arg1_arr[i]);
             }
         } else {
@@ -2055,8 +2108,8 @@ static int acos_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = acosf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2075,7 +2128,8 @@ static int acos_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = acos(arg1_arr[i]);
             }
         } else {
@@ -2083,8 +2137,8 @@ static int acos_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = acos(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2113,19 +2167,19 @@ static int asin_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.asin");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2141,7 +2195,8 @@ static int asin_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = asinf(arg1_arr[i]);
             }
         } else {
@@ -2149,8 +2204,8 @@ static int asin_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = asinf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2169,7 +2224,8 @@ static int asin_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = asin(arg1_arr[i]);
             }
         } else {
@@ -2177,8 +2233,8 @@ static int asin_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = asin(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2207,19 +2263,19 @@ static int atan_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.atan");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2235,7 +2291,8 @@ static int atan_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = atanf(arg1_arr[i]);
             }
         } else {
@@ -2243,8 +2300,8 @@ static int atan_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = atanf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2263,7 +2320,8 @@ static int atan_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = atan(arg1_arr[i]);
             }
         } else {
@@ -2271,8 +2329,8 @@ static int atan_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = atan(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2301,19 +2359,19 @@ static int atan2_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.atan2");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2331,7 +2389,8 @@ static int atan2_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = atan2f(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -2342,8 +2401,8 @@ static int atan2_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = atan2f(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -2365,7 +2424,8 @@ static int atan2_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = atan2(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -2376,8 +2436,8 @@ static int atan2_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = atan2(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -2407,19 +2467,19 @@ static int ceil_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.ceil");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2435,7 +2495,8 @@ static int ceil_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ceilf(arg1_arr[i]);
             }
         } else {
@@ -2443,8 +2504,8 @@ static int ceil_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = ceilf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2463,7 +2524,8 @@ static int ceil_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = ceil(arg1_arr[i]);
             }
         } else {
@@ -2471,8 +2533,8 @@ static int ceil_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = ceil(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2501,19 +2563,19 @@ static int clamp_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 3) return luaL_error(L, "too many arguments for mathv.clamp");        uint8_t arg_singleton_scratch[3][16*8];
     uint8_t *arg_singleton_bufs[3];
-    for (int i = 0; i < 3; i++) {
+    for (unsigned int i = 0; i < 3; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[3];
-    int arg_stride[3];
-    int arg_count[3];
+    unsigned int arg_stride[3];
+    unsigned int arg_count[3];
     int arg_type[3];
     am_buffer_view_type arg_view_type[3];
-    int arg_components[3];
+    unsigned int arg_components[3];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2533,7 +2595,8 @@ static int clamp_impl(lua_State *L, am_buffer_view *target) {
             float *arg2_arr = (float*)arg_data[1];
             float *arg3_arr = (float*)arg_data[2];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = am_clamp(arg1_arr[i], arg2_arr[i], arg3_arr[i]);
             }
         } else {
@@ -2547,8 +2610,8 @@ static int clamp_impl(lua_State *L, am_buffer_view *target) {
             int arg3_stride = arg_stride[2];
             int mask3 = arg_components[2] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = am_clamp(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2], ((float*)arg3_ptr)[c & mask3]);
                 }
                 output_data += output_stride;
@@ -2573,7 +2636,8 @@ static int clamp_impl(lua_State *L, am_buffer_view *target) {
             double *arg2_arr = (double*)arg_data[1];
             double *arg3_arr = (double*)arg_data[2];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = am_clamp(arg1_arr[i], arg2_arr[i], arg3_arr[i]);
             }
         } else {
@@ -2587,8 +2651,8 @@ static int clamp_impl(lua_State *L, am_buffer_view *target) {
             int arg3_stride = arg_stride[2];
             int mask3 = arg_components[2] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = am_clamp(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2], ((double*)arg3_ptr)[c & mask3]);
                 }
                 output_data += output_stride;
@@ -2619,19 +2683,19 @@ static int cos_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.cos");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2647,7 +2711,8 @@ static int cos_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = cosf(arg1_arr[i]);
             }
         } else {
@@ -2655,8 +2720,8 @@ static int cos_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = cosf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2675,7 +2740,8 @@ static int cos_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = cos(arg1_arr[i]);
             }
         } else {
@@ -2683,8 +2749,8 @@ static int cos_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = cos(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2713,19 +2779,19 @@ static int floor_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.floor");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2741,7 +2807,8 @@ static int floor_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = floorf(arg1_arr[i]);
             }
         } else {
@@ -2749,8 +2816,8 @@ static int floor_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = floorf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2769,7 +2836,8 @@ static int floor_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = floor(arg1_arr[i]);
             }
         } else {
@@ -2777,8 +2845,8 @@ static int floor_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = floor(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2807,19 +2875,19 @@ static int fract_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.fract");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2835,7 +2903,8 @@ static int fract_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = glm::fract(arg1_arr[i]);
             }
         } else {
@@ -2843,8 +2912,8 @@ static int fract_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = glm::fract(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2863,7 +2932,8 @@ static int fract_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = glm::fract(arg1_arr[i]);
             }
         } else {
@@ -2871,8 +2941,8 @@ static int fract_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = glm::fract(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2901,19 +2971,19 @@ static int log_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.log");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -2929,7 +2999,8 @@ static int log_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = logf(arg1_arr[i]);
             }
         } else {
@@ -2937,8 +3008,8 @@ static int log_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = logf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2957,7 +3028,8 @@ static int log_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = log(arg1_arr[i]);
             }
         } else {
@@ -2965,8 +3037,8 @@ static int log_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = log(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -2995,19 +3067,19 @@ static int max_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.max");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -3025,7 +3097,8 @@ static int max_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = am_max(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3036,8 +3109,8 @@ static int max_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = am_max(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3059,7 +3132,8 @@ static int max_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = am_max(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3070,8 +3144,8 @@ static int max_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = am_max(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3101,19 +3175,19 @@ static int min_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.min");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -3131,7 +3205,8 @@ static int min_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = am_min(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3142,8 +3217,8 @@ static int min_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = am_min(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3165,7 +3240,8 @@ static int min_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = am_min(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3176,8 +3252,8 @@ static int min_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = am_min(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3207,19 +3283,19 @@ static int mix_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 3) return luaL_error(L, "too many arguments for mathv.mix");        uint8_t arg_singleton_scratch[3][16*8];
     uint8_t *arg_singleton_bufs[3];
-    for (int i = 0; i < 3; i++) {
+    for (unsigned int i = 0; i < 3; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[3];
-    int arg_stride[3];
-    int arg_count[3];
+    unsigned int arg_stride[3];
+    unsigned int arg_count[3];
     int arg_type[3];
     am_buffer_view_type arg_view_type[3];
-    int arg_components[3];
+    unsigned int arg_components[3];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -3239,7 +3315,8 @@ static int mix_impl(lua_State *L, am_buffer_view *target) {
             float *arg2_arr = (float*)arg_data[1];
             float *arg3_arr = (float*)arg_data[2];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = glm::mix(arg1_arr[i], arg2_arr[i], arg3_arr[i]);
             }
         } else {
@@ -3253,8 +3330,8 @@ static int mix_impl(lua_State *L, am_buffer_view *target) {
             int arg3_stride = arg_stride[2];
             int mask3 = arg_components[2] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = glm::mix(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2], ((float*)arg3_ptr)[c & mask3]);
                 }
                 output_data += output_stride;
@@ -3279,7 +3356,8 @@ static int mix_impl(lua_State *L, am_buffer_view *target) {
             double *arg2_arr = (double*)arg_data[1];
             double *arg3_arr = (double*)arg_data[2];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = glm::mix(arg1_arr[i], arg2_arr[i], arg3_arr[i]);
             }
         } else {
@@ -3293,8 +3371,8 @@ static int mix_impl(lua_State *L, am_buffer_view *target) {
             int arg3_stride = arg_stride[2];
             int mask3 = arg_components[2] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = glm::mix(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2], ((double*)arg3_ptr)[c & mask3]);
                 }
                 output_data += output_stride;
@@ -3325,19 +3403,19 @@ static int sign_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.sign");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -3353,7 +3431,8 @@ static int sign_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = am_sign(arg1_arr[i]);
             }
         } else {
@@ -3361,8 +3440,8 @@ static int sign_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = am_sign(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -3381,7 +3460,8 @@ static int sign_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = am_sign(arg1_arr[i]);
             }
         } else {
@@ -3389,8 +3469,8 @@ static int sign_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = am_sign(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -3419,19 +3499,19 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.sin");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -3447,7 +3527,8 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = sinf(arg1_arr[i]);
             }
         } else {
@@ -3455,8 +3536,8 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = sinf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -3475,7 +3556,8 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = sin(arg1_arr[i]);
             }
         } else {
@@ -3483,8 +3565,8 @@ static int sin_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = sin(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -3513,19 +3595,19 @@ static int tan_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.tan");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -3541,7 +3623,8 @@ static int tan_impl(lua_State *L, am_buffer_view *target) {
             float *out_arr = (float*)output_data;
             float *arg1_arr = (float*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = tanf(arg1_arr[i]);
             }
         } else {
@@ -3549,8 +3632,8 @@ static int tan_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((float*)output_data)[c] = tanf(((float*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -3569,7 +3652,8 @@ static int tan_impl(lua_State *L, am_buffer_view *target) {
             double *out_arr = (double*)output_data;
             double *arg1_arr = (double*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = tan(arg1_arr[i]);
             }
         } else {
@@ -3577,8 +3661,8 @@ static int tan_impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((double*)output_data)[c] = tan(((double*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -3607,19 +3691,19 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.lt");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -3637,7 +3721,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3648,8 +3733,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LT_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3671,7 +3756,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3682,8 +3768,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LT_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3705,7 +3791,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3716,8 +3803,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LT_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3739,7 +3826,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3750,8 +3838,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LT_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3773,7 +3861,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3784,8 +3873,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LT_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3807,7 +3896,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3818,8 +3908,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LT_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3841,7 +3931,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3852,8 +3943,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LT_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3875,7 +3966,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3886,8 +3978,8 @@ static int lt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LT_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3917,19 +4009,19 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.lte");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -3947,7 +4039,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3958,8 +4051,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LTE_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -3981,7 +4074,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -3992,8 +4086,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LTE_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4015,7 +4109,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4026,8 +4121,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LTE_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4049,7 +4144,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4060,8 +4156,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LTE_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4083,7 +4179,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4094,8 +4191,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LTE_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4117,7 +4214,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4128,8 +4226,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LTE_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4151,7 +4249,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4162,8 +4261,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LTE_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4185,7 +4284,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = LTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4196,8 +4296,8 @@ static int lte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = LTE_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4227,19 +4327,19 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.gt");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -4257,7 +4357,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4268,8 +4369,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GT_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4291,7 +4392,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4302,8 +4404,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GT_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4325,7 +4427,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4336,8 +4439,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GT_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4359,7 +4462,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4370,8 +4474,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GT_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4393,7 +4497,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4404,8 +4509,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GT_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4427,7 +4532,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4438,8 +4544,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GT_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4461,7 +4567,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4472,8 +4579,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GT_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4495,7 +4602,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GT_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4506,8 +4614,8 @@ static int gt_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GT_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4537,19 +4645,19 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.gte");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -4567,7 +4675,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             float *arg1_arr = (float*)arg_data[0];
             float *arg2_arr = (float*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4578,8 +4687,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GTE_OP(((float*)arg1_ptr)[c & mask1], ((float*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4601,7 +4710,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             double *arg1_arr = (double*)arg_data[0];
             double *arg2_arr = (double*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4612,8 +4722,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GTE_OP(((double*)arg1_ptr)[c & mask1], ((double*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4635,7 +4745,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4646,8 +4757,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GTE_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4669,7 +4780,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int8_t *arg1_arr = (int8_t*)arg_data[0];
             int8_t *arg2_arr = (int8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4680,8 +4792,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GTE_OP(((int8_t*)arg1_ptr)[c & mask1], ((int8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4703,7 +4815,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             uint16_t *arg1_arr = (uint16_t*)arg_data[0];
             uint16_t *arg2_arr = (uint16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4714,8 +4827,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GTE_OP(((uint16_t*)arg1_ptr)[c & mask1], ((uint16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4737,7 +4850,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int16_t *arg1_arr = (int16_t*)arg_data[0];
             int16_t *arg2_arr = (int16_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4748,8 +4862,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GTE_OP(((int16_t*)arg1_ptr)[c & mask1], ((int16_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4771,7 +4885,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             uint32_t *arg1_arr = (uint32_t*)arg_data[0];
             uint32_t *arg2_arr = (uint32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4782,8 +4897,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GTE_OP(((uint32_t*)arg1_ptr)[c & mask1], ((uint32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4805,7 +4920,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int32_t *arg1_arr = (int32_t*)arg_data[0];
             int32_t *arg2_arr = (int32_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = GTE_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4816,8 +4932,8 @@ static int gte_impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = GTE_OP(((int32_t*)arg1_ptr)[c & mask1], ((int32_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4847,19 +4963,19 @@ static int and__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.and_");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -4877,7 +4993,8 @@ static int and__impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = AND_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4888,8 +5005,8 @@ static int and__impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = AND_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4919,19 +5036,19 @@ static int or__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.or_");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -4949,7 +5066,8 @@ static int or__impl(lua_State *L, am_buffer_view *target) {
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             uint8_t *arg2_arr = (uint8_t*)arg_data[1];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = OR_OP(arg1_arr[i], arg2_arr[i]);
             }
         } else {
@@ -4960,8 +5078,8 @@ static int or__impl(lua_State *L, am_buffer_view *target) {
             int arg2_stride = arg_stride[1];
             int mask2 = arg_components[1] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = OR_OP(((uint8_t*)arg1_ptr)[c & mask1], ((uint8_t*)arg2_ptr)[c & mask2]);
                 }
                 output_data += output_stride;
@@ -4991,19 +5109,19 @@ static int not__impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.not_");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool args_are_dense;
     bool output_is_dense;
@@ -5019,7 +5137,8 @@ static int not__impl(lua_State *L, am_buffer_view *target) {
             uint8_t *out_arr = (uint8_t*)output_data;
             uint8_t *arg1_arr = (uint8_t*)arg_data[0];
             
-            for (int i = 0; i < output_count * output_components; ++i) {
+            unsigned int n = output_count * output_components;
+            for (unsigned int i = 0; i < n; ++i) {
                 out_arr[i] = NOT_OP(arg1_arr[i]);
             }
         } else {
@@ -5027,8 +5146,8 @@ static int not__impl(lua_State *L, am_buffer_view *target) {
             int arg1_stride = arg_stride[0];
             int mask1 = arg_components[0] == 1 ? 0 : 0xFFFF;
             
-            for (int i = 0; i < output_count; ++i) {
-                for (int c = 0; c < output_components; ++c) {
+            for (unsigned int i = 0; i < output_count; ++i) {
+                for (unsigned int c = 0; c < output_components; ++c) {
                     ((uint8_t*)output_data)[c] = NOT_OP(((uint8_t*)arg1_ptr)[c & mask1]);
                 }
                 output_data += output_stride;
@@ -5057,19 +5176,19 @@ static int vec2_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.vec2");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.vec2", nargs, 
@@ -5086,7 +5205,7 @@ static int vec2_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec2*)output_data) = glm::vec2(*((float*)in_ptr_1), *((float*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5102,7 +5221,7 @@ static int vec2_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec2*)output_data) = glm::vec2(*((glm::vec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -5120,7 +5239,7 @@ static int vec2_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec2*)output_data) = glm::dvec2(*((double*)in_ptr_1), *((double*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5136,7 +5255,7 @@ static int vec2_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec2*)output_data) = glm::dvec2(*((glm::dvec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -5162,19 +5281,19 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 3) return luaL_error(L, "too many arguments for mathv.vec3");        uint8_t arg_singleton_scratch[3][16*8];
     uint8_t *arg_singleton_bufs[3];
-    for (int i = 0; i < 3; i++) {
+    for (unsigned int i = 0; i < 3; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[3];
-    int arg_stride[3];
-    int arg_count[3];
+    unsigned int arg_stride[3];
+    unsigned int arg_count[3];
     int arg_type[3];
     am_buffer_view_type arg_view_type[3];
-    int arg_components[3];
+    unsigned int arg_components[3];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.vec3", nargs, 
@@ -5194,7 +5313,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec3*)output_data) = glm::vec3(*((float*)in_ptr_1), *((float*)in_ptr_2), *((float*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5214,7 +5333,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec3*)output_data) = glm::vec3(*((glm::vec2*)in_ptr_1), *((float*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5233,7 +5352,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec3*)output_data) = glm::vec3(*((float*)in_ptr_1), *((glm::vec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5249,7 +5368,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec3*)output_data) = glm::vec3(*((glm::vec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -5270,7 +5389,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec3*)output_data) = glm::dvec3(*((double*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5290,7 +5409,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec3*)output_data) = glm::dvec3(*((glm::dvec2*)in_ptr_1), *((double*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5309,7 +5428,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec3*)output_data) = glm::dvec3(*((double*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5325,7 +5444,7 @@ static int vec3_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec3*)output_data) = glm::dvec3(*((glm::dvec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -5351,19 +5470,19 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 4) return luaL_error(L, "too many arguments for mathv.vec4");        uint8_t arg_singleton_scratch[4][16*8];
     uint8_t *arg_singleton_bufs[4];
-    for (int i = 0; i < 4; i++) {
+    for (unsigned int i = 0; i < 4; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[4];
-    int arg_stride[4];
-    int arg_count[4];
+    unsigned int arg_stride[4];
+    unsigned int arg_count[4];
     int arg_type[4];
     am_buffer_view_type arg_view_type[4];
-    int arg_components[4];
+    unsigned int arg_components[4];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.vec4", nargs, 
@@ -5386,7 +5505,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_3 = &arg_data[2][0];
         int in_stride_4 = arg_stride[3];
         uint8_t *in_ptr_4 = &arg_data[3][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::vec4(*((float*)in_ptr_1), *((float*)in_ptr_2), *((float*)in_ptr_3), *((float*)in_ptr_4));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5407,7 +5526,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::vec4(*((glm::vec3*)in_ptr_1), *((float*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5426,7 +5545,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::vec4(*((float*)in_ptr_1), *((glm::vec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5445,7 +5564,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::vec4(*((glm::vec2*)in_ptr_1), *((glm::vec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5467,7 +5586,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::vec4(*((float*)in_ptr_1), *((float*)in_ptr_2), *((glm::vec2*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5490,7 +5609,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::vec4(*((float*)in_ptr_1), *((glm::vec2*)in_ptr_2), *((float*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5513,7 +5632,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::vec4(*((glm::vec2*)in_ptr_1), *((float*)in_ptr_2), *((float*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5530,7 +5649,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::vec4(*((glm::vec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -5554,7 +5673,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_3 = &arg_data[2][0];
         int in_stride_4 = arg_stride[3];
         uint8_t *in_ptr_4 = &arg_data[3][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::dvec4(*((double*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3), *((double*)in_ptr_4));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5575,7 +5694,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::dvec4(*((glm::dvec3*)in_ptr_1), *((double*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5594,7 +5713,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::dvec4(*((double*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5613,7 +5732,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::dvec4(*((glm::dvec2*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5635,7 +5754,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::dvec4(*((double*)in_ptr_1), *((double*)in_ptr_2), *((glm::dvec2*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5658,7 +5777,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::dvec4(*((double*)in_ptr_1), *((glm::dvec2*)in_ptr_2), *((double*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5681,7 +5800,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::dvec4(*((glm::dvec2*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5698,7 +5817,7 @@ static int vec4_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::dvec4(*((glm::dvec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -5724,19 +5843,19 @@ static int mat3_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 9) return luaL_error(L, "too many arguments for mathv.mat3");        uint8_t arg_singleton_scratch[9][16*8];
     uint8_t *arg_singleton_bufs[9];
-    for (int i = 0; i < 9; i++) {
+    for (unsigned int i = 0; i < 9; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[9];
-    int arg_stride[9];
-    int arg_count[9];
+    unsigned int arg_stride[9];
+    unsigned int arg_count[9];
     int arg_type[9];
     am_buffer_view_type arg_view_type[9];
-    int arg_components[9];
+    unsigned int arg_components[9];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.mat3", nargs, 
@@ -5774,7 +5893,7 @@ static int mat3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_8 = &arg_data[7][0];
         int in_stride_9 = arg_stride[8];
         uint8_t *in_ptr_9 = &arg_data[8][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat3*)output_data) = glm::mat3(*((float*)in_ptr_1), *((float*)in_ptr_2), *((float*)in_ptr_3), *((float*)in_ptr_4), *((float*)in_ptr_5), *((float*)in_ptr_6), *((float*)in_ptr_7), *((float*)in_ptr_8), *((float*)in_ptr_9));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5803,7 +5922,7 @@ static int mat3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat3*)output_data) = glm::mat3(*((glm::vec3*)in_ptr_1), *((glm::vec3*)in_ptr_2), *((glm::vec3*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5844,7 +5963,7 @@ static int mat3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_8 = &arg_data[7][0];
         int in_stride_9 = arg_stride[8];
         uint8_t *in_ptr_9 = &arg_data[8][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat3*)output_data) = glm::dmat3(*((double*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3), *((double*)in_ptr_4), *((double*)in_ptr_5), *((double*)in_ptr_6), *((double*)in_ptr_7), *((double*)in_ptr_8), *((double*)in_ptr_9));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5873,7 +5992,7 @@ static int mat3_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_2 = &arg_data[1][0];
         int in_stride_3 = arg_stride[2];
         uint8_t *in_ptr_3 = &arg_data[2][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat3*)output_data) = glm::dmat3(*((glm::dvec3*)in_ptr_1), *((glm::dvec3*)in_ptr_2), *((glm::dvec3*)in_ptr_3));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -5901,19 +6020,19 @@ static int mat4_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 16) return luaL_error(L, "too many arguments for mathv.mat4");        uint8_t arg_singleton_scratch[16][16*8];
     uint8_t *arg_singleton_bufs[16];
-    for (int i = 0; i < 16; i++) {
+    for (unsigned int i = 0; i < 16; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[16];
-    int arg_stride[16];
-    int arg_count[16];
+    unsigned int arg_stride[16];
+    unsigned int arg_count[16];
     int arg_type[16];
     am_buffer_view_type arg_view_type[16];
-    int arg_components[16];
+    unsigned int arg_components[16];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.mat4", nargs, 
@@ -5972,7 +6091,7 @@ static int mat4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_15 = &arg_data[14][0];
         int in_stride_16 = arg_stride[15];
         uint8_t *in_ptr_16 = &arg_data[15][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat4*)output_data) = glm::mat4(*((float*)in_ptr_1), *((float*)in_ptr_2), *((float*)in_ptr_3), *((float*)in_ptr_4), *((float*)in_ptr_5), *((float*)in_ptr_6), *((float*)in_ptr_7), *((float*)in_ptr_8), *((float*)in_ptr_9), *((float*)in_ptr_10), *((float*)in_ptr_11), *((float*)in_ptr_12), *((float*)in_ptr_13), *((float*)in_ptr_14), *((float*)in_ptr_15), *((float*)in_ptr_16));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6011,7 +6130,7 @@ static int mat4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_3 = &arg_data[2][0];
         int in_stride_4 = arg_stride[3];
         uint8_t *in_ptr_4 = &arg_data[3][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat4*)output_data) = glm::mat4(*((glm::vec4*)in_ptr_1), *((glm::vec4*)in_ptr_2), *((glm::vec4*)in_ptr_3), *((glm::vec4*)in_ptr_4));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6074,7 +6193,7 @@ static int mat4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_15 = &arg_data[14][0];
         int in_stride_16 = arg_stride[15];
         uint8_t *in_ptr_16 = &arg_data[15][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat4*)output_data) = glm::dmat4(*((double*)in_ptr_1), *((double*)in_ptr_2), *((double*)in_ptr_3), *((double*)in_ptr_4), *((double*)in_ptr_5), *((double*)in_ptr_6), *((double*)in_ptr_7), *((double*)in_ptr_8), *((double*)in_ptr_9), *((double*)in_ptr_10), *((double*)in_ptr_11), *((double*)in_ptr_12), *((double*)in_ptr_13), *((double*)in_ptr_14), *((double*)in_ptr_15), *((double*)in_ptr_16));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6113,7 +6232,7 @@ static int mat4_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_3 = &arg_data[2][0];
         int in_stride_4 = arg_stride[3];
         uint8_t *in_ptr_4 = &arg_data[3][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat4*)output_data) = glm::dmat4(*((glm::dvec4*)in_ptr_1), *((glm::dvec4*)in_ptr_2), *((glm::dvec4*)in_ptr_3), *((glm::dvec4*)in_ptr_4));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6142,19 +6261,19 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.mat_mul");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.mat_mul", nargs, 
@@ -6171,7 +6290,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat4*)output_data) = MAT_MUL(*((glm::mat4*)in_ptr_1), *((glm::mat4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6190,7 +6309,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = MAT_MUL(*((glm::mat4*)in_ptr_1), *((glm::vec4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6209,7 +6328,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = MAT_MUL(*((glm::vec4*)in_ptr_1), *((glm::mat4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6228,7 +6347,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat4*)output_data) = MAT_MUL(*((float*)in_ptr_1), *((glm::mat4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6247,7 +6366,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat4*)output_data) = MAT_MUL(*((glm::mat4*)in_ptr_1), *((float*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6266,7 +6385,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat3*)output_data) = MAT_MUL(*((glm::mat3*)in_ptr_1), *((glm::mat3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6285,7 +6404,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec3*)output_data) = MAT_MUL(*((glm::mat3*)in_ptr_1), *((glm::vec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6304,7 +6423,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec3*)output_data) = MAT_MUL(*((glm::vec3*)in_ptr_1), *((glm::mat3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6323,7 +6442,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat3*)output_data) = MAT_MUL(*((float*)in_ptr_1), *((glm::mat3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6342,7 +6461,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat3*)output_data) = MAT_MUL(*((glm::mat3*)in_ptr_1), *((float*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6361,7 +6480,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat4*)output_data) = MAT_MUL(*((glm::dmat4*)in_ptr_1), *((glm::dmat4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6380,7 +6499,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = MAT_MUL(*((glm::dmat4*)in_ptr_1), *((glm::dvec4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6399,7 +6518,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = MAT_MUL(*((glm::dvec4*)in_ptr_1), *((glm::dmat4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6418,7 +6537,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat4*)output_data) = MAT_MUL(*((double*)in_ptr_1), *((glm::dmat4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6437,7 +6556,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat4*)output_data) = MAT_MUL(*((glm::dmat4*)in_ptr_1), *((double*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6456,7 +6575,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat3*)output_data) = MAT_MUL(*((glm::dmat3*)in_ptr_1), *((glm::dmat3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6475,7 +6594,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec3*)output_data) = MAT_MUL(*((glm::dmat3*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6494,7 +6613,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec3*)output_data) = MAT_MUL(*((glm::dvec3*)in_ptr_1), *((glm::dmat3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6513,7 +6632,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat3*)output_data) = MAT_MUL(*((double*)in_ptr_1), *((glm::dmat3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6532,7 +6651,7 @@ static int mat_mul_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat3*)output_data) = MAT_MUL(*((glm::dmat3*)in_ptr_1), *((double*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6559,19 +6678,19 @@ static int cross_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.cross");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.cross", nargs, 
@@ -6588,7 +6707,7 @@ static int cross_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec3*)output_data) = glm::cross(*((glm::vec3*)in_ptr_1), *((glm::vec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6607,7 +6726,7 @@ static int cross_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec3*)output_data) = glm::cross(*((glm::dvec3*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6634,19 +6753,19 @@ static int distance_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.distance");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.distance", nargs, 
@@ -6663,7 +6782,7 @@ static int distance_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::distance(*((glm::vec2*)in_ptr_1), *((glm::vec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6682,7 +6801,7 @@ static int distance_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::distance(*((glm::vec3*)in_ptr_1), *((glm::vec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6701,7 +6820,7 @@ static int distance_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::distance(*((glm::vec4*)in_ptr_1), *((glm::vec4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6720,7 +6839,7 @@ static int distance_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::distance(*((glm::dvec2*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6739,7 +6858,7 @@ static int distance_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::distance(*((glm::dvec3*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6758,7 +6877,7 @@ static int distance_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::distance(*((glm::dvec4*)in_ptr_1), *((glm::dvec4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6785,19 +6904,19 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.dot");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.dot", nargs, 
@@ -6814,7 +6933,7 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::dot(*((glm::vec2*)in_ptr_1), *((glm::vec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6833,7 +6952,7 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::dot(*((glm::vec3*)in_ptr_1), *((glm::vec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6852,7 +6971,7 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::dot(*((glm::vec4*)in_ptr_1), *((glm::vec4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6871,7 +6990,7 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::dot(*((glm::dvec2*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6890,7 +7009,7 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::dot(*((glm::dvec3*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6909,7 +7028,7 @@ static int dot_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::dot(*((glm::dvec4*)in_ptr_1), *((glm::dvec4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -6936,19 +7055,19 @@ static int inverse_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.inverse");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.inverse", nargs, 
@@ -6962,7 +7081,7 @@ static int inverse_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat3*)output_data) = glm::inverse(*((glm::mat3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -6977,7 +7096,7 @@ static int inverse_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::mat4*)output_data) = glm::inverse(*((glm::mat4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -6992,7 +7111,7 @@ static int inverse_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat3*)output_data) = glm::inverse(*((glm::dmat3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7007,7 +7126,7 @@ static int inverse_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dmat4*)output_data) = glm::inverse(*((glm::dmat4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7033,19 +7152,19 @@ static int length_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.length");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.length", nargs, 
@@ -7059,7 +7178,7 @@ static int length_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::length(*((glm::vec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7074,7 +7193,7 @@ static int length_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::length(*((glm::vec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7089,7 +7208,7 @@ static int length_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::length(*((glm::vec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7104,7 +7223,7 @@ static int length_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::length(*((glm::dvec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7119,7 +7238,7 @@ static int length_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::length(*((glm::dvec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7134,7 +7253,7 @@ static int length_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::length(*((glm::dvec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7160,19 +7279,19 @@ static int normalize_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.normalize");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.normalize", nargs, 
@@ -7186,7 +7305,7 @@ static int normalize_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec2*)output_data) = glm::normalize(*((glm::vec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7201,7 +7320,7 @@ static int normalize_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec3*)output_data) = glm::normalize(*((glm::vec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7216,7 +7335,7 @@ static int normalize_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::vec4*)output_data) = glm::normalize(*((glm::vec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7231,7 +7350,7 @@ static int normalize_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec2*)output_data) = glm::normalize(*((glm::dvec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7246,7 +7365,7 @@ static int normalize_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec3*)output_data) = glm::normalize(*((glm::dvec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7261,7 +7380,7 @@ static int normalize_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((glm::dvec4*)output_data) = glm::normalize(*((glm::dvec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7287,19 +7406,19 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 2) return luaL_error(L, "too many arguments for mathv.perlin");        uint8_t arg_singleton_scratch[2][16*8];
     uint8_t *arg_singleton_bufs[2];
-    for (int i = 0; i < 2; i++) {
+    for (unsigned int i = 0; i < 2; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[2];
-    int arg_stride[2];
-    int arg_count[2];
+    unsigned int arg_stride[2];
+    unsigned int arg_count[2];
     int arg_type[2];
     am_buffer_view_type arg_view_type[2];
-    int arg_components[2];
+    unsigned int arg_components[2];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.perlin", nargs, 
@@ -7313,7 +7432,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = PERLIN1_F32(*((float*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7328,7 +7447,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::perlin(*((glm::vec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7343,7 +7462,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::perlin(*((glm::vec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7358,7 +7477,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::perlin(*((glm::vec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7376,7 +7495,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = PERLIN2_F32(*((float*)in_ptr_1), *((float*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -7395,7 +7514,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::perlin(*((glm::vec2*)in_ptr_1), *((glm::vec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -7414,7 +7533,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::perlin(*((glm::vec3*)in_ptr_1), *((glm::vec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -7433,7 +7552,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::perlin(*((glm::vec4*)in_ptr_1), *((glm::vec4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -7449,7 +7568,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = PERLIN1_F64(*((double*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7464,7 +7583,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::perlin(*((glm::dvec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7479,7 +7598,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::perlin(*((glm::dvec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7494,7 +7613,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::perlin(*((glm::dvec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7512,7 +7631,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = PERLIN2_F64(*((double*)in_ptr_1), *((double*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -7531,7 +7650,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::perlin(*((glm::dvec2*)in_ptr_1), *((glm::dvec2*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -7550,7 +7669,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::perlin(*((glm::dvec3*)in_ptr_1), *((glm::dvec3*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -7569,7 +7688,7 @@ static int perlin_impl(lua_State *L, am_buffer_view *target) {
         uint8_t *in_ptr_1 = &arg_data[0][0];
         int in_stride_2 = arg_stride[1];
         uint8_t *in_ptr_2 = &arg_data[1][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = glm::perlin(*((glm::dvec4*)in_ptr_1), *((glm::dvec4*)in_ptr_2));
             in_ptr_1 += in_stride_1;
             in_ptr_2 += in_stride_2;
@@ -7596,19 +7715,19 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
     int nargs = lua_gettop(L) - (target == NULL ? 0 : 1);
     if (nargs > 1) return luaL_error(L, "too many arguments for mathv.simplex");        uint8_t arg_singleton_scratch[1][16*8];
     uint8_t *arg_singleton_bufs[1];
-    for (int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         arg_singleton_bufs[i] = &arg_singleton_scratch[i][0];
     }
     uint8_t *arg_data[1];
-    int arg_stride[1];
-    int arg_count[1];
+    unsigned int arg_stride[1];
+    unsigned int arg_count[1];
     int arg_type[1];
     am_buffer_view_type arg_view_type[1];
-    int arg_components[1];
+    unsigned int arg_components[1];
     am_buffer_view_type output_view_type;
-    int output_count;
-    int output_components;
-    int output_stride;
+    unsigned int output_count;
+    unsigned int output_components;
+    unsigned int output_stride;
     uint8_t *output_data;
     bool output_is_dense;
     element_wise_setup(L, "mathv.simplex", nargs, 
@@ -7622,7 +7741,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = SIMPLEX1_F32(*((float*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7637,7 +7756,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::simplex(*((glm::vec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7652,7 +7771,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::simplex(*((glm::vec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7667,7 +7786,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((float*)output_data) = glm::simplex(*((glm::vec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7682,7 +7801,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = SIMPLEX1_F64(*((double*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7697,7 +7816,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = SIMPLEX2_F64(*((glm::dvec2*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7712,7 +7831,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = SIMPLEX3_F64(*((glm::dvec3*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
@@ -7727,7 +7846,7 @@ static int simplex_impl(lua_State *L, am_buffer_view *target) {
         create_output_view(L, target, output_view_type, &output_count, output_components, &output_stride, &output_data, &output_is_dense);
         int in_stride_1 = arg_stride[0];
         uint8_t *in_ptr_1 = &arg_data[0][0];
-        for (int i = 0; i < output_count; ++i) {
+        for (unsigned int i = 0; i < output_count; ++i) {
             *((double*)output_data) = SIMPLEX4_F64(*((glm::dvec4*)in_ptr_1));
             in_ptr_1 += in_stride_1;
             output_data += output_stride;
