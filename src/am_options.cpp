@@ -17,7 +17,7 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj] \n"
+        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj]\n"
         "                     [-a] [-r] [-d <out-dir>] [-o <out-path>] [-nozipdir] [ <dir> ]\n"
         "\n"
         "  Exports distribution packages for the project in <dir>,\n"

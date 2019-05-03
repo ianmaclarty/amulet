@@ -647,6 +647,8 @@ static bool gen_ios_xcode_proj(export_config *conf) {
     char *appicon_assets_dir = am_format("%s/AppIcon.appiconset", assets_dir);
     char *appicon_contents_src_path = am_format("%sios/AppIconContents.json", templates_dir);
     char *appicon_contents_dest_path = am_format("%s/Contents.json", appicon_assets_dir);
+    char *entitlements_src_path = am_format("%sios/app.entitlements", templates_dir);
+    char *entitlements_dest_path = am_format("%s/%s.entitlements", projbase_dir, conf->shortname);
     const char *lua_a_file = am_format("%s.a", platform_luavm("ios"));
     am_make_dir(projbase_dir);
     am_make_dir(xcodeproj_dir);
@@ -658,6 +660,7 @@ static bool gen_ios_xcode_proj(export_config *conf) {
         create_ios_xcode_lproj_dirs(projbase_dir, conf) &&
         create_ios_xcode_icon_files(appicon_assets_dir, conf) &&
         copy_text_file(appicon_contents_src_path, appicon_contents_dest_path, NULL) &&
+        copy_text_file(entitlements_src_path, entitlements_dest_path, NULL) &&
         copy_ios_launchscreen_storyboard(projbase_dir, conf) &&
         copy_ios_xcode_bin_file(projbase_dir, conf, "amulet.a") &&
         copy_ios_xcode_bin_file(projbase_dir, conf, "glslopt.a") &&
@@ -677,6 +680,8 @@ static bool gen_ios_xcode_proj(export_config *conf) {
     free(appicon_assets_dir);
     free(appicon_contents_src_path);
     free(appicon_contents_dest_path);
+    free(entitlements_src_path);
+    free(entitlements_dest_path);
     return ok;
 }
 
@@ -925,7 +930,7 @@ static char* get_ios_launchscreen_entries(export_config *conf) {
             ptr++;
         }
         lang[i] = 0;
-        char *res2 = am_format("%s   3D8B60AC2024%04X0040055A /* %s */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = \"%s\"; path = \"%s.lproj/LaunchScreen.strings\"; sourceTree = \"<group>\"; };\n", res, id, lang, lang, lang);
+        char *res2 = am_format("%s\t\t3D8B60AC2024%04X0040055A /* %s */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = \"%s\"; path = \"%s.lproj/LaunchScreen.strings\"; sourceTree = \"<group>\"; };\n", res, id, lang, lang, lang);
         free(res);
         res = res2;
         id++;
@@ -952,7 +957,7 @@ static char* get_ios_launchscreen_children(export_config *conf) {
             ptr++;
         }
         lang[i] = 0;
-        char *res2 = am_format("%s   3D8B60AC2024%04X0040055A /* %s */,\n", res, id, lang);
+        char *res2 = am_format("%s\t\t\t\t3D8B60AC2024%04X0040055A /* %s */,\n", res, id, lang);
         free(res);
         res = res2;
         id++;

@@ -43,6 +43,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3C0E56C1227BB1B700875339 /* AM_APPNAME.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AM_APPNAME.entitlements; sourceTree = "<group>"; };
 		3C27187521A6275000762205 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		3C27187621A6275000762205 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		3C48D1E22254539E002C5B1C /* AM_LAUNCH_IMG */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AM_LAUNCH_IMG; sourceTree = "<group>"; };
@@ -123,6 +124,7 @@
 		3C626A742023EA4A00FF5F20 = {
 			isa = PBXGroup;
 			children = (
+				3C0E56C1227BB1B700875339 /* AM_APPNAME.entitlements */,
 				3C48D1E22254539E002C5B1C /* AM_LAUNCH_IMG */,
 				3CA03D6C202421CA007FC187 /* Dummy.m */,
 				3C626A9F2023EC1200FF5F20 /* data.pak */,
@@ -214,6 +216,9 @@
 								enabled = 1;
 							};
 							com.apple.GameCenter.iOS = {
+								enabled = 1;
+							};
+							com.apple.iCloud = {
 								enabled = 1;
 							};
 						};
@@ -388,6 +393,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                                CODE_SIGN_ENTITLEMENTS = AM_APPNAME.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = AM_CERT_ID;
 				ENABLE_BITCODE = NO;
@@ -410,6 +416,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                                CODE_SIGN_ENTITLEMENTS = AM_APPNAME.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = AM_CERT_ID;
