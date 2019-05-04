@@ -19,6 +19,8 @@
 
 #include <mach/mach_time.h>
 
+//#define AM_IOS_DEBUG
+
 extern bool am_metal_use_highdpi;
 extern bool am_metal_window_depth_buffer;
 extern bool am_metal_window_stencil_buffer;
@@ -143,18 +145,24 @@ static void ios_store_pref_data(const char *key, const void *val, size_t len) {
         size_t existingLen = [existingData length];
         if ((existingLen == len) && (memcmp([existingData bytes], val, len) == 0)) {
             // data is unchanged, so avoid updating the timestamp
-            //am_debug("%s", "not saving because data unchanged");
+            #ifdef AM_IOS_DEBUG
+            am_debug("%s", "not saving because data unchanged");
+            #endif
             return;
         }
     }
     [prefs setObject:dval forKey:skey];
     [prefs setObject:ts forKey:skey_ts];
     if (cloudstore != nil) {
-        //am_debug("storing value in cloud (%lld)", t);
+        #ifdef AM_IOS_DEBUG
+        am_debug("storing value in cloud (%lld)", t);
+        #endif
         [cloudstore setObject:dval forKey:skey];
         [cloudstore setObject:ts forKey:skey_ts];
     } else {
-        //am_debug("%s", "icloud not available");
+        #ifdef AM_IOS_DEBUG
+        am_debug("%s", "icloud not available");
+        #endif
     }
 }
 
@@ -199,15 +207,21 @@ static void* ios_retrieve_pref_data(const char *key, size_t *len) {
         // value is in cloud and local so compare timestamps.
         long long local_ts = [((NSNumber*)local_tsobj) longLongValue];
         long long cloud_ts = [((NSNumber*)cloud_tsobj) longLongValue];
-        //am_debug("value in cloud and local (%lld vs %lld)", cloud_ts, local_ts);
+        #ifdef AM_IOS_DEBUG
+        am_debug("value in cloud and local (%lld vs %lld)", cloud_ts, local_ts);
+        #endif
         use_local = local_ts >= cloud_ts;
     } else if (local_tsobj == nil && cloud_tsobj != nil) {
         // value is in cloud, but not local OR value is in local, but from an older version of amulet with no timestamps.
         // in either case we want to use the cloud version.
         use_local = false;
-        //am_debug("%s", "value in cloud only");
+        #ifdef AM_IOS_DEBUG
+        am_debug("%s", "value in cloud only");
+        #endif
     } else {
-        //am_debug("%s", "value in local only (or neither)");
+        #ifdef AM_IOS_DEBUG
+        am_debug("%s", "value in local only (or neither)");
+        #endif
     }
 
     NSObject *obj = nil;
@@ -491,7 +505,9 @@ static void ios_teardown() {
 }
 
 static void ios_restart() {
-    //am_debug("%s", "restarting...");
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "restarting...");
+    #endif
     ios_performing_restart = true;
     ios_teardown();
     ios_init_engine();
@@ -804,7 +820,9 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 @implementation AMAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    //am_debug("%s", "didFinishLaunchingWithOptions");
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "didFinishLaunchingWithOptions");
+    #endif
     application.delegate = self;
 
     ios_sync_store();
@@ -853,7 +871,9 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 -(void)updateFromiCloud:(NSNotification*) notificationObject
 {
-    //am_debug("%s", "updateFromiCloud");
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "updateFromiCloud");
+    #endif
     ios_was_icloud_update = true;
 }
 
@@ -881,24 +901,32 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    //am_debug("%s", "applicationDidEnterBackground");
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "applicationDidEnterBackground");
+    #endif
     ios_entered_background();
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    //am_debug("%s", "applicationWillEnterForeground");
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "applicationWillEnterForeground");
+    #endif
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
 {
-    //am_debug("%s", "applicationWillResignActive");
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "applicationWillResignActive");
+    #endif
     ios_resign_active();
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
-    //am_debug("%s", "applicationDidBecomeActive");
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "applicationDidBecomeActive");
+    #endif
     ios_become_active();
 }
 
