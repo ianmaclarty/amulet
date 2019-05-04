@@ -27,7 +27,7 @@ struct export_config {
     am_display_orientation orientation;
     const char *launch_image;
     // each time we generate an iOS launch image we give it a unique suffix
-    // to avoid a bug where if the same file name is used, then image isn't 
+    // to avoid a bug where if the same file name is used, then image isn't
     // updated on the device.
     unsigned int launch_image_id;
     const char *grade;
@@ -97,7 +97,7 @@ static bool copy_text_file(const char *from_path, const char *to_path, char **su
 }
 
 static bool copy_bin_file(const char *from_path, const char *to_path) {
-    size_t len; 
+    size_t len;
     void *data = am_read_file(from_path, &len);
     if (data == NULL) return false;
     bool result = am_write_bin_file(to_path, data, len);
@@ -180,7 +180,7 @@ static bool add_data_files_to_zip(export_config *conf, const char *zipfile, cons
     if (conf->allfiles) {
         return add_files_to_pak(zipfile, rootdir, dir, "*", ZIP_PLATFORM_DOS);
     } else {
-        return 
+        return
             add_files_to_pak(zipfile, rootdir, dir, "*.lua", ZIP_PLATFORM_DOS) &&
             add_files_to_pak(zipfile, rootdir, dir, "*.png", ZIP_PLATFORM_DOS) &&
             add_files_to_pak(zipfile, rootdir, dir, "*.jpg", ZIP_PLATFORM_DOS) &&
@@ -323,7 +323,7 @@ static bool gen_mac_export(export_config *conf, bool print_message) {
         add_files_to_dist(zipname, ".", conf->pakfile, zipdir, name, ".app/Contents/Resources/data.pak", false, false, ZIP_PLATFORM_UNIX) &&
         add_files_to_dist(zipname, AM_TMP_DIR, "Info.plist", zipdir, name, ".app/Contents/Info.plist", true, false, ZIP_PLATFORM_UNIX) &&
         (
-        (icon_created && 
+        (icon_created &&
             add_files_to_dist(zipname, AM_TMP_DIR, "icon.icns", zipdir, name, ".app/Contents/Resources/icon.icns", true, false, ZIP_PLATFORM_UNIX))
         ||
         ((!icon_created) &&
@@ -563,7 +563,7 @@ static bool copy_ios_launchscreen_storyboard(char *projbase_dir, export_config *
     char *base_lproj_dir = am_format("%s/Base.lproj", projbase_dir);
     char *storyboard_dest_path = am_format("%s/LaunchScreen.storyboard", base_lproj_dir);
     am_make_dir(base_lproj_dir);
-    bool ok = 
+    bool ok =
         am_execute_shell_cmd("rm -f %s/launchimg_*.png", projbase_dir) &&
         copy_text_file(storyboard_src_path, storyboard_dest_path, (char**)subs) &&
         copy_bin_file(launch_img_filename, launch_img_dest_path);
@@ -725,6 +725,11 @@ static bool gen_linux_export(export_config *conf) {
     return ok;
 }
 
+static bool gen_data_pak_export(export_config *conf) {
+    copy_bin_file(conf->pakfile, am_format("%sdata.pak", conf->outdir));
+    return true;
+}
+
 static bool gen_html_export(export_config *conf) {
     char *zipname = get_export_zip_name(conf, "html");
     if (am_file_exists(zipname)) am_delete_file(zipname);
@@ -798,6 +803,7 @@ bool am_build_exports(am_export_flags *flags) {
         ((!(flags->export_ios_xcode_proj)) || gen_ios_xcode_proj(&conf)) &&
         ((!(flags->export_linux))          || gen_linux_export(&conf)) &&
         ((!(flags->export_html))           || gen_html_export(&conf)) &&
+        ((!(flags->export_data_pak))       || gen_data_pak_export(&conf)) &&
         true;
     am_delete_file(conf.pakfile);
     am_delete_empty_dir(AM_TMP_DIR);
@@ -817,7 +823,7 @@ static bool create_mac_info_plist(const char *binpath, const char *filename, exp
     free(template_filename);
     if (template_fmt == NULL) return false;
 
-    fprintf(f, template_fmt, 
+    fprintf(f, template_fmt,
         conf->title, // CFBundleName
         conf->display_name, // CFBundleDisplayName
         conf->dev_region, // CFBundleDevelopmentRegion
