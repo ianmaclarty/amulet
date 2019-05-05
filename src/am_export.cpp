@@ -726,8 +726,16 @@ static bool gen_linux_export(export_config *conf) {
 }
 
 static bool gen_data_pak_export(export_config *conf) {
-    copy_bin_file(conf->pakfile, am_format("%sdata.pak", conf->outdir));
-    return true;
+    char *dest_path;
+    if (conf->outpath != NULL) {
+        dest_path = am_format("%s", conf->outpath);
+    } else {
+        dest_path = am_format("%sdata.pak", conf->outdir);
+    }
+    bool ok = copy_bin_file(conf->pakfile, dest_path);
+    if (ok) printf("Generated %s\n", dest_path);
+    free(dest_path);
+    return ok;
 }
 
 static bool gen_html_export(export_config *conf) {

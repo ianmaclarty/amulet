@@ -13,7 +13,7 @@ To generate distribution packages, use the amulet export command like so:
 This will generate zip package files for Windows, Mac and Linux in the
 current directory.
 Alternatively you can pass one of the
-options `-windows`, `-mac`, `-linux`, `-html`, `-ios-xcode-proj` or `-datapak`, to
+options `-windows`, `-mac`, `-linux`, `-html` or `-ios-xcode-proj`, to
 generate packages for a specific platform.
 
 If the `-r` option is given then all subdirectories will also be included
@@ -54,6 +54,13 @@ As a courtesy to the user, the generate zip packages will contain the game
 files in a sub-folder. If you instead want the game files to appear in the
 root of the zip, use -nozipdir. You might want this if the game will
 run from a launcher such as Steam.
+
+If you want to generate only the `data.pak` file for your project 
+you can specify the `-datapak` option. It behaves in a similar way to the
+platform options, but generates a platform agnostic `data.pak` file
+containing your projects Lua files and other assets. You might want to do this
+to update a previously generated xcode project without regenerating all the
+project files.
 
 The generated zip will also contain an `amulet_license.txt` file
 containing the Amulet license as well as the licenses of all third
