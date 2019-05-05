@@ -17,14 +17,14 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj]\n"
+        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj] [-datapak]\n"
         "                     [-a] [-r] [-d <out-dir>] [-o <out-path>] [-nozipdir] [ <dir> ]\n"
         "\n"
         "  Exports distribution packages for the project in <dir>,\n"
         "  or the current directory if <dir> is omitted.\n"
         "  <dir> should contain main.lua and conf.lua.\n"
         "\n"
-        "  If no export platform is specified, then packages for windows,\n" 
+        "  If no export platform is specified, then packages for windows,\n"
         "  mac and linux will be generated.\n"
         "\n"
         "  Unless the -a options is given, only files with the following\n"
@@ -178,6 +178,8 @@ static bool export_cmd(int *argc, char ***argv) {
             flags.export_ios_xcode_proj = true;
         } else if (strcmp(arg, "-html") == 0) {
             flags.export_html = true;
+        } else if (strcmp(arg, "-datapak") == 0) {
+            flags.export_data_pak = true;
         } else if (strcmp(arg, "-r") == 0) {
             flags.recurse = true;
         } else if (strcmp(arg, "-a") == 0) {
@@ -346,11 +348,11 @@ bool am_process_args(int *argc, char ***argv, int *exit_status) {
             am_opt_main_module = "main";
         } else if (!am_file_exists("data.pak")) {
             if (*argc > 0) {
-                fprintf(stderr, 
+                fprintf(stderr,
                     "'%s' is not a lua file and no main.lua found in the current directory.\n"
                     "Type 'amulet help' for usage information.\n", (*argv)[0]);
             } else {
-                fprintf(stderr, 
+                fprintf(stderr,
                     "No main.lua found in the current directory.\n"
                     "Type 'amulet help' for usage information.\n");
             }

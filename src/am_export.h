@@ -7,6 +7,7 @@ struct am_export_flags {
     bool export_linux;
     bool export_html;
     bool export_ios_xcode_proj;
+    bool export_data_pak;
     bool recurse;
     bool allfiles;;
     bool zipdir;
@@ -33,7 +34,8 @@ struct am_export_flags {
              + (export_mac_app_store ? 1 : 0)
              + (export_linux ? 1 : 0)
              + (export_html ? 1 : 0)
-             + (export_ios_xcode_proj ? 1 : 0);
+             + (export_ios_xcode_proj ? 1 : 0)
+             + (export_data_pak ? 1 : 0);
     }
 };
 
