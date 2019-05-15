@@ -35,8 +35,8 @@ static am_package *package = NULL;
 static am_display_orientation ios_orientation = AM_DISPLAY_ORIENTATION_ANY;
 static bool ios_window_created = false;
 static bool ios_running = false;
+static bool ios_paused = false;
 static bool ios_audio_initialized = false;
-static bool ios_audio_paused = false;
 static bool ios_force_touch_recognised = false;
 static bool force_touch_is_available();
 static float *ios_audio_buffer = NULL;
@@ -286,27 +286,6 @@ static void set_audio_category() {
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 }
 
-/*
-static void ios_audio_suspend() {
-    ios_audio_paused = true;
-}
-
-static void ios_audio_resume() {
-    ios_audio_paused = false;
-}
-
-static void audio_interrupt(void *ud, UInt32 state) {
-    if (state == kAudioSessionBeginInterruption) {
-        AudioSessionSetActive(NO);
-        ios_audio_suspend();
-    } else if (state == kAudioSessionEndInterruption) {
-        set_audio_category();
-        AudioSessionSetActive(YES);
-        ios_audio_resume();
-    }
-}
-*/
-
 static bool open_package() {
     char *package_filename = am_format("%s/%s", am_opt_data_dir, "data.pak");
     if (am_file_exists(package_filename)) {
@@ -330,7 +309,7 @@ ios_audio_callback(void *inRefCon,
                UInt32 inBusNumber, UInt32 inNumberFrames,
                AudioBufferList * ioData)
 {
-    if (!ios_audio_initialized || ios_audio_paused) {
+    if (!ios_audio_initialized || ios_paused) {
         for (int i = 0; i < ioData->mNumberBuffers; i++) {
             AudioBuffer *abuf = &ioData->mBuffers[i];
             // silence.
@@ -463,6 +442,7 @@ static void ios_init_audio() {
 
 static void ios_init_engine() {
     ios_running = false;
+    ios_paused = false;
 
     am_opt_data_dir = ios_bundle_path();
     am_opt_main_module = "main";
@@ -534,6 +514,7 @@ static void ios_update() {
     }
     frames_since_disable_animations++;
     if (!ios_running) return;
+    if (ios_paused) return;
 
     [ios_audio_mutex lock];
     am_sync_audio_graph(ios_eng->L);
@@ -542,9 +523,6 @@ static void ios_update() {
     frame_time = am_get_current_time();
     
     real_delta_time = frame_time - t0;
-    if (am_conf_warn_delta_time > 0.0 && real_delta_time > am_conf_warn_delta_time) {
-        am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);
-    }
     // take min in case app paused, or last frame took very long
     delta_time = am_min(am_conf_max_delta_time, real_delta_time); 
     t_debt += delta_time;
@@ -639,7 +617,7 @@ static void ios_entered_background() {
 }
 
 static void ios_resign_active() {
-    // XXX ltClientShutdown();
+    ios_paused = true;
 }
 
 static void ios_become_active() {
@@ -657,6 +635,7 @@ static void ios_become_active() {
             am_call_amulet(ios_eng->L, "_reset_window_event_data", 1, 0);
         }
     }
+    ios_paused = false;
 }
 
 #ifdef AM_GOOGLE_ADS
