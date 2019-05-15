@@ -799,9 +799,16 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     return YES;
 }
 
--(BOOL)prefersHomeIndicatorAutoHidden
+// apparently if this is set, then preferredScreenEdgesDeferringSystemGestures below
+// does not work on iOS12 (https://stackoverflow.com/questions/52716873/stop-app-going-to-background-when-swiping-up-from-bottom-edge-on-iphone-x-ios-12)
+//-(BOOL)prefersHomeIndicatorAutoHidden
+//{
+//    return YES;
+//}
+
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
 {
-    return YES;
+    return UIRectEdgeAll;
 }
 
 @end
