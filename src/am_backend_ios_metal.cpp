@@ -778,8 +778,10 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     return YES;
 }
 
-// apparently if this is set, then preferredScreenEdgesDeferringSystemGestures below
-// does not work on iOS12 (https://stackoverflow.com/questions/52716873/stop-app-going-to-background-when-swiping-up-from-bottom-edge-on-iphone-x-ios-12)
+// If this returns YES, then preferredScreenEdgesDeferringSystemGestures below does
+// not apply to the task switcher bar at the bottom of the screen. The auto-hide is pretty
+// useless anyway, since any tap seems to cause it to display. At least with deferred gestures
+// it remains half faded out.
 //-(BOOL)prefersHomeIndicatorAutoHidden
 //{
 //    return YES;
