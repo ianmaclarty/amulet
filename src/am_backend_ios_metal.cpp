@@ -1248,6 +1248,7 @@ static GameCenterDelegate *gamecenter_delegate = nil;
 
 @implementation GameCenterDelegate
 - (void)gameCenterViewControllerDidFinish:(GKGameCenterViewController *)viewController {
+    ios_paused = false;
     if (ios_view_controller != nil) {
         [ios_view_controller dismissViewControllerAnimated:YES completion:nil];
         if (ios_view != nil && ios_eng != NULL) {
@@ -1392,7 +1393,9 @@ static int show_gamecenter_leaderboard(lua_State *L) {
             leaderboard_view_controller.gameCenterDelegate = gamecenter_delegate;
         }
         leaderboard_view_controller.leaderboardIdentifier = category;
-        [ios_view_controller presentViewController:leaderboard_view_controller animated:YES completion:nil];
+        [ios_view_controller presentViewController:leaderboard_view_controller animated:YES completion:^{
+            ios_paused = true;
+        }];
     }
     return 0;
 }
