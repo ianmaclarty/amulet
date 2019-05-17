@@ -843,9 +843,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
         ios_force_touch_recognised = true;
     }
 
-    ios_init_engine();
-    ios_init_audio();
- 
     AMViewController * viewController = [[AMViewController alloc] initWithNibName:nil bundle:nil];
     viewController.view = view;
     self.window.rootViewController = viewController;
@@ -854,6 +851,10 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
 
     [self.window makeKeyAndVisible];
+
+    ios_init_engine();
+    ios_init_audio();
+ 
     return YES;
 }
 
@@ -875,6 +876,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     float scale = am_metal_ios_view.contentScaleFactor;
     am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
     am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
+
     @autoreleasepool {
         //am_debug("%s", "draw"); 
         if (ios_done_first_draw) {
@@ -1164,6 +1166,23 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *ph = am_metal_window_pheight;
     *sw = am_metal_window_swidth;
     *sh = am_metal_window_sheight;
+}
+
+void am_get_native_window_safe_area_margin(am_native_window *window, 
+    int *left, int *right, int *bottom, int *top)
+{
+    if (ios_view != nil && ios_view.window != nil) {
+        UIEdgeInsets safe_insets = ios_view.window.safeAreaInsets;
+        *left = (int)safe_insets.left;
+        *right = (int)safe_insets.right;
+        *bottom = (int)safe_insets.bottom;
+        *top = (int)safe_insets.top;
+    } else {
+        *left = 0;
+        *right = 0;
+        *bottom = 0;
+        *top = 0;
+    }
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {

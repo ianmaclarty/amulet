@@ -235,6 +235,15 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
 #endif
 }
 
+void am_get_native_window_safe_area_margin(am_native_window *window, 
+    int *left, int *right, int *bottom, int *top)
+{
+    *left = 0;
+    *right = 0;
+    *bottom = 0;
+    *top = 0;
+}
+
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
     for (unsigned int i = 0; i < windows.size(); i++) {
         if (windows[i].window == (SDL_Window*)window) {

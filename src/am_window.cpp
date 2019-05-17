@@ -384,6 +384,11 @@ static void compute_viewport(am_window *win) {
         win->user_right = ceilf(w0 / 2.0);
         win->user_bottom = floorf(-h0 / 2.0);
         win->user_top = ceilf(h0 / 2.0);
+
+        win->user_safe_left = win->user_left;
+        win->user_safe_right = win->user_right;
+        win->user_safe_bottom = win->user_bottom;
+        win->user_safe_top = win->user_top;
     } else {
         double sy = h1 / h0;
         double dx = (w1 - w0 * sy) / (2.0 * w0 * sy);
@@ -409,7 +414,24 @@ static void compute_viewport(am_window *win) {
         win->viewport_y = 0;
         win->viewport_width = win->pixel_width;
         win->viewport_height = win->pixel_height;
+
+        {
+            // compute safe area
+            int l, r, b, t;
+            am_get_native_window_safe_area_margin(win->native_win, &l, &r, &b, &t);
+            double w = win->user_right - win->user_left;
+            double h = win->user_top - win->user_bottom;
+            double margin_l = ((double)l / (double)win->screen_width) * w;
+            double margin_r = ((double)r / (double)win->screen_width) * w;
+            double margin_b = ((double)b / (double)win->screen_height) * h;
+            double margin_t = ((double)t / (double)win->screen_height) * h;
+            win->user_safe_left = win->user_left + margin_l;
+            win->user_safe_right = win->user_right - margin_r;
+            win->user_safe_bottom = win->user_bottom + margin_b;
+            win->user_safe_top = win->user_top - margin_t;
+        }
     }
+
     if (!win->user_projection) { // don't change user supplied projection
         win->projection = glm::ortho(win->user_left, win->user_right,
             win->user_bottom, win->user_top, -1.0, 1.0);
@@ -592,6 +614,31 @@ static void get_window_pixel_height(lua_State *L, void *obj) {
 static am_property pixel_width_property = {get_window_pixel_width, NULL};
 static am_property pixel_height_property = {get_window_pixel_height, NULL};
 
+static void get_window_safe_left(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_safe_left);
+}
+
+static void get_window_safe_right(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_safe_right);
+}
+
+static void get_window_safe_bottom(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_safe_bottom);
+}
+
+static void get_window_safe_top(lua_State *L, void *obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushinteger(L, window->user_safe_top);
+}
+
+static am_property safe_left_property = {get_window_safe_left, NULL};
+static am_property safe_right_property = {get_window_safe_right, NULL};
+static am_property safe_bottom_property = {get_window_safe_bottom, NULL};
+static am_property safe_top_property = {get_window_safe_top, NULL};
+
 static void get_projection(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     am_new_userdata(L, am_mat4)->m = window->projection;
@@ -705,6 +752,10 @@ static void register_window_mt(lua_State *L) {
     am_register_property(L, "top", &top_property);
     am_register_property(L, "width", &width_property);
     am_register_property(L, "height", &height_property);
+    am_register_property(L, "safe_left", &safe_left_property);
+    am_register_property(L, "safe_right", &safe_right_property);
+    am_register_property(L, "safe_bottom", &safe_bottom_property);
+    am_register_property(L, "safe_top", &safe_top_property);
     am_register_property(L, "mode", &window_mode_property);
     am_register_property(L, "clear_color", &clear_color_property);
     am_register_property(L, "stencil_clear_value", &stencil_clear_value_property);

@@ -165,6 +165,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#window.height">window.height</a></li>
 <li><a href="#window.pixel_width">window.pixel_width</a></li>
 <li><a href="#window.pixel_height">window.pixel_height</a></li>
+<li><a href="#window.safe_left">window.safe_left</a></li>
+<li><a href="#window.safe_right">window.safe_right</a></li>
+<li><a href="#window.safe_bottom">window.safe_bottom</a></li>
+<li><a href="#window.safe_top">window.safe_top</a></li>
 <li><a href="#window.mode">window.mode</a></li>
 <li><a href="#window.clear_color">window.clear_color</a></li>
 <li><a href="#window.stencil_clear_value">window.stencil_clear_value</a></li>
@@ -1635,6 +1639,22 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>Readonly.</p>
 <h3 id="window.pixel_height" class="field-def">window.pixel_height</h3>
 <p>The real height of the window in pixels</p>
+<p>Readonly.</p>
+<h3 id="window.safe_left" class="func-def">window.safe_left</h3>
+<p>The x coordinate of the left edge of the window's safe area in the window's default coordinate system.</p>
+<p>This should be used to position elements that you don't want obscured by e.g. the iPhone X notch.</p>
+<p>Readonly.</p>
+<h3 id="window.safe_right" class="func-def">window.safe_right</h3>
+<p>The x coordinate of the right edge of the window's safe area, in the window's default coordinate system.</p>
+<p>This should be used to position elements that you don't want obscured by e.g. the iPhone X notch.</p>
+<p>Readonly.</p>
+<h3 id="window.safe_bottom" class="func-def">window.safe_bottom</h3>
+<p>The y coordinate of the bottom edge of the window's safe area, in the window's default coordinate system.</p>
+<p>This should be used to position elements that you don't want obscured by e.g. the iPhone X notch.</p>
+<p>Readonly.</p>
+<h3 id="window.safe_top" class="func-def">window.safe_top</h3>
+<p>The y coordinate of the top edge of the window's safe area, in the window's default coordinate system.</p>
+<p>This should be used to position elements that you don't want obscured by e.g. the iPhone X notch.</p>
 <p>Readonly.</p>
 <h3 id="window.mode" class="field-def">window.mode</h3>
 <p>See <a href="#am.window">window settings</a>.</p>
