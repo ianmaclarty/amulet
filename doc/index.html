@@ -2955,6 +2955,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>Save the table <code>state</code> under <code>key</code>.</p>
 <p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
 <p>The location of the save file varies from platform to platform, but will generally be the recommended location to store app data on that system. The <code>shortname</code> and <code>author</code> fields from <a href="#config"><code>conf.lua</code></a> will be used to derive this location if provided.</p>
+<p>On iOS this also saves to iCloud. Be aware that iCloud has a 1MB size limit.</p>
 <p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code by modifying the save file.</p>
 <h3 id="am.load_statekey-format">am.load_state(key, [,format])</h3>
 <p>Loads the table saved under <code>key</code> and returns it. If no table has been previously saved under <code>key</code> then <code>nil</code> is returned.</p>
