@@ -362,17 +362,25 @@ static bool gen_mac_app_store_export(export_config *conf) {
     }
     am_delete_file(zipname);
     free(zipname);
+    char *pkgfile;
+    if (conf->outpath != NULL) {
+        pkgfile = am_format("%s", conf->outpath);
+    } else {
+        pkgfile = am_format("%s%s-%s-mac-app-store.pkg", conf->outdir, conf->shortname, conf->version);
+    }
     if (!am_execute_shell_cmd("cd %s/%s && codesign -f --deep -s '%s' --entitlements ../%s.entitlements '%s.app'",
         AM_TMP_DIR, conf->shortname, am_conf_mac_application_cert_identity, conf->shortname, conf->title)
     ) {
         return false;
     }
-    if (!am_execute_shell_cmd("cd %s/%s && productbuild --component '%s.app' /Applications --sign '%s' ../../%s-%s-mac-app-store.pkg",
-        AM_TMP_DIR, conf->shortname, conf->title, am_conf_mac_installer_cert_identity, conf->shortname, conf->version)
+    const char *pkgdir = (pkgfile[0] == '/') ? "" : "../../";
+    if (!am_execute_shell_cmd("cd %s/%s && productbuild --component '%s.app' /Applications --sign '%s' %s%s",
+        AM_TMP_DIR, conf->shortname, conf->title, am_conf_mac_installer_cert_identity, pkgdir, pkgfile)
     ) {
         return false;
     }
-    printf("Generated %s-%s-mac-app-store.pkg\n", conf->shortname, conf->version);
+    printf("Generated %s\n", pkgfile);
+    free(pkgfile);
     return true;
 }
 
