@@ -119,7 +119,7 @@ void am_buffer_view::update_max_elem_if_required() {
 static int create_buffer(lua_State *L) {
     am_check_nargs(L, 1);
     int size = luaL_checkinteger(L, 1);
-    if (size <= 0) return luaL_error(L, "size should be greater than 0");
+    if (size < 0) return luaL_error(L, "size should be non-negative");
     am_new_userdata(L, am_buffer, size);
     return 1;
 }

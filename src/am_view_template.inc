@@ -204,6 +204,11 @@ static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *d
 static int AM_CONCAT(TNAME,_view_set)(lua_State *L) {
     int nargs = am_check_nargs(L, 2);
     am_buffer_view *view = am_get_userdata(L, am_buffer_view, 1);
+    if (view->size == 0) {
+        // nothing to set
+        lua_pushvalue(L, 1); // for chaining
+        return 1;
+    }
     int sz = INT_MAX;
     int start = 1;
     if (nargs > 2) {
