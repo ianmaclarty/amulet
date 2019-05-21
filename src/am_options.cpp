@@ -17,14 +17,14 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj] \n"
+        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj] [-datapak]\n"
         "                     [-a] [-r] [-d <out-dir>] [-o <out-path>] [-nozipdir] [ <dir> ]\n"
         "\n"
         "  Exports distribution packages for the project in <dir>,\n"
         "  or the current directory if <dir> is omitted.\n"
         "  <dir> should contain main.lua and conf.lua.\n"
         "\n"
-        "  If no export platform is specified, then packages for windows,\n" 
+        "  If no export platform is specified, then packages for windows,\n"
         "  mac and linux will be generated.\n"
         "\n"
         "  Unless the -a options is given, only files with the following\n"
@@ -41,6 +41,11 @@ static bool help_export() {
         "  The -o option allows you to specify the complete path (dir + filename) of\n"
         "  the generated package. In this case the -d option is ignored. The -o option\n"
         "  doesn't work if you're exporting multiple platforms at once.\n"
+        "\n"
+        "  The -datapak option causes the platform agnostic data.pak file to be generated.\n"
+        "  This contains all your project's Lua source, images and other assets.\n"
+        "  You can use this to create your own custom distribution or update a previously\n"
+        "  generated distribution manually.\n"
         "\n"
         "  As a courtesy to the user, the generate zip packages will contain the game\n"
         "  files in a sub-folder. If you instead want the game files to appear in the\n"
@@ -178,6 +183,8 @@ static bool export_cmd(int *argc, char ***argv) {
             flags.export_ios_xcode_proj = true;
         } else if (strcmp(arg, "-html") == 0) {
             flags.export_html = true;
+        } else if (strcmp(arg, "-datapak") == 0) {
+            flags.export_data_pak = true;
         } else if (strcmp(arg, "-r") == 0) {
             flags.recurse = true;
         } else if (strcmp(arg, "-a") == 0) {
@@ -346,11 +353,11 @@ bool am_process_args(int *argc, char ***argv, int *exit_status) {
             am_opt_main_module = "main";
         } else if (!am_file_exists("data.pak")) {
             if (*argc > 0) {
-                fprintf(stderr, 
+                fprintf(stderr,
                     "'%s' is not a lua file and no main.lua found in the current directory.\n"
                     "Type 'amulet help' for usage information.\n", (*argv)[0]);
             } else {
-                fprintf(stderr, 
+                fprintf(stderr,
                     "No main.lua found in the current directory.\n"
                     "Type 'amulet help' for usage information.\n");
             }

@@ -19,6 +19,8 @@
 
 #include <mach/mach_time.h>
 
+//#define AM_IOS_DEBUG
+
 extern bool am_metal_use_highdpi;
 extern bool am_metal_window_depth_buffer;
 extern bool am_metal_window_stencil_buffer;
@@ -33,8 +35,8 @@ static am_package *package = NULL;
 static am_display_orientation ios_orientation = AM_DISPLAY_ORIENTATION_ANY;
 static bool ios_window_created = false;
 static bool ios_running = false;
+static bool ios_paused = false;
 static bool ios_audio_initialized = false;
-static bool ios_audio_paused = false;
 static bool ios_force_touch_recognised = false;
 static bool force_touch_is_available();
 static float *ios_audio_buffer = NULL;
@@ -59,11 +61,16 @@ static double frame_time = 0.0;
 static double delta_time;
 static double real_delta_time;
 
+static bool ios_performing_restart = false;
+static bool ios_was_icloud_update = false;
+
 extern MTKView *am_metal_ios_view;
 
 //static void init_gamecenter();
 
 #define MIN_UPDATE_TIME (1.0/400.0)
+
+static void ios_sync_store();
 
 //---------------------------------------------------------------------------
 
@@ -114,37 +121,128 @@ static const char *ios_bundle_path() {
 //------------- prefs store ----------------
 
 static NSUserDefaults *prefs = nil;
+static NSUbiquitousKeyValueStore *cloudstore = nil;
 
 static void ensure_prefs_initialized() {
     if (prefs == nil) {
         prefs = [NSUserDefaults standardUserDefaults];
     }
+    if (cloudstore == nil) {
+        cloudstore = [NSUbiquitousKeyValueStore defaultStore];
+    }
 }
 
-static void ios_store_pref_data(const char *key, const char *val) {
+static void ios_store_pref_data(const char *key, const void *val, size_t len) {
     ensure_prefs_initialized();
+    long long t = (long long)time(NULL);
+    NSNumber *ts = [NSNumber numberWithLongLong:t];
     NSString *skey = [NSString stringWithUTF8String:key];
-    NSString *sval = [NSString stringWithUTF8String:val];
-    [prefs setObject:sval forKey:skey];
+    NSString *skey_ts = [skey stringByAppendingString:@"_timestamp"];
+    NSData *dval = [NSData dataWithBytes:val length:len];
+    NSObject *existingObj = [prefs objectForKey:skey];
+    if (existingObj != nil && [existingObj isKindOfClass:[NSData class]]) {
+        NSData *existingData = (NSData*)existingObj;
+        size_t existingLen = [existingData length];
+        if ((existingLen == len) && (memcmp([existingData bytes], val, len) == 0)) {
+            // data is unchanged, so avoid updating the timestamp
+            #ifdef AM_IOS_DEBUG
+            am_debug("%s", "not saving because data unchanged");
+            #endif
+            return;
+        }
+    }
+    [prefs setObject:dval forKey:skey];
+    [prefs setObject:ts forKey:skey_ts];
+    if (cloudstore != nil) {
+        #ifdef AM_IOS_DEBUG
+        am_debug("storing value in cloud (%lld)", t);
+        #endif
+        [cloudstore setObject:dval forKey:skey];
+        [cloudstore setObject:ts forKey:skey_ts];
+    } else {
+        #ifdef AM_IOS_DEBUG
+        am_debug("%s", "icloud not available");
+        #endif
+    }
 }
 
 static int ios_store_pref(lua_State *L) {
     am_check_nargs(L, 2);
     const char *key = lua_tostring(L, 1);
-    const char *val = lua_tostring(L, 2);
     if (key == NULL) return luaL_error(L, "expecting a string in position 1");
-    if (val == NULL) return luaL_error(L, "expecting a string in position 2");
-    ios_store_pref_data(key, val);
+    int valtype = am_get_type(L, 2);
+    size_t len;
+    const void *val;
+    switch (valtype) {
+        case MT_am_buffer: {
+            am_buffer *buf = am_get_userdata(L, am_buffer, 2);
+            val = (const void*)buf->data;
+            len = (size_t)buf->size;
+            break;
+        }
+        default: {
+            val = (const void*)lua_tolstring(L, 2, &len);
+            break;
+        }
+    }
+    if (val == NULL) return luaL_error(L, "expecting a string or non-empty buffer in position 2");
+    ios_store_pref_data(key, val, len);
     return 0;
 }
 
-static char* ios_retrieve_pref_data(const char *key) {
+static void* ios_retrieve_pref_data(const char *key, size_t *len) {
+    *len = 0;
     ensure_prefs_initialized();
-    NSString *sval = [prefs stringForKey:[NSString stringWithUTF8String:key]];
-    if (sval != nil) {
-        const char *val0 = [sval UTF8String];
-        char *val = (char*)malloc(strlen(val0) + 1);
-        strcpy(val, val0);
+
+    NSString *skey = [NSString stringWithUTF8String:key];
+    NSString *skey_ts = [skey stringByAppendingString:@"_timestamp"];
+    NSObject *local_tsobj = [prefs objectForKey:skey_ts];
+    NSObject *cloud_tsobj = nil;
+
+    bool use_local = true;
+    if (cloudstore != nil) {
+        cloud_tsobj = [cloudstore objectForKey:skey_ts];
+    }
+    if (local_tsobj != nil && cloud_tsobj != nil) {
+        // value is in cloud and local so compare timestamps.
+        long long local_ts = [((NSNumber*)local_tsobj) longLongValue];
+        long long cloud_ts = [((NSNumber*)cloud_tsobj) longLongValue];
+        #ifdef AM_IOS_DEBUG
+        am_debug("value in cloud and local (%lld vs %lld)", cloud_ts, local_ts);
+        #endif
+        use_local = local_ts >= cloud_ts;
+    } else if (local_tsobj == nil && cloud_tsobj != nil) {
+        // value is in cloud, but not local OR value is in local, but from an older version of amulet with no timestamps.
+        // in either case we want to use the cloud version.
+        use_local = false;
+        #ifdef AM_IOS_DEBUG
+        am_debug("%s", "value in cloud only");
+        #endif
+    } else {
+        #ifdef AM_IOS_DEBUG
+        am_debug("%s", "value in local only (or neither)");
+        #endif
+    }
+
+    NSObject *obj = nil;
+    if (use_local) {
+        obj = [prefs objectForKey:skey];
+    } else {
+        obj = [cloudstore objectForKey:skey];
+    }
+    if (obj == nil) return NULL;
+    if ([obj isKindOfClass:[NSData class]]) {
+        NSData *data = (NSData*)obj;
+        *len = [data length];
+        void* val = malloc(*len);
+        memcpy(val, [data bytes], *len);
+        return val;
+    } else if ([obj isKindOfClass:[NSString class]]) {
+        // check for NSString for backwards compatibility
+        const char *str = [((NSString*)obj) UTF8String];
+        *len = strlen(str);
+        void* val = malloc(*len);
+        memcpy(val, str, *len);
         return val;
     } else {
         return NULL;
@@ -155,11 +253,12 @@ static int ios_retrieve_pref(lua_State *L) {
     am_check_nargs(L, 1);
     const char *key = lua_tostring(L, 1);
     if (key == NULL) return luaL_error(L, "expecting a string in position 1");
-    char *val = ios_retrieve_pref_data(key);
+    size_t len;
+    void *val = ios_retrieve_pref_data(key, &len);
     if (val == NULL) {
         lua_pushnil(L);
     } else {
-        lua_pushstring(L, val);
+        lua_pushlstring(L, (char*)val, len);
         free(val);
     }
     return 1;
@@ -171,8 +270,12 @@ static int force_touch_available(lua_State *L) {
 }
 
 static void ios_sync_store() {
+    ensure_prefs_initialized();
     if (prefs != nil) {
         [prefs synchronize];
+    }
+    if (cloudstore != nil) {
+        [cloudstore synchronize];
     }
 }
 
@@ -182,27 +285,6 @@ static void ios_sync_store() {
 static void set_audio_category() {
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 }
-
-/*
-static void ios_audio_suspend() {
-    ios_audio_paused = true;
-}
-
-static void ios_audio_resume() {
-    ios_audio_paused = false;
-}
-
-static void audio_interrupt(void *ud, UInt32 state) {
-    if (state == kAudioSessionBeginInterruption) {
-        AudioSessionSetActive(NO);
-        ios_audio_suspend();
-    } else if (state == kAudioSessionEndInterruption) {
-        set_audio_category();
-        AudioSessionSetActive(YES);
-        ios_audio_resume();
-    }
-}
-*/
 
 static bool open_package() {
     char *package_filename = am_format("%s/%s", am_opt_data_dir, "data.pak");
@@ -227,7 +309,7 @@ ios_audio_callback(void *inRefCon,
                UInt32 inBusNumber, UInt32 inNumberFrames,
                AudioBufferList * ioData)
 {
-    if (!ios_audio_initialized || ios_audio_paused) {
+    if (!ios_audio_initialized || ios_paused) {
         for (int i = 0; i < ioData->mNumberBuffers; i++) {
             AudioBuffer *abuf = &ioData->mBuffers[i];
             // silence.
@@ -360,11 +442,14 @@ static void ios_init_audio() {
 
 static void ios_init_engine() {
     ios_running = false;
+    ios_paused = false;
 
     am_opt_data_dir = ios_bundle_path();
     am_opt_main_module = "main";
-    if (!open_package()) return;
-    if (!am_load_config()) return;
+    if (!ios_performing_restart) {
+        if (!open_package()) return;
+        if (!am_load_config()) return;
+    }
     ios_eng = am_init_engine(false, 0, NULL);
     if (ios_eng == NULL) return;
 
@@ -374,8 +459,10 @@ static void ios_init_engine() {
     if (am_call(ios_eng->L, 1, 0)) {
         ios_running = true;
     }
-    am_gl_end_framebuffer_render();
-    am_gl_end_frame(false);
+    if (!ios_performing_restart) {
+        am_gl_end_framebuffer_render();
+        am_gl_end_frame(false);
+    }
     t0 = am_get_current_time();
     frame_time = t0;
     t_debt = 0.0;
@@ -387,12 +474,24 @@ static void ios_teardown() {
         am_destroy_engine(ios_eng);
         ios_eng = NULL;
     }
-    if (am_gl_is_initialized()) {
-        am_destroy_gl();
+    if (!ios_performing_restart) {
+        if (am_gl_is_initialized()) {
+            am_destroy_gl();
+        }
+        if (package != NULL) {
+            am_close_package(package);
+        }
     }
-    if (package != NULL) {
-        am_close_package(package);
-    }
+}
+
+static void ios_restart() {
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "restarting...");
+    #endif
+    ios_performing_restart = true;
+    ios_teardown();
+    ios_init_engine();
+    ios_performing_restart = false;
 }
 
 // This is used to decide whether rotations should
@@ -415,6 +514,7 @@ static void ios_update() {
     }
     frames_since_disable_animations++;
     if (!ios_running) return;
+    if (ios_paused) return;
 
     [ios_audio_mutex lock];
     am_sync_audio_graph(ios_eng->L);
@@ -423,9 +523,6 @@ static void ios_update() {
     frame_time = am_get_current_time();
     
     real_delta_time = frame_time - t0;
-    if (am_conf_warn_delta_time > 0.0 && real_delta_time > am_conf_warn_delta_time) {
-        am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);
-    }
     // take min in case app paused, or last frame took very long
     delta_time = am_min(am_conf_max_delta_time, real_delta_time); 
     t_debt += delta_time;
@@ -452,8 +549,10 @@ static void ios_update() {
 }
 
 static void ios_garbage_collect() {
-    lua_gc(ios_eng->L, LUA_GCCOLLECT, 0);
-    lua_gc(ios_eng->L, LUA_GCCOLLECT, 0);
+    if (ios_eng != NULL && ios_eng->L != NULL) {
+        lua_gc(ios_eng->L, LUA_GCCOLLECT, 0);
+        lua_gc(ios_eng->L, LUA_GCCOLLECT, 0);
+    }
 }
 
 static bool force_touch_is_available() {
@@ -513,23 +612,30 @@ static UIViewController *ios_get_view_controller() {
 }
 */
 
-static void ios_save_state() {
-    // XXX ltSaveState();
+static void ios_entered_background() {
     ios_sync_store();
 }
 
 static void ios_resign_active() {
-    // XXX ltClientShutdown();
+    ios_paused = true;
 }
 
 static void ios_become_active() {
-    // XXX ltClientInit();
+    ios_sync_store();
     frames_since_disable_animations = 0;
-    if (ios_view != nil && ios_eng != NULL) {
-        // reset event data in case touch end events missing
-        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
-        am_call_amulet(ios_eng->L, "_reset_window_event_data", 1, 0);
+    if (ios_was_icloud_update) {
+        ios_was_icloud_update = false;
+        if (ios_running) {
+            ios_restart(); // restart the app, so we load new save data
+        }
+    } else {
+        if (ios_view != nil && ios_eng != NULL) {
+            // reset event data in case touch end events missing
+            am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
+            am_call_amulet(ios_eng->L, "_reset_window_event_data", 1, 0);
+        }
     }
+    ios_paused = false;
 }
 
 #ifdef AM_GOOGLE_ADS
@@ -672,9 +778,18 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     return YES;
 }
 
--(BOOL)prefersHomeIndicatorAutoHidden
+// If this returns YES, then preferredScreenEdgesDeferringSystemGestures below does
+// not apply to the task switcher bar at the bottom of the screen. The auto-hide is pretty
+// useless anyway, since any tap seems to cause it to display. At least with deferred gestures
+// it remains half faded out.
+//-(BOOL)prefersHomeIndicatorAutoHidden
+//{
+//    return YES;
+//}
+
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
 {
-    return YES;
+    return UIRectEdgeAll;
 }
 
 @end
@@ -693,7 +808,17 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 @implementation AMAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "didFinishLaunchingWithOptions");
+    #endif
     application.delegate = self;
+
+    ios_sync_store();
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(updateFromiCloud:)
+        name:NSUbiquitousKeyValueStoreDidChangeExternallyNotification
+        object:nil];
 
     // Prevent rotate animation when application launches.
     [UIView setAnimationsEnabled:NO];
@@ -718,9 +843,6 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
         ios_force_touch_recognised = true;
     }
 
-    ios_init_engine();
-    ios_init_audio();
- 
     AMViewController * viewController = [[AMViewController alloc] initWithNibName:nil bundle:nil];
     viewController.view = view;
     self.window.rootViewController = viewController;
@@ -729,7 +851,19 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
 
     [self.window makeKeyAndVisible];
+
+    ios_init_engine();
+    ios_init_audio();
+ 
     return YES;
+}
+
+-(void)updateFromiCloud:(NSNotification*) notificationObject
+{
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "updateFromiCloud");
+    #endif
+    ios_was_icloud_update = true;
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
@@ -742,6 +876,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     float scale = am_metal_ios_view.contentScaleFactor;
     am_metal_window_swidth = (int)((float)am_metal_window_pwidth / scale);
     am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
+
     @autoreleasepool {
         //am_debug("%s", "draw"); 
         if (ios_done_first_draw) {
@@ -756,20 +891,32 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    ios_save_state();
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "applicationDidEnterBackground");
+    #endif
+    ios_entered_background();
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "applicationWillEnterForeground");
+    #endif
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
 {
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "applicationWillResignActive");
+    #endif
     ios_resign_active();
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
+    #ifdef AM_IOS_DEBUG
+    am_debug("%s", "applicationDidBecomeActive");
+    #endif
     ios_become_active();
 }
 
@@ -976,6 +1123,9 @@ am_native_window *am_create_native_window(
     bool stencil_buffer,
     int msaa_samples)
 {
+    if (ios_performing_restart) {
+        return (am_native_window*)ios_view;
+    }
     if (ios_window_created) {
         am_log0("%s", "attempt to create two iOS windows");
         return NULL;
@@ -1016,6 +1166,23 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *ph = am_metal_window_pheight;
     *sw = am_metal_window_swidth;
     *sh = am_metal_window_sheight;
+}
+
+void am_get_native_window_safe_area_margin(am_native_window *window, 
+    int *left, int *right, int *bottom, int *top)
+{
+    if (ios_view != nil && ios_view.window != nil) {
+        UIEdgeInsets safe_insets = ios_view.window.safeAreaInsets;
+        *left = (int)safe_insets.left;
+        *right = (int)safe_insets.right;
+        *bottom = (int)safe_insets.bottom;
+        *top = (int)safe_insets.top;
+    } else {
+        *left = 0;
+        *right = 0;
+        *bottom = 0;
+        *top = 0;
+    }
 }
 
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode) {
@@ -1100,6 +1267,7 @@ static GameCenterDelegate *gamecenter_delegate = nil;
 
 @implementation GameCenterDelegate
 - (void)gameCenterViewControllerDidFinish:(GKGameCenterViewController *)viewController {
+    ios_paused = false;
     if (ios_view_controller != nil) {
         [ios_view_controller dismissViewControllerAnimated:YES completion:nil];
         if (ios_view != nil && ios_eng != NULL) {
@@ -1244,7 +1412,9 @@ static int show_gamecenter_leaderboard(lua_State *L) {
             leaderboard_view_controller.gameCenterDelegate = gamecenter_delegate;
         }
         leaderboard_view_controller.leaderboardIdentifier = category;
-        [ios_view_controller presentViewController:leaderboard_view_controller animated:YES completion:nil];
+        [ios_view_controller presentViewController:leaderboard_view_controller animated:YES completion:^{
+            ios_paused = true;
+        }];
     }
     return 0;
 }

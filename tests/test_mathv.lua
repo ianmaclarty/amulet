@@ -202,3 +202,20 @@ do
     print_view(arr.pos:slice(1, n))
     print_view(arr.color:slice(1, n))
 end
+
+print("empty arrays")
+do
+    local arr = mathv.array("float", {})
+    local res = arr + arr
+    res = arr * 2
+    print_view(arr)
+    arr = mathv.array("vec3", 0)
+    res = vec3(1) + arr
+    res:filter(mathv.gt(mathv.array("float", 0), 1))
+    print_view(arr)
+    res = mathv.cart(mathv.array("vec2", {}), mathv.array("float", {1, 2, 3}))
+    print_view(res)
+    res = mathv.cart(mathv.array("float", {1, 2, 3}), mathv.array("vec2", {}))
+    print_view(res)
+    print(mathv.sum(mathv.array("float", 0, 1)))
+end

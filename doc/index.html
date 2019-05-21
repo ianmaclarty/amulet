@@ -165,6 +165,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#window.height">window.height</a></li>
 <li><a href="#window.pixel_width">window.pixel_width</a></li>
 <li><a href="#window.pixel_height">window.pixel_height</a></li>
+<li><a href="#window.safe_left">window.safe_left</a></li>
+<li><a href="#window.safe_right">window.safe_right</a></li>
+<li><a href="#window.safe_bottom">window.safe_bottom</a></li>
+<li><a href="#window.safe_top">window.safe_top</a></li>
 <li><a href="#window.mode">window.mode</a></li>
 <li><a href="#window.clear_color">window.clear_color</a></li>
 <li><a href="#window.stencil_clear_value">window.stencil_clear_value</a></li>
@@ -1636,6 +1640,22 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <h3 id="window.pixel_height" class="field-def">window.pixel_height</h3>
 <p>The real height of the window in pixels</p>
 <p>Readonly.</p>
+<h3 id="window.safe_left" class="func-def">window.safe_left</h3>
+<p>The x coordinate of the left edge of the window's safe area in the window's default coordinate system.</p>
+<p>This should be used to position elements that you don't want obscured by e.g. the iPhone X notch.</p>
+<p>Readonly.</p>
+<h3 id="window.safe_right" class="func-def">window.safe_right</h3>
+<p>The x coordinate of the right edge of the window's safe area, in the window's default coordinate system.</p>
+<p>This should be used to position elements that you don't want obscured by e.g. the iPhone X notch.</p>
+<p>Readonly.</p>
+<h3 id="window.safe_bottom" class="func-def">window.safe_bottom</h3>
+<p>The y coordinate of the bottom edge of the window's safe area, in the window's default coordinate system.</p>
+<p>This should be used to position elements that you don't want obscured by e.g. the iPhone X notch.</p>
+<p>Readonly.</p>
+<h3 id="window.safe_top" class="func-def">window.safe_top</h3>
+<p>The y coordinate of the top edge of the window's safe area, in the window's default coordinate system.</p>
+<p>This should be used to position elements that you don't want obscured by e.g. the iPhone X notch.</p>
+<p>Readonly.</p>
 <h3 id="window.mode" class="field-def">window.mode</h3>
 <p>See <a href="#am.window">window settings</a>.</p>
 <p>Updatable.</p>
@@ -2935,6 +2955,7 @@ mvrot<span class="ot">.</span>degrees <span class="ot">=</span> <span class="dv"
 <p>Save the table <code>state</code> under <code>key</code>.</p>
 <p><code>format</code> can be <code>json</code> or <code>lua</code>. The default is <code>lua</code>.</p>
 <p>The location of the save file varies from platform to platform, but will generally be the recommended location to store app data on that system. The <code>shortname</code> and <code>author</code> fields from <a href="#config"><code>conf.lua</code></a> will be used to derive this location if provided.</p>
+<p>On iOS this also saves to iCloud. Be aware that iCloud has a 1MB size limit.</p>
 <p><strong>Note</strong>: The <code>lua</code> format allows users to execute arbitrary lua code by modifying the save file.</p>
 <h3 id="am.load_statekey-format">am.load_state(key, [,format])</h3>
 <p>Loads the table saved under <code>key</code> and returns it. If no table has been previously saved under <code>key</code> then <code>nil</code> is returned.</p>
@@ -3271,6 +3292,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <p>The following will generate mac and linux builds in the <code>builds</code> directory, this time looking for game files in <code>game</code> recursively, but only including recognised files (since no <code>-a</code> option is given):</p>
 <pre class="console"><code>amulet export -mac -linux -r -d builds game</code></pre>
 <p>As a courtesy to the user, the generate zip packages will contain the game files in a sub-folder. If you instead want the game files to appear in the root of the zip, use -nozipdir. You might want this if the game will run from a launcher such as Steam.</p>
+<p>If you want to generate only the <code>data.pak</code> file for your project you can specify the <code>-datapak</code> option. It behaves in a similar way to the platform options, but generates a platform agnostic <code>data.pak</code> file containing your projects Lua files and other assets. You might want to do this to update a previously generated xcode project without regenerating all the project files.</p>
 <p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
 <p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work on some platforms.</p>
 <h1 id="config">Project Configuration</h1>

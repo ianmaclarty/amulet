@@ -88,6 +88,15 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *sh = *ph;
 }
 
+void am_get_native_window_safe_area_margin(am_native_window *window, 
+    int *left, int *right, int *bottom, int *top)
+{
+    *left = 0;
+    *right = 0;
+    *bottom = 0;
+    *top = 0;
+}
+
 void am_destroy_native_window(am_native_window* win) {
 }
 

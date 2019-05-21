@@ -22,6 +22,10 @@ struct am_window : am_nonatomic_userdata {
     double              user_right;
     double              user_bottom;
     double              user_top;
+    double              user_safe_left;
+    double              user_safe_right;
+    double              user_safe_bottom;
+    double              user_safe_top;
     glm::dmat4          projection;
     bool                user_projection; // did the user set the projection?
     bool                has_depth_buffer;

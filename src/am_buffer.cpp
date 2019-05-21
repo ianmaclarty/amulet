@@ -218,7 +218,7 @@ void am_buffer::create_elembuf(lua_State *L) {
 static int create_buffer(lua_State *L) {
     am_check_nargs(L, 1);
     int size = luaL_checkinteger(L, 1);
-    if (size <= 0) return luaL_error(L, "size should be greater than 0");
+    if (size < 0) return luaL_error(L, "size should be non-negative");
     am_push_new_buffer_and_init(L, size);
     return 1;
 }

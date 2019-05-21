@@ -27,6 +27,7 @@ am_native_window *am_create_native_window(
     int msaa_samples);
 
 void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *sw, int *sh);
+void am_get_native_window_safe_area_margin(am_native_window *window, int *left, int *right, int *bottom, int *top);
 bool am_set_native_window_size_and_mode(am_native_window *window, int w, int h, am_window_mode mode);
 bool am_get_native_window_lock_pointer(am_native_window *window);
 void am_set_native_window_lock_pointer(am_native_window *window, bool lock);

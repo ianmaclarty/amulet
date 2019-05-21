@@ -159,6 +159,46 @@ The real height of the window in pixels
 
 Readonly.
 
+### window.safe_left {.func-def}
+
+The x coordinate of the left edge of the 
+window's safe area in the window's default coordinate system.
+
+This should be used to position elements that you don't want obscured
+by e.g. the iPhone X notch.
+
+Readonly.
+
+### window.safe_right {.func-def}
+
+The x coordinate of the right edge of the window's safe area, in the window's
+default coordinate system.
+
+This should be used to position elements that you don't want obscured
+by e.g. the iPhone X notch.
+
+Readonly.
+
+### window.safe_bottom {.func-def}
+
+The y coordinate of the bottom edge of the window's safe area, in the window's
+default coordinate system.
+
+This should be used to position elements that you don't want obscured
+by e.g. the iPhone X notch.
+
+Readonly.
+
+### window.safe_top {.func-def}
+
+The y coordinate of the top edge of the window's safe area, in the window's
+default coordinate system.
+
+This should be used to position elements that you don't want obscured
+by e.g. the iPhone X notch.
+
+Readonly.
+
 ### window.mode {.field-def}
 
 See [window settings](#am.window).

@@ -2628,18 +2628,22 @@ void am_gl_end_framebuffer_render() {
 
 void am_gl_end_frame(bool present) {
     check_initialized();
-    if (metal_command_buffer != nil) {
-        assert(metal_active_drawable != nil);
-        assert(default_metal_framebuffer.color_texture != nil);
-        if (present) {
-            [metal_command_buffer presentDrawable:metal_active_drawable];
-        }
-        [metal_command_buffer commit];
-        [metal_command_buffer waitUntilCompleted];
-        metal_command_buffer = nil;
-        metal_active_drawable = nil;
-        default_metal_framebuffer.color_texture = nil;
+    if (metal_command_buffer == nil) {
+        // could be nil if nothing drawn this frame
+        create_new_metal_encoder(true, true, true);
+        [metal_encoder endEncoding];
+        metal_encoder = nil;
     }
+    assert(metal_active_drawable != nil);
+    assert(default_metal_framebuffer.color_texture != nil);
+    if (present) {
+        [metal_command_buffer presentDrawable:metal_active_drawable];
+    }
+    [metal_command_buffer commit];
+    [metal_command_buffer waitUntilCompleted];
+    metal_command_buffer = nil;
+    metal_active_drawable = nil;
+    default_metal_framebuffer.color_texture = nil;
 }
 
 void am_log_gl(const char *msg) {

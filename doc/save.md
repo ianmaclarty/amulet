@@ -13,6 +13,8 @@ app data on that system. The `shortname` and `author` fields
 from [`conf.lua`](#config) will be used to derive this location
 if provided.
 
+On iOS this also saves to iCloud. Be aware that iCloud has a 1MB size limit.
+
 **Note**:
 The `lua` format allows users to execute arbitrary lua
 code by modifying the save file.
