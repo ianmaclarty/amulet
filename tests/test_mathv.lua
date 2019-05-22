@@ -218,4 +218,6 @@ do
     res = mathv.cart(mathv.array("float", {1, 2, 3}), mathv.array("vec2", {}))
     print_view(res)
     print(mathv.sum(mathv.array("float", 0, 1)))
+    print(mathv.greatest(mathv.array("float", 0)))
+    print(mathv.least(mathv.array("float", 0)))
 end

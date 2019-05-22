@@ -882,7 +882,8 @@ static int am_mathv_greatest(lua_State *L) {
     uint8_t *data = view->buffer->data + view->offset;
     unsigned int size = (unsigned int)view->size;
     if (size == 0) {
-        return luaL_error(L, "mathv.greatest argument must have at least one element");
+        lua_pushnil(L);
+        return 1;
     }
     double component_max[16];
     switch (view->type) {
@@ -1063,7 +1064,8 @@ static int am_mathv_least(lua_State *L) {
     uint8_t *data = view->buffer->data + view->offset;
     unsigned int size = (unsigned int)view->size;
     if (size == 0) {
-        return luaL_error(L, "mathv.least argument must have at least one element");
+        lua_pushnil(L);
+        return 1;
     }
     double component_min[16];
     switch (view->type) {
