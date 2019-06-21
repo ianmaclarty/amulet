@@ -54,6 +54,8 @@ char *am_get_data_path();
 
 const char *am_preferred_language();
 
+lua_State *am_get_global_lua_state();
+
 #if defined(AM_BACKEND_IOS)
 void am_open_ios_module(lua_State *L);
 #elif defined(AM_BACKEND_ANDROID)

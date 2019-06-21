@@ -710,4 +710,11 @@ void am_emscripten_resize(int w, int h) {
 
 }
 
+lua_State *am_get_global_lua_state() {
+    if (eng != NULL) {
+        return eng->L;
+    }
+    return NULL;
+}
+
 #endif // AM_BACKEND_EMSCRIPTEN

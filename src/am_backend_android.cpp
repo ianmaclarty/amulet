@@ -745,6 +745,13 @@ static void register_iap_product_mt(lua_State *L) {
     am_register_metatable(L, "iap_product", MT_am_iap_product, 0);
 }
 
+lua_State *am_get_global_lua_state() {
+    if (android_eng != NULL) {
+        return android_eng->L;
+    }
+    return NULL;
+}
+
 void am_open_android_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_google_play_services", init_google_play_services},

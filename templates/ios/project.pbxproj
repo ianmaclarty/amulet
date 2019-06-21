@@ -39,7 +39,7 @@
 		3C88E5D0225459D700F8C085 /* AM_LUAVM.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C88E5CA225459D600F8C085 /* AM_LUAVM.a */; };
 		3C88E5D1225459D700F8C085 /* tinymt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C88E5CB225459D600F8C085 /* tinymt.a */; };
 		3C88E5D2225459D700F8C085 /* amulet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C88E5CC225459D600F8C085 /* amulet.a */; };
-		3CA03D71202421CA007FC187 /* Dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CA03D6C202421CA007FC187 /* Dummy.m */; };
+		3CA03D71202421CA007FC187 /* amulet_custom_init.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CA03D6C202421CA007FC187 /* amulet_custom_init.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,7 +79,7 @@
 		3C88E5CB225459D600F8C085 /* tinymt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = tinymt.a; sourceTree = "<group>"; };
 		3C88E5CC225459D600F8C085 /* amulet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = amulet.a; sourceTree = "<group>"; };
 		AM_LAUNCHSCREEN_STORYBOARD_STRINGS_ENTRIES
-		3CA03D6C202421CA007FC187 /* Dummy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Dummy.m; sourceTree = "<group>"; };
+		3CA03D6C202421CA007FC187 /* amulet_custom_init.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = amulet_custom_init.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,7 +126,7 @@
 			children = (
 				3C0E56C1227BB1B700875339 /* AM_APPNAME.entitlements */,
 				3C48D1E22254539E002C5B1C /* AM_LAUNCH_IMG */,
-				3CA03D6C202421CA007FC187 /* Dummy.m */,
+				3CA03D6C202421CA007FC187 /* amulet_custom_init.mm */,
 				3C626A9F2023EC1200FF5F20 /* data.pak */,
 				3C626A902023EA4A00FF5F20 /* Assets.xcassets */,
 				3C626A922023EA4A00FF5F20 /* LaunchScreen.storyboard */,
@@ -262,7 +262,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3CA03D71202421CA007FC187 /* Dummy.m in Sources */,
+				3CA03D71202421CA007FC187 /* amulet_custom_init.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

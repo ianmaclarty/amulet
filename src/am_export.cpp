@@ -639,10 +639,6 @@ static bool gen_ios_xcode_proj(export_config *conf) {
         fprintf(stderr, "Error: please set ios_dist_prov_profile_name in conf.lua\n");
         return false;
     }
-    if (am_conf_mac_installer_cert_identity == NULL) {
-        fprintf(stderr, "Error: please set mac_installer_cert_identity in conf.lua\n");
-        return false;
-    }
     char *templates_dir = get_template_path(conf);
     char *projbase_dir;
     if (conf->outpath) {
@@ -676,7 +672,8 @@ static bool gen_ios_xcode_proj(export_config *conf) {
         copy_ios_xcode_bin_file(projbase_dir, conf, lua_a_file) &&
         copy_ios_xcode_bin_file(projbase_dir, conf, "stb.a") &&
         copy_ios_xcode_bin_file(projbase_dir, conf, "tinymt.a") &&
-        copy_ios_xcode_template_file(projbase_dir, conf, "Dummy.m") &&
+        copy_ios_xcode_template_file(projbase_dir, conf, "amulet_custom_init.mm") &&
+        copy_ios_xcode_template_file(projbase_dir, conf, "amulet_simple_lua.h") &&
         copy_ios_xcode_pak_file(projbase_dir, conf) &&
         true;
     if (ok) printf("Generated %s\n", projbase_dir);

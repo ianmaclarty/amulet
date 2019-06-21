@@ -1458,6 +1458,13 @@ static int launch_url(lua_State *L) {
     return 0;
 }
 
+lua_State *am_get_global_lua_state() {
+    if (ios_eng != NULL) {
+        return ios_eng->L;
+    }
+    return NULL;
+}
+
 void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},

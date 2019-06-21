@@ -118,7 +118,6 @@ else ifdef IOS
 $(AMULET): $(DEP_ALIBS) $(AM_OBJ_FILES) $(EXTRA_PREREQS) | $(BUILD_BIN_DIR)
 	rm -f $@$(ALIB_EXT)
 	$(AR) $(AR_OPTS) $(AR_OUT_OPT)$@$(ALIB_EXT) $(AM_OBJ_FILES) 
-	$(LINK) $(AM_OBJ_FILES) $(AM_LDFLAGS) $(EXE_OUT_OPT)$@
 	for f in $(DEP_ALIBS); do ff=`basename $$f`; cp $$f $(BUILD_BIN_DIR)/`echo $$ff | sed 's/^lib//'`; done
 	scripts/gen_ios_info_plist.sh
 	@$(PRINT_BUILD_DONE_MSG)

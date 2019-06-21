@@ -805,6 +805,8 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
 @end
 
+extern void am_ios_custom_init(UIViewController *view_controller);
+
 @implementation AMAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -855,6 +857,8 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     ios_init_engine();
     ios_init_audio();
  
+    am_ios_custom_init(viewController);
+
     return YES;
 }
 
@@ -1639,6 +1643,13 @@ static int launch_url(lua_State *L) {
     if (url == NULL) return 0;
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url]] options:@{} completionHandler:nil];
     return 0;
+}
+
+lua_State *am_get_global_lua_state() {
+    if (ios_eng != NULL) {
+        return ios_eng->L;
+    }
+    return NULL;
 }
 
 void am_open_ios_module(lua_State *L) {

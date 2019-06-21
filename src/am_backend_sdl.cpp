@@ -58,6 +58,7 @@ static std::vector<win_info> windows;
 SDL_Window *main_window = NULL;
 static bool sdl_initialized = false;
 static bool restart_triggered = false;
+static lua_State *global_lua_state = NULL;
 
 #ifdef AM_USE_METAL
 extern NSWindow *am_metal_window;
@@ -528,6 +529,7 @@ restart:
     }
 
     L = eng->L;
+    global_lua_state = L;
 
     frame_time = am_get_current_time();
 
@@ -630,6 +632,8 @@ restart:
     if (restart_triggered) {
         SDL_LockAudioDevice(audio_device);
         am_destroy_engine(eng);
+        global_lua_state = NULL;
+        L = NULL;
         SDL_UnlockAudioDevice(audio_device);
         goto restart;
     }
@@ -1426,6 +1430,10 @@ static win_info *win_from_id(Uint32 winid) {
         return &windows[0];
     }
     return NULL;
+}
+
+lua_State *am_get_global_lua_state() {
+    return global_lua_state;
 }
 
 void am_open_sdl_module(lua_State *L) {
