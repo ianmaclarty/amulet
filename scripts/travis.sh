@@ -69,10 +69,10 @@ else
 
         # build emscripten
         # (building on osx, because the pre-built llvm binaries don't work on linux due to incompatible glibc version)
-        EMSDK=sdk-1.38.8-64bit
+        EMSDK=latest
         git clone https://github.com/juj/emsdk.git emscripten
         cd emscripten
-        ./emsdk install --enable-wasm $EMSDK
+        ./emsdk install $EMSDK
         ./emsdk activate $EMSDK
         source ./emsdk_env.sh
         cd ..
