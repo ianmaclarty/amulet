@@ -12,7 +12,6 @@ addons:
             - g++-mingw-w64-i686
             - gcc-multilib
             - g++-multilib
-            - cmake3
 
 os:
     - linux
