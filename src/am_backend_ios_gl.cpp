@@ -662,13 +662,15 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
     return YES;
 }
 
--(BOOL)prefersHomeIndicatorAutoHidden
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
 {
-    return YES;
+    return UIRectEdgeAll;
 }
+
 
 @end
 
+extern void am_ios_custom_init(UIViewController *view_controller);
 
 @interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, GLKViewDelegate, GLKViewControllerDelegate
 #ifdef AM_GOOGLE_ADS
@@ -719,7 +721,10 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 
     [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
 
+    am_ios_custom_init(viewController);
+
     [self.window makeKeyAndVisible];
+
     return YES;
 }
 
@@ -1463,6 +1468,14 @@ lua_State *am_get_global_lua_state() {
         return ios_eng->L;
     }
     return NULL;
+}
+
+void am_pause_app() {
+    // NYI
+}
+
+void am_resume_app() {
+    // NYI
 }
 
 void am_open_ios_module(lua_State *L) {

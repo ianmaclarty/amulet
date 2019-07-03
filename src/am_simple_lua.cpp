@@ -75,10 +75,10 @@ void am_simple_lua_register_function(const char *name, am_simple_lua_func func) 
 
     lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
     lua_getfield(L, -1, AMULET_LUA_MODULE_NAME);
-    
+
     lua_pushlightuserdata(L, (void*)func);
     lua_pushcclosure(L, call_custom_func, 1);
-    lua_setfield(L, -1, name);
+    lua_setfield(L, -2, name);
 
     lua_pop(L, 2);
 }

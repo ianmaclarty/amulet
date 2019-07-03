@@ -1652,6 +1652,18 @@ lua_State *am_get_global_lua_state() {
     return NULL;
 }
 
+void am_pause_app() {
+    ios_paused = true;
+}
+
+void am_resume_app() {
+    ios_paused = false;
+    if (ios_eng != NULL && ios_eng->L != NULL) {
+        am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
+        am_call_amulet(ios_eng->L, "_reset_window_event_data", 1, 0);
+    }
+}
+
 void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},

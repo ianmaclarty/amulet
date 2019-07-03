@@ -11,9 +11,12 @@ struct am_simple_lua_value {
         const char *string_value;
         double number_value;
         bool boolean_value;
-    };
+    } value;
 };
 
 typedef am_simple_lua_value (*am_simple_lua_func)(int nargs, am_simple_lua_value *args);
 
 void am_simple_lua_register_function(const char *name, am_simple_lua_func func);
+
+void am_pause_app();
+void am_resume_app();
