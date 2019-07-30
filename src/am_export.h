@@ -21,6 +21,7 @@ struct am_export_flags {
         export_linux = false;
         export_html = false;
         export_ios_xcode_proj = false;
+        export_data_pak = false;
         recurse = false;
         allfiles = false;
         zipdir = true;
