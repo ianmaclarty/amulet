@@ -388,8 +388,8 @@ int am_create_buffer_view(lua_State *L) {
 
     am_buffer *buf = am_check_buffer(L, 1);
     am_buffer_view_type_lua ltype = am_get_enum(L, am_buffer_view_type_lua, 2);
-    am_buffer_view_type type;
-    int components;
+    am_buffer_view_type type = AM_NUM_VIEW_TYPES; // avoid gcc warning
+    int components = 0;
     decode_view_type_lua(ltype, &type, &components);
 
     int type_size = am_view_type_infos[type].size * components;

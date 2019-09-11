@@ -509,7 +509,7 @@ static void AM_CONCAT(TNAME,_view_set_from_view)(lua_State *L, am_buffer_view *d
 
     unsigned int components = (unsigned int)dest->components;
     unsigned int dest_elem_size = ((unsigned int)am_view_type_infos[dest->type].size) * components;
-    bool is_dense = dest->type == src->type && dest_elem_size == src->stride && dest_elem_size == dest->stride;
+    bool is_dense = dest->type == src->type && dest_elem_size == (unsigned int)src->stride && dest_elem_size == (unsigned int)dest->stride;
     if (is_dense && src->buffer != dest->buffer /* memcpy needs memory areas to not overlap*/) {
         memcpy(dest_ptr, src_ptr, size * dest_elem_size);
     } else if (dest->type == src->type) {
