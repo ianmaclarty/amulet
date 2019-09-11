@@ -12,21 +12,17 @@ static void am_set_platform(lua_State *L);
 static void am_set_support_email(lua_State *L);
 
 am_engine *am_init_engine(bool worker, int argc, char** argv) {
-#if defined(AM_LUAJIT)
-    // luajit implements its own allocator which is probably
-    // better than ours. In any case on 64 bit luajit does not
-    // allow using a custom allocator.
-    lua_State *L = luaL_newstate();
-    if (L == NULL) return NULL;
-    am_allocator *allocator = NULL;
-#else
     am_allocator *allocator = am_new_allocator();
+#if defined(AM_LUAJIT) && defined(AM_64BIT)
+    // luajit doesn't allow custom allocators on 64 bit systems
+    lua_State *L = luaL_newstate();
+#else
     lua_State *L = lua_newstate(&am_alloc, allocator);
+#endif
     if (L == NULL) {
         am_destroy_allocator(allocator);
         return NULL;
     }
-#endif
     am_engine *eng = new am_engine();
     eng->allocator = allocator;
     eng->L = L;
@@ -42,6 +38,8 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     am_open_math_module(L);
     am_open_time_module(L);
     am_open_buffer_module(L);
+    am_open_view_module(L);
+    am_open_mathv_module(L);
     am_open_json_module(L);
     am_open_utf8_module(L);
     am_open_http_module(L);
@@ -56,6 +54,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
         am_open_scene_module(L);
         am_open_program_module(L);
         am_open_texture2d_module(L);
+        am_open_vbo_module(L);
         am_open_framebuffer_module(L);
         am_open_image_module(L);
         am_open_model_module(L);

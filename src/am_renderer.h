@@ -189,6 +189,8 @@ struct am_render_state {
     int                     modelview_param_index;
     int                     projection_param_index;
 
+    uint32_t                render_count;
+
     am_render_state();
 
     void draw_arrays(am_draw_mode mode, int first, int count);

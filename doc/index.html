@@ -129,7 +129,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#view.buffer">view.buffer</a></li>
 </ul></li>
 <li><a href="#view-methods">View methods</a><ul>
-<li><a href="#view:slice">view:slice(n [, count])</a></li>
+<li><a href="#view:slice">view:slice(n [, count [, stride_multiplier]])</a></li>
 <li><a href="#view:set">view:set(val [, start [, count]])</a></li>
 <li><a href="#am.float_array">am.float_array(table)</a></li>
 <li><a href="#am.byte_array">am.byte_array(table)</a></li>
@@ -1530,8 +1530,8 @@ view<span class="ot">[</span><span class="dv">2</span><span class="ot">]</span> 
 <p>The buffer associated with the view.</p>
 <p>Readonly.</p>
 <h2 id="view-methods">View methods</h2>
-<h3 id="view:slice" class="method-def">view:slice(n [, count])</h3>
-<p>Returns a new view of the same type as <code>view</code> that references the same buffer, but which starts at the <code>n</code>th element of <code>view</code> and continues for <code>count</code> elements. If <code>count</code> is omitted it is <code>#view - n + 1</code> (i.e. it covers all the elements of <code>view</code> after and including the <code>n</code>th).</p>
+<h3 id="view:slice" class="method-def">view:slice(n [, count [, stride_multiplier]])</h3>
+<p>Returns a new view with the same type as <code>view</code> that references the same buffer, but which starts at the <code>n</code>th element of <code>view</code> and continues for <code>count</code> elements. If <code>count</code> is omitted or nil it covers all the elements of <code>view</code> after and including the <code>n</code>th. <code>stride_multiplier</code> can be used to increase the stride of the view and thereby skip elements. It must be a positive integer and defaults to 1 (no skipping).</p>
 <h3 id="view:set" class="method-def">view:set(val [, start [, count]])</h3>
 <p>Bulk sets values in a view. This is faster than setting them one at a time.</p>
 <p>If <code>val</code> is a number or vector then this sets all elements of <code>view</code> to <code>val</code>.</p>
@@ -1599,7 +1599,7 @@ arr<span class="ot">.</span>color:set<span class="ot">(</span>vec4<span class="o
 <p>Creates a new window and returns a handle to it. <code>settings</code> is a table with any of the following fields:</p>
 <ul>
 <li><p><strong><code>mode</code></strong>: Either <code>&quot;windowed&quot;</code> or <code>&quot;fullscreen&quot;</code>. A fullscreen window will have the same resolution as the user's desktop. The default is <code>&quot;windowed&quot;</code>. Not all platforms support windowed mode (e.g. iOS). On these platforms this setting is ignored.</p></li>
-<li><p><strong><code>width</code></strong> and <strong><code>height</code></strong>: These define the window's <em>default coordinate system</em>. If letterboxing is enabled then this is (<code>-width/2</code>, <code>-height/2</code>) in the bottom-left corner and (<code>width/2</code>, <code>height/2</code>) in the top-right corner. If letterboxing is disabled, then the coordinate system will extend in the horizontal or vertical directions to ensure an area of at least <code>width</code>×<code>height</code> is visible in the center of the window. In either case the centre coordinate will always be (0, 0). The default size is 640×480. Mouse and touch positions as well as rendering will be in this coordinate system unless a custom projection matrix is defined (see below). These also define the physical size of the window in windowed mode, unless the <code>size</code> property is given (see below).</p></li>
+<li><p><strong><code>width</code></strong> and <strong><code>height</code></strong>: These define the window's <em>default coordinate system</em>. If letterboxing is enabled then this is (<code>-width/2</code>, <code>-height/2</code>) in the bottom-left corner and (<code>width/2</code>, <code>height/2</code>) in the top-right corner. If letterboxing is disabled, then the coordinate system will extend in the horizontal or vertical directions to ensure an area of at least <code>width</code>×<code>height</code> is visible in the center of the window. In either case the centre coordinate will always be (0, 0). The default size is 640×480. Mouse and touch positions as well as rendering will be in this coordinate system unless a custom projection matrix is defined (see below). These also define the physical size of the window in windowed mode, unless the <code>physical_size</code> property is given (see below).</p></li>
 <li><p><strong><code>physical_size</code></strong>: The initial physical size of the window in windowed mode (a <code>vec2</code>). This is in &quot;screen units&quot; which usually correspond to pixels, but not always. For example on a retina Mac display where <code>highdpi</code> is enabled there are 2 pixels per screen unit. If this property is omitted then the <code>width</code> and <code>height</code> properties will be used for the physical window size. Note that this property has no effect on the coordinate system used by the window. Note also that this property only has an effect where the platform supports different sized windows. E.g. on iOS windows always fill the screen, so this property is ignored.</p></li>
 <li><p><strong><code>title</code></strong>: The window title.</p></li>
 <li><p><strong><code>resizable</code></strong>: Whether the window can be resized by the user (<code>true</code> or <code>false</code>, default <code>true</code>).</p></li>

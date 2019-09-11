@@ -1,5 +1,7 @@
 #include "amulet.h"
 
+static double total_texture_memory = 0.0;
+
 static int create_texture2d(lua_State *L) {
     if (!am_gl_is_initialized()) {
         return luaL_error(L, "you need to create a window before creating a texture");
@@ -13,11 +15,11 @@ static int create_texture2d(lua_State *L) {
     am_texture_format format = AM_TEXTURE_FORMAT_RGBA;
     am_texture_type type = AM_TEXTURE_TYPE_UBYTE;
     am_image_buffer *image_buffer = NULL;
+    uint8_t *raw_img_data = NULL;
     int nargs = am_check_nargs(L, 1);
     int arg1_type = am_get_type(L, 1);
     switch (arg1_type) {
         case MT_am_image_buffer:
-        img_buf:
             image_buffer = am_get_userdata(L, am_image_buffer, 1);
             width = image_buffer->width;
             height = image_buffer->height;
@@ -37,10 +39,16 @@ static int create_texture2d(lua_State *L) {
                 return luaL_error(L, "height must be positive");
             }
             break;
-        case LUA_TSTRING:
-            am_load_image(L);
-            lua_replace(L, 1);
-            goto img_buf;
+        case LUA_TSTRING: {
+            char *errmsg;
+            const char *filename = lua_tostring(L, 1);
+            if (!am_load_image(filename, &raw_img_data, &width, &height, &errmsg)) {
+                lua_pushfstring(L, "unable to load texture %s: %s", filename, errmsg);
+                free(errmsg);
+                return lua_error(L);
+            }
+            break;
+        }
         default:
             return luaL_argerror(L, 1, "expecting an image_buffer, string or number");
     }
@@ -68,6 +76,8 @@ static int create_texture2d(lua_State *L) {
     texture->magfilter = magfilter;
     texture->swrap = swrap;
     texture->twrap = twrap;
+    texture->image_buffer = NULL;
+    texture->image_buffer_ref = LUA_NOREF;
     am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, texture->texture_id);
     am_set_texture_min_filter(AM_TEXTURE_BIND_TARGET_2D, minfilter);
     am_set_texture_mag_filter(AM_TEXTURE_BIND_TARGET_2D, magfilter);
@@ -82,21 +92,23 @@ static int create_texture2d(lua_State *L) {
 
         image_buffer->buffer->update_if_dirty();
         image_buffer->buffer->texture2d = texture;
-        image_buffer->buffer->texture2d_ref = image_buffer->buffer->ref(L, -1);
-        image_buffer->buffer->track_dirty = true;
+        image_buffer->buffer->ref(L, -1);
+    } else if (raw_img_data != NULL) {
+        am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, format, width, height, type, raw_img_data);
+        free(raw_img_data);
     } else {
         void *data = malloc(required_size);
         memset(data, 0, required_size);
         am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, format, width, height, type, data);
         free(data);
-        texture->image_buffer = NULL;
-        texture->image_buffer_ref = LUA_NOREF;
     }
+    
+    total_texture_memory += required_size;
 
     return 1;
 }
 
-void am_texture2d::update_from_image_buffer() {
+void am_texture2d::update_dirty() {
     if (image_buffer == NULL) return;
     am_buffer *buffer = image_buffer->buffer;
     if (buffer->dirty_start >= buffer->dirty_end) return;
@@ -136,6 +148,7 @@ static int texture2d_gc(lua_State *L) {
     am_texture2d *texture = am_get_userdata(L, am_texture2d, 1);
     am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, 0);
     am_delete_texture(texture->texture_id);
+    total_texture_memory -= texture->pixel_size * texture->width * texture->height;
     return 0;
 }
 
@@ -304,9 +317,15 @@ static void register_texture2d_mt(lua_State *L) {
     am_register_metatable(L, "texture2d", MT_am_texture2d, 0);
 }
 
+static int get_total_texture_mem(lua_State *L) {
+    lua_pushnumber(L, total_texture_memory / 1024.0);
+    return 1;
+}
+
 void am_open_texture2d_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"texture2d",    create_texture2d},
+        {"_total_texture_mem",    get_total_texture_mem},
         {NULL, NULL}
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);

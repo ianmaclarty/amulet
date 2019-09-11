@@ -593,6 +593,8 @@ void am_render_state::do_render(am_scene_node **roots, int num_roots, am_framebu
     am_use_program(0);
     am_gl_end_framebuffer_render();
 
+    render_count++;
+
     assert(active_program == NULL);
     assert(next_free_texture_unit == 0);
 }
@@ -641,10 +643,7 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
         // warning would already have been emitted
         return;
     }
-    if (validate_active_program(mode)) {
-        if (indices_view->buffer->elembuf_id == 0) {
-            indices_view->buffer->create_elembuf();
-        }
+    if (validate_active_program(mode) && indices_view->buffer->elembuf != NULL) {
         indices_view->buffer->update_if_dirty();
         indices_view->update_max_elem_if_required();
         if (max_draw_array_size == INT_MAX) {
@@ -662,7 +661,7 @@ void am_render_state::draw_elements(am_draw_mode mode, int first, int count,
             count = (indices_view->size - first);
         }
         if (count > 0) {
-            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, indices_view->buffer->elembuf_id);
+            am_bind_buffer(AM_ELEMENT_ARRAY_BUFFER, indices_view->buffer->elembuf->get_latest_id());
             am_draw_elements(mode, count, type, first * indices_view->stride);
         }
     }
@@ -724,6 +723,8 @@ am_render_state::am_render_state() {
 
     modelview_param_index = -1;
     projection_param_index = -1;
+
+    render_count = 0;
 }
 
 am_draw_node::am_draw_node() {
@@ -782,20 +783,32 @@ static am_property draw_node_primitive_property = {get_draw_node_primitive, set_
 static void set_indices(lua_State *L, am_draw_node *node, int idx) {
     am_buffer_view *indices_view = am_get_userdata(L, am_buffer_view, idx);
     switch (indices_view->type) {
-        case AM_VIEW_TYPE_USHORT_ELEM:
+        case AM_VIEW_TYPE_U16:
+            if (indices_view->stride != 2) {
+                luaL_error(L, "ushort array must have stride 2 when used with draw_elements");
+            }
+            node->type = AM_ELEMENT_TYPE_USHORT;
+            break;
+        case AM_VIEW_TYPE_U16E:
             if (indices_view->stride != 2) {
                 luaL_error(L, "ushort_elem array must have stride 2 when used with draw_elements");
             }
             node->type = AM_ELEMENT_TYPE_USHORT;
             break;
-        case AM_VIEW_TYPE_UINT_ELEM:
+        case AM_VIEW_TYPE_U32:
+            if (indices_view->stride != 4) {
+                luaL_error(L, "uint array must have stride 4 when used with draw_elements");
+            }
+            node->type = AM_ELEMENT_TYPE_UINT;
+            break;
+        case AM_VIEW_TYPE_U32E:
             if (indices_view->stride != 4) {
                 luaL_error(L, "uint_elem array must have stride 4 when used with draw_elements");
             }
             node->type = AM_ELEMENT_TYPE_UINT;
             break;
         default:
-            luaL_error(L, "only ushort_elem and uint_elem views can be used as element arrays");
+            luaL_error(L, "only u16(e) and u32(e) views can be used as element arrays");
     }
     node->indices_view = indices_view;
     if (node->view_ref == LUA_NOREF) {
@@ -803,10 +816,8 @@ static void set_indices(lua_State *L, am_draw_node *node, int idx) {
     } else {
         node->reref(L, node->view_ref, idx);
     }
-    if (indices_view->buffer->elembuf_id == 0 && am_gl_is_initialized()) {
-        // create vbo now if we can to avoid creating it
-        // while drawing, which may cause a stutter.
-        indices_view->buffer->create_elembuf();
+    if (indices_view->buffer->elembuf == NULL) {
+        indices_view->buffer->create_elembuf(L);
     }
 }
 

@@ -444,6 +444,7 @@ static bool is_too_slow(float playback_speed) {
 void am_audio_track_node::render_audio(am_audio_context *context, am_audio_bus *bus) {
     if (done_server) return;
     if (is_too_slow(playback_speed.current_value)) return;
+    if (audio_buffer->buffer->data == NULL) return;
     am_audio_bus tmp(bus);
     int buf_num_channels = audio_buffer->num_channels;
     int buf_num_samples = audio_buffer->buffer->size / (buf_num_channels * sizeof(float));
@@ -664,11 +665,15 @@ am_spectrum_node::am_spectrum_node() : smoothing(0.9f) {
 
 void am_spectrum_node::sync_params() {
     if (arr->size < num_bins - 1) return;
-    if (arr->type != AM_VIEW_TYPE_FLOAT) return;
+    if (arr->type != AM_VIEW_TYPE_F32) return;
+    if (arr->components != 1) return;
+    if (arr->buffer->data == NULL) return;
+    float *farr = (float*)&arr->buffer->data[arr->offset];
     for (int i = 1; i < num_bins; i++) {
         float data = bin_data[i];
         float decibels = data == 0.0f ? -1000.0f : 20.0f * log10f(data);
-        arr->set_float(i-1, decibels);
+        *farr = decibels;
+        farr = (float*)(((uint8_t*)farr) + arr->stride);
     }
     smoothing.update_target();
     smoothing.update_current();
@@ -1151,7 +1156,7 @@ static void register_audio_track_node_mt(lua_State *L) {
 static int create_audio_stream_node(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_audio_stream_node *node = am_new_userdata(L, am_audio_stream_node);
-    node->buffer = am_get_userdata(L, am_buffer, 1);
+    node->buffer = am_check_buffer(L, 1);
     node->buffer_ref = node->ref(L, 1);
     if (nargs > 1) {
         node->loop = lua_toboolean(L, 2);
@@ -1295,8 +1300,11 @@ static int create_spectrum_node(lua_State *L) {
     if (node->arr->size < freq_bins) {
         return luaL_error(L, "array must have at least %d elements", freq_bins);
     }
-    if (node->arr->type != AM_VIEW_TYPE_FLOAT) {
-        return luaL_error(L, "array must have of type float");
+    if (node->arr->type != AM_VIEW_TYPE_F32) {
+        return luaL_error(L, "array must have type float");
+    }
+    if (node->arr->components != 1) {
+        return luaL_error(L, "array must have 1 component of type float");
     }
     if (nargs > 3) {
         node->smoothing.set_immediate(luaL_checknumber(L, 4));
@@ -1428,7 +1436,7 @@ static void register_audio_node_mt(lua_State *L) {
 
 static int create_audio_buffer(lua_State *L) {
     am_check_nargs(L, 3);
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = am_check_buffer(L, 1);
     int channels = lua_tointeger(L, 2);
     int sample_rate = lua_tointeger(L, 3);
     luaL_argcheck(L, channels >= 1, 2, "channels must be a positive integer");
@@ -1526,7 +1534,7 @@ static int load_audio(lua_State *L) {
             filename, sample_rate, am_conf_audio_sample_rate);
         double sample_rate_ratio = (double)sample_rate / (double)am_conf_audio_sample_rate;
         dest_samples = floor((double)num_samples / sample_rate_ratio);
-        dest_buf = am_new_userdata(L, am_buffer, dest_samples * num_channels * 4);
+        dest_buf = am_push_new_buffer_and_init(L, dest_samples * num_channels * 4);
         dest_data = (float*)dest_buf->data;
         for (int c = 0; c < num_channels; c++) {
             double pos = 0.0f;
@@ -1549,7 +1557,7 @@ static int load_audio(lua_State *L) {
         }
     } else {
         // no resample required
-        dest_buf = am_new_userdata(L, am_buffer, num_samples * num_channels * 4);
+        dest_buf = am_push_new_buffer_and_init(L, num_samples * num_channels * 4);
         dest_data = (float*)dest_buf->data;
         dest_samples = num_samples;
         for (int c = 0; c < num_channels; c++) {

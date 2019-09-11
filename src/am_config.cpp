@@ -47,6 +47,15 @@ int am_conf_audio_sample_rate = 44100;
 int am_conf_audio_interpolate_samples = 128; // must be less than am_conf_audio_buffer_size
 bool am_conf_audio_mute = false;
 
+// This determines whether non-pooled buffers are allocated
+// using lua's allocator or malloc. If a buffer's data area is smaller
+// than or equal to this threshold then the buffer's header and data area
+// will be allocated as one contiguous Lua userdata block and won't require a
+// __gc metamethod. We avoid allocating all buffers this way, because
+// that seems to lead to larger memory consumption. My guess is that's because
+// it raises the Lua GC's high water mark too much.
+int am_conf_buffer_malloc_threshold = 512;
+
 // Note: enabling either of the following two options causes substantial
 // slowdowns on the html backend in some browsers
 #ifdef AM_DEBUG

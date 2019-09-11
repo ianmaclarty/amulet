@@ -223,9 +223,7 @@ static int load_obj(lua_State *L) {
         free(errmsg);
         return lua_error(L);
     }
-    am_buffer *buf = am_new_userdata(L, am_buffer);
-    buf->data = data;
-    buf->size = size;
+    am_push_new_buffer_with_data(L, size, data);
     lua_pushinteger(L, stride);
     if (normals_offset >= 0) {
         lua_pushinteger(L, normals_offset);

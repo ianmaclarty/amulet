@@ -15,7 +15,7 @@ local
 function print_view(view)
     str = "["
     for i = 1, #view do
-        str = str..view[i]
+        str = str..tostring(view[i])
         if i == #view then
             str = str.."]"
         else
@@ -78,6 +78,8 @@ printvec(view3[2])
 view4:slice(3):set({103, 203, 303, 403, 503, 603, 703, 803})
 printvec(view4[3])
 printvec(view4[4])
+print_view(am.float_array{1, 2, 3, 4, 5, 6, 7, 8}:slice(2, 3, 2))
+print_view(am.vec2_array{vec2(1), vec2(2), vec2(3), vec2(4), vec2(5), vec2(6)}:slice(1, nil, 3))
 
 local buf2 = am.buffer(10)
 local viewub = buf2:view("ubyte", 0, 1)
@@ -192,5 +194,51 @@ print(struct_arr_buf:view("vec3", 4, 20)[5])
 print(struct_arr_buf:view("short", 16, 20)[7])
 print(struct_arr_buf:view("byte", 18, 20)[8])
 print(struct_arr_buf:view("byte", 19, 20)[10])
+
+local _, err = pcall(function() 
+    local b = am.buffer(16)
+    local v = b:view("float", 0, 4)
+    b:free()
+    v[1] = 1
+end)
+print(err:gsub("^.*%: ", "").."")
+
+print("ubyte_norm4")
+buf2 = am.buffer(12)
+local viewubn4 = buf2:view("ubyte_norm4", 0, 4)
+for i = 1, 3 do
+    viewubn4[i] = vec4(i/255, (i+1)/255, 1, (i+2)/255)
+end
+printvec(viewubn4[1]*255)
+printvec(viewubn4[2]*255)
+printvec(viewubn4[3]*255)
+
+print("buffer_pool")
+do
+    local view = mathv.array("float", {1, 2, 3})
+    am.buffer_pool(function()
+        view:set(view + 1 - view)
+    end)
+    print_view(view)
+
+    -- regression test: previously using an empty buffer pool twice after
+    -- using a non-empty buffer pool triggered an assertion failure
+    am.buffer_pool(function()
+    end)
+    am.buffer_pool(function()
+    end)
+
+    -- nested pool
+    am.buffer_pool(function()
+        local view1 = mathv.range("float", 3, 7, 9)
+        local view2 = mathv.range("float", 3, 0, 2)
+        am.buffer_pool(function()
+            local tmp = mathv.array("float", {-1, -2, -3})
+            view1.x = view1 + view2 + tmp - 2
+        end)
+        view.x = view1 + 1
+    end)
+    print_view(view)
+end
 
 print("ok")

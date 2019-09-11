@@ -21,8 +21,9 @@ static int create_image_buffer(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_image_buffer *img = am_new_userdata(L, am_image_buffer);
     int arg = 1;
-    if (am_get_type(L, arg) == MT_am_buffer) {
-        img->buffer = am_get_userdata(L, am_buffer, arg);
+    int argt = am_get_type(L, arg);
+    if (argt == MT_am_buffer || argt == MT_am_buffer_gc) {
+        img->buffer = am_check_buffer(L, arg);
         img->buffer_ref = img->ref(L, arg);
         arg++;
     }
@@ -45,7 +46,7 @@ static int create_image_buffer(lua_State *L) {
     int required_size = img->width * img->height * pixel_format_size(img->format);
     if (img->buffer == NULL) {
         // create new buffer
-        img->buffer = am_new_userdata(L, am_buffer, required_size);
+        img->buffer = am_push_new_buffer_and_init(L, required_size);
         img->buffer_ref = img->ref(L, -1);
         lua_pop(L, 1); // pop buffer;
     } else {
@@ -57,42 +58,44 @@ static int create_image_buffer(lua_State *L) {
     return 1;
 }
 
+bool am_load_image(const char *filename, uint8_t **img_data, int *width, int *height, char **errmsg) {
+    int len;
+    void *data = am_read_resource(filename, &len, errmsg);
+    if (data == NULL) {
+        return false;
+    }
+    int components = 4;
+    stbi_set_flip_vertically_on_load(1);
+    *img_data =
+        (uint8_t*)stbi_load_from_memory((stbi_uc const *)data, len, width, height, &components, 4);
+    free(data);
+    if (img_data == NULL) {
+        *errmsg = am_format("%s", stbi_failure_reason());
+    }
+    return img_data;
+}
+
 static int load_image(lua_State *L) {
     am_check_nargs(L, 1);
     char *errmsg;
-    int len;
     const char *filename = luaL_checkstring(L, 1);
-    void *data = am_read_resource(filename, &len, &errmsg);
-    if (data == NULL) {
+    uint8_t *img_data;
+    int width, height;
+    if (!am_load_image(filename, &img_data, &width, &height, &errmsg)) {
         free(errmsg);
         lua_pushnil(L);
         return 1;
-    }
-    int width, height;
-    int components = 4;
-    stbi_set_flip_vertically_on_load(1);
-    stbi_uc *img_data =
-        stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
-    free(data);
-    if (img_data == NULL) {
-        return luaL_error(L, "error loading image %s: %s", filename, stbi_failure_reason());
     }
     am_image_buffer *img = am_new_userdata(L, am_image_buffer);
     img->width = width;
     img->height = height;
     img->format = AM_PIXEL_FORMAT_RGBA8;
     int sz = width * height * pixel_format_size(img->format);
-    am_buffer *imgbuf = am_new_userdata(L, am_buffer);
-    imgbuf->size = sz;
-    imgbuf->data = img_data;
+    am_buffer *imgbuf = am_push_new_buffer_with_data(L, sz, img_data);
     img->buffer = imgbuf;
     img->buffer_ref = img->ref(L, -1);
     lua_pop(L, 1); // pop imgbuf
     return 1;
-}
-
-int am_load_image(lua_State *L) {
-    return load_image(L);
 }
 
 static int load_embedded_image(lua_State *L) {
@@ -115,9 +118,7 @@ static int load_embedded_image(lua_State *L) {
     img->height = height;
     img->format = AM_PIXEL_FORMAT_RGBA8;
     int sz = width * height * pixel_format_size(img->format);
-    am_buffer *imgbuf = am_new_userdata(L, am_buffer);
-    imgbuf->size = sz;
-    imgbuf->data = img_data;
+    am_buffer *imgbuf = am_push_new_buffer_with_data(L, sz, img_data);
     img->buffer = imgbuf;
     img->buffer_ref = img->ref(L, -1);
     lua_pop(L, 1); // pop imgbuf
@@ -175,15 +176,13 @@ static int encode_png(lua_State *L) {
     size_t len;
     void *png_data = tdefl_write_image_to_png_file_in_memory_ex(
         img->buffer->data, img->width, img->height, 4, &len, MZ_DEFAULT_LEVEL, 1);
-    am_buffer *buf = am_new_userdata(L, am_buffer);
-    buf->size = len;
-    buf->data = (uint8_t*)png_data;
+    am_push_new_buffer_with_data(L, len, png_data);
     return 1;
 }
 
 static int decode_png(lua_State *L) {
     am_check_nargs(L, 1);
-    am_buffer *buf = am_get_userdata(L, am_buffer, 1);
+    am_buffer *buf = am_check_buffer(L, 1);
     int width, height;
     int components = 4;
     stbi_set_flip_vertically_on_load(1);
@@ -197,9 +196,7 @@ static int decode_png(lua_State *L) {
     img->height = height;
     img->format = AM_PIXEL_FORMAT_RGBA8;
     int sz = width * height * pixel_format_size(img->format);
-    am_buffer *imgbuf = am_new_userdata(L, am_buffer);
-    imgbuf->size = sz;
-    imgbuf->data = img_data;
+    am_buffer *imgbuf = am_push_new_buffer_with_data(L, sz, img_data);
     img->buffer = imgbuf;
     img->buffer_ref = img->ref(L, -1);
     lua_pop(L, 1); // pop imgbuf

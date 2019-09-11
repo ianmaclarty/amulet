@@ -127,12 +127,14 @@ Readonly.
 
 ## View methods
 
-### view:slice(n [, count]) {#view:slice .method-def}
+### view:slice(n [, count [, stride_multiplier]]) {#view:slice .method-def}
 
-Returns a new view of the same type as `view` that references the same buffer,
+Returns a new view with the same type as `view` that references the same buffer,
 but which starts at the `n`th element of `view` and continues for
-`count` elements. If `count` is omitted it is `#view - n + 1` (i.e.
-it covers all the elements of `view` after and including the `n`th).
+`count` elements. If `count` is omitted or nil it covers all the elements of
+`view` after and including the `n`th.
+`stride_multiplier` can be used to increase the stride of the view and thereby skip
+elements. It must be a positive integer and defaults to 1 (no skipping).
 
 ### view:set(val [, start [, count]]) {#view:set .method-def}
 

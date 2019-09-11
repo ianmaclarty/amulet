@@ -55,6 +55,11 @@ static inline T am_clamp(T x, T lo, T hi) {
     return x < lo ? lo : (x > hi ? hi : x);
 }
 
+template<typename T>
+static inline T am_sign(T x) {
+    return x > 0 ? 1 : (x < 0 ? -1 : 0);
+}
+
 // returned string should be freed with free()
 char *am_format(const char *fmt, ...);
 

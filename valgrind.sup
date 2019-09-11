@@ -392,6 +392,15 @@
 }
 {
    <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:_ZL19read_string_settingP9lua_StatePKcPS2_S2_
+   fun:_Z14am_load_configv
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
    Memcheck:Cond
    obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102
    obj:/usr/lib/nvidia-340/libnvidia-glcore.so.340.102

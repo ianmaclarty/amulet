@@ -38,6 +38,7 @@ struct controller_info {
     bool active;
     SDL_JoystickID joyid;
     SDL_Haptic *haptic;
+    SDL_GameController *controller;
 };
 
 #define MAX_CONTROLLERS 8
@@ -1124,6 +1125,7 @@ static bool handle_events(lua_State *L) {
                         int joyid = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
                         controller_infos[index].active = true;
                         controller_infos[index].joyid = joyid;
+                        controller_infos[index].controller = controller;
                         SDL_Joystick *joy = SDL_JoystickFromInstanceID(joyid);
                         if (joy != NULL) {
                             controller_infos[index].haptic = SDL_HapticOpenFromJoystick(joy);
@@ -1147,6 +1149,8 @@ static bool handle_events(lua_State *L) {
                             SDL_HapticClose(controller_infos[i].haptic);
                             controller_infos[i].haptic = NULL;
                         }
+                        SDL_GameControllerClose(controller_infos[i].controller);
+                        controller_infos[i].controller = NULL;
                         break;
                     }
                 }
