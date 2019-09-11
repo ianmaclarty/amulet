@@ -318,8 +318,8 @@ static void create_output_view(lua_State *L, am_buffer_view *target, am_buffer_v
                 output_view_type_info.name, am_view_type_infos[target->type].name);
             return;
         }
-        if (target->components != output_components) {
-            luaL_error(L, "target view has incorrect number of components (expecting %d, got %d)",
+        if ((unsigned int)target->components != output_components) {
+            luaL_error(L, "target view has incorrect number of components (expecting %u, got %d)",
                 output_components, target->components);
             return;
         }
