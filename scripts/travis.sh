@@ -47,16 +47,17 @@ else
         scripts/gen_linux_universal.sh
 
         # build android
-        NDK=android-ndk-r14b
+        NDK=android-ndk-r20
         echo downloading $NDK...
         curl -s -L https://dl.google.com/android/repository/$NDK-linux-x86_64.zip -o android-ndk.zip
         echo unzipping $NDK...
         unzip android-ndk.zip > /dev/null
         export NDK_HOME=`pwd`/$NDK
         export NDK_HOST=linux-x86_64
-        export NDK_ANDROID_VER=16
-        make -j2 TARGET=android.release LUAVM=lua51
-        make -j2 TARGET=android.release LUAVM=lua52
+        make -j2 TARGET=android32.release LUAVM=lua51
+        make -j2 TARGET=android32.release LUAVM=lua52
+        make -j2 TARGET=android64.release LUAVM=lua51
+        make -j2 TARGET=android64.release LUAVM=lua52
     else
         # build osx
         make -j2 TARGET=osx.release     LUAVM=lua51   test

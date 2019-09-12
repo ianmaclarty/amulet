@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios android html mingw32 mingw64
+TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios android32 android64 html mingw32 mingw64
 
 # Directories
 
@@ -223,25 +223,40 @@ else ifeq ($(TARGET_PLATFORM),ios)
 	     $(IOS_GRAPHICS_LINK_OPT) -Wl,-framework,GameKit $(GOOGLE_ADS_FRAMEWORK_OPT)
   LUA_CFLAGS += -DLUA_USE_POSIX -DIPHONEOS
   IOS = 1
-else ifeq ($(TARGET_PLATFORM),android)
-  NDK_VER=$(NDK_HOME)/toolchains/arm-linux-androideabi-4.9
-  NDK_SYSROOT=$(NDK_HOME)/platforms/android-$(NDK_ANDROID_VER)/arch-arm
+else ifeq ($(TARGET_PLATFORM),android32)
+  # useful documentation: https://android.googlesource.com/platform/ndk/+/ndk-release-r20/docs/BuildSystemMaintainers.md
+  NDK_ANDROID_VER=23
+  NDK_VER=$(NDK_HOME)/toolchains/llvm
   CC = $(NDK_HOME)/toolchains/llvm/prebuilt/$(NDK_HOST)/bin/clang
   CPP = $(NDK_HOME)/toolchains/llvm/prebuilt/$(NDK_HOST)/bin/clang++
   LINK = $(CPP)
   AR= $(NDK_VER)/prebuilt/$(NDK_HOST)/bin/arm-linux-androideabi-ar
-  TARGET_CFLAGS += --sysroot $(NDK_SYSROOT) -gcc-toolchain $(NDK_VER)/prebuilt/$(NDK_HOST) -fpic \
-  	-target armv7-none-linux-androideabi -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-exceptions -fno-rtti \
+  TARGET_CFLAGS += -fPIC \
+  	-target armv7a-linux-androideabi$(NDK_ANDROID_VER) -fno-exceptions -fno-rtti \
 	-I$(NDK_HOME)/sources/android/native_app_glue \
-	-I$(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/include \
-	-I$(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include \
-	-I$(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/include/backward \
-	-I$(NDK_SYSROOT)usr/include \
 	-DANDROID
   XLDFLAGS = $(TARGET_CFLAGS) -Wl,-soname,libamulet.so -shared \
- 	$(NDK_HOME)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libgnustl_static.a -lgcc \
-	-no-canonical-prefixes -Wl,--fix-cortex-a8 \
-	-L$(NDK_SYSROOT)/usr/lib -llog -landroid -lEGL -lGLESv2 -lOpenSLES -llog -lc -lm 
+  	-static-libstdc++ \
+	-no-canonical-prefixes \
+	-llog -landroid -lEGL -lGLESv2 -lOpenSLES -llog -lc -lm 
+  LUA_CFLAGS += -DLUA_USE_POSIX
+  ANDROID = 1
+else ifeq ($(TARGET_PLATFORM),android64)
+  # useful documentation: https://android.googlesource.com/platform/ndk/+/ndk-release-r20/docs/BuildSystemMaintainers.md
+  NDK_ANDROID_VER=23
+  NDK_VER=$(NDK_HOME)/toolchains/llvm
+  CC = $(NDK_HOME)/toolchains/llvm/prebuilt/$(NDK_HOST)/bin/clang
+  CPP = $(NDK_HOME)/toolchains/llvm/prebuilt/$(NDK_HOST)/bin/clang++
+  LINK = $(CPP)
+  AR= $(NDK_VER)/prebuilt/$(NDK_HOST)/bin/aarch64-linux-android-ar
+  TARGET_CFLAGS += -fPIC \
+  	-target aarch64-linux-android$(NDK_ANDROID_VER) -fno-exceptions -fno-rtti \
+	-I$(NDK_HOME)/sources/android/native_app_glue \
+	-DANDROID
+  XLDFLAGS = $(TARGET_CFLAGS) -Wl,-soname,libamulet.so -shared \
+  	-static-libstdc++ \
+	-no-canonical-prefixes \
+	-llog -landroid -lEGL -lGLESv2 -lOpenSLES -llog -lc -lm 
   LUA_CFLAGS += -DLUA_USE_POSIX
   ANDROID = 1
 else ifeq ($(TARGET_PLATFORM),html)

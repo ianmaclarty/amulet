@@ -198,7 +198,7 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchDown(JNIEnv * env,
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
-    win->touch_begin(android_eng->L, (void*)id, x, y, 1.0);
+    win->touch_begin(android_eng->L, (void*)((uintptr_t)id), x, y, 1.0);
     jni_env = NULL;
 }
 
@@ -207,7 +207,7 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchUp(JNIEnv * env, j
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
-    win->touch_end(android_eng->L, (void*)id, x, y, 1.0);
+    win->touch_end(android_eng->L, (void*)((uintptr_t)id), x, y, 1.0);
     jni_env = NULL;
 }
 
@@ -216,7 +216,7 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchMove(JNIEnv * env,
     if (android_eng == NULL || android_eng->L == NULL) return;
     am_window *win = am_find_window((am_native_window*)&win_dummy);
     if (win == NULL) return;
-    win->touch_move(android_eng->L, (void*)id, x, y, 1.0);
+    win->touch_move(android_eng->L, (void*)((uintptr_t)id), x, y, 1.0);
     jni_env = NULL;
 }
 
