@@ -653,7 +653,7 @@ static int view_swizzle_index(lua_State *L, am_buffer_view *view) {
 
 #define TNAME U8N
 #define CTYPE uint8_t
-#define FROM_LUA_NUM(x) ((uint8_t)floor((x) * (double)UINT8_MAX))
+#define FROM_LUA_NUM(x) ((uint8_t)floor((x) * (double)UINT8_MAX + 0.5))
 #define READ_NUM(x) read_num_u8n(x)
 #include "am_view_template.inc"
 
