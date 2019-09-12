@@ -41,6 +41,7 @@ extern am_tag AM_TAG_CULL_FACE;
 extern am_tag AM_TAG_DEPTH_TEST;
 extern am_tag AM_TAG_STENCIL_TEST;
 extern am_tag AM_TAG_CULL_SPHERE;
+extern am_tag AM_TAG_CULL_BOX;
 extern am_tag AM_TAG_READ_UNIFORM;
 
 struct am_scene_node : am_nonatomic_userdata {

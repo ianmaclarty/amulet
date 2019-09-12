@@ -34,5 +34,6 @@ struct am_quat {
 };
 
 bool am_sphere_visible(glm::dmat4 &matrix, glm::dvec3 &center, double radius);
+bool am_box_visible(glm::dmat4 &matrix, glm::dvec3 &min, glm::dvec3 &max);
 
 void am_open_math_module(lua_State *L);

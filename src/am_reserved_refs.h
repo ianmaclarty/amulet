@@ -36,6 +36,7 @@ typedef enum {
     MT_am_color_mask_node,
     MT_am_cull_face_node,
     MT_am_cull_sphere_node,
+    MT_am_cull_box_node,
     MT_am_draw_node,
     MT_am_pass_filter_node,
     MT_tag_search_result,

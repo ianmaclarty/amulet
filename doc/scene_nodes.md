@@ -1040,6 +1040,24 @@ Fields:
 
 Default tag: `"cull_sphere"`.
 
+### am.cull_box([uniforms...,] min, max) {#am.cull_box .func-def}
+
+This first takes the matrix product of the given uniforms (which should be
+`mat4`s). Then it determines whether the box with the min and max coordinates
+(`min` and `max` are `vec3`s)
+would be visible using the computed matrix
+product as the model-view-projection matrix. If it wouldn't be visible then
+none of this node's children are rendered.
+
+The default value for `uniforms` is `"P" and "MV"`.
+
+Fields:
+
+- `min`: Updatable.
+- `max`: Updatable.
+
+Default tag: `"cull_box"`.
+
 ### am.billboard([uniform,] [preserve_scaling]) {#am.billboard .func-def}
 
 Removes rotation from `uniform`, which should be a `mat4`.

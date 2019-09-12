@@ -274,6 +274,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#am.viewport">am.viewport(left, bottom, width, height)</a></li>
 <li><a href="#am.lookat">am.lookat([uniform,] eye, center, up)</a></li>
 <li><a href="#am.cull_sphere">am.cull_sphere([uniforms...,] radius [, center])</a></li>
+<li><a href="#am.cull_box">am.cull_box([uniforms...,] min, max)</a></li>
 <li><a href="#am.billboard">am.billboard([uniform,] [preserve_scaling])</a></li>
 <li><a href="#am.read_param">am.read_uniform(uniform)</a></li>
 <li><a href="#am.quads">am.quads(n, spec [, usage])</a></li>
@@ -2548,6 +2549,15 @@ win<span class="ot">.</span>scene <span class="ot">=</span>
 <li><code>center</code>: Updatable.</li>
 </ul>
 <p>Default tag: <code>&quot;cull_sphere&quot;</code>.</p>
+<h3 id="am.cull_box" class="func-def">am.cull_box([uniforms...,] min, max)</h3>
+<p>This first takes the matrix product of the given uniforms (which should be <code>mat4</code>s). Then it determines whether the box with the min and max coordinates (<code>min</code> and <code>max</code> are <code>vec3</code>s) would be visible using the computed matrix product as the model-view-projection matrix. If it wouldn't be visible then none of this node's children are rendered.</p>
+<p>The default value for <code>uniforms</code> is <code>&quot;P&quot; and &quot;MV&quot;</code>.</p>
+<p>Fields:</p>
+<ul>
+<li><code>min</code>: Updatable.</li>
+<li><code>max</code>: Updatable.</li>
+</ul>
+<p>Default tag: <code>&quot;cull_box&quot;</code>.</p>
 <h3 id="am.billboard" class="func-def">am.billboard([uniform,] [preserve_scaling])</h3>
 <p>Removes rotation from <code>uniform</code>, which should be a <code>mat4</code>. By default <code>uniform</code> is <code>&quot;MV&quot;</code>.</p>
 <p>If <code>preserve_scaling</code> is <code>false</code> or omitted then any scaling will also be removed from the matrix. If it is <code>true</code>, then scaling will be preserved, as long as it's the same across all three axes.</p>

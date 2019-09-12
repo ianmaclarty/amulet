@@ -1502,6 +1502,84 @@ static int sphere_visible(lua_State *L) {
     return 1;
 }
 
+bool am_box_visible(glm::dmat4 &matrix, glm::dvec3 &min, glm::dvec3 &max) {
+    glm::dvec4 p1 = matrix * glm::vec4(min.x, min.y, min.z, 1.0);
+    glm::dvec4 p2 = matrix * glm::vec4(min.x, min.y, max.z, 1.0);
+    glm::dvec4 p3 = matrix * glm::vec4(min.x, max.y, min.z, 1.0);
+    glm::dvec4 p4 = matrix * glm::vec4(min.x, max.y, max.z, 1.0);
+    glm::dvec4 p5 = matrix * glm::vec4(max.x, min.y, min.z, 1.0);
+    glm::dvec4 p6 = matrix * glm::vec4(max.x, min.y, max.z, 1.0);
+    glm::dvec4 p7 = matrix * glm::vec4(max.x, max.y, min.z, 1.0);
+    glm::dvec4 p8 = matrix * glm::vec4(max.x, max.y, max.z, 1.0);
+
+    return !(
+        (
+            p1.x > p1.w &&
+            p2.x > p2.w &&
+            p3.x > p3.w &&
+            p4.x > p4.w &&
+            p5.x > p5.w &&
+            p6.x > p6.w &&
+            p7.x > p7.w &&
+            p8.x > p8.w
+        ) || (
+            p1.x < -p1.w &&
+            p2.x < -p2.w &&
+            p3.x < -p3.w &&
+            p4.x < -p4.w &&
+            p5.x < -p5.w &&
+            p6.x < -p6.w &&
+            p7.x < -p7.w &&
+            p8.x < -p8.w
+        ) || (
+            p1.y > p1.w &&
+            p2.y > p2.w &&
+            p3.y > p3.w &&
+            p4.y > p4.w &&
+            p5.y > p5.w &&
+            p6.y > p6.w &&
+            p7.y > p7.w &&
+            p8.y > p8.w
+        ) || (
+            p1.y < -p1.w &&
+            p2.y < -p2.w &&
+            p3.y < -p3.w &&
+            p4.y < -p4.w &&
+            p5.y < -p5.w &&
+            p6.y < -p6.w &&
+            p7.y < -p7.w &&
+            p8.y < -p8.w
+        ) || (
+            p1.z > p1.w &&
+            p2.z > p2.w &&
+            p3.z > p3.w &&
+            p4.z > p4.w &&
+            p5.z > p5.w &&
+            p6.z > p6.w &&
+            p7.z > p7.w &&
+            p8.z > p8.w
+        ) || (
+            p1.z < -p1.w &&
+            p2.z < -p2.w &&
+            p3.z < -p3.w &&
+            p4.z < -p4.w &&
+            p5.z < -p5.w &&
+            p6.z < -p6.w &&
+            p7.z < -p7.w &&
+            p8.z < -p8.w
+        )
+    );
+}
+
+static int box_visible(lua_State *L) {
+    am_check_nargs(L, 3);
+    glm::dmat4 matrix = am_get_userdata(L, am_mat4, 1)->m;
+    glm::dvec3 min = am_get_userdata(L, am_vec3, 2)->v;
+    glm::dvec3 max = am_get_userdata(L, am_vec3, 3)->v;
+    lua_pushboolean(L, (int)am_box_visible(matrix, min, max));
+    return 1;
+}
+
 static int inverse(lua_State *L) {
     am_check_nargs(L, 1);
     switch (am_get_type(L, 1)) {
@@ -2072,6 +2150,7 @@ void am_open_math_module(lua_State *L) {
         {"euleryxz3",   euleryxz3},
         {"euleryxz4",   euleryxz4},
         {"sphere_visible", sphere_visible},
+        {"box_visible", box_visible},
         {"inverse",     inverse},
         {"simplex",     simplex},
         {"perlin",      perlin},

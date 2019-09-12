@@ -17,6 +17,7 @@ am_tag AM_TAG_CULL_FACE;
 am_tag AM_TAG_DEPTH_TEST;
 am_tag AM_TAG_STENCIL_TEST;
 am_tag AM_TAG_CULL_SPHERE;
+am_tag AM_TAG_CULL_BOX;
 am_tag AM_TAG_READ_UNIFORM;
 
 static am_tag lookup_tag(lua_State *L, int name_idx);
@@ -560,6 +561,10 @@ static void init_default_tags(lua_State *L) {
 
     lua_pushstring(L, "cull_sphere");
     AM_TAG_CULL_SPHERE = lookup_tag(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushstring(L, "cull_box");
+    AM_TAG_CULL_BOX = lookup_tag(L, -1);
     lua_pop(L, 1);
 
     lua_pushstring(L, "read_uniform");
