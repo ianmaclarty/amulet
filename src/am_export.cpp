@@ -241,6 +241,73 @@ static bool build_data_pak(export_config *conf) {
     return build_data_pak_2(conf, 0, am_opt_data_dir, am_opt_data_dir, conf->pakfile);
 }
 
+static bool copy_files_to_dir(const char *rootdir, const char *dest_dir, const char *src_dir, const char *pat) {
+    CSimpleGlobTempl<char> glob(SG_GLOB_ONLYFILE);
+    char *pattern = am_format("%s%c%s", src_dir, AM_PATH_SEP, pat);
+    glob.Add(pattern);
+    free(pattern);
+    for (int n = 0; n < glob.FileCount(); ++n) {
+        char *file = glob.File(n);
+        char *name = file + strlen(rootdir) + 1;
+        char *dest_path = am_format("%s/%s", dest_dir, name);
+        bool ok = copy_bin_file(file, dest_path);
+        free(dest_path);
+        if (!ok) return false;
+        printf("Added %s\n", name);
+    }
+    return true;
+}
+
+
+static bool copy_data_files_to_dir(export_config *conf, const char *dest_dir, const char *rootdir, const char *src_dir) {
+    if (strlen(rootdir) < strlen(src_dir)) {
+        char *dest_subdir = am_format("%s/%s", dest_dir, src_dir + strlen(rootdir) + 1);
+        am_make_dir(dest_subdir);
+        free(dest_subdir);
+    }
+    if (conf->allfiles) {
+        return copy_files_to_dir(rootdir, dest_dir, src_dir, "*");
+    } else {
+        return
+            copy_files_to_dir(rootdir, dest_dir, src_dir, "*.lua") &&
+            copy_files_to_dir(rootdir, dest_dir, src_dir, "*.png") &&
+            copy_files_to_dir(rootdir, dest_dir, src_dir, "*.jpg") &&
+            copy_files_to_dir(rootdir, dest_dir, src_dir, "*.ogg") &&
+            copy_files_to_dir(rootdir, dest_dir, src_dir, "*.obj") &&
+            copy_files_to_dir(rootdir, dest_dir, src_dir, "*.json") &&
+            copy_files_to_dir(rootdir, dest_dir, src_dir, "*.frag") &&
+            copy_files_to_dir(rootdir, dest_dir, src_dir, "*.vert") &&
+            true;
+    }
+}
+
+static bool copy_data_files_2(export_config *conf, int level, const char *rootdir, const char *src_dir, const char *dest_dir) {
+    if (level >= RECURSE_LIMIT) {
+        fprintf(stderr, "Error: maximum directory recursion depth reached (%d)\n", RECURSE_LIMIT);
+        return false;
+    }
+    if (!copy_data_files_to_dir(conf, dest_dir, rootdir, src_dir)) {
+        return false;
+    }
+    if (conf->recurse) {
+        CSimpleGlobTempl<char> glob(SG_GLOB_ONLYDIR | SG_GLOB_NODOT);
+        char *pattern = am_format("%s%c*", src_dir, AM_PATH_SEP);
+        glob.Add(pattern);
+        free(pattern);
+        for (int n = 0; n < glob.FileCount(); ++n) {
+            char *src_subdir = glob.File(n);
+            if (!copy_data_files_2(conf, level + 1, rootdir, src_subdir, dest_dir)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+static bool copy_data_files(export_config *conf, const char *dir) {
+    return copy_data_files_2(conf, 0, am_opt_data_dir, am_opt_data_dir, dir);
+}
+
 static const char *platform_luavm(const char *platform) {
     if (am_conf_luavm != NULL) return am_conf_luavm;
     if (strcmp(platform, "msvc32") == 0) return "luajit";
@@ -865,6 +932,7 @@ static bool gen_android_studio_proj(export_config *conf) {
         copy_text_file(settings_gradle_src_path, settings_gradle_dst_path, NULL) &&
         copy_platform_bin_file(jnilibs_arm32_dir, conf, "libamulet.so", "android32") &&
         copy_platform_bin_file(jnilibs_arm64_dir, conf, "libamulet.so", "android64") &&
+        copy_data_files(conf, assets_dir) &&
         true;
     if (ok) printf("Generated %s\n", projbase_dir);
 
