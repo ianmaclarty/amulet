@@ -13,7 +13,7 @@ To generate distribution packages, use the amulet export command like so:
 This will generate zip package files for Windows, Mac and Linux in the
 current directory.
 Alternatively you can pass one of the
-options `-windows`, `-mac`, `-linux`, `-html` or `-ios-xcode-proj`, to
+options `-windows`, `-mac`, `-linux`, `-html`, `-ios-xcode-proj` or `-android-studio-proj`, to
 generate packages for a specific platform.
 
 If the `-r` option is given then all subdirectories will also be included
@@ -70,5 +70,5 @@ include amulet_license.txt when you distribute your work. Note that
 these licenses do not apply to your work itself.
 
 **IMPORTANT**: Avoid unzipping and re-zipping the generated packages
-as you may inadvertently strip the executable bit from
+as you may inadvertently strip the executable marker from
 some files, which will cause them not to work on some platforms.

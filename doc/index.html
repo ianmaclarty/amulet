@@ -437,6 +437,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#windows-settings">Windows settings</a></li>
 <li><a href="#mac-settings">Mac settings</a></li>
 <li><a href="#ios-settings">iOS settings</a></li>
+<li><a href="#android-settings">Android settings</a></li>
 </ul></li>
 <li><a href="#d-models">3D models</a><ul>
 <li><a href="#am.load_obj">am.load_obj(filename)</a></li>
@@ -509,13 +510,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>It tries to be simple to use, but without making too many assumptions about how you want to use it.</p>
 <p>Amulet currently runs on the following platforms:</p>
 <ul>
-<li>Windows 7+ (32 bit)</li>
-<li>Mac OS X 10.6+ (64 bit)</li>
-<li>Linux (32 and 64 bit)</li>
-<li>HTML5</li>
-<li>iOS (armv7 and arm64)</li>
+<li>Windows 7+ (Intel 32 and 64 bit, Direct3D or OpenGL)</li>
+<li>Mac OS X 10.6+ (Intel 64 bit only, Metal)</li>
+<li>Linux (Intel 32 and 64 bit, OpenGL)</li>
+<li>HTML5 (WebAssembly, WebGL)</li>
+<li>iOS (ARM 64 bit only, Metal)</li>
+<li>Android (ARM 32 and 64 bit, OpenGLES)</li>
 </ul>
-<p>Support for Android will be added at some point as well.</p>
 <h1 id="how-to-use-this-document">How to use this document</h1>
 <p>If you have some programming experience, but are new to Lua then the <a href="#lua-primer">Lua primer</a> should bring you up to speed.</p>
 <p>The <a href="#quickstart">quickstart tutorial</a> introduces basic concepts and walks you through drawing things on screen, playing audio and responding to user input.</p>
@@ -3291,7 +3292,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <p>To generate distribution packages, use the amulet export command like so:</p>
 <pre class="console"><code>&gt; amulet export [&lt;dir&gt;]</code></pre>
 <p><code>&lt;dir&gt;</code> is the directory containing your <code>main.lua</code> file and optional <code>conf.lua</code> file (see <a href="#config">below</a>). It defaults to the current directory.</p>
-<p>This will generate zip package files for Windows, Mac and Linux in the current directory. Alternatively you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-linux</code>, <code>-html</code> or <code>-ios-xcode-proj</code>, to generate packages for a specific platform.</p>
+<p>This will generate zip package files for Windows, Mac and Linux in the current directory. Alternatively you can pass one of the options <code>-windows</code>, <code>-mac</code>, <code>-linux</code>, <code>-html</code>, <code>-ios-xcode-proj</code> or <code>-android-studio-proj</code>, to generate packages for a specific platform.</p>
 <p>If the <code>-r</code> option is given then all subdirectories will also be included (recursively), otherwise only the files in the given directory are included.</p>
 <p>By default all files in the directory with the following extensions will be included in the export: <code>.lua</code>, <code>.json</code>, <code>.png</code>, <code>.jpg</code>, <code>.ogg</code>, <code>.obj</code>, <code>.vert</code>, <code>.frag</code>. You can include all files with the <code>-a</code> option.</p>
 <p>All .txt files will also be copied to the generated zip and be visible to the user when they unzip it. This is intended for <code>README.txt</code> or similar files.</p>
@@ -3304,7 +3305,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz</code></pre>
 <p>As a courtesy to the user, the generate zip packages will contain the game files in a sub-folder. If you instead want the game files to appear in the root of the zip, use -nozipdir. You might want this if the game will run from a launcher such as Steam.</p>
 <p>If you want to generate only the <code>data.pak</code> file for your project you can specify the <code>-datapak</code> option. It behaves in a similar way to the platform options, but generates a platform agnostic <code>data.pak</code> file containing your projects Lua files and other assets. You might want to do this to update a previously generated xcode project without regenerating all the project files.</p>
 <p>The generated zip will also contain an <code>amulet_license.txt</code> file containing the Amulet license as well as the licenses of all third party libraries used by Amulet. Some of these licenses require that they be distributed with copies of their libraries, so to comply you should include amulet_license.txt when you distribute your work. Note that these licenses do not apply to your work itself.</p>
-<p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable bit from some files, which will cause them not to work on some platforms.</p>
+<p><strong>IMPORTANT</strong>: Avoid unzipping and re-zipping the generated packages as you may inadvertently strip the executable marker from some files, which will cause them not to work on some platforms.</p>
 <h1 id="config">Project Configuration</h1>
 <p>Project metadata can be specified in a <code>conf.lua</code> file in the same directory as <code>main.lua</code>. Information like the icon to use for Mac and iOS exports, your game title, author and version, as well as app signing information for iOS is all specified here.</p>
 <h2 id="basic-metadata">Basic metadata</h2>
@@ -3343,6 +3344,15 @@ ios_dist_prov_profile_name <span class="ot">=</span> <span class="st">&quot;MyGa
 <p><code>orientation</code> can be <code>&quot;portrait&quot;</code>, <code>&quot;landscape&quot;</code>, <code>&quot;any&quot;</code> or <code>&quot;hybrid&quot;</code> (portrait on iPhone, but landscape on iPad).</p>
 <p><code>ios_cert_identity</code> is the code that appears in parenthesis in your certificate name (e.g. if you certificate name in Key Access is &quot;iPhone Distribution: Your Name (XXXX123456)&quot;, then this value should be <code>&quot;XXXX123456&quot;</code>.</p>
 <p><code>ios_dev_prov_profile_name</code> and <code>ios_dist_prov_profile_name</code> are the names of your installed development and distribution provisioning profiles respectively. You can install a provisioning profile by downloading and double clicking it.</p>
+<h2 id="android-settings">Android settings</h2>
+<div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>
+appid_android <span class="ot">=</span> <span class="st">&quot;com.example.mygameid&quot;</span>
+icon_android <span class="ot">=</span> <span class="st">&quot;assets/icon.png&quot;</span>
+orientation <span class="ot">=</span> <span class="st">&quot;portrait&quot;</span>
+android_app_version_code <span class="ot">=</span> <span class="st">&quot;4&quot;</span>
+google_play_services_id <span class="ot">=</span> <span class="st">&quot;58675281521&quot;</span></code></pre></div>
+<p>The above metadata is used when the <code>-android-studio-proj</code> export option is given to generate an Android Studio project. All the data, except <code>google_play_services_id</code> is required (<code>google_play_services_id</code> is only required if you want to use Google Play leaderboards or achievements).</p>
+<p><code>orientation</code> can be <code>&quot;portrait&quot;</code>, <code>&quot;landscape&quot;</code> or <code>&quot;any&quot;</code>.</p>
 <h1 id="d-models">3D models</h1>
 <p>Amulet has some basic support for loading 3D models in Wavefront <code>.obj</code> format.</p>
 <h3 id="am.load_obj" class="func-def">am.load_obj(filename)</h3>

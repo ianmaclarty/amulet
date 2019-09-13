@@ -16,9 +16,8 @@ It currently runs on the following platforms:
 - Mac OS X
 - Linux
 - iOS
+- Android
 - HTML5
-
-The engine technically works on Android too, but exporting to Android is not yet supported.
 
 ## Binary distributions
 
@@ -119,5 +118,5 @@ The Amulet logo was designed by [Bethany Wilksch](http://www.plumb-bob.com.au).
 
 | System |  Status |
 |:-------------|:------------|
-|Travis (Linux, OSX, iOS, MinGW, HTML) | [![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet) |
+|Travis (Linux, OSX, iOS, MinGW, Android, HTML) | [![Build Status](https://travis-ci.org/ianmaclarty/amulet.svg?branch=master)](https://travis-ci.org/ianmaclarty/amulet) |
 |Appveyor (MSVC) | [![Build Status](https://ci.appveyor.com/api/projects/status/tp1ifjl53cy86gyu?svg=true)](https://ci.appveyor.com/project/ianmaclarty/amulet) |

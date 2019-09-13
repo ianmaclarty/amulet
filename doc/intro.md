@@ -12,13 +12,12 @@ about how you want to use it.
 
 Amulet currently runs on the following platforms:
 
--   Windows 7+ (32 bit)
--   Mac OS X 10.6+ (64 bit)
--   Linux (32 and 64 bit)
--   HTML5
--   iOS (armv7 and arm64)
-
-Support for Android will be added at some point as well.
+-   Windows 7+ (Intel 32 and 64 bit, Direct3D or OpenGL)
+-   Mac OS X 10.6+ (Intel 64 bit only, Metal)
+-   Linux (Intel 32 and 64 bit, OpenGL)
+-   HTML5 (WebAssembly, WebGL)
+-   iOS (ARM 64 bit only, Metal)
+-   Android (ARM 32 and 64 bit, OpenGLES)
 
 How to use this document
 ========================

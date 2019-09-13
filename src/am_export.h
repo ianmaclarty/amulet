@@ -7,6 +7,7 @@ struct am_export_flags {
     bool export_linux;
     bool export_html;
     bool export_ios_xcode_proj;
+    bool export_android_studio_proj;
     bool export_data_pak;
     bool recurse;
     bool allfiles;;
@@ -21,6 +22,7 @@ struct am_export_flags {
         export_linux = false;
         export_html = false;
         export_ios_xcode_proj = false;
+        export_android_studio_proj = false;
         export_data_pak = false;
         recurse = false;
         allfiles = false;
@@ -36,6 +38,7 @@ struct am_export_flags {
              + (export_linux ? 1 : 0)
              + (export_html ? 1 : 0)
              + (export_ios_xcode_proj ? 1 : 0)
+             + (export_android_studio_proj ? 1 : 0)
              + (export_data_pak ? 1 : 0);
     }
 };

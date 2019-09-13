@@ -93,3 +93,21 @@ then this value should be `"XXXX123456"`.
 `ios_dev_prov_profile_name` and `ios_dist_prov_profile_name` are the names
 of your installed development and distribution provisioning profiles respectively.
 You can install a provisioning profile by downloading and double clicking it.
+
+## Android settings
+
+~~~ {.lua}
+display_name = "My Game"
+appid_android = "com.example.mygameid"
+icon_android = "assets/icon.png"
+orientation = "portrait"
+android_app_version_code = "4"
+google_play_services_id = "58675281521"
+~~~
+
+The above metadata is used when the `-android-studio-proj` export option is
+given to generate an Android Studio project. All the data, except `google_play_services_id` is
+required (`google_play_services_id` is only required if you want to use Google
+Play leaderboards or achievements).
+
+`orientation` can be `"portrait"`, `"landscape"` or `"any"`.

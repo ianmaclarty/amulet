@@ -17,7 +17,7 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj] [-datapak]\n"
+        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj] [-android-studio-proj] [-datapak]\n"
         "                     [-a] [-r] [-d <out-dir>] [-o <out-path>] [-nozipdir] [ <dir> ]\n"
         "\n"
         "  Exports distribution packages for the project in <dir>,\n"
@@ -181,6 +181,8 @@ static bool export_cmd(int *argc, char ***argv) {
             flags.export_linux = true;
         } else if (strcmp(arg, "-ios-xcode-proj") == 0) {
             flags.export_ios_xcode_proj = true;
+        } else if (strcmp(arg, "-android-studio-proj") == 0) {
+            flags.export_android_studio_proj = true;
         } else if (strcmp(arg, "-html") == 0) {
             flags.export_html = true;
         } else if (strcmp(arg, "-datapak") == 0) {
@@ -273,12 +275,13 @@ static bool nocloselua_opt(int *argc, char ***argv) {
     return true;
 }
 
-#ifdef AM_WINDOWS
 static bool d3dangle_opt(int *argc, char ***argv) {
     am_conf_d3dangle = true;
+    #if !defined(AM_WINDOWS)
+        am_conf_d3dangle = false;
+    #endif
     return true;
 }
-#endif
 
 static option options[] = {
     {"help",        help_cmd, true},
@@ -293,9 +296,7 @@ static option options[] = {
     {"-lang",       lang_opt, false},
     {"-gllog",      gllog_opt, false},
     {"-nocloselua", nocloselua_opt, false},
-#ifdef AM_WINDOWS
     {"-d3dangle",   d3dangle_opt, false},
-#endif
 
     {NULL, NULL}
 };

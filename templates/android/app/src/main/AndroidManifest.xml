@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="AM_APPID"
+        android:versionCode="AM_APPVERSION_CODE"
+        android:versionName="AM_APPVERSION"
+        >
+
+    <uses-sdk android:minSdkVersion="23" />
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" /> <!-- OpenGL ES 2.0 -->
+
+    <application android:label="AM_TITLE"
+        android:icon="@drawable/icon"
+        android:hasCode="true"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+        android:hardwareAccelerated="true"
+        android:allowBackup="true"
+        >
+
+        <!-- for google play game services (leaderboards, achievements, etc) -->
+        <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/app_id" />
+
+        <activity android:name="xyz.amulet.AmuletActivity"
+                android:label="AM_TITLE"
+                android:screenOrientation="AM_ORIENTATION"
+                android:configChanges="orientation|keyboardHidden">
+            <meta-data android:name="android.app.lib_name"
+                    android:value="amulet" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+    <!--<uses-permission android:name="android.permission.INTERNET"></uses-permission>-->
+    <!--<uses-permission android:name="com.android.vending.BILLING" />-->
+</manifest> 
