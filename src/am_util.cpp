@@ -126,13 +126,16 @@ void *am_read_file(const char *filename, size_t *len) {
 bool am_write_text_file(const char *filename, char *content) {
     FILE *f = am_fopen(filename, "w");
     if (f == NULL) {
-        fprintf(stderr, "Error: unable to create file %s", filename);
+        fprintf(stderr, "Error: unable to create file %s\n", filename);
         return false;
     }
-    if (fwrite(content, strlen(content), 1, f) != 1) {
-        fprintf(stderr, "Error writing to file %s", filename);
-        fclose(f);
-        return false;
+    int len = strlen(content);
+    if (len > 0) {
+        if (fwrite(content, len, 1, f) != 1) {
+            fprintf(stderr, "Error writing to file %s\n", filename);
+            fclose(f);
+            return false;
+        }
     }
     fclose(f);
     return true;
@@ -141,13 +144,15 @@ bool am_write_text_file(const char *filename, char *content) {
 bool am_write_bin_file(const char *filename, void *content, size_t len) {
     FILE *f = am_fopen(filename, "wb");
     if (f == NULL) {
-        fprintf(stderr, "Error: unable to create file %s", filename);
+        fprintf(stderr, "Error: unable to create file %s\n", filename);
         return false;
     }
-    if (fwrite(content, len, 1, f) != 1) {
-        fprintf(stderr, "Error writing to file %s", filename);
-        fclose(f);
-        return false;
+    if (len > 0) {
+        if (fwrite(content, len, 1, f) != 1) {
+            fprintf(stderr, "Error writing to file %s\n", filename);
+            fclose(f);
+            return false;
+        }
     }
     fclose(f);
     return true;
