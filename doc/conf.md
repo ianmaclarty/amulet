@@ -111,3 +111,5 @@ required (`google_play_services_id` is only required if you want to use Google
 Play leaderboards or achievements).
 
 `orientation` can be `"portrait"`, `"landscape"` or `"any"`.
+
+`appid_android` is used for the Java package name of the app. It should not contain dashes.
