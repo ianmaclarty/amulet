@@ -10,6 +10,9 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.content.*;
 import android.content.res.*;
+import android.media.AudioTrack;
+import android.media.AudioFormat;
+import android.media.AudioAttributes;
 
 import android.opengl.GLSurfaceView;
 import android.view.*;
@@ -55,10 +58,53 @@ public class AmuletActivity extends Activity
     static String pendingProductId;
     RelativeLayout layout;
 
+    AudioTrack audioTrack = null;
+    int audioBufferSize = 2048;
+    Thread audioThread = null;
+    volatile boolean is_running = true;
+    volatile boolean is_paused = false;
+
     public AmuletActivity() {
         singleton = this;
     }
 
+    private void setupAudio() {
+        final int sampleRate = 44100;
+        audioBufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_FLOAT);
+        final int numFrames = audioBufferSize / 4;
+        final int halfNumFrames = numFrames / 2;
+        audioTrack = new AudioTrack.Builder()
+             .setAudioAttributes(new AudioAttributes.Builder()
+                      .setUsage(AudioAttributes.USAGE_GAME)
+                      .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+                      .build())
+             .setAudioFormat(new AudioFormat.Builder()
+                     .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
+                     .setSampleRate(sampleRate)
+                     .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+                     .build())
+             .setTransferMode(AudioTrack.MODE_STREAM)
+             .setBufferSizeInBytes(audioBufferSize)
+             .build();
+        audioTrack.play();
+        audioThread = new Thread(new Runnable() {
+            float[] buffer = new float[halfNumFrames];
+            public void run() {
+                while (is_running) {
+                    if (!is_paused) {
+                        jniFillAudioBuffer(buffer, halfNumFrames);
+                        audioTrack.write(buffer, 0, halfNumFrames, AudioTrack.WRITE_BLOCKING);
+                    } else {
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {};
+                    }
+                }
+            }
+        });
+        audioThread.start();
+    }
+ 
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
@@ -76,7 +122,9 @@ public class AmuletActivity extends Activity
 
         layout.addView(view);
 
-	    setContentView(layout);
+	setContentView(layout);
+
+        setupAudio();
 
         // iap stuff
         /*
@@ -94,18 +142,21 @@ public class AmuletActivity extends Activity
         //    unbindService(iapServiceCon);
         //}
         jniTeardown();
+        is_running = false;
     }
 
     @Override protected void onPause() {
         super.onPause();
         view.onPause();
         jniPause();
+        is_paused = true;
     }
 
     @Override protected void onResume() {
         super.onResume();
         view.onResume();
         jniResume();
+        is_paused = false;
     }
 
     private static class AmuletView extends GLSurfaceView {
@@ -739,6 +790,7 @@ public class AmuletActivity extends Activity
     public static native void jniTouchDown(int id, float x, float y);
     public static native void jniTouchUp(int id, float x, float y);
     public static native void jniTouchMove(int id, float x, float y);
+    public static native void jniFillAudioBuffer(float[] buf, int size);
     public static native void jniIAPProductsRetrieved(int success, String[] productids, String[] prices);
     public static native void jniIAPTransactionUpdated(String productId, String status);
     public static native void jniIAPRestoreFinished(int success);

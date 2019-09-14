@@ -10,9 +10,6 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-#include <SLES/OpenSLES.h>
-#include <SLES/OpenSLES_Android.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -38,6 +35,7 @@ static double delta_time;
 static double real_delta_time;
 
 static void android_init_audio();
+static void android_audio_teardown();
 static void android_teardown();
 
 static JNIEnv *jni_env = NULL;
@@ -69,8 +67,6 @@ static void android_init_engine() {
     android_init_audio();
 }
 
-static void OpenSLWrap_Shutdown();
-
 static void android_teardown() {
     android_running = false;
     if (android_eng != NULL) {
@@ -81,7 +77,7 @@ static void android_teardown() {
     }
     am_destroy_gl();
     android_window_created = false;
-    OpenSLWrap_Shutdown();
+    android_audio_teardown();
 }
 
 static void android_draw() {
@@ -127,11 +123,6 @@ static void android_update() {
     t0 = frame_time;
 }
 
-typedef void (*AndroidAudioCallback)(short *buffer, int num_samples);
-
-static void audio_cb(short *buffer, int num_samples);
-static bool OpenSLWrap_Init(AndroidAudioCallback cb);
-
 extern "C" {
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResize(JNIEnv * env, jobject obj,  jint width, jint height);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniStep(JNIEnv * env, jobject obj);
@@ -147,6 +138,7 @@ extern "C" {
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jproductId, jstring jstatus);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPRestoreFinished(JNIEnv * env, jobject obj, jint success);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSetGameServicesConnected(JNIEnv * env, jobject obj, jint c);
+    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniFillAudioBuffer(JNIEnv * env, jobject obj, jfloatArray jbuffer, jint size);
 };
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResize(JNIEnv * env, jobject obj,  jint width, jint height)
@@ -190,7 +182,6 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSurfaceCreated(JNIEnv *
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTeardown(JNIEnv * env, jobject obj) {
     android_teardown();
-    OpenSLWrap_Shutdown();
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchDown(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y) {
@@ -283,162 +274,47 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPRestoreFinished(JNIE
 //------------------------------
 
 static float *android_audio_buffer = NULL;
+static int android_audio_buffer_size = 0;
+static bool audio_initialized = false;
+static bool audio_is_paused = false;
+
+JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniFillAudioBuffer(JNIEnv * env, jobject obj, jfloatArray jbuffer, jint size) {
+    if (!audio_initialized) return;
+    if (android_audio_buffer_size != size) {
+        if (android_audio_buffer != NULL) {
+            free(android_audio_buffer);
+        }
+        android_audio_buffer = (float*)malloc(size * sizeof(float));
+        android_audio_buffer_size = size;
+    }
+    jfloat *buffer = env->GetFloatArrayElements(jbuffer, 0);
+    memset(android_audio_buffer, 0, size * sizeof(float));
+    if (!audio_is_paused) {
+        am_audio_bus bus(2, size / 2, android_audio_buffer);
+        pthread_mutex_lock(&android_audio_mutex);
+        am_fill_audio_bus(&bus);
+        pthread_mutex_unlock(&android_audio_mutex);
+    }
+    am_interleave_audio(buffer, android_audio_buffer, 2, size / 2, 0, size / 2);
+    env->ReleaseFloatArrayElements(jbuffer, buffer, 0);
+}
 
 static void android_init_audio() {
-    android_audio_buffer = (float*)malloc(am_conf_audio_channels * am_conf_audio_buffer_size * sizeof(float));
-    OpenSLWrap_Init(audio_cb);
+    audio_initialized = true;
 }
 
-void android_audio_teardown() {
+static void android_audio_teardown() {
+    audio_initialized = false;
 }
-
-#define BUFFER_SIZE 2048
-#define BUFFER_SIZE_IN_SAMPLES (BUFFER_SIZE / 2)
-#define FREQ 44100
-
-static void audio_cb(short *buffer, int n_samples) {
-    int num_channels = am_conf_audio_channels;
-    int num_samples = am_conf_audio_buffer_size;
-    memset(android_audio_buffer, 0, num_channels * num_samples * sizeof(float));
-    am_audio_bus bus(num_channels, num_samples, android_audio_buffer);
-    pthread_mutex_lock(&android_audio_mutex);
-    am_fill_audio_bus(&bus);
-    pthread_mutex_unlock(&android_audio_mutex);
-    am_interleave_audio16(buffer, android_audio_buffer, num_channels, num_samples, 0, num_samples);
-    double mx = 0.0;
-    for (int i = 0; i < 2048; i++) {
-        if (android_audio_buffer[i] > mx) mx = android_audio_buffer[i];
-    }
-}
-
-// engine interfaces
-static SLObjectItf engineObject = NULL;
-static SLEngineItf engineEngine;
-static SLObjectItf outputMixObject = NULL;
-
-// buffer queue player interfaces
-static SLObjectItf bqPlayerObject = NULL;
-static SLPlayItf bqPlayerPlay;
-static SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
-static SLMuteSoloItf bqPlayerMuteSolo;
-static SLVolumeItf bqPlayerVolume;
-
-static short buffer[BUFFER_SIZE];
-
-static AndroidAudioCallback audioCallback;
-
-static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
-  assert(bq == bqPlayerBufferQueue);
-  assert(NULL == context);
-
-  int nextSize = sizeof(buffer);
-
-  audioCallback(buffer, BUFFER_SIZE_IN_SAMPLES);
-  SLresult result;
-  result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, nextSize);
-
-  assert(SL_RESULT_SUCCESS == result);
-}
-
-// create the engine and output mix objects
-//extern "C"
-static bool OpenSLWrap_Init(AndroidAudioCallback cb) {
-  audioCallback = cb;
-
-  SLresult result;
-  // create engine
-  result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
-  assert(SL_RESULT_SUCCESS == result);
-
-  SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
-  SLDataFormat_PCM format_pcm = {
-    SL_DATAFORMAT_PCM,
-    2,
-    SL_SAMPLINGRATE_44_1,
-    SL_PCMSAMPLEFORMAT_FIXED_16,
-    SL_PCMSAMPLEFORMAT_FIXED_16,
-    SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
-    SL_BYTEORDER_LITTLEENDIAN
-  };
-
-  SLDataSource audioSrc = {&loc_bufq, &format_pcm};
-
-  // configure audio sink
-  SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
-  SLDataSink audioSnk = {&loc_outmix, NULL};
-
-  // create audio player
-  const SLInterfaceID ids[2] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
-  const SLboolean req[2] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
-  result = (*engineEngine)->CreateAudioPlayer(engineEngine, &bqPlayerObject, &audioSrc, &audioSnk, 2, ids, req);
-  assert(SL_RESULT_SUCCESS == result);
-
-  result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE,
-    &bqPlayerBufferQueue);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, NULL);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
-  assert(SL_RESULT_SUCCESS == result);
-  result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-  assert(SL_RESULT_SUCCESS == result);
-
-  memset(buffer, 0, sizeof(buffer));
-
-  result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer, sizeof(buffer));
-  if (SL_RESULT_SUCCESS != result) {
-    return false;
-  }
-  return true;
-}
-
-// shut down the native audio system
-//extern "C"
-static void OpenSLWrap_Shutdown() {
-  if (bqPlayerObject != NULL) {
-    (*bqPlayerObject)->Destroy(bqPlayerObject);
-    bqPlayerObject = NULL;
-    bqPlayerPlay = NULL;
-    bqPlayerBufferQueue = NULL;
-    bqPlayerMuteSolo = NULL;
-    bqPlayerVolume = NULL;
-  }
-  if (outputMixObject != NULL) {
-    (*outputMixObject)->Destroy(outputMixObject);
-    outputMixObject = NULL;
-  }
-  if (engineObject != NULL) {
-    (*engineObject)->Destroy(engineObject);
-    engineObject = NULL;
-    engineEngine = NULL;
-  }
-}
-
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniPause(JNIEnv * env, jobject obj)
 {
-    if (bqPlayerObject != NULL) {
-        (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_STOPPED);
-    }
+    audio_is_paused = true;
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniResume(JNIEnv * env, jobject obj)
 {
-    if (bqPlayerObject != NULL) {
-        (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-    }
+    audio_is_paused = false;
 }
 
 //-----------------------------------------------------------------

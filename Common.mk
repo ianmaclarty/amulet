@@ -238,7 +238,7 @@ else ifeq ($(TARGET_PLATFORM),android32)
   XLDFLAGS = $(TARGET_CFLAGS) -Wl,-soname,libamulet.so -shared \
   	-static-libstdc++ \
 	-no-canonical-prefixes \
-	-llog -landroid -lEGL -lGLESv2 -lOpenSLES -llog -lc -lm 
+	-llog -landroid -lEGL -lGLESv2 -llog -lc -lm 
   LUA_CFLAGS += -DLUA_USE_POSIX
   ANDROID = 1
 else ifeq ($(TARGET_PLATFORM),android64)
@@ -256,7 +256,7 @@ else ifeq ($(TARGET_PLATFORM),android64)
   XLDFLAGS = $(TARGET_CFLAGS) -Wl,-soname,libamulet.so -shared \
   	-static-libstdc++ \
 	-no-canonical-prefixes \
-	-llog -landroid -lEGL -lGLESv2 -lOpenSLES -llog -lc -lm 
+	-llog -landroid -lEGL -lGLESv2 -llog -lc -lm 
   LUA_CFLAGS += -DLUA_USE_POSIX
   ANDROID = 1
 else ifeq ($(TARGET_PLATFORM),html)
