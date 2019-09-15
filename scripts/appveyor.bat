@@ -1,11 +1,5 @@
 pacman -S --noconfirm zip
 
-curl -L -O https://github.com/bmatzelle/gow/archive/master.zip
-unzip master.zip
-set PATH=gow-master\bin\;C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
-zip -r test-zip.zip gow-master
-echo ZIP WORKS
-
 if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
 
 call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
@@ -27,6 +21,12 @@ call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Bu
 set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;"C:\Program Files (x86)\Inno Setup 5";%PATH%
 set TAG=%APPVEYOR_REPO_TAG_NAME:~0,-15%
 choco install -y InnoSetup
+
+rem appveyor has no zip command, so install one
+curl -L -O https://github.com/bmatzelle/gow/archive/master.zip
+unzip master.zip
+set PATH=%PATH%;gow-master\bin\
+
 curl -L -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-darwin.zip
 curl -L -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-win32.zip
 curl -L -O https://github.com/ianmaclarty/amulet/releases/download/%TAG%/builds-linux.zip
