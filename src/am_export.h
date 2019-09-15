@@ -2,6 +2,7 @@
 
 struct am_export_flags {
     bool export_windows;
+    bool export_windows64;
     bool export_mac;
     bool export_mac_app_store;
     bool export_linux;
@@ -33,6 +34,7 @@ struct am_export_flags {
 
     int num_platforms() {
         return (export_windows ? 1 : 0)
+             + (export_windows64 ? 1 : 0)
              + (export_mac ? 1 : 0)
              + (export_mac_app_store ? 1 : 0)
              + (export_linux ? 1 : 0)

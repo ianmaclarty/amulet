@@ -17,7 +17,8 @@ struct option {
 static bool help_export() {
     printf(
        /*-------------------------------------------------------------------------------*/
-        "Usage: amulet export [-windows] [-mac] [-linux] [-html] [-ios-xcode-proj] [-android-studio-proj] [-datapak]\n"
+        "Usage: amulet export [-windows] [-windows64] [-mac] [-linux] [-html] \n"
+        "                     [-ios-xcode-proj] [-android-studio-proj] [-datapak]\n"
         "                     [-a] [-r] [-d <out-dir>] [-o <out-path>] [-nozipdir] [ <dir> ]\n"
         "\n"
         "  Exports distribution packages for the project in <dir>,\n"
@@ -173,6 +174,8 @@ static bool export_cmd(int *argc, char ***argv) {
         char *arg = (*argv)[i];
         if (strcmp(arg, "-windows") == 0) {
             flags.export_windows = true;
+        } else if (strcmp(arg, "-windows64") == 0) {
+            flags.export_windows64 = true;
         } else if (strcmp(arg, "-mac") == 0) {
             flags.export_mac = true;
         } else if (strcmp(arg, "-mac-app-store") == 0) {

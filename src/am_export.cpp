@@ -361,10 +361,10 @@ static char *get_export_zip_name(export_config *conf, const char *platname) {
     }
 }
 
-static bool gen_windows_export(export_config *conf) {
-    char *zipname = get_export_zip_name(conf, "windows");
+static bool gen_windows_export(export_config *conf, const char *zipsuffix, const char *platform) {
+    char *zipname = get_export_zip_name(conf, zipsuffix);
     if (am_file_exists(zipname)) am_delete_file(zipname);
-    char *binpath = get_bin_path(conf, "msvc32");
+    char *binpath = get_bin_path(conf, platform);
     if (binpath == NULL) return true;
     const char *name = conf->shortname;
     const char *zipdir = conf->zipdir;
@@ -1087,7 +1087,8 @@ bool am_build_exports(am_export_flags *flags) {
     conf.outpath = flags->outpath;
     if (!build_data_pak(&conf)) return false;
     bool ok =
-        ((!(flags->export_windows))             || gen_windows_export(&conf)) &&
+        ((!(flags->export_windows))             || gen_windows_export(&conf, "windows", "msvc32")) &&
+        ((!(flags->export_windows64))           || gen_windows_export(&conf, "windows64", "msvc64")) &&
         ((!(flags->export_mac))                 || gen_mac_export(&conf, true)) &&
         ((!(flags->export_mac_app_store))       || gen_mac_app_store_export(&conf)) &&
         ((!(flags->export_ios_xcode_proj))      || gen_ios_xcode_proj(&conf)) &&
