@@ -1,0 +1,1 @@
+msvcbuild.bat static
