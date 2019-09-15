@@ -1,5 +1,11 @@
 pacman -S --noconfirm zip
 
+curl -L -O https://github.com/bmatzelle/gow/archive/master.zip
+unzip master.zip
+set PATH=gow-master\bin\;C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
+zip -r test-zip.zip gow-master
+echo ZIP WORKS
+
 if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
 
 call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
