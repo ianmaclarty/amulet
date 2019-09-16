@@ -1664,6 +1664,24 @@ void am_resume_app() {
     }
 }
 
+static int show_alert(lua_State *L) {
+    if (ios_view_controller == nil) return 0;
+    am_check_nargs(L, 1);
+    const char *msg = lua_tostring(L, 1);
+    if (msg == NULL) {
+        msg = "";
+    }
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:[NSString stringWithUTF8String:""]
+                               message:[NSString stringWithUTF8String:msg]
+                               preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+       handler:^(UIAlertAction * action) {}];
+    [alert addAction:defaultAction];
+    [ios_view_controller presentViewController:alert animated:YES completion:nil];
+    return 0;
+}
+
 void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},
@@ -1691,6 +1709,7 @@ void am_open_ios_module(lua_State *L) {
         {"iap_product_local_price", iap_product_local_price},
 
         {"ios_request_review", ios_request_review},
+        {"show_alert", show_alert},
 
         {"launch_url", launch_url},
 
