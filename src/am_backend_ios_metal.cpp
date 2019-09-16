@@ -633,6 +633,9 @@ static void ios_become_active() {
             // reset event data in case touch end events missing
             am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
             am_call_amulet(ios_eng->L, "_reset_window_event_data", 1, 0);
+
+            am_find_window((am_native_window*)ios_view)->push(ios_eng->L);
+            am_call_amulet(ios_eng->L, "_became_active", 0, 0);
         }
     }
     ios_paused = false;

@@ -799,3 +799,21 @@ function am._init_window_event_data(window)
         am._main_window = window
     end
 end
+
+-- app focus
+function am._became_active()
+    am._did_just_become_active = true
+end
+
+am._register_pre_frame_func(function()
+    if am._did_just_become_active then
+        am._in_become_active_frame = true
+        am._did_just_become_active = false
+    else
+        am._in_become_active_frame = false
+    end
+end)
+
+function am.app_became_active()
+    return am._in_become_active_frame
+end
