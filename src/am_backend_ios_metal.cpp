@@ -1548,10 +1548,12 @@ static void register_iap_product_mt(lua_State *L) {
         lua_State *L = ios_eng->L;
         lua_newtable(L);
         for (SKProduct *product in response.products) {
-            [product retain];
-            lua_pushstring(L, [[product productIdentifier] UTF8String]);
-            am_new_userdata(L, am_iap_product)->product = product;
-            lua_settable(L, -3);
+            if (product != nil) {
+                [product retain];
+                lua_pushstring(L, [[product productIdentifier] UTF8String]);
+                am_new_userdata(L, am_iap_product)->product = product;
+                lua_settable(L, -3);
+            }
         } 
         am_call_amulet(L, "_iap_retrieve_products_finished", 1, 0);
     }

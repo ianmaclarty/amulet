@@ -18,6 +18,7 @@ struct am_export_flags {
 
     am_export_flags() {
         export_windows = false;
+        export_windows64 = false;
         export_mac = false;
         export_mac_app_store = false;
         export_linux = false;
