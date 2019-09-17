@@ -14,8 +14,9 @@ static int eval_js(lua_State *L) {
         } else {
             res_str = JSON.stringify(res);
         }
-        var buffer = Module._malloc(res_str.length+1);
-        Module.writeStringToMemory(res_str, buffer);
+        var len = Module.lengthBytesUTF8(res_str) + 1;
+        var buffer = Module._malloc(len);
+        Module.stringToUTF8(res_str, buffer, len);
         return buffer;
     }, (int)js);
     char *res_str = (char*)res_ptr;

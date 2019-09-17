@@ -97,8 +97,9 @@ static void get_response(lua_State *L, void *obj) {
         var xhr = window.amulet.http_reqs[$0];
         var txt = xhr.responseText;
         if (txt == null) return 0;
-        var buffer = Module._malloc(txt.length+1);
-        Module.writeStringToMemory(txt, buffer);
+        var len = Module.lengthBytesUTF8(txt) + 1;
+        var buffer = Module._malloc(len);
+        Module.stringToUTF8(txt, buffer, len);
         return buffer;
     }, req->id);
     if (text_ptr == 0) {
