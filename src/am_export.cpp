@@ -1070,7 +1070,7 @@ bool am_build_exports(am_export_flags *flags) {
     conf.orientation = am_conf_app_display_orientation;
     conf.launch_image = am_conf_app_launch_image;
     conf.launch_image_id = (unsigned int)time(NULL);
-    conf.grade = "release";
+    conf.grade = flags->debug ? "debug" : "release";
     conf.pakfile = AM_TMP_DIR AM_PATH_SEP_STR "data.pak";
     conf.mac_category = am_conf_mac_category;
     conf.recurse = flags->recurse;

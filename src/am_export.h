@@ -10,6 +10,7 @@ struct am_export_flags {
     bool export_ios_xcode_proj;
     bool export_android_studio_proj;
     bool export_data_pak;
+    bool debug;
     bool recurse;
     bool allfiles;;
     bool zipdir;
@@ -26,6 +27,7 @@ struct am_export_flags {
         export_ios_xcode_proj = false;
         export_android_studio_proj = false;
         export_data_pak = false;
+        debug = false;
         recurse = false;
         allfiles = false;
         zipdir = true;

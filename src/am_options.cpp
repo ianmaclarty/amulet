@@ -212,6 +212,8 @@ static bool export_cmd(int *argc, char ***argv) {
             i++;
             arg = (*argv)[i];
             flags.outpath = arg;
+        } else if (strcmp(arg, "-debug") == 0) {
+            flags.debug = true;
         } else {
             break;
         }
