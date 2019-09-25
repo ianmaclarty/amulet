@@ -3337,12 +3337,17 @@ appid_ios <span class="ot">=</span> <span class="st">&quot;com.example.mygameid&
 icon_ios_ <span class="ot">=</span> <span class="st">&quot;assets/icon.png&quot;</span>
 launch_image <span class="ot">=</span> <span class="st">&quot;assets/launch_image.png&quot;</span>
 orientation <span class="ot">=</span> <span class="st">&quot;portrait&quot;</span>
-ios_cert_identity <span class="ot">=</span> <span class="st">&quot;XXXX123456&quot;</span>
+ios_dev_cert_identity <span class="ot">=</span> <span class="st">&quot;XXXX123456&quot;</span>
+ios_appstore_cert_identity <span class="ot">=</span> <span class="st">&quot;XXXX123456&quot;</span>
+ios_code_sign_identity <span class="ot">=</span> <span class="st">&quot;Apple Distribution&quot;</span>
 ios_dev_prov_profile_name <span class="ot">=</span> <span class="st">&quot;MyGame Dev Profile&quot;</span>
-ios_dist_prov_profile_name <span class="ot">=</span> <span class="st">&quot;MyGame App Store Profile&quot;</span></code></pre></div>
+ios_dist_prov_profile_name <span class="ot">=</span> <span class="st">&quot;MyGame App Store Profile&quot;</span>
+game_center_enabled <span class="ot">=</span> <span class="kw">true</span>
+icloud_enabled <span class="ot">=</span> <span class="kw">true</span></code></pre></div>
 <p>The above metadata is used when the <code>-ios-xcode-proj</code> export option is given to generate an Xcode project for iOS. All the data is required.</p>
 <p><code>orientation</code> can be <code>&quot;portrait&quot;</code>, <code>&quot;landscape&quot;</code>, <code>&quot;any&quot;</code> or <code>&quot;hybrid&quot;</code> (portrait on iPhone, but landscape on iPad).</p>
-<p><code>ios_cert_identity</code> is the code that appears in parenthesis in your certificate name (e.g. if you certificate name in Key Access is &quot;iPhone Distribution: Your Name (XXXX123456)&quot;, then this value should be <code>&quot;XXXX123456&quot;</code>.</p>
+<p><code>ios_dev_cert_identity</code> and <code>ios_appstore_cert_identity</code> is the code that appears in parenthesis in your certificate name (e.g. if you certificate name in Key Access is &quot;iPhone Distribution: Your Name (XXXX123456)&quot;, then this value should be <code>&quot;XXXX123456&quot;</code>.</p>
+<p><code>ios_code_sign_identity</code> is the part that comes before the colon in your distribution certificate name. Typically this is either <code>&quot;iPhone Distribution&quot;</code> or <code>&quot;Apple Distribution&quot;</code>. (Use the Keychain Access application in Utilities to view your certificates.)</p>
 <p><code>ios_dev_prov_profile_name</code> and <code>ios_dist_prov_profile_name</code> are the names of your installed development and distribution provisioning profiles respectively. You can install a provisioning profile by downloading and double clicking it.</p>
 <h2 id="android-settings">Android settings</h2>
 <div class="sourceCode"><pre class="sourceCode lua"><code class="sourceCode lua">display_name <span class="ot">=</span> <span class="st">&quot;My Game&quot;</span>

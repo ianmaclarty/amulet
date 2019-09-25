@@ -26,8 +26,14 @@ const char *am_conf_mac_application_cert_identity = NULL;
 const char *am_conf_mac_installer_cert_identity = NULL;
 
 const char *am_conf_ios_cert_identity = NULL;
+const char *am_conf_ios_dev_cert_identity = NULL;
+const char *am_conf_ios_appstore_cert_identity = NULL;
+const char *am_conf_ios_code_sign_identity = NULL;
 const char *am_conf_ios_dev_prov_profile_name = NULL;
 const char *am_conf_ios_dist_prov_profile_name = NULL;
+
+bool am_conf_game_center_enabled = true;
+bool am_conf_icloud_enabled = true;
 
 const char *am_conf_google_play_services_id = NULL;
 const char *am_conf_android_app_version_code = NULL;
@@ -131,6 +137,9 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_mac_application_cert_identity);
     free_if_not_null((void**)&am_conf_mac_installer_cert_identity);
     free_if_not_null((void**)&am_conf_ios_cert_identity);
+    free_if_not_null((void**)&am_conf_ios_dev_cert_identity);
+    free_if_not_null((void**)&am_conf_ios_appstore_cert_identity);
+    free_if_not_null((void**)&am_conf_ios_code_sign_identity);
     free_if_not_null((void**)&am_conf_ios_dev_prov_profile_name);
     free_if_not_null((void**)&am_conf_ios_dist_prov_profile_name);
     free_if_not_null((void**)&am_conf_google_play_services_id);
@@ -199,8 +208,14 @@ bool am_load_config() {
     read_string_setting(eng->L, "mac_installer_cert_identity", &am_conf_mac_installer_cert_identity, NULL);
 
     read_string_setting(eng->L, "ios_cert_identity", &am_conf_ios_cert_identity, NULL);
+    read_string_setting(eng->L, "ios_dev_cert_identity", &am_conf_ios_dev_cert_identity, am_conf_ios_cert_identity);
+    read_string_setting(eng->L, "ios_appstore_cert_identity", &am_conf_ios_appstore_cert_identity, am_conf_ios_cert_identity);
+    read_string_setting(eng->L, "ios_code_sign_identity", &am_conf_ios_code_sign_identity, "iPhone Destribution");
     read_string_setting(eng->L, "ios_dev_prov_profile_name", &am_conf_ios_dev_prov_profile_name, NULL);
     read_string_setting(eng->L, "ios_dist_prov_profile_name", &am_conf_ios_dist_prov_profile_name, NULL);
+
+    read_bool_setting(eng->L, "game_center_enabled", &am_conf_game_center_enabled);
+    read_bool_setting(eng->L, "icloud_enabled", &am_conf_icloud_enabled);
 
     read_string_setting(eng->L, "google_play_services_id", &am_conf_google_play_services_id, "0");
     read_string_setting(eng->L, "android_app_version_code", &am_conf_android_app_version_code, "1");

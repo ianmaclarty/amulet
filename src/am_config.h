@@ -25,8 +25,14 @@ extern const char *am_conf_mac_application_cert_identity;
 extern const char *am_conf_mac_installer_cert_identity;
 
 extern const char *am_conf_ios_cert_identity;
+extern const char *am_conf_ios_dev_cert_identity;
+extern const char *am_conf_ios_appstore_cert_identity;
+extern const char *am_conf_ios_code_sign_identity;
 extern const char *am_conf_ios_dev_prov_profile_name;
 extern const char *am_conf_ios_dist_prov_profile_name;
+
+extern bool am_conf_game_center_enabled;
+extern bool am_conf_icloud_enabled;
 
 extern const char *am_conf_google_play_services_id;
 extern const char *am_conf_android_app_version_code;

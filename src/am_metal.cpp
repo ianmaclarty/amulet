@@ -708,6 +708,7 @@ static void create_framebuffer_msaa_texture(metal_framebuffer *fb) {
 static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf, bool clear_stencil_buf) {
     assert(metal_encoder == nil);
 
+    bool metal_command_buffer_was_nil = (metal_command_buffer == nil);
     if (metal_command_buffer == nil) {
         assert(default_metal_framebuffer.color_texture == nil);
         assert(metal_active_drawable == nil);
@@ -754,11 +755,12 @@ static void create_new_metal_encoder(bool clear_color_buf, bool clear_depth_buf,
 #endif
 
         metal_command_buffer = [metal_queue commandBuffer];
+        [metal_command_buffer retain];
     }
 
     MTLRenderPassDescriptor *renderdesc = make_bound_framebuffer_render_desc(clear_color_buf, clear_depth_buf, clear_stencil_buf);
     if (renderdesc == NULL) {
-        am_log1("%s", "error: attempt to use incomplete framebuffer");
+        am_log1("%s %i", "error: attempt to use incomplete framebuffer", (int)metal_command_buffer_was_nil);
         return;
     }
     metal_encoder = [metal_command_buffer renderCommandEncoderWithDescriptor:renderdesc];
@@ -805,6 +807,7 @@ static void set_framebuffer_msaa_samples(metal_framebuffer *fb, int samples) {
 void am_init_gl() {
 #if defined (AM_OSX)
     metal_device = MTLCreateSystemDefaultDevice();
+    [metal_device retain];
     if (metal_device == nil) {
         am_log0("%s", "unable to create metal device");
         return;
@@ -825,11 +828,14 @@ void am_init_gl() {
     metal_active_drawable = [metal_layer nextDrawable];
 #elif defined(AM_IOS)
     metal_device = am_metal_ios_view.device;
+    [metal_device retain];
     metal_active_drawable = [am_metal_ios_view currentDrawable];
 #endif
 
     metal_queue = [metal_device newCommandQueue];
+    [metal_queue retain];
     metal_command_buffer = [metal_queue commandBuffer];
+    [metal_command_buffer retain];
 
 #if defined(AM_OSX)
     default_metal_framebuffer.width = metal_layer.drawableSize.width;
@@ -943,7 +949,10 @@ void am_close_gllog() {
 }
 
 void am_destroy_gl() {
-    metal_command_buffer = nil;
+    if (metal_command_buffer != nil) {
+        [metal_command_buffer release];
+        metal_command_buffer = nil;
+    }
     metal_encoder = nil;
     metal_bound_framebuffer = 0;
 #if defined (AM_OSX)
@@ -2029,6 +2038,7 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
     bool was_command_buffer = true;
     if (metal_command_buffer == nil) {
         metal_command_buffer = [metal_queue commandBuffer];
+        [metal_command_buffer retain];
         was_command_buffer = false;
     }
 // only needed if texture is MTLStorageModeManaged I think
@@ -2039,6 +2049,7 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
 // #endif
     [metal_command_buffer commit];
     [metal_command_buffer waitUntilCompleted];
+    [metal_command_buffer release];
     metal_command_buffer = nil;
 
     MTLRegion region;
@@ -2052,6 +2063,7 @@ void am_read_pixels(int x, int y, int w, int h, void *data) {
 
     if (was_command_buffer) {
         metal_command_buffer = [metal_queue commandBuffer];
+        [metal_command_buffer retain];
     }
 }
 
@@ -2150,6 +2162,7 @@ void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_textu
                 bool was_command_buffer = true;
                 if (metal_command_buffer == nil) {
                     metal_command_buffer = [metal_queue commandBuffer];
+                    [metal_command_buffer retain];
                     was_command_buffer = false;
                 }
                 id<MTLBlitCommandEncoder> blit_encoder = [metal_command_buffer blitCommandEncoder];
@@ -2165,9 +2178,11 @@ void am_set_framebuffer_texture2d(am_framebuffer_attachment attachment, am_textu
                 [blit_encoder endEncoding];
                 [metal_command_buffer commit];
                 [metal_command_buffer waitUntilCompleted];
+                [metal_command_buffer release];
                 metal_command_buffer = nil;
                 if (was_command_buffer) {
                     metal_command_buffer = [metal_queue commandBuffer];
+                    [metal_command_buffer retain];
                 }
                 [old_tex release];
                 tex->writable = true;
@@ -2641,6 +2656,7 @@ void am_gl_end_frame(bool present) {
     }
     [metal_command_buffer commit];
     [metal_command_buffer waitUntilCompleted];
+    [metal_command_buffer release];
     metal_command_buffer = nil;
     metal_active_drawable = nil;
     default_metal_framebuffer.color_texture = nil;

@@ -478,11 +478,26 @@ static bool copy_ios_xcodeproj_file(export_config *conf, char *dir) {
     char *launchscreen_children = get_ios_launchscreen_children(conf);
     const char *luavm = platform_luavm("ios");
     char *launch_img_name = am_format("launchimg_%u.png", conf->launch_image_id);
+    char *capabilities = am_format(
+        "{\n"
+        "    com.apple.GameCenter = {\n"
+        "            enabled = %d;\n"
+        "    };\n"
+        "    com.apple.GameCenter.iOS = {\n"
+        "            enabled = %d;\n"
+        "    };\n"
+        "    com.apple.iCloud = {\n"
+        "            enabled = %d;\n"
+        "    };\n"
+        "}\n",
+        am_conf_game_center_enabled ? 1 : 0, am_conf_game_center_enabled ? 1 : 0, am_conf_icloud_enabled ? 1 : 0);
     const char *subs[] = {
         "AM_APPNAME", conf->shortname,
         "AM_APPID", am_conf_app_id_ios,
         "AM_AUTHOR", am_conf_app_author,
-        "AM_CERT_ID", am_conf_ios_cert_identity,
+        "AM_DEV_CERT_ID", am_conf_ios_dev_cert_identity,
+        "AM_APPSTORE_CERT_ID", am_conf_ios_appstore_cert_identity,
+        "AM_CODE_SIGN_IDENTITY", am_conf_ios_code_sign_identity,
         "AM_DEV_PROV_PROFILE_NAME", am_conf_ios_dev_prov_profile_name,
         "AM_DIST_PROV_PROFILE_NAME", am_conf_ios_dist_prov_profile_name,
         "AM_LANG_LIST", lang_list,
@@ -491,6 +506,7 @@ static bool copy_ios_xcodeproj_file(export_config *conf, char *dir) {
         "AM_LAUNCHSCREEN_STORYBOARD_CHILDREN", launchscreen_children,
         "AM_LUAVM", luavm,
         "AM_LAUNCH_IMG", launch_img_name,
+        "AM_SYSTEM_CAPABILITIES", capabilities,
         NULL
     };
     bool ok = copy_text_file(src_path, dest_path, (char**)subs);
@@ -500,6 +516,8 @@ static bool copy_ios_xcodeproj_file(export_config *conf, char *dir) {
     free(lang_list);
     free(launchscreen_entries);
     free(launchscreen_children);
+    free(launch_img_name);
+    free(capabilities);
     return ok;
 }
 
@@ -570,6 +588,27 @@ static bool copy_ios_xcode_info_plist(export_config *conf, char *dir) {
         "AM_APPDISPLAYNAME", conf->display_name,
         "AM_APPVERSION", conf->version,
         "AM_APPORIENTATIONS", orientation_xml,
+        NULL,
+    };
+    bool ok = copy_text_file(src_path, dest_path, (char**)subs);
+    free(template_dir);
+    free(src_path);
+    free(dest_path);
+    return ok;
+}
+
+static bool copy_ios_entitlements(export_config *conf, char *dir) {
+    char *template_dir = get_template_path(conf);
+    if (template_dir == NULL) return false;
+    char *src_path = am_format("%sios/app.entitlements", template_dir);
+    char *dest_path = am_format("%s/%s.entitlements", dir, conf->shortname);
+    const char *icloud_xml = am_conf_icloud_enabled ? 
+       "    <key>com.apple.developer.icloud-container-identifiers</key>\n"
+       "    <array/>\n"
+       "    <key>com.apple.developer.ubiquity-kvstore-identifier</key>\n"
+       "    <string>$(TeamIdentifierPrefix)$(CFBundleIdentifier)</string>\n" : "";
+    const char *subs[] = {
+        "AM_ICLOUD_ENTITLEMENT", icloud_xml,
         NULL,
     };
     bool ok = copy_text_file(src_path, dest_path, (char**)subs);
@@ -737,8 +776,6 @@ static bool gen_ios_xcode_proj(export_config *conf) {
     char *appicon_assets_dir = am_format("%s/AppIcon.appiconset", assets_dir);
     char *appicon_contents_src_path = am_format("%sios/AppIconContents.json", templates_dir);
     char *appicon_contents_dest_path = am_format("%s/Contents.json", appicon_assets_dir);
-    char *entitlements_src_path = am_format("%sios/app.entitlements", templates_dir);
-    char *entitlements_dest_path = am_format("%s/%s.entitlements", projbase_dir, conf->shortname);
     const char *lua_a_file = am_format("%s.a", platform_luavm("ios"));
     am_make_dir(projbase_dir);
     am_make_dir(xcodeproj_dir);
@@ -747,10 +784,10 @@ static bool gen_ios_xcode_proj(export_config *conf) {
     bool ok =
         copy_ios_xcodeproj_file(conf, xcodeproj_dir) &&
         copy_ios_xcode_info_plist(conf, projbase_dir) &&
+        copy_ios_entitlements(conf, projbase_dir) &&
         create_ios_xcode_lproj_dirs(projbase_dir, conf) &&
         create_ios_xcode_icon_files(appicon_assets_dir, conf) &&
         copy_text_file(appicon_contents_src_path, appicon_contents_dest_path, NULL) &&
-        copy_text_file(entitlements_src_path, entitlements_dest_path, NULL) &&
         copy_ios_launchscreen_storyboard(projbase_dir, conf) &&
         copy_ios_xcode_bin_file(projbase_dir, conf, "amulet.a") &&
         copy_ios_xcode_bin_file(projbase_dir, conf, "glslopt.a") &&
@@ -771,8 +808,6 @@ static bool gen_ios_xcode_proj(export_config *conf) {
     free(appicon_assets_dir);
     free(appicon_contents_src_path);
     free(appicon_contents_dest_path);
-    free(entitlements_src_path);
-    free(entitlements_dest_path);
     return ok;
 }
 

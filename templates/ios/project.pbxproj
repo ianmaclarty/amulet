@@ -211,17 +211,7 @@
 					3C626A7C2023EA4A00FF5F20 = {
 						CreatedOnToolsVersion = 9.2;
 						ProvisioningStyle = Manual;
-						SystemCapabilities = {
-							com.apple.GameCenter = {
-								enabled = 1;
-							};
-							com.apple.GameCenter.iOS = {
-								enabled = 1;
-							};
-							com.apple.iCloud = {
-								enabled = 1;
-							};
-						};
+						SystemCapabilities = AM_SYSTEM_CAPABILITIES;
 					};
 				};
 			};
@@ -395,7 +385,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
                                 CODE_SIGN_ENTITLEMENTS = AM_APPNAME.entitlements;
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = AM_CERT_ID;
+				DEVELOPMENT_TEAM = AM_DEV_CERT_ID;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -417,9 +407,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
                                 CODE_SIGN_ENTITLEMENTS = AM_APPNAME.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "AM_CODE_SIGN_IDENTITY";
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = AM_CERT_ID;
+				DEVELOPMENT_TEAM = AM_APPSTORE_CERT_ID;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
