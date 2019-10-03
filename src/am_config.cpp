@@ -37,6 +37,9 @@ bool am_conf_icloud_enabled = true;
 
 const char *am_conf_google_play_services_id = NULL;
 const char *am_conf_android_app_version_code = NULL;
+const char *am_conf_android_target_sdk_version = NULL;
+const char *am_conf_android_adaptive_icon_fg = NULL;
+const char *am_conf_android_adaptive_icon_bg = NULL;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -143,6 +146,10 @@ static void free_config() {
     free_if_not_null((void**)&am_conf_ios_dev_prov_profile_name);
     free_if_not_null((void**)&am_conf_ios_dist_prov_profile_name);
     free_if_not_null((void**)&am_conf_google_play_services_id);
+    free_if_not_null((void**)&am_conf_android_app_version_code);
+    free_if_not_null((void**)&am_conf_android_target_sdk_version);
+    free_if_not_null((void**)&am_conf_android_adaptive_icon_fg);
+    free_if_not_null((void**)&am_conf_android_adaptive_icon_bg);
 }
 
 bool am_load_config() {
@@ -219,6 +226,9 @@ bool am_load_config() {
 
     read_string_setting(eng->L, "google_play_services_id", &am_conf_google_play_services_id, "0");
     read_string_setting(eng->L, "android_app_version_code", &am_conf_android_app_version_code, "1");
+    read_string_setting(eng->L, "android_target_sdk_version", &am_conf_android_target_sdk_version, "28");
+    read_string_setting(eng->L, "android_adaptive_icon_fg", &am_conf_android_adaptive_icon_fg, NULL);
+    read_string_setting(eng->L, "android_adaptive_icon_bg", &am_conf_android_adaptive_icon_bg, NULL);
 
     read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
     #if !defined(AM_WINDOWS)

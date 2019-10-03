@@ -5,11 +5,10 @@
         android:versionName="AM_APPVERSION"
         >
 
-    <uses-sdk android:minSdkVersion="23" />
     <uses-feature android:glEsVersion="0x00020000" android:required="true" /> <!-- OpenGL ES 2.0 -->
 
     <application android:label="AM_TITLE"
-        android:icon="@drawable/icon"
+        android:icon="@mipmap/ic_launcher"
         android:hasCode="true"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
         android:hardwareAccelerated="true"

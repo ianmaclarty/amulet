@@ -849,6 +849,7 @@ static bool copy_android_app_build_gradle(export_config *conf, char *dir) {
     const char *subs[] = {
         "AM_APPID", am_conf_app_id_android,
         "AM_APPVERSION_CODE", am_conf_android_app_version_code,
+        "AM_TARGET_SDK_VER", am_conf_android_target_sdk_version,
         "AM_APPVERSION", conf->version,
         NULL
     };
@@ -1422,6 +1423,7 @@ static bool create_android_proj_icon_files(const char *dir, export_config *conf)
     char *filename = (char*)am_conf_app_icon_android;
     if (filename == NULL) return false;
     void *data = am_read_file(filename, &len);
+    if (data == NULL) return false;
     int components = 4;
     stbi_set_flip_vertically_on_load(0);
     img_data =
@@ -1429,30 +1431,82 @@ static bool create_android_proj_icon_files(const char *dir, export_config *conf)
     free(data);
     if (img_data == NULL) return false;
 
-    char *mdpi_dir = am_format("%s/drawable-mdpi", dir);
-    char *hdpi_dir = am_format("%s/drawable-hdpi", dir);
-    char *xhdpi_dir = am_format("%s/drawable-xhdpi", dir);
-    char *xxhdpi_dir = am_format("%s/drawable-xxhdpi", dir);
-    char *xxxhdpi_dir = am_format("%s/drawable-xxxhdpi", dir);
+    stbi_uc *fg_img_data = NULL;
+    if (am_conf_android_adaptive_icon_fg != NULL) {
+        data = am_read_file(am_conf_android_adaptive_icon_fg, &len);
+        if (data == NULL) return false;
+        int components = 4;
+        stbi_set_flip_vertically_on_load(0);
+        fg_img_data =
+            stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+        free(data);
+        if (fg_img_data == NULL) return false; // memory leak, but it doesn't matter
+    }
+    stbi_uc *bg_img_data = NULL;
+    if (am_conf_android_adaptive_icon_bg != NULL) {
+        data = am_read_file(am_conf_android_adaptive_icon_bg, &len);
+        if (data == NULL) return false;
+        int components = 4;
+        stbi_set_flip_vertically_on_load(0);
+        bg_img_data =
+            stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+        free(data);
+        if (bg_img_data == NULL) return false;  // memory leak, but it doesn't matter
+    }
+
+    char *templates_dir = get_template_path(conf);
+    if (templates_dir == NULL) return false;
+    char *mdpi_dir = am_format("%s/mipmap-mdpi", dir);
+    char *hdpi_dir = am_format("%s/mipmap-hdpi", dir);
+    char *xhdpi_dir = am_format("%s/mipmap-xhdpi", dir);
+    char *xxhdpi_dir = am_format("%s/mipmap-xxhdpi", dir);
+    char *xxxhdpi_dir = am_format("%s/mipmap-xxxhdpi", dir);
+    char *anydpi_dir = am_format("%s/mipmap-anydpi-v26", dir);
+    char *ic_launcher_xml_src = am_format("%sandroid/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml", templates_dir);
+    char *ic_launcher_xml_dst = am_format("%s/mipmap-anydpi-v26/ic_launcher.xml", dir);
     am_make_dir(mdpi_dir);
     am_make_dir(hdpi_dir);
     am_make_dir(xhdpi_dir);
     am_make_dir(xxhdpi_dir);
     am_make_dir(xxxhdpi_dir);
+    am_make_dir(anydpi_dir);
 
     bool error = (
-           !resize_image(img_data, width, height, mdpi_dir, "icon.png", 48, 48)
-        || !resize_image(img_data, width, height, hdpi_dir, "icon.png", 72, 72)
-        || !resize_image(img_data, width, height, xhdpi_dir, "icon.png", 96, 96)
-        || !resize_image(img_data, width, height, xxhdpi_dir, "icon.png", 144, 144)
-        || !resize_image(img_data, width, height, xxxhdpi_dir, "icon.png", 192, 192)
+           !resize_image(img_data, width, height, mdpi_dir, "ic_launcher.png", 48, 48)
+        || !resize_image(img_data, width, height, hdpi_dir, "ic_launcher.png", 72, 72)
+        || !resize_image(img_data, width, height, xhdpi_dir, "ic_launcher.png", 96, 96)
+        || !resize_image(img_data, width, height, xxhdpi_dir, "ic_launcher.png", 144, 144)
+        || !resize_image(img_data, width, height, xxxhdpi_dir, "ic_launcher.png", 192, 192)
         );
+
+    if (!error && fg_img_data != NULL && bg_img_data != NULL) {
+        error = (
+           !resize_image(fg_img_data, width, height, mdpi_dir, "ic_launcher_foreground.png", 108, 108)
+        || !resize_image(fg_img_data, width, height, hdpi_dir, "ic_launcher_foreground.png", 162, 162)
+        || !resize_image(fg_img_data, width, height, xhdpi_dir, "ic_launcher_foreground.png", 216, 216)
+        || !resize_image(fg_img_data, width, height, xxhdpi_dir, "ic_launcher_foreground.png", 324, 324)
+        || !resize_image(fg_img_data, width, height, xxxhdpi_dir, "ic_launcher_foreground.png", 432, 432)
+        || !resize_image(bg_img_data, width, height, mdpi_dir, "ic_launcher_background.png", 108, 108)
+        || !resize_image(bg_img_data, width, height, hdpi_dir, "ic_launcher_background.png", 162, 162)
+        || !resize_image(bg_img_data, width, height, xhdpi_dir, "ic_launcher_background.png", 216, 216)
+        || !resize_image(bg_img_data, width, height, xxhdpi_dir, "ic_launcher_background.png", 324, 324)
+        || !resize_image(bg_img_data, width, height, xxxhdpi_dir, "ic_launcher_background.png", 432, 432)
+        || !copy_text_file(ic_launcher_xml_src, ic_launcher_xml_dst, NULL)
+        );
+    }
+
     free(img_data);
+    if (fg_img_data != NULL) free(fg_img_data);
+    if (bg_img_data != NULL) free(bg_img_data);
+    free(templates_dir);
     free(mdpi_dir);
     free(hdpi_dir);
     free(xhdpi_dir);
     free(xxhdpi_dir);
     free(xxxhdpi_dir);
+    free(anydpi_dir);
+    free(ic_launcher_xml_src);
+    free(ic_launcher_xml_dst);
 
     return !error;
 }

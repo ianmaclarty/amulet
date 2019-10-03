@@ -36,6 +36,9 @@ extern bool am_conf_icloud_enabled;
 
 extern const char *am_conf_google_play_services_id;
 extern const char *am_conf_android_app_version_code;
+extern const char *am_conf_android_target_sdk_version;
+extern const char *am_conf_android_adaptive_icon_fg;
+extern const char *am_conf_android_adaptive_icon_bg;
 
 // graphic driver options
 extern bool am_conf_d3dangle;
