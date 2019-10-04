@@ -148,7 +148,7 @@ am_buffer *am_push_new_buffer_and_init(lua_State *L, int size) {
 // the new buffer will own data and assumes it was allocated
 // with system malloc.
 am_buffer *am_push_new_buffer_with_data(lua_State *L, int size, void* data) {
-    am_buffer *buf = new(lua_newuserdata(L, size)) am_buffer();
+    am_buffer *buf = new(lua_newuserdata(L, sizeof(am_buffer))) am_buffer();
     am_set_metatable(L, buf, MT_am_buffer_gc);
     buf->data = (uint8_t*)data;
     buf->size = size;
