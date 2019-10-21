@@ -1,0 +1,6 @@
+#!/bin/sh
+lua1=$1
+lua2=$2
+for f1 in `ls $lua1/src/*.h`; do
+    diff -u $f1 $lua2/src/`basename $f1`
+done

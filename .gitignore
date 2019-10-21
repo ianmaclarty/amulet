@@ -12,6 +12,7 @@ config.status
 /amulet
 /amulet.exe
 /libamulet.so
+/amulet_license.txt
 /builds/*
 tags
 settings
