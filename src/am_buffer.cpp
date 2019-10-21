@@ -292,13 +292,13 @@ static int base64_encode(lua_State *L) {
     am_check_nargs(L, 1);
     am_buffer *buf = am_check_buffer(L, 1);
     uint8_t *data = buf->data;
-    int buf_sz = buf->size;
-    int b64_sz = (buf_sz + 2) / 3 * 4;
+    unsigned int buf_sz = (unsigned int)buf->size;
+    unsigned int b64_sz = (buf_sz + 2) / 3 * 4;
     char *b64_str = (char*)malloc(b64_sz);
-    int i = 0;
-    int j = 0;
-    int extra = 0;
-    int b1, b2, b3;
+    unsigned int i = 0;
+    unsigned int j = 0;
+    unsigned int extra = 0;
+    unsigned int b1, b2, b3;
     while (i < buf_sz) {
         b1 = data[i++];
         if (i < buf_sz) {
@@ -313,7 +313,7 @@ static int base64_encode(lua_State *L) {
             b3 = 0;
             extra++;
         }
-        int triple = b1 << 16 | b2 << 8 | b3;
+        unsigned int triple = b1 << 16 | b2 << 8 | b3;
         b64_str[j++] = base64[triple >> 18];
         b64_str[j++] = base64[triple >> 12 & 63];
         b64_str[j++] = base64[triple >> 6 & 63];
