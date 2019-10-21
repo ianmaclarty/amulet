@@ -925,6 +925,8 @@ static bool gen_android_studio_proj(export_config *conf) {
     char *jnilibs_dir = am_format("%s/app/src/main/jniLibs", projbase_dir);
     char *jnilibs_arm32_dir = am_format("%s/app/src/main/jniLibs/armeabi-v7a", projbase_dir);
     char *jnilibs_arm64_dir = am_format("%s/app/src/main/jniLibs/arm64-v8a", projbase_dir);
+    char *jnilibs_x86_dir = am_format("%s/app/src/main/jniLibs/x86", projbase_dir);
+    char *jnilibs_x86_64_dir = am_format("%s/app/src/main/jniLibs/x86_64", projbase_dir);
 
     char *proguard_rules_src_path = am_format("%sandroid/app/proguard-rules.pro", templates_dir);
     char *proguard_rules_dst_path = am_format("%s/app/proguard-rules.pro", projbase_dir);
@@ -952,6 +954,8 @@ static bool gen_android_studio_proj(export_config *conf) {
     am_make_dir(jnilibs_dir);
     am_make_dir(jnilibs_arm32_dir);
     am_make_dir(jnilibs_arm64_dir);
+    am_make_dir(jnilibs_x86_dir);
+    am_make_dir(jnilibs_x86_64_dir);
 
     bool ok =
         copy_android_project_iml(conf, projbase_dir) &&
@@ -966,8 +970,10 @@ static bool gen_android_studio_proj(export_config *conf) {
         copy_text_file(build_gradle_src_path, build_gradle_dst_path, NULL) &&
         copy_text_file(gradle_properties_src_path, gradle_properties_dst_path, NULL) &&
         copy_text_file(settings_gradle_src_path, settings_gradle_dst_path, NULL) &&
-        copy_platform_bin_file(jnilibs_arm32_dir, conf, "libamulet.so", "android32") &&
-        copy_platform_bin_file(jnilibs_arm64_dir, conf, "libamulet.so", "android64") &&
+        copy_platform_bin_file(jnilibs_arm32_dir, conf, "libamulet.so", "android_arm32") &&
+        copy_platform_bin_file(jnilibs_arm64_dir, conf, "libamulet.so", "android_arm64") &&
+        copy_platform_bin_file(jnilibs_x86_dir, conf, "libamulet.so", "android_x86") &&
+        copy_platform_bin_file(jnilibs_x86_64_dir, conf, "libamulet.so", "android_x86_64") &&
         copy_data_files(conf, assets_dir) &&
         true;
     if (ok) printf("Generated %s\n", projbase_dir);
@@ -986,6 +992,8 @@ static bool gen_android_studio_proj(export_config *conf) {
     free(jnilibs_dir);
     free(jnilibs_arm32_dir);
     free(jnilibs_arm64_dir);
+    free(jnilibs_x86_dir);
+    free(jnilibs_x86_64_dir);
 
     free(proguard_rules_src_path);
     free(proguard_rules_dst_path);

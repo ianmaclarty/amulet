@@ -54,10 +54,14 @@ else
         unzip android-ndk.zip > /dev/null
         export NDK_HOME=`pwd`/$NDK
         export NDK_HOST=linux-x86_64
-        make -j2 TARGET=android32.release LUAVM=lua51
-        make -j2 TARGET=android32.release LUAVM=lua52
-        make -j2 TARGET=android64.release LUAVM=lua51
-        make -j2 TARGET=android64.release LUAVM=lua52
+        make -j2 TARGET=android_arm32.release LUAVM=lua51
+        make -j2 TARGET=android_arm32.release LUAVM=lua52
+        make -j2 TARGET=android_arm64.release LUAVM=lua51
+        make -j2 TARGET=android_arm64.release LUAVM=lua52
+        make -j2 TARGET=android_x86.release LUAVM=lua51
+        make -j2 TARGET=android_x86.release LUAVM=lua52
+        make -j2 TARGET=android_x86_64.release LUAVM=lua51
+        make -j2 TARGET=android_x86_64.release LUAVM=lua52
     else
         # build osx
         make -j2 TARGET=osx.release     LUAVM=lua51   test
