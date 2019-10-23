@@ -4,13 +4,13 @@ if "%APPVEYOR_REPO_TAG_NAME:~-15%" == "-distro-trigger" goto builddistro
 
 call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
 set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
-make TARGET=msvc64.release LUAVM=luajit test
-make TARGET=msvc64.release LUAVM=lua51 test
-make TARGET=msvc64.release LUAVM=lua52 test
+make STRICT=1 TARGET=msvc64.release LUAVM=luajit test
+make STRICT=1 TARGET=msvc64.release LUAVM=lua51 test
+make STRICT=1 TARGET=msvc64.release LUAVM=lua52 test
 call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
-make TARGET=msvc32.release LUAVM=luajit test
-make TARGET=msvc32.release LUAVM=lua51 test
-make TARGET=msvc32.release LUAVM=lua52 test
+make STRICT=1 TARGET=msvc32.release LUAVM=luajit test
+make STRICT=1 TARGET=msvc32.release LUAVM=lua51 test
+make STRICT=1 TARGET=msvc32.release LUAVM=lua52 test
 if %errorlevel% neq 0 exit /b %errorlevel%
 if defined APPVEYOR_REPO_TAG_NAME (node scripts\upload_builds.js %APPVEYOR_REPO_TAG_NAME%)
 if %errorlevel% neq 0 exit /b %errorlevel%

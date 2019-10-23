@@ -118,7 +118,10 @@ LINK = g++
 AR = ar
 AR_OPTS = rcus
 AR_OUT_OPT =
-XCFLAGS = -Wall -Werror -pthread
+XCFLAGS = -pthread
+ifdef STRICT
+  XCFLAGS += -Wall -Werror
+endif
 NO_STRICT_ALIAS_OPT = -fno-strict-aliasing
 XLDFLAGS = -ldl -lm -lrt -pthread
 LUA_CFLAGS = -DLUA_COMPAT_ALL
@@ -376,7 +379,7 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   LINK = $(CPP)
   AR = i686-w64-mingw32-ar
   XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib 
-  XCFLAGS = -Wall -Werror -fno-strict-aliasing
+  XCFLAGS += -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m32" CROSS=i686-w64-mingw32- TARGET_SYS=Windows
   WINDOWS = 1
   MINGW = 1
@@ -391,7 +394,7 @@ else ifeq ($(TARGET_PLATFORM),mingw64)
   LINK = $(CPP)
   AR = x86_64-w64-mingw32-ar
   XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib
-  XCFLAGS = -Wall -Werror -fno-strict-aliasing
+  XCFLAGS += -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m64" CROSS=x86_64-w64-mingw32- TARGET_SYS=Windows
   WINDOWS = 1
   MINGW = 1
