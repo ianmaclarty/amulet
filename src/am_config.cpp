@@ -217,7 +217,7 @@ bool am_load_config() {
     read_string_setting(eng->L, "ios_cert_identity", &am_conf_ios_cert_identity, NULL);
     read_string_setting(eng->L, "ios_dev_cert_identity", &am_conf_ios_dev_cert_identity, am_conf_ios_cert_identity);
     read_string_setting(eng->L, "ios_appstore_cert_identity", &am_conf_ios_appstore_cert_identity, am_conf_ios_cert_identity);
-    read_string_setting(eng->L, "ios_code_sign_identity", &am_conf_ios_code_sign_identity, "iPhone Destribution");
+    read_string_setting(eng->L, "ios_code_sign_identity", &am_conf_ios_code_sign_identity, "iPhone Distribution");
     read_string_setting(eng->L, "ios_dev_prov_profile_name", &am_conf_ios_dev_prov_profile_name, NULL);
     read_string_setting(eng->L, "ios_dist_prov_profile_name", &am_conf_ios_dist_prov_profile_name, NULL);
 
