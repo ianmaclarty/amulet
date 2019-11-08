@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32 linux64 msvc32 msvc64 osx ios android_arm32 android_arm64 android_x86 android_x86_64 html mingw32 mingw64
+TARGET_PLATFORMS = linux32;linux64;msvc32;msvc64;osx;ios;android_arm32;android_arm64;android_x86;android_x86_64;html;mingw32;mingw64;
 
 # Directories
 
@@ -68,6 +68,16 @@ else
   TARGET_PLATFORM = $(HOST_PLATFORM)
   GRADE = release
   TARGET = $(TARGET_PLATFORM).$(GRADE)
+endif
+
+ifeq (,$(findstring $(TARGET_PLATFORM);,$(TARGET_PLATFORMS)))
+  $(error unrecognised target platform: $(TARGET_PLATFORM))
+endif
+
+ifneq (debug,$(GRADE))
+  ifneq (release,$(GRADE))
+    $(error unrecognised target grade: $(GRADE))
+  endif
 endif
 
 ifndef LUAVM
