@@ -40,6 +40,7 @@
 		3C88E5D1225459D700F8C085 /* tinymt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C88E5CB225459D600F8C085 /* tinymt.a */; };
 		3C88E5D2225459D700F8C085 /* amulet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C88E5CC225459D600F8C085 /* amulet.a */; };
 		3CA03D71202421CA007FC187 /* amulet_custom_init.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CA03D6C202421CA007FC187 /* amulet_custom_init.mm */; };
+		3CAEAAA4237901D4009652EC /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CAEAAA3237901D4009652EC /* WebKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -80,6 +81,7 @@
 		3C88E5CC225459D600F8C085 /* amulet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = amulet.a; sourceTree = "<group>"; };
 		AM_LAUNCHSCREEN_STORYBOARD_STRINGS_ENTRIES
 		3CA03D6C202421CA007FC187 /* amulet_custom_init.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = amulet_custom_init.mm; sourceTree = "<group>"; };
+		3CAEAAA3237901D4009652EC /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 				3C626ABA2023ECFF00FF5F20 /* MobileCoreServices.framework in Frameworks */,
 				3C626ABC2023ECFF00FF5F20 /* CoreAudio.framework in Frameworks */,
 				3C626ABD2023ECFF00FF5F20 /* CoreMedia.framework in Frameworks */,
+				3CAEAAA4237901D4009652EC /* WebKit.framework in Frameworks */,
 				3C88E5D0225459D700F8C085 /* AM_LUAVM.a in Frameworks */,
 				3C626ABE2023ECFF00FF5F20 /* Foundation.framework in Frameworks */,
 				3C626ABF2023ECFF00FF5F20 /* MediaPlayer.framework in Frameworks */,
@@ -148,6 +151,7 @@
 			isa = PBXGroup;
 			children = (
 				3C88E5CC225459D600F8C085 /* amulet.a */,
+				3CAEAAA3237901D4009652EC /* WebKit.framework */,
 				3C88E5C8225459D600F8C085 /* glslopt.a */,
 				3C88E5C9225459D600F8C085 /* kissfft.a */,
 				3C88E5CA225459D600F8C085 /* AM_LUAVM.a */,

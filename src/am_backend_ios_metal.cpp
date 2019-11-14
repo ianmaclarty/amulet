@@ -14,6 +14,7 @@
 #import <MetalKit/MetalKit.h>
 #import <GameKit/GameKit.h>
 #import <StoreKit/StoreKit.h>
+#import <WebKit/WebKit.h>
 
 #import <Metal/Metal.h>
 
@@ -798,7 +799,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 @end
 
 
-@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, MTKViewDelegate
+@interface AMAppDelegate : UIResponder <UIApplicationDelegate, SKPaymentTransactionObserver, MTKViewDelegate, WKNavigationDelegate
 #ifdef AM_GOOGLE_ADS
     , GADAdDelegate
 #endif
@@ -1687,6 +1688,167 @@ static int show_alert(lua_State *L) {
     return 0;
 }
 
+@interface AMWebViewDelegate : NSObject <WKNavigationDelegate>
+
+@property (nonatomic) BOOL is_finished;
+@property (nonatomic) BOOL was_error;
+
+@end
+
+@implementation AMWebViewDelegate
+
+- (void)webView:(WKWebView *)webView 
+    didFailNavigation:(WKNavigation *)navigation 
+    withError:(NSError *)error
+{
+    //NSLog(@"------------------------ webkit navigation error");
+    self.was_error = YES;
+}
+
+- (void)webView:(WKWebView *)webView 
+    didFailProvisionalNavigation:(WKNavigation *)navigation 
+    withError:(NSError *)error
+{
+    //NSLog(@"------------------------ webkit navigation provisional error");
+    self.was_error = YES;
+}
+
+- (void)webView:(WKWebView *)webView
+    didFinishNavigation:(WKNavigation *)navigation
+{
+    //NSLog(@"------------------------ webkit navigation finished");
+    self.is_finished = YES;
+}
+
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
+{
+    NSURL *url = navigationAction.request.URL;
+    if (url.scheme != nil && ![WKWebView handlesURLScheme: url.scheme] && [[UIApplication sharedApplication] canOpenURL:url]) {
+        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+    }
+    decisionHandler(WKNavigationActionPolicyAllow);
+}
+
+@end
+
+struct am_webview : am_nonatomic_userdata {
+    WKWebView *webview;
+    AMWebViewDelegate* delegate;
+    bool is_visible;
+};
+
+static int webview_gc(lua_State *L) {
+    am_webview *webview = am_get_userdata(L, am_webview, 1);
+    if (webview->is_visible && ios_view != nil) {
+        [webview->webview removeFromSuperview];
+        webview->is_visible = false;
+    }
+    [webview->webview release];
+    [webview->delegate release];
+    return 0;
+}
+
+static int create_webview(lua_State *L) {
+    am_check_nargs(L, 5);
+    const char *url = lua_tostring(L, 1);
+    if (url == NULL) {
+        return luaL_error(L, "expecting a url in position 1");
+    }
+    if (ios_view == nil) {
+        return luaL_error(L, "create a window before creating a webview");
+    }
+
+    float scl = ios_view.contentScaleFactor;
+    float x1 = (float)luaL_checknumber(L, 2) / scl;
+    float y1 = (float)luaL_checknumber(L, 3) / scl;
+    float x2 = (float)luaL_checknumber(L, 4) / scl;
+    float y2 = (float)luaL_checknumber(L, 5) / scl;
+    float w = (x2 - x1);
+    float h = (y2 - y1);
+    y1 = ios_view.bounds.size.height - y2;
+
+    CGRect bounds = CGRectMake(x1, y1, w, h);
+    WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+    config.ignoresViewportScaleLimits = FALSE;
+    WKWebView* v = [[WKWebView alloc] initWithFrame: bounds configuration: config];
+    v.backgroundColor = UIColor.whiteColor;
+    [config release];
+    AMWebViewDelegate* delegate = [[AMWebViewDelegate alloc] init];
+    delegate.is_finished = NO;
+    delegate.was_error = NO;
+    v.navigationDelegate = delegate;
+    NSURLRequest *u = [NSURLRequest requestWithURL: [NSURL URLWithString: [NSString stringWithUTF8String: url]]];
+    [v loadRequest: u];
+
+    am_webview *wv = am_new_userdata(L, am_webview);
+    wv->webview = v;
+    wv->delegate = delegate;
+    wv->is_visible = false;
+
+    return 1;
+}
+
+static int show_webview(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_webview *wv = am_get_userdata(L, am_webview, 1);
+    if (wv->is_visible || ios_view == nil) return 0;
+    [ios_view addSubview: wv->webview];
+    wv->is_visible = true;
+    return 0;
+}
+
+static int hide_webview(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_webview *wv = am_get_userdata(L, am_webview, 1);
+    if (!wv->is_visible) return 0;
+    [wv->webview removeFromSuperview];
+    wv->is_visible = false;
+    return 0;
+}
+
+static int webview_is_finished(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_webview *wv = am_get_userdata(L, am_webview, 1);
+    if (wv->delegate != nil) {
+        lua_pushboolean(L, [wv->delegate is_finished] == YES ? 1 : 0);
+    } else {
+        lua_pushboolean(L, 0);
+    }
+    return 1;
+}
+
+static int webview_was_error(lua_State *L) {
+    am_check_nargs(L, 1);
+    am_webview *wv = am_get_userdata(L, am_webview, 1);
+    if (wv->delegate != nil) {
+        lua_pushboolean(L, [wv->delegate was_error] == YES ? 1 : 0);
+    } else {
+        lua_pushboolean(L, 0);
+    }
+    return 1;
+}
+
+static void register_webview_mt(lua_State *L) {
+    lua_newtable(L);
+
+    am_set_default_index_func(L);
+    am_set_default_newindex_func(L);
+
+    lua_pushcclosure(L, webview_gc, 0);
+    lua_setfield(L, -2, "__gc");
+
+    lua_pushcclosure(L, show_webview, 0);
+    lua_setfield(L, -2, "show");
+    lua_pushcclosure(L, hide_webview, 0);
+    lua_setfield(L, -2, "hide");
+    lua_pushcclosure(L, webview_is_finished, 0);
+    lua_setfield(L, -2, "finished_loading");
+    lua_pushcclosure(L, webview_was_error, 0);
+    lua_setfield(L, -2, "was_error");
+
+    am_register_metatable(L, "webview", MT_am_webview, 0);
+}
+
 void am_open_ios_module(lua_State *L) {
     luaL_Reg funcs[] = {
         {"init_gamecenter", init_gamecenter},
@@ -1715,6 +1877,7 @@ void am_open_ios_module(lua_State *L) {
 
         {"ios_request_review", ios_request_review},
         {"show_alert", show_alert},
+        {"create_webview", create_webview},
 
         {"launch_url", launch_url},
 
@@ -1722,6 +1885,7 @@ void am_open_ios_module(lua_State *L) {
     };
     am_open_module(L, AMULET_LUA_MODULE_NAME, funcs);
     register_iap_product_mt(L);
+    register_webview_mt(L);
 }
 
 #endif // AM_BACKEND_IOS

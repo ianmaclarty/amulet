@@ -89,6 +89,8 @@ typedef enum {
 
     MT_am_iap_product,
 
+    MT_am_webview,
+
     ENUM_am_buffer_view_type,
     ENUM_am_buffer_view_type_lua,
     ENUM_am_buffer_usage,
