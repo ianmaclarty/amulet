@@ -40,6 +40,8 @@ const char *am_conf_android_app_version_code = NULL;
 const char *am_conf_android_target_sdk_version = NULL;
 const char *am_conf_android_adaptive_icon_fg = NULL;
 const char *am_conf_android_adaptive_icon_bg = NULL;
+bool am_conf_android_needs_internet_permission = false;
+bool am_conf_android_needs_billing_permission = false;
 
 int am_conf_default_recursion_limit = 8;
 const char *am_conf_default_modelview_matrix_name = "MV";
@@ -229,6 +231,11 @@ bool am_load_config() {
     read_string_setting(eng->L, "android_target_sdk_version", &am_conf_android_target_sdk_version, "28");
     read_string_setting(eng->L, "android_adaptive_icon_fg", &am_conf_android_adaptive_icon_fg, NULL);
     read_string_setting(eng->L, "android_adaptive_icon_bg", &am_conf_android_adaptive_icon_bg, NULL);
+    read_bool_setting(eng->L, "android_needs_internet_permission", &am_conf_android_needs_internet_permission);
+    read_bool_setting(eng->L, "android_needs_billing_permission", &am_conf_android_needs_billing_permission);
+    if (am_conf_android_needs_billing_permission) {
+        am_conf_android_needs_internet_permission = true;
+    }
 
     read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
     #if !defined(AM_WINDOWS)

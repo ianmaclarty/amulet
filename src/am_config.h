@@ -39,6 +39,8 @@ extern const char *am_conf_android_app_version_code;
 extern const char *am_conf_android_target_sdk_version;
 extern const char *am_conf_android_adaptive_icon_fg;
 extern const char *am_conf_android_adaptive_icon_bg;
+extern bool am_conf_android_needs_internet_permission;
+extern bool am_conf_android_needs_billing_permission;
 
 // graphic driver options
 extern bool am_conf_d3dangle;

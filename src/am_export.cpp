@@ -871,6 +871,8 @@ static bool copy_android_manifest(export_config *conf, char *dir) {
         "AM_APPVERSION", conf->version,
         "AM_TITLE", conf->display_name,
         "AM_ORIENTATION", get_android_orientation_str(conf),
+        "AM_INTERNET_PERMISSION", am_conf_android_needs_internet_permission ? "<uses-permission android:name=\"android.permission.INTERNET\"/>" : "",
+        "AM_BILLING_PERMISSION", am_conf_android_needs_billing_permission ? "<uses-permission android:name=\"com.android.vending.BILLING\" />" : "",
         NULL
     };
     bool ok = copy_text_file(src_path, dest_path, (char**)subs);
