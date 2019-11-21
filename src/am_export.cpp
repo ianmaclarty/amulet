@@ -943,6 +943,13 @@ static bool gen_android_studio_proj(export_config *conf) {
     char *settings_gradle_src_path = am_format("%sandroid/settings.gradle", templates_dir);
     char *settings_gradle_dst_path = am_format("%s/settings.gradle", projbase_dir);
 
+    const char *activity_billing_subs[] = {
+        "//BILLING", "",
+        NULL
+    };
+
+    char **activity_subs = am_conf_android_needs_billing_permission ? (char**)activity_billing_subs : NULL;
+
     am_make_dir(projbase_dir);
     am_make_dir(app_dir);
     am_make_dir(src_dir);
@@ -967,7 +974,7 @@ static bool gen_android_studio_proj(export_config *conf) {
         create_android_proj_lang_dirs(projbase_dir, conf) &&
         create_android_proj_icon_files(res_dir, conf) &&
         copy_text_file(proguard_rules_src_path, proguard_rules_dst_path, NULL) &&
-        copy_text_file(activity_java_src_path, activity_java_dst_path, NULL) &&
+        copy_text_file(activity_java_src_path, activity_java_dst_path, activity_subs) &&
         copy_text_file(app_iml_src_path, app_iml_dst_path, NULL) &&
         copy_text_file(build_gradle_src_path, build_gradle_dst_path, NULL) &&
         copy_text_file(gradle_properties_src_path, gradle_properties_dst_path, NULL) &&
