@@ -32,7 +32,7 @@ import java.util.*;
 import org.json.*;
 
 //import com.google.android.gms.ads.*;
-//BILLING import com.android.vending.billing.*;
+//BILLING import com.android.billingclient.api.*;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
@@ -40,7 +40,9 @@ import com.google.android.gms.games.Games;
 public class AmuletActivity extends Activity
         implements
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener
+        //BILLING ,PurchasesUpdatedListener
+        {
     AmuletView view = null;
     //AdView adView = null;
     boolean requestAdVisible = false;
@@ -63,6 +65,11 @@ public class AmuletActivity extends Activity
     Thread audioThread = null;
     volatile boolean is_running = true;
     volatile boolean is_paused = false;
+
+    //BILLING BillingClient billingClient = null;
+    //BILLING volatile boolean billingConnected = false;
+    //BILLING List<SkuDetails> billingSkuDetails = null;
+    //BILLING String lastPurchaseProductId = null;
 
     public AmuletActivity() {
         singleton = this;
@@ -122,22 +129,36 @@ public class AmuletActivity extends Activity
 
         layout.addView(view);
 
-	setContentView(layout);
+        setContentView(layout);
 
         setupAudio();
 
-        // iap stuff
-        //BILLING Intent serviceIntent =
-        //BILLING         new Intent("com.android.vending.billing.InAppBillingService.BIND");
-        //BILLING serviceIntent.setPackage("com.android.vending");
-        //BILLING bindService(serviceIntent, iapServiceCon, Context.BIND_AUTO_CREATE);
+        //BILLING billingClient = BillingClient.newBuilder(this).enablePendingPurchases().setListener(this).build();
+        //BILLING final BillingClientStateListener billingClientListener[] = new BillingClientStateListener[1];
+        //BILLING billingClientListener[0] = new BillingClientStateListener() {
+        //BILLING     @Override
+        //BILLING     public void onBillingSetupFinished(BillingResult billingResult) {
+        //BILLING         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+        //BILLING             billingConnected = true;
+        //BILLING         } else {
+        //BILLING             billingConnected = false;
+        //BILLING         }
+        //BILLING     }
+        //BILLING     @Override
+        //BILLING     public void onBillingServiceDisconnected() {
+        //BILLING         billingConnected = false;
+        //BILLING         billingClient.startConnection(billingClientListener[0]);
+        //BILLING     }
+        //BILLING };
+        //BILLING billingClient.startConnection(billingClientListener[0]);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        //BILLING if (iapService != null) {
-        //BILLING     unbindService(iapServiceCon);
+        //BILLING if (billingClient != null) { 
+        //BILLING     billingClient.endConnection();
+        //BILLING     billingClient = null;
         //BILLING }
         jniTeardown();
         is_running = false;
@@ -471,115 +492,142 @@ public class AmuletActivity extends Activity
 
     // --- IAP -----------------------
 
-    //BILLING IInAppBillingService iapService;
+    //BILLING private void handTransactionUpdated(String productId, String status, String token) {
+    //BILLING     Log.i("AMULET", "calling jniIAPTransactionUpdated (" + productId + "  " + status + ")");
+    //BILLING         
+    //BILLING     int res = jniIAPTransactionUpdated(productId, status);
 
-    //BILLING ServiceConnection iapServiceCon = new ServiceConnection() {
-    //BILLING     @Override
-    //BILLING     public void onServiceDisconnected(ComponentName name) {
-    //BILLING         iapService = null;
+    //BILLING     if (billingClient == null) {
+    //BILLING         Log.i("AMULET", "billingClient is null");
+    //BILLING         return;
     //BILLING     }
+    //BILLING     if (token != null) {
+    //BILLING         switch (res) {
+    //BILLING             case 1: {
+    //BILLING                     AcknowledgePurchaseParams acknowledgePurchaseParams =
+    //BILLING                         AcknowledgePurchaseParams.newBuilder()
+    //BILLING                             .setPurchaseToken(token)
+    //BILLING                             .build();
+    //BILLING                     billingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
+    //BILLING                         public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
+    //BILLING                             Log.i("AMULET", "purchase acknowledged (" + billingResult.getDebugMessage() + ")");
+    //BILLING                         }
+    //BILLING                     });
+    //BILLING                     break;
+    //BILLING                 }
+    //BILLING             case 2: {
+    //BILLING                 ConsumeParams consumeParams =
+    //BILLING                     ConsumeParams.newBuilder()
+    //BILLING                         .setPurchaseToken(token)
+    //BILLING                         .build();
+    //BILLING                 billingClient.consumeAsync(consumeParams, new ConsumeResponseListener() {
+    //BILLING                     public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
+    //BILLING                         Log.i("AMULET", "purchase " + purchaseToken + " consumed (" + billingResult.getDebugMessage() + ")");
+    //BILLING                     }
+    //BILLING                 });
+    //BILLING                 break;
+    //BILLING             }
+    //BILLING         }
+    //BILLING     }
+    //BILLING }
 
-    //BILLING     @Override
-    //BILLING     public void onServiceConnected(ComponentName name,
-    //BILLING                                    IBinder service) {
-    //BILLING         iapService = IInAppBillingService.Stub.asInterface(service);
-    //BILLING         //getProducts();
+    //BILLING public void onPurchasesUpdated(BillingResult billingResult, List<Purchase> purchases) {
+    //BILLING     Log.i("AMULET", "onPurchasesUpdated: " + billingResult.getResponseCode() + " " + billingResult.getDebugMessage());
+    //BILLING     if (purchases != null) {
+    //BILLING         for (Purchase p : purchases) {
+    //BILLING             Log.i("AMULET", "purchase: " + p.getSku());
+    //BILLING             String status;
+    //BILLING             switch (billingResult.getResponseCode()) {
+    //BILLING                 case BillingClient.BillingResponseCode.OK: {
+    //BILLING                     switch (p.getPurchaseState()) {
+    //BILLING                         case Purchase.PurchaseState.PURCHASED: status = "purchased"; break;
+    //BILLING                         case Purchase.PurchaseState.PENDING: status = "deferred"; break;
+    //BILLING                         default: status = "unknown"; break;
+    //BILLING                     }
+    //BILLING                 }
+    //BILLING                 case BillingClient.BillingResponseCode.USER_CANCELED: status = "cancelled"; break;
+    //BILLING                 default: status = "failed"; break;
+    //BILLING             }
+    //BILLING             handTransactionUpdated(p.getSku(), status, p.getPurchaseToken());
+    //BILLING         }
+    //BILLING         lastPurchaseProductId = null;
+    //BILLING     } else if (lastPurchaseProductId != null) {
+    //BILLING         handTransactionUpdated(lastPurchaseProductId, "failed", null);
+    //BILLING         lastPurchaseProductId = null;
     //BILLING     }
-    //BILLING };
+    //BILLING }
 
     //BILLING void getProducts(String[] productIds) {
     //BILLING     int success = 0;
     //BILLING     String[] prodIds = null;
     //BILLING     String[] prices = null;
-    //BILLING     ArrayList<String> skuList = new ArrayList<String> (Arrays.asList(productIds));
-    //BILLING     Bundle querySkus = new Bundle();
-    //BILLING     querySkus.putStringArrayList("ITEM_ID_LIST", skuList);
+    //BILLING     List<String> skuList = new ArrayList<String> (Arrays.asList(productIds));
+    //BILLING     SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+    //BILLING     params.setSkusList(skuList).setType(BillingClient.SkuType.INAPP);
     //BILLING     try {
     //BILLING         // wait for connect
     //BILLING         int i = 100;
-    //BILLING         while (iapService == null && i > 0) {
+    //BILLING         while (!billingConnected && i > 0) {
     //BILLING             Thread.sleep(100);
     //BILLING             i--;
     //BILLING         }
-    //BILLING         if (iapService == null) return;
-    //BILLING         Bundle skuDetails = iapService.getSkuDetails(3,
-    //BILLING                 getPackageName(), "inapp", querySkus);
-    //BILLING         int response = skuDetails.getInt("RESPONSE_CODE");
-    //BILLING         if (response == 0) {
-    //BILLING             ArrayList<String> responseList
-    //BILLING                     = skuDetails.getStringArrayList("DETAILS_LIST");
-
-    //BILLING             prodIds = new String[responseList.size()];
-    //BILLING             prices = new String[responseList.size()];
-    //BILLING             int j = 0;
-    //BILLING             for (String thisResponse : responseList) {
-    //BILLING                 JSONObject object = new JSONObject(thisResponse);
-    //BILLING                 prodIds[j] = object.getString("productId");
-    //BILLING                 prices[j] = object.getString("price");
-    //BILLING                 j++;
-    //BILLING                 Log.i("AMULET", thisResponse);
+    //BILLING         if (!billingConnected) return;
+    //BILLING         billingClient.querySkuDetailsAsync(params.build(),
+    //BILLING             new SkuDetailsResponseListener() {
+    //BILLING                 @Override
+    //BILLING                 public void onSkuDetailsResponse(BillingResult billingResult,
+    //BILLING                         List<SkuDetails> skuDetailsList) {
+    //BILLING                     Log.i("AMULET", "onSkuDetailsResponse msg: " + billingResult.getDebugMessage());
+    //BILLING                     if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+    //BILLING                         billingSkuDetails = skuDetailsList;
+    //BILLING                         final String[] prodIds = new String[skuDetailsList.size()];
+    //BILLING                         final String[] prices = new String[skuDetailsList.size()];
+    //BILLING                         int j = 0;
+    //BILLING                         for (SkuDetails details : skuDetailsList) {
+    //BILLING                             prodIds[j] = details.getSku();
+    //BILLING                             prices[j] = details.getPrice();
+    //BILLING                             Log.i("AMULET", "got sku: " + details.getSku() + "(" + details.getPrice() + ")");
+    //BILLING                             j++;
+    //BILLING                         }
+    //BILLING                         view.queueEvent(new Runnable() {
+    //BILLING                             public void run() {
+    //BILLING                                 Log.i("AMULET", "calling jniIAPProductsRetrieved");
+    //BILLING                                 jniIAPProductsRetrieved(1, prodIds, prices);
+    //BILLING                             }
+    //BILLING                         });
+    //BILLING                     }
+    //BILLING                 }
     //BILLING             }
-
-    //BILLING             success = 1;
-    //BILLING             //purchaseProduct("android.test.purchased");
-    //BILLING             //purchaseProduct("android.test.canceled");
-    //BILLING         } else {
-    //BILLING             Log.i("AMULET", "non-zero getproducts response: " + response);
-    //BILLING         }
+    //BILLING         );
     //BILLING     } catch (Exception e) {
     //BILLING         Log.i("AMULET", e.getMessage() + ":" + e.getStackTrace());
     //BILLING     }
-    //BILLING     final int fsuccess = success;
-    //BILLING     if (success == 0) {
-    //BILLING         prodIds = new String[0];
-    //BILLING         prices = new String[0];
-    //BILLING     }
-    //BILLING     final String[] fprodIds = prodIds;
-    //BILLING     final String[] fprices = prices;
-    //BILLING     view.queueEvent(new Runnable() {
-    //BILLING         public void run() {
-    //BILLING             Log.i("AMULET", "calling jniIAPProductsRetrieved");
-    //BILLING             jniIAPProductsRetrieved(fsuccess, fprodIds, fprices);
-    //BILLING         }
-    //BILLING     });
     //BILLING }
 
     //BILLING void purchaseProduct(final String productId) {
-    //BILLING     try {
-    //BILLING         synchronized (pendingProductIdLock) {
-    //BILLING             if (pendingProductId != null) {
-    //BILLING                 view.queueEvent(new Runnable() {
-    //BILLING                     public void run() {
-    //BILLING                         Log.i("AMULET", "calling jniIAPTransactionUpdated (failed - multiple purchases)");
-    //BILLING                         jniIAPTransactionUpdated(productId, "failed");
-    //BILLING                     }
-    //BILLING                 });
-    //BILLING                 return;
-    //BILLING             }
-    //BILLING             Bundle buyIntentBundle = iapService.getBuyIntent(3, getPackageName(), productId, "inapp", "");
-    //BILLING             int response = buyIntentBundle.getInt("RESPONSE_CODE");
-    //BILLING             if (response == 0) {
-    //BILLING                 PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
-    //BILLING                 startIntentSenderForResult(pendingIntent.getIntentSender(),
-    //BILLING                         1001, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
-    //BILLING                         Integer.valueOf(0));
-    //BILLING                 pendingProductId = productId;
-    //BILLING             } else {
-    //BILLING                 Log.i("AMULET", "non-zero getbuyintent response: " + response);
-    //BILLING                 view.queueEvent(new Runnable() {
-    //BILLING                     public void run() {
-    //BILLING                         Log.i("AMULET", "calling jniIAPTransactionUpdated (failed - non-zero response)");
-    //BILLING                         jniIAPTransactionUpdated(productId, "failed");
-    //BILLING                     }
-    //BILLING                 });
-    //BILLING             }
+    //BILLING     if (!billingConnected) return;
+    //BILLING     if (billingSkuDetails == null) return;
+    //BILLING     SkuDetails details = null;
+    //BILLING     for (SkuDetails d : billingSkuDetails) {
+    //BILLING         if (d.getSku().equals(productId)) {
+    //BILLING             details = d;
+    //BILLING             break;
     //BILLING         }
+    //BILLING     }
+    //BILLING     if (details == null) return;
+    //BILLING     try {
+    //BILLING         BillingFlowParams flowParams = BillingFlowParams.newBuilder()
+    //BILLING             .setSkuDetails(details)
+    //BILLING             .build();
+    //BILLING         billingClient.launchBillingFlow(this, flowParams);
+    //BILLING         lastPurchaseProductId = productId;
+    //BILLING         // ignore result of above, because it is delivered via the PurchasesUpdatedListener (docs not clear on this though)
     //BILLING     } catch (Exception e) {
     //BILLING         Log.i("AMULET", e.getMessage() + ":" + e.getStackTrace());
+    //BILLING         lastPurchaseProductId = null;
     //BILLING         view.queueEvent(new Runnable() {
     //BILLING             public void run() {
-    //BILLING                 Log.i("AMULET", "calling jniIAPTransactionUpdated (failed - exception)");
-    //BILLING                 jniIAPTransactionUpdated(productId, "failed");
+    //BILLING                 handTransactionUpdated(productId, "failed", null);
     //BILLING             }
     //BILLING         });
     //BILLING     }
@@ -587,64 +635,31 @@ public class AmuletActivity extends Activity
 
     //BILLING void restorePurchases() {
     //BILLING     try {
-    //BILLING         Bundle ownedItems = iapService.getPurchases(3, getPackageName(), "inapp", null);
-    //BILLING         int response = ownedItems.getInt("RESPONSE_CODE");
-    //BILLING         if (response == 0) {
-    //BILLING             final ArrayList<String> ownedProductIds = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
-    //BILLING             view.queueEvent(new Runnable() {
-    //BILLING                 public void run() {
-    //BILLING                     for (String productId : ownedProductIds) {
-    //BILLING                         jniIAPTransactionUpdated(productId, "restored");
+    //BILLING         billingClient.queryPurchaseHistoryAsync(BillingClient.SkuType.INAPP,
+    //BILLING                                      new PurchaseHistoryResponseListener() {
+    //BILLING             @Override
+    //BILLING             public void onPurchaseHistoryResponse(BillingResult billingResult,
+    //BILLING                                                   List<PurchaseHistoryRecord> purchasesList) {
+    //BILLING                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+    //BILLING                     if (purchasesList != null) {
+    //BILLING                         for (PurchaseHistoryRecord p : purchasesList) {
+    //BILLING                             handTransactionUpdated(p.getSku(), "restored", p.getPurchaseToken());
+    //BILLING                         }
     //BILLING                     }
     //BILLING                     jniIAPRestoreFinished(1);
-    //BILLING                 }
-    //BILLING             });
-    //BILLING         } else {
-    //BILLING             Log.i("AMULET", "invalid restore purchases response: " + response);
-    //BILLING             view.queueEvent(new Runnable() {
-    //BILLING                 public void run() {
+    //BILLING                 } else {
     //BILLING                     jniIAPRestoreFinished(0);
     //BILLING                 }
-    //BILLING             });
-    //BILLING         }
+    //BILLING             }
+    //BILLING         });
     //BILLING     } catch (Exception e) {
     //BILLING         Log.i("AMULET", e.getMessage() + ":" + e.getStackTrace());
+    //BILLING         jniIAPRestoreFinished(0);
     //BILLING         view.queueEvent(new Runnable() {
     //BILLING             public void run() {
     //BILLING                 jniIAPRestoreFinished(0);
     //BILLING             }
     //BILLING         });
-    //BILLING     }
-    //BILLING }
-
-    //BILLING @Override
-    //BILLING protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    //BILLING     if (requestCode == 1001) {
-    //BILLING         synchronized (pendingProductIdLock) {
-    //BILLING             if (pendingProductId == null) {
-    //BILLING                 return;
-    //BILLING             }
-    //BILLING             final String productId = pendingProductId;
-    //BILLING             pendingProductId = null;
-
-    //BILLING             Log.i("AMULET", "onActivityResult 1001: " + resultCode);
-    //BILLING             //int responseCode = data.getIntExtra("RESPONSE_CODE", 0); // XXX what is this for?
-    //BILLING             //String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
-    //BILLING             //String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
-
-    //BILLING             final String status;
-    //BILLING             switch (resultCode) {
-    //BILLING                 case RESULT_OK: status = "purchased"; break;
-    //BILLING                 case RESULT_CANCELED: status = "cancelled"; break;
-    //BILLING                 default: status = "failed"; break;
-    //BILLING             }
-    //BILLING             view.queueEvent(new Runnable() {
-    //BILLING                 public void run() {
-    //BILLING                     Log.i("AMULET", "calling jniIAPTransactionUpdated (" + status + ")");
-    //BILLING                     jniIAPTransactionUpdated(productId, status);
-    //BILLING                 }
-    //BILLING             });
-    //BILLING         }
     //BILLING     }
     //BILLING }
 
@@ -660,22 +675,12 @@ public class AmuletActivity extends Activity
 
     //BILLING public static void cppRestorePurchases() {
     //BILLING     Log.i("AMULET", "cppRestorePurchases called");
-    //BILLING     new Thread(new Runnable() {
-    //BILLING         public void run() {
-    //BILLING             singleton.restorePurchases();
-    //BILLING         }
-    //BILLING     }).start();
+    //BILLING     singleton.restorePurchases();
     //BILLING }
 
-
-    //BILLING public static void cppPurchaseProduct(String productId0) {
+    //BILLING public static void cppPurchaseProduct(String productId) {
     //BILLING     Log.i("AMULET", "cppPurchaseProduct called");
-    //BILLING     final String productId = productId0;
-    //BILLING     new Thread(new Runnable() {
-    //BILLING         public void run() {
-    //BILLING             singleton.purchaseProduct(productId);
-    //BILLING         }
-    //BILLING     }).start();
+    //BILLING     singleton.purchaseProduct(productId);
     //BILLING }
     
 
@@ -789,7 +794,7 @@ public class AmuletActivity extends Activity
     public static native void jniTouchMove(int id, float x, float y);
     public static native void jniFillAudioBuffer(float[] buf, int size);
     public static native void jniIAPProductsRetrieved(int success, String[] productids, String[] prices);
-    public static native void jniIAPTransactionUpdated(String productId, String status);
+    public static native int jniIAPTransactionUpdated(String productId, String status);
     public static native void jniIAPRestoreFinished(int success);
     public static native void jniSetGameServicesConnected(int flag);
 }

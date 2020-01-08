@@ -233,9 +233,10 @@ bool am_load_config() {
     read_string_setting(eng->L, "android_adaptive_icon_bg", &am_conf_android_adaptive_icon_bg, NULL);
     read_bool_setting(eng->L, "android_needs_internet_permission", &am_conf_android_needs_internet_permission);
     read_bool_setting(eng->L, "android_needs_billing_permission", &am_conf_android_needs_billing_permission);
-    if (am_conf_android_needs_billing_permission) {
-        am_conf_android_needs_internet_permission = true;
-    }
+    // XXX not sure this is required?
+    //if (am_conf_android_needs_billing_permission) {
+    //    am_conf_android_needs_internet_permission = true;
+    //}
 
     read_bool_setting(eng->L, "d3dangle", &am_conf_d3dangle);
     #if !defined(AM_WINDOWS)

@@ -64,7 +64,7 @@ function am._iap_transaction_updated(productid, status)
     if not iap_transaction_callback then
         error("no iap transaction callback registered!")
     else
-        iap_transaction_callback(productid, status)
+        return iap_transaction_callback(productid, status)
     end
 end
 

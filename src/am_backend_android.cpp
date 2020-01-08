@@ -135,7 +135,7 @@ extern "C" {
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchUp(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniTouchMove(JNIEnv * env, jobject obj, jint id, jfloat x, jfloat y);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPProductsRetrieved(JNIEnv * env, jobject obj, jint success, jobjectArray productIds, jobjectArray prices);
-    JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jproductId, jstring jstatus);
+    JNIEXPORT jint JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jproductId, jstring jstatus);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPRestoreFinished(JNIEnv * env, jobject obj, jint success);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniSetGameServicesConnected(JNIEnv * env, jobject obj, jint c);
     JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniFillAudioBuffer(JNIEnv * env, jobject obj, jfloatArray jbuffer, jint size);
@@ -246,8 +246,9 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPProductsRetrieved(JN
     jni_env = NULL;
 }
 
-JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jpid, jstring jstatus) {
+JNIEXPORT jint JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(JNIEnv * env, jobject obj, jstring jpid, jstring jstatus) {
     jni_env = env;
+    jint res = 0;
     if (android_eng != NULL && android_eng->L != NULL) {
         lua_State *L = android_eng->L;
         const char* pid = env->GetStringUTFChars(jpid , NULL ) ;
@@ -256,9 +257,13 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPTransactionUpdated(J
         lua_pushstring(L, status);
         env->ReleaseStringUTFChars(jpid, pid);
         env->ReleaseStringUTFChars(jstatus, status);
-        am_call_amulet(L, "_iap_transaction_updated", 2, 0);
+        if (am_call_amulet(L, "_iap_transaction_updated", 2, 1)) {
+            res = (jint)lua_tointeger(L, -1);
+            lua_pop(L, 1);
+        }
     }
     jni_env = NULL;
+    return res;
 }
 
 JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPRestoreFinished(JNIEnv * env, jobject obj, jint success) {

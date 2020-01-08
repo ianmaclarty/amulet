@@ -846,11 +846,16 @@ static bool copy_android_app_build_gradle(export_config *conf, char *dir) {
     if (template_dir == NULL) return false;
     char *src_path = am_format("%sandroid/app/build.gradle", template_dir);
     char *dest_path = am_format("%s/build.gradle", dir);
+    const char *billing_dep = "";
+    if (am_conf_android_needs_billing_permission) {
+        billing_dep = "implementation 'com.android.billingclient:billing:2.1.0'";
+    }
     const char *subs[] = {
         "AM_APPID", am_conf_app_id_android,
         "AM_APPVERSION_CODE", am_conf_android_app_version_code,
         "AM_TARGET_SDK_VER", am_conf_android_target_sdk_version,
         "AM_APPVERSION", conf->version,
+        "AM_BILLING_DEPENDENCY", billing_dep,
         NULL
     };
     bool ok = copy_text_file(src_path, dest_path, (char**)subs);
