@@ -544,9 +544,14 @@ public class AmuletActivity extends Activity
     //BILLING                         case Purchase.PurchaseState.PENDING: status = "deferred"; break;
     //BILLING                         default: status = "unknown"; break;
     //BILLING                     }
+    //BILLING                     break;
     //BILLING                 }
-    //BILLING                 case BillingClient.BillingResponseCode.USER_CANCELED: status = "cancelled"; break;
-    //BILLING                 default: status = "failed"; break;
+    //BILLING                 case BillingClient.BillingResponseCode.USER_CANCELED:
+    //BILLING                     status = "cancelled";
+    //BILLING                     break;
+    //BILLING                 default:
+    //BILLING                     status = "failed";
+    //BILLING                     break;
     //BILLING             }
     //BILLING             handTransactionUpdated(p.getSku(), status, p.getPurchaseToken());
     //BILLING         }
