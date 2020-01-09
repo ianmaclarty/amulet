@@ -140,6 +140,15 @@ public class AmuletActivity extends Activity
         //BILLING     public void onBillingSetupFinished(BillingResult billingResult) {
         //BILLING         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
         //BILLING             billingConnected = true;
+        //BILLING             Purchase.PurchasesResult pRes = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
+        //BILLING             List<Purchase> purchases = pRes.getPurchasesList();
+        //BILLING             if (purchases != null) {
+        //BILLING                 for (Purchase p : purchases) {
+        //BILLING                     if (!p.isAcknowledged() && p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+        //BILLING                         handleTransactionUpdated(p.getSku(), "purchased", p.getPurchaseToken());
+        //BILLING                     }
+        //BILLING                 }
+        //BILLING             }
         //BILLING         } else {
         //BILLING             billingConnected = false;
         //BILLING         }
@@ -492,48 +501,53 @@ public class AmuletActivity extends Activity
 
     // --- IAP -----------------------
 
-    //BILLING private void handTransactionUpdated(String productId, String status, String token) {
-    //BILLING     Log.i("AMULET", "calling jniIAPTransactionUpdated (" + productId + "  " + status + ")");
-    //BILLING         
-    //BILLING     int res = jniIAPTransactionUpdated(productId, status);
-
-    //BILLING     if (billingClient == null) {
-    //BILLING         Log.i("AMULET", "billingClient is null");
-    //BILLING         return;
-    //BILLING     }
-    //BILLING     if (token != null) {
-    //BILLING         switch (res) {
-    //BILLING             case 1: {
-    //BILLING                     AcknowledgePurchaseParams acknowledgePurchaseParams =
-    //BILLING                         AcknowledgePurchaseParams.newBuilder()
-    //BILLING                             .setPurchaseToken(token)
-    //BILLING                             .build();
-    //BILLING                     billingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
-    //BILLING                         public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
-    //BILLING                             Log.i("AMULET", "purchase acknowledged (" + billingResult.getDebugMessage() + ")");
+    //BILLING private void handleTransactionUpdated(final String productId, final String status, final String token) {
+    //BILLING     Log.i("AMULET", "calling handleTransactionUpdated (" + productId + "  " + status + ")");
+    //BILLING     view.queueEvent(new Runnable() {
+    //BILLING         public void run() {
+    //BILLING             Log.i("AMULET", "calling jniIAPTransactionUpdated");
+    //BILLING             int res = jniIAPTransactionUpdated(productId, status);
+    //BILLING             Log.i("AMULET", "done calling jniIAPTransactionUpdated (res = " + res + ")");
+    //BILLING             if (billingClient == null) {
+    //BILLING                 Log.i("AMULET", "billingClient is null");
+    //BILLING                 return;
+    //BILLING             }
+    //BILLING             if (token != null) {
+    //BILLING                 switch (res) {
+    //BILLING                     case 1: {
+    //BILLING                             AcknowledgePurchaseParams acknowledgePurchaseParams =
+    //BILLING                                 AcknowledgePurchaseParams.newBuilder()
+    //BILLING                                     .setPurchaseToken(token)
+    //BILLING                                     .build();
+    //BILLING                             billingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
+    //BILLING                                 public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
+    //BILLING                                     Log.i("AMULET", "purchase acknowledged (" + billingResult.getDebugMessage() + ")");
+    //BILLING                                 }
+    //BILLING                             });
+    //BILLING                             break;
     //BILLING                         }
-    //BILLING                     });
-    //BILLING                     break;
-    //BILLING                 }
-    //BILLING             case 2: {
-    //BILLING                 ConsumeParams consumeParams =
-    //BILLING                     ConsumeParams.newBuilder()
-    //BILLING                         .setPurchaseToken(token)
-    //BILLING                         .build();
-    //BILLING                 billingClient.consumeAsync(consumeParams, new ConsumeResponseListener() {
-    //BILLING                     public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
-    //BILLING                         Log.i("AMULET", "purchase " + purchaseToken + " consumed (" + billingResult.getDebugMessage() + ")");
+    //BILLING                     case 2: {
+    //BILLING                         ConsumeParams consumeParams =
+    //BILLING                             ConsumeParams.newBuilder()
+    //BILLING                                 .setPurchaseToken(token)
+    //BILLING                                 .build();
+    //BILLING                         billingClient.consumeAsync(consumeParams, new ConsumeResponseListener() {
+    //BILLING                             public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
+    //BILLING                                 Log.i("AMULET", "purchase " + purchaseToken + " consumed (" + billingResult.getDebugMessage() + ")");
+    //BILLING                             }
+    //BILLING                         });
+    //BILLING                         break;
     //BILLING                     }
-    //BILLING                 });
-    //BILLING                 break;
+    //BILLING                 }
     //BILLING             }
     //BILLING         }
-    //BILLING     }
+    //BILLING     });
+    //BILLING         
     //BILLING }
 
     //BILLING public void onPurchasesUpdated(BillingResult billingResult, List<Purchase> purchases) {
     //BILLING     Log.i("AMULET", "onPurchasesUpdated: " + billingResult.getResponseCode() + " " + billingResult.getDebugMessage());
-    //BILLING     if (purchases != null) {
+    //BILLING     if (purchases != null && purchases.size() > 0) {
     //BILLING         for (Purchase p : purchases) {
     //BILLING             Log.i("AMULET", "purchase: " + p.getSku());
     //BILLING             String status;
@@ -546,6 +560,12 @@ public class AmuletActivity extends Activity
     //BILLING                     }
     //BILLING                     break;
     //BILLING                 }
+    //BILLING                 case BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED: {
+    //BILLING                     // Item was not consumed or app doesn't think it's owned.
+    //BILLING                     // Either way let's tell the app it's a new purchase which will update the app state or re-consume it.
+    //BILLING                     status = "purchased";
+    //BILLING                     break;
+    //BILLING                 }
     //BILLING                 case BillingClient.BillingResponseCode.USER_CANCELED:
     //BILLING                     status = "cancelled";
     //BILLING                     break;
@@ -553,11 +573,20 @@ public class AmuletActivity extends Activity
     //BILLING                     status = "failed";
     //BILLING                     break;
     //BILLING             }
-    //BILLING             handTransactionUpdated(p.getSku(), status, p.getPurchaseToken());
+    //BILLING             handleTransactionUpdated(p.getSku(), status, p.getPurchaseToken());
     //BILLING         }
     //BILLING         lastPurchaseProductId = null;
     //BILLING     } else if (lastPurchaseProductId != null) {
-    //BILLING         handTransactionUpdated(lastPurchaseProductId, "failed", null);
+    //BILLING         String status = "failed";
+    //BILLING         switch (billingResult.getResponseCode()) {
+    //BILLING             case BillingClient.BillingResponseCode.USER_CANCELED:
+    //BILLING                 status = "cancelled";
+    //BILLING                 break;
+    //BILLING             default:
+    //BILLING                 status = "failed";
+    //BILLING                 break;
+    //BILLING         }
+    //BILLING         handleTransactionUpdated(lastPurchaseProductId, status, null);
     //BILLING         lastPurchaseProductId = null;
     //BILLING     }
     //BILLING }
@@ -621,20 +650,16 @@ public class AmuletActivity extends Activity
     //BILLING     }
     //BILLING     if (details == null) return;
     //BILLING     try {
+    //BILLING         lastPurchaseProductId = productId;
     //BILLING         BillingFlowParams flowParams = BillingFlowParams.newBuilder()
     //BILLING             .setSkuDetails(details)
     //BILLING             .build();
     //BILLING         billingClient.launchBillingFlow(this, flowParams);
-    //BILLING         lastPurchaseProductId = productId;
     //BILLING         // ignore result of above, because it is delivered via the PurchasesUpdatedListener (docs not clear on this though)
     //BILLING     } catch (Exception e) {
     //BILLING         Log.i("AMULET", e.getMessage() + ":" + e.getStackTrace());
     //BILLING         lastPurchaseProductId = null;
-    //BILLING         view.queueEvent(new Runnable() {
-    //BILLING             public void run() {
-    //BILLING                 handTransactionUpdated(productId, "failed", null);
-    //BILLING             }
-    //BILLING         });
+    //BILLING         handleTransactionUpdated(productId, "failed", null);
     //BILLING     }
     //BILLING }
 
@@ -648,12 +673,20 @@ public class AmuletActivity extends Activity
     //BILLING                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
     //BILLING                     if (purchasesList != null) {
     //BILLING                         for (PurchaseHistoryRecord p : purchasesList) {
-    //BILLING                             handTransactionUpdated(p.getSku(), "restored", p.getPurchaseToken());
+    //BILLING                             handleTransactionUpdated(p.getSku(), "restored", null);
     //BILLING                         }
     //BILLING                     }
-    //BILLING                     jniIAPRestoreFinished(1);
+    //BILLING                     view.queueEvent(new Runnable() {
+    //BILLING                         public void run() {
+    //BILLING                             jniIAPRestoreFinished(1);
+    //BILLING                         }
+    //BILLING                     });
     //BILLING                 } else {
-    //BILLING                     jniIAPRestoreFinished(0);
+    //BILLING                     view.queueEvent(new Runnable() {
+    //BILLING                         public void run() {
+    //BILLING                             jniIAPRestoreFinished(0);
+    //BILLING                         }
+    //BILLING                     });
     //BILLING                 }
     //BILLING             }
     //BILLING         });
