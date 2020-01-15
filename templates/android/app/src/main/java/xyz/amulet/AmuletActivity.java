@@ -665,31 +665,33 @@ public class AmuletActivity extends Activity
 
     //BILLING void restorePurchases() {
     //BILLING     try {
-    //BILLING         billingClient.queryPurchaseHistoryAsync(BillingClient.SkuType.INAPP,
-    //BILLING                                      new PurchaseHistoryResponseListener() {
-    //BILLING             @Override
-    //BILLING             public void onPurchaseHistoryResponse(BillingResult billingResult,
-    //BILLING                                                   List<PurchaseHistoryRecord> purchasesList) {
-    //BILLING                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-    //BILLING                     if (purchasesList != null) {
-    //BILLING                         for (PurchaseHistoryRecord p : purchasesList) {
-    //BILLING                             handleTransactionUpdated(p.getSku(), "restored", null);
-    //BILLING                         }
-    //BILLING                     }
-    //BILLING                     view.queueEvent(new Runnable() {
-    //BILLING                         public void run() {
-    //BILLING                             jniIAPRestoreFinished(1);
-    //BILLING                         }
-    //BILLING                     });
-    //BILLING                 } else {
-    //BILLING                     view.queueEvent(new Runnable() {
-    //BILLING                         public void run() {
-    //BILLING                             jniIAPRestoreFinished(0);
-    //BILLING                         }
-    //BILLING                     });
+    //BILLING         if (!billingConnected) {
+    //BILLING             view.queueEvent(new Runnable() {
+    //BILLING                 public void run() {
+    //BILLING                     jniIAPRestoreFinished(0);
+    //BILLING                 }
+    //BILLING             });
+    //BILLING         }
+    //BILLING         Purchase.PurchasesResult pRes = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
+    //BILLING         List<Purchase> purchases = pRes.getPurchasesList();
+    //BILLING         if (purchases != null) {
+    //BILLING             for (Purchase p : purchases) {
+    //BILLING                 if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+    //BILLING                     handleTransactionUpdated(p.getSku(), "restored", p.isAcknowledged() ? null : p.getPurchaseToken());
     //BILLING                 }
     //BILLING             }
-    //BILLING         });
+    //BILLING             view.queueEvent(new Runnable() {
+    //BILLING                 public void run() {
+    //BILLING                     jniIAPRestoreFinished(1);
+    //BILLING                 }
+    //BILLING             });
+    //BILLING         } else {
+    //BILLING             view.queueEvent(new Runnable() {
+    //BILLING                 public void run() {
+    //BILLING                     jniIAPRestoreFinished(0);
+    //BILLING                 }
+    //BILLING             });
+    //BILLING         }
     //BILLING     } catch (Exception e) {
     //BILLING         Log.i("AMULET", e.getMessage() + ":" + e.getStackTrace());
     //BILLING         jniIAPRestoreFinished(0);

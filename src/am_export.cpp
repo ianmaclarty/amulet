@@ -1442,6 +1442,8 @@ static bool create_android_proj_icon_files(const char *dir, export_config *conf)
     size_t len;
     stbi_uc *img_data;
     int width, height;
+    int width_fg, height_fg;
+    int width_bg, height_bg;
     char *filename = (char*)am_conf_app_icon_android;
     if (filename == NULL) return false;
     void *data = am_read_file(filename, &len);
@@ -1460,7 +1462,7 @@ static bool create_android_proj_icon_files(const char *dir, export_config *conf)
         int components = 4;
         stbi_set_flip_vertically_on_load(0);
         fg_img_data =
-            stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+            stbi_load_from_memory((stbi_uc const *)data, len, &width_fg, &height_fg, &components, 4);
         free(data);
         if (fg_img_data == NULL) return false; // memory leak, but it doesn't matter
     }
@@ -1471,7 +1473,7 @@ static bool create_android_proj_icon_files(const char *dir, export_config *conf)
         int components = 4;
         stbi_set_flip_vertically_on_load(0);
         bg_img_data =
-            stbi_load_from_memory((stbi_uc const *)data, len, &width, &height, &components, 4);
+            stbi_load_from_memory((stbi_uc const *)data, len, &width_bg, &height_bg, &components, 4);
         free(data);
         if (bg_img_data == NULL) return false;  // memory leak, but it doesn't matter
     }
@@ -1503,16 +1505,16 @@ static bool create_android_proj_icon_files(const char *dir, export_config *conf)
 
     if (!error && fg_img_data != NULL && bg_img_data != NULL) {
         error = (
-           !resize_image(fg_img_data, width, height, mdpi_dir, "ic_launcher_foreground.png", 108, 108)
-        || !resize_image(fg_img_data, width, height, hdpi_dir, "ic_launcher_foreground.png", 162, 162)
-        || !resize_image(fg_img_data, width, height, xhdpi_dir, "ic_launcher_foreground.png", 216, 216)
-        || !resize_image(fg_img_data, width, height, xxhdpi_dir, "ic_launcher_foreground.png", 324, 324)
-        || !resize_image(fg_img_data, width, height, xxxhdpi_dir, "ic_launcher_foreground.png", 432, 432)
-        || !resize_image(bg_img_data, width, height, mdpi_dir, "ic_launcher_background.png", 108, 108)
-        || !resize_image(bg_img_data, width, height, hdpi_dir, "ic_launcher_background.png", 162, 162)
-        || !resize_image(bg_img_data, width, height, xhdpi_dir, "ic_launcher_background.png", 216, 216)
-        || !resize_image(bg_img_data, width, height, xxhdpi_dir, "ic_launcher_background.png", 324, 324)
-        || !resize_image(bg_img_data, width, height, xxxhdpi_dir, "ic_launcher_background.png", 432, 432)
+           !resize_image(fg_img_data, width_fg, height_fg, mdpi_dir, "ic_launcher_foreground.png", 108, 108)
+        || !resize_image(fg_img_data, width_fg, height_fg, hdpi_dir, "ic_launcher_foreground.png", 162, 162)
+        || !resize_image(fg_img_data, width_fg, height_fg, xhdpi_dir, "ic_launcher_foreground.png", 216, 216)
+        || !resize_image(fg_img_data, width_fg, height_fg, xxhdpi_dir, "ic_launcher_foreground.png", 324, 324)
+        || !resize_image(fg_img_data, width_fg, height_fg, xxxhdpi_dir, "ic_launcher_foreground.png", 432, 432)
+        || !resize_image(bg_img_data, width_bg, height_bg, mdpi_dir, "ic_launcher_background.png", 108, 108)
+        || !resize_image(bg_img_data, width_bg, height_bg, hdpi_dir, "ic_launcher_background.png", 162, 162)
+        || !resize_image(bg_img_data, width_bg, height_bg, xhdpi_dir, "ic_launcher_background.png", 216, 216)
+        || !resize_image(bg_img_data, width_bg, height_bg, xxhdpi_dir, "ic_launcher_background.png", 324, 324)
+        || !resize_image(bg_img_data, width_bg, height_bg, xxxhdpi_dir, "ic_launcher_background.png", 432, 432)
         || !copy_text_file(ic_launcher_xml_src, ic_launcher_xml_dst, NULL)
         );
     }
