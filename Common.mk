@@ -35,6 +35,10 @@ else ifneq (,$(findstring MSYS_NT,$(UNAME)))
   HOST_PLATFORM = msvc32
   IS_WINDOWS = yes
   PATH_SEP = ;
+else ifneq (,$(findstring MINGW64_NT,$(UNAME)))
+  HOST_PLATFORM = mingw64
+  IS_WINDOWS = yes
+  PATH_SEP = ;
 else ifneq (,$(findstring Linux,$(UNAME)))
   UNAME_A := $(shell uname -a)
   ifneq (,$(findstring x86_64,$(UNAME_A)))
@@ -399,10 +403,10 @@ else ifeq ($(TARGET_PLATFORM),mingw32)
   ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/32
 else ifeq ($(TARGET_PLATFORM),mingw64)
   EXE_EXT = .exe
-  CC = x86_64-w64-mingw32-gcc
-  CPP = x86_64-w64-mingw32-g++
+  CC ?= x86_64-w64-mingw32-gcc
+  CPP ?= x86_64-w64-mingw32-g++
   LINK = $(CPP)
-  AR = x86_64-w64-mingw32-ar
+  AR ?= x86_64-w64-mingw32-ar
   XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib
   XCFLAGS += -fno-strict-aliasing
   LUAJIT_FLAGS += HOST_CC="gcc -m64" CROSS=x86_64-w64-mingw32- TARGET_SYS=Windows

@@ -53,6 +53,9 @@ else ifdef ANDROID
 else ifeq ($(TARGET_PLATFORM),mingw32)
   AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
   EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
+else ifeq ($(TARGET_PLATFORM),mingw64)
+  AM_DEPS = $(LUAVM) stb kissfft tinymt ft2
+  EXTRA_PREREQS = $(SDL_PREBUILT) $(ANGLE_WIN_PREBUILT) $(SIMPLEGLOB_H)
 else ifeq ($(TARGET_PLATFORM),osx)
   AM_DEPS = $(LUAVM) sdl angle stb kissfft tinymt ft2
   ifndef NO_METAL
