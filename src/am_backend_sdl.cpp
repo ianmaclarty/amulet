@@ -623,9 +623,9 @@ restart:
         t0 = frame_time;
 
         if (!have_focus) {
-#if defined(AM_OSX) && !defined(AM_USE_METAL)
-            // throttle framerate when in background on osx gl (otherwise cpu goes through the roof)
-            usleep(10 * 1000); // 10 milliseconds
+#if defined(AM_OSX)
+            // throttle framerate when in background on osx, otherwise cpu usage becomes very high for unknown reasons
+            usleep(50 * 1000); // 50 milliseconds
 #endif
         }
     }
