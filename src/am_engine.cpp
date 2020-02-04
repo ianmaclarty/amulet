@@ -21,6 +21,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
     lua_State *L = lua_newstate(&am_alloc, allocator);
 #endif
     if (L == NULL) {
+        fprintf(stderr, "unable to initialize lua engine\n");
         am_destroy_allocator(allocator);
         return NULL;
     }
