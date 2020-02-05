@@ -156,7 +156,13 @@ public class AmuletActivity extends Activity
         //BILLING     @Override
         //BILLING     public void onBillingServiceDisconnected() {
         //BILLING         billingConnected = false;
-        //BILLING         billingClient.startConnection(billingClientListener[0]);
+        //BILLING         try {
+        //BILLING             if (billingClient != null) {
+        //BILLING                 billingClient.startConnection(billingClientListener[0]);
+        //BILLING             }
+        //BILLING         } catch (Exception e) {
+        //BILLING             // ignore
+        //BILLING         }
         //BILLING     }
         //BILLING };
         //BILLING billingClient.startConnection(billingClientListener[0]);
