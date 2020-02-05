@@ -157,11 +157,15 @@ public class AmuletActivity extends Activity
         //BILLING     public void onBillingServiceDisconnected() {
         //BILLING         billingConnected = false;
         //BILLING         try {
+        //BILLING             if (billingClient == null) {
+        //BILLING                 billingClient = BillingClient.newBuilder(AmuletActivity.this).enablePendingPurchases().setListener(AmuletActivity.this).build();
+        //BILLING             }
         //BILLING             if (billingClient != null) {
         //BILLING                 billingClient.startConnection(billingClientListener[0]);
         //BILLING             }
         //BILLING         } catch (Exception e) {
         //BILLING             // ignore
+        //BILLING             Log.i("AMULET", "error handling billing service disconnect: " + e.getMessage());
         //BILLING         }
         //BILLING     }
         //BILLING };
@@ -174,6 +178,7 @@ public class AmuletActivity extends Activity
         //BILLING if (billingClient != null) { 
         //BILLING     billingClient.endConnection();
         //BILLING     billingClient = null;
+        //BILLING     billingConnected = false;
         //BILLING }
         jniTeardown();
         is_running = false;
