@@ -543,6 +543,18 @@ restart:
     }
     if (windows.size() == 0) goto quit;
 
+    if (restart_triggered) {
+        // re "attach" the controllers on the lua side after reloading the
+        // world.
+        for (int index = 0; index < MAX_CONTROLLERS; ++index) {
+            if (controller_infos[index].active) {
+                lua_pushinteger(L, index);
+                lua_pushinteger(L, controller_infos[index].joyid);
+                am_call_amulet(L, "_controller_attached", 2, 0);
+            }
+        }
+    }
+
     restart_triggered = false;
 
     t0 = am_get_current_time();
