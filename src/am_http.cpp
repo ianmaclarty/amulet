@@ -27,13 +27,13 @@ static int http_request(lua_State *L) {
         if (!window.amulet.http_reqs) window.amulet.http_reqs = {};
         var xhr = new XMLHttpRequest();
         window.amulet.http_reqs[$0] = xhr;
-        var url = Pointer_stringify($1);
+        var url = UTF8ToString($1);
         var data = null;
         if ($2 == 0) {
             xhr.open('GET', url, true);
             xhr.send();
         } else {
-            data = Pointer_stringify($2);
+            data = UTF8ToString($2);
             xhr.open('POST', url, true);
             xhr.send(data);
         }

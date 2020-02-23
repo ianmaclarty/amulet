@@ -6,7 +6,7 @@ static int eval_js(lua_State *L) {
     const char *js = lua_tostring(L, 1);
     if (js == NULL) return luaL_error(L, "expecting a string at position 1");
     int res_ptr = EM_ASM_INT({
-        var js_str = Pointer_stringify($0);
+        var js_str = UTF8ToString($0);
         var res = eval(js_str);
         var res_str;
         if (res === undefined) {
