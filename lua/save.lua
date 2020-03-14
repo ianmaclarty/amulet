@@ -14,9 +14,14 @@ function am.save_state(name, state, format)
     elseif am.platform == "ios" then
         am.ios_store_pref(name, str)
     else
-        local f = io.open(am.app_data_dir..name..".sav", "w")
-        f:write(str)
-        f:close()
+        local filename = am.app_data_dir..name..".sav"
+        local f, err = io.open(filename, "w")
+        if f then
+            f:write(str)
+            f:close()
+        else
+            log("error opening '%s'\n%s", filename, tostring(err))
+        end
     end
 end
 
