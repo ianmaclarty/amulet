@@ -346,9 +346,11 @@ function log(fmt, ...)
     local plat = am.platform
     if plat == "windows" or plat == "linux" or plat == "osx" then
         local f = io.open(am.app_data_dir.."log.txt", first_log and "w" or "a")
-        f:write(msg)
-        f:write("\n")
-        f:close()
+        if f then
+            f:write(msg)
+            f:write("\n")
+            f:close()
+        end
     end
     
     if am._main_window then

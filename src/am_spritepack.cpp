@@ -185,7 +185,7 @@ static void write_data() {
     double w, h, adv;
     FILE *f = am_fopen(lua_filename, "w");
     if (f == NULL) {
-        fprintf(stderr, "unable to open %s for writing\n", lua_filename);
+        fprintf(stderr, "unable to open %s for writing: %s\n", lua_filename, strerror(errno));
         return;
     }
     fprintf(f, "local font_data = {\n");
@@ -365,7 +365,7 @@ static void write_png() {
         atlas_data, atlas_width, atlas_height, 4, &len);
     FILE *f = am_fopen(png_filename, "wb");
     if (f == NULL) {
-        fprintf(stderr, "unable to open %s for writing\n", png_filename);
+        fprintf(stderr, "unable to open %s for writing: %s\n", png_filename, strerror(errno));
         return;
     }
     fwrite(png_data, len, 1, f);
