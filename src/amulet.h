@@ -63,6 +63,7 @@
 #include <unistd.h>
 #endif
 
+#include <errno.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
