@@ -187,6 +187,10 @@ function am.text(font, str, color, halign, valign)
         error("expecting a font in position 1", 2)
     end
     str = type(str) == "string" and str or tostring(str)
+    if str == "" then
+        -- zero length strings cause issues
+        str = " "
+    end
     local len = utf8.len(str)
     local num_verts = len * 4
     local buffer, verts, uvs = make_buffer(num_verts)
