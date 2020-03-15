@@ -236,7 +236,6 @@ static bool export_cmd(int *argc, char ***argv) {
     char last = dir[strlen(dir)-1];
     if (last == '/' || last == '\\') dir[strlen(dir)-1] = 0;
     am_opt_data_dir = dir;
-    am_debug("mac: %d", flags.export_mac_app_store);
     return am_build_exports(&flags);
 #else
     fprintf(stderr, "Sorry, the export command is not supported on this platform.\n");
