@@ -108,6 +108,10 @@ function am.quads(capacity, spec, usage)
     function bind_node:get_num_quads()
         return n
     end
+    function bind_node:clear()
+        n = 0
+        draw_node.count = 0
+    end
     bind_node:tag"quads"
     return bind_node
 end

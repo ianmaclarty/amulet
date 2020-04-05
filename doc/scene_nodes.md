@@ -1128,6 +1128,7 @@ Methods:
   The quad number (starting at 1) is returned.
 - `remove_quad(n [,count])`: Removes `count` quads starting with the `n`th.
   `count` is 1 if omitted.
+- `clear()`: Removes all quads.
 - Additionally methods are created for each attribute
   of the form `quad_<attribute name>` that can be
   used to update the value of a quad attribute.
