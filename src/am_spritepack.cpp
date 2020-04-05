@@ -57,6 +57,7 @@ static const char* minfilter = "linear";
 static const char* magfilter = "linear";
 static int do_premult = 1;
 static int keep_padding = 0;
+static int border = 1;
 static int default_font = 0;
 
 static void process_args(int argc, char *argv[]);
@@ -143,8 +144,8 @@ static void gen_rects() {
         } else {
             load_image(s);
             rects[r].id = 0;
-            rects[r].w = bb_width + 2;
-            rects[r].h = bb_height + 2;
+            rects[r].w = bb_width + 2 * border;
+            rects[r].h = bb_height + 2 * border;
             r++;
         }
     }
@@ -297,24 +298,24 @@ static void write_data() {
             fprintf(f, "    },\n");
         } else {
             load_image(s);
-            src_ptr = bordered_image_data + (bb_top - 1) * bordered_image_width * 4 + (bb_left - 1) * 4;
+            src_ptr = bordered_image_data + (bb_top - border) * bordered_image_width * 4 + (bb_left - border) * 4;
             dest_ptr = atlas_data + (rects[r].x) * 4 +
                 (rects[r].y) * atlas_width * 4;
-            for (i = 0; i < (bb_height + 2); i++) {
-                memcpy(dest_ptr, src_ptr, (bb_width + 2) * 4);
+            for (i = 0; i < (bb_height + border * 2); i++) {
+                memcpy(dest_ptr, src_ptr, (bb_width + border * 2) * 4);
                 src_ptr += bordered_image_width * 4;
                 dest_ptr += atlas_width * 4;
             }
 
-            s1 = ((double)rects[r].x + 1.0) / (double)atlas_width;
-            t2 = 1.0 - (((double)rects[r].y) + 1.0) / (double)atlas_height;
+            s1 = ((double)rects[r].x + 1.0 * (double)border) / (double)atlas_width;
+            t2 = 1.0 - (((double)rects[r].y) + 1.0 * (double)border) / (double)atlas_height;
             w = ((double)bb_width) / (double)atlas_width;
             h = ((double)bb_height) / (double)atlas_height;
             t1 = t2 - h;
             s2 = s1 + w;
 
-            x1 = (double)bb_left - 1.0;
-            y1 = (double)(bordered_image_height - bb_bottom - 2.0);
+            x1 = (double)bb_left - 1.0 * (double)border;
+            y1 = (double)(bordered_image_height - bb_bottom - (double)border * 2.0);
             w = (double)bb_width;
             h = (double)bb_height;
             x2 = x1 + w;
@@ -443,26 +444,30 @@ static void compute_bordered_image() {
     if (bordered_image_data != NULL) {
         free(bordered_image_data);
     }
-    bordered_image_width = image_width + 2;
-    bordered_image_height = image_height + 2;
+    bordered_image_width = image_width + 2 * border;
+    bordered_image_height = image_height + 2 * border;
     bordered_image_data = (unsigned char*)malloc(4 * bordered_image_width * bordered_image_height);
     uint32_t *img_ptr = (uint32_t*)image_data;
     uint32_t *bimg_ptr = (uint32_t*)bordered_image_data;
     for (row = 0; row < bordered_image_height; row++) {
-        if (row == 0) {
+        if (border && row == 0) {
             bimg_ptr[0] = img_ptr[0];
             memcpy(&bimg_ptr[1], &img_ptr[0], 4 * image_width);
             bimg_ptr[bordered_image_width-1] = img_ptr[image_width-1];
             bimg_ptr += bordered_image_width;
-        } else if (row == bordered_image_height - 1) {
+        } else if (border && row == bordered_image_height - 1) {
             img_ptr -= image_width;
             bimg_ptr[0] = img_ptr[0];
             memcpy(&bimg_ptr[1], &img_ptr[0], 4 * image_width);
             bimg_ptr[bordered_image_width-1] = img_ptr[image_width-1];
         } else {
-            bimg_ptr[0] = img_ptr[0];
-            memcpy(&bimg_ptr[1], &img_ptr[0], 4 * image_width);
-            bimg_ptr[bordered_image_width-1] = img_ptr[image_width-1];
+            if (border) {
+                bimg_ptr[0] = img_ptr[0];
+            }
+            memcpy(&bimg_ptr[border], &img_ptr[0], 4 * image_width);
+            if (border) {
+                bimg_ptr[bordered_image_width-1] = img_ptr[image_width-1];
+            }
             bimg_ptr += bordered_image_width;
             img_ptr += image_width;
         }
@@ -518,24 +523,28 @@ static void compute_bbox() {
     }
 
     // make sure we have a 1 pixel transparent border, if possible
-    if (bb_left > 0) {
-        bb_left = bb_left - 1;
-    }
-    if (bb_right < image_width - 1) {
-        bb_right = bb_right + 1;
-    }
-    if (bb_top > 0) {
-        bb_top = bb_top - 1;
-    }
-    if (bb_bottom < image_height - 1) {
-        bb_bottom = bb_bottom + 1;
+    if (border) {
+        if (bb_left > 0) {
+            bb_left = bb_left - 1;
+        }
+        if (bb_right < image_width - 1) {
+            bb_right = bb_right + 1;
+        }
+        if (bb_top > 0) {
+            bb_top = bb_top - 1;
+        }
+        if (bb_bottom < image_height - 1) {
+            bb_bottom = bb_bottom + 1;
+        }
     }
 
     // convert the bounding box to the bordered image coordinate space
-    bb_left = bb_left + 1;
-    bb_top = bb_top + 1;
-    bb_right = bb_right + 1;
-    bb_bottom = bb_bottom + 1;
+    if (border) {
+        bb_left = bb_left + 1;
+        bb_top = bb_top + 1;
+        bb_right = bb_right + 1;
+        bb_bottom = bb_bottom + 1;
+    }
 
     // compute bounding box dimensions
     bb_width = bb_right - bb_left + 1;
@@ -722,6 +731,8 @@ static void process_args(int argc, char *argv[]) {
             do_premult = 0;
         } else if (strcmp(arg, "-keep-padding") == 0) {
             keep_padding = 1;
+        } else if (strcmp(arg, "-no-border") == 0) {
+            border = 0;
         } else {
             parse_spec(argv[a], num_items);
             num_items++;

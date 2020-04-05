@@ -76,7 +76,7 @@ static bool help_pack() {
        /*-------------------------------------------------------------------------------*/
         "Usage: amulet pack -png <filename.png> -lua <filename.lua> \n"
         "                   [-mono] [-minfilter <filter>] [-magfilter <filter>]\n"
-        "                   [-no-premult] [-keep-padding] <files> ...\n"
+        "                   [-no-premult] [-keep-padding] [-no-border] <files> ...\n"
         "\n"
         "  Packs images and/or fonts into a sprite sheet and generates a Lua\n"
         "  module for accessing the sprites therein.\n"
@@ -89,6 +89,7 @@ static bool help_pack() {
         "  -magfilter               nearest or linear (default is linear).\n"
         "  -no-premult              Do not pre-multiply RGB channels by alpha.\n"
         "  -keep-padding            Do not strip transparent pixels around images.\n"
+        "  -no-border               Do not add a transparent border around images.\n"
         "\n"
         "  <files> is a list of image files (.png or .jpg) and/or font files (.ttf).\n"
         "  Each font file must additionally have a suffix of the form @size which\n"
