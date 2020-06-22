@@ -1,5 +1,7 @@
 -- extra table functions
 
+local debug = _G.debug
+
 function table.shallow_copy(t)
     if type(t) ~= "table" then
         error("table expected, but got a "..type(t), 2)

@@ -1,3 +1,5 @@
+local debug = _G.debug
+
 local remove_c_stack_slots = true
 
 function am._traceback(msg, thread)
