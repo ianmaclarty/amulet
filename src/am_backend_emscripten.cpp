@@ -64,6 +64,9 @@ am_native_window *am_create_native_window(
         case AM_WINDOW_MODE_FULLSCREEN: flags |= SDL_FULLSCREEN; break;
         case AM_WINDOW_MODE_FULLSCREEN_DESKTOP: flags |= SDL_FULLSCREEN; break;
     }
+    EM_ASM({
+        window.amulet.highdpi = $0;
+    }, highdpi ? 1 : 0);
     if (resizable) flags |= SDL_RESIZABLE;
     if (width < 0) width = 0;
     if (height < 0) height = 0;

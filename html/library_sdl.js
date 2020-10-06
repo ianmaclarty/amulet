@@ -2581,15 +2581,26 @@ var LibrarySDL = {
     if (title) document.title = UTF8ToString(title);
   },
 
-  SDL_GetWindowSize: function(window, width, height){
+  SDL_GetWindowSize: function(sdl_window, width, height){
+    // Note: this function ignores the sdl_window argument
+    // which is intentionally named to avoid shadowing the
+    // global window variable, which is used below.
     var canvas = Module['canvas'];
     var w = canvas.width;
     var h = canvas.height;
+    var devicePixelRatio = 1;
+    // Did am.window ask for highdpi?
+    if (window.amulet.highdpi) {
+      // Does the browser & screen support it?
+      devicePixelRatio = window.devicePixelRatio || 1;
+    }
+    var desiredWidth = canvas.clientWidth * devicePixelRatio;
+    var desiredHeight = canvas.clientHeight * devicePixelRatio;
     // We call this each frame, so might as well update the 
     // rendering size of the canvas here as well.
-    if (w != canvas.clientWidth || h != canvas.clientHeight) {
-        w = canvas.clientWidth;
-        h = canvas.clientHeight;
+    if (w != desiredWidth || h != desiredHeight) {
+        w = desiredWidth;
+        h = desiredHeight;
         canvas.width = w;
         canvas.height = h;
         //console.log("updated canvas size to " + w + "x" + h);
