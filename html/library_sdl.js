@@ -89,6 +89,7 @@ var LibrarySDL = {
     
     keyCodes: { // DOM code ==> SDL code. See https://developer.mozilla.org/en/Document_Object_Model_%28DOM%29/KeyboardEvent and SDL_keycode.h
       // For keys that don't have unicode value, we map DOM codes with the corresponding scan codes + 1024 (using "| 1 << 10")
+      // See also: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
       16: 225 | 1<<10, // shift
       17: 224 | 1<<10, // control (right, or left)
       18: 226 | 1<<10, // alt
@@ -106,8 +107,8 @@ var LibrarySDL = {
       45: 73 | 1<<10, // insert
       46: 127, // SDLK_DEL == '\177'
       
-      91: 227 | 1<<10, // windows key or super key on linux (doesn't work on Mac)
-      93: 101 | 1<<10, // application
+      91: 227 | 1<<10, // windows key or super key on linux or left command on Mac
+      93: 231 | 1<<10, // application or right command on Mac
       
       96: 98 | 1<<10, // keypad 0
       97: 89 | 1<<10, // keypad 1
@@ -173,7 +174,10 @@ var LibrarySDL = {
       182: 129, // audio volume down
       183: 128, // audio volume up
       
+      186: 59, // semicolon
+      187: 61, // equals
       188: 44, // comma
+      189: 45, // minus
       190: 46, // period
       191: 47, // slash (/)
       192: 96, // backtick/backquote (`)
