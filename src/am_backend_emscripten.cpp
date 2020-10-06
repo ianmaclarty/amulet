@@ -545,6 +545,8 @@ static am_key convert_key(SDL_Keycode key) {
         case SDLK_RCTRL: return AM_KEY_RCTRL;
         case SDLK_LSHIFT: return AM_KEY_LSHIFT;
         case SDLK_RSHIFT: return AM_KEY_RSHIFT;
+        case SDLK_LGUI: return AM_KEY_LGUI;
+        case SDLK_RGUI: return AM_KEY_RGUI;
         case SDLK_F1: return AM_KEY_F1;
         case SDLK_F2: return AM_KEY_F2;
         case SDLK_F3: return AM_KEY_F3;
