@@ -1,7 +1,11 @@
 #include "amulet.h"
 
-void am_framebuffer::init(lua_State *L, bool depth_buf, bool stencil_buf, glm::dvec4 clear_color, int stencil_clear_value) {
+void am_framebuffer::init(lua_State *L, am_texture2d *texture, int tex_idx, bool depth_buf, bool stencil_buf, 
+        glm::dvec4 clear_color, int stencil_clear_value) 
+{
     framebuffer_id = am_create_framebuffer();
+    color_attachment0 = texture;
+    color_attachment0_ref = ref(L, tex_idx);
     if (color_attachment0->image_buffer != NULL) {
         color_attachment0->image_buffer->buffer->update_if_dirty();
     }
@@ -87,16 +91,12 @@ void am_framebuffer::destroy(lua_State *L) {
 static int create_framebuffer(lua_State *L) {
     int nargs = am_check_nargs(L, 1);
     am_framebuffer *fb = am_new_userdata(L, am_framebuffer);
-    fb->width = -1;
-    fb->height = -1;
     am_texture2d *texture = am_get_userdata(L, am_texture2d, 1);
     bool depth_buf = nargs > 1 && lua_toboolean(L, 2);
     bool stencil_buf = nargs > 2 && lua_toboolean(L, 3);
     glm::dvec4 clear_color = glm::dvec4(0.0f, 0.0f, 0.0f, 1.0f);
     int stencil_clear_value = 0;
-    fb->color_attachment0 = texture;
-    fb->color_attachment0_ref = fb->ref(L, 1);
-    fb->init(L, depth_buf, stencil_buf, clear_color, stencil_clear_value);
+    fb->init(L, texture, 1, depth_buf, stencil_buf, clear_color, stencil_clear_value);
     fb->clear(true, depth_buf, stencil_buf);
     return 1;
 }
@@ -191,7 +191,9 @@ static int resize(lua_State *L) {
     }
     color_at->width = w;
     color_at->height = h;
-    void *data = malloc(am_compute_pixel_size(color_at->format, color_at->type) * w * h);
+    int tex_bytes = am_compute_pixel_size(color_at->format, color_at->type) * w * h;
+    void *data = malloc(tex_bytes);
+    memset(data, 0, tex_bytes);
     am_bind_texture(AM_TEXTURE_BIND_TARGET_2D, color_at->texture_id);
     am_set_texture_image_2d(AM_TEXTURE_COPY_TARGET_2D, 0, color_at->format, w, h, color_at->type, data);
     free(data);
@@ -201,8 +203,11 @@ static int resize(lua_State *L) {
     int stencil_clear_value = fb->stencil_clear_value;
     bool user_proj = fb->user_projection;
     glm::dmat4 old_proj = fb->projection;
+    lua_unsafe_pushuserdata(L, color_at);
+    int tex_idx = lua_gettop(L);
     fb->destroy(L);
-    fb->init(L, depth_buf, stencil_buf, clear_color, stencil_clear_value);
+    fb->init(L, color_at, tex_idx, depth_buf, stencil_buf, clear_color, stencil_clear_value);
+    lua_remove(L, tex_idx);
     fb->clear(true, depth_buf, stencil_buf);
     if (user_proj) {
         // restore user-specified projection

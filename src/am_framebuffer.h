@@ -14,7 +14,8 @@ struct am_framebuffer : am_nonatomic_userdata {
     glm::dmat4              projection;
     bool                    user_projection; // was the projection set by the user?
 
-    void init(lua_State *L, bool depth_buf, bool stencil_buf, glm::dvec4 clear_color, int stencil_clear_value);
+    void init(lua_State *L, am_texture2d *tex, int tex_idx, 
+        bool depth_buf, bool stencil_buf, glm::dvec4 clear_color, int stencil_clear_value);
     void clear(bool clear_colorbuf, bool clear_depth, bool clear_stencil);
     void destroy(lua_State *L);
 };
