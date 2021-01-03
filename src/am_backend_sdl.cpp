@@ -467,15 +467,14 @@ static char *from_wstr(const wchar_t *str) {
 
 char *am_open_file_dialog() {
     OPENFILENAME ofn;       // common dialog box structure
-    wchar_t szFile[260];       // buffer for file name
-    HWND hwnd;              // owner window
+    wchar_t szFile[1000];       // buffer for file name
 
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL;
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = '\0';
-    ofn.nMaxFile = sizeof(szFile);
+    ofn.nMaxFile = 1000;
     ofn.lpstrFilter = NULL;
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
