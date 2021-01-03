@@ -456,7 +456,7 @@ void am_copy_video_frame_to_texture() {
 }
 #endif
 
-#ifdef AM_WINDOWS 
+#if defined(AM_WINDOWS) && !defined(AM_MINGW) 
 
 static char *from_wstr(const wchar_t *str) {
     int len8 = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
