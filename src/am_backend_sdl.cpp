@@ -456,6 +456,46 @@ void am_copy_video_frame_to_texture() {
 }
 #endif
 
+#ifdef AM_WINDOWS 
+
+static char *from_wstr(const wchar_t *str) {
+    int len8 = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
+    char *str8 = (char*)malloc(len8);
+    WideCharToMultiByte(CP_UTF8, 0, str, -1, str8, len8, NULL, NULL);
+    return str8;
+}
+
+char *am_open_file_dialog(char *filters) {
+    OPENFILENAME ofn;       // common dialog box structure
+    wchar_t szFile[260];       // buffer for file name
+    HWND hwnd;              // owner window
+
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = NULL;
+    ofn.lpstrFile = szFile;
+    ofn.lpstrFile[0] = '\0';
+    ofn.nMaxFile = sizeof(szFile);
+    ofn.lpstrFilter = NULL;
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+    char* result = NULL;
+
+    if (GetOpenFileName(&ofn)==TRUE) {
+        result = from_wstr(ofn.lpstrFile);
+    }
+    return result;
+}
+#else
+char *am_open_file_dialog(char *filters) {
+    return NULL;
+}
+#endif
+
 const char *am_preferred_language() {
 #if defined(AM_STEAMWORKS)
     return am_get_steam_lang();

@@ -1,0 +1,1 @@
+void am_open_native_module(lua_State *L);

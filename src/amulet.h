@@ -166,6 +166,7 @@ extern "C" {
 #include "am_i18n.h"
 #include "am_net.h"
 #include "am_steamworks.h"
+#include "am_native.h"
 
 #undef near
 #undef far

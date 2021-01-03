@@ -1437,6 +1437,10 @@ const char *am_preferred_language() {
     return [languageID UTF8String];
 }
 
+char *am_open_file_dialog(char *filters) {
+    return NULL;
+}
+
 static int init_google_banner_ad(lua_State *L) {
 #ifdef AM_GOOGLE_ADS
     am_check_nargs(L, 1);

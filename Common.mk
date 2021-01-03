@@ -344,7 +344,8 @@ else ifeq ($(TARGET_PLATFORM),msvc32)
   AR_OUT_OPT = -OUT:
   XCFLAGS = -MT -DLUA_COMPAT_ALL -WX 
   XLDFLAGS = -NODEFAULTLIB:msvcrt.lib \
-	$(BUILD_LIB_DIR)/SDL2.lib
+	$(BUILD_LIB_DIR)/SDL2.lib \
+	comdlg32.lib
   TARGET_CFLAGS = -nologo -EHsc -fp:fast
   WINDOWS = 1
   MSVC = 1

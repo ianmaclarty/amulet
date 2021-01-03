@@ -455,6 +455,10 @@ const char *am_preferred_language() {
     return android_lang;
 }
 
+char *am_open_file_dialog(char *filters) {
+    return NULL;
+}
+
 static int retrieve_iap_products(lua_State *L) {
     am_check_nargs(L, 1);
     if (!lua_istable(L, 1)) return luaL_error(L, "expecting a table in position 1");

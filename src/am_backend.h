@@ -63,3 +63,5 @@ void am_open_android_module(lua_State *L);
 #elif defined(AM_BACKEND_SDL)
 void am_open_sdl_module(lua_State *L);
 #endif
+
+char *am_open_file_dialog(char *filters);

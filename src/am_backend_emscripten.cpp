@@ -675,6 +675,10 @@ const char *am_preferred_language() {
     return "en";
 }
 
+char *am_open_file_dialog(char *filters) {
+    return NULL;
+}
+
 extern "C" {
 
 void am_emscripten_run(const char *script) {

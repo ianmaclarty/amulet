@@ -78,6 +78,7 @@ am_engine *am_init_engine(bool worker, int argc, char** argv) {
 #if defined(AM_STEAMWORKS)
         am_open_steamworks_module(L);
 #endif
+        am_open_native_module(L);
     }
     am_set_version(L);
     am_set_dirs(L);
