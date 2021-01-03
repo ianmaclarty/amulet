@@ -64,4 +64,4 @@ void am_open_android_module(lua_State *L);
 void am_open_sdl_module(lua_State *L);
 #endif
 
-char *am_open_file_dialog(char *filters);
+char *am_open_file_dialog();

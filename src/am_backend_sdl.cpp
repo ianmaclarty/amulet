@@ -465,7 +465,7 @@ static char *from_wstr(const wchar_t *str) {
     return str8;
 }
 
-char *am_open_file_dialog(char *filters) {
+char *am_open_file_dialog() {
     OPENFILENAME ofn;       // common dialog box structure
     wchar_t szFile[260];       // buffer for file name
     HWND hwnd;              // owner window
@@ -491,7 +491,7 @@ char *am_open_file_dialog(char *filters) {
     return result;
 }
 #else
-char *am_open_file_dialog(char *filters) {
+char *am_open_file_dialog() {
     return NULL;
 }
 #endif

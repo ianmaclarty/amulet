@@ -1,7 +1,7 @@
 #include "amulet.h"
 
 static int open_file_dialog(lua_State *L) {
-    char *filename = am_open_file_dialog("");
+    char *filename = am_open_file_dialog();
     if (filename == NULL) {
         lua_pushnil(L);
     } else {

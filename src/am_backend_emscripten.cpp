@@ -675,7 +675,7 @@ const char *am_preferred_language() {
     return "en";
 }
 
-char *am_open_file_dialog(char *filters) {
+char *am_open_file_dialog() {
     return NULL;
 }
 

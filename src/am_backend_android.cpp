@@ -455,7 +455,7 @@ const char *am_preferred_language() {
     return android_lang;
 }
 
-char *am_open_file_dialog(char *filters) {
+char *am_open_file_dialog() {
     return NULL;
 }
 
