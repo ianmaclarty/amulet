@@ -16,7 +16,7 @@ static am_key convert_key(SDL_Keycode key);
 static am_mouse_button convert_mouse_button(Uint8 button);
 static void init_mouse_state();
 static void open_package();
-static void load_package();
+static void load_package(const char *url);
 static void on_load_package_complete(unsigned int x, void *arg, const char *filename);
 static void on_load_package_error(unsigned int x, void *arg, int http_status);
 static void on_load_package_progress(unsigned int x, void *arg, int perc);
@@ -271,7 +271,15 @@ int main( int argc, char *argv[] )
             window.amulet.ready();
         );
     } else {
-        load_package();
+        char *url = (char*)EM_ASM_INT({
+            var jsString = window.amulet_data_pak_url ? window.amulet_data_pak_url : "data.pak";
+            var lengthBytes = lengthBytesUTF8(jsString)+1; // 'jsString.length' would return the length of the string as UTF-16 units, but Emscripten C strings operate as UTF-8.
+            var stringOnWasmHeap = _malloc(lengthBytes);
+            stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
+            return stringOnWasmHeap;
+        });
+        load_package(url);
+        free(url);
     }
 }
 
@@ -599,8 +607,8 @@ static void on_load_package_progress(unsigned int x, void *arg, int perc) {
     }, perc);
 }
 
-static void load_package() {
-    emscripten_async_wget2("data.pak", "data.pak", "GET", "", NULL,
+static void load_package(const char *url) {
+    emscripten_async_wget2(url, "data.pak", "GET", "", NULL,
         &on_load_package_complete, &on_load_package_error, &on_load_package_progress); 
 }
 
