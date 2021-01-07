@@ -403,18 +403,24 @@ static void *am_read_resource_package(const char *filename, int *len, char **err
 static void *am_read_resource_file(const char *filename, int *len, char **errmsg) {
     *errmsg = NULL;
     char tmpbuf[ERR_MSG_SZ];
-    char *path = (char*)malloc(strlen(am_opt_data_dir) + 1 + strlen(filename) + 1);
-    sprintf(path, "%s%c%s", am_opt_data_dir, AM_PATH_SEP, filename);
+    char *path;
+    bool force_filesystem = filename[0] == '@';
+    if (force_filesystem) {
+        path = (char*)(filename + 1);
+    } else {
+        path = (char*)malloc(strlen(am_opt_data_dir) + 1 + strlen(filename) + 1);
+        sprintf(path, "%s%c%s", am_opt_data_dir, AM_PATH_SEP, filename);
+    }
     SDL_RWops *f = NULL;
     f = SDL_RWFromFile(path, "r");
     if (f == NULL) {
         snprintf(tmpbuf, ERR_MSG_SZ, "unable to read file %s", path);
-        free(path);
+        if (!force_filesystem) free(path);
         *errmsg = (char*)malloc(strlen(tmpbuf) + 1);
         strcpy(*errmsg, tmpbuf);
         return NULL;
     }
-    free(path);
+    if (!force_filesystem) free(path);
     Sint64 sz = (size_t)SDL_RWsize(f);
     size_t capacity = 1024;
     if (sz > 0) {
@@ -441,7 +447,8 @@ static void *am_read_resource_file(const char *filename, int *len, char **errmsg
 }
 
 void *am_read_resource(const char *filename, int *len, char **errmsg) {
-    if (package != NULL) {
+    bool force_filesystem = filename[0] == '@';
+    if (!force_filesystem && package != NULL) {
         return am_read_resource_package(filename, len, errmsg);
     } else {
         return am_read_resource_file(filename, len, errmsg);
@@ -466,26 +473,31 @@ static char *from_wstr(const wchar_t *str) {
 }
 
 char *am_open_file_dialog() {
-    OPENFILENAME ofn;       // common dialog box structure
-    wchar_t szFile[1000];       // buffer for file name
+    OPENFILENAME ofn;
+    const int maxlen = 1000;
+    wchar_t str[maxlen];
+    for (int i = 0; i < maxlen; i++) {
+        str[i] = 0;
+    }
 
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL;
-    ofn.lpstrFile = szFile;
-    ofn.lpstrFile[0] = '\0';
-    ofn.nMaxFile = 1000;
+    ofn.lpstrFile = str;
+    ofn.lpstrFile[0] = 0;
+    ofn.nMaxFile = maxlen;
     ofn.lpstrFilter = NULL;
-    ofn.nFilterIndex = 1;
+    ofn.lpstrCustomFilter = NULL;
+    ofn.nFilterIndex = 0;
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
     ofn.lpstrInitialDir = NULL;
-    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
     char* result = NULL;
 
     if (GetOpenFileName(&ofn)==TRUE) {
-        result = from_wstr(ofn.lpstrFile);
+        result = from_wstr(str);
     }
     return result;
 }
