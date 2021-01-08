@@ -1,0 +1,248 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    background-color: #fff;
+    background-image: url("bg.png");
+} 
+
+#content {
+    position: absolute;
+    left: 400px;
+    right: 0;
+}
+
+#content-inner {
+    margin: 50px auto 50px auto;
+    width: 800px;
+    padding: 20px;
+    background-color: #fff;
+    color: #494149;
+    font-size: 16px;
+    -webkit-box-shadow: 0px 0px 15px 3px rgba(0,0,0,0.30);
+    -moz-box-shadow: 0px 0px 15px 3px rgba(0,0,0,0.30);
+    box-shadow: 0px 0px 15px 3px rgba(0,0,0,0.30);
+}
+
+header img {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+a, a:visited {
+    color: #ff4cfc;
+}
+
+h1 {
+    font-weight: bold;
+    font-size: 38px;
+    padding: 2px 2px 2px 5px;
+    width: 713px;
+    margin-top: 0;
+    padding-top: 20px;
+}
+
+h2 {
+    font-weight: normal;
+    font-size: 36px;
+    padding: 2px 2px 2px 5px;
+    width: 713px;
+    margin-top: 0;
+    padding-top: 20px;
+}
+
+h3 {
+    font-weight: normal;
+    font-size: 24px;
+    padding: 2px 2px 2px 5px;
+    width: 713px;
+}
+
+h4 {
+    font-weight: normal;
+    font-size: 18px;
+    padding: 2px 2px 2px 5px;
+    width: 713px;
+}
+
+code {
+    /*color: #01c0c7;*/
+}
+
+em {
+    font-weight: bold;
+    font-style: italic;
+}
+
+code.lua {
+    display: block;
+    background-color: #e7e7e7;
+    width: 600px;
+    margin: 0 auto 0 auto;
+    padding: 5px;
+    color: #333;
+    border: 1px solid #e0e0e0;
+}
+
+pre.console code,
+pre.text code
+ {
+    display: block;
+    background-color: #e7e7e7;
+    width: 600px;
+    margin: 0 auto 0 auto;
+    padding: 5px;
+    color: #000;
+    border: 1px solid #e0e0e0;
+}
+
+pre.glsl code {
+    display: block;
+    background-color: #e7e7e7;
+    width: 600px;
+    margin: 0 auto 0 auto;
+    padding: 5px;
+    color: #000;
+    border: 1px solid #e0e0e0;
+}
+
+/*
+pre.lua:before {
+    content: "Example code:";
+    font-size: 12px;
+    margin-left: 55px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+*/
+
+code.lua span.ot,
+code.lua span.kw {
+    color: #ff4cfc;
+}
+
+code.lua span.dv {
+    color: #35cadc;
+}
+
+code.lua span.fu {
+    color: #333;
+}
+
+code.lua span.st {
+    color: #e08e00;
+}
+
+code.lua span.co {
+    color: #333;
+}
+
+code.lua {
+    overflow-x: auto;
+}
+
+.output code {
+    display: block;
+    background-color: #333;
+    color: #fff;
+    width: 600px;
+    margin: 0 auto 0 auto;
+    padding: 5px;
+    border: 1px solid #e0e0e0;
+}
+
+pre.output {
+    margin-top: 0;
+}
+
+/*
+pre.output:before {
+    content: "Output:";
+    font-size: 12px;
+    margin-left: 55px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+*/
+
+.func-def, .field-def, .method-def {
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 18px;
+    margin-left: 5px;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+h4.func-def, h4.field-def, h4.method-def {
+    font-size: 16px;
+}
+
+.matrix {
+    display: block;
+    text-align: center;
+}
+
+p {
+    margin-left: 12px;
+}
+
+.figure {
+    width: 100%;
+    text-align: center;
+}
+
+#TOC {
+    position: fixed;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 10px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    white-space: nowrap;
+    height: 100%;
+    width: 400px;
+    background-color: #494149;
+    font-family: monospace;
+    font-size: 12px;
+    -webkit-box-shadow: inset 0px 0px 15px 3px rgba(0,0,0,0.3);
+    -moz-box-shadow: inset 0px 0px 15px 3px rgba(0,0,0,0.3);
+    box-shadow: inset 0px 0px 15px 3px rgba(0,0,0,0.3);
+}
+
+#TOC ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+#TOC li li {
+    margin-left: 20px;
+}
+
+#TOC a,
+#TOC a:visited {
+    color: #e2dedf;
+}
+
+table {
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+}
+table td,
+table th {
+    border: 1px solid #494149;
+    padding: 2px 10px 2px 10px;
+}
+
+div.math {
+    margin-left: auto;
+    margin-right: auto;
+}

@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Amulet Editor</title>
+    <link rel="stylesheet" href="codemirror.css">
+    <link rel="stylesheet" href="simplescrollbars.css">
+    <link rel="stylesheet" href="matchesonscrollbar.css">
+    <link rel="stylesheet" href="dialog.css">
+    <link rel="stylesheet" href="editor.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+  </head>
+  <body>
+    <div id="top-panel">
+        <div class="title"><a href="http://www.amulet.xyz" target="_blank" class="title"><img src="am_text.png" alt="Amulet"></a></div>
+        <div class="button"><a id="new">New</a></div>
+        <div class="button"><a id="save">Save</a> <input id="savename" type="text" value="Untitled"></input></div>
+        <div class="button"><select id="load"></select></div>
+        <div class="button"><select id="loadexample">
+            <option value="">Load example</option>
+            <optgroup label="Basic">
+                <option value="shapes.lua">Shapes</option>
+                <option value="sprite.lua">Sprite</option>
+                <option value="transforms.lua">Transforms</option>
+                <option value="text.lua">Text</option>
+                <option value="actions.lua">Actions</option>
+                <option value="keyboard.lua">Keyboard</option>
+                <option value="mouse.lua">Mouse</option>
+                <option value="sounds.lua">Sounds</option>
+            </optgroup>
+            <optgroup label="Intermediate">
+                <option value="beach.lua">Beach ball</option>
+                <option value="defenders.lua">Defenders of the Weeping Quasar</option>
+                <option value="paint.lua">Paint</option>
+                <option value="particles.lua">Particles</option>
+            </optgroup>
+            <optgroup label="Advanced">
+                <option value="rgb_triangle.lua">RGB triangle</option>
+                <option value="tunnel.lua">Tunnel</option>
+                <option value="kaleidoscope.lua">Kaleidoscope</option>
+                <option value="city.lua">City Lights</option>
+                <option value="synth.lua">Synth</option>
+                <option value="mandelbrot.lua">Mandelbrot Set Visualizer</option>
+                <option value="stencil.lua">Stencil Buffer</option>
+            </optgroup>
+            <optgroup label="Tools">
+                <option value="sfxr.lua">SFXR</option>
+            </optgroup>
+        </div>
+        </select></div>
+        <div class="button"><a id="delete">Delete</a></div>
+        <div class="separator"></div>
+        <div class="button"><a id="run">Run</a></div>
+        <div class="button disabled"><a id="pause-resume">Pause</a></div>
+        <div class="button disabled"><a id="stop">Stop</a></div>
+        <div class="separator"></div>
+        <div class="button"><a id="export">Export</a></div>
+        <div class="separator"></div>
+        <div class="button"><a id="doc" href="http://www.amulet.xyz/doc" target="_blank">Docs</a></div>
+        <div class="button"><a id="forum" href="https://groups.google.com/forum/#!forum/amulet-forum" target="_blank">Forum</a></div>
+    </div>
+    <div id="left-panel">
+        <div id="editor-panel">
+            <textarea id="editor"></textarea>
+        </div>
+    </div>
+    <div id="vsplitter">
+    </div>
+    <div id="right-panel">
+        <div id="player-panel" tabindex="0">
+            <video id="video" autoplay></video>
+            <div id="status-overlay">
+                <div id="status-positioner">
+                    <div id="status"></div>
+                    <div id="status-box">
+                        <div id="status-bar"></div>
+                    </div>
+                </div>
+            </div>
+            <canvas id="canvas" width="100" height="100"></canvas>
+        </div>
+        <div id="hsplitter">
+        </div>
+        <div id="output-panel">
+        </div>
+    </div>
+
+    <script src="FileSaver.min.js" type="text/javascript"></script>
+    <script src="jszip.min.js" type="text/javascript"></script>
+    <script src="export.js"></script>
+    <script src="codemirror-compressed.js"></script>
+    <script src="jquery-2.1.3.min.js" type="text/javascript"></script>
+    <script type='text/javascript'>
+
+var in_editor = true;
+var editor;
+var editor_dirty = false;
+
+var is_paused = false;
+var is_running = false;
+var was_error = false;
+
+function qualifyURL(url) {
+    var a = document.createElement('a');
+    a.href = url;
+    return a.href;
+}
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function reset_save() {
+    $("#save").text("Save");
+    editor_dirty = false;
+}
+
+function init_load_options() {
+    $("#load").empty().append('<option value="">Load saved</option>');
+    var saves = get_storage_object("saves");
+    if (saves) {
+        var keys = Object.keys(saves);
+        keys.sort();
+        for (var i = 0; i < keys.length; i++) {
+            $("#load").append('<option value="'+keys[i]+'">'+keys[i]+'</option>');
+        }
+    }
+}
+
+function pick_new_name() {
+    var saves = get_storage_object("saves");
+    var name = "Untitled";
+    var i = 2;
+    while (saves && saves[name]) name = "Untitled " + (i++);
+    $("#savename").val(name);
+    return name;
+}
+
+function load_new() {
+    var name = pick_new_name();
+    editor.getDoc().setValue(
+        'local win = am.window{title = "'+name+'"}\n\n' +
+        'win.scene = am.scale(2) ^ am.text("Hello, World!")');
+    reset_save();
+}
+
+function load_example(name) {
+    $.get(name, function(code) {
+        editor.getDoc().setValue(code);
+        reset_save();
+        $("#savename").val(name.replace(/\.lua$/, ""));
+        run_current();
+    }, "text");
+}
+
+function load_file(name) {
+    var saves = get_storage_object("saves");
+    editor.getDoc().setValue(saves[name]);
+    reset_save();
+    $("#savename").val(name);
+    set_storate_object("lastopen", name);
+}
+
+function ed_load_gist(id) {
+    console.log("loading gist " + id);
+    log_output("Loading gist " + id + "...", "info");
+    var url = 'https://api.github.com/gists/'+id;
+    $.get(url, function(data) {
+        var res = JSON.parse(data);
+        editor.getDoc().setValue(res.files["main.lua"].content);
+        pick_new_name();
+        reset_save();
+        log_output("Done. Click Run to start it.", "success");
+    }, "text");
+}
+
+function run_current() {
+    var code = editor.getDoc().getValue();
+    log_start();
+    was_error = false;
+    is_paused = false;
+    is_running = true;
+    $("#pause-resume").text("Pause").parent().removeClass("disabled");
+    $("#stop").parent().removeClass("disabled");
+    load(code);
+}
+
+function run_waiting_anim() {
+    was_error = false;
+    is_paused = false;
+    is_running = false;
+    $("#pause-resume").text("Pause").parent().addClass("disabled");
+    $("#stop").parent().addClass("disabled");
+    run_waiting();
+}
+
+function init_controls() {
+    $("#new").click(function() {
+        if (!editor_dirty || confirm("Loose current changes?")) {
+            load_new();
+            run_waiting_anim();
+        }
+    });
+    $("#save").click(function() {
+        var saves = get_storage_object("saves");
+        if (!saves) saves = {};
+        var name = $("#savename").val();
+        saves[name] = editor.getDoc().getValue();
+        set_storate_object("saves", saves);
+        reset_save();
+        init_load_options();
+        set_storate_object("lastopen", name);
+    });
+    $("#run").click(function() {
+        run_current();
+    });
+    $("#pause-resume").click(function() {
+        if (was_error) return;
+        if (is_paused) {
+            resume();
+            log_output("Resumed...", "running");
+            $("#pause-resume").text("Pause");
+        } else {
+            pause();
+            $("#pause-resume").text("Resume");
+            log_output("Paused.", "running");
+        }
+        is_paused = !is_paused;
+    });
+    $("#stop").click(function() {
+        if (is_running) {
+            log_output("Stopped.", "running");
+            run_waiting_anim();
+        }
+    });
+    $("#export").click(function() {
+        var code = editor.getDoc().getValue();
+        var name = $("#savename").val();
+        export_game(name, code);
+    });
+    $("#load").change(function() {
+        var val = $(this).val();
+        if (!editor_dirty || confirm("Loose current changes?")) {
+            load_file(val);
+            run_current();
+            $("#load").val("");
+        }
+    });
+    $("#loadexample").change(function() {
+        var val = $(this).val();
+        if (!editor_dirty || confirm("Loose current changes?")) {
+            load_example(val);
+            $("#loadexample").val("");
+        }
+    });
+    $("#delete").click(function() {
+        if (confirm("Are you sure?")) {
+            var saves = get_storage_object("saves");
+            delete saves[$("#savename").val()];
+            set_storate_object("saves", saves);
+            init_load_options();
+            for (s in saves) {
+                console.log("loading: " + s);
+                load_file(s);
+                return;
+            }
+            load_new();
+            run_waiting_anim();
+        }
+    });
+    init_load_options();
+}
+
+function init_editor() {
+    editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+        mode: {
+            name: "lua",
+        },
+        matchBrackets: true,
+        theme: "amulet",
+        lineNumbers: true,
+        indentUnit: 4,
+        indentWithTabs: false,
+        smartIndent: false,
+        extraKeys: {"Tab": "indentMore", "Shift-Tab": "indentLess"}, 
+        electricChars: false,
+    });
+    editor.on('change', function(cm, changeObj) {
+        if (!editor_dirty) {
+            editor_dirty = true;
+            $("#save").text("Save*");
+        }
+    });
+    var gist = getParameterByName("gist");
+    if (gist) {
+        ed_load_gist(gist);
+    } else {
+        var last = get_storage_object("lastopen");
+        if (last) {
+            load_file(last);
+        } else {
+            load_new();
+        }
+    }
+}
+
+function get_storage_object(key) {
+    var item = localStorage.getItem(key);
+    if (!item) {
+        return null;
+    } else {
+        //console.log(item);
+        return JSON.parse(item);
+    }
+}
+
+function set_storate_object(key, obj) {
+    localStorage.setItem(key, JSON.stringify(obj));
+}
+
+function init_layout() {
+    var layout = get_storage_object("layout");
+    if (!layout) {
+        layout = {};
+    }
+    if (!layout.left_panel_width) {
+        var page_width = $("body").outerWidth();
+        var left_panel_width = Math.floor(page_width / 2);
+        layout.left_panel_width = left_panel_width;
+    }
+    if (!layout.output_panel_height) {
+        layout.output_panel_height = 200;
+    }
+    //console.log(JSON.stringify(layout));
+    set_storate_object("layout", layout);
+
+    var splitter_width = $("#vsplitter").outerWidth();
+    var splitter_height = $("#hsplitter").outerHeight();
+    var right_panel_left = layout.left_panel_width + splitter_width;
+
+    $("#left-panel").css("width", layout.left_panel_width);
+    $("#vsplitter").css("left", layout.left_panel_width);
+    $("#right-panel").css("left", layout.left_panel_width + splitter_width);
+
+    //console.log(layout.output_panel_height + splitter_height);
+    $("#player-panel").css("bottom", layout.output_panel_height + splitter_height);
+    $("#hsplitter").css("bottom", layout.output_panel_height);
+    $("#output-panel").css("height", layout.output_panel_height);
+}
+
+function save_layout() {
+    layout = {
+        left_panel_width: $("#left-panel").outerWidth(),
+        output_panel_height: $("#output-panel").outerHeight()
+    };
+    set_storate_object("layout", layout);
+}
+
+function init_vsplitter() {
+    var dragging = false;
+    $("#vsplitter").on("mousedown", function(evt) {
+        if (evt.which == 1 && !dragging) {
+            var start_page_x = evt.pageX;
+            var splitter = $(this);
+            var left = $(this).prev();
+            var right = $(this).next();
+            var splitter_width = parseInt(splitter.css("width").replace("px", ""));
+            var start_splitter_left = parseInt(splitter.css("left").replace("px", ""));
+            var start_right_width = parseInt(right.css("width").replace("px", ""));
+
+            function m_move(evt) {
+                var delta_x = evt.pageX - start_page_x;
+                var l = start_splitter_left + delta_x;
+                if (l < 0) {
+                    l = 0;
+                } else if (l > start_splitter_left + start_right_width) {
+                    l = start_splitter_left + start_right_width;
+                }
+                left.css("width", l);
+                splitter.css("left", l);
+                right.css("left", l + splitter_width);
+                return false;
+            }
+            function m_up(evt) {
+                $(document).off("mousemove", m_move);
+                $(document).off("mouseup", m_up);
+                save_layout();
+                dragging = false;
+            }
+            $(document).on("mousemove", m_move).on("mouseup", m_up);
+            dragging = true;
+            return false;
+        }
+    });
+}
+
+function init_hsplitter() {
+    var dragging = false;
+    $("#hsplitter").on("mousedown", function(evt) {
+        if (evt.which == 1 && !dragging) {
+            var start_page_y = evt.pageY;
+            var splitter = $(this);
+            var above = $(this).prev();
+            var below = $(this).next();
+            var splitter_height = parseInt(splitter.css("height").replace("px", ""));
+            var start_splitter_bottom = parseInt(splitter.css("bottom").replace("px", ""));
+            var start_below_height = parseInt(below.css("height").replace("px", ""));
+            var start_above_bottom = parseInt(above.css("bottom").replace("px", ""));
+            var start_above_height = parseInt(above.css("height").replace("px", ""));
+
+            function m_move(evt) {
+                var delta_y = start_page_y - evt.pageY;
+                if (start_above_height - delta_y < 0) {
+                    splitter.css("bottom", start_above_height + start_below_height);
+                    above.css("bottom", start_above_height + start_below_height + splitter_height);
+                    below.css("height", start_above_height + start_below_height);
+                } else if (start_below_height + delta_y < 0) {
+                    splitter.css("bottom", 0);
+                    above.css("bottom", splitter_height);
+                    below.css("height", 0);
+                } else {
+                    splitter.css("bottom", start_splitter_bottom + delta_y);
+                    above.css("bottom", start_above_bottom + delta_y);
+                    below.css("height", start_below_height + delta_y);
+                }
+                return false;
+            }
+            function m_up(evt) {
+                $(document).off("mousemove", m_move);
+                $(document).off("mouseup", m_up);
+                save_layout();
+                dragging = false;
+            }
+            $(document).on("mousemove", m_move).on("mouseup", m_up);
+            dragging = true;
+            return false;
+        }
+    });
+}
+
+function highlight_error(line) {
+    editor.focus();
+    editor.getDoc().setCursor(line-1, 0);
+    var n = 2;
+    while (n > 0) {
+        setTimeout(function() {
+            editor.getDoc().addLineClass(line-1, "background", "error-highlight");
+        }, (n-1)*400);
+        setTimeout(function() {
+            editor.getDoc().removeLineClass(line-1, "background", "error-highlight");
+        }, (n-1)*400+200);
+        n--;
+    }
+}
+
+var max_output_items = 100;
+var output_items = [];
+function log_output(text, cls, raw) {
+    var panel = document.getElementById("output-panel");
+
+    if (!raw) {
+        text = text.replace(/&/g, "&amp;");
+        text = text.replace(/</g, "&lt;");
+        text = text.replace(/>/g, "&gt;");
+        text = text.replace('\n', '<br>', 'g');
+        text = text.replace(/(main\.lua):([0-9]+)/g, '<a class="error-link" onclick="window.highlight_error($2); return false;">$1:$2</a>');
+        text = text.replace(/&lt;http:\/\/([^\s]+)&gt;/g, '<a target="_blank" href="http://$1">$1</a>')
+    }
+    if (!cls) cls = "";
+    output_items.push('<div class="output-item ' + cls + '">' + text + '</div>');
+
+    while (output_items.length > max_output_items) {
+        output_items.splice(0, 1);
+    }
+    panel.innerHTML = output_items.join("\n");
+    panel.scrollTop = panel.scrollHeight; // follow bottom
+}
+
+function log_start() {
+    log_output("Running "+$("#savename").val()+"...", "running");
+}
+
+function clear_output() {
+    output_items = [];
+    document.getElementById("output-panel").innerHTML = "";
+}
+
+function handle_error() {
+    was_error = true;
+    $("#pause-resume").parent().addClass("disabled");
+}
+
+function set_unload_handler() {
+    window.addEventListener("beforeunload", function(event) {
+        var e = e || window.event;
+        var msg = 'You have unsaved changes!';
+        if (editor_dirty) {      
+            // For IE and Firefox prior to version 4
+            if (e) e.returnValue = msg;
+            // For Safari
+            return msg;
+        }
+    });
+}
+set_unload_handler();
+
+function setup() {
+    init_controls();
+    init_editor();
+    init_layout();
+    init_vsplitter();
+    init_hsplitter();
+}
+
+$(setup);
+    </script>
+    <script type="text/javascript" src="player.js"></script>
+    <script async type="text/javascript" src="amulet.js"></script>
+  </body>
+</html>

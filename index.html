@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Amulet</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="jquery-2.1.3.min.js" type="text/javascript"></script>
+    <script type='text/javascript'>
+
+function format_date(datestr) {
+    var d = new Date(datestr);
+    var yr = d.getFullYear() + "";
+    var mth = (d.getMonth() + 1) + "";
+    if (mth.length == 1) mth = "0" + mth;
+    var day = d.getDate() + "";
+    if (day.length == 1) day = "0" + day;
+    return yr + "-" + mth + "-" + day;
+}
+
+function get_latest_release() {
+    $.get("https://api.github.com/repos/ianmaclarty/amulet/releases/latest", function(res) {
+        var tag = res.tag_name;
+        $("#latest-release-tag").text(tag);
+        $("#latest-release-date").text(format_date(res.published_at));
+        var links = {};
+        for (var a in res.assets) {
+            var asset = res.assets[a];
+            if (asset.name == "amulet-"+tag+"-windows.exe") {
+                links.win_exe = asset.browser_download_url;
+            } else if (asset.name == "amulet-"+tag+"-windows.zip") {
+                links.win_zip = asset.browser_download_url;
+            } else if (asset.name == "amulet-"+tag+"-osx.pkg") {
+                links.osx_pkg = asset.browser_download_url;
+            } else if (asset.name == "amulet-"+tag+"-osx.zip") {
+                links.osx_zip = asset.browser_download_url;
+            } else if (asset.name == "amulet-"+tag+"-linux.zip") {
+                links.lin_zip = asset.browser_download_url;
+            }
+        }
+        $("#windows-download-links").append(
+            '<li><a href="' + links.win_exe + '">installer</a></li>' +
+            '<li><a href="' + links.win_zip + '">zip</a></li>');
+        $("#osx-download-links").append(
+            '<li><a href="' + links.osx_pkg + '">installer</a></li>' +
+            '<li><a href="' + links.osx_zip + '">zip</a></li>');
+        $("#linux-download-links").append(
+            '<li><a href="' + links.lin_zip + '">zip</a></li>');
+        $("#release-notes").append(
+            '<a href="' + res.html_url + '">release notes</a>');
+
+        $("#download-links").show();
+    });
+}
+
+$(function() {
+    get_latest_release();
+});
+
+    </script>
+</head>
+<body>
+
+<div id="wrapper">
+
+<div id="header">
+</div>
+<div id="content">
+    <p>
+Amulet is a free Lua-based audio/visual toolkit suitable
+for small games and experimentation.
+It runs on Windows, Mac, Linux, HTML5, iOS and Android.
+    </p>
+    <div id="download-links" class="info-box-full">
+        <div class="info-box-header">
+            Download Amulet <span id="latest-release-tag"></span> (released <span id="latest-release-date"></span>)
+            <span class="notes">
+                <a href="https://github.com/ianmaclarty/amulet/releases">previous releases</a>
+            </span>
+            <span id="release-notes" class="notes"></span>
+        </div>
+        <div class="info-box-body">
+            <ul id="windows-download-links">
+                <li class="header"><b>Windows 7+</b></li>
+            </ul>
+            <ul id="osx-download-links">
+                <li class="header"><b>Mac OS X 10.9+</b></li>
+            </ul>
+            <ul id="linux-download-links">
+                <li class="header"><b>Linux</b></li>
+            </ul>
+        </div>
+    </div>
+    <div class="info-box-small">
+        <div class="info-box-header">
+            Help
+        </div>
+        <div class="info-box-body">
+            Amulet comes with a decent amount of <a href="doc">documentation</a>
+            including an introductory tutorial
+            and API reference.
+            You can also ask for help in the
+            <a href="https://groups.google.com/forum/#!forum/amulet-forum">forum</a>.
+            <!--
+            or on
+            <a href="https://www.reddit.com/r/amulet">reddit</a>. -->
+        </div>
+    </div>
+    <div class="info-box-small">
+        <div class="info-box-header">
+            Online editor
+        </div>
+        <div class="info-box-body">
+            Make something right in your browser or
+            explore examples
+            using the <a href="editor.html">online editor</a>.
+        </div>
+    </div>
+    <div class="info-box-small">
+        <div class="info-box-header">
+            Open source
+        </div>
+        <div class="info-box-body">
+            Amulet is available under the
+            MIT license, which means you can freely
+            modify and use it for whatever you like,
+            including commercial projects.
+            The source code is available on
+            <a href="https://github.com/ianmaclarty/amulet">GitHub</a>.
+        </div>
+    </div>
+    <div class="clear"></div>
+
+</div>
+
+<div id="footer">
+Amulet is made by <a href="http://ianmaclarty.com">Ian MacLarty</a>.
+The logo was designed by <a href="http://www.plumb-bob.com.au">Bethany Wilksch</a>.
+</div>
+</div>
+
+</body>
+</html>

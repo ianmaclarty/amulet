@@ -1,0 +1,288 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    background-color: #494149;
+} 
+
+.clear {
+    clear: both;
+}
+
+div {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    box-sizing: border-box;
+}
+
+#top-panel {
+    width: 100%;
+    height: 40px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 7px 10px 3px 10px;
+}
+
+#top-panel .title {
+    color: #ff00ff;
+    font-size: 20px;
+    text-decoration: underline;
+    margin-right: 10px;
+    float: left;
+}
+
+#top-panel div.button {
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 5px 3px 5px;
+    font-weight: bold;
+    background-color: #66cce2;
+    height: 20px;
+    margin-right: 5px;
+    float: left;
+    height: 26px;
+    border-radius: 2px;
+}
+
+#top-panel div.button a,
+#top-panel div.button a:visited {
+    color: #fff;
+    text-decoration: none;
+}
+
+#top-panel div.button * {
+    vertical-align: top;
+}
+
+#top-panel div.button a {
+    cursor: pointer;
+    display: inline-block;
+    padding: 0;
+    margin-top: 3px;
+}
+
+#top-panel .button input {
+    width: 100px;
+    background-color: #29a3c8;
+    border: none;
+    font-size: 12px;
+    color: #fff;
+    padding: 2px 3px 2px 3px;
+    height: 16px;
+}
+
+#top-panel .button select {
+    width: 120px;
+    background-color: #29a3c8;
+    border: none;
+    font-size: 12px;
+    color: #fff;
+    padding: 2px 3px 2px 3px;
+}
+
+#top-panel div.disabled {
+    background-color: #888;
+    color: #4e4e4e;
+    cursor: default;
+}
+
+#top-panel div.separator {
+    width: 12px;
+    height: 26px;
+    background-color: none;
+    float: left;
+}
+
+#left-panel {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 800px;
+    bottom: 7px;
+}
+
+#vsplitter {
+    position: absolute;
+    width: 7px;
+    top: 40px;
+    left: 800px;
+    bottom: 0;
+    cursor: col-resize;
+}
+
+#hsplitter {
+    position: absolute;
+    bottom: 200px;
+    left: 0;
+    width: 100%;
+    height: 7px;
+    cursor: row-resize;
+    z-index: 10;
+    background-color: #494149;
+}
+
+#vsplitter:hover,
+#hsplitter:hover
+{
+    background-color: #66cce2;
+}
+
+#editor-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.CodeMirror {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+}
+
+#right-panel {
+    position: absolute;
+    top: 40px;
+    left: 807px;
+    right: 7px;
+    bottom: 7px;
+}
+
+#player-panel {
+    position: absolute;
+    top: 0;
+    bottom: 207px;
+    width: 100%;
+    background-color: #111;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+#player-frame {
+    border: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#output-panel {
+    position: absolute;
+    background-image: url("editor_bg.png"); 
+    height: 200px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    color: #aaa;
+}
+
+#output-panel .output-item {
+    font-family: monospace;
+    font-size: 14px;
+    color: #ffffec;
+    margin-left: 3px;
+}
+
+#output-panel .running,
+#output-panel .info {
+    color: #21eddc;
+}
+
+#output-panel .error {
+    color: #ff1111;
+}
+
+#output-panel .success {
+    color: #11ff11;
+}
+
+#output-panel a {
+    color: #44aaff;
+}
+
+#output-panel a.error-link {
+    color: #ff1111;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.error-highlight {
+    background-color: #ff1111;
+}
+
+#status-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 1000;
+}
+#status-positioner {
+    position: absolute;
+    left: 50%;
+    bottom: 20%;
+}
+#status-box {
+    width: 400px;
+    height: 30px;
+    margin-left: -200px;
+    border: 2px solid #fff;
+    padding: 2px;
+}
+#status-bar {
+    width: 1%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+}
+#status-bar.error {
+    background-color: #f00;
+}
+#status-box.error {
+    border: 2px solid #f00;
+}
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+#video {
+    display: none;
+}
+#status {
+    color: #ff0000;
+    margin: 0 0 10px -200px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* CodeMirror theme */
+
+.cm-s-amulet.CodeMirror {background-image: url("editor_bg.png"); color: #ffffec;}
+.cm-s-amulet div.CodeMirror-selected {background: #0000ff !important;}
+.cm-s-amulet .CodeMirror-gutters {background: #494149; border-right: 0px;}
+.cm-s-amulet .CodeMirror-guttermarker { color: white; }
+.cm-s-amulet .CodeMirror-guttermarker-subtle { color: grey; }
+.cm-s-amulet .CodeMirror-linenumber {color: #dadada;}
+.cm-s-amulet .CodeMirror-cursor {border-left: 2px solid #ffffec !important;}
+
+.cm-s-amulet span.cm-comment {color: #ff77ff; font-style: italic;}
+.cm-s-amulet span.cm-number {color: #ff1111;}
+.cm-s-amulet span.cm-keyword {color: #33ff33;}
+.cm-s-amulet span.cm-string {color: #ff8400;}
+.cm-s-amulet span.cm-variable {color: #ffffec;}
+.cm-s-amulet span.cm-variable-2 {color: #ffffec;} /* specials */
+.cm-s-amulet span.cm-builtin {color: #ffffec;}
+
+.cm-s-amulet .CodeMirror-activeline-background {background: #494149 !important;}
+.cm-s-amulet .CodeMirror-matchingbracket {color: #000 !important; background-color: #00ffff !important;}
