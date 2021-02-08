@@ -14,12 +14,23 @@ struct am_http_request : am_nonatomic_userdata {
 static int http_request(lua_State *L) {
 #ifdef AM_BACKEND_EMSCRIPTEN
     int nargs = am_check_nargs(L, 1);
+    // first argument is an url string
     const char *url = lua_tostring(L, 1);
     if (url == NULL) return luaL_error(L, "expecting a string at position 1");
+    // optional second argument is POST data, or nil
     const char *data = NULL;
     if (nargs > 1) {
-        data = lua_tostring(L, 2);
-        if (data == NULL) return luaL_error(L, "expecting a string at position 2");
+        // allow nil, so users can pass a third argument
+        if (!lua_isnil(L, 2)) {
+            data = lua_tostring(L, 2);
+            if (data == NULL) return luaL_error(L, "expecting a string or nil at position 2");
+        }
+    }
+    // optional third argument is true/false for binary vs text response type
+    // the default is false = text response type
+    int binary = 0;
+    if (nargs > 2) {
+        binary = lua_toboolean(L, 3);
     }
     am_http_request *req = am_new_userdata(L, am_http_request);
     req->id = next_http_req_id++;
@@ -28,6 +39,10 @@ static int http_request(lua_State *L) {
         var xhr = new XMLHttpRequest();
         window.amulet.http_reqs[$0] = xhr;
         var url = UTF8ToString($1);
+        if ($3) {
+            // if the binary option is true, ask for an ArrayBuffer response
+            xhr.responseType = 'arraybuffer';
+        }
         var data = null;
         if ($2 == 0) {
             xhr.open('GET', url, true);
@@ -37,7 +52,7 @@ static int http_request(lua_State *L) {
             xhr.open('POST', url, true);
             xhr.send(data);
         }
-    }, req->id, (int)url, (int)data);
+    }, req->id, (int)url, (int)data, (int)binary);
     return 1;
 #else
     // NYI
@@ -93,21 +108,49 @@ static void get_status(lua_State *L, void *obj) {
 static void get_response(lua_State *L, void *obj) {
 #ifdef AM_BACKEND_EMSCRIPTEN
     am_http_request *req = (am_http_request*)obj;
-    int text_ptr = EM_ASM_INT({
+    int binary = EM_ASM_INT({
         var xhr = window.amulet.http_reqs[$0];
-        var txt = xhr.responseText;
-        if (txt == null) return 0;
-        var len = Module.lengthBytesUTF8(txt) + 1;
-        var buffer = Module._malloc(len);
-        Module.stringToUTF8(txt, buffer, len);
-        return buffer;
+        return xhr.responseType == 'arraybuffer';
     }, req->id);
-    if (text_ptr == 0) {
-        lua_pushnil(L);
-    } else {
-        char *text = (char*)text_ptr;
-        lua_pushstring(L, text);
-        free(text);
+    if (binary) {
+        int len = 0;
+        void *data = (void *)EM_ASM_INT({
+            var xhr = window.amulet.http_reqs[$0];
+            var arraybuffer = xhr.response;
+            if (arraybuffer == null) return 0;
+            var data = new Uint8Array(arraybuffer);
+            // return the length via the pointer that was passed in
+            setValue($1, data.byteLength, 'i32');
+            // copy the response into WASM-accessible memory
+            var mem = Module._malloc(data.byteLength);
+            Module.HEAPU8.set(data, mem);
+            // return the newly allocated block of memory
+            return mem;
+        }, req->id, &len);
+        if (data == 0) {
+            lua_pushnil(L);
+        }else{
+            am_buffer *buf = am_push_new_buffer_with_data(L, len, data);
+            buf->origin = "http request"; // would be nice if we had the request URL...
+            buf->ref(L, 1);
+        }
+    }else{
+        int text_ptr = EM_ASM_INT({
+            var xhr = window.amulet.http_reqs[$0];
+            var txt = xhr.responseText;
+            if (txt == null) return 0;
+            var len = Module.lengthBytesUTF8(txt) + 1;
+            var buffer = Module._malloc(len);
+            Module.stringToUTF8(txt, buffer, len);
+            return buffer;
+        }, req->id);
+        if (text_ptr == 0) {
+            lua_pushnil(L);
+        } else {
+            char *text = (char*)text_ptr;
+            lua_pushstring(L, text);
+            free(text);
+        }
     }
 #else
     lua_pushnil(L);
