@@ -338,7 +338,7 @@ am_native_window *am_create_native_window(
     int msaa_samples)
 {
     if (android_window_created) {
-        am_log0("%s", "attempt to create two iOS windows");
+        am_log0("%s", "attempt to create two Android windows");
         return NULL;
     }
     android_window_created = true;
