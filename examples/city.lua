@@ -12,18 +12,18 @@ win.lock_pointer = true
 local create_building_shader
 local create_building
 local create_floor
-local create_city_shader
-local create_city_node
+local create_kaleidoscope_shader
+local create_kaleidoscope_node
 local create_blur_shader
 local create_blur_node
 local init_audio
 local chimes
 local play_chime
 
-local city_node
-local city_shader
-local city_fb
-local city_tex
+local kaleidoscope_node
+local kaleidoscope_shader
+local kaleidoscope_fb
+local kaleidoscope_tex
 local blur_node
 local blur_fb
 local main_action
@@ -42,16 +42,16 @@ function init()
 
     buildings_group:append(create_floor(0))
 
-    city_tex = am.texture2d(1024, 1024)
-    city_tex.magfilter = "linear"
-    city_tex.swrap = "mirrored_repeat"
-    city_tex.twrap = "mirrored_repeat"
+    kaleidoscope_tex = am.texture2d(1024, 1024)
+    kaleidoscope_tex.magfilter = "linear"
+    kaleidoscope_tex.swrap = "mirrored_repeat"
+    kaleidoscope_tex.twrap = "mirrored_repeat"
 
-    city_fb = am.framebuffer(city_tex, true)
+    kaleidoscope_fb = am.framebuffer(kaleidoscope_tex, true)
 
-    city_shader = create_city_shader()
+    kaleidoscope_shader = create_kaleidoscope_shader()
     building_shader = create_building_shader()
-    city_node = create_city_node(city_tex, 1, 1, 1)
+    kaleidoscope_node = create_kaleidoscope_node(kaleidoscope_tex, 1, 1, 1)
 
     blur_node, blur_fb = create_blur_node()
 
@@ -79,7 +79,7 @@ function init()
         end
     end
 
-    city_fb:render(buildings_node)
+    kaleidoscope_fb:render(buildings_node)
 
     win.scene = blur_node
     win.scene:action(main_action)
@@ -107,7 +107,7 @@ local zones = {
 local current_zone = 1
 
 local
-function update_city_node()
+function update_kaleidoscope_node()
     local zn = #zones
     local position = position_node.position
     local d = math.max(math.abs(position.x), math.abs(position.z))
@@ -120,7 +120,7 @@ function update_city_node()
     if zn ~= current_zone then
         current_zone = zn
         local zone = zones[zn]
-        city_node = create_city_node(city_tex, zone.num_segments, zone.x_repeat, zone.y_repeat)
+        kaleidoscope_node = create_kaleidoscope_node(kaleidoscope_tex, zone.num_segments, zone.x_repeat, zone.y_repeat)
         limit1_node.limit1 = zone.limit1
         play_chime(zn)
     end
@@ -158,16 +158,16 @@ function main_action()
     end
     position_node.position = vec3(pos_xz.x, pos_y, pos_xz.y)
 
-    update_city_node()
+    update_kaleidoscope_node()
 
     local mouse_pos = win:mouse_norm_position()
     facing = mouse_pos.x * 1.5
     facing_node.rotation = quat(facing, vec3(0, 1, 0))
     pitch_node.rotation = quat(mouse_pos.y * 1.5 - 1, vec3(-1, 0, 0))
 
-    city_fb:clear(true, true)
-    city_fb:render(buildings_node)
-    blur_fb:render(city_node.node)
+    kaleidoscope_fb:clear(true, true)
+    kaleidoscope_fb:render(buildings_node)
+    blur_fb:render(kaleidoscope_node.node)
 
     --local stats = am.perf_stats()
     --log("FPS: %0.2f [%0.2f]", stats.avg_fps, stats.min_fps)
@@ -275,7 +275,7 @@ function create_floor(height)
         ^ am.draw("triangles")
 end
 
-function create_city_node(texture, num_segments, x_repeat, y_repeat)
+function create_kaleidoscope_node(texture, num_segments, x_repeat, y_repeat)
     local vbuf = am.buffer(16 * 3 * (num_segments == 1 and 2 or num_segments == 2 and 4 or num_segments))
     local verts = vbuf:view("vec2", 0, 16)
     local uvs = vbuf:view("vec2", 8, 16)
@@ -342,7 +342,7 @@ function create_city_node(texture, num_segments, x_repeat, y_repeat)
         }
         ^am.draw("triangles")
     local node = 
-        am.use_program(city_shader)
+        am.use_program(kaleidoscope_shader)
         ^am.bind{MVP = mat4(1)}
         ^rotation_node
 
@@ -420,7 +420,7 @@ function create_building_shader()
     return am.program(vshader, fshader)
 end
 
-function create_city_shader()
+function create_kaleidoscope_shader()
     local vshader = [[
         precision mediump float;
         attribute vec2 vert;
