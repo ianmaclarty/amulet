@@ -534,6 +534,11 @@ static int launch_url(lua_State *L) {
 }
 #endif
 
+static int do_restart(lua_State* L) {
+    restart_triggered = true;
+    return 0;
+}
+
 int main( int argc, char *argv[] )
 {
     int vsync;
@@ -582,6 +587,12 @@ restart:
 
     L = eng->L;
     global_lua_state = L;
+
+    // provide the "am.restart" function for reloading the lua state
+    lua_getglobal(L, AMULET_LUA_MODULE_NAME);
+    lua_pushcclosure(L, do_restart, 0);
+    lua_setfield(L, -2, "restart");
+    lua_pop(L, 1); // am table
 
     frame_time = am_get_current_time();
 
