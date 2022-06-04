@@ -28,9 +28,9 @@ table with any of the following fields:
     `physical_size` property is given (see below).
 
 - **`physical_size`**:
-    The initial physical size of the window in windowed mode (a `vec2`). 
+    The initial physical size of the window in windowed mode (a `vec2`).
     This is in "screen units" which usually correspond to pixels, but not
-    always. For example on a retina Mac display where `highdpi` is enabled 
+    always. For example on a retina Mac display where `highdpi` is enabled
     there are 2 pixels per screen unit. If this property is omitted then
     the `width` and `height` properties will be used for the physical window
     size. Note that this property has no effect on the coordinate system
@@ -101,7 +101,7 @@ table with any of the following fields:
 
 ### window.left {.func-def}
 
-The x coordinate of the left edge of the 
+The x coordinate of the left edge of the
 window in the window's default coordinate system.
 
 Readonly.
@@ -161,7 +161,7 @@ Readonly.
 
 ### window.safe_left {.func-def}
 
-The x coordinate of the left edge of the 
+The x coordinate of the left edge of the
 window's safe area in the window's default coordinate system.
 
 This should be used to position elements that you don't want obscured
@@ -243,6 +243,12 @@ This scene will be rendered to the window each frame.
 Updatable.
 
 ### window.projection {.field-def}
+
+See [window settings](#am.window).
+
+Updatable.
+
+### window.title {.field-def}
 
 See [window settings](#am.window).
 
@@ -465,7 +471,7 @@ last frame.
 `button` may be `"left"`, `"right"` or `"middle"`.
 
 Note that if `mouse_pressed` returns `true` for a particular button then
-`mouse_down` will also return `true`. Also 
+`mouse_down` will also return `true`. Also
 if `mouse_pressed` returns `true` for a particular button then `mouse_released`
 will return `false`. (If necessary, Amulet will
 postpone button release events to the next frame to ensure this.)
@@ -477,7 +483,7 @@ from down to up since the last frame.
 `button` may be `"left"`, `"right"` or `"middle"`.
 
 Note that if `mouse_released` returns `true` for a particular button then
-`mouse_down` will return `false`. Also 
+`mouse_down` will return `false`. Also
 if `mouse_released` returns `true` for a particular button then `mouse_pressed`
 will return `false`. (If necessary, Amulet will
 postpone button press events to the next frame to ensure this.)
