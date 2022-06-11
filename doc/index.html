@@ -835,6 +835,11 @@ id="toc-deriving-amulet-types">Deriving Amulet Types</a>
 <ul>
 <li><a href="#am.type" id="toc-am.type">am.type(value)</a></li>
 </ul></li>
+<li><a href="#random-number-generation"
+id="toc-random-number-generation">Random Number Generation</a>
+<ul>
+<li><a href="#am.randseed" id="toc-am.randseed">am.rand(seed)</a></li>
+</ul></li>
 <li><a href="#amulet-require-function"
 id="toc-amulet-require-function">Amulet require function</a></li>
 <li><a href="#logging" id="toc-logging">Logging</a>
@@ -5297,6 +5302,32 @@ class="sourceCode lua"><code class="sourceCode lua"><span id="cb123-1"><a href="
 <span id="cb123-24"><a href="#cb123-24" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span><span class="op">(</span>am<span class="op">.</span>type<span class="op">(</span>str<span class="op">))</span>  <span class="co">-- prints &quot;string&quot;</span></span>
 <span id="cb123-25"><a href="#cb123-25" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span><span class="op">(</span>am<span class="op">.</span>type<span class="op">(</span>num<span class="op">))</span>  <span class="co">-- prints &quot;number&quot;</span></span>
 <span id="cb123-26"><a href="#cb123-26" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span><span class="op">(</span>am<span class="op">.</span>type<span class="op">(</span>f<span class="op">))</span>    <span class="co">-- prints &quot;function&quot;</span></span></code></pre></div>
+<h1 id="random-number-generation">Random Number Generation</h1>
+<h3 id="am.randseed">am.rand(seed)</h3>
+<p>Amulet provides its own random number generator called
+<code>am.rand</code>.</p>
+<p>It has some advantages over <code>math.random</code>:</p>
+<ul>
+<li>you can use it to create multiple, independent random number
+generators</li>
+<li>it generates the same sequence of numbers for a given seed on all
+platforms (<code>math.random</code> is different on each platform)</li>
+</ul>
+<p>Call <code>am.rand</code> with a specified seed to get back a
+function, which you can use to generate random numbers.</p>
+<p>Calling this function works just like <code>math.random</code>:</p>
+<div class="sourceCode" id="cb124"><pre
+class="sourceCode lua"><code class="sourceCode lua"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- creates a new random number generator with the seed</span></span>
+<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a><span class="kw">local</span> r <span class="op">=</span> am<span class="op">.</span>rand<span class="op">(</span>seed<span class="op">)</span></span>
+<span id="cb124-3"><a href="#cb124-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb124-4"><a href="#cb124-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- gets a number between 0 and 1 (floating-point)</span></span>
+<span id="cb124-5"><a href="#cb124-5" aria-hidden="true" tabindex="-1"></a>log<span class="op">(</span>r<span class="op">())</span></span>
+<span id="cb124-6"><a href="#cb124-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb124-7"><a href="#cb124-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- gets a number between 1 and 5 (integer, both inclusive)</span></span>
+<span id="cb124-8"><a href="#cb124-8" aria-hidden="true" tabindex="-1"></a>log<span class="op">(</span>r<span class="op">(</span><span class="dv">5</span><span class="op">))</span></span>
+<span id="cb124-9"><a href="#cb124-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb124-10"><a href="#cb124-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- gets a number between 2 and 6 (integer, both inclusive)</span></span>
+<span id="cb124-11"><a href="#cb124-11" aria-hidden="true" tabindex="-1"></a>log<span class="op">(</span>r<span class="op">(</span><span class="dv">2</span><span class="op">,</span> <span class="dv">6</span><span class="op">))</span></span></code></pre></div>
 <h1 id="amulet-require-function">Amulet require function</h1>
 <p>The <code>require</code> function in Amulet is slightly different
 from the default one. The default Lua package loaders have been removed
@@ -5307,20 +5338,20 @@ the module, the passed in table will be used as the return value for
 <code>require</code>.</p>
 <p>The passed in export table can be accessed via the <code>...</code>
 expression. Here’s a short example:</p>
-<div class="sourceCode" id="cb124"><pre
-class="sourceCode lua"><code class="sourceCode lua"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="kw">local</span> mymodule <span class="op">=</span> <span class="op">...</span></span>
-<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb124-3"><a href="#cb124-3" aria-hidden="true" tabindex="-1"></a>mymodule<span class="op">.</span>message <span class="op">=</span> <span class="st">&quot;hello&quot;</span></span>
-<span id="cb124-4"><a href="#cb124-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb124-5"><a href="#cb124-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> mymodule<span class="op">.</span>print_message<span class="op">()</span></span>
-<span id="cb124-6"><a href="#cb124-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span><span class="op">(</span>mymodule<span class="op">.</span>message<span class="op">)</span></span>
-<span id="cb124-7"><a href="#cb124-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb125"><pre
+class="sourceCode lua"><code class="sourceCode lua"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a><span class="kw">local</span> mymodule <span class="op">=</span> <span class="op">...</span></span>
+<span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a>mymodule<span class="op">.</span>message <span class="op">=</span> <span class="st">&quot;hello&quot;</span></span>
+<span id="cb125-4"><a href="#cb125-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb125-5"><a href="#cb125-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> mymodule<span class="op">.</span>print_message<span class="op">()</span></span>
+<span id="cb125-6"><a href="#cb125-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span><span class="op">(</span>mymodule<span class="op">.</span>message<span class="op">)</span></span>
+<span id="cb125-7"><a href="#cb125-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <p>If this module is in the file <code>mymodule.lua</code>, then it can
 be imported like so:</p>
-<div class="sourceCode" id="cb125"><pre
-class="sourceCode lua"><code class="sourceCode lua"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a><span class="kw">local</span> mymodule <span class="op">=</span> <span class="fu">require</span> <span class="st">&quot;mymodule&quot;</span></span>
-<span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a>mymodule<span class="op">.</span>print_message<span class="op">()</span> <span class="co">-- prints hello</span></span></code></pre></div>
+<div class="sourceCode" id="cb126"><pre
+class="sourceCode lua"><code class="sourceCode lua"><span id="cb126-1"><a href="#cb126-1" aria-hidden="true" tabindex="-1"></a><span class="kw">local</span> mymodule <span class="op">=</span> <span class="fu">require</span> <span class="st">&quot;mymodule&quot;</span></span>
+<span id="cb126-2"><a href="#cb126-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb126-3"><a href="#cb126-3" aria-hidden="true" tabindex="-1"></a>mymodule<span class="op">.</span>print_message<span class="op">()</span> <span class="co">-- prints hello</span></span></code></pre></div>
 <p>This scheme allows cyclic module imports, e.g. module A requires
 module B which in turn requires module A. Amulet will detect the
 recursion and return A’s (incomplete) export table in B. Then when A has
@@ -5339,9 +5370,9 @@ overlay on the main window.</p>
 <p>The logged messages are prefixed with the file name and line number
 where <code>log</code> was called.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb126"><pre
-class="sourceCode lua"><code class="sourceCode lua"><span id="cb126-1"><a href="#cb126-1" aria-hidden="true" tabindex="-1"></a>log<span class="op">(</span><span class="st">&quot;here&quot;</span><span class="op">)</span></span>
-<span id="cb126-2"><a href="#cb126-2" aria-hidden="true" tabindex="-1"></a>log<span class="op">(</span><span class="st">&quot;num = %g, string = %s&quot;</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="st">&quot;two&quot;</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb127"><pre
+class="sourceCode lua"><code class="sourceCode lua"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a>log<span class="op">(</span><span class="st">&quot;here&quot;</span><span class="op">)</span></span>
+<span id="cb127-2"><a href="#cb127-2" aria-hidden="true" tabindex="-1"></a>log<span class="op">(</span><span class="st">&quot;num = %g, string = %s&quot;</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="st">&quot;two&quot;</span><span class="op">)</span></span></code></pre></div>
 <h1 id="preventing-accidental-global-variable-usage">Preventing
 accidental global variable usage</h1>
 <h3 class="func-def" id="noglobals">noglobals()</h3>
@@ -5365,8 +5396,8 @@ file system. It won’t search the resource archive in a exported game.
 Its intended use is for writing file processing utilities and not for
 use directly in games you wish to distribute.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb127"><pre
-class="sourceCode lua"><code class="sourceCode lua"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a><span class="kw">local</span> image_files <span class="op">=</span> am<span class="op">.</span>glob<span class="op">{</span><span class="st">&quot;images/*.png&quot;</span><span class="op">,</span> <span class="st">&quot;images/*.jpg&quot;</span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb128"><pre
+class="sourceCode lua"><code class="sourceCode lua"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a><span class="kw">local</span> image_files <span class="op">=</span> am<span class="op">.</span>glob<span class="op">{</span><span class="st">&quot;images/*.png&quot;</span><span class="op">,</span> <span class="st">&quot;images/*.jpg&quot;</span><span class="op">}</span></span></code></pre></div>
 <h1 id="running-javascript">Running JavaScript</h1>
 <h3 class="func-def" id="am.eval_js">am.eval_js(js)</h3>
 <p>Runs the given JavaScript string and returns the result as a Lua

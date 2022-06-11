@@ -23,6 +23,7 @@ SECTIONS = header.md \
 	models.md \
 	table.md \
 	types.md \
+	random.md \
 	require.md \
 	misc.md
 
