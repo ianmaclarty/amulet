@@ -84,6 +84,13 @@ function am.postprocess(opts)
         program = p
         node"use_program".program = p
     end
+    function wrap:get_bindings()
+        return pp_bindings
+    end
+    function wrap:set_bindings(b)
+        pp_bindings = b
+        node"bind".bindings = b
+    end
     function wrap:clear()
         fb:clear()
     end
