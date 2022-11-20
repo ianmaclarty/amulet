@@ -1194,6 +1194,7 @@ shader program.
 - `clear_color`: The color to clear the texture to before rendering each frame (a `vec4`). The default is black.
 - `auto_clear`: Whether to automatically clear the texture before rendering each frame. The default is true.
 - `program`: The shader program to use to render the texture.
+- `bindings`: An optional table of user bindings to pass into the `program`. The keys/values are added to the `am.bind(...)` node used internally.
 
 The shader program should expect the following uniforms and attributes:
 
