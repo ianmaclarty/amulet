@@ -8,6 +8,7 @@
 --      clear_color
 --      auto_clear
 --      program
+--      bindings
 function am.postprocess(opts)
     local main_window = am._main_window
     local w, h
@@ -35,14 +36,19 @@ function am.postprocess(opts)
         auto_clear = false
     end
     local program = opts.program or am.shaders.texture2d
+    local user_bindings = opts.bindings or {}
+    local pp_bindings = {
+        P = mat4(1),
+        uv = am.rect_verts_2d(0, 0, 1, 1),
+        vert = am.rect_verts_2d(-1, -1, 1, 1),
+        tex = tex,
+    }
+    for k, v in pairs(user_bindings) do
+        pp_bindings[k] = v
+    end
     local node =
         am.use_program(program)
-        ^ am.bind{
-            P = mat4(1),
-            uv = am.rect_verts_2d(0, 0, 1, 1),
-            vert = am.rect_verts_2d(-1, -1, 1, 1),
-            tex = tex,
-        }
+        ^ am.bind(pp_bindings)
         ^ am.draw("triangles", am.rect_indices())
     local wrap = am.wrap(node)
     fb.projection = main_window.projection
@@ -77,6 +83,13 @@ function am.postprocess(opts)
     function wrap:set_program(p)
         program = p
         node"use_program".program = p
+    end
+    function wrap:get_bindings()
+        return pp_bindings
+    end
+    function wrap:set_bindings(b)
+        pp_bindings = b
+        node"bind".bindings = b
     end
     function wrap:clear()
         fb:clear()
