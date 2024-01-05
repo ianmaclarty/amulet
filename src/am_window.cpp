@@ -494,7 +494,7 @@ bool am_execute_actions(lua_State *L, double dt) {
     for (unsigned int i = 0; i < n; i++) {
         am_window *win = windows[i];
         if (!win->needs_closing && win->scene != NULL) {
-            // make sure window size properties are up-to-date before running
+            // make sure window size properties are up-to-date before running 
             // actions.
             update_size(win);
             if (!am_execute_node_actions(L, win->scene)) {
