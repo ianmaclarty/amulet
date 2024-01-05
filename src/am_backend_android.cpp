@@ -93,13 +93,13 @@ static void android_update() {
     pthread_mutex_unlock(&android_audio_mutex);
 
     frame_time = am_get_current_time();
-
+    
     real_delta_time = frame_time - t0;
     if (am_conf_warn_delta_time > 0.0 && real_delta_time > am_conf_warn_delta_time) {
         am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);
     }
     // take min in case app paused, or last frame took very long
-    delta_time = am_min(am_conf_max_delta_time, real_delta_time);
+    delta_time = am_min(am_conf_max_delta_time, real_delta_time); 
     t_debt += delta_time;
 
     if (am_conf_fixed_delta_time > 0.0) {
@@ -237,7 +237,7 @@ JNIEXPORT void JNICALL Java_xyz_amulet_AmuletActivity_jniIAPProductsRetrieved(JN
                 env->DeleteLocalRef(jpid);
                 env->DeleteLocalRef(jprice);
                 lua_settable(L, -3);
-            }
+            } 
         } else {
             lua_pushnil(L);
         }
@@ -355,7 +355,7 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *sh = android_win_height;
 }
 
-void am_get_native_window_safe_area_margin(am_native_window *window,
+void am_get_native_window_safe_area_margin(am_native_window *window, 
     int *left, int *right, int *bottom, int *top)
 {
     *left = 0;
@@ -382,6 +382,13 @@ bool am_get_native_window_show_cursor(am_native_window *window) {
 void am_set_native_window_show_cursor(am_native_window *window, bool show) {
 }
 
+const char* am_get_native_window_title(am_native_window *window) {
+    return NULL;
+}
+
+void am_set_native_window_title(am_native_window *window, const char* title) {
+}
+
 void am_destroy_native_window(am_native_window *window) {
 }
 
@@ -391,13 +398,6 @@ void am_native_window_bind_framebuffer(am_native_window *win) {
 
 void am_native_window_swap_buffers(am_native_window *window) {
     // handled by Android, I think
-}
-
-const char* am_get_native_window_title(am_native_window *window) {
-    return NULL;
-}
-
-void am_set_native_window_title(am_native_window *window, const char* title) {
 }
 
 double am_get_current_time() {

@@ -237,7 +237,7 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
 #endif
 }
 
-void am_get_native_window_safe_area_margin(am_native_window *window,
+void am_get_native_window_safe_area_margin(am_native_window *window, 
     int *left, int *right, int *bottom, int *top)
 {
     *left = 0;
@@ -483,7 +483,7 @@ void am_copy_video_frame_to_texture() {
 }
 #endif
 
-#if defined(AM_WINDOWS) && !defined(AM_MINGW)
+#if defined(AM_WINDOWS) && !defined(AM_MINGW) 
 
 static char *from_wstr(const wchar_t *str) {
     int len8 = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
@@ -663,7 +663,7 @@ restart:
         if (!handle_events(L)) goto quit;
 
         frame_time = am_get_current_time();
-
+        
         real_delta_time = frame_time - t0;
         if (have_focus && am_conf_warn_delta_time > 0.0 && real_delta_time > am_conf_warn_delta_time) {
             am_log0("WARNING: FPS dropped to %0.2f (%fs)", 1.0/real_delta_time, real_delta_time);

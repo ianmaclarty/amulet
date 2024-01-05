@@ -402,7 +402,7 @@ static void ios_init_audio() {
     strdesc.mBytesPerPacket =
         strdesc.mBytesPerFrame * strdesc.mFramesPerPacket;
 
-    if (noErr !=
+    if (noErr != 
         AudioUnitSetProperty(instance, kAudioUnitProperty_StreamFormat,
             scope, bus, &strdesc, sizeof(AudioStreamBasicDescription)))
     {
@@ -414,7 +414,7 @@ static void ios_init_audio() {
     memset(&callback, 0, sizeof(AURenderCallbackStruct));
     callback.inputProc = ios_audio_callback;
     callback.inputProcRefCon = NULL;
-    if (noErr !=
+    if (noErr != 
         AudioUnitSetProperty(instance, kAudioUnitProperty_SetRenderCallback,
             scope, bus, &callback, sizeof(AURenderCallbackStruct)))
     {
@@ -522,10 +522,10 @@ static void ios_update() {
     [ios_audio_mutex unlock];
 
     frame_time = am_get_current_time();
-
+    
     real_delta_time = frame_time - t0;
     // take min in case app paused, or last frame took very long
-    delta_time = am_min(am_conf_max_delta_time, real_delta_time);
+    delta_time = am_min(am_conf_max_delta_time, real_delta_time); 
     t_debt += delta_time;
 
     if (am_conf_fixed_delta_time > 0.0) {
@@ -742,7 +742,7 @@ static BOOL handle_orientation(UIInterfaceOrientation orientation) {
 {
     //am_debug("%s", "supportedInterfaceOrientations");
     switch (ios_orientation) {
-        case AM_DISPLAY_ORIENTATION_PORTRAIT:
+        case AM_DISPLAY_ORIENTATION_PORTRAIT: 
             return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown;
         case AM_DISPLAY_ORIENTATION_LANDSCAPE:
             return UIInterfaceOrientationMaskLandscapeRight | UIInterfaceOrientationMaskLandscapeLeft;
@@ -834,12 +834,12 @@ extern void am_ios_custom_init(UIViewController *view_controller);
 #endif
 
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-
+ 
     MTKView *view = [[MTKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     view.device = MTLCreateSystemDefaultDevice();
     view.delegate = self;
     view.preferredFramesPerSecond = 60;
-    [view setMultipleTouchEnabled:YES];
+    [view setMultipleTouchEnabled:YES]; 
     ios_view = view;
     am_metal_ios_view = ios_view;
 
@@ -860,7 +860,7 @@ extern void am_ios_custom_init(UIViewController *view_controller);
 
     ios_init_engine();
     ios_init_audio();
-
+ 
     am_ios_custom_init(viewController);
 
     return YES;
@@ -886,7 +886,7 @@ extern void am_ios_custom_init(UIViewController *view_controller);
     am_metal_window_sheight = (int)((float)am_metal_window_pheight / scale);
 
     @autoreleasepool {
-        //am_debug("%s", "draw");
+        //am_debug("%s", "draw"); 
         if (ios_done_first_draw) {
             // make sure we do a draw before our first update
             ios_update();
@@ -940,14 +940,14 @@ extern void am_ios_custom_init(UIViewController *view_controller);
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
+{    
     if (ios_view_controller != nil && ios_view_controller.presentedViewController == nil) {
         ios_touch_moved(touches);
     }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{
+{    
     if (ios_view_controller != nil && ios_view_controller.presentedViewController == nil) {
         ios_touch_ended(touches);
     }
@@ -1008,7 +1008,7 @@ extern void am_ios_custom_init(UIViewController *view_controller);
     }
 }
 
-- (void)paymentQueue:(SKPaymentQueue *)queue
+- (void)paymentQueue:(SKPaymentQueue *)queue 
 restoreCompletedTransactionsFailedWithError:(NSError *)error
 {
     [self performSelectorOnMainThread:@selector(restoreCompletedTransactionsFailedWithErrorMain) withObject:nil waitUntilDone:YES];
@@ -1176,7 +1176,7 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *sh = am_metal_window_sheight;
 }
 
-void am_get_native_window_safe_area_margin(am_native_window *window,
+void am_get_native_window_safe_area_margin(am_native_window *window, 
     int *left, int *right, int *bottom, int *top)
 {
     if (ios_view != nil && ios_view.window != nil) {
@@ -1266,7 +1266,7 @@ int am_next_video_capture_frame() {
 
 static bool gamecenter_available = false;
 
-@interface GameCenterLeaderboardViewController : GKGameCenterViewController
+@interface GameCenterLeaderboardViewController : GKGameCenterViewController 
 @end
 
 @implementation GameCenterLeaderboardViewController
@@ -1359,9 +1359,9 @@ static int init_gamecenter(lua_State *L) {
                 //problem with authentication, probably because the user doesn't use Game Center
                 //am_debug("%s", "gamecenter authentication failed");
             }
-        })];
+        })]; 
     } else {
-        NSLog(@"Already authenticated!");
+        NSLog(@"Already authenticated!");   
     }
     gamecenter_delegate = [[GameCenterDelegate alloc] init];
     [gamecenter_delegate retain];
@@ -1566,7 +1566,7 @@ static void register_iap_product_mt(lua_State *L) {
                 am_new_userdata(L, am_iap_product)->product = product;
                 lua_settable(L, -3);
             }
-        }
+        } 
         am_call_amulet(L, "_iap_retrieve_products_finished", 1, 0);
     }
 }
@@ -1604,7 +1604,7 @@ static int retrieve_iap_products(lua_State *L) {
     }
     SKProductsRequest *productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:ids];
     [ids dealloc];
-
+                     
     [productsRequest retain];
     productsRequest.delegate = [[RetrieveIAPProductsDelegate alloc] init];
     [productsRequest start];
@@ -1650,7 +1650,7 @@ static int iap_product_local_price(lua_State *L) {
 static int ios_request_review(lua_State *L) {
     if([SKStoreReviewController class]){
        [SKStoreReviewController requestReview] ;
-    }
+    } 
     return 0;
 }
 
@@ -1708,16 +1708,16 @@ static int show_alert(lua_State *L) {
 
 @implementation AMWebViewDelegate
 
-- (void)webView:(WKWebView *)webView
-    didFailNavigation:(WKNavigation *)navigation
+- (void)webView:(WKWebView *)webView 
+    didFailNavigation:(WKNavigation *)navigation 
     withError:(NSError *)error
 {
     //NSLog(@"------------------------ webkit navigation error");
     self.was_error = YES;
 }
 
-- (void)webView:(WKWebView *)webView
-    didFailProvisionalNavigation:(WKNavigation *)navigation
+- (void)webView:(WKWebView *)webView 
+    didFailProvisionalNavigation:(WKNavigation *)navigation 
     withError:(NSError *)error
 {
     //NSLog(@"------------------------ webkit navigation provisional error");

@@ -91,13 +91,20 @@ void am_get_native_window_size(am_native_window *window, int *pw, int *ph, int *
     *sh = *ph;
 }
 
-void am_get_native_window_safe_area_margin(am_native_window *window,
+void am_get_native_window_safe_area_margin(am_native_window *window, 
     int *left, int *right, int *bottom, int *top)
 {
     *left = 0;
     *right = 0;
     *bottom = 0;
     *top = 0;
+}
+
+const char* am_get_native_window_title(am_native_window *window) {
+    return NULL;
+}
+
+void am_set_native_window_title(am_native_window *window, const char* title) {
 }
 
 void am_destroy_native_window(am_native_window* win) {
@@ -430,7 +437,7 @@ static bool handle_events() {
 static void audio_callback(void *ud, Uint8 *stream, int len) {
     if (len != (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels) {
         am_log0("audio buffer size mismatch! (%d vs %d)",
-            len,
+            len, 
             (int)sizeof(float) * am_conf_audio_buffer_size * am_conf_audio_channels);
         memset(stream, 0, len);
         return;
@@ -489,13 +496,6 @@ void am_set_native_window_show_cursor(am_native_window *window, bool show) {
 
 bool am_get_native_window_show_cursor(am_native_window *window) {
     return EM_ASM_INT({ return window.amulet.show_cursor ? 1 : 0; }, 0) == 1;
-}
-
-const char* am_get_native_window_title(am_native_window *window) {
-    return NULL;
-}
-
-void am_set_native_window_title(am_native_window *window, const char* title) {
 }
 
 static am_key convert_key(SDL_Keycode key) {
@@ -616,7 +616,7 @@ static void on_load_package_progress(unsigned int x, void *arg, int perc) {
 
 static void load_package(const char *url) {
     emscripten_async_wget2(url, "data.pak", "GET", "", NULL,
-        &on_load_package_complete, &on_load_package_error, &on_load_package_progress);
+        &on_load_package_complete, &on_load_package_error, &on_load_package_progress); 
 }
 
 static void open_package() {
