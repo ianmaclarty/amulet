@@ -248,6 +248,12 @@ See [window settings](#am.window).
 
 Updatable.
 
+### window.title {.field-def}
+
+See [window settings](#am.window).
+
+Updatable.
+
 ## Closing a window
 
 ### window:close() {.method-def}

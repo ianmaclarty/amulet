@@ -338,6 +338,26 @@ void am_set_native_window_show_cursor(am_native_window *window, bool show) {
     }
 }
 
+const char* am_get_native_window_title(am_native_window *window) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i].window == (SDL_Window*)window) {
+            SDL_Window *sdl_win = (SDL_Window*)window;
+            return SDL_GetWindowTitle(sdl_win);
+        }
+    }
+    return NULL;
+}
+
+void am_set_native_window_title(am_native_window *window, const char* title) {
+    for (unsigned int i = 0; i < windows.size(); i++) {
+        if (windows[i].window == (SDL_Window*)window) {
+            SDL_Window *sdl_win = (SDL_Window*)window;
+            SDL_SetWindowTitle(sdl_win, title);
+            break;
+        }
+    }
+}
+
 void am_destroy_native_window(am_native_window* window) {
     am_log_gl("// destroy window");
     SDL_Window *sdl_win = (SDL_Window*)window;
