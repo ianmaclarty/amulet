@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion AM_TARGET_SDK_VER
-    buildToolsVersion "26.0.2"
+    buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "AM_APPID"
         minSdkVersion 23

@@ -22,6 +22,7 @@
                 android:label="AM_TITLE"
                 android:screenOrientation="AM_ORIENTATION"
                 android:resizeableActivity="false"
+                android:exported="true"
                 android:configChanges="orientation|keyboardHidden">
             <meta-data android:name="android.app.lib_name"
                     android:value="amulet" />

@@ -228,7 +228,7 @@ bool am_load_config() {
 
     read_string_setting(eng->L, "google_play_services_id", &am_conf_google_play_services_id, "0");
     read_string_setting(eng->L, "android_app_version_code", &am_conf_android_app_version_code, "1");
-    read_string_setting(eng->L, "android_target_sdk_version", &am_conf_android_target_sdk_version, "28");
+    read_string_setting(eng->L, "android_target_sdk_version", &am_conf_android_target_sdk_version, "34");
     read_string_setting(eng->L, "android_adaptive_icon_fg", &am_conf_android_adaptive_icon_fg, NULL);
     read_string_setting(eng->L, "android_adaptive_icon_bg", &am_conf_android_adaptive_icon_bg, NULL);
     read_bool_setting(eng->L, "android_needs_internet_permission", &am_conf_android_needs_internet_permission);
