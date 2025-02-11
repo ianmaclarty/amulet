@@ -12,4 +12,4 @@ else
     tag2=$2
 fi
 echo Changes between $tag1 and $tag2:
-git log --oneline --reverse --no-decorate $tag1..$tag2
+git log --oneline --reverse --no-decorate "$tag1..$tag2"
