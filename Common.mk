@@ -209,7 +209,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   CPP = clang++
   LINK = clang++
   XCFLAGS += -ObjC++
-  TARGET_CFLAGS += -m64 -arch x86_64
+  TARGET_CFLAGS += -m64 -arch x86_64 -arch arm64
   XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT) $(OSX_GRAPHICS_LINK_OPT) -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
@@ -378,7 +378,8 @@ else ifeq ($(TARGET_PLATFORM),msvc64)
   AR_OUT_OPT = -OUT:
   XCFLAGS = -MT -DLUA_COMPAT_ALL -WX 
   XLDFLAGS = -NODEFAULTLIB:msvcrt.lib \
-	$(BUILD_LIB_DIR)/SDL2.lib
+	$(BUILD_LIB_DIR)/SDL2.lib \
+  comdlg32.lib
   TARGET_CFLAGS = -nologo -EHsc -fp:fast
   WINDOWS = 1
   MSVC = 1
@@ -424,6 +425,7 @@ else ifeq ($(TARGET_PLATFORM),linux32)
   LUAJIT_FLAGS += CC="gcc -m32"
 else ifeq ($(TARGET_PLATFORM),linux64)
   LUA_CFLAGS += -DLUA_USE_POSIX -DLUA_USE_DLOPEN
+  LDFLAGS += -no-pie
 endif
 
 # Adjust flags for grade
