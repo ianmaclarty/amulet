@@ -97,8 +97,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-tags: true
       - name: Mkdir builds
         run: mkdir builds
       - name: Download builds windows
