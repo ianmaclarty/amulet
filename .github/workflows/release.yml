@@ -49,5 +49,6 @@ jobs:
     steps:
       - name: Download builds windows
         uses: actions/download-artifact@v4
-        name: amulet-builds-windows
-        merge-multiple: true
+        with:
+          name: amulet-builds-windows
+          merge-multiple: true
