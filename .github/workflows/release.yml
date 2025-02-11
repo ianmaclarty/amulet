@@ -132,3 +132,4 @@ jobs:
           artifactErrorsFailBuild: true
           bodyFile: changelog.txt
           name: ${{ env.GITHUB_TAG }}
+          tag: ${{ env.GITHUB_TAG }}
