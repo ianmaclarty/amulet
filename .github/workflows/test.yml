@@ -8,10 +8,6 @@ on:
         required: false
         default: ''
         type: string
-      release:
-        description: 'Create release?'
-        required: false
-        type: boolean
 
 jobs:
   build_linux:
