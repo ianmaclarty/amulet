@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-# build android
 NDK=android-ndk-r20
 echo downloading $NDK...
 curl -s -L https://dl.google.com/android/repository/$NDK-linux-x86_64.zip -o android-ndk.zip

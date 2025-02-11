@@ -1,5 +1,15 @@
 on:
   workflow_dispatch:
+    inputs:
+        version:
+          description: 'Release version'
+          required: false
+          default: ''
+          type: string
+        release:
+          description: 'Create release?'
+          required: false
+          type: boolean
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
@@ -33,6 +43,8 @@ jobs:
         run: make TARGET=osx.release     LUAVM=lua51
       - name: Build ios.release.lua51
         run: make TARGET=ios.release     LUAVM=lua51
+      - name: Build html.release.lua51
+        run: ./scripts/github_build_emscripten.sh
       - name: Upload builds
         uses: actions/upload-artifact@v4
         with:
@@ -64,6 +76,8 @@ jobs:
   distros:
     needs: [build_linux, build_macos, build_windows]
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TAG: ${{ format('{0}{1}', (inputs.version || ''), (github.ref_name || '')) }}
     steps:
       - name: Download builds windows
         uses: actions/download-artifact@v4
@@ -80,3 +94,16 @@ jobs:
         with:
           name: amulet-builds-linux
           merge-multiple: true
+      - name: Zip distros
+        run: ./scripts/github_build_distros.sh
+      - name: Generate changelog
+        run: ./scripts/release_log.sh > changelog.txt
+      - name: Create release
+        if: ${{ github.ref_name || (inputs.release && inputs.version) }}
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: amulet-*.zip
+          draft: true
+          artifactErrorsFailBuild: true
+          bodyFile: changelog.txt
+          name: ${{ env.GITHUB_TAG }}
