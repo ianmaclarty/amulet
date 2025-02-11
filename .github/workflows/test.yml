@@ -7,6 +7,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        fetch-tags: true
+        with:
+          fetch-tags: true
       - name: Test
         run: ./scripts/release_log.sh

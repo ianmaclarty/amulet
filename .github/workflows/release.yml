@@ -97,6 +97,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-tags: true
       - name: Mkdir builds
         run: mkdir builds
       - name: Download builds windows
@@ -117,8 +119,6 @@ jobs:
           name: amulet-builds-linux
           merge-multiple: true
           path: builds/
-      - name: Find
-        run: find .
       - name: Build distros
         run: ./scripts/github_build_distros.sh
       - name: Generate changelog
