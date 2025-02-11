@@ -1,0 +1,34 @@
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build
+        run: ./scripts/github_build_linux.sh
+  build_macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build
+        run: ./scripts/github_build_macos.sh
+  build_windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup MSYS
+        uses: msys2/setup-msys2@v2
+      - name: Build
+        run: ./scripts/github_build_windows.bat
+  distros:
+    needs: [build_linux, build_macos, build_windows]
+    steps:
+      - run: echo assemble and deploy release distros ...
