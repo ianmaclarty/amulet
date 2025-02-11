@@ -95,8 +95,8 @@ jobs:
     env:
       GITHUB_TAG: ${{ format('{0}{1}', (inputs.version || ''), (github.ref_name || '')) }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      # - name: Checkout repo
+      #   uses: actions/checkout@v4
       - name: Download builds windows
         uses: actions/download-artifact@v4
         with:
@@ -112,6 +112,8 @@ jobs:
         with:
           name: amulet-builds-linux
           merge-multiple: true
+      - name: Find
+        run: find .
       - name: Build distros
         run: ./scripts/github_build_distros.sh
       - name: Generate changelog
