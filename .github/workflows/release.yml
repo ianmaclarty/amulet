@@ -1,3 +1,5 @@
+name: Release
+
 on:
   workflow_dispatch:
     inputs:
@@ -93,7 +95,7 @@ jobs:
     needs: [build_linux, build_macos, build_windows]
     runs-on: ubuntu-latest
     env:
-      GITHUB_TAG: ${{ format('{0}{1}', (inputs.version || ''), (github.ref_name || '')) }}
+      GITHUB_TAG: ${{ inputs.version || github.ref_name }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
