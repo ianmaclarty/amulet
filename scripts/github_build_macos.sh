@@ -2,13 +2,13 @@
 set -e
 
 # build osx
-make -j2 TARGET=osx.release     LUAVM=lua51   test
-make -j2 TARGET=osx.release     LUAVM=lua52   test
-make -j2 TARGET=osx.release     LUAVM=luajit  test
+make TARGET=osx.release     LUAVM=lua51   test
+make TARGET=osx.release     LUAVM=lua52   test
+make TARGET=osx.release     LUAVM=luajit  test
 
 # build ios
-make -j2 TARGET=ios.release     LUAVM=lua51
-make -j2 TARGET=ios.release     LUAVM=lua52
+make TARGET=ios.release     LUAVM=lua51
+make TARGET=ios.release     LUAVM=lua52
 
 # build emscripten
 # (building on osx, because the pre-built llvm binaries don't work on linux due to incompatible glibc version)
@@ -19,4 +19,4 @@ cd emscripten
 ./emsdk activate $EMSDK
 source ./emsdk_env.sh
 cd ..
-make -j2 STRICT=1 TARGET=html.release LUAVM=lua51
+make STRICT=1 TARGET=html.release LUAVM=lua51

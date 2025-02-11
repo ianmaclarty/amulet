@@ -12,15 +12,17 @@ jobs:
         uses: actions/checkout@v4
       - name: Install X11
         run: sudo apt install libx11-dev
-      - name: Build
-        run: ./scripts/github_build_linux.sh
+      - name: Build linux64.release.lua51
+        run: make TARGET=linux64.release LUAVM=lua51
   build_macos:
     runs-on: macos-13
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Build
-        run: ./scripts/github_build_macos.sh
+      - name: Build osx.release.lua51
+        run: make TARGET=osx.release     LUAVM=lua51
+      - name: Build ios.release.lua51
+        run: make TARGET=ios.release     LUAVM=lua51
   build_windows:
     runs-on: windows-latest
     steps:
@@ -31,10 +33,21 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
       - run: uname
-      - name: Build
-        run: ./scripts/github_build_windows.bat
+      - name: Build msvc64.release.lua51
+        run: make TARGET=msvc64.release LUAVM=lua51
+      - name: Upload builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: amulet-builds-windows
+          path: builds
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
   distros:
     needs: [build_linux, build_macos, build_windows]
     runs-on: ubuntu-latest
     steps:
-      - run: echo assemble and deploy release distros ...
+      - name: Download builds windows
+        uses: actions/download-artifact@v4
+        name: amulet-builds-windows
+        merge-multiple: true
