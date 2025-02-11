@@ -221,13 +221,13 @@ $(LUAJIT_ALIB): | $(BUILD_LIB_DIR) $(BUILD_INC_DIR)
 	BASE_DIR=`pwd`; \
 	if [ "$(TARGET_PLATFORM)" = "msvc32" ]; then \
 	    cd $(LUAJIT_DIR)/src; \
-	    PATH='$(VC_CL_DIR):$(PATH)' cmd < msvcbuild_static.bat; \
+	    cmd < msvcbuild_static.bat; \
 	    cd $$BASE_DIR; \
 	    cp $(LUAJIT_DIR)/src/lua51.lib $@; \
 	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
 	elif [ "$(TARGET_PLATFORM)" = "msvc64" ]; then \
 	    cd $(LUAJIT_DIR)/src; \
-	    PATH='$(VC_CL_DIR):$(PATH)' cmd < msvcbuild_static.bat; \
+	    cmd < msvcbuild_static.bat; \
 	    cd $$BASE_DIR; \
 	    cp $(LUAJIT_DIR)/src/lua51.lib $@; \
 	    cp $(LUAJIT_DIR)/src/*.h $(BUILD_INC_DIR)/; \
