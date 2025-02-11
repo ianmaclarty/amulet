@@ -1,17 +1,17 @@
-name: Workflow Test
+name: WorkflowTest
 
 on:
   workflow_dispatch:
-  inputs:
-    version:
-      description: 'Release version'
-      required: false
-      default: ''
-      type: string
-    release:
-      description: 'Create release?'
-      required: false
-      type: boolean
+    inputs:
+      version:
+        description: 'Release version'
+        required: false
+        default: ''
+        type: string
+      release:
+        description: 'Create release?'
+        required: false
+        type: boolean
 
 jobs:
   build_linux:
@@ -19,9 +19,5 @@ jobs:
     env:
       GITHUB_TAG: ${{ inputs.version || github.ref_name }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Test
         run: echo $GITHUB_TAG
