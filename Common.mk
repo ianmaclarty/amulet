@@ -35,6 +35,10 @@ else ifneq (,$(findstring MSYS_NT,$(UNAME)))
   HOST_PLATFORM = msvc32
   IS_WINDOWS = yes
   PATH_SEP = ;
+else ifneq (,$(findstring MINGW64_NT,$(UNAME)))
+  HOST_PLATFORM = msvc64
+  IS_WINDOWS = yes
+  PATH_SEP = ;
 else ifneq (,$(findstring Linux,$(UNAME)))
   UNAME_A := $(shell uname -a)
   ifneq (,$(findstring x86_64,$(UNAME_A)))

@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Install X11
+        run: sudo apt install libx11-dev
       - name: Build
         run: ./scripts/github_build_linux.sh
   build_macos:
