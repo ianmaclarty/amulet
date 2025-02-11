@@ -18,7 +18,7 @@ jobs:
   build_linux:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
       - name: Install X11
         run: sudo apt install libx11-dev libxext-dev
@@ -41,7 +41,7 @@ jobs:
   build_macos:
     runs-on: macos-13
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
       - name: Build osx.release.lua51
         run: make TARGET=osx.release     LUAVM=lua51
@@ -67,7 +67,7 @@ jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
       - name: Setup MSYS
         uses: msys2/setup-msys2@v2
@@ -95,6 +95,8 @@ jobs:
     env:
       GITHUB_TAG: ${{ format('{0}{1}', (inputs.version || ''), (github.ref_name || '')) }}
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
       - name: Download builds windows
         uses: actions/download-artifact@v4
         with:
