@@ -30,5 +30,6 @@ jobs:
         run: ./scripts/github_build_windows.bat
   distros:
     needs: [build_linux, build_macos, build_windows]
+    runs-on: ubuntu-latest
     steps:
       - run: echo assemble and deploy release distros ...
