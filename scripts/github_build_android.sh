@@ -1,11 +1,6 @@
 #!/bin/sh
 set -e
 
-# build linux
-# make TARGET=linux64.release LUAVM=lua51   test
-# make TARGET=linux64.release LUAVM=lua52   test
-# make TARGET=linux64.release LUAVM=luajit  test
-
 # build android
 NDK=android-ndk-r20
 echo downloading $NDK...

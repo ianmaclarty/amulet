@@ -11,9 +11,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Install X11
-        run: sudo apt install libx11-dev
+        run: sudo apt install libx11-dev libxext-dev
       - name: Build linux64.release.lua51
         run: make TARGET=linux64.release LUAVM=lua51
+      - name: Build android
+        run: ./scripts/github_build_android.sh
+      - name: Upload builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: amulet-builds-linux
+          path: builds
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
   build_macos:
     runs-on: macos-13
     steps:
@@ -23,6 +33,14 @@ jobs:
         run: make TARGET=osx.release     LUAVM=lua51
       - name: Build ios.release.lua51
         run: make TARGET=ios.release     LUAVM=lua51
+      - name: Upload builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: amulet-builds-macos
+          path: builds
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
   build_windows:
     runs-on: windows-latest
     steps:
@@ -51,4 +69,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: amulet-builds-windows
+          merge-multiple: true
+      - name: Download builds macos
+        uses: actions/download-artifact@v4
+        with:
+          name: amulet-builds-macos
+          merge-multiple: true
+      - name: Download builds linux
+        uses: actions/download-artifact@v4
+        with:
+          name: amulet-builds-linux
           merge-multiple: true
