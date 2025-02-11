@@ -209,7 +209,7 @@ ifeq ($(TARGET_PLATFORM),osx)
   CPP = clang++
   LINK = clang++
   XCFLAGS += -ObjC++
-  TARGET_CFLAGS += -m64 -arch x86_64 -arch arm64
+  TARGET_CFLAGS += -m64 -arch x86_64
   XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT) $(OSX_GRAPHICS_LINK_OPT) -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \

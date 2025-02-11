@@ -15,7 +15,7 @@ jobs:
       - name: Build
         run: ./scripts/github_build_linux.sh
   build_macos:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
