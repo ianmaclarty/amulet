@@ -78,8 +78,9 @@ jobs:
         run: make TARGET=msvc64.release LUAVM=lua51
       - name: Build msvc64.release.lua52
         run: make TARGET=msvc64.release LUAVM=lua52
-      - name: Build msvc64.release.luajit
-        run: make TARGET=msvc64.release LUAVM=luajit
+      # luajit build on msvc64 currently broken
+      # - name: Build msvc64.release.luajit
+      #   run: make TARGET=msvc64.release LUAVM=luajit
       - name: Upload builds
         uses: actions/upload-artifact@v4
         with:
