@@ -27,24 +27,18 @@ function get_latest_release() {
         var links = {};
         for (var a in res.assets) {
             var asset = res.assets[a];
-            if (asset.name == "amulet-"+tag+"-windows.exe") {
-                links.win_exe = asset.browser_download_url;
-            } else if (asset.name == "amulet-"+tag+"-windows.zip") {
+            if (asset.name == "amulet-"+tag+"-windows.zip") {
                 links.win_zip = asset.browser_download_url;
-            } else if (asset.name == "amulet-"+tag+"-osx.pkg") {
-                links.osx_pkg = asset.browser_download_url;
-            } else if (asset.name == "amulet-"+tag+"-osx.zip") {
-                links.osx_zip = asset.browser_download_url;
+            } else if (asset.name == "amulet-"+tag+"-macos.zip") {
+                links.macos_zip = asset.browser_download_url;
             } else if (asset.name == "amulet-"+tag+"-linux.zip") {
                 links.lin_zip = asset.browser_download_url;
             }
         }
         $("#windows-download-links").append(
-            '<li><a href="' + links.win_exe + '">installer</a></li>' +
             '<li><a href="' + links.win_zip + '">zip</a></li>');
         $("#osx-download-links").append(
-            '<li><a href="' + links.osx_pkg + '">installer</a></li>' +
-            '<li><a href="' + links.osx_zip + '">zip</a></li>');
+            '<li><a href="' + links.macos_zip + '">zip</a></li>');
         $("#linux-download-links").append(
             '<li><a href="' + links.lin_zip + '">zip</a></li>');
         $("#release-notes").append(
