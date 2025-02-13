@@ -683,6 +683,19 @@ static void set_show_cursor(lua_State *L, void *obj) {
 
 static am_property show_cursor_property = {get_show_cursor, set_show_cursor};
 
+static void get_window_title(lua_State *L, void* obj) {
+    am_window *window = (am_window*)obj;
+    lua_pushstring(L, am_get_native_window_title(window->native_win));
+}
+
+static void set_window_title(lua_State *L, void* obj) {
+    am_window *window = (am_window*)obj;
+    const char* value = lua_tostring(L, 3);
+    am_set_native_window_title(window->native_win, value);
+}
+
+static am_property title_property = {get_window_title, set_window_title};
+
 static void get_window_mode(lua_State *L, void *obj) {
     am_window *window = (am_window*)obj;
     am_push_enum(L, am_window_mode, window->mode);
@@ -761,6 +774,7 @@ static void register_window_mt(lua_State *L) {
     am_register_property(L, "stencil_clear_value", &stencil_clear_value_property);
     am_register_property(L, "letterbox", &letterbox_property);
     am_register_property(L, "projection", &projection_property);
+    am_register_property(L, "title", &title_property);
 
     lua_pushcclosure(L, close_window, 0);
     lua_setfield(L, -2, "close");
