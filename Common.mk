@@ -8,7 +8,7 @@ TARGET_PLATFORMS = linux32;linux64;msvc32;msvc64;osx;ios;android_arm32;android_a
 # Directories
 
 THIRD_PARTY_DIR         = third_party
-SDL_DIR          = $(THIRD_PARTY_DIR)/SDL2-2.0.9
+SDL_DIR          = $(THIRD_PARTY_DIR)/SDL2-2.32.10
 LUA51_DIR        = $(THIRD_PARTY_DIR)/lua-5.1.5
 LUA52_DIR        = $(THIRD_PARTY_DIR)/lua-5.2.4
 LUA53_DIR        = $(THIRD_PARTY_DIR)/lua-5.3.1
@@ -149,7 +149,7 @@ EMSCRIPTEN_LIBS = html/library_sdl.js
 EMSCRIPTEN_LIBS_OPTS = $(patsubst %,--js-library %,$(EMSCRIPTEN_LIBS))
 EMSCRIPTEN_EXPORTS_OPT = -s EXPORTED_FUNCTIONS="['_main', '_am_emscripten_run', '_am_emscripten_run_waiting', '_am_emscripten_pause', '_am_emscripten_resume', '_am_emscripten_resize']" -s EXTRA_EXPORTED_RUNTIME_METHODS="['UTF8ToString', 'ccall', 'stringToUTF8', 'lengthBytesUTF8']" -s BINARYEN_TRAP_MODE=clamp
 
-TARGET_CFLAGS=-ffast-math
+TARGET_CFLAGS=
 
 SDL_PREBUILT_SUBDIR=$(TARGET_PLATFORM)
 
@@ -208,18 +208,19 @@ ifeq ($(TARGET_PLATFORM),osx)
   CC = clang
   CPP = clang++
   LINK = clang++
-  XCFLAGS += -ObjC++
-  TARGET_CFLAGS += -m64 -arch x86_64
-  XLDFLAGS = -std=libc++ -lm -liconv $(STEAMWORKS_LINK_OPT) $(OSX_GRAPHICS_LINK_OPT) -Wl,-framework,ForceFeedback -lobjc \
+  XCFLAGS += -ObjC++ 
+  TARGET_CFLAGS += -arch arm64
+  XLDFLAGS = -std=gnu++14 -lm -liconv $(STEAMWORKS_LINK_OPT) $(OSX_GRAPHICS_LINK_OPT) -Wl,-framework,ForceFeedback -lobjc \
   	     -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit \
 	     -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit \
-	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia
+	     -Wl,-framework,AVFoundation -Wl,-framework,CoreVideo -Wl,-framework,CoreMedia \
+	     -Wl,-framework,CoreHaptics -Wl,-framework,GameController
 ifeq ($(LUAVM),luajit)
   XLDFLAGS += -pagezero_size 10000 -image_base 100000000
 endif
 
   LUA_CFLAGS += -DLUA_USE_MACOSX
-  MACOSX_DEPLOYMENT_TARGET=10.14
+  MACOSX_DEPLOYMENT_TARGET=15.4
   export MACOSX_DEPLOYMENT_TARGET
   OSX = 1
 else ifeq ($(TARGET_PLATFORM),ios)
@@ -440,8 +441,8 @@ ifeq ($(GRADE),debug)
     LUA_CFLAGS += -DLUA_USE_APICHECK
     LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
   else ifeq ($(TARGET_PLATFORM),osx)
-    GRADE_CFLAGS = -g -O0 -fsanitize=address
-    GRADE_LDFLAGS = -g -fsanitize=address
+    GRADE_CFLAGS = -g -O0
+    GRADE_LDFLAGS = -g
   else ifeq ($(TARGET_PLATFORM),msvc64)
     GRADE_CFLAGS = -MTd -Zi
     GRADE_LDFLAGS = -DEBUG
@@ -467,7 +468,7 @@ else
     GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),osx)
     GRADE_CFLAGS = -O3 -DNDEBUG
-    GRADE_LDFLAGS =
+    GRADE_LDFLAGS = 
   else ifeq ($(TARGET_PLATFORM),ios)
     GRADE_CFLAGS = -O3 -DNDEBUG
     GRADE_LDFLAGS =

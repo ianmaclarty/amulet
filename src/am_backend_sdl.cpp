@@ -112,7 +112,7 @@ am_native_window *am_create_native_window(
         init_sdl();
     }
 #ifdef AM_USE_METAL
-    Uint32 flags = 0;
+    Uint32 flags = SDL_WINDOW_METAL;
     if (main_window) {
         am_log0("%s", "sorry, only one window is supported");
         return NULL;

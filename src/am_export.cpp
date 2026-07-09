@@ -310,10 +310,10 @@ static bool copy_data_files(export_config *conf, const char *dir) {
 
 static const char *platform_luavm(const char *platform) {
     if (am_conf_luavm != NULL) return am_conf_luavm;
-    if (strcmp(platform, "msvc32") == 0) return "luajit";
-    if (strcmp(platform, "linux32") == 0) return "luajit";
-    if (strcmp(platform, "linux64") == 0) return "luajit";
-    if (strcmp(platform, "osx") == 0) return "luajit";
+    if (strcmp(platform, "msvc32") == 0) return "lua51";
+    if (strcmp(platform, "linux32") == 0) return "lua51";
+    if (strcmp(platform, "linux64") == 0) return "lua51";
+    if (strcmp(platform, "osx") == 0) return "lua51";
     return "lua51";
 }
 
