@@ -310,8 +310,7 @@ static bool copy_data_files(export_config *conf, const char *dir) {
 
 static const char *platform_luavm(const char *platform) {
     if (am_conf_luavm != NULL) return am_conf_luavm;
-    if (strcmp(platform, "msvc32") == 0) return "lua51";
-    if (strcmp(platform, "linux32") == 0) return "lua51";
+    if (strcmp(platform, "msvc64") == 0) return "lua51";
     if (strcmp(platform, "linux64") == 0) return "lua51";
     if (strcmp(platform, "osx") == 0) return "lua51";
     return "lua51";
@@ -1145,8 +1144,7 @@ bool am_build_exports(am_export_flags *flags) {
     conf.outpath = flags->outpath;
     if (!build_data_pak(&conf)) return false;
     bool ok =
-        ((!(flags->export_windows))             || gen_windows_export(&conf, "windows", "msvc32")) &&
-        ((!(flags->export_windows64))           || gen_windows_export(&conf, "windows64", "msvc64")) &&
+        ((!(flags->export_windows))             || gen_windows_export(&conf, "windows", "msvc64")) &&
         ((!(flags->export_mac))                 || gen_mac_export(&conf, true)) &&
         ((!(flags->export_mac_app_store))       || gen_mac_app_store_export(&conf)) &&
         ((!(flags->export_ios_xcode_proj))      || gen_ios_xcode_proj(&conf)) &&

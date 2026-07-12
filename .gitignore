@@ -23,6 +23,7 @@ D.*
 *.swp
 *.dSYM
 .DS_Store
+amulet.res
 
 /VERSION
 

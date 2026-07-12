@@ -43,7 +43,7 @@ void am_framebuffer::init(lua_State *L, am_texture2d *texture, int tex_idx, bool
     }
     am_framebuffer_status status = am_check_framebuffer_status();
     if (status != AM_FRAMEBUFFER_STATUS_COMPLETE) {
-        luaL_error(L, "framebuffer incomplete");
+        luaL_error(L, "framebuffer incomplete %d", status);
     }
     am_framebuffer::clear_color = clear_color;
     am_framebuffer::stencil_clear_value = stencil_clear_value;

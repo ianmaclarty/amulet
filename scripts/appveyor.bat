@@ -7,10 +7,6 @@ set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
 make STRICT=1 TARGET=msvc64.release LUAVM=luajit test
 make STRICT=1 TARGET=msvc64.release LUAVM=lua51 test
 make STRICT=1 TARGET=msvc64.release LUAVM=lua52 test
-call "%programfiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
-make STRICT=1 TARGET=msvc32.release LUAVM=luajit test
-make STRICT=1 TARGET=msvc32.release LUAVM=lua51 test
-make STRICT=1 TARGET=msvc32.release LUAVM=lua52 test
 if %errorlevel% neq 0 exit /b %errorlevel%
 if defined APPVEYOR_REPO_TAG_NAME (node scripts\upload_builds.js %APPVEYOR_REPO_TAG_NAME%)
 if %errorlevel% neq 0 exit /b %errorlevel%
@@ -36,7 +32,7 @@ unzip builds-linux.zip
 mkdir scripts\installer-payload
 cp -r templates scripts/installer-payload/
 cp -r builds scripts/installer-payload/
-cp -r builds/msvc32/luajit/release/bin/* scripts/installer-payload/
+cp -r builds/msvc64/luajit/release/bin/* scripts/installer-payload/
 mv scripts/installer-payload/amulet.exe scripts/installer-payload/amulet-window.exe
 mv scripts/installer-payload/amulet-console.exe scripts/installer-payload/amulet.exe
 cp -r examples scripts/installer-payload/

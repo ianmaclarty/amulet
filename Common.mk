@@ -3,7 +3,7 @@ SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SPACE1=
 SPACE=$(SPACE1) $(SPACE1)
 
-TARGET_PLATFORMS = linux32;linux64;msvc32;msvc64;osx;ios;android_arm32;android_arm64;android_x86;android_x86_64;html;mingw32;mingw64;
+TARGET_PLATFORMS = linux32;linux64;msvc64;osx;ios;android_arm32;android_arm64;android_x86;android_x86_64;html;mingw64;
 
 # Directories
 
@@ -28,11 +28,11 @@ PATH_SEP = :
 
 UNAME := $(shell uname)
 ifneq (,$(findstring W32,$(UNAME)))
-  HOST_PLATFORM = msvc32
+  HOST_PLATFORM = msvc64
   IS_WINDOWS = yes
   PATH_SEP = ;
 else ifneq (,$(findstring MSYS_NT,$(UNAME)))
-  HOST_PLATFORM = msvc32
+  HOST_PLATFORM = msvc64
   IS_WINDOWS = yes
   PATH_SEP = ;
 else ifneq (,$(findstring MINGW64_NT,$(UNAME)))
@@ -161,12 +161,7 @@ ifeq (,$(wildcard $(THIRD_PARTY_DIR)/steamworks_sdk))
   STEAMWORKS_LINK_OPT=
 else
   STEAMWORKS=1
-  ifeq ($(TARGET_PLATFORM),msvc32)
-      STEAMWORKS_LIB=$(BUILD_LIB_DIR)/libsteam_api.lib
-      STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin
-      STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
-      STEAMWORKS_DEP=steam_api
-  else ifeq ($(TARGET_PLATFORM),msvc64)
+  ifeq ($(TARGET_PLATFORM),msvc64)
       STEAMWORKS_LIB=$(BUILD_LIB_DIR)/libsteam_api64.lib
       STEAMWORKS_LIB_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/redistributable_bin/win64
       STEAMWORKS_INC_DIR=$(THIRD_PARTY_DIR)/steamworks_sdk/public
@@ -329,36 +324,6 @@ else ifeq ($(TARGET_PLATFORM),html)
     AR = cmd //C emar.bat
     LINK = cmd //C em++.bat
   endif
-else ifeq ($(TARGET_PLATFORM),msvc32)
-  NO_STRICT_ALIAS_OPT = 
-  VC_CL = cl.exe
-  VC_CL_PATH = $(shell which $(VC_CL))
-  VC_CL_DIR = $(shell dirname "$(VC_CL_PATH)")
-  VC_LINK = "$(VC_CL_DIR)/link.exe"
-  VC_LIB = "$(VC_CL_DIR)/lib.exe"
-  EXE_EXT = .exe
-  ALIB_EXT = .lib
-  OBJ_EXT = .obj
-  OBJ_OUT_OPT = -Fo
-  EXE_OUT_OPT = /OUT:
-  CC = $(VC_CL)
-  CPP = $(VC_CL)
-  LINK = $(VC_LINK)
-  AR = $(VC_LIB)
-  AR_OPTS = -nologo
-  AR_OUT_OPT = -OUT:
-  XCFLAGS = -MT -DLUA_COMPAT_ALL -WX 
-  XLDFLAGS = -NODEFAULTLIB:msvcrt.lib \
-	$(BUILD_LIB_DIR)/SDL2.lib \
-	comdlg32.lib
-  TARGET_CFLAGS = -nologo -EHsc -fp:fast
-  WINDOWS = 1
-  MSVC = 1
-  WINDOWS_SUBSYSTEM_OPT = -SUBSYSTEM:WINDOWS
-  CONSOLE_SUBSYSTEM_OPT = -SUBSYSTEM:CONSOLE
-  SDL_PREBUILT_SUBDIR=win32
-  C99_OPT =
-  ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/32
 else ifeq ($(TARGET_PLATFORM),msvc64)
   NO_STRICT_ALIAS_OPT = 
   VC_CL = cl.exe
@@ -381,7 +346,7 @@ else ifeq ($(TARGET_PLATFORM),msvc64)
   XLDFLAGS = -NODEFAULTLIB:msvcrt.lib \
 	$(BUILD_LIB_DIR)/SDL2.lib \
   comdlg32.lib
-  TARGET_CFLAGS = -nologo -EHsc -fp:fast
+  TARGET_CFLAGS = -nologo -EHsc
   WINDOWS = 1
   MSVC = 1
   WINDOWS_SUBSYSTEM_OPT = -SUBSYSTEM:WINDOWS
@@ -389,21 +354,6 @@ else ifeq ($(TARGET_PLATFORM),msvc64)
   SDL_PREBUILT_SUBDIR=win64
   C99_OPT =
   ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/64
-else ifeq ($(TARGET_PLATFORM),mingw32)
-  EXE_EXT = .exe
-  CC = i686-w64-mingw32-gcc
-  CPP = i686-w64-mingw32-g++
-  LINK = $(CPP)
-  AR = i686-w64-mingw32-ar
-  XLDFLAGS = -static $(BUILD_LIB_DIR)/SDL2.lib 
-  XCFLAGS += -fno-strict-aliasing
-  LUAJIT_FLAGS += HOST_CC="gcc -m32" CROSS=i686-w64-mingw32- TARGET_SYS=Windows
-  WINDOWS = 1
-  MINGW = 1
-  WINDOWS_SUBSYSTEM_OPT = -mwindows
-  CONSOLE_SUBSYSTEM_OPT =
-  SDL_PREBUILT_SUBDIR=win32
-  ANGLE_WIN_PREBUILT_DIR = $(THIRD_PARTY_DIR)/angle-win-prebuilt/32
 else ifeq ($(TARGET_PLATFORM),mingw64)
   EXE_EXT = .exe
   CC = x86_64-w64-mingw32-gcc
@@ -435,11 +385,6 @@ ifeq ($(GRADE),debug)
     GRADE_CFLAGS = -O0 -profiling
     GRADE_LDFLAGS = -profiling
     LUA_CFLAGS += -DLUA_USE_APICHECK
-  else ifeq ($(TARGET_PLATFORM),msvc32)
-    GRADE_CFLAGS = -MTd -Zi
-    GRADE_LDFLAGS = -DEBUG
-    LUA_CFLAGS += -DLUA_USE_APICHECK
-    LUAJIT_FLAGS += CFLAGS="-DLUA_USE_APICHECK -g" LDFLAGS=-g
   else ifeq ($(TARGET_PLATFORM),osx)
     GRADE_CFLAGS = -g -O0
     GRADE_LDFLAGS = -g
@@ -460,9 +405,6 @@ else
     #EM_PROFILING = --profiling
     GRADE_CFLAGS = -O2 $(EM_PROFILING) -DNDEBUG
     GRADE_LDFLAGS = -O2 $(EM_PROFILING) 
-  else ifeq ($(TARGET_PLATFORM),msvc32)
-    GRADE_CFLAGS = -Ox -DNDEBUG
-    GRADE_LDFLAGS =
   else ifeq ($(TARGET_PLATFORM),msvc64)
     GRADE_CFLAGS = -Ox -DNDEBUG
     GRADE_LDFLAGS =

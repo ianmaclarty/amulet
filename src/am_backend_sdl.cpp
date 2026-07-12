@@ -124,6 +124,7 @@ am_native_window *am_create_native_window(
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     }
     if (am_conf_d3dangle) {
+        SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1"); // force angle
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);

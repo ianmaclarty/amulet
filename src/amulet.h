@@ -4,7 +4,7 @@
 #if defined(AM_MINGW32) || defined(AM_MINGW64)
     #define AM_MINGW
 #endif
-#if defined(AM_MSVC64) || defined(AM_MSVC32)
+#if defined(AM_MSVC64)
     #define AM_MSVC
 #endif
 #if defined(AM_MINGW) || defined(AM_MSVC)
