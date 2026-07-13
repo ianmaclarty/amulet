@@ -41,7 +41,7 @@ jobs:
           retention-days: 1
           overwrite: true
   build_macos:
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -49,8 +49,8 @@ jobs:
         run: make TARGET=osx.release     LUAVM=lua51
       - name: Build osx.release.lua52
         run: make TARGET=osx.release     LUAVM=lua52
-      - name: Build osx.release.luajit
-        run: make TARGET=osx.release     LUAVM=luajit
+      # - name: Build osx.release.luajit
+      #   run: make TARGET=osx.release     LUAVM=luajit
       - name: Build ios.release.lua51
         run: make TARGET=ios.release     LUAVM=lua51
       - name: Build ios.release.lua52
