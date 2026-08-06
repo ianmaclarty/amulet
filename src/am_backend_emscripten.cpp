@@ -100,6 +100,13 @@ void am_get_native_window_safe_area_margin(am_native_window *window,
     *top = 0;
 }
 
+const char* am_get_native_window_title(am_native_window *window) {
+    return NULL;
+}
+
+void am_set_native_window_title(am_native_window *window, const char* title) {
+}
+
 void am_destroy_native_window(am_native_window* win) {
 }
 
